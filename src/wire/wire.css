@@ -53,7 +53,7 @@
   .wf-shape path {
     fill: var(--tone-bg, var(--tone-3));
     stroke: var(--card-ink, var(--ink));
-    stroke-width: 3.5;
+    stroke-width: calc(var(--bw) * 1.75); /* the owner's 3.5, as a multiple of the frame weight */
     stroke-linejoin: round;
   }
 
@@ -98,15 +98,5 @@
     font: var(--type-meta);
     border: var(--bw-thin) solid currentColor;
     border-radius: var(--radius-pill);
-  }
-
-  /* disabled, as hatch. Lighter than the text on purpose: the words have to
-     stay readable through it. */
-  .card:is([aria-disabled="true"], .is-disabled) {
-    background-image: repeating-linear-gradient(
-      135deg,
-      transparent 0 0.4375rem,
-      var(--tone-4) 0.4375rem 0.5rem
-    );
   }
 }

@@ -70,11 +70,11 @@ npm run new:component -- name --order 45
 
 ## Status and honest limits
 
-Version 0.2.0. Verified in **Chromium** only. **Not verified:** Safari / iOS (standalone safe areas, Dynamic Type), Firefox, real screen readers (VoiceOver, TalkBack, NVDA) and Android font scaling. Elements so far: Card and Button; more arrive through the gated pipeline described in [STYLE.md](STYLE.md) §6.
+Version 0.2.0. Verified in **Chromium** only. **Not verified:** Safari / iOS (standalone safe areas, Dynamic Type), Firefox, real screen readers (VoiceOver, TalkBack, NVDA) and Android font scaling. Elements so far: Card and Button; more arrive through the gated pipeline described in [STYLE.md](STYLE.md) §6. What was wrong with the original sheet, and what was done about each finding, is in [AUDIT.md](AUDIT.md); the evidence and the notes behind the design are in [references/](references/).
 
 ## Credits and licences
 
-- Font: [Archivo](https://github.com/Omnibus-Type/Archivo) Variable, SIL Open Font License 1.1 (`src/fonts/OFL-Archivo.txt`).
+- Font: [Archivo](https://github.com/Omnibus-Type/Archivo) Variable (latin, latin-ext, vietnamese; via Fontsource builds), SIL Open Font License 1.1 (`src/fonts/OFL-Archivo.txt`).
 - Icons: five drawn by the owner; the rest from [Lucide](https://lucide.dev), ISC licence (`src/icons/LICENSE-lucide.txt`), re-stroked to the same 2px square-cap line.
 - Design references: third-party mockups analysed for ideas only; none are included in this repo.
 - This repository does not yet declare a licence for its own code; add a `LICENSE` file before sharing it publicly.
