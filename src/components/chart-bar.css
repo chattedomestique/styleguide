@@ -487,6 +487,22 @@
     }
   }
 
+  /* Last resort (200 % text in a narrow card): the label column would leave the track a few pixels wide and
+     the value would run out of the frame (WCAG 1.4.4 / 1.4.10). One column: each label sits above its bar. */
+  @container bars (max-width: 10rem) {
+    .bars:not([data-orientation="vertical"]) .bars__plot {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .bars:not([data-orientation="vertical"]) .bars__col {
+      grid-column: 1 / -1;
+      align-items: start;
+      row-gap: var(--space-1);
+    }
+    .bars:not([data-orientation="vertical"]) .bars__track {
+      inline-size: 100%;
+    }
+  }
+
   /* ---- forced colours: fills and shadows go, so the frame gets heavier ---------------------- */
   @media (forced-colors: active) {
     .bars__track {

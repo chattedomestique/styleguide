@@ -217,17 +217,22 @@
     --_overlap: 0.22; /* how much of a circle the next one covers; enough to read as a group, little enough to keep two letters legible */
 
     display: flex;
+    flex-wrap: wrap; /* big text or a narrow column: a second row, never a circle cut off (WCAG 1.4.4 / 1.4.10) */
     align-items: center;
+    row-gap: var(--space-1);
     margin: 0;
+    /* The overlap is a negative margin on the END of every circle but the last, so a wrapped row starts flush with
+       the edge. Each row's last circle then overhangs by one overlap; this padding is where it lands. */
     padding: 0;
+    padding-inline-end: calc(var(--avatar-size) * var(--_overlap));
     list-style: none;
 
     & > li {
       display: flex;
       flex: none;
     }
-    & > li + li {
-      margin-inline-start: calc(var(--avatar-size) * var(--_overlap) * -1);
+    & > li:not(:last-child) {
+      margin-inline-end: calc(var(--avatar-size) * var(--_overlap) * -1);
     }
     /* the next circle covers the last 22% of this one, so its initials are centred in the part that shows */
     & > li:not(:last-child) > .avatar {

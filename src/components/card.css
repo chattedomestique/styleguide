@@ -435,7 +435,7 @@
 
   /* --- variant: row ----------------------------------------------------------
      Icon tile, title and a short meta line, value on the right. Below 18rem the
-     value drops under the title. The card can't re-template itself from its
+     value drops under the title; below 12rem everything stacks. The card can't re-template itself from its
      own container, but its children can move between grid cells. */
 
   .card--row {
@@ -470,6 +470,19 @@
 
     .card--row .card__tile {
       grid-row: span 2;
+    }
+  }
+
+  /* Cramped (200 % text in a narrow column: the tile, padding and gaps alone use the width and the title
+     column collapses to nothing, cutting text off; WCAG 1.4.4 / 1.4.10). Every part takes a full-width row.
+     Spanning 1 / -1 also covers the two gaps the empty side tracks would otherwise keep. */
+  @container card (inline-size <= 12rem) {
+    .card--row .card__tile,
+    .card--row .card__main,
+    .card--row .card__trail {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      text-align: start;
     }
   }
 

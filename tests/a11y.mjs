@@ -64,12 +64,13 @@ function probeFocus(maxTabs) {
       if (!visible(el)) { res.push({ kind: 'invisible-focus', el: desc(el) }); continue }
       // The indicator may be on the control or on a container that wears it on the control's behalf
       // (a whole-card link: .card:has(a:focus-visible)). Accept an outline or shadow on the control or the nearest 5 ancestors.
+      // A transparent outline is the forced-colours fallback (it becomes a real ring only there); it is not an
+      // indicator in normal colours. The ring may also be drawn on ::before / ::after (a styled checkbox).
       let shown = false
       for (let n = el, k = 0; n && k < 6 && !shown; n = n.parentElement, k++) {
         const cs = getComputedStyle(n)
-        const outline = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0
         const shadow = cs.boxShadow && cs.boxShadow !== 'none'
-        shown = outline || !!shadow
+        shown = !!ringHolder(n) || !!shadow
       }
       if (!shown) res.push({ kind: 'no-indicator', el: desc(el) })
       else {
@@ -85,6 +86,18 @@ function probeFocus(maxTabs) {
     }
     res.push({ kind: 'tab-count', n: seen.size })
     return res
+    // The computed style (of the node or its ::before / ::after) that draws a visible outline, else null.
+    function ringHolder(n) {
+      for (const pseudo of [null, '::before', '::after']) {
+        const cs = getComputedStyle(n, pseudo)
+        if (cs.outlineStyle === 'none' || !(parseFloat(cs.outlineWidth) > 0)) continue
+        if (pseudo && cs.content === 'none') continue
+        const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+        probe.clearRect(0, 0, 1, 1); probe.fillStyle = '#000'; probe.fillStyle = cs.outlineColor; probe.fillRect(0, 0, 1, 1)
+        if (probe.getImageData(0, 0, 1, 1).data[3] > 0) return cs
+      }
+      return null
+    }
     function desc(e) { return e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).slice(0, 2).join('.') : '') + (e.textContent ? ` "${e.textContent.trim().replace(/\s+/g, ' ').slice(0, 24)}"` : '') }
     function ringContrast(el) {
       const cv = document.createElement('canvas'); cv.width = cv.height = 1
@@ -94,10 +107,9 @@ function probeFocus(maxTabs) {
       const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
       const bgOf = (n) => { for (; n; n = n.parentElement) { const c = rgba(getComputedStyle(n).backgroundColor); if (c[3] >= 0.99) return c } return rgba('canvas') }
       // the node that wears the ring: the control itself or the nearest ancestor with an outline / ring shadow
-      let holder = null
-      for (let n = el, k = 0; n && k < 6; n = n.parentElement, k++) { const cs = getComputedStyle(n); if (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0) { holder = n; break } }
+      let holder = null, cs = null
+      for (let n = el, k = 0; n && k < 6 && !holder; n = n.parentElement, k++) { const h = ringHolder(n); if (h) { holder = n; cs = h } }
       if (!holder) return null
-      const cs = getComputedStyle(holder)
       const ringC = rgba(cs.outlineColor)
       const off = parseFloat(cs.outlineOffset) || 0
       const neighbours = []
@@ -164,12 +176,14 @@ function probeClipped() {
     if (!/^(clip|hidden)$/.test(cs.overflowX) && !/^(clip|hidden)$/.test(cs.overflowY)) continue
     if (box.closest('.sr-only, [hidden], details:not([open]) > :not(summary), pre, .marquee, [data-allow-clip]')) continue
     const b = box.getBoundingClientRect()
-    if (!b.width || !b.height) continue
+    if (b.width <= 1 || b.height <= 1) continue // a 1px clipped box is the visually-hidden pattern (a week view's header row), not a frame
     const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT)
     for (let t; (t = walker.nextNode()); ) {
       if (!t.nodeValue.trim()) continue
       const host = t.parentElement
       const hs = getComputedStyle(host)
+      // closed <details> content is not rendered (content-visibility: hidden); it cannot be cut off
+      if (host.closest('details:not([open]) > :not(summary)')) continue
       if (hs.visibility === 'hidden' || hs.display === 'none' || host.closest('.sr-only, [aria-hidden="true"]') || hs.textOverflow === 'ellipsis') continue
       // text inside its own scroller (a <pre>, a table wrapper) is reachable by scrolling, not cut off
       let scrollsX = false, scrollsY = false
@@ -251,7 +265,8 @@ async function audit(pg, app) {
     // reflow (once per page, on the first appearance). Every <details> is opened first: the copy-paste
     // markup panels are part of the page and must not break WCAG 1.4.10 either.
     if (app === APPEARANCES[0]) {
-      await page.evaluate(() => document.querySelectorAll('details').forEach((d) => { d.open = true }))
+      // name= makes a group exclusive (opening one closes the rest), so drop it or only the last item would stay open
+      await page.evaluate(() => document.querySelectorAll('details').forEach((d) => { d.removeAttribute('name'); d.open = true }))
       await page.setViewportSize({ width: 320, height: 640 })
       const o1 = await page.evaluate(probeOverflow)
       if (o1) rec.errors.push(`reflow@320: horizontal overflow ${o1.overflow}px. ${o1.bad.join('; ')}`)

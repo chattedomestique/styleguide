@@ -263,7 +263,10 @@
   .agenda-day__grid {
     display: grid;
     grid-template-columns: 3rem minmax(0, 1fr);
-    grid-template-rows: repeat(var(--steps, 24), var(--step));
+    /* The time scale is a MINIMUM: at large text an event's title and times need more room than 15 minutes
+       x its length, and a fixed row would cut them off (WCAG 1.4.4). Auto rows stretch instead; the ruler
+       shares these rows (subgrid), so the hours stay aligned with the events. */
+    grid-template-rows: repeat(var(--steps, 24), minmax(var(--step), auto));
   }
 
   /* the ruler: one row per hour, each spanning four 15-minute rows, across the whole width */
