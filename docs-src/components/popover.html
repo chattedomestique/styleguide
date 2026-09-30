@@ -1,0 +1,211 @@
+<!--{"title":"Popover","group":"Components","order":83,"summary":"A small non-modal card next to the control that opened it: help, a few options. Native popover attribute, anchored, light dismiss."}-->
+<style>
+  /* Docs-only scaffolding: see dialog.html for why margins and headings are reverted in demos. */
+  .docs-article .demo .demo__stage > :is(dialog, [popover]) { margin: revert-layer; }
+  .docs-article .popover :is(h2, h3).card__label { all: revert-layer; }
+  .docs-article .popover p { max-inline-size: none; }
+  #pop-corners > div { min-inline-size: 0; }
+  #pop-corners .t-label { margin-block-end: var(--space-2); }
+  /* Fields come from the forms slice in a real app; native checkboxes take --accent from the base. */
+  #pop-options label { display: flex; align-items: center; gap: var(--space-3); min-block-size: var(--hit); font: var(--type-body); cursor: pointer; }
+  #pop-options input { inline-size: 1.25rem; block-size: 1.25rem; flex: none; margin: 0; }
+  #pop-options fieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+  #pop-options legend { padding: 0; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  #pop-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-4); }
+  #pop-places .btn { justify-self: start; }
+</style>
+<h1>Popover</h1>
+<p class="lede">A popover is a small card that opens next to the control that asked for it: a line of help, a couple of options. It is the native <code>popover</code> attribute, so it sits above everything with no z-index, closes when you click away or press <kbd>Esc</kbd>, and never blocks the page behind it.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div>
+      <strong>Do</strong>
+      <p>Use a popover for help that needs more than a <a href="@/components/tooltip.html">tooltip</a> can hold, or for two or three small controls that belong to one thing: a filter, a sort order, a share link. Give it a title and a Close control.</p>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div>
+      <strong>Don't</strong>
+      <p>Use it for a decision that must be answered first (a <a href="@/components/dialog.html">dialog</a>), a list of commands (a <a href="@/components/menu.html">menu</a>) or anything long (a <a href="@/components/sheet.html">sheet</a>). Do not put a popover inside a popover, and never hide the only way to do something in one.</p>
+    </div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="help">Help</h3>
+<p>The basic popover: a bar, a few sentences, a Close control. <code>popovertarget</code> opens it with no script; SG keeps <code>aria-expanded</code> on the button in step, moves focus in on open (to <code>autofocus</code>, else the first control, else the card itself, so a screen reader reads it) and gives focus back on close.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" popovertarget="pop-known" aria-haspopup="dialog" aria-expanded="false">
+      <span class="ic ic--circle-help" aria-hidden="true"></span>What counts as known?
+    </button>
+
+    <div class="popover card" id="pop-known" popover role="dialog" aria-labelledby="pop-known-t">
+      <header class="card__bar">
+        <h2 class="card__label" id="pop-known-t">Known</h2>
+        <button class="card__ctl" type="button" popovertarget="pop-known" popovertargetaction="hide" aria-label="Close">
+          <span class="ic ic--close" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card__body">
+        <p class="card__text">A card becomes known after you get it right three times in a row. Miss it once and it goes back to review.</p>
+        <p class="card__meta">Known cards come back after 4 days.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="options">A few options</h3>
+<p>Small controls that apply at once need no Save. Native checkboxes keep their keyboard and their accessible state; tab order follows the DOM, and moving focus out of the popover closes it.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" popovertarget="pop-options" aria-haspopup="dialog" aria-expanded="false">
+      <span class="ic ic--sliders-horizontal" aria-hidden="true"></span>Study options
+    </button>
+
+    <div class="popover card" id="pop-options" popover role="dialog" aria-labelledby="pop-options-t" data-placement="bottom-start">
+      <header class="card__bar">
+        <h2 class="card__label" id="pop-options-t">Study options</h2>
+        <button class="card__ctl" type="button" popovertarget="pop-options" popovertargetaction="hide" aria-label="Close">
+          <span class="ic ic--close" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card__body">
+        <fieldset>
+          <legend class="sr-only">Options</legend>
+          <label><input type="checkbox" checked /> Shuffle cards</label>
+          <label><input type="checkbox" /> Show the answer first</label>
+          <label><input type="checkbox" checked /> Read cards aloud</label>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="placement">Placement</h3>
+<p><code>data-placement</code> says where it opens relative to the button. It is written in logical terms, so <code>start</code> and <code>end</code> flip in right-to-left text, and it flips to the other side when there is no room. Browsers with CSS anchor positioning do it in CSS; the others get the same result from a few lines of script.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div id="pop-places">
+      <button class="btn" type="button" popovertarget="pop-p1" aria-haspopup="dialog" aria-expanded="false">Bottom start</button>
+      <button class="btn" type="button" popovertarget="pop-p2" aria-haspopup="dialog" aria-expanded="false">Bottom end</button>
+      <button class="btn" type="button" popovertarget="pop-p3" aria-haspopup="dialog" aria-expanded="false">Top</button>
+      <button class="btn" type="button" popovertarget="pop-p4" aria-haspopup="dialog" aria-expanded="false">End</button>
+    </div>
+    <div class="popover card" id="pop-p1" popover role="dialog" aria-label="Bottom start" data-size="sm"><div class="card__body"><p class="card__text">Below the button, start edges aligned. The default.</p></div></div>
+    <div class="popover card" id="pop-p2" popover role="dialog" aria-label="Bottom end" data-size="sm" data-placement="bottom-end"><div class="card__body"><p class="card__text">Below, end edges aligned: for a button at the end of a row.</p></div></div>
+    <div class="popover card" id="pop-p3" popover role="dialog" aria-label="Top" data-size="sm" data-placement="top"><div class="card__body"><p class="card__text">Above, centred on the button.</p></div></div>
+    <div class="popover card" id="pop-p4" popover role="dialog" aria-label="End" data-size="sm" data-placement="end"><div class="card__body"><p class="card__text">Beside it, on the end side.</p></div></div>
+  </div>
+</div>
+
+<h3 id="tone">With a tone</h3>
+<p>A popover is a card, so <code>data-tone</code> works. The card's own rule for the ink tone applies too: the bar flips to paper.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" popovertarget="pop-tone" aria-haspopup="dialog" aria-expanded="false">3 to review</button>
+    <div class="popover card" id="pop-tone" popover role="dialog" aria-labelledby="pop-tone-t" data-tone="1" data-size="sm">
+      <header class="card__bar">
+        <h2 class="card__label" id="pop-tone-t">Review</h2>
+        <button class="card__ctl" type="button" popovertarget="pop-tone" popovertargetaction="hide" aria-label="Close">
+          <span class="ic ic--close" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card__body">
+        <p class="card__text">Triangle, Star and Crescent are due today.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="corners">Square and soft corners</h3>
+<p>The popover reads <code>--radius-card</code> like every card. Static previews (<code>data-inline</code>); live popovers go in the top layer.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" id="pop-corners" style="--grid-min: 16rem; --grid-gap: var(--space-5)">
+      <div data-corners="square">
+        <p class="t-label">Square</p>
+        <div class="popover card" data-inline popover role="group" aria-labelledby="pop-sq-t" data-size="sm">
+          <header class="card__bar"><h3 class="card__label" id="pop-sq-t">Known</h3><button class="card__ctl" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button></header>
+          <div class="card__body"><p class="card__text">Right three times in a row.</p></div>
+        </div>
+      </div>
+      <div data-corners="soft">
+        <p class="t-label">Soft</p>
+        <div class="popover card" data-inline popover role="group" aria-labelledby="pop-so-t" data-size="sm">
+          <header class="card__bar"><h3 class="card__label" id="pop-so-t">Known</h3><button class="card__ctl" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button></header>
+          <div class="card__body"><p class="card__text">Right three times in a row.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="behaviour">What happens, and who does it</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Popover behaviour and who provides it</caption>
+  <thead><tr><th>Behaviour</th><th>Provided by</th></tr></thead>
+  <tbody>
+    <tr><td>Opens and closes from the button, no script</td><td>The browser (<code>popovertarget</code>).</td></tr>
+    <tr><td>Top layer, no z-index</td><td>The browser. Nothing in this system sets a z-index on an overlay.</td></tr>
+    <tr><td>Click outside and <kbd>Esc</kbd> close it</td><td>The browser (<code>popover="auto"</code>, light dismiss). Only one auto popover is open at a time.</td></tr>
+    <tr><td>Next to the button, flipped when there is no room</td><td>CSS anchor positioning (<code>popover.css</code>); a script fallback where unsupported (<code>62-popover.js</code>).</td></tr>
+    <tr><td>Focus moves in, and back to the button on close</td><td>SG (<code>62-popover.js</code>).</td></tr>
+    <tr><td><code>aria-expanded</code> on the button</td><td>SG keeps it in step with the popover.</td></tr>
+    <tr><td>Moving focus to another control closes it</td><td>SG: a popover is not a place to park.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Button</strong>: any <code>.btn</code> with <code>popovertarget</code>, <code>aria-haspopup="dialog"</code> and <code>aria-expanded</code>. An icon-only button also carries an <code>aria-label</code>.</li>
+  <li><strong>Popover</strong>: <code>&lt;div class="popover card" popover role="dialog"&gt;</code>. The owner's card next to the button: 2px frame, <code>--radius-card</code>, no shadow. 20rem wide by default and never wider than the screen.</li>
+  <li><strong>Bar</strong> (<code>.card__bar</code>, optional): title in uppercase and a Close control. Without a title, name the popover with <code>aria-label</code>.</li>
+  <li><strong>Body</strong> (<code>.card__body</code>): text or a few controls. Scrolls when taller than the screen.</li>
+  <li><strong>Actions</strong> (<code>.popover__actions</code>, optional): pills under a 1px rule, for a popover with a form that needs a Save.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Popover attributes and JavaScript</caption>
+  <thead><tr><th>Attribute / call</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="popover card"</code> + <code>popover</code></td><td></td><td>The popover. Also give it <code>role="dialog"</code> and a name (<code>aria-labelledby</code> or <code>aria-label</code>).</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code> (16rem), <code>md</code> (20, default), <code>lg</code> (26)</td><td>Width.</td></tr>
+    <tr><td><code>data-placement</code></td><td><code>bottom-start</code> (default), <code>bottom</code>, <code>bottom-end</code>, <code>top-start</code>, <code>top</code>, <code>top-end</code>, <code>start</code>, <code>end</code></td><td>Where it opens relative to the button. Flips when there is no room.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code></td><td>The card's tone API, unchanged.</td></tr>
+    <tr><td><code>data-inline</code></td><td></td><td>Static preview in the flow.</td></tr>
+    <tr><td><code>popovertarget</code> / <code>popovertargetaction="hide"</code></td><td>id</td><td>Native open, toggle and close. The Close control uses <code>hide</code>.</td></tr>
+    <tr><td><code>SG.anchor.attach(el, trigger)</code></td><td></td><td>Used by the menu and tooltip too: anchors any popover to a trigger. <code>SG.anchor.native</code> says which path is in use.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Popover keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd> on the button</td><td>Opens the popover and moves focus into it.</td></tr>
+    <tr><td><kbd>Tab</kbd></td><td>Through the popover's controls. Past the last one, focus moves on and the popover closes (it is not a place to park). Nothing behind it is inert, and there is no trap (WCAG 2.1.2).</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Closes and returns focus to the button.</td></tr>
+    <tr><td>Focus order (2.4.3)</td><td>The popover should sit right after its button in the DOM so Tab reaches it naturally.</td></tr>
+    <tr><td>Screen reader</td><td>The button is announced with its collapsed / expanded state (<code>aria-haspopup="dialog"</code>); the popover as "Title, dialog", followed by its text.</td></tr>
+    <tr><td>Touch</td><td>The button and the Close control are 44px. Tap outside to dismiss.</td></tr>
+    <tr><td>Zoom / text size</td><td>Width is rem and capped to the screen; the body scrolls when taller than the screen; long words wrap.</td></tr>
+    <tr><td>Reduced motion</td><td>The 8px settle is multiplied by <code>--move</code>, so only a fade remains.</td></tr>
+    <tr><td>Forced colours</td><td>The frame becomes <code>CanvasText</code>; the bar gets a real line under it.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>A popover is for things people can do without. Nothing essential lives only in one.</li>
+  <li>If the popover holds a form that must be submitted, give it an action row and a visible way to cancel; light dismiss discards.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-card</code>, <code>--card-pad</code>, <code>--gutter</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--safe-top</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--safe-right</code>, <code>--move</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--ease-in</code>.</p>
+<p>Related: <a href="@/components/tooltip.html">Tooltip</a>, <a href="@/components/menu.html">Menu</a>, <a href="@/components/dialog.html">Dialog</a>, <a href="@/components/sheet.html">Sheet</a>, <a href="@/components/button.html">Button</a>, <a href="@/components/card.html">Card</a>.</p>

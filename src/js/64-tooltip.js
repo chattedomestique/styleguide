@@ -1,0 +1,170 @@
+/* ==========================================================================
+   SG.tooltip: hover and focus hints, to WCAG 1.4.13 and the APG Tooltip pattern
+   --------------------------------------------------------------------------
+     <button class="btn" aria-label="Flip card" aria-describedby="tip-flip">…</button>
+     <div class="tooltip" id="tip-flip" role="tooltip" popover="manual">Flip the card <kbd>Space</kbd></div>
+   The hook is the wiring itself: any element whose aria-describedby points at a .tooltip is a
+   trigger. Put the tooltip right after its trigger in the DOM (a trigger inside a modal dialog
+   needs its tooltip inside that dialog too, or the page-level tooltip is inert).
+
+   Shows    after 500ms of pointer hover (at once if another tooltip was showing a moment ago, so
+            sweeping along a toolbar feels live), and at once on KEYBOARD focus (:focus-visible).
+            Touch never shows it: a tap is an action, and no information lives only here.
+   Hides    when the pointer has left both the control and the tooltip (120ms grace, so the
+            pointer can travel onto the tooltip: hoverable), when focus leaves, when the control
+            is pressed, and on Esc.
+   Esc      dismisses the tooltip WITHOUT moving focus or the pointer and is swallowed, so a dialog
+            around the control stays open until the next Esc. The tooltip stays away until the
+            pointer has left and come back, or focus has come back.
+   Only one tooltip is visible at a time.
+
+   API  SG.tooltip.show(trigger)   SG.tooltip.hide()   SG.tooltip.delay (ms, default 500)
+   ========================================================================== */
+(function (SG) {
+  'use strict';
+
+  var GRACE = 120; // ms the pointer may take to cross the gap onto the tooltip
+  var WARM = 800;  // ms after a hide during which the next tooltip shows at once
+
+  var current = null;     // { tip, trigger }
+  var showTimer = 0;
+  var hideTimer = 0;
+  var lastHide = 0;
+  var suppressed = null;  // a trigger whose tooltip was dismissed with Esc or a press
+
+  function popoverOpen(el) {
+    try { return el.matches(':popover-open'); } catch (e) { return false; }
+  }
+
+  function tipFor(trigger) {
+    var ids = (trigger.getAttribute('aria-describedby') || '').split(/\s+/);
+    for (var i = 0; i < ids.length; i++) {
+      var el = ids[i] ? document.getElementById(ids[i]) : null;
+      if (el && el.classList.contains('tooltip') && el.hasAttribute('popover')) return el;
+    }
+    return null;
+  }
+
+  /** The nearest element at or above `node` that has a tooltip. */
+  function triggerOf(node) {
+    for (var n = node; n && n.nodeType === 1; n = n.parentElement) {
+      if (n.hasAttribute('aria-describedby') && tipFor(n)) return n;
+    }
+    return null;
+  }
+
+  function clearTimers() {
+    window.clearTimeout(showTimer);
+    window.clearTimeout(hideTimer);
+    showTimer = hideTimer = 0;
+  }
+
+  function show(trigger) {
+    var tip = tipFor(trigger);
+    if (!tip || trigger === suppressed) return;
+    clearTimers();
+    if (current && current.tip !== tip) hide();
+    if (!popoverOpen(tip)) {
+      SG.anchor.attach(tip, trigger);
+      if (!tip.hasAttribute('data-placement')) tip.setAttribute('data-placement', 'top');
+      try { tip.showPopover(); } catch (e) { return; }
+      SG.anchor.place(tip);
+    }
+    current = { tip: tip, trigger: trigger };
+  }
+
+  function hide() {
+    clearTimers();
+    if (!current) return;
+    var tip = current.tip;
+    current = null;
+    lastHide = Date.now();
+    if (popoverOpen(tip)) {
+      try { tip.hidePopover(); } catch (e) { /* already hidden */ }
+    }
+    SG.anchor.release(tip);
+  }
+
+  function scheduleShow(trigger) {
+    window.clearTimeout(hideTimer);
+    if (current && current.trigger === trigger) return;
+    window.clearTimeout(showTimer);
+    var warm = Date.now() - lastHide < WARM || !!current;
+    var delay = warm ? 0 : SG.tooltip.delay;
+    if (delay === 0) show(trigger);
+    else showTimer = window.setTimeout(function () { show(trigger); }, delay);
+  }
+
+  function scheduleHide() {
+    window.clearTimeout(showTimer);
+    window.clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(hide, GRACE);
+  }
+
+  /* ---- Pointer -------------------------------------------------------------------------------- */
+  document.addEventListener('pointerover', function (e) {
+    if (e.pointerType === 'touch') return;
+    var inTip = e.target.closest ? e.target.closest('.tooltip[popover]') : null;
+    if (inTip) { window.clearTimeout(hideTimer); return; }
+    var trigger = triggerOf(e.target);
+    if (!trigger) return;
+    if (suppressed && suppressed !== trigger) suppressed = null;
+    scheduleShow(trigger);
+  });
+
+  document.addEventListener('pointerout', function (e) {
+    if (e.pointerType === 'touch') return;
+    var from = e.target.closest ? e.target : null;
+    if (!from) return;
+    var to = e.relatedTarget;
+    var inTip = from.closest('.tooltip[popover]');
+    var trigger = inTip ? (current && current.tip === inTip ? current.trigger : null) : triggerOf(from);
+    if (!trigger) return;
+    var tip = tipFor(trigger);
+    // Still inside the control or its tooltip: nothing to do.
+    if (to && to.nodeType === 1 && (trigger.contains(to) || (tip && tip.contains(to)))) return;
+    if (suppressed === trigger) suppressed = null;
+    if (current && current.trigger === trigger) scheduleHide();
+    else window.clearTimeout(showTimer);
+  });
+
+  /* A press is an action: the hint has done its job and must not sit over the next thing. */
+  document.addEventListener('pointerdown', function (e) {
+    if (!current && !showTimer) return;
+    var trigger = triggerOf(e.target);
+    if (trigger) suppressed = trigger;
+    hide();
+  }, true);
+
+  /* ---- Keyboard --------------------------------------------------------------------------------- */
+  document.addEventListener('focusin', function (e) {
+    var trigger = triggerOf(e.target);
+    if (!trigger) return;
+    if (suppressed && suppressed !== trigger) suppressed = null;
+    var visible = true;
+    try { visible = e.target.matches(':focus-visible'); } catch (err) { /* old engine: show */ }
+    if (visible) show(trigger);
+  });
+
+  document.addEventListener('focusout', function (e) {
+    var trigger = triggerOf(e.target);
+    if (!trigger) return;
+    if (suppressed === trigger) suppressed = null;
+    if (current && current.trigger === trigger) hide();
+    else window.clearTimeout(showTimer);
+  });
+
+  /* Esc (WCAG 1.4.13, dismissible): capture phase, so it wins over a dialog or menu around the control. */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || !current) return;
+    suppressed = current.trigger;
+    hide();
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+
+  window.addEventListener('blur', hide);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) hide(); });
+
+  SG.tooltip = { show: show, hide: hide, delay: 500 };
+})((window.SG = window.SG || {}));
