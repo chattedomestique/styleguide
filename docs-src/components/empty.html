@@ -1,0 +1,218 @@
+<!--{"title":"Empty state","group":"Components","order":95,"summary":"What a view shows when there is nothing yet, nothing found, something broke or there is no connection: an icon, a sentence, one fix."}-->
+<style>
+  /* Docs-only scaffolding for the live search demo. Roles only. */
+  #ex-q { inline-size: 100%; min-block-size: var(--ctl); padding-inline: var(--space-4); border: var(--bw) solid var(--line); border-radius: var(--radius-ctl); background: var(--paper); color: var(--ink); font: var(--type-body); }
+  #ex-slot:empty { display: none; }
+</style>
+
+<h1>Empty state</h1>
+<p class="lede">Every screen that shows data has four ways to show none: nothing yet, nothing found, something broke, no connection. Each one says what happened in a sentence, says what to do in a sentence, and puts the fix in one button. A blank screen looks like a bug.</p>
+
+<h2 id="when">When to use</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">The four empty states, what to say and how to announce them</caption>
+  <thead><tr><th>State</th><th>Say</th><th>Primary action</th><th>Announce</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Empty</strong>: first use, nothing created</td><td>What this place is for and how it fills up.</td><td>Create the first one (Add deck)</td><td>Nothing: it is page content.</td></tr>
+    <tr><td><strong>No results</strong>: a search or filter matched nothing</td><td>What was searched. Suggest a fix.</td><td>Clear search / Clear filters</td><td>Polite: <code>SG.announce("No results for fox")</code>, or a <code>role="status"</code> that already exists.</td></tr>
+    <tr><td><strong>Error</strong>: the load or save failed</td><td>What failed, without blame, and that nothing was lost.</td><td>Try again</td><td>Assertive: <code>role="alert"</code>, or <code>SG.announce(msg, { assertive: true })</code>.</td></tr>
+    <tr><td><strong>Offline</strong>: no connection</td><td>That the device is offline and what still works.</td><td>Try again; or open saved items</td><td>Polite, when it changes. Offline is a state, not an emergency.</td></tr>
+  </tbody>
+</table></div>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Write for someone mid-task: <em>"Couldn't load your decks. They are safe on this phone. Try again."</em> Keep what the person typed. Make the button do the obvious next thing.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Decorate. An illustration that could sit on any product's empty screen says nothing here. The icon names the kind of empty; the words do the rest. No art, no jokes, no blame.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="four">The four states</h3>
+<p>Built on the card's ghost idea: a dashed frame means "nothing here yet". An error or an offline notice is not empty, it is something that happened, so a tone makes it solid and filled. Each has its own icon shape, so colour is never the only cue.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 17rem">
+      <section class="card empty" aria-labelledby="em-first">
+        <div class="card__body">
+          <span class="empty__icon" aria-hidden="true"><span class="ic ic--layers"></span></span>
+          <h4 class="card__title" id="em-first">No decks yet</h4>
+          <p class="card__text">Add your first deck and it shows up here.</p>
+          <div class="empty__actions"><button class="btn" data-variant="primary" type="button">Add deck</button></div>
+        </div>
+      </section>
+      <section class="card empty" aria-labelledby="em-none">
+        <div class="card__body">
+          <span class="empty__icon" aria-hidden="true"><span class="ic ic--search"></span></span>
+          <h4 class="card__title" id="em-none">No decks match &ldquo;fox&rdquo;</h4>
+          <p class="card__text">Check the spelling, or clear the search to see all 12 decks.</p>
+          <div class="empty__actions"><button class="btn" type="button">Clear search</button></div>
+        </div>
+      </section>
+      <section class="card empty" data-tone="bad" aria-labelledby="em-error">
+        <div class="card__body">
+          <span class="empty__icon" aria-hidden="true"><span class="ic ic--circle-alert"></span></span>
+          <h4 class="card__title" id="em-error">Couldn&rsquo;t load your decks</h4>
+          <p class="card__text">They are safe on this phone. Check your connection and try again.</p>
+          <div class="empty__actions"><button class="btn" data-variant="tone" data-tone="bad" type="button">Try again</button></div>
+        </div>
+      </section>
+      <section class="card empty" data-tone="warn" aria-labelledby="em-offline">
+        <div class="card__body">
+          <span class="empty__icon" aria-hidden="true"><span class="ic ic--wifi-off"></span></span>
+          <h4 class="card__title" id="em-offline">You&rsquo;re offline</h4>
+          <p class="card__text">Saved decks still work. New ones need a connection.</p>
+          <div class="empty__actions">
+            <button class="btn" data-variant="tone" data-tone="warn" type="button">Open saved decks</button>
+            <button class="btn" type="button">Try again</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<h3 id="list">In a list or card</h3>
+<p><code>data-layout="list"</code> is a compact left-aligned unit: the icon beside the words. For the empty half of a list, a panel, a tab.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <section class="card empty" data-layout="list" aria-labelledby="em-list">
+      <div class="card__body">
+        <span class="empty__icon" aria-hidden="true"><span class="ic ic--clock"></span></span>
+        <h4 class="card__title" id="em-list">Nothing due today</h4>
+        <p class="card__text">Your next review is tomorrow at 8:00.</p>
+        <div class="empty__actions"><button class="btn" data-size="sm" type="button">Study ahead</button></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<h3 id="page">Full screen</h3>
+<p><code>data-layout="page"</code> fills what the app shell leaves between the app bar and the dock, and centres the content. Set <code>--empty-page-h</code> to fit a preview frame (this phone uses 25rem). It is a minimum, not a fixed height, so 200% text scrolls instead of clipping.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="3" style="--empty-page-h: 25rem">
+        <h4 class="t-title">My decks</h4>
+        <section class="card empty" data-layout="page" aria-labelledby="em-page">
+          <div class="card__body">
+            <span class="empty__icon" aria-hidden="true"><span class="ic ic--layers"></span></span>
+            <h5 class="card__title" id="em-page">Start your first deck</h5>
+            <p class="card__text">A deck is a set of cards you flip through. Start with one.</p>
+            <div class="empty__actions">
+              <button class="btn" data-variant="primary" type="button"><span class="ic ic--plus" aria-hidden="true"></span>Add deck</button>
+              <button class="btn" type="button">Import from file</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="live">No results, live</h3>
+<p>Type something that is not a deck (try <em>fox</em>). The list is swapped for the state, the result is announced once and politely, and <em>Clear search</em> puts focus back in the field instead of losing it to the page.</p>
+<div class="demo" data-layout="stack" data-nocode>
+  <div class="demo__stage">
+    <div class="stack" data-gap="2">
+      <label for="ex-q" class="t-meta">Search decks</label>
+      <input id="ex-q" type="search" autocomplete="off" />
+    </div>
+    <ul class="card__list card" id="ex-list" role="list">
+      <li><a href="#">Shapes</a><span>12</span></li>
+      <li><a href="#">Colours</a><span>8</span></li>
+      <li><a href="#">Numbers to twenty</a><span>20</span></li>
+      <li><a href="#">Farm animals</a><span>15</span></li>
+    </ul>
+    <div id="ex-slot"></div>
+  </div>
+</div>
+
+<h2 id="announce">Announcing and recovering</h2>
+<ul>
+  <li><strong>When the state appears because of an action</strong> (search, filter, refresh, a dropped connection), tell people without moving focus (WCAG 4.1.3). Either insert the state into a container that already exists with <code>role="status"</code> (<code>role="alert"</code> for errors), or keep the markup plain and call <code>SG.announce(message)</code>. Do both and it is read twice.</li>
+  <li><strong>When it is simply what the page is</strong> (first load, no data), it is content, not an event. No role.</li>
+  <li><strong>If the thing that had focus disappears</strong> (the "Clear search" button you just pressed), move focus on purpose: to the field, to the heading of the new content, or to the first result.</li>
+  <li><strong>Offer recovery</strong>: a retry that works, a way to keep going offline, a path back. The action is a real <code>&lt;button&gt;</code>, or a link if it navigates.</li>
+  <li><strong>Preserve data.</strong> An error state that clears the form is a second error.</li>
+</ul>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Card</strong> (<code>.card.empty</code>): the 2px frame is the card's own, dashed for "nothing yet", solid and filled with a tone for "something happened". Padding is on the <code>.card__body</code>, as for every card.</li>
+  <li><strong>Icon tile</strong> (<code>.empty__icon</code>): the owner's icon tile, a 2px-framed square slot in <code>--radius-tile</code>, with a paper fill so it reads on the dashed canvas and on any tone. <code>aria-hidden</code>, because the title says the same thing in words.</li>
+  <li><strong>Title</strong> (<code>.card__title</code>): what is true now, in a short sentence. A real heading, at the level that fits the page.</li>
+  <li><strong>Message</strong> (<code>.card__text</code>): what to do, or why. About 36 characters wide, so it never becomes a paragraph.</li>
+  <li><strong>Actions</strong> (<code>.empty__actions</code>): one primary, at most one quiet alternative.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Empty state classes and attributes</caption>
+  <thead><tr><th>Class or attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="card empty"</code></td><td></td><td>Container. Parts: <code>empty__icon</code>, <code>card__title</code>, <code>card__text</code>, <code>empty__actions</code>.</td></tr>
+    <tr><td><code>data-layout</code></td><td>(default), <code>page</code>, <code>list</code></td><td>Centred block, full screen, or a compact left-aligned unit.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>bad</code>, <code>warn</code>, <code>info</code>, <code>ok</code>, <code>1</code> to <code>6</code></td><td>Solid and filled instead of dashed and empty. Put the same tone on the button with <code>data-variant="tone"</code>.</td></tr>
+    <tr><td><code>--empty-page-h</code></td><td>length</td><td>Overrides the page layout's minimum height (previews, embedded frames).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Empty state keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td>Screen reader</td><td>Reads the heading, the message and the button, in order. The icon tile is hidden: it adds nothing the words do not say. See above for when to announce.</td></tr>
+    <tr><td>Keyboard</td><td>The actions are ordinary buttons in reading order. After a state replaces focused content, move focus on purpose.</td></tr>
+    <tr><td>Touch</td><td>Buttons are 44px or taller with 8px between them.</td></tr>
+    <tr><td>Colour</td><td>Never the only cue: a different icon shape plus words. The <code>wire</code> palette keeps all four distinguishable.</td></tr>
+    <tr><td>Zoom / text size</td><td>Everything is in rem and wraps. The page layout has a minimum height, not a fixed one.</td></tr>
+    <tr><td>Forced colours</td><td>The card's border (dashed or solid) and the tile's border stay in <code>CanvasText</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--card-bg</code>, <code>--card-ink</code>, <code>--tone-bg</code>, <code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--bw</code>, <code>--radius-tile</code>, <code>--hit</code>, <code>--appbar-h</code>, <code>--dock-h</code>, <code>--safe-top</code>, <code>--safe-bottom</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-4</code>, <code>--space-6</code>, <code>--space-7</code>.</p>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    var SG = window.SG;
+    var q = document.getElementById('ex-q');
+    var list = document.getElementById('ex-list');
+    var slot = document.getElementById('ex-slot');
+    if (!q) return;
+    var items = SG.qsa('li', list);
+    function emptyMarkup() {
+      return "<section class='card empty' aria-labelledby='ex-h'><div class='card__body'><span class='empty__icon' aria-hidden='true'><span class='ic ic--search'></span></span>" +
+        "<h4 class='card__title' id='ex-h'></h4><p class='card__text'>Check the spelling, or try a shorter word.</p>" +
+        "<div class='empty__actions'><button class='btn' type='button' data-clear>Clear search</button></div></div></section>";
+    }
+    function filter() {
+      var term = q.value.trim().toLowerCase();
+      var shown = 0;
+      items.forEach(function (li) {
+        var hit = !term || li.textContent.toLowerCase().indexOf(term) >= 0;
+        li.hidden = !hit;
+        if (hit) shown += 1;
+      });
+      list.hidden = shown === 0;
+      if (shown === 0) {
+        slot.innerHTML = emptyMarkup();
+        slot.querySelector('.card__title').textContent = 'No decks match “' + q.value.trim() + '”';
+        SG.announce('No decks match ' + q.value.trim());
+      } else {
+        slot.innerHTML = '';
+        if (term) SG.announce(shown + (shown === 1 ? ' deck' : ' decks'));
+      }
+    }
+    q.addEventListener('input', filter);
+    slot.addEventListener('click', function (e) {
+      if (e.target.closest('[data-clear]')) { q.value = ''; filter(); q.focus(); }
+    });
+  });
+</script>
