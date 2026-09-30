@@ -1,0 +1,296 @@
+<!--{"title":"Chip","group":"Components","order":42,"summary":"Interactive pills: filters that toggle, choices that exclude each other, removable inputs and a +N disclosure."}-->
+<h1>Chip</h1>
+<p class="lede">A chip is a small control you operate: switch a filter on, pick one of a few choices, or remove something you added. It is a pill you can press.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use chips for compact, optional choices next to content: <em>filter by category</em>, <em>pick a size</em>, <em>who this goes to</em>. One or two words per label.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use a chip for something you cannot press: a status or count is a tag, not a chip. Don't use chips to move between screens (that is the <a href="@/components/dock.html">dock</a>), to swap panels (<a href="@/components/tabs.html">tabs</a>) or to choose one of two or three values (a <a href="@/components/segmented.html">segmented control</a>).</p></div>
+  </div>
+</div>
+
+<h3 id="kinds">Five kinds, five jobs</h3>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">The kinds of chip and their semantics</caption>
+  <thead><tr><th>Kind</th><th>Use it to&hellip;</th><th>Built as</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Filter</strong></td><td>Turn a filter on or off. Any number can be on.</td><td><code>&lt;button aria-pressed&gt;</code>, or checkboxes</td></tr>
+    <tr><td><strong>Choice</strong></td><td>Pick exactly one of a small set.</td><td>Native radio inputs in a group</td></tr>
+    <tr><td><strong>Input</strong></td><td>Show something the user added, and let them remove it.</td><td>A flat chip with its own <code>&lt;button&gt;</code> named "Remove&hellip;"</td></tr>
+    <tr><td><strong>More</strong></td><td>Reveal the chips that did not fit ("3 more").</td><td><code>&lt;button aria-expanded&gt;</code></td></tr>
+    <tr><td><strong>Action</strong></td><td>Do one thing: "Add tag", "Try an example".</td><td><code>&lt;button&gt;</code> or <code>&lt;a&gt;</code></td></tr>
+  </tbody>
+</table></div>
+<p>Toggle and choice are different questions. A toggle chip says <em>this filter is on</em> (<code>aria-pressed</code>); a choice chip says <em>this is the value</em> (a radio, so arrow keys move and choose, and the value posts with a form).</p>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="filter">Filter chips</h3>
+<p>Each is a toggle button. <strong>On</strong>, a chip is filled, its frame doubles, and a check takes the place of its icon, so it is never told apart by colour alone. The check is drawn by the chip itself; you only write the label. <code>data-sg-chips</code> on the row turns on the toggling, and your app listens for <code>sg:chip-toggle</code>.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="chips" role="group" aria-label="Filter by category" data-sg-chips>
+      <button class="chip" type="button" aria-pressed="true"><span class="ic ic--utensils chip__icon" aria-hidden="true"></span>Food &amp; drink</button>
+      <button class="chip" type="button" aria-pressed="false"><span class="ic ic--shopping-bag chip__icon" aria-hidden="true"></span>Shopping</button>
+      <button class="chip" type="button" aria-pressed="false"><span class="ic ic--plane chip__icon" aria-hidden="true"></span>Travel</button>
+      <button class="chip" type="button" aria-pressed="true"><span class="ic ic--car chip__icon" aria-hidden="true"></span>Transport</button>
+      <button class="chip" type="button" aria-pressed="false"><span class="ic ic--heart chip__icon" aria-hidden="true"></span>Health</button>
+    </div>
+  </div>
+</div>
+
+<h3 id="choice">Choice chips</h3>
+<p>One choice from a few. These are real radio buttons dressed as chips: <kbd>Left</kbd> and <kbd>Right</kbd> move <em>and</em> choose, the group is one tab stop, and there is no script.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <fieldset class="stack" data-gap="2">
+      <legend class="t-label">Card size</legend>
+      <div class="chips">
+        <label class="chip"><input class="chip__input" type="radio" name="chip-size" value="s">Small</label>
+        <label class="chip"><input class="chip__input" type="radio" name="chip-size" value="m" checked>Medium</label>
+        <label class="chip"><input class="chip__input" type="radio" name="chip-size" value="l">Large</label>
+        <label class="chip"><input class="chip__input" type="radio" name="chip-size" value="xl" disabled>Extra large</label>
+      </div>
+    </fieldset>
+  </div>
+</div>
+
+<h3 id="multi">Multi-select with checkboxes</h3>
+<p>Filters that belong in a form can be checkboxes: the same markup with <code>type="checkbox"</code>. Use buttons when the chips act on the page at once, checkboxes when they are submitted.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <fieldset class="stack" data-gap="2">
+      <legend class="t-label">Remind me by</legend>
+      <div class="chips">
+        <label class="chip"><input class="chip__input" type="checkbox" name="chip-notify" value="email" checked>Email</label>
+        <label class="chip"><input class="chip__input" type="checkbox" name="chip-notify" value="push" checked>Push</label>
+        <label class="chip"><input class="chip__input" type="checkbox" name="chip-notify" value="sms">Text message</label>
+      </div>
+    </fieldset>
+  </div>
+</div>
+
+<h3 id="input">Input chips</h3>
+<p>The chip itself is text and flat: it holds a value, it does not invite a press. Only its remove button acts, and it has its own name, <em>Remove Anna Kim</em>. Removing a chip moves focus to the next chip's remove button (else the previous, else an element you name) and announces <em>"Anna Kim removed. 2 left."</em> <kbd>Delete</kbd> and <kbd>Backspace</kbd> also work on the focused button.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="3">
+      <p class="t-label" id="chip-rcpt-label">Share the deck with</p>
+      <ul class="chips" role="list" aria-labelledby="chip-rcpt-label" data-sg-chips data-empty-focus="#chip-add-person" id="chip-rcpt">
+        <li class="chip" data-kind="input"><span class="chip__label">Anna Kim</span><button class="chip__remove" type="button" aria-label="Remove Anna Kim"><span class="ic ic--close" aria-hidden="true"></span></button></li>
+        <li class="chip" data-kind="input"><span class="chip__label">Ravi Patel</span><button class="chip__remove" type="button" aria-label="Remove Ravi Patel"><span class="ic ic--close" aria-hidden="true"></span></button></li>
+        <li class="chip" data-kind="input"><span class="chip__label">Sofia Rossi</span><button class="chip__remove" type="button" aria-label="Remove Sofia Rossi"><span class="ic ic--close" aria-hidden="true"></span></button></li>
+      </ul>
+      <div class="cluster">
+        <button class="chip" type="button" id="chip-add-person"><span class="ic ic--plus" aria-hidden="true"></span>Add person</button>
+        <button class="btn" data-size="sm" type="button" id="chip-reset">Reset this demo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="more">"N more"</h3>
+<p>When there are more chips than you want to show, end the visible ones with a dashed <strong>more</strong> chip. It is a disclosure button: <code>aria-expanded</code> says whether the rest are showing and <code>aria-controls</code> names them. A plus in front of the label becomes a minus when open. The revealed chips come <em>after</em> the button in the DOM, so a keyboard user tabs straight into them.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="chips" role="group" aria-label="Topics" data-sg-chips>
+      <button class="chip" type="button" aria-pressed="false">Geometry</button>
+      <button class="chip" type="button" aria-pressed="true">Colours</button>
+      <button class="chip" type="button" aria-pressed="false">Animals</button>
+      <button class="chip" type="button" data-kind="more" aria-expanded="false" aria-controls="chip-more-topics">4 more</button>
+      <span class="chips__more" id="chip-more-topics" hidden>
+        <button class="chip" type="button" aria-pressed="false">Numbers</button>
+        <button class="chip" type="button" aria-pressed="false">Letters</button>
+        <button class="chip" type="button" aria-pressed="false">Food</button>
+        <button class="chip" type="button" aria-pressed="false">Weather</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<h3 id="action">Action chips and link chips</h3>
+<p>Without <code>aria-pressed</code> a chip is just a pill-shaped button. Make it an <code>&lt;a&gt;</code> when it goes somewhere.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="chips">
+      <button class="chip" type="button"><span class="ic ic--plus chip__icon" aria-hidden="true"></span>Add tag</button>
+      <button class="chip" type="button"><span class="ic ic--sparkles chip__icon" aria-hidden="true"></span>Suggest one</button>
+      <a class="chip" href="#action"><span class="ic ic--external-link chip__icon" aria-hidden="true"></span>How spacing works</a>
+    </div>
+  </div>
+</div>
+
+<h3 id="scroll">One scrolling line</h3>
+<p>A wrapping row is the safest default, because nothing is hidden. When vertical space is tight, add the <code>scroller</code> class: the row scrolls sideways and the chip that peeks in at the edge shows there is more. Tab through it and each focused chip scrolls fully into view. Name the row so it can be found.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="chips scroller" role="group" aria-label="Filter by month" data-sg-chips>
+      <button class="chip" type="button" aria-pressed="true">All</button>
+      <button class="chip" type="button" aria-pressed="false">January</button>
+      <button class="chip" type="button" aria-pressed="false">February</button>
+      <button class="chip" type="button" aria-pressed="false">March</button>
+      <button class="chip" type="button" aria-pressed="false">April</button>
+      <button class="chip" type="button" aria-pressed="false">May</button>
+      <button class="chip" type="button" aria-pressed="false">June</button>
+      <button class="chip" type="button" aria-pressed="false">July</button>
+      <button class="chip" type="button" aria-pressed="false">August</button>
+      <button class="chip" type="button" aria-pressed="false">September</button>
+    </div>
+  </div>
+</div>
+
+<h3 id="sizes">Sizes and tone</h3>
+<p>Medium is drawn at 36px, large at 44px. Both have a 44px hit area, so two wrapped rows never overlap their targets. <code>data-variant="tone"</code> takes the fill from <code>data-tone</code> on the chip itself, as a <a href="@/components/button.html">button</a> does.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="chips" role="group" aria-label="Sizes and tone" data-sg-chips>
+      <button class="chip" type="button" aria-pressed="true">Medium</button>
+      <button class="chip" data-size="lg" type="button" aria-pressed="false">Large</button>
+      <button class="chip" data-size="lg" type="button" aria-pressed="true">Large, on</button>
+      <button class="chip" data-variant="tone" data-tone="4" type="button" aria-pressed="false">Tone 4</button>
+      <button class="chip" data-variant="tone" data-tone="3" type="button" aria-pressed="true">Tone 3, on</button>
+    </div>
+  </div>
+</div>
+
+<h3 id="states">States</h3>
+<p>The look follows ARIA and native attributes. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="chips">
+      <button class="chip" type="button" aria-pressed="false">Rest</button>
+      <button class="chip is-hover" type="button" aria-pressed="false">Hover</button>
+      <button class="chip is-focus" type="button" aria-pressed="false">Focus</button>
+      <button class="chip is-active" type="button" aria-pressed="false">Pressed</button>
+      <button class="chip" type="button" aria-pressed="true">On</button>
+      <button class="chip" type="button" disabled>Disabled</button>
+      <button class="chip" type="button" aria-disabled="true" aria-describedby="chip-why">Unavailable</button>
+    </div>
+    <p class="t-meta" id="chip-why">Unlocks after 10 cards.</p>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>A transactions screen. Toggling a filter narrows the list and says how many are left; with none on, everything shows. The count is announced through <code>SG.announce()</code>, because no focus moved.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="stack" data-gap="4" id="chip-tx">
+          <div class="split">
+            <p class="t-title">Activity</p>
+            <p class="t-meta num" id="chip-tx-count">3 of 3</p>
+          </div>
+          <div class="chips scroller" role="group" aria-label="Filter by category" data-sg-chips>
+            <button class="chip" type="button" aria-pressed="false" data-cat="food"><span class="ic ic--utensils chip__icon" aria-hidden="true"></span>Food &amp; drink</button>
+            <button class="chip" type="button" aria-pressed="false" data-cat="shop"><span class="ic ic--shopping-bag chip__icon" aria-hidden="true"></span>Shopping</button>
+            <button class="chip" type="button" aria-pressed="false" data-cat="move"><span class="ic ic--car chip__icon" aria-hidden="true"></span>Transport</button>
+          </div>
+          <div class="stack" data-gap="2">
+            <article class="card card--row" data-cat="shop"><span class="card__tile" aria-hidden="true"></span><div class="card__main"><p class="card__title">Nike Store</p><p class="card__meta">Shopping · 8 April</p></div><p class="card__trail num">−$734.00</p></article>
+            <article class="card card--row" data-cat="food"><span class="card__tile" aria-hidden="true"></span><div class="card__main"><p class="card__title">Corner Bakery</p><p class="card__meta">Food &amp; drink · 8 April</p></div><p class="card__trail num">−$9.40</p></article>
+            <article class="card card--row" data-cat="move"><span class="card__tile" aria-hidden="true"></span><div class="card__main"><p class="card__title">Metro pass</p><p class="card__meta">Transport · 7 April</p></div><p class="card__trail num">−$86.00</p></article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Frame</strong>: a pill with a 2px <code>--line</code> border, 36px tall (44px with <code>data-size="lg"</code>). The border is always there, so forced-colours mode still draws an edge.</li>
+  <li><strong>Leading icon</strong> (optional, <code>chip__icon</code>): 16px, decorative. It gives its place to the check when the chip is on, so the chip does not change width.</li>
+  <li><strong>Check</strong>: a mask the chip draws in front of the label when on. The second cue after the fill and the doubled frame. A "more" chip shows a plus, or a minus when open.</li>
+  <li><strong>Label</strong>: 14px semibold, sentence case. It never changes when the chip is pressed.</li>
+  <li><strong>Hard shadow</strong>: only when it can be pressed (hover, focus). An input chip is flat.</li>
+  <li><strong>Remove button</strong> (<code>chip__remove</code>, input chips only): its own 44px target, named with what it removes.</li>
+  <li><strong>Hit area</strong>: an invisible <code>::after</code> that guarantees 44&times;44px.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Chip classes, attributes, events and script behaviour</caption>
+  <thead><tr><th>Name</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="chip"</code></td><td>on <code>button</code>, <code>a</code>, <code>label</code> or <code>li</code></td><td>The pill.</td></tr>
+    <tr><td><code>class="chips"</code></td><td></td><td>A row: wraps by default. Add <code>scroller</code> for one scrolling line.</td></tr>
+    <tr><td><code>aria-pressed</code></td><td><code>true</code> | <code>false</code></td><td>Filter chip state (button). On shows the check.</td></tr>
+    <tr><td><code>chip__input</code></td><td>a radio or checkbox inside a <code>label.chip</code></td><td>Choice / multi-select chips. <code>:checked</code> styles the chip.</td></tr>
+    <tr><td><code>chip__icon</code></td><td>an <code>ic</code> mask</td><td>Optional leading icon; hidden while the chip is on.</td></tr>
+    <tr><td><code>data-kind</code></td><td><code>input</code>, <code>more</code></td><td>Removable chip (with <code>chip__label</code> and <code>chip__remove</code>); disclosure chip (with <code>aria-expanded</code>, <code>aria-controls</code>).</td></tr>
+    <tr><td><code>data-size</code></td><td><code>lg</code> (44)</td><td>Taller chip. Default is 36.</td></tr>
+    <tr><td><code>data-variant="tone"</code></td><td></td><td>Fill from <code>data-tone</code> on the chip.</td></tr>
+    <tr><td><code>data-sg-chips</code> on the row</td><td></td><td>Turns on toggling, removal and the disclosure (<code>42-chip.js</code>).</td></tr>
+    <tr><td><code>data-empty-focus</code>, <code>data-removed-text</code> on the row</td><td>a selector; text with <code>{label}</code> and <code>{count}</code></td><td>Where focus goes when the last chip is removed; the announcement wording.</td></tr>
+    <tr><td><code>sg:chip-toggle</code></td><td><code>{ chip, pressed }</code></td><td>Fired after a filter chip flips.</td></tr>
+    <tr><td><code>sg:chip-remove</code></td><td><code>{ chip, label }</code></td><td>Fired before removal; cancelable (<code>preventDefault()</code> keeps the chip).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Chip keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Every filter and action chip is its own tab stop. A radio group of choice chips is one tab stop. An input chip's only tab stop is its remove button.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Toggles a filter chip, presses an action chip, opens the disclosure, removes an input chip (on its remove button). <kbd>Space</kbd> toggles a checkbox chip.</td></tr>
+    <tr><td><kbd>Left</kbd> / <kbd>Right</kbd></td><td>In a choice-chip group: move and choose (native radio behaviour). Disabled ones are skipped.</td></tr>
+    <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>On a focused remove button: removes the chip.</td></tr>
+    <tr><td>Screen reader</td><td>"Food and drink, toggle button, pressed". Choice: "Medium, radio button, 2 of 4". Remove: "Remove Anna Kim, button". Disclosure: "4 more, button, collapsed". After a removal: "Anna Kim removed. 2 left."</td></tr>
+    <tr><td>Touch</td><td>44&times;44px targets, at least 8px between chips. A scrolling row can be swiped, and every chip is also reachable with Tab.</td></tr>
+    <tr><td>Zoom / text size</td><td>Rem throughout. A long label wraps inside the chip; a wrapping row never scrolls sideways.</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the fill and frame change stay.</td></tr>
+    <tr><td>Forced colours</td><td>Every chip keeps its border; raised and focused chips get a 4px <code>Highlight</code> outline; an on chip gets a 4px frame and keeps its check.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>The label never changes when a chip is pressed: state is carried by <code>aria-pressed</code> (APG toggle button), not by rewording.</li>
+  <li>Name every row (<code>role="group"</code> with <code>aria-label</code>, or a <code>fieldset</code> with a <code>legend</code>) so a screen-reader user knows what the chips are for.</li>
+  <li>When a removable chip disappears, focus must go somewhere sensible, or keyboard users fall back to the top of the page. The script handles it; if you remove chips yourself, do the same.</li>
+  <li>A choice chip is a radio: do not add <code>aria-pressed</code> to it.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--ctl</code>, <code>--ctl-sm</code>, <code>--hit</code>, <code>--type-ctl</code>, <code>--text-sm</code>, <code>--icon-check</code>, <code>--icon-plus</code>, <code>--icon-minus</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>, <code>--space-1</code> to <code>--space-5</code>.</p>
+
+<h2 id="related">Related</h2>
+<ul>
+  <li><a href="@/components/segmented.html">Segmented control</a>: one of two to four, as a bar.</li>
+  <li><a href="@/components/tabs.html">Tabs</a>: panels, not filters.</li>
+  <li><a href="@/components/button.html">Button</a>: the pill this one is built on.</li>
+</ul>
+
+<script>
+  // Docs-only: restore the removable-chips demo after the reader has emptied it, and let the
+  // activity filters narrow the list. A real app would filter its own data.
+  (function () {
+    var list = document.getElementById('chip-rcpt');
+    var reset = document.getElementById('chip-reset');
+    if (list && reset) {
+      var initial = list.innerHTML;
+      reset.addEventListener('click', function () { list.innerHTML = initial; });
+    }
+    var scope = document.getElementById('chip-tx');
+    if (!scope) return;
+    function apply() {
+      var on = Array.prototype.map.call(scope.querySelectorAll('.chip[aria-pressed="true"]'), function (c) { return c.getAttribute('data-cat'); });
+      var rows = scope.querySelectorAll('article[data-cat]');
+      var shown = 0;
+      Array.prototype.forEach.call(rows, function (r) {
+        var show = !on.length || on.indexOf(r.getAttribute('data-cat')) > -1;
+        r.hidden = !show;
+        if (show) shown++;
+      });
+      var msg = shown + ' of ' + rows.length;
+      document.getElementById('chip-tx-count').textContent = msg;
+      SG.announce(shown + (shown === 1 ? ' transaction' : ' transactions') + ' shown');
+    }
+    scope.addEventListener('sg:chip-toggle', apply);
+  })();
+</script>

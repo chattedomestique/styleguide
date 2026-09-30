@@ -1,0 +1,355 @@
+/* ==========================================================================
+   Tabs  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Switch between panels of content that live on the SAME screen. ARIA pattern:
+   WAI-ARIA Authoring Practices "Tabs" with automatic activation. Behaviour is in
+   src/js/40-tabs.js (roving tabindex, arrow / Home / End, hidden panels, hash sync).
+   Where you go to a different screen, that is a link in a <nav> (dock, breadcrumb).
+
+   <div class="tabs">
+     <div class="tabs__bar">
+       <div class="tabs__list" role="tablist" aria-label="Schedule">
+         <button class="tabs__tab" role="tab" id="t-today" type="button"
+                 aria-selected="true" aria-controls="p-today">Today</button>
+         <button class="tabs__tab" role="tab" id="t-cal" type="button"
+                 aria-selected="false" aria-controls="p-cal" tabindex="-1">Calendar</button>
+       </div>
+       <button class="btn" data-shape="circle" aria-label="Add task">…</button>   optional action, NOT a tab
+     </div>
+     <div class="tabs__panel" role="tabpanel" id="p-today" aria-labelledby="t-today" tabindex="0">…</div>
+     <div class="tabs__panel" role="tabpanel" id="p-cal" aria-labelledby="t-cal" tabindex="0" hidden>…</div>
+   </div>
+
+   data-variant      pill (default: a row of pills, the chosen one filled) | underline (text + a bar)
+   data-size         sm (36, hit area still 44) | md (44, default)
+   data-block        tabs share the row equally (2-3 tabs on a phone)
+   data-activation   manual: arrow keys only move focus, Enter / Space select (JS)
+   data-hash         keep location.hash in step with the chosen panel (JS)
+   aria-orientation  vertical on the tablist: tabs stack, Up / Down move between them
+
+   PRESSABLE, SO IT FOLLOWS BUTTON. The pill variant is a .btn by another name: 2px frame,
+   pill, --lift / --fill, hard shadow when it can be pressed. SELECTED comes from
+   aria-selected and is never colour alone: filled AND the frame doubles (as a pressed
+   toggle button). The weight stays 600 for every tab on purpose: a heavier selected tab
+   is wider, and the whole row would shuffle sideways each time you choose.
+   The underline variant is flat by design (a bar is not a thing you lift): the selected
+   tab has a 2px bar and full ink, a hovered one a 1px bar. Forced colours: the bar
+   becomes a Highlight border, pills get a 4px frame.
+
+   OVERFLOW. The tablist scrolls sideways when the tabs do not fit; the next tab is left
+   partly visible as the cue, scrolling is native, and the script keeps the chosen tab in
+   view. overflow clips outlines and shadows, so the list pads 8px on every side (the
+   3px ring + 3px offset + the lifted shadow) and a matching negative margin keeps the tabs
+   aligned with the content around them (WCAG 2.4.7).
+
+   Private properties (--_*): --_rest-bg --_rest-ink --_on-bg --_on-ink --_h --_px
+   --_reach (how far the hard shadow reaches; 0 for the flat underline) --_select --_shadow
+   ========================================================================== */
+
+@layer sg.components {
+  .tabs {
+    display: block;
+    min-inline-size: 0;
+  }
+
+  .tabs__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-inline-size: 0;
+  }
+
+  .tabs__list {
+    display: flex;
+    flex: 1 1 auto;
+    gap: var(--space-2);
+    min-inline-size: 0;
+    margin-inline: calc(var(--space-2) * -1);
+    padding: var(--space-2);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: var(--space-4);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  /* ---- Tab --------------------------------------------------------------------------- */
+  .tabs__tab {
+    --lift: 0;
+    --fill: 0;
+    --_rest-bg: var(--paper);
+    --_rest-ink: var(--ink);
+    --_on-bg: var(--accent);
+    --_on-ink: var(--on-accent);
+    --_h: var(--ctl);
+    --_px: var(--space-5);
+    --_reach: var(--space-1);
+    --_shadow: calc(var(--lift) * var(--_reach)) calc(var(--lift) * var(--_reach)) 0 0 var(--line);
+    --_select: 0 0 0 0 transparent;
+
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-block-size: var(--_h);
+    min-inline-size: var(--hit);
+    margin: 0;
+    padding: 0 var(--_px);
+    color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
+    background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--_select), var(--_shadow);
+    font: var(--type-ctl);
+    white-space: nowrap;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--_reach) / -2 * var(--move)),
+      calc(var(--lift) * var(--_reach) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* hit area: a 36px tab still gets a 44px target */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+    }
+
+    /* raised where a pointer can hover, and always on keyboard focus (same lift, so both match) */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:disabled, [aria-disabled="true"]) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not(:disabled, [aria-disabled="true"]) {
+      --lift: 1;
+      --fill: 1;
+    }
+
+    /* pressed: back onto the surface, the fill stays. After hover so it wins. */
+    &:is(:active, .is-active):not(:disabled, [aria-disabled="true"]) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* chosen: filled, and the frame doubles, so it does not depend on the accent being dark */
+    &[aria-selected="true"] {
+      --fill: 1;
+      --_select: 0 0 0 var(--bw) var(--line);
+    }
+
+    /* unavailable: dashed = not here. Faint, not opacity. */
+    &:disabled,
+    &[aria-disabled="true"] {
+      --lift: 0;
+      --fill: 0;
+      --_rest-bg: transparent;
+      --_rest-ink: var(--ink-faint);
+      --_shadow: 0 0 0 0 transparent;
+      color: var(--ink-faint);
+      background: transparent;
+      border-color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+    &[aria-disabled="true"] {
+      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
+    }
+  }
+
+  .tabs[data-size="sm"] .tabs__tab {
+    --_h: var(--ctl-sm);
+    --_px: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  /* equal shares when they fit; never narrower than the label (a flex item may shrink below its text otherwise) */
+  .tabs[data-block] .tabs__list > .tabs__tab {
+    flex: 1 1 0;
+    min-inline-size: max-content;
+  }
+
+  /* wrap instead of scroll: every tab stays visible (states page, 200% text, four short tabs) */
+  .tabs[data-overflow="wrap"] .tabs__list {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  /* ---- Underline variant ------------------------------------------------------------------
+     A flat row over a 1px divider. The bar is a pseudo-element whose opacity follows --fill,
+     so the same registered number animates it. It sits ON the divider: the list is pulled down
+     by its own padding so a tab's bottom edge and the divider coincide. */
+  .tabs[data-variant="underline"] {
+    & .tabs__bar {
+      border-block-end: var(--bw-thin) solid var(--line-soft);
+    }
+    & .tabs__list {
+      gap: var(--space-5);
+      margin-block-end: calc(var(--space-2) * -1);
+    }
+    & .tabs__tab {
+      --_rest-bg: transparent;
+      --_on-bg: transparent;
+      --_rest-ink: var(--ink-soft);
+      --_on-ink: var(--ink);
+      --_reach: 0px;
+      --_bar: var(--bw-thin);
+      --_px: 0px; /* the label lines up with the content; the 44px hit area comes from ::after */
+
+      border-color: transparent;
+      border-radius: var(--radius-ctl);
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        inset-block-end: calc(var(--bw-thin) * -1);
+        block-size: var(--_bar);
+        background: var(--line);
+        opacity: var(--fill);
+        pointer-events: none;
+      }
+
+      &[aria-selected="true"] {
+        --_bar: var(--bw);
+        --_select: 0 0 0 0 transparent;
+      }
+      &:disabled,
+      &[aria-disabled="true"] {
+        border-color: transparent;
+        border-style: solid;
+        &::before {
+          content: none;
+        }
+      }
+    }
+  }
+
+  /* ---- Panels -------------------------------------------------------------------------------- */
+  .tabs__panel {
+    min-inline-size: 0;
+    padding-block-start: var(--space-4);
+
+    /* JS sets data-enter for one animation cycle after a tab change, so first paint never animates.
+       --move scales the travel: under reduced motion it is a plain fade. */
+    &[data-enter] {
+      animation: tabs-enter var(--dur-enter) var(--ease-out);
+    }
+  }
+  @keyframes tabs-enter {
+    from {
+      opacity: 0;
+      transform: translateY(calc(var(--space-2) * var(--move)));
+    }
+  }
+
+  /* ---- Vertical ---------------------------------------------------------------------------------
+     Tabs stack at the start, the panel sits beside them. No container query: flex-wrap drops the
+     panel underneath when there is not room for both. */
+  .tabs__list[aria-orientation="vertical"] {
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+
+    & > .tabs__tab {
+      justify-content: flex-start;
+      inline-size: 100%;
+      text-align: start;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+  }
+  @supports selector(:has(a)) {
+    .tabs:has(> .tabs__bar > .tabs__list[aria-orientation="vertical"]) {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: var(--space-4) var(--space-6);
+
+      & > .tabs__bar {
+        flex: 1 1 10rem;
+        max-inline-size: 15rem;
+      }
+      & > .tabs__panel {
+        flex: 999 1 18rem;
+        padding-block-start: 0;
+      }
+    }
+    .tabs[data-variant="underline"]:has(> .tabs__bar > .tabs__list[aria-orientation="vertical"]) > .tabs__bar {
+      border-block-end: 0;
+      border-inline-end: var(--bw-thin) solid var(--line-soft);
+    }
+  }
+  .tabs[data-variant="underline"] .tabs__list[aria-orientation="vertical"] {
+    gap: var(--space-1);
+    margin-block-end: 0;
+
+    & > .tabs__tab::before {
+      inset-block: 0;
+      inset-inline: auto calc(var(--bw-thin) * -1);
+      inline-size: var(--_bar);
+      block-size: auto;
+    }
+  }
+
+  /* ---- Forced colours --------------------------------------------------------------------------
+     Fills, shadows and pseudo-element backgrounds vanish, so chosen / raised get a heavier line. */
+  @media (forced-colors: active) {
+    .tabs__tab {
+      border-color: ButtonText;
+
+      &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &[aria-selected="true"] {
+        border-width: var(--bw-heavy);
+      }
+      &:disabled,
+      &[aria-disabled="true"] {
+        color: GrayText;
+        border-color: GrayText;
+      }
+    }
+    .tabs[data-variant="underline"] .tabs__tab {
+      border-color: Canvas;
+
+      &::before {
+        content: none;
+      }
+      &[aria-selected="true"] {
+        border-width: var(--bw);
+        border-block-end: var(--bw-heavy) solid Highlight;
+      }
+      &:disabled,
+      &[aria-disabled="true"] {
+        border-color: Canvas;
+      }
+    }
+    .tabs[data-variant="underline"] .tabs__list[aria-orientation="vertical"] .tabs__tab[aria-selected="true"] {
+      border-block-end-width: var(--bw);
+      border-block-end-color: Canvas;
+      border-inline-end: var(--bw-heavy) solid Highlight;
+    }
+  }
+}
