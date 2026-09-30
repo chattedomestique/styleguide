@@ -5,6 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, copyFileSync, cpSy
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import { ROOT } from '../lib/browser.mjs'
 import { serve } from '../../scripts/serve.mjs'
 
@@ -265,6 +266,35 @@ export const tests = [
       const list = html.match(/<h2 id="manual-only">[\s\S]*?<ul>([\s\S]*?)<\/ul>/)[1]
       const listed = [...list.matchAll(/<li>(.*?)<\/li>/g)].map((m) => unescape(m[1]))
       expect.equal(JSON.stringify(listed.sort()), JSON.stringify(only.sort()), 'the manual-only list against the rows')
+    },
+  },
+  {
+    name: 'Testing: the axe rules the page says do not run are exactly the ones the gate\'s options skip, and the counts match',
+    async run({ page, goto, expect }) {
+      const { default: axe } = await import('axe-core')
+      await goto('components/button.html')
+      await page.addScriptTag({ content: axe.source })
+      const r = await page.evaluate(async () => {
+        const res = await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] } })
+        const ran = new Set([...res.passes, ...res.inapplicable, ...res.incomplete, ...res.violations].map((x) => x.id))
+        return { ran: [...ran], all: axe.getRules().map((x) => x.ruleId), passed: res.passes.length, inapplicable: res.inapplicable.length }
+      })
+      const para = unescape(readFileSync(join(ROOT, 'docs', 'accessibility', 'testing.html'), 'utf8').match(/<p>The gate runs axe-core[\s\S]*?<\/p>/)[0])
+      const printed = [...para.slice(para.indexOf('did not run:')).matchAll(/<code>([a-z-]+)<\/code>/g)].map((m) => m[1]).sort()
+      const skipped = r.all.filter((id) => !r.ran.includes(id)).sort()
+      expect.equal(JSON.stringify(printed), JSON.stringify(skipped), `rules not run (axe ${axe.version})`)
+      expect.ok(para.includes(`${r.ran.length} of axe's ${r.all.length} rules ran: ${r.passed} found something to check and passed, and ${r.inapplicable} had nothing to judge`), `the counts: ${r.ran.length} of ${r.all.length}, ${r.passed} passed, ${r.inapplicable} inapplicable`)
+      expect.ok(para.includes(`(${axe.version} when this was written)`), `the axe version on the page is ${axe.version}`)
+    },
+  },
+  {
+    name: 'Testing: the lint self-test line printed on the page is what the self-test prints today',
+    async run({ expect }) {
+      const out = execFileSync(process.execPath, [join(ROOT, 'tests', 'lint.selftest.mjs')], { encoding: 'utf8' })
+      const line = out.split('\n').find((l) => l.startsWith('violations caught'))
+      expect.ok(line, 'the self-test prints a summary line')
+      const page = unescape(readFileSync(join(ROOT, 'docs', 'accessibility', 'testing.html'), 'utf8'))
+      expect.ok(page.includes(`the current run reads <code>${line.trim()}</code>`), `the page says: ${line.trim()}`)
     },
   },
   {
