@@ -209,6 +209,7 @@ export const tests = [
       await btn(page, 'trim-end').click()
       l = (await clips(page))[1]
       expect.equal(`${l.start}|${l.dur}|${l.dtext}`, '30|10|0:10', 'the end moved to 0:40')
+      await page.waitForTimeout(80)
       const said = await page.evaluate(() => document.querySelector('[role="status"].sr-only')?.textContent)
       expect.ok(/Trimmed the end of .Lighthouse. to 0:40/.test(said || ''), `announced (got "${said}")`)
     },

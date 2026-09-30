@@ -184,4 +184,17 @@ export const tests = [
       expect.ok(t === 'none' || t === 'matrix(1, 0, 0, 1, 0, 0)', `no movement (got ${t})`)
     },
   },
+  {
+    name: 'right-to-left: the arrow keys are mirrored (Right goes to the previous tool)',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      await page.evaluate(() => { document.documentElement.dir = 'rtl' })
+      await page.locator('#t1-colour').focus()
+      await page.keyboard.press('ArrowRight')
+      expect.equal((await state(page, TOOLS)).focused, 't1-light', 'Right moves back in a right-to-left page')
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('ArrowLeft')
+      expect.equal((await state(page, TOOLS)).focused, 't1-effects', 'Left moves forward')
+    },
+  },
 ]

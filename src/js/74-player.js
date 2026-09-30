@@ -114,9 +114,11 @@
     ['loadedmetadata', 'durationchange', 'timeupdate', 'seeked', 'volumechange', 'play', 'pause', 'ended', 'emptied'].forEach(function (ev) {
       m.addEventListener(ev, function () { paint(root, dragging); });
     });
+    // one recording at a time: paused as soon as we start, and again on the play event (a script or the
+    // browser can start a player without going through our button)
+    function pauseOthers() { SG.qsa('.player__media').forEach(function (other) { if (other !== m && !other.paused) other.pause(); }); }
     m.addEventListener('play', function () {
-      // one recording at a time
-      SG.qsa('.player__media').forEach(function (other) { if (other !== m && !other.paused) other.pause(); });
+      pauseOthers();
       root.removeAttribute('data-state');
       if (p.status) p.status.textContent = '';
     });
@@ -155,11 +157,14 @@
       if (!b || b.getAttribute('aria-disabled') === 'true') return;
       if (b === p.play) {
         if (m.paused || m.ended) {
+          pauseOthers();
           var r = m.play();
           if (r && r.catch) r.catch(function (err) { if (err && err.name !== 'AbortError') fail(root); });
         } else m.pause();
+        paint(root, false); // paused/muted change at once; the events that follow only confirm it
       } else if (b === p.mute) {
         m.muted = !m.muted;
+        paint(root, false);
       } else if (b.getAttribute('data-player') === 'back' || b.getAttribute('data-player') === 'forward') {
         var dir = b.getAttribute('data-player') === 'back' ? -1 : 1;
         var d = isFinite(m.duration) ? m.duration : 0;

@@ -171,6 +171,7 @@ export const tests = [
       await vplay.scrollIntoViewIfNeeded()
       await vplay.click()
       await page.waitForFunction((s) => !document.querySelector(s + ' .player__media').paused, V, { timeout: 4000 })
+      await page.waitForFunction((s) => document.querySelector(s + ' .player__media').paused, A, { timeout: 2000 })
       expect.equal((await media(page, A)).paused, true, 'the audio was paused when the video started')
     },
   },
