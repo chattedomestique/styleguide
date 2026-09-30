@@ -99,6 +99,18 @@ export const tests = [
     },
   },
   {
+    name: 'Right-to-left: ArrowLeft moves to the NEXT tab and ArrowRight to the previous (mirrored)',
+    async run({ page, goto, expect }) {
+      await goto('components/tabs.html')
+      await page.evaluate(() => document.documentElement.setAttribute('dir', 'rtl'))
+      await page.locator(tab('ul-t1')).focus()
+      await page.keyboard.press('ArrowLeft')
+      await expect.focused(page, '#tabs-ul-t2', 'ArrowLeft goes forward in a right-to-left page')
+      await page.keyboard.press('ArrowRight')
+      await expect.focused(page, '#tabs-ul-t1', 'ArrowRight goes back')
+    },
+  },
+  {
     name: 'Manual activation: arrows move focus only, Enter and Space select',
     async run({ page, goto, expect }) {
       await goto('components/tabs.html')

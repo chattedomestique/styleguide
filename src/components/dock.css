@@ -30,8 +30,9 @@
    one member with no visible word: it needs an aria-label. One per dock.
 
    CELLS IN A FRAME, like the segmented control: the pill is the frame (2px, --line) and the items are
-   cells. Cells do not lift (a hard shadow would have to leave the dock); hovering tints the cell, pressing
-   fills it at once, and --fill carries the CURRENT one: a filled pill AND a heavier weight, never colour alone.
+   cells. Cells do not lift (a hard shadow would have to leave the dock); hovering draws the cell's own
+   frame, pressing fills it at once, and --fill carries the CURRENT one: a filled pill AND a frame of its
+   own in the dock's ink, never colour alone.
    Forced colours: the current item is Highlight with a 4px frame.
 
    RESERVING SPACE (WCAG 2.4.11 Focus Not Obscured). A fixed dock covers the bottom of the page.
@@ -45,7 +46,7 @@
    Landscape phones and big text: on very short viewports a floating dock stops floating and flows at
    the end of the page (WCAG 1.4.10).
 
-   Private properties (--_*): --_bg --_ink --_cur-bg --_cur-ink --_hover --_gap --_pad --_item-h
+   Private properties (--_*): --_bg --_ink --_cur-bg --_cur-ink --_gap --_pad --_item-h
    ========================================================================== */
 
 @layer sg.components {
@@ -63,7 +64,6 @@
     --_ink: var(--tone-ink, var(--ink));
     --_cur-bg: var(--tone-fill, var(--accent));
     --_cur-ink: var(--tone-on-fill, var(--on-accent));
-    --_hover: color-mix(in srgb, var(--_ink) 12%, var(--_bg));
     --_gap: var(--space-3);
     --_pad: var(--space-1);
     --_item-h: var(--ctl-lg);
@@ -182,7 +182,6 @@
     border: var(--bw) solid transparent; /* a real edge for forced colours */
     border-radius: var(--radius-pill);
     font: var(--type-label);
-    font-weight: 600;
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
     text-align: center;
@@ -196,17 +195,15 @@
       --ic-size: 1.5rem;
     }
 
-    /* hover: a tint, gated. The current cell stays as it is. */
+    /* hover: the cell's own frame appears, in the dock's ink (gated). An outline, not a tint: a tint would
+       move the text's contrast, an outline cannot. The current cell stays as it is. */
     @media (hover: hover) {
       &:hover:not([aria-current="page"], [aria-disabled="true"]) {
-        background: var(--_hover);
+        border-color: var(--_ink);
       }
     }
     &.is-hover:not([aria-current="page"]) {
-      background: var(--_hover);
-    }
-    &:focus-visible:not([aria-current="page"]) {
-      background: var(--_hover);
+      border-color: var(--_ink);
     }
 
     /* pressed: fills at once (feedback inside 100ms), before navigation has happened */
@@ -215,10 +212,12 @@
       transition-duration: var(--dur-press);
     }
 
-    /* where you are: a filled pill AND a heavier weight */
+    /* where you are: a filled pill AND its own frame in the dock's ink, so it still reads when the
+       accent is pale (cream) or the palette is mono. The weight stays put: a bolder word is wider and
+       the row would shuffle each time the current item changed. */
     &[aria-current="page"] {
       --fill: 1;
-      font-weight: 800;
+      border-color: var(--_ink);
     }
 
     &[aria-disabled="true"] {
@@ -290,6 +289,15 @@
       opacity: 0;
       transform: translateX(calc(var(--space-2) * var(--move) * -1));
     }
+  }
+  @keyframes dock-label-in-rtl {
+    from {
+      opacity: 0;
+      transform: translateX(calc(var(--space-2) * var(--move)));
+    }
+  }
+  .dock[data-compact] .dock__item[aria-current="page"] .dock__label:dir(rtl) {
+    animation-name: dock-label-in-rtl;
   }
   @supports selector(:has(a)) {
     /* the current item takes the room its word needs; the others share what is left */

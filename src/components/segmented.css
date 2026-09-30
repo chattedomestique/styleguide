@@ -24,22 +24,24 @@
    data-block       full width
    data-variant     tone: fill from data-tone="N" on the control itself (as Button)
    data-indicator   slide: one thumb glides between options. Under reduced motion the thumb stays
-                    put and each option fades its own fill in instead.
+                    put and each option fades its own fill in instead. Keep the labels short: a sliding
+                    control stays on one row, where the plain one wraps onto two at 200% text.
 
    A TRACK WITH CELLS, NOT A ROW OF BUTTONS. The pill track is the frame (2px, --line); the options
    are cells inside it. Cells do not lift: a hard shadow would have to leave the track, so the cell
-   pattern replaces "lift" with a tint on hover (--paper-3) and keeps --fill for the chosen one.
+   pattern replaces "lift" with the cell's own frame on hover and keeps --fill for the chosen one.
    Everything else is Button's: pill, 2px frame, --fill animated by ONE transition.
 
-   SELECTED is never colour alone: filled thumb AND its own 2px frame inside the track (a second
-   ring), AND a heavier weight. Options are equal width, so the weight change never reflows the row.
-   Forced colours: Highlight fill and a 4px frame.
+   SELECTED is never colour alone: a filled thumb AND its own 2px frame inside the track (a second
+   ring that reads even when the accent is pale or the palette is mono). The weight stays the same on
+   purpose: a bolder label is wider, and the row would shuffle each time you chose. Forced colours:
+   Highlight fill and a 4px frame.
 
    The native input covers the whole option at opacity 0 (a tap anywhere, including the invisible
    44px extension, hits a real radio) and the ring is drawn on the sibling .segmented__label, because
    a ring on an invisible input is invisible.
 
-   Private properties (--_*): --_opt --_pad --_track --_fg --_thumb --_thumb-ink --_hover --_show
+   Private properties (--_*): --_opt --_pad --_track --_fg --_thumb --_thumb-ink --_show
    --_px --_n / --_i (option count and chosen index, set with :has(); only the sliding thumb reads them)
    ========================================================================== */
 
@@ -52,16 +54,19 @@
     --_fg: var(--ink);
     --_thumb: var(--accent);
     --_thumb-ink: var(--on-accent);
-    --_hover: var(--paper-3);
     --_n: 2;
     --_i: 0;
     --_dir: 1;
 
     position: relative;
     isolation: isolate;
-    display: inline-grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr); /* equal widths; a long word breaks instead of overflowing */
+    /* A row of equal cells that WRAPS onto more rows when their whole labels cannot share the width
+       (200% text, 320px): rows of whole words beat one row of words broken into letters. The cells ask
+       for equal shares (flex 1 1 0, so in one row they are equal and the chosen label cannot reflow
+       the row) but never less than their label (min-inline-size: fit-content: the label's width, capped
+       at the control's), and flex-wrap does the rest. Only a label wider than the whole control breaks. */
+    display: inline-flex;
+    flex-wrap: wrap;
     align-items: stretch;
     max-inline-size: 100%;
     margin: 0;
@@ -85,7 +90,7 @@
       --_px: var(--space-5);
     }
     &[data-block] {
-      display: grid;
+      display: flex;
       inline-size: 100%;
     }
     &[data-variant="tone"] {
@@ -93,7 +98,6 @@
       --_fg: var(--tone-ink);
       --_thumb: var(--tone-fill);
       --_thumb-ink: var(--tone-on-fill);
-      --_hover: color-mix(in srgb, var(--tone-ink) 12%, var(--tone-bg));
     }
   }
 
@@ -101,7 +105,8 @@
   .segmented__opt {
     position: relative;
     display: flex;
-    min-inline-size: 0;
+    flex: 1 1 0;
+    min-inline-size: fit-content; /* as wide as its label, never wider than the control: a row wraps instead of breaking words */
 
     /* the radio covers the option and grows to 44px tall if the option is shorter */
     & > input {
@@ -138,7 +143,7 @@
     border: var(--bw) solid transparent; /* a real edge for forced colours; dashed when unavailable */
     border-radius: var(--radius-pill);
     text-align: center;
-    overflow-wrap: anywhere;
+    overflow-wrap: anywhere; /* last resort, for a label wider than the whole control */
     cursor: pointer;
     transition: --fill var(--dur-hover) var(--ease-out);
 
@@ -159,14 +164,15 @@
     }
   }
 
-  /* hover: a tint, gated. The chosen cell stays as it is. */
+  /* hover: the cell's own frame appears (gated). An outline, not a tint: a tint would move the text's
+     contrast (it does on tone fills), an outline cannot. The chosen cell stays as it is. */
   @media (hover: hover) {
     .segmented__opt > input:not(:checked, :disabled):hover + .segmented__label {
-      background: var(--_hover);
+      border-color: var(--line);
     }
   }
   .segmented__label.is-hover {
-    background: var(--_hover);
+    border-color: var(--line);
   }
   /* pressed: fills at once, before the radio has even flipped (feedback inside 100ms) */
   .segmented__opt > input:not(:disabled):active + .segmented__label,
@@ -175,10 +181,10 @@
     transition-duration: var(--dur-press);
   }
 
-  /* chosen: filled, a second ring of its own, heavier */
+  /* chosen: filled, with a frame of its own. NOT heavier: a bolder label is wider, and the cells of a
+     wrapping row would shuffle every time you chose one. */
   .segmented__opt > input:checked + .segmented__label {
     --fill: 1;
-    font-weight: 700;
   }
 
   /* focus: the ring belongs on the visible label, not the invisible radio. The track pads 4px, so the
@@ -204,7 +210,6 @@
   }
   .segmented__opt > input:disabled:checked + .segmented__label {
     background: var(--paper-3);
-    font-weight: 700;
   }
 
   /* ---- Sliding thumb (optional) ---------------------------------------------------------------
@@ -223,6 +228,13 @@
     .segmented:has(> .segmented__opt:nth-of-type(5) > input:checked) { --_i: 4; }
 
     .segmented[data-indicator="slide"] {
+      /* one row by construction: the gliding thumb is 1/n of the track, so the cells must be equal columns */
+      flex-wrap: nowrap;
+
+      & .segmented__opt {
+        min-inline-size: 0;
+      }
+
       &::before {
         content: "";
         position: absolute;

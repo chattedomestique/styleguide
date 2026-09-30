@@ -30,20 +30,21 @@ export const tests = [
     },
   },
   {
-    name: 'The current item is a filled pill with a heavier word; the others are neither',
+    name: 'The current item is a filled pill with a frame of its own; the others are neither; the weight is the same (no reflow)',
     async run({ page, goto, expect }) {
       await goto('components/dock.html')
       await page.mouse.move(0, 0)
       const r = await page.evaluate(() => {
         const d = document.querySelector('nav.dock[aria-label="Main"]')
         const cur = d.querySelector('[aria-current="page"]'); const other = d.querySelector('.dock__item:not([aria-current])')
-        const s = (e) => { const c = getComputedStyle(e); return { bg: c.backgroundColor, w: Number(c.fontWeight), fill: Number(c.getPropertyValue('--fill')) } }
+        const s = (e) => { const c = getComputedStyle(e); return { bg: c.backgroundColor, w: Number(c.fontWeight), fill: Number(c.getPropertyValue('--fill')), bd: c.borderTopColor, bw: parseFloat(c.borderTopWidth) } }
         return { cur: s(cur), other: s(other), dockBg: getComputedStyle(d).backgroundColor }
       })
       expect.equal(r.cur.fill, 1, 'current: --fill 1'); expect.equal(r.other.fill, 0, 'others: --fill 0')
       expect.ok((await hex(page, r.cur.bg)) !== (await hex(page, r.dockBg)), 'the current item has its own fill that differs from the dock')
       expect.equal(await hex(page, r.other.bg), await hex(page, r.dockBg), 'the others sit on the dock\'s own fill')
-      expect.ok(r.cur.w > r.other.w, `and a heavier word (${r.cur.w} vs ${r.other.w})`)
+      expect.equal(r.cur.bw, 2, 'a 2px edge'); expect.ok(r.cur.bd !== 'rgba(0, 0, 0, 0)', 'drawn on the current item'); expect.equal(r.other.bd, 'rgba(0, 0, 0, 0)', 'and transparent on the others')
+      expect.equal(r.cur.w, r.other.w, 'same weight, so choosing one never moves its neighbours')
     },
   },
   {
@@ -63,24 +64,28 @@ export const tests = [
     },
   },
   {
-    name: 'Hover tints an unchosen item, the current one does not change; pressing fills at once; the focus ring follows the dock',
+    name: 'Hover draws an unchosen item\'s own frame (text colour unmoved), the current one is unchanged; the focus ring follows the dock',
     async run({ page, goto, expect }) {
       await goto('components/dock.html')
       const items = page.locator('nav.dock[aria-label="Main"] .dock__item')
-      const bg = (i) => items.nth(i).evaluate((el) => getComputedStyle(el).backgroundColor)
+      const st = (i) => items.nth(i).evaluate((el) => { const cs = getComputedStyle(el); return { bd: cs.borderTopColor, ink: cs.color, bg: cs.backgroundColor } })
       await page.mouse.move(0, 0)
-      const rest = await bg(1); const cur = await bg(0)
+      const rest = await st(1); const cur = await st(0)
+      expect.equal(rest.bd, 'rgba(0, 0, 0, 0)', 'at rest an item has a transparent frame (an edge for forced colours)')
       await items.nth(1).hover()
       await page.waitForTimeout(300)
-      expect.ok((await hex(page, await bg(1))) !== (await hex(page, rest)), 'hover tints the background of an unchosen item')
+      const hov = await st(1)
+      expect.ok(hov.bd !== rest.bd, 'hover draws the frame: ' + hov.bd)
+      expect.equal(await hex(page, hov.ink), await hex(page, rest.ink), 'and the text colour does not move')
+      expect.equal(await hex(page, hov.bg), await hex(page, rest.bg), 'no tint')
       await items.nth(0).hover()
       await page.waitForTimeout(300)
-      expect.equal(await hex(page, await bg(0)), await hex(page, cur), 'the current item is unchanged by hover')
+      expect.equal(await hex(page, (await st(0)).bg), await hex(page, cur.bg), 'the current item is unchanged by hover')
       // keyboard focus: ring in the dock's ink, halo in the dock's fill
       await items.nth(0).focus()
       await page.keyboard.press('Tab')
       await page.waitForTimeout(250)
-      const f = await items.nth(1).evaluate((el) => { const cs = getComputedStyle(el); const d = getComputedStyle(el.closest('.dock')); return { o: cs.outlineStyle, w: parseFloat(cs.outlineWidth), c: cs.outlineColor, s: cs.boxShadow, dockInk: d.color, dockBg: d.backgroundColor } })
+      const f = await items.nth(1).evaluate((el) => { const cs = getComputedStyle(el); const d = getComputedStyle(el.closest('.dock')); return { o: cs.outlineStyle, w: parseFloat(cs.outlineWidth), c: cs.outlineColor, s: cs.boxShadow, dockInk: d.color } })
       expect.equal(f.o, 'solid'); expect.ok(f.w >= 3, 'ring 3px')
       expect.equal(await hex(page, f.c), await hex(page, f.dockInk), 'the ring is the dock\'s text colour')
       expect.ok(/0px 0px 0px 3px/.test(f.s), 'with a 3px halo: ' + f.s)

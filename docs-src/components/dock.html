@@ -24,7 +24,7 @@
 <p>The docks on this page are either in flow (<code>data-position="static"</code>) or inside a preview frame, so none of them covers the page you are reading. In an app the default <code>position: fixed</code> floats the dock above the safe area. Click an item to move the lit one.</p>
 
 <h3 id="basic">Floating pill</h3>
-<p>The default: a paper pill with a 2px frame. The current destination is a filled pill with a heavier word, and <code>aria-current="page"</code> tells assistive technology the same. A hover tints an item; a press fills it at once.</p>
+<p>The default: a paper pill with a 2px frame. The current destination is a filled pill with a frame of its own, and <code>aria-current="page"</code> tells assistive technology the same. A hover draws the item's own frame; a press fills it at once.</p>
 <div class="demo">
   <div class="demo__stage" style="padding-inline: var(--space-2)">
     <nav class="dock" data-position="static" aria-label="Main" data-dock-demo>
@@ -122,7 +122,7 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Rest is any item in the docks above. Hover tints, a press fills at once, the current item is filled and heavier, and an unavailable one is dashed and explains itself. The <code>is-*</code> classes only force a state for this page.</p>
+<p>Rest is any item in the docks above. Hover draws the item's frame, a press fills it at once, the current item is filled and framed, and an unavailable one is dashed and explains itself. The <code>is-*</code> classes only force a state for this page.</p>
 <div class="demo">
   <div class="demo__stage" style="padding-inline: var(--space-2)">
     <nav class="dock" data-position="static" aria-label="Main, states" data-dock-demo>
@@ -187,7 +187,7 @@
 <ol>
   <li><strong>Container</strong> (<code>.dock</code>, a <code>&lt;nav&gt;</code>): a pill (floating) or a full-width bar, with a 2px frame. It floats <code>--safe-bottom</code> plus 12px above the screen edge and clears the notch at the sides. A canvas-coloured keyline keeps it apart from what scrolls beneath.</li>
   <li><strong>Destination</strong> (<code>.dock__item</code>): a link or button, 56px tall, at least 44px wide. A 24px icon over a 13px uppercase word.</li>
-  <li><strong>Current cell</strong>: a filled pill with a heavier word, plus <code>aria-current="page"</code>.</li>
+  <li><strong>Current cell</strong>: a filled pill with a frame of its own in the dock's ink, plus <code>aria-current="page"</code>. The weight does not change, so the row never shuffles.</li>
   <li><strong>Centre action</strong> (optional): a large circular button with an <code>aria-label</code>.</li>
   <li><strong>Count badge</strong> (optional): a visible number, its meaning in screen-reader text.</li>
   <li><strong>Safe area</strong>: <code>--safe-bottom</code> under the row, and at the sides.</li>
@@ -202,7 +202,7 @@
     <tr><td><code>dock__list</code>, <code>dock__item</code>, <code>dock__label</code></td><td></td><td>The list, a link or button, and its visible word.</td></tr>
     <tr><td><code>dock__action</code> with <code>btn</code></td><td>a <code>&lt;button&gt;</code> circle, large, primary</td><td>The optional centre action.</td></tr>
     <tr><td><code>dock__badge</code></td><td>number + <code>sr-only</code> meaning; <code>data-tone="bad"</code></td><td>A count on an item.</td></tr>
-    <tr><td><code>aria-current="page"</code></td><td>on the current item</td><td>The filled pill. Exactly one per dock.</td></tr>
+    <tr><td><code>aria-current="page"</code></td><td>on the current item</td><td>The filled, framed pill. Exactly one per dock.</td></tr>
     <tr><td><code>data-variant</code></td><td><code>bar</code> (default: floating)</td><td>Full width, edge to edge.</td></tr>
     <tr><td><code>data-tone</code></td><td><code>ink</code>, <code>1</code>&ndash;<code>6</code></td><td>Dock colours; the centre action and the ring follow.</td></tr>
     <tr><td><code>data-compact</code></td><td></td><td>Words of inactive items hidden visually, kept in the name.</td></tr>

@@ -36,7 +36,7 @@ export const tests = [
     },
   },
   {
-    name: 'Chosen = filled thumb + its own frame + heavier weight; unchosen has none of them',
+    name: 'Chosen = filled thumb + its own 2px frame; unchosen has neither; the label keeps its weight (no reflow)',
     async run({ page, goto, expect }) {
       await goto('components/segmented.html')
       await page.locator('input[name="seg-count"][value="day"]').focus()
@@ -52,7 +52,7 @@ export const tests = [
       const on = rows.find((r) => r.on); const off = rows.filter((r) => !r.on)
       expect.equal(on.v, 'month', 'two presses from Day lands on Month')
       expect.equal(on.fill, 1, 'chosen: --fill 1'); expect.equal(on.thumb, 1, 'chosen: the thumb shows'); expect.equal(on.frame, 2, 'chosen: a 2px frame of its own')
-      expect.ok(off.every((r) => r.w < on.w && r.fill === 0 && r.thumb === 0), 'unchosen: lighter, unfilled, no thumb (a cue that is not colour)')
+      expect.ok(off.every((r) => r.w === on.w && r.fill === 0 && r.thumb === 0), 'unchosen: unfilled, no thumb; same weight so the row cannot reflow')
     },
   },
   {
@@ -93,21 +93,26 @@ export const tests = [
     },
   },
   {
-    name: 'Hover tints an unchosen option; the chosen one does not change; pressing fills at once',
+    name: 'Hover draws an unchosen option\'s own frame; the chosen one does not change; its text colour does not move',
     async run({ page, goto, expect }) {
       await goto('components/segmented.html')
-      const bg = (value) => page.evaluate((v) => getComputedStyle(document.querySelector(`input[name="seg-basic"][value="${v}"] + .segmented__label`)).backgroundColor, value)
+      const s = (value) => page.evaluate((v) => { const l = document.querySelector(`input[name="seg-basic"][value="${v}"] + .segmented__label`); const cs = getComputedStyle(l); return { bd: cs.borderTopColor, bg: cs.backgroundColor, ink: cs.color } }, value)
+      const hex = (c) => page.evaluate((x) => SG.colorToHex(x), c)
       await page.mouse.move(0, 0)
-      const rest = await bg('transactions')
+      const rest = await s('transactions')
+      expect.equal(rest.bd, 'rgba(0, 0, 0, 0)', 'at rest the cell has a transparent frame')
       await page.locator('input[name="seg-basic"][value="transactions"]').hover({ force: true })
       await page.waitForTimeout(300)
-      expect.ok((await bg('transactions')) !== rest, 'hover changes the background of an unchosen option')
+      const hov = await s('transactions')
+      expect.ok(hov.bd !== rest.bd, 'hover draws the frame: ' + hov.bd)
+      expect.equal(await hex(hov.ink), await hex(rest.ink), 'and the text colour does not move (so its contrast cannot drop)')
+      expect.equal(hov.bg, rest.bg, 'no tint on the background')
+      await page.mouse.move(0, 0)
+      await page.waitForTimeout(150)
       await page.locator('input[name="seg-basic"][value="bank"]').hover({ force: true })
       await page.waitForTimeout(300)
-      expect.equal(await bg('bank'), 'rgba(0, 0, 0, 0)', 'the chosen option keeps a transparent cell (its thumb is the pseudo-element)')
-      await page.mouse.down()
-      await page.waitForTimeout(250)
-      await page.mouse.up()
+      const cur = await s('bank')
+      expect.equal(await hex(cur.ink), await hex(await page.evaluate(() => getComputedStyle(document.querySelector('input[name="seg-basic"][value="bank"] + .segmented__label')).color)), 'the chosen cell is unchanged by hover')
     },
   },
   {
