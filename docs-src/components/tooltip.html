@@ -1,0 +1,208 @@
+<!--{"title":"Tooltip","group":"Components","order":84,"summary":"A few words on hover and keyboard focus: hoverable, dismissible with Esc, persistent, and never the only name of a control."}-->
+<style>
+  /* Docs-only scaffolding: see dialog.html for why margins are reverted in demos. */
+  .docs-article .demo .demo__stage > :is(dialog, [popover]) { margin: revert-layer; }
+  #tip-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: var(--space-5); padding-block: var(--space-6); justify-items: center; }
+  #tip-corners > div { min-inline-size: 0; }
+  #tip-corners .t-label { margin-block-end: var(--space-2); }
+  #tip-tool .card__body { align-items: flex-start; }
+</style>
+<h1>Tooltip</h1>
+<p class="lede">A tooltip is a few words that appear next to a control on hover or keyboard focus, to say what it does or why it is unavailable. It is the native <code>popover</code> attribute, so it sits above even a dialog with no z-index. It never carries the control's name and never carries anything a person on a touch screen needs.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div>
+      <strong>Do</strong>
+      <p>Use a tooltip to add a <em>shortcut</em>, a <em>consequence</em> or a <em>reason</em> to a control that already has its own name. Keep it to one short line. Wire it with <code>aria-describedby</code>.</p>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div>
+      <strong>Don't</strong>
+      <p>Make it the only name of an icon-only control (that is <code>aria-label</code>), put a link, button or long text in it (that is a <a href="@/components/popover.html">popover</a>), or hide anything essential in it: touch screens never show one.</p>
+    </div>
+  </div>
+</div>
+
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div>
+    <strong>WCAG 1.4.13, all three parts</strong>
+    <p><em>Dismissible</em>: <kbd>Esc</kbd> hides it without moving the pointer or focus. <em>Hoverable</em>: the pointer can travel onto the tooltip and read it. <em>Persistent</em>: it stays until the pointer and focus have left, you press <kbd>Esc</kbd> or you press the control.</p>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="icon">Icon-only controls</h3>
+<p>The button is named by <code>aria-label</code>. The tooltip is its <em>description</em> (<code>aria-describedby</code>) and adds what the name cannot: the shortcut. Hover a button for half a second, or <kbd>Tab</kbd> to it (keyboard focus shows it at once). Once one tooltip has been shown, the next shows without the wait.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" data-shape="circle" type="button" aria-label="Flip card" aria-describedby="tip-flip">
+      <span class="ic ic--rotate-cw" aria-hidden="true"></span>
+    </button>
+    <div class="tooltip" id="tip-flip" role="tooltip" popover="manual">Show the answer <kbd>Space</kbd></div>
+
+    <button class="btn" data-shape="circle" type="button" aria-label="Undo" aria-describedby="tip-undo">
+      <span class="ic ic--undo-2" aria-hidden="true"></span>
+    </button>
+    <div class="tooltip" id="tip-undo" role="tooltip" popover="manual">Put the last card back <kbd>Z</kbd></div>
+
+    <button class="btn" data-shape="circle" type="button" aria-label="Add card" aria-describedby="tip-add">
+      <span class="ic ic--plus" aria-hidden="true"></span>
+    </button>
+    <div class="tooltip" id="tip-add" role="tooltip" popover="manual">Add a card to this deck <kbd>N</kbd></div>
+  </div>
+</div>
+
+<h3 id="consequence">A consequence, on a text button</h3>
+<p>A labelled button does not need a tooltip for its name, but a line about what happens next can help.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" data-variant="primary" type="button" aria-describedby="tip-start">Start session</button>
+    <div class="tooltip" id="tip-start" role="tooltip" popover="manual" data-placement="bottom-start">Studies the 3 cards due today. About 2 minutes.</div>
+  </div>
+</div>
+
+<h3 id="unavailable">Why a control is unavailable</h3>
+<p>An unavailable button uses <code>aria-disabled</code>, not <code>disabled</code>, so it stays focusable and the tooltip can show on keyboard focus. The reason is also written next to it, because a touch screen never shows the tooltip.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" aria-disabled="true" aria-describedby="tip-archive tip-archive-why">Archive deck</button>
+    <div class="tooltip" id="tip-archive" role="tooltip" popover="manual">Finish today’s 3 cards first, then you can archive this deck.</div>
+    <span class="t-meta" id="tip-archive-why">Available after today’s review.</span>
+  </div>
+</div>
+
+<h3 id="placement">Placement</h3>
+<p><code>data-placement</code> is <code>top</code> by default. It is logical (<code>start</code> and <code>end</code> flip in right-to-left text) and it flips to the other side when there is no room. Hover or focus each.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div id="tip-places">
+      <button class="btn" type="button" aria-describedby="tip-p-top">Top</button>
+      <div class="tooltip" id="tip-p-top" role="tooltip" popover="manual">Above, centred.</div>
+      <button class="btn" type="button" aria-describedby="tip-p-bottom">Bottom</button>
+      <div class="tooltip" id="tip-p-bottom" role="tooltip" popover="manual" data-placement="bottom">Below, centred.</div>
+      <button class="btn" type="button" aria-describedby="tip-p-start">Start</button>
+      <div class="tooltip" id="tip-p-start" role="tooltip" popover="manual" data-placement="start">Before it.</div>
+      <button class="btn" type="button" aria-describedby="tip-p-end">End</button>
+      <div class="tooltip" id="tip-p-end" role="tooltip" popover="manual" data-placement="end">After it.</div>
+    </div>
+  </div>
+</div>
+
+<h3 id="hoverable">Hoverable and dismissible</h3>
+<p>Move onto the tooltip and it stays, so its text can be read and selected at high zoom. Press <kbd>Esc</kbd> and it goes without the pointer moving; it stays away until you leave and come back. Inside a dialog, the first <kbd>Esc</kbd> only hides the tooltip.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" aria-describedby="tip-id">Deck ID</button>
+    <div class="tooltip" id="tip-id" role="tooltip" popover="manual" data-placement="bottom-start">4f2a-91c7-shapes-v3. Share this with whoever needs to import the deck.</div>
+  </div>
+</div>
+
+<h3 id="corners">Square and soft corners</h3>
+<p>The tooltip reads <code>--radius-ctl</code>: square by default, 6px in soft. Static previews (<code>data-inline</code>).</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" id="tip-corners" style="--grid-min: 14rem; --grid-gap: var(--space-5)">
+      <div data-corners="square">
+        <p class="t-label">Square</p>
+        <div class="tooltip" popover data-inline role="note">Show the answer <kbd>Space</kbd></div>
+      </div>
+      <div data-corners="soft">
+        <p class="t-label">Soft</p>
+        <div class="tooltip" popover data-inline role="note">Show the answer <kbd>Space</kbd></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>A study card with its three tools. Every one is a named button; the tooltips add the keys.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <article class="card" id="tip-tool" style="max-inline-size: 22rem">
+      <div class="card__body">
+        <p class="card__eyebrow">Shapes · card 5 of 12</p>
+        <p class="card__title">What is the name of a shape with six equal sides?</p>
+        <div class="cluster">
+          <button class="btn" data-shape="circle" type="button" aria-label="Flip the card" aria-describedby="tip-c-flip">
+            <span class="ic ic--rotate-cw" aria-hidden="true"></span>
+          </button>
+          <div class="tooltip" id="tip-c-flip" role="tooltip" popover="manual">Show the answer <kbd>Space</kbd></div>
+          <button class="btn" data-shape="circle" type="button" aria-label="Skip" aria-describedby="tip-c-skip">
+            <span class="ic ic--skip-forward" aria-hidden="true"></span>
+          </button>
+          <div class="tooltip" id="tip-c-skip" role="tooltip" popover="manual">Come back to this card later <kbd>S</kbd></div>
+          <button class="btn" data-shape="circle" type="button" aria-label="Mark as known" aria-describedby="tip-c-known">
+            <span class="ic ic--check" aria-hidden="true"></span>
+          </button>
+          <div class="tooltip" id="tip-c-known" role="tooltip" popover="manual">Known after 3 right answers in a row <kbd>K</kbd></div>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
+
+<h2 id="behaviour">What happens, and who does it</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Tooltip behaviour and who provides it</caption>
+  <thead><tr><th>Behaviour</th><th>Provided by</th></tr></thead>
+  <tbody>
+    <tr><td>Any element whose <code>aria-describedby</code> points at a <code>.tooltip</code> is a trigger</td><td><code>64-tooltip.js</code> (delegated; markup added later works).</td></tr>
+    <tr><td>Shows after 500ms of hover, at once on keyboard focus, at once when another tooltip was just showing</td><td><code>64-tooltip.js</code>. <code>SG.tooltip.delay</code> changes the wait.</td></tr>
+    <tr><td>Never on touch</td><td><code>64-tooltip.js</code> ignores touch pointers; keyboard or screen reader focus still shows it.</td></tr>
+    <tr><td>Hides when pointer and focus have left; 120ms grace to cross onto it</td><td><code>64-tooltip.js</code>.</td></tr>
+    <tr><td><kbd>Esc</kbd> hides it and is swallowed, so a dialog around it stays open</td><td><code>64-tooltip.js</code> (capture phase).</td></tr>
+    <tr><td>Above everything, no z-index</td><td>The top layer (<code>popover="manual"</code>).</td></tr>
+    <tr><td>Next to the control, flipped when there is no room</td><td>CSS anchor positioning (<code>popover.css</code>); a script fallback where unsupported.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Trigger</strong>: any control with its own accessible name and <code>aria-describedby</code> pointing at the tooltip. It may also be <code>aria-disabled</code>.</li>
+  <li><strong>Tooltip</strong>: <code>&lt;div class="tooltip" role="tooltip" popover="manual"&gt;</code>, placed right after its trigger. An ink box with paper text, framed in paper, <code>--radius-ctl</code>, 20rem at most. No shadow and no arrow.</li>
+  <li><strong>Key cap</strong>: a <code>&lt;kbd&gt;</code> inside is inverted so it stays readable.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Tooltip attributes and JavaScript</caption>
+  <thead><tr><th>Attribute / call</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="tooltip"</code> + <code>popover="manual"</code> + <code>role="tooltip"</code></td><td></td><td>The hint. It needs an <code>id</code>.</td></tr>
+    <tr><td><code>aria-describedby="id"</code></td><td>on the trigger</td><td>Makes the trigger a trigger, and gives assistive technology the description. Several ids are fine.</td></tr>
+    <tr><td><code>data-placement</code></td><td><code>top</code> (default), <code>bottom</code>, <code>start</code>, <code>end</code> and the <code>-start</code> / <code>-end</code> forms</td><td>Where it opens. Flips when there is no room.</td></tr>
+    <tr><td><code>data-inline</code></td><td></td><td>Static preview in the flow.</td></tr>
+    <tr><td><code>SG.tooltip.show(trigger)</code> / <code>hide()</code> / <code>delay</code></td><td></td><td>Script control and the hover delay (ms).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Tooltip keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd> to the control</td><td>Shows the tooltip at once. Leaving hides it. The tooltip itself is never focusable.</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Hides it without moving focus; the next <kbd>Esc</kbd> does whatever it did before (closes the dialog around it).</td></tr>
+    <tr><td>Pointer</td><td>Hover waits 500ms; moving onto the tooltip keeps it; pressing the control hides it (and it stays away until the pointer leaves).</td></tr>
+    <tr><td>Screen reader</td><td>"Flip card, button, Show the answer space." The name comes from <code>aria-label</code>, the description from the tooltip. Nothing is announced when it appears.</td></tr>
+    <tr><td>Touch</td><td>Never shown. The control has a 44px target and a real name; the information is also available elsewhere.</td></tr>
+    <tr><td>Zoom / text size</td><td>Rem padding, 20rem at most and never wider than the screen; long words wrap.</td></tr>
+    <tr><td>Reduced motion</td><td>The 4px settle is multiplied by <code>--move</code>, so only a fade remains.</td></tr>
+    <tr><td>Forced colours</td><td>The fill is gone; the frame becomes <code>CanvasText</code>.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>A tooltip is never the only accessible name: an icon-only control always has <code>aria-label</code> (or visible text).</li>
+  <li>Text in a tooltip is a description, not content. If people must be able to find it again, it belongs on the page.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--ink</code>, <code>--paper</code>, <code>--bw</code>, <code>--radius-ctl</code>, <code>--type-meta</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-5</code>, <code>--move</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--ease-in</code>.</p>
+<p>Related: <a href="@/components/popover.html">Popover</a>, <a href="@/components/menu.html">Menu</a>, <a href="@/components/dialog.html">Dialog</a>, <a href="@/components/button.html">Button</a>.</p>

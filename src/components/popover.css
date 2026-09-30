@@ -1,0 +1,234 @@
+/* ==========================================================================
+   Popover  (layer: sg.components)          + the ANCHOR CONTRACT shared by
+   --------------------------------------------------------------------------   menu.css and tooltip.css
+   A small, non-modal card next to the control that opened it: an explanation,
+   a filter form, a share list. It is the native popover attribute, so the
+   browser gives it the top layer (no z-index), light dismiss (click outside)
+   and Esc, and NOTHING behind it is inert. It is a .card: same frame, bar and
+   tones. JS: src/js/62-popover.js.
+
+   <button class="btn" popovertarget="known" aria-haspopup="dialog" aria-expanded="false">What counts as known?</button>
+   <div class="popover card" id="known" popover role="dialog" aria-labelledby="known-t">
+     <header class="card__bar">
+       <h2 class="card__label" id="known-t">Known</h2>
+       <button class="card__ctl" type="button" popovertarget="known" popovertargetaction="hide" aria-label="Close">
+         <span class="ic ic--close" aria-hidden="true"></span></button>
+     </header>
+     <div class="card__body"><p class="card__text">A card is known after you get it right three times in a row.</p></div>
+   </div>
+
+   data-size       sm (16rem) | md (20rem, default) | lg (26rem)      never wider than the screen
+   data-placement  bottom-start (default) | bottom | bottom-end | top-start | top | top-end | start | end
+   data-inline     static preview in the page flow (docs)
+
+   Modal or not? A popover never blocks the page, so it is for help and small controls. A
+   decision that must be answered first is a dialog; a whole task is a sheet.
+
+   THE ANCHOR CONTRACT
+   Menus, tooltips and popovers all sit next to a trigger. JS (SG.anchor in 62-popover.js)
+   marks the popover `data-anchored` when it opens, and this file places it:
+     1. CSS anchor positioning, inside @supports: the trigger gets an `anchor-name`, the
+        popover a `position-anchor` and a `position-area` from data-placement, with
+        `position-try-fallbacks` that flip it when it would leave the screen.
+     2. Otherwise (browsers without it) JS measures the trigger and writes inset-inline-start
+        / inset-block-start. The popover is hidden until placed, so it never flashes in the
+        corner. The fallback is "below the trigger, flipped above if there is no room".
+     3. No JS at all: nothing is marked, and the UA centres the popover on the screen. It is
+        still usable, just not anchored.
+   Everything is logical (start / end), so RTL flips.
+
+   SEPARATION. A popover is a container, so it casts no shadow: the card's 2px frame is the
+   whole edge. Travel (a small settle) is multiplied by --move, so reduced motion is a fade.
+   Why selectors are `[popover].popover` (0,2,0): .card sets position: relative and display:
+   flex, which would un-hide a closed popover and un-fix an open one.
+   ========================================================================== */
+
+@layer sg.components {
+  /* ---- The anchor contract ------------------------------------------------------------- */
+  [popover][data-anchored] {
+    --_gap: var(--space-2);
+    inset: auto; /* the UA pins popovers with inset: 0 */
+    margin: 0;
+  }
+
+  /* JS-placed fallback: invisible until it has coordinates. */
+  [popover][data-anchored][data-anchor-js]:not([data-placed]) {
+    visibility: hidden;
+  }
+
+  @supports (position-area: block-end) and (anchor-name: --a) {
+    /* A placement CENTRED on the trigger (top, bottom) overflows the screen when the trigger is
+       near a side edge, and flipping does not help. These four line the popover's start or end
+       edge up with the trigger's instead, above or below; the browser tries them in order until
+       one fits. (bs = block-start, span to the end side, and so on.) */
+    @position-try --sg-ts {
+      position-area: block-start span-inline-end;
+      margin-block: 0 var(--_gap);
+    }
+    @position-try --sg-te {
+      position-area: block-start span-inline-start;
+      margin-block: 0 var(--_gap);
+    }
+    @position-try --sg-bs {
+      position-area: block-end span-inline-end;
+      margin-block: var(--_gap) 0;
+    }
+    @position-try --sg-be {
+      position-area: block-end span-inline-start;
+      margin-block: var(--_gap) 0;
+    }
+
+    /* The last resort, when the popover is nearly as wide as the screen (200% text on a phone):
+       neither edge-aligned option fits, so span the whole width and centre it. */
+    @position-try --sg-ab {
+      position-area: block-end span-all;
+      justify-self: center;
+      margin-block: var(--_gap) 0;
+    }
+    @position-try --sg-aa {
+      position-area: block-start span-all;
+      justify-self: center;
+      margin-block: 0 var(--_gap);
+    }
+
+    [popover][data-anchored]:not([data-anchor-js]) {
+      /* default: below, start edges aligned */
+      position-area: block-end span-inline-end;
+      margin-block-start: var(--_gap);
+      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline, --sg-ab, --sg-aa;
+
+      &[data-placement="bottom"] {
+        position-area: block-end;
+        position-try-fallbacks: --sg-bs, --sg-be, flip-block, --sg-ts, --sg-te, --sg-ab, --sg-aa;
+      }
+      &[data-placement="bottom-end"] {
+        position-area: block-end span-inline-start;
+      }
+      &[data-placement="top-start"] {
+        position-area: block-start span-inline-end;
+        margin-block: 0 var(--_gap);
+      }
+      &[data-placement="top"] {
+        position-area: block-start;
+        margin-block: 0 var(--_gap);
+        position-try-fallbacks: --sg-ts, --sg-te, flip-block, --sg-bs, --sg-be, --sg-aa, --sg-ab;
+      }
+      &[data-placement="top-end"] {
+        position-area: block-start span-inline-start;
+        margin-block: 0 var(--_gap);
+      }
+      &[data-placement="start"] {
+        /* Side placements name BOTH axes. A lone inline-start spans the whole page in the block axis,
+           and on a scrolled page the popover lands a screen's worth of pixels away from the trigger
+           (measured in Chromium). Top and bottom can keep the lone keyword: their free axis is the
+           inline one, which does not scroll in this system. */
+        position-area: inline-start center;
+        margin-block: 0;
+        margin-inline: 0 var(--_gap);
+        position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
+      }
+      &[data-placement="end"] {
+        position-area: inline-end center;
+        margin-block: 0;
+        margin-inline: var(--_gap) 0;
+        position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
+      }
+    }
+  }
+
+  /* ---- The popover card ------------------------------------------------------------------ */
+  [popover].popover {
+    /* 1 · private properties */
+    --_w: 20rem;
+    --_edge: calc(max(var(--gutter), var(--safe-left)) + max(var(--gutter), var(--safe-right)));
+    --_rise: calc(var(--move) * var(--space-2)); /* a settle, not a slide. --move 0 leaves a fade. */
+
+    position: fixed;
+    display: none; /* .card says flex; a closed popover must stay hidden */
+    inline-size: min(var(--_w), calc(100vw - var(--_edge)));
+    max-block-size: min(32rem, calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--space-6)));
+    padding: 0;
+    overscroll-behavior: contain;
+
+    opacity: 0;
+    transform: translateY(var(--_rise));
+    transition:
+      opacity var(--dur-press) var(--ease-in),
+      transform var(--dur-press) var(--ease-in),
+      overlay var(--dur-press) allow-discrete,
+      display var(--dur-press) allow-discrete;
+  }
+
+  [popover].popover:popover-open {
+    display: flex;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-hover) var(--ease-out),
+      transform var(--dur-hover) var(--ease-out),
+      overlay var(--dur-hover) allow-discrete,
+      display var(--dur-hover) allow-discrete;
+  }
+
+  @starting-style {
+    [popover].popover:popover-open {
+      opacity: 0;
+      transform: translateY(var(--_rise));
+    }
+  }
+
+  [popover].popover[data-size="sm"] {
+    --_w: 16rem;
+  }
+  [popover].popover[data-size="lg"] {
+    --_w: 26rem;
+  }
+
+  /* Not in the top layer: a static preview in the page flow. */
+  [popover].popover[data-inline] {
+    position: relative;
+    inset: auto;
+    display: flex;
+    margin: 0;
+    max-inline-size: 100%;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* The body scrolls when the popover is taller than the screen; the ring is drawn inside
+     (the card clips at its frame). A text-only popover is focused as a whole (SG gives it
+     tabindex="-1" so a screen reader reads it): focus on the container needs no ring, the
+     content is the focus. */
+  [popover].popover .card__body {
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  [popover].popover:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  [popover].popover .card__bar:not(:has(.card__ctl)) {
+    padding-inline-end: var(--card-pad);
+  }
+
+  /* Actions row at the bottom of a popover form: same rule as the dialog's. */
+  .popover__actions {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--card-pad);
+    border-block-start: var(--bw-thin) solid var(--card-ink);
+  }
+
+  /* ---- Forced colours ----------------------------------------------------------------------
+     The card's frame already becomes CanvasText; the bar's ink fill is gone, so draw its edge. */
+  @media (forced-colors: active) {
+    [popover].popover .card__bar {
+      border-block-end: var(--bw) solid CanvasText;
+    }
+  }
+}

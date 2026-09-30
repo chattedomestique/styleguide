@@ -1,0 +1,316 @@
+<!--{"title":"Menu","group":"Components","order":82,"summary":"A button that opens a list of commands, to the WAI-ARIA menu button pattern, with an action-sheet presentation for phones."}-->
+<style>
+  /* Docs-only scaffolding: see dialog.html for why margins and headings are reverted in demos. */
+  .docs-article .demo .demo__stage > :is(dialog, [popover]) { margin: revert-layer; }
+  .docs-article .menu hr { margin: 0; }
+  #menu-status { min-block-size: var(--hit); }
+  #menu-row { inline-size: 100%; }
+  #menu-row p { margin: 0; max-inline-size: none; }
+  #menu-states { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--space-5); align-items: start; }
+  #menu-states > div { min-inline-size: 0; }
+  #menu-states .t-label { margin-block-end: var(--space-2); }
+  #menu-states .menu { inline-size: 100%; max-inline-size: none; }
+</style>
+<h1>Menu</h1>
+<p class="lede">A menu is a short list of commands behind one button: Rename, Duplicate, Sort by, Delete. It follows the WAI-ARIA menu button pattern on the native <code>popover</code> attribute, so it layers above everything, closes when you click away and needs no z-index. Rows are ruled, edge to edge, and invert as you move through them.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div>
+      <strong>Do</strong>
+      <p>Use a menu for <em>actions</em> and a few settings on one object, when there is not room for a button each. Put the most common first, separate destructive commands and end the list with them. A destructive row is always an icon <em>and</em> a word.</p>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div>
+      <strong>Don't</strong>
+      <p>Use <code>role="menu"</code> for site navigation (that is a list of links), for choosing a value in a form (a select or a radio group), or to hide the only way to do something important. Do not nest menus: on a phone they cannot be used.</p>
+    </div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+<p class="t-meta cluster" id="menu-status" role="status" aria-live="polite">Last command: <strong id="menu-result">none yet</strong></p>
+
+<h3 id="basic">Actions</h3>
+<p>The basic menu. <kbd>Enter</kbd>, <kbd>Space</kbd> or <kbd>ArrowDown</kbd> on the button opens it and focuses the first row; <kbd>ArrowUp</kbd> opens on the last. Delete sits last, after a rule, with its icon. <em>Archive</em> is unavailable: it stays in the list, dashed, and says why.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" id="mb-actions" aria-haspopup="menu" aria-expanded="false" aria-controls="m-actions" popovertarget="m-actions">
+      Deck options<span class="ic ic--chevron-down menu__chevron" aria-hidden="true"></span>
+    </button>
+    <div class="menu" id="m-actions" popover role="menu" aria-labelledby="mb-actions">
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--pencil" aria-hidden="true"></span>Rename
+      </button>
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--copy" aria-hidden="true"></span>Duplicate
+      </button>
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--share-2" aria-hidden="true"></span>Share<span class="menu__meta">Ctrl+S</span>
+      </button>
+      <button class="menu__item" type="button" role="menuitem" aria-disabled="true">
+        <span class="ic ic--archive" aria-hidden="true"></span>Archive<span class="menu__meta">After review</span>
+      </button>
+      <hr class="menu__sep" role="separator" />
+      <button class="menu__item" type="button" role="menuitem" data-tone="bad">
+        <span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck
+      </button>
+    </div>
+  </div>
+</div>
+
+<h3 id="icon-only">Icon-only button, aligned to the end</h3>
+<p>A "more" button at the end of a row. It has no visible text, so it needs an <code>aria-label</code> naming the thing it acts on; a tooltip is not a name. <code>data-placement="bottom-end"</code> lines the menu's end edge up with the button so it stays on screen.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <div class="split" id="menu-row">
+      <p><strong>Colours</strong><br /><span class="t-meta">8 cards</span></p>
+      <button class="btn" data-shape="circle" type="button" id="mb-more" aria-label="More options for Colours" aria-haspopup="menu" aria-expanded="false" aria-controls="m-more" popovertarget="m-more">
+        <span class="ic ic--ellipsis" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="menu" id="m-more" popover role="menu" aria-labelledby="mb-more" data-placement="bottom-end">
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--pencil" aria-hidden="true"></span>Rename
+      </button>
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--users" aria-hidden="true"></span>Invite people
+      </button>
+      <hr class="menu__sep" role="separator" />
+      <button class="menu__item" type="button" role="menuitem" data-tone="bad">
+        <span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck
+      </button>
+    </div>
+  </div>
+</div>
+
+<h3 id="checkable">Checkable rows</h3>
+<p><code>menuitemradio</code> picks one of a group, <code>menuitemcheckbox</code> toggles one setting. SG flips <code>aria-checked</code>; the check icon and the heavier label show it, so it never depends on colour. Radios choose and close. Checkboxes can stay open with <code>data-keep-open</code> so several can be changed in one visit. Groups are named by a <code>.menu__label</code>.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" id="mb-sort" aria-haspopup="menu" aria-expanded="false" aria-controls="m-sort" popovertarget="m-sort">
+      <span class="ic ic--sliders-horizontal" aria-hidden="true"></span><span>Sort and show</span>
+    </button>
+    <div class="menu" id="m-sort" popover role="menu" aria-labelledby="mb-sort">
+      <div role="group" aria-labelledby="m-sort-g1">
+        <span class="menu__label" id="m-sort-g1" aria-hidden="true">Sort by</span>
+        <button class="menu__item" type="button" role="menuitemradio" aria-checked="true" data-value="Newest first">
+          <span class="ic ic--check menu__check" aria-hidden="true"></span>Newest first
+        </button>
+        <button class="menu__item" type="button" role="menuitemradio" aria-checked="false" data-value="Oldest first">
+          <span class="ic ic--check menu__check" aria-hidden="true"></span>Oldest first
+        </button>
+        <button class="menu__item" type="button" role="menuitemradio" aria-checked="false" data-value="Most missed">
+          <span class="ic ic--check menu__check" aria-hidden="true"></span>Most missed
+        </button>
+      </div>
+      <hr class="menu__sep" role="separator" />
+      <div role="group" aria-labelledby="m-sort-g2">
+        <span class="menu__label" id="m-sort-g2" aria-hidden="true">Show</span>
+        <button class="menu__item" type="button" role="menuitemcheckbox" aria-checked="true" data-keep-open data-value="Known cards">
+          <span class="ic ic--check menu__check" aria-hidden="true"></span>Known cards
+        </button>
+        <button class="menu__item" type="button" role="menuitemcheckbox" aria-checked="false" data-keep-open data-value="Archived decks">
+          <span class="ic ic--check menu__check" aria-hidden="true"></span>Archived decks
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="action-sheet">Action sheet (phones)</h3>
+<p><code>data-presentation="sheet"</code> shows the same menu docked to the bottom edge: full-width rows 56px tall, a scrim and a <em>Cancel</em> row, because a phone thumb cannot hit a small dropdown and a touch screen has no <kbd>Esc</kbd>. <code>data-presentation="auto"</code> does this below <code>40em</code> and leaves a dropdown above, so one menu serves both. See also <a href="@/components/sheet.html">Sheet</a>.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" id="mb-sheet" aria-haspopup="menu" aria-expanded="false" aria-controls="m-sheet" popovertarget="m-sheet">
+      <span class="ic ic--ellipsis" aria-hidden="true"></span>Card options
+    </button>
+    <div class="menu" id="m-sheet" popover role="menu" aria-labelledby="mb-sheet" data-presentation="sheet">
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--pencil" aria-hidden="true"></span>Edit card
+      </button>
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--calendar" aria-hidden="true"></span>Review tomorrow
+      </button>
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--share-2" aria-hidden="true"></span>Share card
+      </button>
+      <hr class="menu__sep" role="separator" />
+      <button class="menu__item" type="button" role="menuitem" data-tone="bad">
+        <span class="ic ic--trash-2" aria-hidden="true"></span>Delete card
+      </button>
+      <button class="menu__item" type="button" role="menuitem" data-variant="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" id="mb-auto" aria-haspopup="menu" aria-expanded="false" aria-controls="m-auto" popovertarget="m-auto">
+      Adaptive menu<span class="ic ic--chevron-down menu__chevron" aria-hidden="true"></span>
+    </button>
+    <div class="menu" id="m-auto" popover role="menu" aria-labelledby="mb-auto" data-presentation="auto">
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--download" aria-hidden="true"></span>Export as file
+      </button>
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--send" aria-hidden="true"></span>Send by email
+      </button>
+      <button class="menu__item" type="button" role="menuitem" data-variant="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<h3 id="opens-dialog">A command that needs a decision</h3>
+<p>A menu row can open a <a href="@/components/dialog.html">dialog</a>. The row is hidden the moment the menu closes, so when the dialog closes focus goes back to the <em>menu's button</em>, not to nowhere.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" id="mb-danger" aria-haspopup="menu" aria-expanded="false" aria-controls="m-danger" popovertarget="m-danger">
+      Deck<span class="ic ic--chevron-down menu__chevron" aria-hidden="true"></span>
+    </button>
+    <div class="menu" id="m-danger" popover role="menu" aria-labelledby="mb-danger">
+      <button class="menu__item" type="button" role="menuitem">
+        <span class="ic ic--pencil" aria-hidden="true"></span>Rename
+      </button>
+      <button class="menu__item" type="button" role="menuitem" data-tone="bad" data-sg-open="#m-dlg">
+        <span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck
+      </button>
+    </div>
+    <dialog class="dialog card" id="m-dlg" role="alertdialog" aria-labelledby="m-dlg-t" aria-describedby="m-dlg-d" data-size="sm">
+      <header class="card__bar"><p class="card__label"><span class="ic ic--triangle-alert" aria-hidden="true"></span>Can’t be undone</p></header>
+      <div class="card__body">
+        <h2 class="card__title" id="m-dlg-t">Delete this deck?</h2>
+        <p class="card__text" id="m-dlg-d">Its cards are removed from this device.</p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" type="button" data-sg-close value="cancel" autofocus>Cancel</button>
+        <button class="btn" data-variant="tone" data-tone="bad" type="button" data-sg-close value="delete">Delete deck</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+
+<h3 id="states">Row states, square and soft</h3>
+<p>Static previews (<code>data-inline</code>) with every state forced by the docs-only <code>is-*</code> classes: rest, hover, keyboard focus (filled <em>and</em> ringed inside the row), pressed, checked, unavailable (dashed) and destructive. The same markup in both corner styles; the frame is <code>--radius-tile</code>.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div id="menu-states">
+      <div data-corners="square">
+        <p class="t-label">Square</p>
+        <div class="menu" popover data-inline role="menu" aria-label="Square menu states">
+          <button class="menu__item" type="button" role="menuitem"><span class="ic ic--pencil" aria-hidden="true"></span>Rest</button>
+          <button class="menu__item is-hover" type="button" role="menuitem"><span class="ic ic--copy" aria-hidden="true"></span>Hover</button>
+          <button class="menu__item is-focus" type="button" role="menuitem"><span class="ic ic--share-2" aria-hidden="true"></span>Focus</button>
+          <button class="menu__item is-active" type="button" role="menuitem"><span class="ic ic--download" aria-hidden="true"></span>Pressed</button>
+          <button class="menu__item" type="button" role="menuitemcheckbox" aria-checked="true"><span class="ic ic--check menu__check" aria-hidden="true"></span>Checked</button>
+          <button class="menu__item" type="button" role="menuitem" aria-disabled="true"><span class="ic ic--archive" aria-hidden="true"></span>Unavailable<span class="menu__meta">After review</span></button>
+          <hr class="menu__sep" role="separator" />
+          <button class="menu__item" type="button" role="menuitem" data-tone="bad"><span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck</button>
+        </div>
+      </div>
+      <div data-corners="soft">
+        <p class="t-label">Soft</p>
+        <div class="menu" popover data-inline role="menu" aria-label="Soft menu states">
+          <button class="menu__item" type="button" role="menuitem"><span class="ic ic--pencil" aria-hidden="true"></span>Rest</button>
+          <button class="menu__item is-hover" type="button" role="menuitem"><span class="ic ic--copy" aria-hidden="true"></span>Hover</button>
+          <button class="menu__item is-focus" type="button" role="menuitem"><span class="ic ic--share-2" aria-hidden="true"></span>Focus</button>
+          <button class="menu__item is-active" type="button" role="menuitem"><span class="ic ic--download" aria-hidden="true"></span>Pressed</button>
+          <button class="menu__item" type="button" role="menuitemcheckbox" aria-checked="true"><span class="ic ic--check menu__check" aria-hidden="true"></span>Checked</button>
+          <button class="menu__item" type="button" role="menuitem" aria-disabled="true"><span class="ic ic--archive" aria-hidden="true"></span>Unavailable<span class="menu__meta">After review</span></button>
+          <hr class="menu__sep" role="separator" />
+          <button class="menu__item" type="button" role="menuitem" data-tone="bad"><span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="behaviour">Keyboard, exactly</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Menu keyboard interaction</caption>
+  <thead><tr><th>Where</th><th>Key</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>Button</td><td><kbd>Enter</kbd> <kbd>Space</kbd> <kbd>ArrowDown</kbd></td><td>Opens the menu and focuses the first row.</td></tr>
+    <tr><td>Button</td><td><kbd>ArrowUp</kbd></td><td>Opens the menu and focuses the last row.</td></tr>
+    <tr><td>Menu</td><td><kbd>ArrowDown</kbd> <kbd>ArrowUp</kbd></td><td>Next / previous row; wraps at the ends. Unavailable rows are reachable.</td></tr>
+    <tr><td>Menu</td><td><kbd>Home</kbd> <kbd>End</kbd></td><td>First / last row.</td></tr>
+    <tr><td>Menu</td><td>a letter</td><td>Moves to the next row starting with it. Type quickly to match more letters ("sh" finds Share). Repeating one letter cycles.</td></tr>
+    <tr><td>Menu</td><td><kbd>Enter</kbd> <kbd>Space</kbd></td><td>Activates the row, closes the menu, returns focus to the button. Checkable rows flip first.</td></tr>
+    <tr><td>Menu</td><td><kbd>Esc</kbd></td><td>Closes and returns focus to the button.</td></tr>
+    <tr><td>Menu</td><td><kbd>Tab</kbd> <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Closes the menu and moves on from the button, so focus is never lost and never trapped (WCAG 2.1.2).</td></tr>
+    <tr><td>Anywhere</td><td>click or tap outside</td><td>Closes (native light dismiss).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Button</strong>: any <code>.btn</code> with <code>aria-haspopup="menu"</code>, <code>aria-expanded</code>, <code>aria-controls</code> and <code>popovertarget</code>. An icon-only button carries an <code>aria-label</code>. An optional <code>.menu__chevron</code> turns over while open.</li>
+  <li><strong>Menu</strong>: <code>&lt;div class="menu" popover role="menu" aria-labelledby="button-id"&gt;</code>. A framed list below the button (above if there is no room), at least as wide as the button, 12rem at the least. No shadow.</li>
+  <li><strong>Row</strong> (<code>.menu__item</code>): a real <code>&lt;button&gt;</code> (or link) with a <code>menuitem*</code> role, 44px tall, icon then label, optional <code>.menu__meta</code>. Rows are separated by a 1px rule and invert with <code>--fill</code>.</li>
+  <li><strong>Check</strong> (<code>.menu__check</code>): the leading icon of a checkable row, visible only while checked.</li>
+  <li><strong>Group and rule</strong>: <code>role="group"</code> named by a <code>.menu__label</code>, and <code>&lt;hr role="separator"&gt;</code> (<code>.menu__sep</code>, 2px).</li>
+  <li><strong>Destructive row</strong>: <code>data-tone="bad"</code>, always a trash (or similar) icon and a word.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Menu attributes and JavaScript</caption>
+  <thead><tr><th>Attribute / call</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="menu"</code> + <code>popover</code></td><td></td><td>The popup. Also give it <code>role="menu"</code> and a name.</td></tr>
+    <tr><td><code>class="menu__item"</code></td><td><code>role="menuitem"</code>, <code>menuitemcheckbox</code>, <code>menuitemradio</code></td><td>A row. Checkable roles need <code>aria-checked</code>.</td></tr>
+    <tr><td><code>data-tone="bad"</code></td><td>on a row</td><td>Destructive: bad ink at rest, the tone's fill when it inverts.</td></tr>
+    <tr><td><code>data-variant="cancel"</code></td><td>on the last row</td><td>The framed dismiss row of an action sheet.</td></tr>
+    <tr><td><code>data-placement</code></td><td><code>bottom-start</code> (default), <code>bottom</code>, <code>bottom-end</code>, <code>top-start</code>, <code>top</code>, <code>top-end</code>, <code>start</code>, <code>end</code></td><td>Where it opens relative to the button. It flips when there is no room.</td></tr>
+    <tr><td><code>data-presentation</code></td><td><code>sheet</code>, <code>auto</code></td><td>Action sheet always / below 40em.</td></tr>
+    <tr><td><code>data-keep-open</code></td><td>on the menu or a row</td><td>Activating does not close the menu.</td></tr>
+    <tr><td><code>data-label</code></td><td>text</td><td>What type-ahead matches against, when it should not be the row's whole text (for example a row whose text starts with a number).</td></tr>
+    <tr><td><code>data-value</code></td><td>text</td><td>Reported as <code>detail.value</code> of the <code>sg:menu-select</code> event (falls back to the button's <code>value</code>).</td></tr>
+    <tr><td><code>sg:menu-select</code></td><td>event on the menu</td><td><code>detail: { item, value, checked }</code>, fired before the menu closes.</td></tr>
+    <tr><td><code>SG.menu.open(el, {focus})</code> / <code>close(el)</code></td><td><code>focus</code>: <code>first</code> | <code>last</code></td><td>Script control. Placement helpers are on <code>SG.anchor</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Menu screen reader and other behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td>Screen reader</td><td>The button is "Deck options, menu button, collapsed / expanded". On open, focus lands on a row: "Rename, menu item, 1 of 5". Checkable rows add "checked / not checked"; unavailable rows add "dimmed".</td></tr>
+    <tr><td>Roving focus</td><td>Rows are reached with the arrows, not Tab (<code>tabindex="-1"</code>, set when the menu opens). Without JavaScript the popover still opens and closes natively and the rows are ordinary tab stops.</td></tr>
+    <tr><td>Focus</td><td>The focused row inverts and wears a ring inside it in its own text colour (an ink ring on an ink row would vanish). The menu clips at its frame, so nothing is drawn outside it.</td></tr>
+    <tr><td>Touch</td><td>Rows are 44px (56px in an action sheet), contiguous like any list, so there are no gaps to mis-hit. The action sheet has a Cancel row because a touch screen has no <kbd>Esc</kbd>.</td></tr>
+    <tr><td>Zoom / text size</td><td>Rows grow with text; the menu scrolls if taller than the screen and is never wider than it. Labels wrap.</td></tr>
+    <tr><td>Reduced motion</td><td>No 8px settle, no chevron turn, no sheet slide: a fade only.</td></tr>
+    <tr><td>Forced colours</td><td>The menu and every row keep a border; hover, focus and checked get a 4px <code>Highlight</code> line; unavailable rows are <code>GrayText</code> and dashed.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>Destructive is never colour alone: it is the trash icon and the word <em>Delete</em>; the red is extra.</li>
+  <li>Unavailable rows use <code>aria-disabled="true"</code>, not <code>disabled</code>, so screen reader users can still arrive on them and hear that they exist. Say why in the row's meta text.</li>
+  <li>A tooltip on the menu button is fine but never its only name.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--bad-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--scrim</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-tile</code>, <code>--hit</code>, <code>--ctl-lg</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--type-label</code>, <code>--fill</code>, <code>--ring</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-4</code>, <code>--safe-*</code>, <code>--move</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--ease-in</code>.</p>
+<p>Related: <a href="@/components/sheet.html">Sheet</a> (action-sheet surface), <a href="@/components/popover.html">Popover</a> (shared placement), <a href="@/components/dialog.html">Dialog</a>, <a href="@/components/tooltip.html">Tooltip</a>, <a href="@/components/button.html">Button</a>.</p>
+
+<script>
+  // Demo only: report the last command / choice in the status line above the examples.
+  (function () {
+    var out = document.getElementById('menu-result');
+    var sort = document.getElementById('mb-sort');
+    document.addEventListener('sg:menu-select', function (e) {
+      var item = e.detail.item;
+      var text = item.textContent.replace(/\s+/g, ' ').trim().replace(/(Ctrl\+S|After review)$/, '').trim();
+      if (out) out.textContent = text + (item.getAttribute('role') === 'menuitemcheckbox' ? (e.detail.checked === 'true' ? ' (on)' : ' (off)') : '');
+      if (sort && item.getAttribute('role') === 'menuitemradio') sort.querySelector('span:not(.ic)').textContent = 'Sort: ' + e.detail.value;
+    });
+    document.addEventListener('close', function (e) {
+      if (out && e.target.id === 'm-dlg') out.textContent = e.target.returnValue === 'delete' ? 'Delete deck (confirmed)' : 'Delete deck (cancelled)';
+    }, true);
+  })();
+</script>
