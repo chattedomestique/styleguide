@@ -284,4 +284,13 @@ export const tests = [
       await ctx.close()
     },
   },
+  {
+    name: 'search bar: back, field and action share one row on a 320 px phone',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await goto('components/input.html')
+      const r = await page.locator('.input-bar').first().evaluate((bar) => [...bar.children].map((c) => Math.round(c.getBoundingClientRect().top)))
+      expect.equal(new Set(r).size, 1, 'one row: tops ' + r.join(', '))
+    },
+  },
 ]

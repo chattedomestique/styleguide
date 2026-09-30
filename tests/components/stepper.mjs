@@ -186,4 +186,24 @@ export const tests = [
       expect.ok(/spinbutton/.test(snap), 'the number is a spinbutton')
     },
   },
+  {
+    name: 'hold that ends OFF the button leaves no swallowed click: the next keyboard Enter on the same button still steps',
+    async run({ page, goto, expect }) {
+      await goto('components/stepper.html')
+      const plus = page.locator('[data-sg-step="1"][aria-controls=stp-qty]')
+      await plus.scrollIntoViewIfNeeded()
+      const b = await plus.boundingBox()
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+      await page.mouse.down()
+      await new Promise((r) => setTimeout(r, 800))
+      await page.mouse.move(b.x + b.width / 2, b.y + 150)
+      await page.mouse.up()
+      const before = Number(await page.locator('#stp-qty').inputValue())
+      expect.ok(before > 20, 'the hold repeated: ' + before)
+      if (before >= 50) return // already at the maximum: nothing more to step
+      await plus.focus()
+      await page.keyboard.press('Enter')
+      expect.equal(Number(await page.locator('#stp-qty').inputValue()), before + 5, 'keyboard Enter stepped by one step')
+    },
+  },
 ]

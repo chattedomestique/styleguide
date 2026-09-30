@@ -237,6 +237,13 @@
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
       gap: var(--space-4);
     }
+
+    /* A group inside a group is the children of a "some" checkbox: indent them so their boxes line up under
+       the parent's label text (box 24 + gap 8 = 32). In rem, so it grows with the text, but no wider than that,
+       or at 200 % text the children are left a sliver and their words break mid-word. */
+    > .choice-group {
+      padding-inline-start: var(--space-6);
+    }
   }
 
   /* ==========================================================================
@@ -429,7 +436,9 @@
       min-inline-size: var(--hit);
       min-block-size: var(--ctl-sm);
       margin: 0;
-      padding-inline: var(--space-4);
+      /* 12 px, not 16: "Day  Week  Month  Year" is the canonical four-option control and has to fit one row in
+         the 306 px a phone leaves it (it did not at 16 px, and wrapped into a two-row blob). */
+      padding-inline: var(--space-3);
       color: var(--_seg-ink);
       background: var(--_seg-bg);
       border: var(--bw) solid var(--_seg-line);

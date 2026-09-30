@@ -264,4 +264,30 @@ export const tests = [
       expect.ok(o.st !== 'none' && o.w > 0, 'outline exists (transparent) for forced colours')
     },
   },
+  {
+    name: 'nudge buttons are circles (36 x 36), not 44 x 36 ovals, and their hit area still reaches 44',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      for (const sel of ['[data-sg-nudge="-1"][aria-controls=sld-vol]', '[data-sg-nudge="1"][aria-controls=sld-vol]']) {
+        await page.locator(sel).scrollIntoViewIfNeeded()
+        const b = await page.locator(sel).boundingBox()
+        expect.ok(Math.abs(b.width - b.height) < 0.5, 'width equals height: ' + b.width + ' x ' + b.height)
+        const hit = await page.evaluate((s) => { const el = document.querySelector(s); const r = el.getBoundingClientRect(); const cx = r.x + r.width / 2, cy = r.y + r.height / 2; const h = (x, y) => { const t = document.elementFromPoint(x, y); return t === el || el.contains(t) }; return h(cx - 21.5, cy) && h(cx + 21.5, cy) && h(cx, cy - 21.5) && h(cx, cy + 21.5) }, sel)
+        expect.ok(hit, 'hit area reaches 44 px each way')
+      }
+    },
+  },
+  {
+    name: 'no script: the nudge buttons, the readout and the filled rail are not drawn (they would be dead or stale); the native slider stays',
+    async run({ browser, url, expect }) {
+      const ctx = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } })
+      const p = await ctx.newPage()
+      await p.goto(`${url}/docs/components/slider.html`, { waitUntil: 'load' })
+      expect.ok(await p.locator('#sld-vol').isVisible(), 'the range input is there')
+      expect.ok(await p.locator('label[for=sld-vol]').isVisible(), 'and its label')
+      expect.equal(await p.locator('[data-sg-nudge]').first().isVisible(), false, 'nudge buttons hidden')
+      expect.equal(await p.locator('output.slider__value').first().isVisible(), false, 'readout hidden')
+      await ctx.close()
+    },
+  },
 ]

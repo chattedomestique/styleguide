@@ -59,14 +59,14 @@
 </div>
 
 <h3 id="indeterminate">Indeterminate: "some of them"</h3>
-<p>A parent checkbox that stands for a group of children shows a dash when only some are checked. Indeterminate is a property, set in script (<code>input.indeterminate = true</code>); CSS reads it with <code>:indeterminate</code> and assistive technology hears "mixed".</p>
+<p>A parent checkbox that stands for a group of children shows a dash when only some are checked. Indeterminate is a property, set in script (<code>input.indeterminate = true</code>); CSS reads it with <code>:indeterminate</code> and assistive technology hears "mixed". Put the children in a <code>.choice-group</code> inside the parent's group: it indents them to sit under the parent's label.</p>
 <div class="demo">
   <div class="demo__stage">
     <fieldset class="field" data-demo-tree>
       <legend class="field__label">Notifications</legend>
       <div class="choice-group">
         <label class="choice"><input type="checkbox" data-demo-parent><span class="choice__label">All notifications</span></label>
-        <div class="choice-group" style="padding-inline-start: var(--space-7)">
+        <div class="choice-group">
           <label class="choice"><input type="checkbox" name="nt-mail" checked><span class="choice__label">Email</span></label>
           <label class="choice"><input type="checkbox" name="nt-push"><span class="choice__label">Push</span></label>
           <label class="choice"><input type="checkbox" name="nt-sms"><span class="choice__label">Text message</span></label>
@@ -242,7 +242,7 @@
   <tbody>
     <tr><td><code>class="choice"</code></td><td>on a <code>&lt;label&gt;</code> wrapping an <code>input[type=checkbox|radio]</code> and <code>.choice__label</code></td><td>One option.</td></tr>
     <tr><td><code>class="card choice-card"</code></td><td>on a <code>&lt;label&gt;</code> wrapping the input and a <code>.card__body</code> of <code>span</code>s</td><td>A selectable card. <code>data-tone</code> works as on any card.</td></tr>
-    <tr><td><code>class="choice-group"</code></td><td><code>data-layout="inline"</code> | <code>"grid"</code> | <code>data-variant="segmented"</code></td><td>Stacks rows with 8&nbsp;px gaps; inline wraps; grid lays cards out with no media query; segmented draws the pill track.</td></tr>
+    <tr><td><code>class="choice-group"</code></td><td><code>data-layout="inline"</code> | <code>"grid"</code> | <code>data-variant="segmented"</code></td><td>Stacks rows with 8&nbsp;px gaps; inline wraps; grid lays cards out with no media query; segmented draws the pill track. A <code>.choice-group</code> directly inside another is indented (the children of a "some" checkbox).</td></tr>
     <tr><td><code>:checked</code> / <code>:indeterminate</code></td><td></td><td>On (tick or dot) / some (dash, checkboxes only). Set <code>indeterminate</code> in script.</td></tr>
     <tr><td><code>aria-invalid="true"</code> / <code>:user-invalid</code></td><td></td><td>Bad-ink frame and an inner second frame. Put the message in a <a href="@/components/field.html">field</a>.</td></tr>
     <tr><td><code>disabled</code></td><td></td><td>Dashed, faint, flat, not-allowed cursor.</td></tr>
@@ -257,7 +257,7 @@
     <tr><td><kbd>Tab</kbd></td><td>Checkboxes: one stop each. Radios: one stop for the whole group (the checked one, or the first).</td></tr>
     <tr><td><kbd>Space</kbd></td><td>Toggles a checkbox; checks a radio.</td></tr>
     <tr><td><kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd></td><td>Radios (including cards and segments): move focus <em>and</em> select the previous / next option, wrapping. Native.</td></tr>
-    <tr><td>Screen reader</td><td>"Remind me about my streak, check box, not checked". Radios add the legend and position: "Session length, Standard, radio button, checked, 2 of 3". Indeterminate is "mixed".</td></tr>
+    <tr><td>Screen reader</td><td>"Remind me about my streak, check box, not checked". Radios add the legend and position: "Session length, group. Standard 20 cards, about 8 minutes, radio button, 2 of 3". A hint inside the label is part of the name; for a long one, give it an <code>id</code> and point the input at it with <code>aria-describedby</code> instead. Indeterminate is "mixed".</td></tr>
     <tr><td>Touch</td><td>44&times;44&nbsp;px input and a full-width label, 8&nbsp;px between rows. Segments reach 44&nbsp;px tall and sit 4&nbsp;px apart in their track (one control, not separate buttons).</td></tr>
     <tr><td>Not colour alone</td><td>Checked = filled box <em>and</em> a tick / dot. Card selected = doubled frame <em>and</em> a tick. Segment selected = a second outline <em>and</em> inverted text. Invalid = inner second frame.</td></tr>
     <tr><td>Focus</td><td>The ring wraps the drawn box, the whole card, or the whole segmented track.</td></tr>

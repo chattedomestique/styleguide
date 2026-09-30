@@ -263,4 +263,20 @@ export const tests = [
       expect.ok(!/^0s/.test(m.transitionDuration), 'fade is not instant: ' + m.transitionDuration)
     },
   },
+  {
+    name: 'segmented: four short options share ONE row at 390 px (wrapped they made a two-row blob); nested groups indent their children under the parent label',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const seg = await page.evaluate(() => [...document.querySelectorAll('[data-variant=segmented]')].map((g) => ({ h: g.getBoundingClientRect().height, n: g.children.length, tops: new Set([...g.children].map((c) => Math.round(c.getBoundingClientRect().top))).size })))
+      for (const s of seg) expect.equal(s.tops, 1, s.n + ' segments on one row (track is ' + s.h + ' tall)')
+      const nest = await page.evaluate(() => {
+        const tree = document.querySelector('[data-demo-tree]'); const parent = tree.querySelector('[data-demo-parent]').closest('.choice'); const child = tree.querySelector('input[name=nt-mail]')
+        const lab = parent.querySelector('.choice__label').getBoundingClientRect()
+        const box = child.getBoundingClientRect()
+        return { indent: box.left + 10 - parent.querySelector('input').getBoundingClientRect().left, labelOffset: lab.left - parent.querySelector('input').getBoundingClientRect().left, inline: !!tree.querySelector('[style]') }
+      })
+      expect.ok(!nest.inline, 'no inline style in the demo: the indent is CSS')
+      expect.ok(Math.abs(nest.indent - nest.labelOffset) <= 6, 'child box sits under the parent label text: ' + nest.indent + ' vs ' + nest.labelOffset)
+    },
+  },
 ]

@@ -43,6 +43,10 @@
    keep their ink, because they are text people still read (an <output> is not a disabled control, so the
    exemption for disabled controls does not cover it).
 
+   NO SCRIPT. The nudge buttons, the filled part of the rail and the readout are all drawn by script, and
+   would be dead or stale, so @media (scripting: none) hides them. The native slider, its label and the
+   min / max captions stay.
+
    SIZES. The thumb is 28 px (>= the 24 px target floor); the input is 44 px tall, so the hit area is 44
    (pointer-down anywhere along the row moves the thumb). The ring wraps the thumb, not the whole row.
    ========================================================================== */
@@ -93,10 +97,16 @@
     align-items: flex-start;
     gap: var(--space-3); /* the 44 px hit areas of the buttons stay 8 px clear of the slider's */
 
-    /* 36 px nudge buttons line up with the centre of the 44 px input, not with the captions */
+    /* 36 px nudge buttons line up with the centre of the 44 px input, not with the captions.
+       A .btn never gets narrower than --hit, so a small circle would be a 44 x 36 oval: take that floor
+       off (the ::after hit area still reaches 44 px) and the circle is a circle. */
     > .btn {
       flex: none;
       margin-block-start: calc((var(--hit) - var(--ctl-sm)) / 2);
+
+      &[data-shape="circle"] {
+        min-inline-size: 0;
+      }
     }
   }
 
@@ -286,6 +296,19 @@
       box-shadow: none;
       transform: none;
       cursor: not-allowed;
+    }
+  }
+
+  /* ---- No script -------------------------------------------------------------------------------
+     Three things only script keeps true would now LIE, so they are not drawn: the nudge buttons do
+     nothing, the filled part of the rail stays where the page loaded, and the readout keeps the first
+     value while the thumb moves. What is left is the native slider with its label and its min / max
+     captions, which works and reports its own value. */
+  @media (scripting: none) {
+    .slider__row > [data-sg-nudge],
+    .slider__value,
+    .slider__track::after {
+      display: none;
     }
   }
 

@@ -32,6 +32,9 @@
    the box opens the native picker. The wrapper is the frame, so the ring, the error and the
    disabled look are drawn once (:has()), exactly as in .input-group.
 
+   A LISTBOX (multiple, or size above 1) is a visible list, not a button: no chevron, no lift. Its chosen
+   options are filled with --accent and bold, because the list shows the selection all the time.
+
    Use a select for 5 to about 15 options that are known in advance. Fewer than 5: use
    radio buttons (see choice). Many more, or searchable: a combobox, not this.
    ========================================================================== */
@@ -144,11 +147,16 @@
       transition-duration: var(--dur-press);
     }
 
-    /* unavailable: dashed, faint, flat, no slot fill */
+    /* unavailable: dashed, faint, flat, no slot fill. The slot's own edge is dashed too, or a solid
+       divider and a solid end edge would sit on a dashed frame. */
     &:has(> select:disabled) {
       --lift: 0;
       --fill: 0;
       --_shadow: 0 0 0 0 transparent;
+
+      &::before {
+        border-style: dashed;
+      }
     }
 
     /* Multiple / listbox: a tall box, no chevron, no lift, padding around the options. */
@@ -170,6 +178,15 @@
         option {
           min-block-size: var(--hit);
           padding-inline: var(--space-2);
+        }
+        /* The chosen option(s). The solid paper fill set on every option above also erases the
+           platform's own "selected" grey, so without this rule a list that is not focused shows NO
+           selection at all (WCAG 1.4.1, 3.3.2). Fill plus weight: the second cue is the bold. While the
+           list has focus the platform paints its own (blue) selection over this, which CSS cannot restyle. */
+        option:checked {
+          background-color: var(--accent);
+          color: var(--on-accent);
+          font-weight: 700;
         }
       }
     }

@@ -216,4 +216,35 @@ export const tests = [
       await ctx.close()
     },
   },
+  {
+    name: 'layout: at 390 px every switch shares a row with its label, in the docs and in a card (a 10rem label basis wrapped them all at 320)',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const rows = await page.evaluate(() => [...document.querySelectorAll('label.switch:not([data-layout="start"])')].map((l) => {
+        const i = l.querySelector('input').getBoundingClientRect(); const t = l.querySelector('.switch__label').getBoundingClientRect()
+        return { name: l.querySelector('input').name, sameRow: i.top < t.bottom }
+      }))
+      for (const r of rows) expect.ok(r.sameRow, r.name + ': the switch wrapped under its label')
+      await page.setViewportSize({ width: 320, height: 700 })
+      const narrow = await page.evaluate(() => [...document.querySelectorAll('.demo__stage > .stack > label.switch, .demo__stage > label.switch')].map((l) => {
+        const i = l.querySelector('input').getBoundingClientRect(); const t = l.querySelector('.switch__label').getBoundingClientRect()
+        return { name: l.querySelector('input').name, sameRow: i.top < t.bottom }
+      }))
+      for (const r of narrow) expect.ok(r.sameRow, r.name + ' at 320 px: the switch wrapped under its label')
+    },
+  },
+  {
+    name: 'layout: when a switch does wrap (a narrow column, big text) it lands at the END of its row, under its word, not stranded at the start',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const r = await page.evaluate(() => {
+        const l = document.querySelector('label.switch:not([data-layout="start"])')
+        const host = document.createElement('div'); host.style.cssText = 'inline-size:170px'; l.parentNode.insertBefore(host, l); host.appendChild(l)
+        const i = l.querySelector('input').getBoundingClientRect(); const t = l.querySelector('.switch__label').getBoundingClientRect(); const h = host.getBoundingClientRect()
+        return { wrapped: i.top >= t.bottom - 1, gapToEnd: Math.abs(h.right - i.right) }
+      })
+      expect.ok(r.wrapped, 'this width is too narrow for one row, so the switch wrapped')
+      expect.ok(r.gapToEnd < 8, 'and it sits at the end of the row: ' + r.gapToEnd + ' px from the right edge')
+    },
+  },
 ]

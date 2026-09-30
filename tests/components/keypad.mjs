@@ -256,4 +256,49 @@ export const tests = [
       expect.ok(r.sw <= r.cw + 1, `no sideways scroll at 200% text (${r.sw} vs ${r.cw})`)
     },
   },
+  {
+    name: 'narrow column at large text: keys stay circles and never overlap (a .btn floor of --hit = 88 px at 200 % pushed them into each other)',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      // a realistic column: a 288 px app column (320 px phone, 16 px gutters) at 200 % text, not the docs page's own padding
+      await page.addStyleTag({ content: 'html{font-size:200%!important} .keypad:has(#kp-amt){inline-size:288px;max-inline-size:288px}' })
+      await settle(page)
+      const r = await page.evaluate(() => {
+        const keys = [...document.querySelectorAll('.keypad:has(#kp-amt) .keypad__key')].map((k) => k.getBoundingClientRect())
+        let overlap = 0
+        for (let a = 0; a < keys.length; a++) for (let b = a + 1; b < keys.length; b++) {
+          const x = Math.min(keys[a].right, keys[b].right) - Math.max(keys[a].left, keys[b].left)
+          const y = Math.min(keys[a].bottom, keys[b].bottom) - Math.max(keys[a].top, keys[b].top)
+          if (x > 0.5 && y > 0.5) overlap++
+        }
+        return { overlap, round: keys.every((k) => Math.abs(k.width - k.height) < 1), min: Math.min(...keys.map((k) => k.width)), width: Math.max(...keys.map((k) => k.right)) - Math.min(...keys.map((k) => k.left)) }
+      })
+      expect.equal(r.overlap, 0, 'no two keys overlap')
+      expect.ok(r.round, 'every key is a circle')
+      expect.ok(r.min >= 44, 'and none is under 44 px: ' + r.min)
+      expect.ok(r.width <= 289, 'the pad stays inside its 288 px column: ' + r.width)
+    },
+  },
+  {
+    name: 'hold-to-delete that ends OFF the key leaves no swallowed click: the next keyboard Enter on Delete still deletes',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      await tap(page, '1', '2', '3', '4')
+      const back = page.locator(key('back'))
+      await back.scrollIntoViewIfNeeded()
+      const b = await back.boundingBox()
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+      await page.mouse.down()
+      await W(700)
+      await page.mouse.move(b.x - 120, b.y + b.height / 2)
+      await page.mouse.up()
+      const after = await shown(page)
+      expect.ok(after !== '$1,234', 'the hold repeated: ' + after)
+      await back.focus()
+      await page.keyboard.press('Enter')
+      const next = await shown(page)
+      expect.ok(next.replace(/\D/g, '').length === after.replace(/\D/g, '').length - 1 || (after === '$0' && next === '$0'), 'Enter deleted one more digit: ' + after + ' -> ' + next)
+    },
+  },
 ]

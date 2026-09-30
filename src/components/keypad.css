@@ -112,6 +112,11 @@
     inline-size: 100%;
     block-size: auto;
     aspect-ratio: 1;
+    /* A .btn never shrinks below --hit, which is 88 px at 200 % text: in a narrow column (a 320 px phone at
+       large text) the keys would overflow their cells and overlap. Let the column size them; the ::after
+       hit area still reaches --hit, and the 12 px gap keeps neighbours' hit areas apart. */
+    min-inline-size: 0;
+    min-block-size: 0;
     font-size: clamp(1.5rem, 8cqi, 2rem);
     font-variant-numeric: tabular-nums lining-nums;
     --ic-size: 1.75rem;

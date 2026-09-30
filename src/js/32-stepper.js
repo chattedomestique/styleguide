@@ -133,7 +133,10 @@
     if (!stepper || btn.getAttribute('aria-disabled') === 'true') return;
     var s = st(stepper);
     stopHold(stepper);
-    if (s.held) { s.held = false; return; } // the press already repeated; do not add one on release
+    // The press already repeated, so the click that ends it adds nothing. Only a POINTER click is swallowed
+    // (detail > 0): a hold that ended off the button never produced one, and the next keyboard Enter / Space
+    // (detail 0) must still work.
+    if (s.held) { s.held = false; if (e.detail > 0) return; }
     step(stepper, num(btn.getAttribute('data-sg-step'), 0));
   });
 

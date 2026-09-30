@@ -211,7 +211,10 @@
     if (!k || k.btn.getAttribute('aria-disabled') === 'true') return;
     var s = st(k.pad);
     stopHold(k.pad);
-    if (s.held) { s.held = false; return; } // the hold already repeated; do not add one on release
+    // The hold already repeated, so the click that ends it adds nothing. Only a POINTER click is swallowed
+    // (detail > 0): a hold that ended off the key never produced one, and the next keyboard Enter / Space
+    // (detail 0) on the key must still work.
+    if (s.held) { s.held = false; if (e.detail > 0) return; }
     press(k.pad, k.key);
   });
 

@@ -174,4 +174,27 @@ export const tests = [
       expect.equal(r.fill, 1, 'the fill still changes')
     },
   },
+  {
+    name: 'listbox: the chosen option is filled and bold while the list is NOT focused (a solid fill on every option had erased the platform selection)',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      await page.evaluate(() => document.activeElement && document.activeElement.blur())
+      const r = await page.locator('#sel-list').evaluate((s) => {
+        const css = (o) => { const c = getComputedStyle(o); return { bg: c.backgroundColor, fg: c.color, w: Number(c.fontWeight) } }
+        return { on: css(s.querySelector('option:checked')), off: css(s.querySelector('option:not(:checked)')) }
+      })
+      expect.ok(r.on.bg !== r.off.bg, 'fill differs: ' + r.on.bg + ' vs ' + r.off.bg)
+      expect.ok(r.on.fg !== r.off.fg, 'text flips with the fill: ' + r.on.fg + ' vs ' + r.off.fg)
+      expect.ok(r.on.w >= 700 && r.off.w < 700, 'bold is the second cue: ' + r.on.w + ' vs ' + r.off.w)
+    },
+  },
+  {
+    name: 'disabled select: the end slot is dashed like the frame, not a solid divider on a dashed box',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const r = await page.locator(wrap('sel-st-2')).evaluate((e) => ({ frame: getComputedStyle(e).borderTopStyle, slot: getComputedStyle(e, '::before').borderTopStyle }))
+      expect.equal(r.frame, 'dashed', 'frame')
+      expect.equal(r.slot, 'dashed', 'slot')
+    },
+  },
 ]

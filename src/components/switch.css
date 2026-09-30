@@ -82,7 +82,9 @@
       inline-size: calc(var(--_tw) + var(--space-2));
       block-size: var(--hit);
       margin: 0;
-      margin-inline-end: calc(var(--space-1) * -1); /* the track, not the hit area, meets the edge */
+      /* Free space in a row goes to the label (it grows), so this auto margin only works when the switch
+         has wrapped onto a row of its own: it then sits at the end, under its word, not stranded at the start. */
+      margin-inline: auto calc(var(--space-1) * -1); /* the track, not the hit area, meets the edge */
       padding: 0;
       border: 0;
       border-radius: 0;
@@ -186,7 +188,9 @@
     /* ---- Label and words ------------------------------------------------------------- */
     .switch__label {
       order: 1;
-      flex: 1 1 10rem;
+      /* Small on purpose: the label may only drop the switch under it when the row truly has no room
+         (320 px, 200 % text). A basis of 10rem wrapped every switch in a 232 px card at 390 px. */
+      flex: 1 1 6rem;
       min-inline-size: 0;
       padding-block: calc((var(--hit) - 1lh) / 2);
       font: var(--type-body);

@@ -81,16 +81,18 @@
         <section class="card" aria-labelledby="ctx-sw-h">
           <header class="card__bar"><h4 class="card__label" id="ctx-sw-h">Study</h4></header>
           <div class="card__body">
-            <label class="switch">
-              <input type="checkbox" role="switch" name="ctx-remind" checked>
-              <span class="switch__label">Streak reminders</span>
-              <span class="switch__state" aria-hidden="true"><span data-on>On</span><span data-off>Off</span></span>
-            </label>
-            <label class="switch">
-              <input type="checkbox" role="switch" name="ctx-weekly">
-              <span class="switch__label">Weekly summary</span>
-              <span class="switch__state" aria-hidden="true"><span data-on>On</span><span data-off>Off</span></span>
-            </label>
+            <div class="stack" data-gap="2">
+              <label class="switch">
+                <input type="checkbox" role="switch" name="ctx-remind" checked>
+                <span class="switch__label">Streak reminders</span>
+                <span class="switch__state" aria-hidden="true"><span data-on>On</span><span data-off>Off</span></span>
+              </label>
+              <label class="switch">
+                <input type="checkbox" role="switch" name="ctx-weekly">
+                <span class="switch__label">Weekly summary</span>
+                <span class="switch__state" aria-hidden="true"><span data-on>On</span><span data-off>Off</span></span>
+              </label>
+            </div>
           </div>
         </section>
       </div>
@@ -127,7 +129,7 @@
   <tbody>
     <tr><td><kbd>Tab</kbd></td><td>One stop per switch. The ring wraps the track.</td></tr>
     <tr><td><kbd>Space</kbd></td><td>Toggles. (<kbd>Enter</kbd> does nothing on a checkbox, as in the APG switch pattern.)</td></tr>
-    <tr><td>Screen reader</td><td>"Streak reminders, switch, on". The name never changes with the state; the On / Off words are <code>aria-hidden</code>.</td></tr>
+    <tr><td>Screen reader</td><td>"Streak reminders, switch, on". The name never changes with the state; the On / Off words are <code>aria-hidden</code>. A <code>.switch__hint</code> inside the label is read as part of the name ("Streak reminders A nudge at 7:30&hellip;"): keep it short, or move it to <code>aria-describedby</code>.</td></tr>
     <tr><td>Touch</td><td>56&times;44&nbsp;px input and a full-width label. The change applies at once, so there is no hidden Save.</td></tr>
     <tr><td>Not colour alone</td><td>On = track fills <em>and</em> the thumb moves <em>and</em> shows a tick <em>and</em> the word says On.</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel. The thumb does not slide: it lands at the midpoint of the colour change while the track and the word cross-fade.</td></tr>

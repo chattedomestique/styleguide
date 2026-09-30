@@ -187,6 +187,38 @@
   });
 </script>
 
+<h3 id="in-context">In context: a sign-up screen</h3>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="5">
+        <div class="stack" data-gap="1">
+          <p class="t-title">Create your account</p>
+          <p class="t-meta">Fields marked (required) must be filled in.</p>
+        </div>
+        <form class="stack" novalidate>
+          <div class="field">
+            <label class="field__label" for="ctx-name">Name <span class="field__req">(required)</span></label>
+            <input class="input" id="ctx-name" type="text" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label class="field__label" for="ctx-email">Email <span class="field__req">(required)</span></label>
+            <input class="input" id="ctx-email" type="email" autocomplete="email" inputmode="email" required value="jay@" aria-invalid="true" aria-describedby="ctx-email-msg">
+            <div class="field__foot">
+              <p class="field__error" id="ctx-email-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like name@example.com</span></p>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="ctx-ref">Referral code <span class="field__opt">(optional)</span></label>
+            <input class="input" id="ctx-ref" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          </div>
+          <button class="btn" data-variant="primary" data-block type="submit">Create account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <h2 id="standards">Forms and the standards</h2>
 <p>A form is where most accessibility failures cost someone a booking, a payment or a sign-in. These are the WCAG 2.2 criteria that decide it, what the system does about each, and what is still yours to do.</p>
 <div class="table-wrap"><table class="docs-table">
@@ -283,38 +315,6 @@
 <h3 id="prevention">Error prevention for money</h3>
 <p>For anything that moves money, signs something or cannot be undone (WCAG 3.3.4), make at least one of these true: the last step is a <strong>review</strong> of what they entered, it can be <strong>reversed</strong> (and Undo is shown), or it is <strong>checked and confirmed</strong> before it is final. A review screen that repeats the amount and the recipient beats a "Are you sure?" dialog, which people click through. See the <a href="@/components/keypad.html">keypad</a> for an amount entry.</p>
 
-<h3 id="in-context">In context: a sign-up screen</h3>
-<div class="demo" data-nocode>
-  <div class="demo__stage">
-    <div class="phone">
-      <div class="phone__screen stack" data-gap="5">
-        <div class="stack" data-gap="1">
-          <p class="t-title">Create your account</p>
-          <p class="t-meta">Fields marked (required) must be filled in.</p>
-        </div>
-        <form class="stack" novalidate>
-          <div class="field">
-            <label class="field__label" for="ctx-name">Name <span class="field__req">(required)</span></label>
-            <input class="input" id="ctx-name" type="text" autocomplete="name" required>
-          </div>
-          <div class="field">
-            <label class="field__label" for="ctx-email">Email <span class="field__req">(required)</span></label>
-            <input class="input" id="ctx-email" type="email" autocomplete="email" inputmode="email" required value="jay@" aria-invalid="true" aria-describedby="ctx-email-msg">
-            <div class="field__foot">
-              <p class="field__error" id="ctx-email-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like name@example.com</span></p>
-            </div>
-          </div>
-          <div class="field">
-            <label class="field__label" for="ctx-ref">Referral code <span class="field__opt">(optional)</span></label>
-            <input class="input" id="ctx-ref" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
-          </div>
-          <button class="btn" data-variant="primary" data-block type="submit">Create account</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
 <h2 id="messages">Writing the words</h2>
 <div class="table-wrap"><table class="docs-table">
   <caption class="sr-only">How to write labels, hints and error messages</caption>
@@ -362,7 +362,7 @@
   <caption class="sr-only">Field keyboard and screen reader behaviour</caption>
   <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
   <tbody>
-    <tr><td><kbd>Tab</kbd></td><td>Moves between controls in reading order. The summary is focused by script, not reachable by <kbd>Tab</kbd> until shown.</td></tr>
+    <tr><td><kbd>Tab</kbd></td><td>Moves between controls in reading order. The error summary has <code>tabindex="-1"</code>, so <kbd>Tab</kbd> never stops on the box itself; script moves focus there after a failed submit, and <kbd>Tab</kbd> then walks the links inside it.</td></tr>
     <tr><td>Failed submit</td><td>Focus moves to the error summary (<code>tabindex="-1"</code>); its <code>role="alert"</code> child announces the heading and entries. <kbd>Tab</kbd> then walks the links; <kbd>Enter</kbd> focuses the field.</td></tr>
     <tr><td>Screen reader, field</td><td>"Email (required), edit text, invalid entry, Enter an email like name@example.com". Label, then name / role / state, then the description.</td></tr>
     <tr><td>Screen reader, group</td><td>The legend is announced with each option: "How should we remind you, Email, radio button, 2 of 3".</td></tr>
