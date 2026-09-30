@@ -1,0 +1,391 @@
+/* ==========================================================================
+   Calendar  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A month on one screen (or one week): choose a day, see what is planned. The
+   grid is a real table with role="grid", every day is a button, and everything
+   inside .cal is rendered by SG.calendar (src/js/72-calendar.js) from a few
+   data attributes. This file is only how it looks.
+
+   <div class="cal" data-sg-calendar data-value="2026-10-02" data-first-day="1"></div>
+
+   data-view   month (default) | week   (a strip of seven tall day pills)
+
+   THE LOOK  A 2px frame. The month and two round buttons on paper; the weekday
+   names in the ink bar (uppercase labels are structure, as in the Table and the
+   Card bar); then days as circles, because a day is something you press and
+   circles act. The list of the chosen day's events sits under a 1px rule.
+
+   STATES, each with a cue that is not colour:
+     today       [aria-current="date"]   a 2px ring AND the numeral underlined and heavy
+     chosen      td[aria-selected=true]  filled with the accent, a doubled frame AND paper numerals
+     events      markers under the day   one to three small squares; the count is also in the
+                                          day's accessible name and in the list below
+     outside     [data-outside]          the neighbouring months' days: soft ink, regular weight
+     unavailable [aria-disabled=true]    dashed frame, faint ink, no lift (data-min / data-max)
+     hover, focus  --lift 1 and the ring-frame appear; pressed sinks back (like a Button)
+
+   The day is drawn as a circle of at most 2.5rem but its hit area is the whole 44px-tall cell
+   (the ::after from button.css), so dense rows still give every day a full target.
+
+   CONTAINER QUERIES  Weekday names: "Mon" while each column is wide enough, one letter below
+   15rem (rem, so 200% text switches sooner). Week view: same.
+
+   FOUNDATION REQUESTS  none.
+   ========================================================================== */
+
+@layer sg.components {
+  .cal {
+    --_r: max(0px, calc(var(--radius-card) - var(--bw)));
+    container: cal / inline-size;
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+  }
+
+  .cal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .cal__title {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    text-align: center;
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    letter-spacing: var(--ls-title);
+    text-wrap: balance;
+  }
+
+  /* ---- the grid -------------------------------------------------------------- */
+  .cal__grid {
+    inline-size: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .cal__grid thead th {
+    block-size: 2.25rem;
+    padding: 0;
+    color: var(--paper);
+    background: var(--ink);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    text-align: center;
+    overflow: clip;
+  }
+
+  .cal__grid thead th:first-child {
+    border-start-start-radius: var(--_r);
+  }
+  .cal__grid thead th:last-child {
+    border-start-end-radius: var(--_r);
+  }
+
+  .cal__dow-narrow {
+    display: none;
+  }
+
+  /* a narrow column: a smaller month and less padding keep the two buttons beside it (a 320px phone) ... */
+  @container cal (max-width: 17rem) {
+    .cal__head {
+      padding: var(--space-2);
+    }
+    .cal__title {
+      font-size: var(--text-md);
+    }
+  }
+
+  /* ... and once even that cannot fit (big text in a phone), the month gets a line to itself */
+  @container cal (max-width: 12rem) {
+    .cal__head {
+      flex-wrap: wrap;
+    }
+    .cal__title {
+      order: -1;
+      flex-basis: 100%;
+    }
+  }
+
+  @container cal (max-width: 15rem) {
+    .cal__dow-long {
+      display: none;
+    }
+    .cal__dow-narrow {
+      display: inline;
+    }
+  }
+
+  /* content-box, so the 44px is the row's own and padding is extra: every circle sits on an exact
+     44px pitch, and the first and last row get a little air outside it */
+  .cal__grid tbody td {
+    box-sizing: content-box;
+    block-size: var(--hit);
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .cal__grid tbody tr:first-child td {
+    padding-block-start: var(--space-2);
+  }
+  .cal__grid tbody tr:last-child td {
+    padding-block-end: var(--space-2);
+  }
+
+  /* ---- a day -------------------------------------------------------------------- */
+  .cal__day {
+    --lift: 0;
+    --fill: 0;
+    --_d: min(100%, 2.5rem);
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    --_select: 0 0 0 0 transparent;
+
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 0.25rem;
+    align-content: center;
+    justify-items: center;
+    row-gap: 0.1875rem;
+    inline-size: var(--_d);
+    aspect-ratio: 1;
+    margin: 0 auto;
+    padding: 0;
+    color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--ink));
+    background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+    border: var(--bw) solid transparent;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--_select), var(--_shadow);
+    font: var(--type-ctl);
+    /* two digits must fit the circle even when text is big and the column is narrow: it still grows
+       with the reader's text size (the floor is in rem) but not faster than the column allows */
+    font-size: clamp(0.875rem, 5.5cqi, var(--text-md));
+    font-variant-numeric: tabular-nums lining-nums;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* hit area: the whole cell, 44px tall. Sideways it grows to a seventh of the calendar and no
+       further, so it never sticks out of its column (and never adds to the page's scroll width). */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--hit)) / 2));
+      inset-inline: min(0px, calc((100% - 100cqi / 7) / 2));
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --lift: 1;
+        border-color: var(--line);
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --lift: 1;
+      border-color: var(--line);
+    }
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --lift: 0;
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  .cal__num {
+    line-height: 1;
+  }
+
+  /* event markers: up to three small squares under the numeral. Decorative; the count is text. */
+  .cal__pips {
+    display: flex;
+    gap: 0.125rem;
+    block-size: 0.25rem;
+  }
+
+  .cal__pip {
+    inline-size: 0.25rem;
+    block-size: 0.25rem;
+    background: currentColor;
+  }
+
+  /* today: a ring that is always there, and the numeral underlined and heavy */
+  .cal__day[aria-current="date"] {
+    border-color: var(--line);
+    font-weight: 800;
+  }
+  .cal__day[aria-current="date"] .cal__num {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.2em;
+  }
+
+  /* chosen: filled, and the frame doubles */
+  td[aria-selected="true"] > .cal__day {
+    --fill: 1;
+    --_select: 0 0 0 var(--bw) var(--line);
+    border-color: var(--line);
+  }
+
+  /* the neighbouring months: still days, so still real buttons; quieter, not faint (4.5:1) */
+  .cal__day[data-outside] {
+    color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--ink-mute));
+    font-weight: 400;
+  }
+
+  .cal__day[aria-disabled="true"] {
+    --lift: 0;
+    color: var(--ink-faint);
+    border-color: var(--ink-faint);
+    border-style: dashed;
+    cursor: not-allowed;
+  }
+
+  /* ---- week view: seven tall pills ---------------------------------------------- */
+  .cal[data-view="week"] .cal__grid thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .cal[data-view="week"] .cal__grid tbody td {
+    block-size: auto;
+    padding-block: var(--space-2) var(--space-3);
+    vertical-align: middle;
+  }
+
+  .cal[data-view="week"] .cal__day {
+    --_d: min(100%, 3rem);
+    grid-template-rows: auto auto 0.25rem;
+    aspect-ratio: auto;
+    min-block-size: 4.5rem;
+    padding-block: var(--space-2);
+  }
+
+  .cal__dow {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+
+  .cal[data-view="week"] .cal__num {
+    font-size: var(--text-lg);
+  }
+
+  /* ---- the chosen day's events ------------------------------------------------------ */
+  .cal__events {
+    padding: var(--space-3);
+    border-block-start: var(--bw-thin) solid var(--line);
+  }
+
+  /* data-list="off": the days are chosen here but what is on them is shown elsewhere (an Agenda) */
+  .cal[data-list="off"] .cal__events {
+    display: none;
+  }
+
+  .cal__events-title {
+    margin-block-end: var(--space-2);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+
+  .cal__list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cal__event {
+    display: grid;
+    grid-template-columns: minmax(4.5rem, max-content) minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    color: var(--tone-ink, var(--ink));
+    background: var(--tone-bg, var(--paper));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-tile);
+  }
+
+  .cal__when {
+    font: var(--type-meta);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  @container cal (max-width: 20rem) {
+    .cal__event {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-1);
+    }
+  }
+
+  .cal__what {
+    font: var(--type-body);
+    overflow-wrap: anywhere;
+  }
+
+  .cal__empty {
+    font: var(--type-body);
+    color: var(--ink-soft);
+  }
+
+  /* ---- forced colours: fills and shadows go; frames and weights carry it ----------------- */
+  @media (forced-colors: active) {
+    .cal {
+      border-color: CanvasText;
+    }
+    .cal__day {
+      border-color: ButtonText;
+    }
+    .cal__day[aria-disabled="true"] {
+      color: GrayText;
+      border-color: GrayText;
+    }
+    td[aria-selected="true"] > .cal__day {
+      border-width: var(--bw-heavy);
+    }
+    .cal__day:is(:focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    .cal__pip {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .cal__event {
+      border-color: CanvasText;
+    }
+  }
+
+  @media (forced-colors: active) and (hover: hover) {
+    .cal__day:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+}
