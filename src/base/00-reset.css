@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Reset  (layer: sg.reset)
+   A small, modern reset. Nothing here sets a colour or a size; that is base.
+   ========================================================================== */
+
+@layer sg.reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  :where(html) {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -moz-tab-size: 4;
+    tab-size: 4;
+  }
+
+  :where(body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, pre, fieldset, legend) {
+    margin: 0;
+  }
+
+  :where(fieldset) {
+    min-inline-size: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  :where(ul, ol, menu) {
+    margin: 0;
+    padding: 0;
+  }
+  /* Lists styled as lists keep bullets; lists used as layout say role="list". */
+  :where(ul[role="list"], ol[role="list"], menu[role="list"]) {
+    list-style: none;
+  }
+
+  :where(img, picture, video, canvas, svg, audio, iframe, embed, object) {
+    display: block;
+    max-inline-size: 100%;
+  }
+  :where(img, video) {
+    block-size: auto;
+  }
+  :where(svg) {
+    flex-shrink: 0;
+  }
+
+  :where(input, button, textarea, select, optgroup) {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    margin: 0;
+  }
+  :where(button, [type="button"], [type="submit"], [type="reset"]) {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    text-align: inherit;
+  }
+  :where(textarea) {
+    resize: vertical;
+  }
+  :where(a) {
+    color: inherit;
+  }
+  :where(table) {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+  :where(summary) {
+    cursor: pointer;
+  }
+  :where(small) {
+    font-size: inherit;
+  }
+  :where(h1, h2, h3, h4, h5, h6, p, li, dd, figcaption) {
+    overflow-wrap: break-word;
+  }
+  :where(hr) {
+    margin: 0;
+    border: 0;
+    border-block-start: 1px solid currentColor;
+    color: inherit;
+  }
+
+  /* `hidden` must always win, even over display:flex on a component. */
+  :where([hidden]:not([hidden="until-found"])) {
+    display: none !important;
+  }
+
+  /* The UA dialog/popover default styles are replaced by the components. */
+  :where(dialog) {
+    color: inherit;
+    border: 0;
+    padding: 0;
+    max-inline-size: none;
+    max-block-size: none;
+  }
+}

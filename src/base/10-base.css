@@ -1,0 +1,260 @@
+/* ==========================================================================
+   Base  (layer: sg.base)
+   Element defaults, type roles, focus, accessibility helpers.
+   Every rule is wrapped in :where() so it has zero specificity and an app can
+   override it with a plain selector, no !important.
+   ========================================================================== */
+
+@layer sg.base {
+  /* ---- Document ----------------------------------------------------------- */
+  :where(html) {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font: var(--type-body);
+    accent-color: var(--color-accent);
+    -webkit-tap-highlight-color: transparent; /* safe only because every control has a pressed state */
+    /* Keep the focused element clear of sticky chrome (WCAG 2.4.11). Set
+       --appbar-h / --dock-h from the components that are sticky or fixed. */
+    scroll-padding-block: calc(var(--appbar-h) + var(--space-3)) calc(var(--dock-h) + var(--safe-bottom) + var(--space-3));
+  }
+  /* iOS: follow Dynamic Type. -apple-system-body is the user's chosen text size.
+     Desktop Safari resolves it to 13px, so that case is pinned back to 100%.
+     UNVERIFIED ON A DEVICE: if this misbehaves in your app, delete this block;
+     layouts are in rem so everything still scales with browser zoom. */
+  @supports (font: -apple-system-body) {
+    :where(html) {
+      font: -apple-system-body;
+      font-family: var(--font-sans);
+    }
+  }
+  @supports (font: -apple-system-body) and (not (-webkit-touch-callout: default)) {
+    :where(html) {
+      font-size: 100%;
+    }
+  }
+
+  :where(body) {
+    min-block-size: 100dvh;
+    font: var(--type-body);
+    text-wrap: pretty;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :where(::selection) {
+    background: var(--color-accent-soft);
+    color: var(--color-on-accent-soft);
+  }
+
+  /* ---- Headings & text -------------------------------------------------------- */
+  :where(h1) {
+    font: var(--type-heading);
+    letter-spacing: var(--tracking-tight);
+    text-wrap: balance;
+  }
+  :where(h2) {
+    font: var(--type-title);
+    letter-spacing: var(--tracking-tight);
+    text-wrap: balance;
+  }
+  :where(h3, h4, h5, h6) {
+    font: var(--type-body-strong);
+    text-wrap: balance;
+  }
+  :where(strong, b) {
+    font-weight: var(--weight-bold);
+  }
+  :where(small) {
+    font: var(--type-secondary);
+  }
+  :where(code, kbd, samp, pre) {
+    font: var(--type-mono);
+  }
+  :where(kbd) {
+    padding: 0.1em 0.45em;
+    border: 1px solid var(--color-line);
+    border-block-end-width: 2px;
+    border-radius: var(--radius-xs);
+    background: var(--color-surface);
+  }
+  :where(pre) {
+    overflow: auto;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+    tab-size: 2;
+  }
+  :where(mark) {
+    background: var(--color-warning-soft);
+    color: var(--color-ink);
+    padding-inline: 0.15em;
+  }
+
+  /* Links are always underlined: colour alone must never be the only cue (WCAG 1.4.1). */
+  :where(a:not([class])) {
+    color: var(--color-accent-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.2em;
+  }
+  @media (hover: hover) {
+    :where(a:not([class])):hover {
+      text-decoration-thickness: 0.14em;
+    }
+  }
+
+  :where(hr) {
+    border-color: var(--color-line-soft);
+  }
+
+  :where(::placeholder) {
+    color: var(--color-ink-3);
+    opacity: 1; /* some browsers dim placeholders; that would drop it under 4.5:1 */
+  }
+
+  /* ---- Type roles: use these classes instead of re-deriving sizes ---------------
+     Letter-spacing and case come from the active surface style. */
+  :where(.t-caption) { font: var(--type-caption); color: var(--color-ink-2); }
+  :where(.t-secondary) { font: var(--type-secondary); color: var(--color-ink-2); }
+  :where(.t-body) { font: var(--type-body); }
+  :where(.t-lead) { font: var(--type-lead); }
+  :where(.t-label) { font: var(--type-label); }
+  :where(.t-overline) {
+    font: var(--type-caption);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
+    color: var(--color-ink-2);
+  }
+  :where(.t-title) { font: var(--type-title); letter-spacing: var(--tracking-tight); text-wrap: balance; }
+  :where(.t-heading) { font: var(--type-heading); letter-spacing: var(--tracking-tight); text-wrap: balance; }
+  :where(.t-display) {
+    font: var(--type-display);
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    text-transform: var(--display-case);
+    text-wrap: balance;
+  }
+  /* Big numeral (balance, score, date). Light weight is allowed here because it is
+     ≥ 56px. Never use weight < 400 below 20px. */
+  :where(.t-stat) {
+    font: var(--type-stat);
+    letter-spacing: var(--tracking-tighter);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  :where(.t-mono) { font: var(--type-mono); }
+  :where(.num) { font-variant-numeric: tabular-nums lining-nums; }
+  :where(.prose) {
+    max-inline-size: var(--measure);
+  }
+  :where(.prose > * + *) {
+    margin-block-start: var(--space-4);
+  }
+  :where(.muted) { color: var(--color-ink-2); }
+
+  /* Colour roles as text utilities, for the rare case a component class is overkill */
+  :where(.text-ink) { color: var(--color-ink); }
+  :where(.text-ink-2) { color: var(--color-ink-2); }
+  :where(.text-ink-3) { color: var(--color-ink-3); }
+  :where(.text-accent) { color: var(--color-accent-ink); }
+  :where(.text-danger) { color: var(--color-danger-ink); }
+  :where(.text-success) { color: var(--color-success-ink); }
+
+  /* ---- Focus ---------------------------------------------------------------------
+     Two-tone ring, drawn with outline (outer, light) + box-shadow (inner, dark).
+     Because the two tones are near-black and white, whichever one is further from
+     the surface still gives ≥ 4.1:1, and the pair is 17:1 against each other. A
+     single-colour ring cannot do that on tonal cards, photos and dark mode.
+
+     Components that draw their own box-shadow (hard shadows in the "pop" style)
+     must keep the ring:  box-shadow: var(--focus-shadow), <their shadow>;
+     Components with overflow:hidden must put the ring on an unclipped wrapper or
+     use a negative --focus-gap (draw it inside).
+
+     Never write `outline: none` without a replacement (WCAG 2.4.7, 2.4.13). */
+  :root {
+    --focus-w: 2px;
+    --focus-gap: 2px;
+  }
+  :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"], [contenteditable]):focus-visible {
+    --focus-shadow: 0 0 0 var(--focus-gap) var(--color-focus-inner);
+    outline: var(--focus-w) solid var(--color-focus-outer);
+    outline-offset: var(--focus-gap);
+    box-shadow: var(--focus-shadow);
+  }
+  /* Programmatic focus on containers (skip-link targets, dialogs, headings) */
+  :where([tabindex="-1"]):focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* ---- Accessibility helpers ---------------------------------------------------------- */
+  :where(.sr-only, .visually-hidden) {
+    position: absolute !important;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  /* Becomes visible on keyboard focus: first tabbable element on every page. */
+  :where(.skip-link) {
+    position: fixed;
+    inset-block-start: calc(var(--safe-top) + var(--space-2));
+    inset-inline-start: var(--space-2);
+    z-index: var(--z-toast);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-control);
+    background: var(--color-surface-inverse);
+    color: var(--color-ink-inverse);
+    font: var(--type-label);
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+  :where(.skip-link):focus {
+    transform: none;
+  }
+
+  /* Hit area: extends a small control's tappable area to --target (44px) without
+     changing how it looks. Put on any control whose visual size is under 44px. */
+  :where(.hit-area) {
+    position: relative;
+  }
+  :where(.hit-area)::after {
+    content: "";
+    position: absolute;
+    inset-block: min(0px, calc((100% - var(--target)) / 2));
+    inset-inline: min(0px, calc((100% - var(--target)) / 2));
+  }
+
+  /* Interactive elements never wait for a double-tap-zoom decision. */
+  :where(a, button, [role="button"], input, select, summary, label) {
+    touch-action: manipulation;
+  }
+
+  /* ---- Forced colours (Windows High Contrast etc.) -----------------------------------
+     The browser replaces colours with the user's palette and deletes shadows and
+     background images. Keep structure in real borders and outlines, not shadows. */
+  @media (forced-colors: active) {
+    :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"]):focus-visible {
+      outline: 3px solid Highlight;
+      outline-offset: 2px;
+      box-shadow: none;
+    }
+    :where(a:not([class])) {
+      color: LinkText;
+    }
+    :where(.skip-link) {
+      border: 2px solid CanvasText;
+    }
+  }
+
+  /* Smooth scrolling only when motion is welcome. */
+  @media (prefers-reduced-motion: no-preference) {
+    :where(html:not([data-motion="reduced"])) {
+      scroll-behavior: smooth;
+    }
+  }
+}

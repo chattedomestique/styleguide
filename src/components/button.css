@@ -1,0 +1,301 @@
+/* ==========================================================================
+   Button  (layer: sg.components)            *** THE REFERENCE COMPONENT ***
+   --------------------------------------------------------------------------
+   Every other component copies this file's structure. Read it once.
+
+   <button class="btn">Save</button>
+   <button class="btn" data-variant="outline" data-size="sm">Cancel</button>
+   <button class="btn" data-variant="tone" >…</button>   (inside [data-tone])
+   <button class="icon-btn" aria-label="Add task"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button>
+
+   data-variant   primary (default) | secondary | outline | ghost | tone | danger
+                  icon-btn: solid (default) | surface | outline | ghost | scrim | tone
+   data-size      sm (40) | md (48, default) | lg (56)        hit area is always ≥ 44
+   data-block     full width
+
+   STATES come from ARIA and native attributes, never from extra classes, so the
+   look can never drift from what assistive tech is told:
+     :disabled / aria-disabled="true"   not available (exempt from contrast, still legible)
+     aria-pressed="true"                toggle is on
+     aria-busy="true"                   working; shows a spinner and ignores taps
+     aria-expanded, aria-current        used by menus / nav: not styled here
+
+   THE PATTERN (copy it)
+   1. Private custom properties (--_bg, --_fg ...) hold what the variants change.
+      The base rule consumes them once. Variants only set private properties.
+   2. Colours come from ROLES (--color-*, --tone-*); shape from ROLES (--radius-*,
+      --border-w, --shadow-control); never a literal. Style (soft / pop / hard) and
+      palette therefore change the button without this file knowing.
+   3. Every state except hover is visible without a pointer; hover is gated by
+      (hover: hover) so touch screens never get a stuck hover.
+   4. Focus: the global two-tone ring is in base. A component with its own
+      box-shadow re-adds it: box-shadow: var(--focus-shadow), <own shadow>.
+   5. Motion: transform + opacity (plus the tiny box-shadow step of a press);
+      travel is multiplied by the motion tokens so reduced motion removes it.
+   6. A transparent border is always present, so forced-colours mode (which deletes
+      backgrounds and shadows) still shows the control's edge.
+   ========================================================================== */
+
+@layer sg.components {
+  .btn,
+  .icon-btn {
+    /* 1 · private properties */
+    --_bg: var(--color-accent);
+    --_fg: var(--color-on-accent);
+    --_bd: var(--fill-border-c);
+    --_shadow: var(--shadow-control);
+    --_press-shadow: var(--press-shadow);
+    --_press-move: var(--press-translate);
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: 0;
+    border: var(--border-w) solid var(--_bd);
+    background: var(--_bg);
+    color: var(--_fg);
+    box-shadow: var(--_shadow);
+    font: var(--type-label);
+    font-size: var(--text-md);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      box-shadow var(--dur-press) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+
+    /* Hit area: grows to --target (44px) when the visual size is smaller. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--target)) / 2));
+      inset-inline: min(0px, calc((100% - var(--target)) / 2));
+    }
+
+    /* Keep the focus ring AND any hard shadow. */
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), var(--_shadow);
+    }
+
+    /* Hover: nudge the fill toward the text colour. Works for filled AND transparent
+       variants (a transparent fill becomes a 12% wash of the text colour). */
+    @media (hover: hover) {
+      &:hover:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        background: color-mix(in oklab, var(--_bg) 88%, var(--_fg));
+      }
+    }
+
+    /* Pressed (pointer down / Enter / Space held). soft: shrinks a hair. pop: sinks
+       into its hard shadow (translate = rest offset - pressed offset). */
+    &:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+      transform: translate(var(--_press-move), var(--_press-move)) scale(var(--press-scale-style));
+      box-shadow: var(--_press-shadow);
+    }
+
+    /* Toggle on */
+    &[aria-pressed="true"] {
+      --_bg: var(--color-accent);
+      --_fg: var(--color-on-accent);
+      --_bd: var(--fill-border-c);
+    }
+
+    /* Working */
+    &[aria-busy="true"] {
+      cursor: progress;
+      pointer-events: none;
+      &::before {
+        content: "";
+        inline-size: 1.1em;
+        block-size: 1.1em;
+        flex: none;
+        border: 2px solid currentColor;
+        border-inline-end-color: transparent;
+        border-radius: 50%;
+        animation: var(--anim-spin);
+      }
+    }
+
+    /* Unavailable. Legible (≥3:1) and explained by nearby text, not colour alone. */
+    &:disabled,
+    &[aria-disabled="true"] {
+      --_bg: var(--color-surface-3);
+      --_fg: var(--color-ink-3);
+      --_bd: var(--color-line-soft);
+      --_shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+    &[aria-disabled="true"] {
+      pointer-events: none; /* keyboard activation is guarded by SG (see src/js/guard.js) */
+    }
+  }
+
+  /* ---- Text button ------------------------------------------------------------ */
+  .btn {
+    min-block-size: var(--control-md);
+    min-inline-size: var(--target);
+    padding-block: var(--space-2);
+    padding-inline: var(--space-6);
+    border-radius: var(--radius-control);
+
+    &[data-size="sm"] {
+      min-block-size: var(--control-sm);
+      padding-inline: var(--space-4);
+      font-size: var(--text-sm);
+    }
+    &[data-size="lg"] {
+      min-block-size: var(--control-lg);
+      padding-inline: var(--space-8);
+      font-size: var(--text-lg);
+    }
+    &[data-block] {
+      display: flex;
+      inline-size: 100%;
+    }
+
+    &[data-variant="secondary"] {
+      --_bg: var(--color-surface-3);
+      --_fg: var(--color-ink);
+    }
+    &[data-variant="outline"] {
+      --_bg: transparent;
+      --_fg: var(--color-ink);
+      --_bd: var(--control-border-c);
+      --_shadow: none;
+      --_press-shadow: none;
+      --_press-move: 0px;
+    }
+    &[data-variant="ghost"] {
+      --_bg: transparent;
+      --_fg: var(--color-accent-ink);
+      --_bd: transparent;
+      --_shadow: none;
+      --_press-shadow: none;
+      --_press-move: 0px;
+    }
+    &[data-variant="tone"] {
+      --_bg: var(--tone-fill);
+      --_fg: var(--tone-on-fill);
+    }
+    &[data-variant="danger"] {
+      --_bg: var(--color-danger-fill);
+      --_fg: var(--color-on-danger-fill);
+    }
+    /* Toggled outline / secondary / ghost buttons become solid accent: a shape and
+       brightness change, not just a hue change. Kept after the variants. */
+    &[aria-pressed="true"] {
+      --_bg: var(--color-accent);
+      --_fg: var(--color-on-accent);
+      --_bd: var(--fill-border-c);
+    }
+    &:disabled,
+    &[aria-disabled="true"] {
+      --_bg: var(--color-surface-3);
+      --_fg: var(--color-ink-3);
+      --_bd: var(--color-line-soft);
+    }
+  }
+
+  /* ---- Icon button: the circle family ---------------------------------------------
+     Three treatments from the references, one meaning each:
+       solid    = primary action on this screen (ink circle)
+       surface  = secondary (white circle)
+       outline  = tertiary (ring, ≥ 3:1 against the surface)
+     scrim is for controls floating over photos / video. */
+  .icon-btn {
+    --_size: var(--control-md);
+    --_bg: var(--color-accent);
+    --_fg: var(--color-on-accent);
+    inline-size: var(--_size);
+    block-size: var(--_size);
+    padding: 0;
+    border-radius: var(--radius-pill);
+    --icon-size: var(--icon-md);
+
+    &[data-size="sm"] { --_size: var(--control-sm); }
+    &[data-size="lg"] { --_size: var(--control-lg); --icon-size: var(--icon-lg); }
+
+    &[data-variant="surface"] {
+      --_bg: var(--color-surface);
+      --_fg: var(--color-ink);
+    }
+    &[data-variant="outline"] {
+      --_bg: transparent;
+      --_fg: var(--color-ink);
+      --_bd: var(--control-border-c);
+      --_shadow: none;
+      --_press-shadow: none;
+      --_press-move: 0px;
+    }
+    &[data-variant="ghost"] {
+      --_bg: transparent;
+      --_fg: var(--color-ink);
+      --_bd: transparent;
+      --_shadow: none;
+      --_press-shadow: none;
+      --_press-move: 0px;
+    }
+    /* Over media: a 60% black disc keeps a white glyph ≥ 4.5:1 on any photo. */
+    &[data-variant="scrim"] {
+      --_bg: var(--color-media-control);
+      --_fg: var(--color-on-media);
+      --_bd: transparent;
+      --_shadow: none;
+      --_press-shadow: none;
+      --_press-move: 0px;
+      backdrop-filter: blur(6px);
+    }
+    &[data-variant="tone"] {
+      --_bg: var(--tone-fill);
+      --_fg: var(--tone-on-fill);
+    }
+    &[aria-pressed="true"] {
+      --_bg: var(--color-accent);
+      --_fg: var(--color-on-accent);
+      --_bd: var(--fill-border-c);
+    }
+    &:disabled,
+    &[aria-disabled="true"] {
+      --_bg: var(--color-surface-3);
+      --_fg: var(--color-ink-3);
+      --_bd: var(--color-line-soft);
+    }
+    &[aria-busy="true"]::before {
+      position: absolute;
+    }
+  }
+
+  /* No blur where the user asked for less transparency, or where it is unsupported. */
+  @media (prefers-reduced-transparency: reduce) {
+    .icon-btn[data-variant="scrim"] {
+      backdrop-filter: none;
+      --_bg: var(--color-surface-inverse);
+      --_fg: var(--color-ink-inverse);
+    }
+  }
+
+  /* ---- Forced colours ---------------------------------------------------------------- */
+  @media (forced-colors: active) {
+    .btn,
+    .icon-btn {
+      &[aria-pressed="true"] {
+        border-width: calc(var(--border-w) * 2); /* shape, since colours are replaced */
+      }
+      &:disabled,
+      &[aria-disabled="true"] {
+        color: GrayText;
+        border-color: GrayText;
+      }
+    }
+  }
+}

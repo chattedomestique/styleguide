@@ -1,0 +1,73 @@
+/* ==========================================================================
+   60 · Motion
+   --------------------------------------------------------------------------
+   Motion explains change (something arrived, something moved, a press
+   registered). It is never decoration that the user must wait for.
+
+   REDUCED MOTION MEANS "GENTLER", NOT "INSTANT".
+   Zeroing every duration (the common `0.01ms !important` snippet) turns an app
+   into jump cuts for exactly the people who asked for calm. Instead:
+     - travel, scale, rotation and parallax go away (--move: 0, --press-scale: 1)
+     - the state change is shown with an opacity / colour change of 160-200ms
+     - springs lose their overshoot
+   Components get this for free by multiplying every translate by --move and
+   every scale by --press-scale:  transform: translateY(calc(var(--move) * 1rem))
+
+   Users can also choose in the app: data-motion="reduced" | "full" on <html>
+   (the docs preferences panel and SG.prefs do this). "full" deliberately
+   overrides an OS-level reduce request for people who want it back; the default
+   is to follow the OS.
+
+   Only opacity and transform animate in components, so the compositor does the
+   work and nothing repaints mid-transition (no flashing, no jank).
+   ========================================================================== */
+
+@layer sg.tokens {
+  :root {
+    --dur-press: 100ms; /* press feedback must land inside 100ms */
+    --dur-fast: 120ms; /* hover, focus, small state changes */
+    --dur-base: 200ms; /* most transitions */
+    --dur-slow: 320ms; /* sheets, dialogs, large surfaces */
+    --dur-travel: 480ms; /* full-width moves: carousels, page slides */
+
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* default */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* things arriving */
+    --ease-in: cubic-bezier(0.4, 0, 0.7, 0.2); /* things leaving (shorter, ~70% of enter) */
+    --ease-in-out: cubic-bezier(0.83, 0, 0.17, 1); /* rotation: never use a spring on a rotation */
+    /* Spring with a small, bounded overshoot (peak 1.03). Anything clipped by a
+       container must have a clip margin larger than peak-overshoot * distance. */
+    --ease-spring: linear(0, 0.36 8%, 0.78 18%, 0.96 28%, 1.03 40%, 1.02 52%, 1.005 66%, 1 80%, 1);
+    --ease-linear: linear; /* progress bars and spinners only */
+
+    --move: 1; /* 1 = travel allowed, 0 = replace travel with a fade */
+    --press-scale: 0.97; /* pressed controls shrink slightly; never grow on hover */
+    --stagger: 30ms; /* list entrance step; ≤ 8 children */
+
+    /* Loading indicators are allowed to move, but under reduced motion they pulse
+       instead of spinning. Keyframes live in components/00-keyframes.css. */
+    --anim-spin: sg-spin 800ms linear infinite;
+  }
+
+  /* Follow the OS unless the user chose "full" in the app. Keep the two blocks
+     identical (tests/lint.mjs asserts it). */
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="full"]) {
+      --move: 0;
+      --press-scale: 1;
+      --dur-slow: 180ms;
+      --dur-travel: 200ms;
+      --ease-spring: var(--ease-out);
+      --stagger: 0ms;
+      --anim-spin: sg-pulse 1400ms ease-in-out infinite;
+    }
+  }
+  :root[data-motion="reduced"] {
+    --move: 0;
+    --press-scale: 1;
+    --dur-slow: 180ms;
+    --dur-travel: 200ms;
+    --ease-spring: var(--ease-out);
+    --stagger: 0ms;
+    --anim-spin: sg-pulse 1400ms ease-in-out infinite;
+  }
+}

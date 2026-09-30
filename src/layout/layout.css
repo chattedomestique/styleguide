@@ -1,0 +1,160 @@
+/* ==========================================================================
+   Layout  (layer: sg.layout)
+   Small composable primitives. They set space and flow, never colour.
+   Custom properties on each primitive (--stack-gap, --grid-min ...) are the
+   only knobs; set them inline or in your own CSS.
+   ========================================================================== */
+
+@layer sg.layout {
+  /* ---- App shell ------------------------------------------------------------------
+     A phone-width column, centred on larger screens, padded by the safe areas on
+     ALL four sides (landscape phones have side insets). Use dvh, never vh, and do
+     not assume the viewport is as tall as the screen: iOS standalone can report
+     safe-area-inset-top as 0 (WebKit bug 301994), so nothing here depends on it. */
+  :where(.app) {
+    --app-max: var(--container-sm);
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+    max-inline-size: var(--app-max);
+    min-block-size: 100dvh;
+    margin-inline: auto;
+    padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  }
+  :where(.app[data-wide]) {
+    --app-max: var(--container-lg);
+  }
+  /* The scrolling region between app bar and dock. Keeps room for the dock. */
+  :where(.app__main) {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    padding-block: var(--space-4) calc(var(--dock-h) + var(--safe-bottom) + var(--space-6));
+  }
+
+  /* Wider screens get more breathing room, not more columns by default. */
+  @media (min-width: 48em) {
+    :where(:root) {
+      --gutter: var(--space-6);
+    }
+  }
+
+  /* ---- Flow primitives ------------------------------------------------------------ */
+  /* Vertical rhythm: every direct child is separated by --stack-gap. */
+  :where(.stack) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--stack-gap, var(--space-4));
+  }
+  :where(.stack[data-gap="1"]) { --stack-gap: var(--space-1); }
+  :where(.stack[data-gap="2"]) { --stack-gap: var(--space-2); }
+  :where(.stack[data-gap="3"]) { --stack-gap: var(--space-3); }
+  :where(.stack[data-gap="4"]) { --stack-gap: var(--space-4); }
+  :where(.stack[data-gap="6"]) { --stack-gap: var(--space-6); }
+  :where(.stack[data-gap="8"]) { --stack-gap: var(--space-8); }
+
+  /* Horizontal run that wraps: chips, buttons, avatar stacks. */
+  :where(.cluster) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: var(--cluster-align, center);
+    justify-content: var(--cluster-justify, flex-start);
+    gap: var(--cluster-gap, var(--space-2));
+  }
+  :where(.cluster[data-gap="1"]) { --cluster-gap: var(--space-1); }
+  :where(.cluster[data-gap="3"]) { --cluster-gap: var(--space-3); }
+  :where(.cluster[data-gap="4"]) { --cluster-gap: var(--space-4); }
+  :where(.cluster[data-justify="between"]) { --cluster-justify: space-between; }
+  :where(.cluster[data-justify="end"]) { --cluster-justify: flex-end; }
+  :where(.cluster[data-justify="center"]) { --cluster-justify: center; }
+
+  /* One row: start item grows, end item hugs (title + action, label + value). */
+  :where(.split) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  :where(.split > :first-child) {
+    min-inline-size: 0;
+    flex: 1 1 auto;
+  }
+
+  /* Responsive grid with no media queries: as many columns as fit --grid-min. */
+  :where(.grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--grid-min, 12rem)), 1fr));
+    gap: var(--grid-gap, var(--space-3));
+  }
+  :where(.grid[data-cols="2"]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :where(.grid[data-cols="3"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  :where(.grid[data-cols="4"]) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  :where(.center) {
+    display: grid;
+    place-items: center;
+  }
+
+  /* Let a child run edge to edge inside the padded app column. */
+  :where(.bleed) {
+    margin-inline: calc(-1 * max(var(--gutter), var(--safe-left)));
+  }
+
+  /* ---- Horizontal scroller (chips, thumbnails, month switchers) -----------------------
+     Native scroll + scroll-snap: momentum, keyboard and assistive-tech scrolling all
+     work for free. Give it a label (role="region" aria-label) so it is reachable, and
+     leave the last item partly visible as a scroll affordance. */
+  :where(.scroller) {
+    display: flex;
+    gap: var(--scroller-gap, var(--space-2));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--gutter);
+    padding-block: var(--space-1);
+    scrollbar-width: none;
+  }
+  :where(.scroller::-webkit-scrollbar) {
+    display: none;
+  }
+  :where(.scroller > *) {
+    flex: none;
+    scroll-snap-align: start;
+  }
+  :where(.scroller.bleed) {
+    padding-inline: max(var(--gutter), var(--safe-left));
+  }
+
+  /* ---- Container queries: components adapt to THEIR width, not the screen's ----------- */
+  :where(.cq) {
+    container-type: inline-size;
+  }
+
+  /* ---- Sticky chrome ---------------------------------------------------------------------- */
+  :where(.sticky-top) {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--z-sticky);
+  }
+  :where(.safe-top) { padding-block-start: var(--safe-top); }
+  :where(.safe-bottom) { padding-block-end: var(--safe-bottom); }
+  :where(.safe-x) {
+    padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  }
+
+  /* Text stays readable at any zoom: long words break instead of overflowing. */
+  :where(.break) {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+  :where(.truncate) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  :where(.clamp-2) {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

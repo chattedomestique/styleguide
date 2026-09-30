@@ -1,0 +1,39 @@
+/* ==========================================================================
+   Shared keyframes  (layer: sg.components)
+   Only transform and opacity. Components reference these by name and pick the
+   spinner via var(--anim-spin), which swaps to a pulse under reduced motion.
+   ========================================================================== */
+
+@layer sg.components {
+  @keyframes sg-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes sg-pulse {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes sg-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  /* Arrival from below; --move scales the travel, 0 leaves a plain fade. */
+  @keyframes sg-rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(calc(var(--move, 1) * 0.75rem));
+    }
+  }
+  @keyframes sg-marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}

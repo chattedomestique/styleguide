@@ -1,0 +1,149 @@
+/* ==========================================================================
+   30 · Palettes
+   --------------------------------------------------------------------------
+   A palette is a handful of KNOBS (see 10-color.css): neutral hue, canvas
+   tint, and the accent. Nothing else. Switching palette therefore cannot
+   break contrast, because lightness gaps are fixed by the knobs in the shared
+   group below, and `npm run test:contrast` proves it for every combination.
+
+     <html data-palette="mint">            whole app
+     <section data-palette="periwinkle">   one region (islands work)
+
+   No attribute = "ink": warm neutrals, black-on-white primary actions, colour
+   supplied by tones. That is how most of the reference designs work: the
+   primary control is ink, the personality is the tonal cards.
+
+   MAKE YOUR OWN: copy a block, change the hue/chroma knobs, add the name to
+   the docs palette switcher (docs-src/assets/docs.js) and to tests/contrast.mjs.
+   Keep accent lightness inside the shared group's values; if you need a very
+   light accent fill (like cream's yellow), set on-accent to a DARK value and
+   set --k-accent-ink-* to a dark shade, as cream does.
+   ========================================================================== */
+
+@layer sg.tokens {
+  /* Shared accent lightness for every hue palette (accent used as a fill with white/dark text) */
+  [data-palette="periwinkle"],
+  [data-palette="mint"] {
+    --k-accent-c: 0.16;
+    --k-accent-fill-l: 0.48;
+    --k-accent-fill-d: 0.76;
+    --k-on-accent-l: 0.99;
+    --k-on-accent-d: 0.18;
+    --k-accent-ink-l: 0.45;
+    --k-accent-ink-d: 0.82;
+    --k-accent-soft-l: 0.92;
+    --k-accent-soft-d: 0.3;
+    --k-on-accent-soft-l: 0.3;
+    --k-on-accent-soft-d: 0.94;
+    --k-shadow-control-l: 0.2; /* coloured fill: full-ink hard shadow */
+  }
+
+  /* Periwinkle: soft blue-violet canvas, violet-blue accent (video-editor / habits references) */
+  [data-palette="periwinkle"] {
+    --k-neutral-h: 275;
+    --k-neutral-c: 0.012;
+    --k-canvas-c-l: 0.03;
+    --k-canvas-c-d: 0.02;
+    --k-accent-h: 275;
+  }
+
+  /* Mint: fresh green-tinted canvas, deep green accent (wallet / fintech references) */
+  [data-palette="mint"] {
+    --k-neutral-h: 175;
+    --k-neutral-c: 0.012;
+    --k-canvas-l: 0.955;
+    --k-canvas-c-l: 0.042;
+    --k-canvas-c-d: 0.02;
+    --k-accent-h: 165;
+    --k-accent-c: 0.12;
+    --k-accent-fill-l: 0.42;
+    --k-accent-ink-l: 0.4;
+  }
+
+  /* Sand: warm grey-green canvas, ink accent (calendar references) */
+  [data-palette="sand"] {
+    --k-neutral-h: 105;
+    --k-neutral-c: 0.01;
+    --k-canvas-l: 0.93;
+    --k-canvas-c-l: 0.013;
+    --k-surface-2-l: 0.955;
+    --k-surface-3-l: 0.9;
+    --k-canvas-c-d: 0.008;
+  }
+
+  /* Cream: the warm paper + yellow accent of the original flashcards app.
+     Yellow is a LIGHT accent, so its text is dark ink (contrast 10:1+). */
+  [data-palette="cream"] {
+    --k-neutral-h: 85;
+    --k-neutral-c: 0.012;
+    --k-canvas-l: 0.962;
+    --k-canvas-c-l: 0.04;
+    --k-canvas-c-d: 0.014;
+    --k-accent-h: 95;
+    --k-accent-c: 0.17;
+    --k-accent-fill-l: 0.88;
+    --k-accent-fill-d: 0.84;
+    --k-on-accent-l: 0.2;
+    --k-on-accent-d: 0.2;
+    --k-accent-ink-l: 0.42;
+    --k-accent-ink-d: 0.88;
+    --k-accent-soft-l: 0.93;
+    --k-accent-soft-d: 0.3;
+    --k-on-accent-soft-l: 0.3;
+    --k-on-accent-soft-d: 0.94;
+    --k-shadow-control-l: 0.2;
+    /* A pale accent is only ~1.3:1 against its canvas, so a selected or pressed
+       control cannot be told apart by fill alone (WCAG 1.4.11). Light-accent
+       palettes therefore draw an ink edge on every filled control. This file is
+       concatenated after 30-surfaces so it wins at equal specificity. */
+    --fill-border-c: var(--color-ink);
+  }
+
+  /* Mono: strict two-colour (1-bit inspired). Pure black and white, every line is ink,
+     tones lose their hue. Meaning must therefore come from text, icons and shape, which
+     makes this palette a built-in test of "no colour-only information". Pair it with
+     data-surface="hard" for the full retro-OS look. Also a good low-distraction and
+     high-contrast mode. */
+  [data-palette="mono"] {
+    --k-neutral-c: 0;
+    --k-canvas-c-l: 0;
+    --k-canvas-c-d: 0;
+    --k-accent-c: 0;
+    --k-canvas-l: 1;
+    --k-surface-2-l: 0.95;
+    --k-surface-3-l: 0.9;
+    --k-ink-l: 0;
+    --k-ink-2-l: 0.2;
+    --k-ink-3-l: 0.32;
+    --k-line-l: 0;
+    --k-line-soft-l: 0.6;
+    --k-canvas-d: 0;
+    --k-surface-d: 0;
+    --k-surface-2-d: 0.16;
+    --k-surface-3-d: 0.26;
+    --k-ink-d: 1;
+    --k-ink-2-d: 0.86;
+    --k-ink-3-d: 0.76;
+    --k-line-d: 1;
+    --k-line-soft-d: 0.5;
+    --k-accent-fill-l: 0;
+    --k-accent-fill-d: 1;
+    --k-accent-ink-l: 0;
+    --k-accent-ink-d: 1;
+    --k-accent-soft-l: 0.9;
+    --k-accent-soft-d: 0.25;
+    --k-status-c: 0;
+    --k-status-ink-l: 0.2;
+    --k-status-ink-d: 0.9;
+    --k-status-fill-l: 0.15;
+    --k-status-fill-d: 0.9;
+    --k-status-soft-l: 0.92;
+    --k-status-soft-d: 0.22;
+  }
+  [data-palette="mono"] [data-tone],
+  [data-palette="mono"] [data-status],
+  [data-palette="mono"][data-tone],
+  [data-palette="mono"][data-status] {
+    --tone-c: 0;
+  }
+}

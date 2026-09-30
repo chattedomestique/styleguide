@@ -1,0 +1,155 @@
+/* ==========================================================================
+   20 · Tones  (the coloured-card system)
+   --------------------------------------------------------------------------
+   Every reference design uses tonal cards: a coloured surface with darker
+   text of the same hue. Hand-picking each pair is what produced the contrast
+   failures in the mockups, so here failure cannot be expressed:
+
+     <article class="card" data-tone="amber"> ... </article>
+
+   sets five roles for that element and everything inside it:
+
+     --tone-surface   the card background
+     --tone-ink       primary text on it          ≥ 7:1
+     --tone-ink-2     secondary text on it        ≥ 4.5:1 (aim 7)
+     --tone-fill      solid pill / button / chip background on it (inverted, dark on light)
+     --tone-on-fill   text on --tone-fill          ≥ 4.5:1
+     --tone-line      borders & icons on it        ≥ 3:1
+
+   Lightness (what decides contrast) is fixed per role; hue picks the colour.
+   Pastel surface at L ≥ 0.92 with ink at L ≤ 0.39 is ≥ 7:1 for EVERY hue and
+   chroma (measured over the whole sRGB gamut). Dark mode mirrors this.
+
+   EMPHASIS  data-emphasis="bold" flips a tone to a saturated mid-dark fill with
+   near-white text (L ≈ 0.46 surface; white on it is ≥ 5.6:1 for every hue).
+   There is deliberately NO mid-tone option: fills with L 0.56–0.62 cannot carry
+   small text in either black or white ("the dead zone").
+
+   STATUS    data-status="success|warning|danger|info" reuses the same machinery
+   (green, amber, rose, sky). Status always needs an icon or words as well.
+
+   HOW TO ADD A TONE: add a hue in 00-primitives.css, then one selector below.
+   ========================================================================== */
+
+@layer sg.tokens {
+  :root {
+    /* ---- Lightness knobs (light / dark / bold) ---- */
+    --k-tone-surface-l: 0.93;
+    --k-tone-ink-l: 0.3;
+    --k-tone-ink-2-l: 0.4;
+    --k-tone-fill-l: 0.34;
+    --k-tone-on-fill-l: 0.97;
+    --k-tone-line-l: 0.52;
+
+    --k-tone-surface-d: 0.27;
+    --k-tone-ink-d: 0.95;
+    --k-tone-ink-2-d: 0.83;
+    --k-tone-fill-d: 0.82;
+    --k-tone-on-fill-d: 0.2;
+    --k-tone-line-d: 0.66;
+
+    --k-tone-surface-b: 0.46;
+    --k-tone-ink-b: 0.985;
+    --k-tone-ink-2-b: 0.93;
+    --k-tone-fill-b: 0.97;
+    --k-tone-on-fill-b: 0.3;
+    --k-tone-line-b: 0.9;
+
+    /* Chroma multipliers relative to --tone-c (the hue's "vividness") */
+    --k-tone-surface-c: 0.42;
+    --k-tone-ink-c: 0.5;
+    --k-tone-fill-c: 0.85;
+    --k-tone-line-c: 0.8;
+    --k-tone-bold-c: 0.9;
+
+    /* Fallback tone (used by bare [data-tone] and before any hue is chosen) */
+    --tone-h: var(--hue-stone);
+    --tone-c: 0.02;
+  }
+
+  /* ---- Hues ---- */
+  [data-tone="rose"],
+  [data-status="danger"] { --tone-h: var(--hue-rose); --tone-c: 0.15; }
+  [data-tone="amber"],
+  [data-status="warning"] { --tone-h: var(--hue-amber); --tone-c: 0.16; }
+  [data-tone="lime"] { --tone-h: var(--hue-lime); --tone-c: 0.17; }
+  [data-tone="green"],
+  [data-status="success"] { --tone-h: var(--hue-green); --tone-c: 0.15; }
+  [data-tone="teal"] { --tone-h: var(--hue-teal); --tone-c: 0.11; }
+  [data-tone="sky"],
+  [data-status="info"] { --tone-h: var(--hue-sky); --tone-c: 0.12; }
+  [data-tone="periwinkle"] { --tone-h: var(--hue-periwinkle); --tone-c: 0.15; }
+  [data-tone="violet"] { --tone-h: var(--hue-violet); --tone-c: 0.15; }
+  [data-tone="stone"] { --tone-h: var(--hue-stone); --tone-c: 0.03; }
+
+  /* ---- Derived roles ---- */
+  [data-tone],
+  [data-status] {
+    --tone-surface: light-dark(
+      oklch(var(--k-tone-surface-l) calc(var(--tone-c) * var(--k-tone-surface-c)) var(--tone-h)),
+      oklch(var(--k-tone-surface-d) calc(var(--tone-c) * var(--k-tone-surface-c) * 0.7) var(--tone-h))
+    );
+    --tone-ink: light-dark(
+      oklch(var(--k-tone-ink-l) calc(var(--tone-c) * var(--k-tone-ink-c)) var(--tone-h)),
+      oklch(var(--k-tone-ink-d) calc(var(--tone-c) * 0.12) var(--tone-h))
+    );
+    --tone-ink-2: light-dark(
+      oklch(var(--k-tone-ink-2-l) calc(var(--tone-c) * var(--k-tone-ink-c)) var(--tone-h)),
+      oklch(var(--k-tone-ink-2-d) calc(var(--tone-c) * 0.3) var(--tone-h))
+    );
+    --tone-fill: light-dark(
+      oklch(var(--k-tone-fill-l) calc(var(--tone-c) * var(--k-tone-fill-c)) var(--tone-h)),
+      oklch(var(--k-tone-fill-d) calc(var(--tone-c) * var(--k-tone-fill-c) * 0.8) var(--tone-h))
+    );
+    --tone-on-fill: light-dark(
+      oklch(var(--k-tone-on-fill-l) calc(var(--tone-c) * 0.08) var(--tone-h)),
+      oklch(var(--k-tone-on-fill-d) calc(var(--tone-c) * 0.2) var(--tone-h))
+    );
+    --tone-line: light-dark(
+      oklch(var(--k-tone-line-l) calc(var(--tone-c) * var(--k-tone-line-c)) var(--tone-h)),
+      oklch(var(--k-tone-line-d) calc(var(--tone-c) * var(--k-tone-line-c) * 0.8) var(--tone-h))
+    );
+  }
+
+  /* ---- Bold emphasis (same in light and dark) ---- */
+  [data-emphasis="bold"] {
+    --tone-surface: oklch(var(--k-tone-surface-b) calc(var(--tone-c) * var(--k-tone-bold-c)) var(--tone-h));
+    --tone-ink: oklch(var(--k-tone-ink-b) calc(var(--tone-c) * 0.05) var(--tone-h));
+    --tone-ink-2: oklch(var(--k-tone-ink-2-b) calc(var(--tone-c) * 0.12) var(--tone-h));
+    --tone-fill: oklch(var(--k-tone-fill-b) calc(var(--tone-c) * 0.05) var(--tone-h));
+    --tone-on-fill: oklch(var(--k-tone-on-fill-b) calc(var(--tone-c) * 0.6) var(--tone-h));
+    --tone-line: oklch(var(--k-tone-line-b) calc(var(--tone-c) * 0.1) var(--tone-h));
+  }
+
+  /* ---- Higher contrast: deepen pastel text and push fills apart ---- */
+  @media (prefers-contrast: more) {
+    :root:not([data-contrast="off"]) {
+      --k-tone-surface-l: 0.96;
+      --k-tone-ink-l: 0.2;
+      --k-tone-ink-2-l: 0.27;
+      --k-tone-fill-l: 0.24;
+      --k-tone-line-l: 0.4;
+      --k-tone-surface-d: 0.2;
+      --k-tone-ink-d: 1;
+      --k-tone-ink-2-d: 0.94;
+      --k-tone-fill-d: 0.9;
+      --k-tone-line-d: 0.8;
+      --k-tone-surface-b: 0.4;
+      --k-tone-ink-2-b: 1;
+    }
+  }
+  :root[data-contrast="more"] {
+    --k-tone-surface-l: 0.96;
+    --k-tone-ink-l: 0.2;
+    --k-tone-ink-2-l: 0.27;
+    --k-tone-fill-l: 0.24;
+    --k-tone-line-l: 0.4;
+    --k-tone-surface-d: 0.2;
+    --k-tone-ink-d: 1;
+    --k-tone-ink-2-d: 0.94;
+    --k-tone-fill-d: 0.9;
+    --k-tone-line-d: 0.8;
+    --k-tone-surface-b: 0.4;
+    --k-tone-ink-2-b: 1;
+  }
+}

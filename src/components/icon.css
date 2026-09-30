@@ -1,0 +1,43 @@
+/* ==========================================================================
+   Icon  (layer: sg.components)
+   --------------------------------------------------------------------------
+   <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>
+
+   Icons are inline SVG from the sprite (dist/icons.svg, inlined once per page so
+   it also works from file://). Never use text glyphs, emoji or an icon font for
+   UI symbols: the bundled font has no arrows or checks, emoji render differently
+   on every device, and icon fonts fail in forced-colours mode.
+
+   An icon that stands alone MUST be inside a control that has a text name
+   (visible label or aria-label). Decorative icons are aria-hidden. An icon is
+   never the only carrier of meaning (status = icon + words).
+
+   Sizing: --icon-size on the element or a parent; default 20px. The glyph is
+   smaller than its hit area: wrap in .icon-btn (48px) rather than padding icons.
+   ========================================================================== */
+
+@layer sg.components {
+  :where(.icon) {
+    --icon-size: var(--icon-md);
+    inline-size: var(--icon-size);
+    block-size: var(--icon-size);
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--icon-stroke);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: middle;
+  }
+  :where(.icon[data-size="sm"]) { --icon-size: var(--icon-sm); }
+  :where(.icon[data-size="lg"]) { --icon-size: var(--icon-lg); }
+  :where(.icon[data-size="xl"]) { --icon-size: var(--icon-xl); }
+  /* Filled variants (play, star-on, dot) opt in */
+  :where(.icon[data-fill]) { fill: currentColor; }
+
+  @media (forced-colors: active) {
+    :where(.icon) {
+      stroke: currentColor; /* currentColor follows the forced text colour */
+    }
+  }
+}
