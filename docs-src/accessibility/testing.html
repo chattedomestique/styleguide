@@ -1,0 +1,293 @@
+<!--{"title":"Testing","group":"Accessibility","order":2,"summary":"How this repository tests: the lint, the contrast matrix, the accessibility gate, keyboard specs and screenshots. How to run each, what each can and cannot catch, how to read the reports and how to extend them."}-->
+<h1>Testing</h1>
+<p class="lede">Five kinds of check, what each can and cannot catch, how to run them and how to extend them. Automated checks find a minority of accessibility problems. The rest needs a person and a device.</p>
+
+<h2 id="commands">The commands</h2>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Commands, what they do, and how long they took</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Command</th><th role="columnheader">What it does</th><th role="columnheader">Time here</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run build</code></td><td role="cell" data-label="What it does">Writes <code>dist/</code> and <code>docs/</code> from <code>src/</code> and <code>docs-src/</code>. Fails on duplicate ids, links and anchors that do not resolve, and unknown icons. <code>-- --allow-broken-links</code> turns link failures into warnings while pages are unfinished.</td><td role="cell" data-label="Time here">under a second</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run build:check</code></td><td role="cell" data-label="What it does">Builds in memory and fails if the committed <code>dist/</code> and <code>docs/</code> differ. Catches "I changed the source and forgot to build".</td><td role="cell" data-label="Time here">under a second</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run lint</code></td><td role="cell" data-label="What it does">Static rules over the CSS, the scripts and the docs HTML. Errors fail; warnings are printed and should be justified. No browser.</td><td role="cell" data-label="Time here">0.2 s</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:lint</code></td><td role="cell" data-label="What it does">Replays the original checker's tooling audit against the lint: every deliberate violation it can judge, and every legitimate snippet that must pass. Add a case whenever you add a rule.</td><td role="cell" data-label="Time here">0.1 s</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:contrast</code></td><td role="cell" data-label="What it does">The contrast matrix. <code>-- --all</code> prints every pair, not only failures. Writes <code>test-results/contrast.json</code>.</td><td role="cell" data-label="Time here">3 s for 5,400 checks</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:components</code></td><td role="cell" data-label="What it does">Keyboard, ARIA and <code>--lift</code> / <code>--fill</code> specs from <code>tests/components/</code>. <code>-- button tabs</code> runs only those specs.</td><td role="cell" data-label="Time here">22 s for the Button and Card specs (21 tests)</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:a11y</code></td><td role="cell" data-label="What it does">axe, focus walk, ring contrast, target sizes, reflow, clipped text and forced-colours borders on each docs page, in five appearances. <code>-- --pages a.html,b.html</code> (paths relative to <code>docs/</code>), <code>-- --quick</code> (two appearances). <code>A11Y_JOBS</code> sets how many pages run at once (default 2). Writes <code>test-results/a11y.json</code>.</td><td role="cell" data-label="Time here">about 24 s per page with one job</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:shots -- page.html</code></td><td role="cell" data-label="What it does">Screenshots, for your eyes. Flags <a href="#shots">below</a>.</td><td role="cell" data-label="Time here">a few seconds per image</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm test</code></td><td role="cell" data-label="What it does"><code>build:check</code>, <code>lint</code>, <code>test:lint</code>, <code>test:contrast</code>, <code>test:components</code>, <code>test:a11y</code>, in that order. No screenshots and no manual pass.</td><td role="cell" data-label="Time here">pages × 24 s ÷ jobs</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run serve</code></td><td role="cell" data-label="What it does">Serves <code>docs/</code> on port 4173, on 127.0.0.1 only, with <code>cache-control: no-store</code>.</td><td role="cell" data-label="Time here">n/a</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run new:component -- name --order 45</code></td><td role="cell" data-label="What it does">Scaffolds the CSS, the docs page and a spec for a new element.</td><td role="cell" data-label="Time here">n/a</td></tr>
+  </tbody>
+</table></div>
+<p>Times were measured on the machine this page was written on, which was shared with other work. The accessibility gate took 3 min 10 s for eight docs pages in all five appearances with one job. They grow with the page count.</p>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div><strong>The tests read built files</strong><p>The contrast test loads <code>dist/styleguide.css</code>; the other browser tests load <code>docs/</code>. After editing <code>src/</code> or <code>docs-src/</code>, run <code>npm run build</code> first, or you are testing the old build. <code>npm test</code> starts with <code>build:check</code>, which only <em>reports</em> that the build is stale.</p></div>
+</div>
+
+<h3 id="setup">Setup</h3>
+<ul>
+  <li>Node 20 or later, then <code>npm install</code>. The dev dependencies are <code>axe-core</code> and <code>playwright-core</code>; nothing else, and the guide itself has no dependencies.</li>
+  <li>A Chromium. The tests look for <code>$CHROME_PATH</code>, then the browser Playwright manages (install it with <code>npx playwright-core install chromium</code>), then <code>/opt/pw-browsers/chromium</code>.</li>
+  <li><strong>Only Chromium is ever exercised.</strong> Firefox, Safari and every phone are outside the suite.</li>
+  <li>Never run two browser tests at the same time on a small machine; set <code>A11Y_JOBS=1</code>.</li>
+  <li>The repository's workflow (<code>.github/workflows/ci.yml</code>) runs the same commands: a <code>static</code> job first (<code>lint</code>, <code>test:lint</code>, <code>build:check</code>) and then a <code>browser</code> job (contrast, components, accessibility). A pull request runs the gate with <code>--quick</code>; a push to the main branch runs all five appearances.</li>
+</ul>
+
+<h3 id="shots">Screenshots</h3>
+<p>Green tests do not prove a page looks right. Look at it at 320, 390 and 1024&nbsp;px, in light and dark, with the default, mint and wire palettes and square and soft corners. Output goes to <code>test-results/shots/</code>; open the PNGs. Very tall pages are easier to read cut into pieces.</p>
+<pre aria-label="Screenshot commands">node tests/screenshots.mjs components/button.html --width 390
+node tests/screenshots.mjs components/button.html --theme dark --palette mint --corners soft
+node tests/screenshots.mjs components/button.html --width 320
+node tests/screenshots.mjs components/button.html --matrix                    # 12 shots: light/dark x default/mint/wire x square/soft
+node tests/screenshots.mjs index.html --selector '#use' --width 1280          # crop to one element</pre>
+<p>Other flags: <code>--contrast more</code>, <code>--motion reduced|full</code>, <code>--forced-colors</code>, <code>--height</code>, <code>--scale</code> (device pixel ratio) and <code>--out</code>. The tool saves the look through <code>localStorage</code> before the page loads, the same way a person's saved choice arrives.</p>
+
+<h2 id="catch">What each check can and cannot catch</h2>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">For each check, what it catches and what it misses</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Check</th><th role="columnheader">Catches</th><th role="columnheader">Cannot catch</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Check">Lint</td><td role="cell" data-label="Catches">Colour literals (hex, functions, named colours, and colours inside <code>data:</code> URIs) outside <code>src/tokens</code>; gradients, blur, text shadows, blurred shadows; a first font family that is a default; literal line widths and radii that are not roles; <code>px</code> font sizes and line heights; <code>outline: none</code> with no replacement; <code>transition: all</code>; positive <code>tabindex</code>; <code>role="button"</code> on a <code>div</code>; an <code>img</code> without <code>alt</code>; an icon not <code>aria-hidden</code>; a <code>button</code> with no name; a <code>var()</code> that nothing declares; a class used in a docs page or a script that no CSS defines; <code>:hover</code> not gated by <code>(hover: hover)</code>; the contrast and motion blocks drifting apart; an element with no docs page; <code>STYLE.md</code> naming a token that does not exist; placeholder copy. The full list is <code>STYLE.md</code> §5.</td><td role="cell" data-label="Cannot catch">Anything that needs rendering: whether a colour is readable, a label helpful, a layout sound. Only the guide's CSS, scripts and docs HTML are read, never your app. Two of the seven rules are only warnings: uppercase outside a label, and a decorative one-edge shadow.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Contrast matrix</td><td role="cell" data-label="Catches">Any listed pair that falls under its floor in any palette, theme or contrast mode; the focus ring on any surface and tone; the scrims over a white photo; the device's "more contrast" request producing different colours from the attribute.</td><td role="cell" data-label="Cannot catch">A role used as text or a boundary that nobody listed (it is simply unverified). Hover, pressed and disabled fills. Text over real photos. Semi-transparent colours over unknown backgrounds. Display colour profiles: colours are read as 8-bit sRGB.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Accessibility gate</td><td role="cell" data-label="Catches">Verified on a page broken on purpose (<a href="#reports">below</a>): a button with no name, 2.13:1 text, a 16&nbsp;px target, a removed focus ring, a box that overflows at 320&nbsp;px and at 200% text. Also: text cut off by a clipping frame, a focus ring under 3:1, a focused control covered by other content, a control with no border under forced colours, a failed request or an uncaught error.</td><td role="cell" data-label="Cannot catch">Everything in <a href="#human">the list below</a>. Also: axe results marked "needs review" are not reported; the focus walk stops at 120 stops or when it loops; reflow is measured once per page; only the five appearances run.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Component specs</td><td role="cell" data-label="Catches">The keys, focus moves, ARIA flips and state numbers somebody wrote down. Any console or page error during the test.</td><td role="cell" data-label="Cannot catch">What assistive technology announces. Other browsers. Touch gestures beyond what Playwright emulates. Anything nobody wrote a test for.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Screenshots</td><td role="cell" data-label="Catches">What you notice while looking.</td><td role="cell" data-label="Cannot catch">Regressions you do not look for: there is no pixel comparison.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="lint">The lint and its self-test</h3>
+<p>The lint is the owner's checker rebuilt on a real CSS tokenizer. The original matched <code>prop: value;</code> with regular expressions, so it missed a last declaration with no semicolon, a colour inside a custom property, a blur hidden behind a token, and any named colour. Its tooling audit fed it deliberate violations and it caught 44%. <code>npm run test:lint</code> replays those cases, and the current run reads <code>violations caught: 111/135 (82%) · legitimate snippets passed: 33/33 · not static CSS/HTML (skipped): 15 · known misses: 24</code>. The 24 misses are cases only a render can judge, such as a colour pair's contrast; <code>npm run test:contrast</code> judges those.</p>
+<p>Errors fail the run. Warnings are printed and each should be explained in the change. Examples: a <code>:hover</code> outside a hover query, a physical property that breaks right-to-left, a fixed <code>px</code> size, an <code>!important</code>, uppercase outside a label, and, in the docs, a class that has no CSS yet.</p>
+
+<h3 id="axe">What axe covers here</h3>
+<p>The gate runs axe-core (4.13.0 when this was written) with the tags <code>wcag2a</code>, <code>wcag2aa</code>, <code>wcag21a</code>, <code>wcag21aa</code>, <code>wcag22aa</code> and <code>best-practice</code>. On the Button page, 91 rules ran: 45 found something to check and passed, 45 had nothing to judge (no video, no frames, no image maps), and one, colour contrast, returned "needs review" results, which the gate does not report. Not run: seven experimental rules (<code>css-orientation-lock</code>, <code>focus-order-semantics</code>, <code>hidden-content</code>, <code>label-content-name-mismatch</code>, <code>p-as-heading</code>, <code>table-fake-caption</code>, <code>td-has-header</code>), three AAA or obsolete rules (<code>color-contrast-enhanced</code>, which the contrast matrix covers instead, <code>identical-links-same-purpose</code>, <code>meta-refresh-no-exceptions</code>) and the obsolete <code>duplicate-id</code> pair (the build checks ids).</p>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div><strong>Do not read a green run as "accessible"</strong><p>The figure usually quoted is that automated tools find about a third of accessibility problems. Published estimates run from roughly 30 to over 50 percent, depending on whether you count issue types or occurrences. This project has not measured its own. Treat green as "nothing these tools know about is wrong".</p></div>
+</div>
+
+<h3 id="human">Only a person or a device finds these</h3>
+<ul>
+  <li><strong>Meaning.</strong> Whether a label, alt text, error message or heading is actually helpful and correct. Whether reading order and focus order make sense. Whether instructions rely on shape, colour or position.</li>
+  <li><strong>What assistive technology says.</strong> VoiceOver, TalkBack, NVDA and JAWS announcements. Whether a live region is really spoken. Rotor and heading navigation. Voice Control ("tap Save") and Switch Control.</li>
+  <li><strong>The platform.</strong> Safari and WebKit behaviour. Installed iOS apps and their safe areas (WebKit bug 301994). Dynamic Type and Android font scale. A keyboard covering a field. iOS zooming on focus. Gestures that fight the system back gesture. Thumb reach.</li>
+  <li><strong>Perception.</strong> Colour-only cues (use the <code>wire</code> palette and the browser's vision-deficiency emulation). Motion comfort. Glare outdoors. Flashing.</li>
+  <li><strong>Feel.</strong> Whether a press answers at once. Accidental activation. Whether a drag alternative is discoverable. Hover content that behaves.</li>
+  <li><strong>Layout under stress.</strong> 400% zoom, 256&nbsp;px-tall viewports, text spacing overrides, landscape phones, right-to-left, long translated strings. The gate sees scrolling and cut-off text in a clipping frame; it does not see text that overlaps.</li>
+  <li><strong>Content.</strong> Language of parts, plain language, consistent names and help, cognitive load.</li>
+</ul>
+<p>The scripts for these are on <a href="@/accessibility/manual.html">Manual</a>. Nobody has run them yet.</p>
+
+<h2 id="matrix">The appearance matrix</h2>
+<p>A page is tested in several looks, because most accessibility bugs are "fine in the default, broken in one other setting".</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The five appearances the accessibility gate runs</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Appearance</th><th role="columnheader">Settings</th><th role="columnheader">Width</th><th role="columnheader">Why this one</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Appearance"><code>default</code></td><td role="cell" data-label="Settings">Device defaults: light, default palette, square corners</td><td role="cell" data-label="Width">390</td><td role="cell" data-label="Why this one">What most people see. Reflow at 320&nbsp;px and at 200% text is measured here, once, with every <code>&lt;details&gt;</code> open.</td></tr>
+    <tr role="row"><td role="cell" data-label="Appearance"><code>dark-mint-soft</code></td><td role="cell" data-label="Settings">Dark, mint, soft corners</td><td role="cell" data-label="Width">390</td><td role="cell" data-label="Why this one">Dark colours, a coloured accent, and the soft radius roles (the inset focus ring meets the curve).</td></tr>
+    <tr role="row"><td role="cell" data-label="Appearance"><code>wire-square</code></td><td role="cell" data-label="Settings">Light, wire, square corners</td><td role="cell" data-label="Width">390</td><td role="cell" data-label="Why this one">Zero chroma: anything that relied on colour shows up.</td></tr>
+    <tr role="row"><td role="cell" data-label="Appearance"><code>contrast-periwinkle-dark</code></td><td role="cell" data-label="Settings">More contrast, periwinkle, dark</td><td role="cell" data-label="Width">1280</td><td role="cell" data-label="Why this one">The higher-contrast knobs, and the wide layout.</td></tr>
+    <tr role="row"><td role="cell" data-label="Appearance"><code>forced-colors</code></td><td role="cell" data-label="Settings">Windows High Contrast emulated, otherwise default</td><td role="cell" data-label="Width">390</td><td role="cell" data-label="Why this one">Backgrounds and shadows are removed. Every control must keep a border and a focus outline. axe's colour-contrast rule is switched off here.</td></tr>
+  </tbody>
+</table></div>
+<p><code>--quick</code> runs only the first two. The contrast matrix is separate and wider: light and dark × normal and more contrast × all six palettes (24 combinations, 5,400 checks), covering every role pair, every tone in pastel and bold (the tones are discovered from the CSS, so a new one is tested the day it exists), the focus ring on every surface, the scrims over a white photo, and that the device's "more contrast" request and <code>data-contrast="more"</code> produce identical colours. The screenshot tool's <code>--matrix</code> takes 12 pictures at 390&nbsp;px.</p>
+<p><strong>Not in any automated matrix:</strong> the sand and cream palettes in the gate (the contrast matrix does cover them), reduced motion in the gate (specs emulate it per element), text at 200% in dark or forced colours, right-to-left beyond the specs that mirror, landscape, and every browser except Chromium.</p>
+
+<h2 id="reports">Reading the reports</h2>
+<p>Both browser tests exit non-zero on any error and write JSON to <code>test-results/</code>, which is not committed. The terminal shows the first six errors per page and appearance; the JSON has all of them.</p>
+<h3 id="report-a11y">a11y.json</h3>
+<p>An array with one entry per page and appearance:</p>
+<pre aria-label="Shape of one entry in a11y.json">{
+  &quot;page&quot;: &quot;components/button.html&quot;,
+  &quot;appearance&quot;: &quot;default&quot;,
+  &quot;errors&quot;: [],
+  &quot;warnings&quot;: [],
+  &quot;tabStops&quot;: 53
+}</pre>
+<p><code>tabStops</code> is how many Tab stops the walk reached (capped at 120). An unexpectedly low number means controls are unreachable or the page broke. Error lines begin with what found them:</p>
+<ul>
+  <li><code>axe &lt;rule&gt; (impact, Nx)</code> with the selector and axe's explanation.</li>
+  <li><code>focus:</code> a control that shows no outline or shadow when focused, a ring under 3:1 against what it is drawn on, or a control covered by other content.</li>
+  <li><code>target WxH:</code> an element under 24&nbsp;px (error). Under 44&nbsp;px is a <em>warning</em>.</li>
+  <li><code>forced-colors:</code> a control with no border once backgrounds are removed.</li>
+  <li><code>reflow@320</code> and <code>reflow@200% text</code>: sideways scrolling, with the elements that stick out. <code>clipped@320</code> and <code>clipped@200% text</code>: text cut off by a clipping frame.</li>
+  <li><code>console:</code> an uncaught error or a failed request. <code>runner:</code> the test itself broke.</li>
+</ul>
+<p>This is the terminal output for a page broken on purpose (a scratch copy of the docs with one extra page, not part of the repository), in the default appearance:</p>
+<pre aria-label="Accessibility gate output for a page broken on purpose">x 6 error(s)              bad.html  [default]
+      x axe button-name (critical, 1x): Buttons must have discernible text  e.g. button[data-shape=&quot;circle&quot;] :: Element does not have inner text that is visible to screen readers
+      x axe color-contrast (serious, 1x): Elements must meet minimum color contrast ratio thresholds  e.g. p :: Element has insufficient color contrast of 2.13 (foreground color: #aaaaaa, background color: #f5f5f5, ...). Expected contrast ratio of 4.5:1
+      x focus: no visible focus indicator on button.btn &quot;No ring&quot;
+      x target 16x16: a &quot;x&quot; is under the 24px WCAG 2.5.8 floor
+      x reflow@320: horizontal overflow 176px. div right=496 (viewport 320)
+      x reflow@200% text: horizontal overflow 122px. div right=512 (viewport 390)</pre>
+<p>Useful one-liners (<code>jq</code> is optional; Node's <code>require('./test-results/a11y.json')</code> works too). All four were run against real reports:</p>
+<pre aria-label="jq commands for reading the reports"># a11y: every failing page and appearance, with its errors
+jq -r '.[] | select(.errors | length > 0) | &quot;\(.page) [\(.appearance)]&quot;, (.errors[] | &quot;  &quot; + .)' test-results/a11y.json
+
+# a11y: the distinct warnings across the whole run
+jq -r '[.[].warnings[]] | unique[]' test-results/a11y.json
+
+# a11y: how many Tab stops each page reached (0 or 1 usually means something is wrong)
+jq -r '.[] | &quot;\(.page) [\(.appearance)] tab stops: \(.tabStops)&quot;' test-results/a11y.json
+
+# contrast: one line per failed check
+jq -r '.failures[] | &quot;\(.key)  \(.fg) on \(.bg)  \(.ratio * 100 | round / 100):1 (needs \(.min))  \(.what)&quot;' test-results/contrast.json</pre>
+
+<h3 id="contrast">contrast.json</h3>
+<p>Every failed check, with the two colours as painted. The terminal groups failures by pair; the JSON keeps every combination. This is the clay palette from <a href="@/start/customize.html#palette">Customize</a> with its accent lightness raised to 0.62, in a scratch copy of the repository; it is not a failure in the repo:</p>
+<pre aria-label="Contrast matrix failure in the terminal">1 of 6300 checks FAILED, in 1 distinct pairs:
+
+  x --on-accent on --accent (text on accent fill) needs 4.5
+      worst 3.62:1 in light/off/clay (#fff8f1 on #c56a3e); 1 combos, e.g. light/off/clay</pre>
+<pre aria-label="The same failure in contrast.json">{
+  &quot;checked&quot;: 6300,
+  &quot;failures&quot;: [
+    {
+      &quot;key&quot;: &quot;light/off/clay&quot;,
+      &quot;fg&quot;: &quot;--on-accent&quot;,
+      &quot;bg&quot;: &quot;--accent&quot;,
+      &quot;what&quot;: &quot;text on accent fill&quot;,
+      &quot;fgHex&quot;: &quot;#fff8f1&quot;,
+      &quot;bgHex&quot;: &quot;#c56a3e&quot;,
+      &quot;ratio&quot;: 3.623665074841121,
+      &quot;min&quot;: 4.5
+    }
+  ],
+  &quot;mismatches&quot;: []
+}</pre>
+<p>The <code>key</code> reads <code>theme/contrast/palette</code>, with <code>/tone=3+bold</code> appended for a tone scope. <code>mismatches</code> lists roles whose colour differs between the device's "more contrast" request and <code>data-contrast="more"</code>: those two blocks must stay identical.</p>
+
+<h2 id="pair">Add a colour pair to the matrix</h2>
+<p>A role that is used as text or as a control boundary and is not listed in <code>tests/contrast.mjs</code> is unverified. When you add a role (declared in <code>src/tokens</code>, with a comment), add its pairs in the same change:</p>
+<pre aria-label="Adding a pair to the contrast matrix">// tests/contrast.mjs, inside buildPairs(), next to the other add() lines:
+//        foreground role     background role       floor  label for the report           floor in higher contrast
+add('--ink-mute', '--accent-soft', 4.5, 'placeholder on soft accent', 7)
+
+// Pairs that only exist inside a tone or status scope go in TONE_PAIRS instead:
+//   { fg: '--tone-ink-soft', bg: '--tone-bg', min: 7, bold: 6.5, what: 'tone secondary text' },
+// `min` is the pastel floor, `bold` the floor under data-emphasis=&quot;bold&quot;. Add child: true to read the
+// pair on a child of the toned element (the --surface-* roles and --focus are read that way).</pre>
+<ol>
+  <li>Arguments of <code>add()</code>: foreground role, background role, the floor, a label for the report, and (optional) the floor under <code>data-contrast="more"</code>. Use 4.5 for text and 3 for boundaries and icons; 7 for body text.</li>
+  <li><code>npm run build</code>, then <code>npm run test:contrast</code>. Each pair adds one check per theme, contrast and palette combination (24). Checked: the pair above passes (5,424 checks instead of 5,400).</li>
+  <li>If it fails, change the knobs or the role, not the floor. Lowering a number needs a reason written next to it.</li>
+  <li>A new <em>palette</em> goes in the <code>PALETTES</code> list at the top of the file. A new <em>tone</em> is found from the CSS on its own.</li>
+</ol>
+
+<h2 id="spec">Write a component spec</h2>
+<p>axe cannot know that arrow keys should move between tabs. A spec can. One file per element in <code>tests/components/&lt;name&gt;.mjs</code>, exporting <code>tests</code>. This one tests the docs shell itself, and was run against it:</p>
+<pre aria-label="An example component spec">// tests/components/shell.mjs: the docs shell's own skip link, mobile menu and reduced-motion token.
+export const tests = [
+  {
+    name: 'skip link is the first Tab stop and moves focus to &lt;main&gt;',
+    async run({ page, goto, expect }) {
+      await goto('index.html')
+      await page.keyboard.press('Tab')
+      await expect.focused(page, '.skip-link', 'first Tab stop')
+      await page.keyboard.press('Enter')
+      await expect.focused(page, 'main#main', 'focus lands in main')
+    },
+  },
+  {
+    name: 'menu button toggles aria-expanded; Escape closes and returns focus',
+    viewport: { width: 390, height: 844 }, // the drawer only exists below 64em
+    async run({ page, goto, expect }) {
+      await goto('index.html')
+      await expect.attr(page, '.docs-bar__menu', 'aria-expanded', 'false')
+      await page.locator('.docs-bar__menu').focus()
+      await page.keyboard.press('Enter')
+      await expect.attr(page, '.docs-bar__menu', 'aria-expanded', 'true')
+      await expect.focused(page, '#docs-nav a', 'focus moves into the drawer')
+      await page.keyboard.press('Escape')
+      await expect.attr(page, '.docs-bar__menu', 'aria-expanded', 'false')
+      await expect.focused(page, '.docs-bar__menu', 'focus returns to the trigger')
+    },
+  },
+  {
+    name: 'reduced motion turns travel off (--move is 0)',
+    reducedMotion: true, // emulates prefers-reduced-motion: reduce
+    async run({ page, goto, expect }) {
+      await goto('index.html')
+      const move = await page.evaluate(() =&gt; getComputedStyle(document.documentElement).getPropertyValue('--move').trim())
+      expect.equal(move, '0', '--move under reduced motion')
+    },
+  },
+]</pre>
+<ul>
+  <li><strong>The test object:</strong> <code>name</code>; optional <code>viewport</code> (default 390 × 844), <code>touch</code> (true turns on touch emulation) and <code>reducedMotion</code> (true emulates <code>prefers-reduced-motion: reduce</code>); and <code>run({ page, goto, expect, url, browser })</code>.</li>
+  <li><strong><code>page</code></strong> is a Playwright page. <strong><code>goto('components/x.html')</code></strong> opens a built docs page and turns off smooth scrolling. <strong><code>expect</code></strong> has <code>ok</code>, <code>equal</code>, <code>focused(page, selector)</code> and <code>attr(page, selector, name, value)</code>, and in the current harness <code>eventually(read, test, msg)</code>, which polls until a condition holds: use it instead of a fixed wait for anything that settles after an event. Anything else, throw.</li>
+  <li><strong>The harness</strong> starts each test with empty <code>localStorage</code> and fails it if the page logs an error or throws.</li>
+  <li><strong>What every spec should cover:</strong> Tab reaches it; each documented key does what the docs table says; the <code>aria-*</code> state flips together with the visible state; <kbd>Esc</kbd> closes an overlay and focus returns to its trigger; for anything pressable, <code>--lift</code> and <code>--fill</code> in each state (see <code>tests/components/button.mjs</code>); nothing throws.</li>
+  <li>Run it with <code>npm run test:components -- name</code>.</li>
+</ul>
+
+<h2 id="ci">CI</h2>
+<p>The repository's workflow runs the commands above as separate steps so that a failure names its step:</p>
+<pre aria-label="What the repository&#x27;s CI workflow runs">static    npm ci, npm run lint, npm run test:lint, npm run build:check
+browser   (after static) npm ci, install Chromium, npm run build, npm run test:contrast,
+          npm run test:components, npm run test:a11y  (--quick on a pull request), A11Y_JOBS=2
+          and the test-results folder uploaded when anything fails</pre>
+<ul>
+  <li><code>build:check</code> assumes <code>dist/</code> and <code>docs/</code> are committed, which they are. If you fork and do not commit them, replace that line with <code>npm run build</code>.</li>
+  <li>The Chromium download is the slow step. Cache <code>~/.cache/ms-playwright</code> keyed on <code>package-lock.json</code> if it matters.</li>
+  <li>Manual passes cannot be automated. Put "manual pass done for this release" in your release checklist (<a href="@/start/upgrade.html#release">Upgrade</a>).</li>
+</ul>
+
+<h2 id="lighthouse">Lighthouse and PWA checks</h2>
+<p>Do not make a Lighthouse PWA score a release gate. Chrome's own documentation says so:</p>
+<blockquote>
+  <p>"PWA testing in Lighthouse is deprecated. For more information on its deprecation see Chrome's updated Installability Criteria."</p>
+  <p class="cite">Chrome for Developers, <a href="https://developer.chrome.com/docs/lighthouse/pwa/installable-manifest">Lighthouse: installable manifest</a>, read on 30 September 2026</p>
+</blockquote>
+<ul>
+  <li>Check installability in DevTools: <em>Application</em>, then <em>Manifest</em> and <em>Service workers</em>. Chrome no longer requires a service worker to offer install, and Safari on iOS needs neither a manifest nor a worker (<a href="@/start/pwa.html">PWA</a>).</li>
+  <li>Lighthouse's accessibility category runs axe-core, so it adds nothing to the gate above, only a score that hides the detail.</li>
+  <li>Nothing in this repository runs Lighthouse.</li>
+</ul>
+
+<h2 id="emulate">Emulating preferences while you work</h2>
+<p>Chrome DevTools, <em>Rendering</em> panel: emulate <code>prefers-color-scheme</code>, <code>prefers-contrast</code>, <code>prefers-reduced-motion</code>, <code>forced-colors</code> and vision deficiencies. Or use the <strong>Appearance</strong> panel at the top of this site, which sets the same attributes the device would. Emulation is a shortcut for development; it does not replace the device scripts on <a href="@/accessibility/manual.html">Manual</a>.</p>
+<style>
+/* Docs-only: tables of words become stacked rows on a phone. Each cell carries its column name
+   (data-label) and the table keeps its ARIA roles, because display: block would otherwise strip
+   the table semantics in some browsers. */
+@media (max-width: 40em) {
+  .docs-table[data-stack] { min-inline-size: 0; }
+  .docs-table[data-stack],
+  .docs-table[data-stack] tbody,
+  .docs-table[data-stack] tr,
+  .docs-table[data-stack] td { display: block; }
+  .docs-table[data-stack] thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: clip;
+    white-space: nowrap;
+  }
+  .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
+  .docs-table[data-stack] tr:last-child { border-block-end: 0; }
+  .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
+  /* the first cell names the row, so it needs no label of its own */
+  .docs-table[data-stack] td:first-child { font-weight: 700; }
+  .docs-table[data-stack] td:first-child::before { display: none; }
+  .docs-table[data-stack] td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--ink-soft);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+}
+
+/* a long unbreakable word in a note's title (a host name) must wrap at 200% text, not push the note wider */
+.docs-article .note > div { min-inline-size: 0; }
+.docs-article .note strong:first-child { overflow-wrap: anywhere; }
+.docs-article blockquote { margin-inline: 0; padding: var(--space-3) var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
+.docs-article blockquote > p { max-inline-size: none; margin: 0; }
+.docs-article blockquote .cite { margin-block-start: var(--space-2); color: var(--ink-soft); font: var(--type-meta); }
+</style>
