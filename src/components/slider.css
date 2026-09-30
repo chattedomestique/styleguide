@@ -102,7 +102,7 @@
     flex: 1 1 auto;
     min-inline-size: 0;
 
-    /* rail: a rectangle that holds */
+    /* rail: a rectangle that holds (dashed when the slider is not available) */
     &::before {
       content: "";
       position: absolute;
@@ -126,6 +126,10 @@
     }
   }
 
+  .slider:has(.slider__input:disabled) .slider__track::before {
+    border-style: dashed;
+  }
+
   /* ---- Tick marks: the ends of each step, under the rail (made by 31-slider.js) ----------- */
   .slider__ticks {
     position: absolute;
@@ -143,6 +147,10 @@
   }
 
   .slider__scale {
+    /* above the (transparent) range input that overlaps it, and let taps pass through to it */
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
     display: flex;
     justify-content: space-between;
     gap: var(--space-3);

@@ -26,6 +26,7 @@
 
    data-layout    stacked (default) | inline (label beside the control; it wraps to
                   stacked when there is no room, with no media query)
+   data-size      on .field__label: lg = the heading of a group of several fields
 
    STATE comes from ARIA and native attributes, never classes:
      aria-invalid="true"   the control has a problem (set by you or by SG.field)
@@ -99,6 +100,18 @@
   }
   legend.field__label {
     margin-block-end: var(--space-2); /* a legend is not a grid item, so the gap does not reach it */
+  }
+  /* The heading of a group that holds several fields ("Delivery address"): above the labels inside it
+     in the hierarchy, or a legend and the first label read as the same thing. */
+  .field__label[data-size="lg"] {
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    line-height: var(--lh-snug);
+    letter-spacing: var(--ls-title);
+  }
+  legend.field__label[data-size="lg"] {
+    margin-block-end: var(--space-3);
   }
   .field__req,
   .field__opt {

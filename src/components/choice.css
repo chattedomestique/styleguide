@@ -498,6 +498,12 @@
         border-color: Highlight;
         background-color: Highlight;
       }
+      /* the box opts out of colour forcing, which would keep an inset shadow in the author's red:
+         drop it and say "wrong" with a heavier frame instead */
+      &:is(:user-invalid, [aria-invalid="true"])::before {
+        border-width: var(--bw-heavy);
+        box-shadow: none;
+      }
       &:disabled::before {
         border-color: GrayText;
       }
@@ -521,6 +527,10 @@
       &:checked::before {
         border-color: Highlight;
         background-color: Highlight;
+      }
+      &:is(:user-invalid, [aria-invalid="true"])::before {
+        border-width: var(--bw-heavy);
+        box-shadow: none;
       }
     }
     .choice-card:has(> input:is(:checked, :indeterminate)) {

@@ -1,7 +1,7 @@
 <!--{"title":"Field","group":"Components","order":20,"summary":"The wrapper around every form control: label, hint, error, required wording, counter, groups and the error summary."}-->
 <style>
   /* docs scaffolding only: the docs stylesheet styles every h2 in the article as a page section */
-  .docs-article .error-summary h2.card__label { margin: 0; padding: 0; border: 0; }
+  .docs-article .error-summary h2.card__label { margin: 0; padding: 0; border: 0; font: var(--type-label); letter-spacing: var(--ls-label); }
   .docs-article .demo .error-summary { margin: 0; }
 </style>
 <h1>Field</h1>
@@ -213,7 +213,7 @@
   <div class="demo__stage">
     <form class="stack" novalidate data-demo-same>
       <fieldset class="field">
-        <legend class="field__label">Delivery address</legend>
+        <legend class="field__label" data-size="lg">Delivery address</legend>
         <div class="stack" data-gap="3">
           <div class="field"><label class="field__label" for="red-street">Street address</label><input class="input" id="red-street" name="ship-street" type="text" autocomplete="shipping street-address" value="14 Canal Street"></div>
           <div class="field"><label class="field__label" for="red-city">City</label><input class="input" id="red-city" name="ship-city" type="text" autocomplete="shipping address-level2" value="Dublin"></div>
@@ -224,7 +224,7 @@
         <span class="choice__label">Billing address is the same as delivery</span>
       </label>
       <fieldset class="field" id="red-billing" hidden>
-        <legend class="field__label">Billing address</legend>
+        <legend class="field__label" data-size="lg">Billing address</legend>
         <div class="stack" data-gap="3">
           <div class="field"><label class="field__label" for="red-bstreet">Street address</label><input class="input" id="red-bstreet" name="bill-street" type="text" autocomplete="billing street-address"></div>
           <div class="field"><label class="field__label" for="red-bcity">City</label><input class="input" id="red-bcity" name="bill-city" type="text" autocomplete="billing address-level2"></div>
@@ -346,6 +346,7 @@
   <tbody>
     <tr><td><code>class="field"</code></td><td>on <code>div</code> or <code>fieldset</code></td><td>Grid of label, hint, control and foot. A <code>fieldset.field</code> loses its UA border.</td></tr>
     <tr><td><code>data-layout</code></td><td><code>inline</code></td><td>Label beside the control; wraps to stacked when narrow.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>lg</code>, on <code>.field__label</code></td><td>The heading of a group that holds several fields ("Delivery address"), so the legend outranks the labels inside it.</td></tr>
     <tr><td><code>data-sg-field</code></td><td>none</td><td>Turns on <code>30-field.js</code> for this field: ids, <code>label for</code>, <code>aria-describedby</code> (error id only while visible), counter.</td></tr>
     <tr><td><code>data-sg-form</code></td><td>on <code>&lt;form novalidate&gt;</code></td><td>Validate on leave, live after an error, everything on submit; fills and focuses the summary.</td></tr>
     <tr><td><code>data-sg-summary</code></td><td>on <code>.card.error-summary</code></td><td>Where the summary is written. Keep <code>hidden</code>, <code>tabindex="-1"</code> and a <code>role="alert"</code> child.</td></tr>
