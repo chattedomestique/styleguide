@@ -184,6 +184,8 @@ function probeClipped() {
       const hs = getComputedStyle(host)
       // closed <details> content is not rendered (content-visibility: hidden); it cannot be cut off
       if (host.closest('details:not([open]) > :not(summary)')) continue
+      // a marquee moves on purpose inside a clipping frame and has a pause control; its still / reduced-motion state is covered by its spec
+      if (host.closest('.marquee, [data-allow-clip]')) continue
       if (hs.visibility === 'hidden' || hs.display === 'none' || host.closest('.sr-only, [aria-hidden="true"]') || hs.textOverflow === 'ellipsis') continue
       // text inside its own scroller (a <pre>, a table wrapper) is reachable by scrolling, not cut off
       let scrollsX = false, scrollsY = false
