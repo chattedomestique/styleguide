@@ -71,7 +71,7 @@ for (const f of layoutCss) {
   // outline removal
   for (const m of css.matchAll(/outline\s*:\s*(none|0)\b/g)) {
     const before = css.slice(Math.max(0, m.index - 160), m.index)
-    if (/:focus:not\(:focus-visible\)|\[tabindex="-1"\]/.test(before)) continue
+    if (/:focus:not\(:focus-visible\)|\[tabindex="-1"\]|@supports selector\(:has/.test(before)) continue  // the :has() parent wears the ring
     err(name, lineOf(css, m.index), 'outline removed without a replacement (WCAG 2.4.7)')
   }
   for (const m of css.matchAll(/transition(?:-property)?\s*:\s*all\b/g)) err(name, lineOf(css, m.index), 'transition: all. List the properties (transform, opacity, colour ...)')
@@ -97,7 +97,7 @@ for (const f of layoutCss) {
     for (const m of css.matchAll(/:hover\b/g)) {
       const before = css.slice(Math.max(0, m.index - 400), m.index)
       const lastMedia = before.lastIndexOf('@media')
-      const gated = lastMedia >= 0 && /hover:\s*hover/.test(before.slice(lastMedia)) && !/\}\s*\}/.test(before.slice(lastMedia).replace(/\{[^{}]*\}/g, ''))
+      const gated = lastMedia >= 0 && /hover:\s*hover|forced-colors/.test(before.slice(lastMedia)) && !/\}\s*\}/.test(before.slice(lastMedia).replace(/\{[^{}]*\}/g, ''))
       if (!gated) warn(name, lineOf(css, m.index), ':hover outside @media (hover: hover)')
     }
     if (!basename(f).startsWith('00-') && !/forced-colors/.test(css) && !/border/.test(css)) warn(name, '', 'no border and no forced-colors rule: will the edge survive Windows High Contrast?')
@@ -148,6 +148,98 @@ for (const f of walk(join(ROOT, 'docs-src'), (p) => p.endsWith('.html') && !base
   }
   for (const m of html.matchAll(/style="[^"]*(?:#[0-9a-fA-F]{3,8}\b|rgba?\()[^"]*"/g)) warn(name, lineOf(html, m.index), 'literal colour in an inline style: use a colour role')
   for (const m of html.matchAll(/[✓✔✗✕→←↑↓▸▾•★☆]/g)) warn(name, lineOf(html, m.index), `text glyph "${m[0]}" is missing from the bundled font: use an SVG icon`)
+}
+
+
+/* ==== The Flashcards gate (tools/check.mjs, ported) ============================================
+   Rules 3-6 come from the owner's own checker. Gate 4 (motion) is open for the guide, so
+   transitions and keyframes are allowed in components; everything else stays as they wrote it. */
+const GATE_MOTION_OPEN = true
+const tokenCss = cssFiles.filter((f) => rel(f).startsWith('src/tokens/'))
+const shipped = cssFiles.filter((f) => !rel(f).startsWith('src/tokens/'))
+const isWire = (f) => rel(f).startsWith('src/wire/')
+const stripUrls = (t) => t.replace(/url\([^)]*\)/g, 'url()')
+const balanced = (t, open) => { let d = 0; for (let i = open; i < t.length; i++) { if (t[i] === '(') d++; else if (t[i] === ')' && --d === 0) return t.slice(open + 1, i) } return '' }
+const splitTop = (t, sep) => {
+  const out = []; let d = 0, cur = ''
+  for (const ch of t) {
+    if (ch === '(') d++
+    if (ch === ')') d--
+    if (d === 0 && (sep === ',' ? ch === ',' : /\s/.test(ch))) { if (cur.trim()) out.push(cur.trim()); cur = '' } else cur += ch
+  }
+  if (cur.trim()) out.push(cur.trim())
+  return out
+}
+const BAD_FONTS = /^(inter|roboto|open sans|lato|poppins|space grotesk|dm sans|plus jakarta sans|manrope|montserrat|geist|system-ui|ui-sans-serif|arial|helvetica(?: neue)?)$/i
+const ROLES = /^(0|inherit|var\(--radius-(card|tile|ctl|pill|[123])\)|var\(--card-radius\)|50%)$/
+
+for (const f of [...shipped, ...tokenCss]) {
+  const name = rel(f)
+  const raw = readFileSync(f, 'utf8')
+  const css = stripUrls(stripComments(raw))
+  const inTokens = name.startsWith('src/tokens/')
+
+  // colour literals: tokens only
+  if (!inTokens) {
+    for (const m of css.matchAll(/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|light-dark)\(/g)) {
+      if (!/^src\/(components|layout|base)\//.test(name)) err(name, lineOf(css, m.index), `colour literal "${m[0]}": read a role instead`)
+    }
+  }
+  // the AI tells
+  for (const m of css.matchAll(/\b(?:repeating-)?(?:linear|radial|conic)-gradient\(/g)) {
+    const args = splitTop(balanced(css, m.index + m[0].length - 1), ',')
+    const flat = args.length === 2 && args[0] === args[1] // two identical stops are a flat fill, not a gradient
+    if (!isWire(f) && !flat) err(name, lineOf(css, m.index), 'gradient outside wire.css (flat: no gradients)')
+  }
+  for (const m of css.matchAll(/backdrop-filter|\bblur\(|text-shadow/g)) err(name, lineOf(css, m.index), `"${m[0]}" is banned (flat, no glass, no glow)`)
+  for (const m of css.matchAll(/(box-shadow|--shadow-[a-z-]+)\s*:\s*([^;]+);/g)) {
+    for (const sh of splitTop(m[2], ',')) {
+      const t = splitTop(sh, ' ').filter((x) => x !== 'inset')
+      if (t.length >= 4 && !/^0(px)?$/.test(t[2])) err(name, lineOf(css, m.index), `shadow with blur "${t[2]}": shadows are hard-edged`)
+    }
+  }
+  for (const m of css.matchAll(/--font-sans\s*:\s*([^;]+);/g)) {
+    const first = splitTop(m[1], ',')[0].replace(/["']/g, '').trim()
+    if (BAD_FONTS.test(first)) err(name, lineOf(css, m.index), `"${first}" as the first family is a default, not a choice`)
+  }
+  if (!name.endsWith('50-fonts.css')) for (const m of css.matchAll(/(?<![@\w-])font-family\s*:\s*([^;]+);/g)) {
+    if (!/^var\(/.test(m[1].trim())) err(name, lineOf(css, m.index), 'font-family must come from a token')
+  }
+  if (inTokens) continue
+  // line weights and radii
+  for (const m of css.matchAll(/\b(border(?!-radius)[\w-]*|outline|outline-width)\s*:\s*([^;]+);/g)) {
+    for (const w of m[2].matchAll(/(?<![\w.-])(\d*\.?\d+)px\b/g)) {
+      if (+w[1] !== 0) err(name, lineOf(css, m.index), `literal ${w[0]} in ${m[1]}: use --bw, --bw-thin, --bw-heavy or --ring`)
+    }
+  }
+  if (name.startsWith('src/components/') || isWire(f)) {
+    for (const m of css.matchAll(/(?<![\w-])border-radius\s*:\s*([^;]+);/g)) {
+      if (!ROLES.test(m[1].trim())) err(name, lineOf(css, m.index), `border-radius "${m[1].trim()}": use --radius-card, -tile, -ctl or -pill`)
+    }
+  }
+  // gate order
+  if (!GATE_MOTION_OPEN && (name.startsWith('src/components/') || isWire(f))) {
+    for (const m of css.matchAll(/(?<![\w-])(transition|animation)(-[a-z-]+)?\s*:|@keyframes/g)) err(name, lineOf(css, m.index), 'motion is gate 4, and it is not open')
+  }
+  // layering: components stand alone
+  if (name.startsWith('src/components/')) {
+    for (const m of css.matchAll(/\.wf-[\w-]+/g)) err(name, lineOf(css, m.index), `${m[0]}: a component must work without the wireframe kit`)
+  }
+  for (const m of css.matchAll(/var\(\s*--grey-\d+/g)) err(name, lineOf(css, m.index), `${m[0]}): read a role, not a primitive`)
+}
+
+/* ---- Every class used in the docs pages is defined by some CSS -------------------------------- */
+{
+  const defined = new Set()
+  const allCss = [...cssFiles, ...walk(join(ROOT, 'docs-src'), (p) => p.endsWith('.css')), ...walk(join(ROOT, 'dist'), (p) => p.endsWith('icons.css'))]
+  for (const f of allCss) for (const m of stripUrls(stripComments(readFileSync(f, 'utf8'))).matchAll(/\.([a-zA-Z][\w-]*)/g)) defined.add(m[1])
+  const DOC_STATE = new Set(['is-hover', 'is-focus', 'is-active', 'is-selected', 'is-disabled'])
+  for (const f of walk(join(ROOT, 'docs-src'), (p) => p.endsWith('.html') && !basename(p).startsWith('_'))) {
+    const html = readFileSync(f, 'utf8')
+    for (const m of html.matchAll(/\bclass="([^"]*)"/g)) for (const c of m[1].split(/\s+/).filter(Boolean)) {
+      if (!defined.has(c) && !DOC_STATE.has(c) && !/^ic--/.test(c)) warn(rel(f), lineOf(html, m.index), `class "${c}" has no CSS`)
+    }
+  }
 }
 
 /* ---- Report ------------------------------------------------------------------------------------------ */

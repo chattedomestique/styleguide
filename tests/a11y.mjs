@@ -3,7 +3,7 @@
  * Accessibility gate. Every docs page, under several appearances, in a real browser.
  *
  *   npm run test:a11y                         all pages x all appearances (a few minutes)
- *   npm run test:a11y -- --quick              default + dark/mint/pop only
+ *   npm run test:a11y -- --quick              default + dark/mint/soft only
  *   npm run test:a11y -- --pages components/button.html,components/card.html
  *
  * Checks (ERROR unless noted)
@@ -36,11 +36,11 @@ const pages = wanted ?? allPages
 
 const APPEARANCES = [
   { name: 'default', prefs: {}, width: 390 },
-  { name: 'dark-mint-pop', prefs: { theme: 'dark', palette: 'mint', surface: 'pop' }, width: 390 },
-  { name: 'mono-hard', prefs: { theme: 'light', palette: 'mono', surface: 'hard' }, width: 390 },
+  { name: 'dark-mint-soft', prefs: { theme: 'dark', palette: 'mint', corners: 'soft' }, width: 390 },
+  { name: 'wire-square', prefs: { theme: 'light', palette: 'wire', corners: 'square' }, width: 390 },
   { name: 'contrast-periwinkle-dark', prefs: { contrast: 'more', palette: 'periwinkle', theme: 'dark' }, width: 1280 },
   { name: 'forced-colors', prefs: {}, width: 390, forced: true },
-].filter((a) => !QUICK || ['default', 'dark-mint-pop'].includes(a.name))
+].filter((a) => !QUICK || ['default', 'dark-mint-soft'].includes(a.name))
 
 /* ------------------------------------------------------------------ in-page probes */
 function probeFocus(maxTabs) {
@@ -59,10 +59,16 @@ function probeFocus(maxTabs) {
       if (seen.has(el)) break
       seen.add(el)
       if (!visible(el)) { res.push({ kind: 'invisible-focus', el: desc(el) }); continue }
-      const cs = getComputedStyle(el)
-      const outline = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0
-      const shadow = cs.boxShadow && cs.boxShadow !== 'none'
-      if (!outline && !shadow) res.push({ kind: 'no-indicator', el: desc(el) })
+      // The indicator may be on the control or on a container that wears it on the control's behalf
+      // (a whole-card link: .card:has(a:focus-visible)). Accept an outline or shadow on the control or the nearest 5 ancestors.
+      let shown = false
+      for (let n = el, k = 0; n && k < 6 && !shown; n = n.parentElement, k++) {
+        const cs = getComputedStyle(n)
+        const outline = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0
+        const shadow = cs.boxShadow && cs.boxShadow !== 'none'
+        shown = outline || !!shadow
+      }
+      if (!shown) res.push({ kind: 'no-indicator', el: desc(el) })
       const r = el.getBoundingClientRect()
       const hit = document.elementFromPoint(Math.min(Math.max(r.left + r.width / 2, 0), innerWidth - 1), Math.min(Math.max(r.top + r.height / 2, 0), innerHeight - 1))
       if (hit && !(hit === el || el.contains(hit) || hit.contains(el))) res.push({ kind: 'obscured', el: desc(el), by: desc(hit) })
@@ -121,7 +127,9 @@ function probeForced() {
     const r = el.getBoundingClientRect()
     const cs = getComputedStyle(el)
     if (!r.width || cs.visibility === 'hidden' || el.closest('.sr-only, [hidden]')) continue
-    const has = ['top', 'right', 'bottom', 'left'].some((s) => cs['border' + s[0].toUpperCase() + s.slice(1) + 'Style'] !== 'none' && parseFloat(cs['border' + s[0].toUpperCase() + s.slice(1) + 'Width']) > 0)
+    // The edge may be drawn by the control or by its ::before/::after (a 44px hit area around a drawn 20px box).
+    const edged = (c) => ['Top', 'Right', 'Bottom', 'Left'].some((s) => c['border' + s + 'Style'] !== 'none' && parseFloat(c['border' + s + 'Width']) > 0)
+    const has = edged(cs) || [getComputedStyle(el, '::before'), getComputedStyle(el, '::after')].some((c) => c.content !== 'none' && edged(c))
     if (!has) bad.push((el.className || el.tagName).toString().split(' ')[0] + ` "${(el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 20)}"`)
   }
   return bad

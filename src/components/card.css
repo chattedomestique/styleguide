@@ -297,8 +297,14 @@
     cursor: pointer;
   }
 
-  .card__action:is(:hover, .is-hover) {
+  .card__action.is-hover {
     --fill: 1;
+  }
+
+  @media (hover: hover) {
+    .card__action:hover {
+      --fill: 1;
+    }
   }
 
   /* tile: the square slot at the head of a row. */
@@ -479,14 +485,16 @@
     inset-inline-end: calc(var(--notch-w) / 2 - var(--hit) / 2 - var(--bw));
   }
 
-  /* --- variant: study --------------------------------------------------------
-     The flashcard itself: 5:7, one subject, one hint. The flip is motion, so it
-     is designed at gate 4; the faces here are static. */
+  /* --- variant: portrait -----------------------------------------------------
+     A tall card with one big subject and one hint: a flashcard, a ticket, a
+     poster. 5:7. Flipping it is motion, designed at gate 4; the faces here are
+     static. `.card--study` and `.card__answer` are the original Flashcards
+     names and stay as aliases. */
 
-  .card--study {
+  :is(.card--portrait, .card--study) {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
-    aspect-ratio: var(--ratio-study);
+    aspect-ratio: var(--ratio-portrait);
     max-inline-size: 22rem;
   }
 
@@ -497,18 +505,19 @@
     padding: var(--card-pad);
   }
 
-  .card--study .card__foot {
+  :is(.card--portrait, .card--study) .card__foot {
     justify-content: center;
     border-block-start: 0;
   }
 
-  .card__answer {
+  :is(.card__hero, .card__answer) {
     font: var(--type-title);
     font-size: clamp(2.25rem, 17cqi, 3.75rem);
     font-weight: 700;
     letter-spacing: var(--ls-title);
     text-align: center;
     text-wrap: balance;
+    overflow-wrap: anywhere; /* at big text sizes a long word breaks rather than clipping */
   }
 
   /* --- states ----------------------------------------------------------------
@@ -539,10 +548,18 @@
     --fill: 1;
   }
 
-  .card--ghost:is(:hover, .is-hover, :focus-visible, .is-focus) {
+  .card--ghost:is(.is-hover, :focus-visible, .is-focus) {
     color: var(--card-ink);
     background: var(--card-bg);
     border-style: solid;
+  }
+
+  @media (hover: hover) {
+    .card--ghost:hover {
+      color: var(--card-ink);
+      background: var(--card-bg);
+      border-style: solid;
+    }
   }
 
   /* pressed: back onto the surface, colour stays. After hover so it wins. */

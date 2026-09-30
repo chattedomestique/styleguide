@@ -24,7 +24,7 @@
 <tr><td></td><td>Control</td><td><code>.card__ctl</code></td><td>44×44 hit area around a 20×20 box (<code>2px currentColor</code>, <code>--radius-ctl</code>); glyph 12px.</td></tr>
 <tr><td>3</td><td>Media</td><td><code>.card__media</code></td><td><code>aspect-ratio: var(--ratio, 4 / 3)</code>; edge to edge; closed by a 2px rule; <code>img</code>/<code>video</code> are <code>object-fit: cover</code>; fill is the element's tone or <code>--tone-1</code>.</td></tr>
 <tr><td>4</td><td>Body</td><td><code>.card__body</code></td><td><code>padding: clamp(1rem, 5cqi, 1.5rem)</code>; flex column, <code>gap: 8px</code>; grows to fill.</td></tr>
-<tr><td></td><td>Head</td><td><code>.card__head</code></td><td>Same padding as the body. Used by notch and study cards for their top strip.</td></tr>
+<tr><td></td><td>Head</td><td><code>.card__head</code></td><td>Same padding as the body. Used by notch and portrait cards for their top strip.</td></tr>
 <tr><td>5</td><td>Eyebrow</td><td><code>.card__eyebrow</code></td><td><code>--type-meta</code>, soft ink. What kind of thing this is.</td></tr>
 <tr><td>6</td><td>Title</td><td><code>.card__title</code></td><td><code>--type-title</code> at <code>clamp(1.375rem, 8cqi, 2rem)</code> (22–32px); balanced; breaks long words.</td></tr>
 <tr><td>7</td><td>Text</td><td><code>.card__text</code></td><td><code>--type-body</code>, 40ch max, pretty-wrapped.</td></tr>
@@ -49,7 +49,7 @@
 <tr><td>Notch</td><td><code>.card--notch</code> + <code>.card__head</code>, <code>.card__action</code> (a <code>&lt;button&gt;</code>)</td><td>One action that matters.</td><td>Square only. Not a link card.</td></tr>
 <tr><td>Stack</td><td><code>.card--stack</code></td><td>A deck, not a card.</td><td>Two sheets via <code>box-shadow</code>; the margin reserves their room.</td></tr>
 <tr><td>Ghost</td><td><code>.card--ghost</code> (the card is the <code>&lt;a&gt;</code> or <code>&lt;button&gt;</code>)</td><td>An empty slot that asks to be filled.</td><td>Dashed; firms up on hover and focus.</td></tr>
-<tr><td>Study</td><td><code>.card--study</code> + <code>.card__stage</code>, <code>.card__answer</code></td><td>The flashcard. 5 / 7.</td><td>Static faces; the flip is gate 4.</td></tr>
+<tr><td>Portrait</td><td><code>.card--portrait</code> + <code>.card__stage</code>, <code>.card__hero</code></td><td>A tall card with one big subject: a flashcard, ticket or poster. 5 / 7.</td><td>Static faces; the flip is gate 4. Original names <code>.card--study</code> / <code>.card__answer</code> still work.</td></tr>
 <tr><td>Square</td><td><code>.card--square</code></td><td>A modifier for any card.</td><td><code>aspect-ratio: 1 / 1</code>; body spaces its first and last children apart.</td></tr>
 </tbody></table></div>
 <h3 id="plain">Plain</h3>
@@ -195,7 +195,7 @@
 <p class="t-meta">Below 18rem the value on the right drops under the title. A card can't re-template itself from its own width, but its children can move between grid cells.</p>
 <div class="demo">
 <div class="demo__stage">
-<div class="sg-stack">
+<div class="stack" data-gap="3">
   <article class="card card--row">
     <span class="card__tile wf-media" data-tone="1" aria-hidden="true"></span>
     <div class="card__main">
@@ -230,7 +230,7 @@
     </article>
   </div>
 </div>
-<p class="sg-caption">The last one sits in a 16rem box: same markup, value dropped under.</p>
+<p class="t-meta">The last one sits in a 16rem box: same markup, value dropped under.</p>
 </div>
 </div>
 
@@ -337,15 +337,15 @@
 </div>
 </div>
 
-<h3 id="study">Study</h3>
+<h3 id="portrait">Portrait</h3>
 <p>The flashcard itself. 5:7, one subject, one hint.</p>
-<p><code>.card--study</code> <code>.card__stage</code> <code>.card__answer</code></p>
+<p><code>.card--portrait</code> <code>.card__stage</code> <code>.card__hero</code></p>
 <p class="t-meta">Static faces only. The flip is motion, so it's designed at gate 4; the rules in the app's README (perspective on the parent, backfaces hidden, <code>cubic-bezier(.83, 0, .17, 1)</code>) carry over unchanged.</p>
 <div class="demo">
 <div class="demo__stage">
 <div class="grid" style="--grid-min: 14rem">
 <div>
-  <article class="card card--study" data-face="front">
+  <article class="card card--portrait" data-face="front">
     <div class="card__head"><span class="card__label">03 / 12</span></div>
     <div class="card__stage">
       <svg class="wf-shape" viewBox="-8 -8 116 116" aria-hidden="true" focusable="false" data-tone="3">
@@ -357,19 +357,19 @@
     </div>
     <footer class="card__foot"><span class="card__meta">Tap to flip</span></footer>
   </article>
-  <p class="sg-caption"><b>Front.</b> Shape only.</p>
+  <p class="t-meta"><b>Front.</b> Shape only.</p>
 </div>
 <div>
-  <article class="card card--study" data-face="back">
+  <article class="card card--portrait" data-face="back">
     <div class="card__head"><span class="card__label">03 / 12</span></div>
     <div class="card__stage">
-      <p class="card__answer">Triangle</p>
+      <p class="card__hero">Triangle</p>
     </div>
     <footer class="card__foot">
       <span class="card__meta">Three sides, three corners</span>
     </footer>
   </article>
-  <p class="sg-caption"><b>Back.</b> The name, and one fact.</p>
+  <p class="t-meta"><b>Back.</b> The name, and one fact.</p>
 </div>
 </div>
 </div>
@@ -400,7 +400,7 @@
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
     </div>
     <div class="card__group">
-      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+      <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
     </div>
   </div>
 </article>
@@ -414,7 +414,7 @@
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
     </div>
     <div class="card__group">
-      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+      <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
     </div>
   </div>
 </article>
@@ -428,7 +428,7 @@
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
     </div>
     <div class="card__group">
-      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+      <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
     </div>
   </div>
 </article>
@@ -442,7 +442,7 @@
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
     </div>
     <div class="card__group">
-      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+      <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
     </div>
   </div>
 </article>
@@ -456,7 +456,7 @@
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
     </div>
     <div class="card__group">
-      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+      <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
     </div>
   </div>
 </article>
@@ -469,7 +469,7 @@
       <p class="card__eyebrow">Deck · 12 cards</p>
     </div>
     <div class="card__group">
-      <h4 class="card__title">Shapes</h4>
+      <h3 class="card__title">Shapes</h3>
     </div>
   </div>
 </article>
@@ -580,8 +580,8 @@
 <p class="t-meta">Drag the corner of the dashed box. Padding, titles and the big figure scale with the card; the row's value drops under its title below 18rem. Nothing here looks at the viewport.</p>
 <div class="demo">
 <div class="demo__stage">
-<div class="sg-resize">
-  <div class="sg-stack">
+<div class="resize-box">
+  <div class="stack" data-gap="3">
     <article class="card card--row">
       <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
       <div class="card__main">
@@ -631,5 +631,5 @@
   <li>The notch is square only. The upgrade path is <code>corner-shape: scoop</code> as progressive enhancement once it is supported everywhere that matters.</li>
   <li>The stretched link's border band needs <code>overflow-clip-margin</code>. Safari ignores it, leaving a 2px band at the very edge of a link card where a click does nothing.</li>
   <li>Text inside a link card cannot be selected by dragging, because the stretched link sits on top.</li>
-  <li>The study card has static faces only; the flip is a motion design decision.</li>
+  <li>The portrait card has static faces only; the flip is a motion design decision.</li>
 </ul>

@@ -21,56 +21,57 @@ const SHOW_ALL = process.argv.includes('--all')
 
 const THEMES = ['light', 'dark']
 const CONTRASTS = ['off', 'more']
-const PALETTES = ['ink', 'periwinkle', 'mint', 'sand', 'cream', 'mono']
-const TONES = ['rose', 'amber', 'lime', 'green', 'teal', 'sky', 'periwinkle', 'violet', 'stone']
-const STATUSES = ['success', 'warning', 'danger', 'info']
+const PALETTES = ['default', 'mint', 'periwinkle', 'sand', 'cream', 'wire']
+const TONES = ['1', '2', '3', '4', '5', '6', 'ink', 'ok', 'warn', 'bad', 'info']
 
-const TEXT_SURFACES = ['--color-canvas', '--color-surface', '--color-surface-2']
-const ALL_SURFACES = [...TEXT_SURFACES, '--color-surface-3']
+const TEXT_SURFACES = ['--canvas', '--paper', '--paper-2']
+const ALL_SURFACES = [...TEXT_SURFACES, '--paper-3']
 
 /** min = hard requirement. Under data-contrast=more, `more` replaces `min` when present. */
 function buildPairs() {
   const P = []
   const add = (fg, bg, min, what, more) => P.push({ fg, bg, min, more: more ?? min, what })
   for (const bg of ALL_SURFACES) {
-    add('--color-ink', bg, 7, 'primary text')
-    add('--color-ink-2', bg, 4.5, 'secondary text', 7)
-    add('--color-ink-3', bg, 4.5, 'tertiary text / placeholder', 7)
-    add('--color-accent-ink', bg, 4.5, 'accent text / links', 7)
-    for (const s of STATUSES) add(`--color-${s}-ink`, bg, 4.5, `${s} text`, 7)
+    add('--ink', bg, 7, 'primary text and frames')
   }
-  for (const bg of TEXT_SURFACES) add('--color-line', bg, 3, 'control boundary / meaningful icon', 4.5)
-  add('--color-on-accent', '--color-accent', 4.5, 'text on accent fill', 7)
-  add('--color-on-accent-soft', '--color-accent-soft', 4.5, 'text on soft accent', 7)
-  add('--color-ink-inverse', '--color-surface-inverse', 7, 'text on inverse surface (dock)')
-  add('--color-ink-inverse-2', '--color-surface-inverse', 4.5, 'secondary text on inverse surface', 7)
-  add('--color-surface-inverse', '--color-canvas', 3, 'inverse surface boundary vs canvas (dock visibility)')
-  add('--color-surface-inverse', '--color-surface', 3, 'inverse surface boundary vs card')
-  // An accent fill must be 3:1 against the canvas, or be drawn with an edge (--fill-border-c not transparent).
-  P.push({ fg: '--color-accent', bg: '--color-canvas', min: 3, more: 3, what: 'accent fill vs canvas (selected-state shape), unless edged', unlessEdge: true })
-  for (const s of STATUSES) {
-    add(`--color-${s}-ink`, `--color-${s}-soft`, 4.5, `${s} text on its soft fill`, 7)
-    add(`--color-on-${s}-fill`, `--color-${s}-fill`, 4.5, `text on ${s} fill`, 7)
+  for (const bg of TEXT_SURFACES) {
+    add('--ink-soft', bg, 7, 'secondary text')
+    add('--ink-mute', bg, 4.5, 'placeholder / tertiary text', 7)
+    add('--accent-ink', bg, 4.5, 'accent text / links', 7)
+    add('--ink-faint', bg, 3, 'disabled, quiet decoration (never text that matters)')
+    add('--focus', bg, 3, 'focus ring')
   }
+  add('--ink-soft', '--paper-3', 4.5, 'secondary text on the pressed shade', 7)
+  add('--ink-mute', '--paper-3', 4.5, 'tertiary text on the pressed shade', 7)
+  add('--accent-ink', '--paper-3', 4.5, 'accent text on the pressed shade', 7)
+  add('--focus', '--paper-3', 3, 'focus ring')
+  for (const bg of ALL_SURFACES) {
+    for (const s of ['ok', 'warn', 'bad', 'info']) add(`--${s}-ink`, bg, 4.5, `${s} text`, 7)
+  }
+  add('--on-accent', '--accent', 4.5, 'text on accent fill', 7)
+  add('--on-accent-soft', '--accent-soft', 4.5, 'text on soft accent', 7)
+  add('--ink', '--accent-soft', 7, 'primary text on soft accent')
+  add('--paper', '--ink', 7, 'paper on ink (the inverted tone, the card bar)')
   return P
 }
 
-/** Pairs read inside a [data-tone] / [data-status] scope. */
+/** Pairs read inside a [data-tone] scope. `bold` = threshold under data-emphasis="bold". */
 const TONE_PAIRS = [
-  { fg: '--tone-ink', bg: '--tone-surface', min: 7, bold: 4.5, what: 'tone text' },
-  { fg: '--tone-ink-2', bg: '--tone-surface', min: 4.5, bold: 4.5, what: 'tone secondary text' },
+  { fg: '--tone-ink', bg: '--tone-bg', min: 7, bold: 6.5, what: 'tone text' },
+  { fg: '--tone-ink-soft', bg: '--tone-bg', min: 4.5, bold: 4.5, what: 'tone secondary text' },
   { fg: '--tone-on-fill', bg: '--tone-fill', min: 4.5, bold: 4.5, what: 'text on tone pill' },
-  { fg: '--tone-line', bg: '--tone-surface', min: 3, bold: 3, what: 'tone border / icon' },
-  { fg: '--tone-fill', bg: '--tone-surface', min: 3, bold: 3, what: 'tone pill vs its card' },
+  { fg: '--tone-fill', bg: '--tone-bg', min: 3, bold: 3, what: 'tone pill vs its card' },
+  { fg: '--line', bg: '--tone-bg', min: 3, bold: 3, what: 'frame and icons on a tone', skipBold: true, skipInk: true },
+  { fg: '--focus', bg: '--tone-bg', min: 3, bold: 3, what: 'focus ring on a tone', skipBold: true, skipInk: true }  // ink: the ring is drawn outside the card, or recoloured inside it (card.css),
 ]
 
 /** Runs in the browser. Returns [{key, fgHex, bgHex, ratio, min, ...}] */
-async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, statuses, useAttrContrast }) {
+async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, useAttrContrast }) {
   const root = document.documentElement
   root.setAttribute('data-theme', theme)
   if (contrast === 'more' && useAttrContrast) root.setAttribute('data-contrast', 'more')
   else root.removeAttribute('data-contrast')
-  if (palette === 'ink') root.removeAttribute('data-palette')
+  if (palette === 'default') root.removeAttribute('data-palette')
   else root.setAttribute('data-palette', palette)
 
   const canvas = document.createElement('canvas')
@@ -94,13 +95,12 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, sta
   }
   const hex = (c) => '#' + c.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')
 
+  // Read on the scope element itself: --tone-* are registered inherits:false, so a child would not see them.
   const resolve = (scope, name) => {
-    const probe = document.createElement('i')
-    probe.style.cssText = `color:var(${name});display:none`
-    probe.style.display = 'inline'
-    scope.appendChild(probe)
-    const css = getComputedStyle(probe).color
-    probe.remove()
+    const prev = scope.style.color
+    scope.style.color = `var(${name})`
+    const css = getComputedStyle(scope).color
+    scope.style.color = prev
     return toRGBA(css)
   }
 
@@ -110,7 +110,6 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, sta
     const fg = resolve(scope, p.fg)
     const bg = resolve(scope, p.bg)
     if (bg[3] < 1) return
-    if (p.unlessEdge && resolve(scope, '--fill-border-c')[3] > 0) return
     const r = ratio(fg, bg)
     const min = contrast === 'more' && p.more != null ? p.more : p[minKey]
     out.push({ key: scopeKey + extra, fg: p.fg, bg: p.bg, what: p.what, fgHex: hex(fg), bgHex: hex(bg), ratio: r, min })
@@ -118,40 +117,27 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, sta
 
   for (const p of pairs) check(root, p, '')
 
-  // Focus ring: at least one of the two tones must be >= 3:1 (real value is >= 4.1) against every surface.
-  const surfaces = ['--color-canvas', '--color-surface', '--color-surface-2', '--color-surface-3', '--color-surface-inverse', '--color-accent']
-  for (const s of surfaces) {
-    const bg = resolve(root, s)
-    const inner = ratio(resolve(root, '--color-focus-inner'), bg)
-    const outer = ratio(resolve(root, '--color-focus-outer'), bg)
-    out.push({ key: scopeKey, fg: '--color-focus-(inner|outer)', bg: s, what: 'focus ring, best of two tones', fgHex: inner > outer ? 'inner' : 'outer', bgHex: hex(bg), ratio: Math.max(inner, outer), min: 3 })
-  }
   // Scrim: white text over the worst possible photo (pure white) must stay readable.
   const white = [255, 255, 255]
-  for (const s of ['--color-scrim', '--color-media-control']) {
+  for (const s of ['--scrim', '--scrim-strong']) {
     const a = resolve(root, s)
     const comp = [a[0] * a[3] + 255 * (1 - a[3]), a[1] * a[3] + 255 * (1 - a[3]), a[2] * a[3] + 255 * (1 - a[3])]
-    out.push({ key: scopeKey, fg: '--color-on-media', bg: s + ' over white photo', what: 'white text/icon on scrim over worst-case photo', fgHex: '#ffffff', bgHex: hex(comp), ratio: ratio(white, comp), min: 4.5 })
+    out.push({ key: scopeKey, fg: '--on-media', bg: s + ' over white photo', what: 'white text/icon on scrim over worst-case photo', fgHex: '#ffffff', bgHex: hex(comp), ratio: ratio(white, comp), min: 4.5 })
   }
 
-  // Tones: every hue, pastel + bold, and every status.
+  // Tones: every slot, the inverted tone and the four status tones, pastel and bold.
   const holder = document.createElement('div')
   root.appendChild(holder)
-  const scopes = [
-    ...tones.flatMap((t) => [['data-tone', t, false], ['data-tone', t, true]]),
-    ...statuses.flatMap((s) => [['data-status', s, false], ['data-status', s, true]]),
-  ]
-  for (const [attr, val, bold] of scopes) {
+  const scopes = tones.flatMap((t) => (t === 'ink' ? [[t, false]] : [[t, false], [t, true]]))
+  for (const [val, bold] of scopes) {
     const el = document.createElement('div')
-    el.setAttribute(attr, val)
+    el.setAttribute('data-tone', val)
     if (bold) el.setAttribute('data-emphasis', 'bold')
     holder.appendChild(el)
-    for (const p of tonePairs) check(el, { ...p, min: bold ? p.bold : p.min }, `/${attr.slice(5)}=${val}${bold ? '+bold' : ''}`)
-    // Focus ring on each tone surface
-    const bg = resolve(el, '--tone-surface')
-    const inner = ratio(resolve(el, '--color-focus-inner'), bg)
-    const outer = ratio(resolve(el, '--color-focus-outer'), bg)
-    out.push({ key: `${scopeKey}/${attr.slice(5)}=${val}${bold ? '+bold' : ''}`, fg: '--color-focus-(inner|outer)', bg: '--tone-surface', what: 'focus ring on tone surface', fgHex: inner > outer ? 'inner' : 'outer', bgHex: hex(bg), ratio: Math.max(inner, outer), min: 3 })
+    for (const p of tonePairs) {
+      if ((bold && p.skipBold) || (val === 'ink' && p.skipInk)) continue
+      check(el, { ...p, min: bold ? p.bold : p.min }, `/tone=${val}${bold ? '+bold' : ''}`)
+    }
     el.remove()
   }
   holder.remove()
@@ -164,7 +150,7 @@ async function snapshotRoles({ theme, palette, attr, roles }) {
   root.setAttribute('data-theme', theme)
   if (attr) root.setAttribute('data-contrast', 'more')
   else root.removeAttribute('data-contrast')
-  if (palette === 'ink') root.removeAttribute('data-palette')
+  if (palette === 'default') root.removeAttribute('data-palette')
   else root.setAttribute('data-palette', palette)
   const canvas = document.createElement('canvas')
   canvas.width = canvas.height = 1
@@ -192,10 +178,10 @@ try {
   const pairs = buildPairs()
   const page = await browser.newPage()
   await page.goto(`${url}/tests/fixtures/contrast.html`)
-  const roles = [...new Set([...pairs.flatMap((p) => [p.fg, p.bg]), '--color-focus-inner', '--color-focus-outer', '--color-scrim', '--color-media-control'])]
+  const roles = [...new Set([...pairs.flatMap((p) => [p.fg, p.bg]), '--scrim', '--scrim-strong', '--on-media'])]
 
   for (const theme of THEMES) for (const contrast of CONTRASTS) for (const palette of PALETTES) {
-    const res = await page.evaluate(runCombo, { theme, contrast, palette, pairs, tonePairs: TONE_PAIRS, tones: TONES, statuses: STATUSES, useAttrContrast: true })
+    const res = await page.evaluate(runCombo, { theme, contrast, palette, pairs, tonePairs: TONE_PAIRS, tones: TONES, useAttrContrast: true })
     for (const r of res) {
       checked++
       const ok = r.ratio >= r.min
