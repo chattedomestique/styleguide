@@ -52,6 +52,8 @@ function buildPairs() {
   add('--on-accent-soft', '--accent-soft', 4.5, 'text on soft accent', 7)
   add('--ink', '--accent-soft', 7, 'primary text on soft accent')
   add('--paper', '--ink', 7, 'paper on ink (the inverted tone, the card bar)')
+  add('--surface-ink', '--surface-bg', 7, 'surface ink on the page surface')
+  add('--surface-ink-soft', '--surface-bg', 7, 'surface soft ink on the page surface')
   return P
 }
 
@@ -64,7 +66,9 @@ const TONE_PAIRS = [
   { fg: '--line', bg: '--tone-bg', min: 3, bold: 3, what: 'frame and icons on a tone', skipBold: true, skipInk: true },
   // A focusable thing INSIDE a toned element draws its ring in the tone's ink over a halo in the tone's fill.
   // Read on a child, because --tone-* do not inherit (the _tone-* copies do).
-  { fg: '--focus', bg: '--_tone-bg', min: 3, bold: 3, what: 'focus ring on a tone (child)', child: true },
+  { fg: '--focus', bg: '--surface-bg', min: 3, bold: 3, what: 'focus ring on a tone (child)', child: true },
+  { fg: '--surface-ink', bg: '--surface-bg', min: 7, bold: 6.5, what: 'surface ink on surface (child)', child: true },
+  { fg: '--surface-ink-soft', bg: '--surface-bg', min: 7, bold: 6.5, what: 'surface soft ink on surface (child)', child: true },
   { fg: '--focus', bg: '--focus-halo', min: 3, bold: 3, what: 'focus ring against its own halo (child)', child: true },
 ]
 

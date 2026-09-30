@@ -74,7 +74,7 @@ Version 0.2.0. Verified in **Chromium** only. **Not verified:** Safari / iOS (st
 
 ## Credits and licences
 
-- Font: [Archivo](https://github.com/Omnibus-Type/Archivo) Variable, SIL Open Font License 1.1 (`src/fonts/OFL-Archivo.txt`).
+- Font: [Archivo](https://github.com/Omnibus-Type/Archivo) Variable (latin, latin-ext, vietnamese; via Fontsource builds), SIL Open Font License 1.1 (`src/fonts/OFL-Archivo.txt`).
 - Icons: five drawn by the owner; the rest from [Lucide](https://lucide.dev), ISC licence (`src/icons/LICENSE-lucide.txt`), re-stroked to the same 2px square-cap line.
 - Design references: third-party mockups analysed for ideas only; none are included in this repo.
 - This repository does not yet declare a licence for its own code; add a `LICENSE` file before sharing it publicly.

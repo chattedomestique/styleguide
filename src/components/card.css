@@ -34,6 +34,10 @@
     --card-ink: var(--tone-ink, var(--ink));
     --card-line: var(--line);
     --card-ink-soft: var(--tone-ink-soft, var(--ink-soft));
+    /* the surface contract (10-color.css): what anything placed on this card reads */
+    --surface-bg: var(--card-bg);
+    --surface-ink: var(--card-ink);
+    --surface-ink-soft: var(--card-ink-soft);
     --card-bar-bg: var(--ink);
     --card-bar-ink: var(--paper);
     --card-radius: var(--radius-card);
@@ -51,7 +55,10 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    min-inline-size: 0;
+    /* A container has no intrinsic width, so in a shrink-to-fit parent (a flex row, a dialog, a
+       popover, a table cell) a card would collapse to its two borders. This floor keeps it a card;
+       it never exceeds the parent, so grids and narrow screens are unaffected. */
+    min-inline-size: min(10rem, 100%);
     container: card / inline-size;
     color: var(--card-ink);
     background: var(--card-bg);
@@ -91,16 +98,20 @@
      tone (20-tones.css); the bar is a different surface again: the inverse of the
      card, so its controls follow the bar. */
 
-  .card :focus-visible {
+  /* :where() keeps these descendant-wide rules at the lowest specificity, so an element placed in a
+     card (a button, a chip) can still set its own ring without a specificity fight */
+  :where(.card) :focus-visible {
     --ring-gap: var(--ring-offset-in);
   }
 
   .card__bar {
+    --surface-bg: var(--card-bar-bg);
+    --surface-ink: var(--card-bar-ink);
     --focus: var(--card-bar-ink);
     --focus-halo: var(--card-bar-bg);
   }
 
-  .card__bar :focus-visible {
+  :where(.card__bar) :focus-visible {
     --ring-gap: calc(var(--ring) * -1);
   }
 
@@ -450,7 +461,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  @container card (max-width: 18rem) {
+  @container card (inline-size <= 18rem) {
     .card--row .card__trail {
       grid-column: 2;
       grid-row: 2;
@@ -622,7 +633,7 @@
     /* a flex column, not a grid with fixed rows: the stage takes the spare height, and when text
        is large the card grows with its content instead of clipping it */
     aspect-ratio: var(--ratio-portrait);
-    max-inline-size: 22rem;
+    max-inline-size: min(22rem, 55svh); /* on a landscape phone the whole card still fits the screen */
   }
 
   .card__stage {
@@ -650,7 +661,7 @@
   }
 
   /* narrow cards (two to a phone row): the poster sizes come down so real values still fit */
-  @container card (max-width: 12rem) {
+  @container card (inline-size <= 12rem) {
     .card__figure {
       font-size: 18cqi;
     }
@@ -674,13 +685,15 @@
     z-index: 1;
   }
 
+  /* the ring sits clear of the 4px hard shadow (offset + the shadow), or the two merge into one band */
   .card--link:is(.is-focus, :has(.card__link:focus-visible)),
   .card--ghost.is-focus {
     outline: var(--ring) solid var(--focus);
-    outline-offset: var(--ring-offset);
+    outline-offset: calc(var(--ring-offset) + var(--space-1));
   }
 
   .card--ghost:is(.is-hover, :focus-visible, .is-focus) {
+    --lift: 1;
     --fill: 1;
   }
 
@@ -739,6 +752,14 @@
     color: var(--ink-faint);
     border-style: dashed;
     pointer-events: none;
+  }
+
+  /* The notch is painted in four background layers, so it takes the faint line and no hatch. */
+  .card:not(.card--notch):is([aria-disabled="true"], .is-disabled) {
+    /* The hatch is lighter than the text on purpose: the words must stay readable through it.
+       Hard stops only, so it is a pattern and not a gradient. (It used to live in wire.css, a
+       later layer, where it erased the notch's painted silhouette.) */
+    background-image: repeating-linear-gradient(135deg, transparent 0 0.4375rem, var(--tone-4) 0.4375rem 0.5rem);
   }
 
   .card:is([aria-disabled="true"], .is-disabled) :is(.card__eyebrow, .card__meta, .card__text, .card__title) {
@@ -816,6 +837,12 @@
       border-radius: 0;
       background-image: none;
       border-style: solid;
+    }
+
+    /* the stack's sheets are box-shadows, which this mode deletes: one outline says "a deck" */
+    .card--stack {
+      outline: var(--bw) solid CanvasText;
+      outline-offset: var(--stack);
     }
   }
 }

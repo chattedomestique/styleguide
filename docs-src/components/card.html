@@ -9,7 +9,7 @@
   <li>A hard shadow means "you can press this". Nothing else gets one.</li>
   <li><strong>Never put <code>cqi</code> on <code>.card</code> itself.</strong> A container's own <code>cqi</code> resolves against its parent. Sizes that use it live on the parts.</li>
   <li><strong>A card needs a width from its parent</strong> (a grid cell, a block). <code>container-type: inline-size</code> gives it no intrinsic width, so it collapses inside a shrink-wrapping flex row.</li>
-  <li>Do not pad <code>.card</code> itself. Padding goes on the parts.</li>
+  <li>Do not pad <code>.card</code> itself. Padding goes on the parts. (The one-line layouts, row and ghost, are the exception: their whole card is one padded row.)</li>
 </ul>
 
 <h2 id="anatomy">Anatomy</h2>
@@ -21,7 +21,7 @@
 <tr><td>1</td><td>Frame</td><td><code>.card</code></td><td><code>display: flex; flex-direction: column</code>; <code>border: 2px solid var(--card-line)</code>; <code>border-radius: var(--card-radius)</code>; <code>overflow: clip</code>; <code>container: card / inline-size</code>.</td></tr>
 <tr><td>2</td><td>Bar</td><td><code>.card__bar</code></td><td>The frame made thicker. <code>min-block-size: 44px</code>; ink fill, paper text; label left, control right. Flips to paper-on-ink for <code>data-tone="ink"</code>.</td></tr>
 <tr><td></td><td>Label</td><td><code>.card__label</code></td><td><code>--type-label</code>, uppercase.</td></tr>
-<tr><td></td><td>Control</td><td><code>.card__ctl</code></td><td>44×44 hit area around a 20×20 box (<code>2px currentColor</code>, <code>--radius-ctl</code>); glyph 12px.</td></tr>
+<tr><td></td><td>Control</td><td><code>.card__ctl</code></td><td>44×44 hit area around a 20×20 box (<code>2px currentColor</code>, <code>--radius-ctl</code>); glyph 12px. A disclosure: <code>aria-expanded</code> + <code>aria-controls</code>.</td></tr>
 <tr><td>3</td><td>Media</td><td><code>.card__media</code></td><td><code>aspect-ratio: var(--ratio, 4 / 3)</code>; edge to edge; closed by a 2px rule; <code>img</code>/<code>video</code> are <code>object-fit: cover</code>; fill is the element's tone or <code>--tone-1</code>.</td></tr>
 <tr><td>4</td><td>Body</td><td><code>.card__body</code></td><td><code>padding: clamp(1rem, 5cqi, 1.5rem)</code>; flex column, <code>gap: 8px</code>; grows to fill.</td></tr>
 <tr><td></td><td>Head</td><td><code>.card__head</code></td><td>Same padding as the body. Used by notch and portrait cards for their top strip.</td></tr>
@@ -643,7 +643,7 @@
 <h3 id="container">Container sizing</h3>
 <p>A card answers to its own width, not the window.</p>
 <p><code>cqi</code> <code>@container card</code></p>
-<p class="t-meta">Drag the corner of the dashed box. Padding, titles and the big figure scale with the card; the row's value drops under its title below 18rem. Nothing here looks at the viewport.</p>
+<p class="t-meta">Drag the corner of the dashed box. Padding, titles and the big figure scale with the card; the row's value drops under its title when the card's content box is narrower than 18rem (a container query measures the content box, not the border box, so the card itself is about 318px at that point). Nothing here looks at the viewport.</p>
 <div class="demo">
 <div class="demo__stage">
 <div class="resize-box">
@@ -703,5 +703,7 @@
   <li>A link card moves 2px up and left on hover, and the pointer can sit in the 2px band it just left. Parked exactly on the bottom or right edge, the hover can flicker. Interior positions are stable.</li>
   <li>In soft corners the inset focus ring on the bar control is partly clipped by the card's radius at the corner. It stays visible.</li>
   <li>The stack's sheets are a shape, not an elevation: the one place a hard shadow appears on something you cannot press.</li>
-  <li>In forced-colours mode the notch becomes a plain rectangle.</li>
+  <li>In forced-colours mode the notch becomes a plain rectangle, and the stack is one outline around the card instead of two sheets.</li>
+  <li>A card is a container, so it has no intrinsic width. It keeps a floor of <code>min(10rem, 100%)</code> so it never collapses to its borders in a shrink-to-fit parent (a flex row, a dialog, a table cell), but it still wants a real width from its parent.</li>
+  <li>The hard shadow of a lifted link card and the focus ring are kept apart (the ring sits a shadow's width further out), so keyboard focus is a clear ring and not a thick band.</li>
 </ul>

@@ -71,7 +71,7 @@ Colour is built in three steps: **knobs** (`--k-*`, plain numbers: OKLCH lightne
 
 Interaction is two registered numbers: `--lift` (0 flat, 1 raised: the hard shadow and the 2px move) and `--fill` (0 outline, 1 filled). Every state only sets them; one `transition` animates both. See `src/components/button.css`.
 
-Cascade layers, lowest to highest: `sg.reset, sg.tokens, sg.base, sg.layout, sg.components, sg.wire, sg.utilities`. Every source file opens its own `@layer sg.x { }`. An app's unlayered CSS always wins, so apps override without `!important`.
+Cascade layers, lowest to highest: `sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities` (the wireframe kit sits BELOW components so a placeholder can never override a real element; utilities sit last so `.sr-only` and `.num` win over a component's `position` and `font:`). Every source file opens its own `@layer sg.x { }`. An app's unlayered CSS always wins, so apps override without `!important`.
 
 ## Golden rules (beyond the seven above)
 

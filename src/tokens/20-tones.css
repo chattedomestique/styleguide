@@ -119,19 +119,24 @@
     --tone-on-fill: light-dark(oklch(var(--k-tone-on-fill-l) calc(var(--tc) * 0.08) var(--th)), oklch(var(--k-tone-on-fill-d) calc(var(--tc) * 0.2) var(--th)));
   }
 
-  /* The focus ring follows the surface it is drawn on (an ink ring on an ink card vanishes).
+  /* The SURFACE contract (see 10-color.css): --tone-* are registered inherits:false, so a
+     descendant cannot read them. These three inherit, so anything placed on a toned element can
+     read what it is sitting on. Anything that paints its own background must redefine them.
+
+     The focus ring follows the surface it is drawn on (an ink ring on an ink card vanishes).
      Only DIRECT children are set; deeper descendants inherit, so a container inside the tone
      (the card bar, a dock) can override for its own subtree.
      --tone-* are registered inherits:false, so descendants cannot read them; these two
      unregistered copies inherit. A focusable thing INSIDE a toned element draws its ring in
      that tone's ink over a halo in that tone's fill: always the same ≥ 7:1 pair as its text. */
   [data-tone] {
-    --_tone-bg: var(--tone-bg);
-    --_tone-ink: var(--tone-ink);
+    --surface-bg: var(--tone-bg);
+    --surface-ink: var(--tone-ink);
+    --surface-ink-soft: var(--tone-ink-soft);
   }
   [data-tone] > * {
-    --focus: var(--_tone-ink);
-    --focus-halo: var(--_tone-bg);
+    --focus: var(--surface-ink);
+    --focus-halo: var(--surface-bg);
   }
 
   /* bold: a saturated mid-dark fill with near-white text; same in light and dark */

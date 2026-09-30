@@ -64,11 +64,11 @@ dist/icons.css            about 140 more masked icons (optional)
 dist/wire.css             wireframe placeholders, .wf-* (development only)            (layer: sg.wire)
 ```
 
-Layer order is `sg.reset, sg.tokens, sg.base, sg.layout, sg.components, sg.wire, sg.utilities`. Later wins, so nothing needs a specificity fight. An app's unlayered CSS wins over all of it.
+Layer order is `sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities`: the wireframe kit sits below components (a placeholder must never override a real element; in the original it sat above and erased a disabled notch's silhouette), and utilities sit last so `.sr-only` and `.num` win over a component's `position` and `font:`. Later wins, so nothing needs a specificity fight. An app's unlayered CSS wins over all of it.
 
 ### Type
 
-One family, three widths. Archivo's width axis does the job a second typeface normally does: expanded for posters, normal for reading, condensed for labels. Fallback stack: `"Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif`. Self-hosted, latin subset, SIL OFL 1.1 (`src/fonts/OFL-Archivo.txt`). Each style is a whole `font` shorthand, so weight, width, size, line-height and family travel together.
+One family, three widths. Archivo's width axis does the job a second typeface normally does: expanded for posters, normal for reading, condensed for labels. Fallback stack: `"Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif`. Self-hosted, SIL OFL 1.1 (`src/fonts/OFL-Archivo.txt`), in three subsets that a browser downloads only when a page uses their characters: latin (the owner's file, 90 KB), latin-ext (Polish, Czech, Turkish, Romanian … and the currency signs ₹ ₩ ₺ ₽ ₴), vietnamese. Cyrillic, Greek, Arabic, Hebrew, Indic and CJK are not in the font: they fall back glyph by glyph to the next family, which has no width axis, so condensed labels look wider there. Each style is a whole `font` shorthand, so weight, width, size, line-height and family travel together.
 
 | Token | Weight · width | Size | Line | Tracking | Use |
 | --- | --- | --- | --- | --- | --- |

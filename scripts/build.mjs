@@ -32,7 +32,7 @@ const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))
  * Folders are concatenated in SOURCE_DIRS order (files alphabetically inside a folder).
  */
 const SOURCE_DIRS = ['tokens', 'base', 'layout', 'components', 'utilities']
-const LAYER_ORDER = 'sg.reset, sg.tokens, sg.base, sg.layout, sg.components, sg.wire, sg.utilities'
+const LAYER_ORDER = 'sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities'
 
 /* ------------------------------------------------------------------ helpers */
 
