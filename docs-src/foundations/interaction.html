@@ -1,0 +1,365 @@
+<!--{"title":"Interaction","group":"Foundations","order":15,"summary":"Two numbers, --lift and --fill, describe every state of everything you can press: the hard-shadow rule, pressed, selected, disabled, busy, focus and forced colours."}-->
+<style>
+  /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
+  .docs-article h1 { font-size: clamp(1.5rem, 7.2vw, 4rem); }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--space-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  .docs-table td:first-child code { white-space: nowrap; }
+  .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+  #states-table td:nth-child(2) { min-inline-size: 11rem; }
+  #states-table td:last-child { min-inline-size: 16rem; }
+  #flat-table td:nth-child(2), #flat-table td:nth-child(3) { min-inline-size: 13rem; }
+
+  .docs-article [data-f="states"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--space-4) var(--space-3); align-items: start; }
+  .docs-article [data-f="states"] > div { display: grid; gap: var(--space-2); justify-items: start; padding-block-end: var(--space-2); }
+  .docs-article [data-f="states"] p { margin: 0; max-inline-size: none; }
+  .docs-article [data-f="cards"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--space-4); align-items: start; }
+  .docs-article [data-f="cards"] > div { display: grid; gap: var(--space-2); min-inline-size: 0; padding: 0 var(--space-2) var(--space-2) 0; }
+  .docs-article [data-f="cards"] p { margin: 0; max-inline-size: none; }
+  .docs-article [data-f="lab"] { display: grid; gap: var(--space-4); }
+  .docs-article [data-f="controls"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--space-4); }
+  .docs-article [data-f="row"] { display: grid; gap: var(--space-1); }
+  .docs-article [data-f="lab"] label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="lab"] output { font-variant-numeric: tabular-nums lining-nums; }
+  .docs-article [data-f="lab"] input[type="range"] { inline-size: 100%; block-size: var(--hit); margin: 0; border: var(--bw) solid transparent; }
+  .docs-article [data-f="stage"] { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center; padding: var(--space-4) var(--space-3); }
+  .docs-article [data-f="surfaces"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--space-3); }
+  .docs-article [data-f="surface"] { display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--canvas); color: var(--ink); }
+  .docs-article [data-f="surface"] p { margin: 0; max-inline-size: none; }
+  .docs-article [data-f="reason"] { font: var(--type-meta); color: var(--ink-soft); }
+  .docs-article [data-f="flatpair"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--space-5); align-items: start; }
+  .docs-article [data-f="flatpair"] > div { display: grid; gap: var(--space-2); padding: 0 var(--space-2) var(--space-2) 0; }
+  .docs-article [data-f="flatpair"] p { margin: 0; max-inline-size: none; }
+</style>
+
+<h1>Interaction</h1>
+<p class="lede">Everything you can press has two numbers. <code>--lift</code> says how raised it is; <code>--fill</code> says how filled it is. Every state, hover, focus, pressed, on, disabled, only sets those two numbers, and one transition animates them. A hard shadow means "you can press this", and nothing else gets one.</p>
+
+<h2 id="numbers">Two numbers</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">The two interaction numbers</caption>
+  <thead><tr><th>Property</th><th>Is</th><th class="num">0</th><th class="num">1</th></tr></thead>
+  <tbody>
+    <tr><td><code>--lift</code></td><td>Geometry</td><td class="num">Flat, on the page</td><td class="num">Raised: moved 2px up and left, with a 4px hard shadow</td></tr>
+    <tr><td><code>--fill</code></td><td>Colour</td><td class="num">Outline: the resting colours</td><td class="num">Filled: the accent (or the tone's fill)</td></tr>
+  </tbody>
+</table></div>
+<p>Both are registered in <code>00-foundation.css</code> as <code>@property</code> numbers, initial value 0, and they inherit. <strong>Registered</strong> matters: a transition can only interpolate a custom property if the browser knows its type; an unregistered one would flip instantly. <strong>Inherit</strong> matters because the parts of a pressable follow it: the arrow in a link card fills when the card does.</p>
+<p>A pressable derives everything from them. This is the heart of <code>src/components/button.css</code>:</p>
+<pre aria-label="How a button derives its look from --lift and --fill"><code>.btn {
+  --lift: 0;
+  --fill: 0;
+  --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+
+  color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
+  background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
+  box-shadow: var(--_select), var(--_shadow);
+  transform: translate(
+    calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+    calc(var(--lift) * var(--space-1) / -2 * var(--move))
+  );
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
+}</code></pre>
+<p>Drive the numbers yourself. Setting them inline overrides the states, which is exactly what a state does: sets them. Reset returns control to hover, focus and press.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="lab" id="lab">
+      <div data-f="controls">
+        <div data-f="row">
+          <label for="lab-lift">Lift <output id="lab-lift-out" for="lab-lift">0</output></label>
+          <input id="lab-lift" type="range" min="0" max="1" step="0.1" value="0" />
+        </div>
+        <div data-f="row">
+          <label for="lab-fill">Fill <output id="lab-fill-out" for="lab-fill">0</output></label>
+          <input id="lab-fill" type="range" min="0" max="1" step="0.1" value="0" />
+        </div>
+      </div>
+      <div data-f="stage" data-palette="mint">
+        <button class="btn" type="button" id="lab-btn">Add funds</button>
+        <button class="btn" data-variant="tone" data-tone="3" type="button" id="lab-tone">Share deck</button>
+        <article class="card card--link" data-tone="2" id="lab-card" style="inline-size: 14rem">
+          <div class="card__body">
+            <div class="card__row">
+              <p class="card__eyebrow">Deck · 8 cards</p>
+              <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+            </div>
+            <p class="card__title"><a class="card__link" href="#numbers">Colours</a></p>
+          </div>
+        </article>
+      </div>
+      <div class="cluster"><button class="btn" data-size="sm" type="button" id="lab-reset">Reset to states</button></div>
+    </div>
+  </div>
+</div>
+
+<h2 id="states">States</h2>
+<div class="table-wrap"><table class="docs-table" id="states-table">
+  <caption class="sr-only">Every state and the numbers it sets</caption>
+  <thead><tr><th>State</th><th>Comes from</th><th class="num"><code>--lift</code></th><th class="num"><code>--fill</code></th><th>Also</th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td>nothing</td><td class="num">0</td><td class="num">0</td><td>Flat. A 2px frame. A primary button starts at fill 1.</td></tr>
+    <tr><td>Hover</td><td><code>:hover</code>, only inside <code>@media (hover: hover)</code></td><td class="num">1</td><td class="num">1</td><td>Raised and filled. Gated, so a tap on a phone does not leave it stuck raised.</td></tr>
+    <tr><td>Focus</td><td><code>:focus-visible</code></td><td class="num">1</td><td class="num">1</td><td>The same lift as hover, so keyboard and pointer see the same thing. Plus the focus ring (below).</td></tr>
+    <tr><td>Pressed</td><td><code>:active</code></td><td class="num">0</td><td class="num">1</td><td>Back onto the page, fill stays. The transition uses <code>--dur-press</code> (130ms) instead of <code>--dur-hover</code> (200ms).</td></tr>
+    <tr><td>On</td><td><code>aria-pressed="true"</code>, <code>aria-selected="true"</code>, <code>aria-current</code></td><td class="num"></td><td class="num">1</td><td>A button is filled <em>and</em> its frame doubles; a card's frame doubles. See Selected.</td></tr>
+    <tr><td>Busy</td><td><code>aria-busy="true"</code></td><td class="num">0</td><td class="num"></td><td>A spinner (a pulse when motion is reduced); ignores taps; no hover or focus lift.</td></tr>
+    <tr><td>Unavailable</td><td><code>:disabled</code>, <code>aria-disabled="true"</code></td><td class="num">0</td><td class="num">0</td><td>Dashed frame, <code>--ink-faint</code>, no shadow, <code>not-allowed</code> cursor. See Disabled.</td></tr>
+  </tbody>
+</table></div>
+<p>Each state is live below. The <code>.is-hover</code>, <code>.is-focus</code> and <code>.is-active</code> classes only force a state for documentation and tests; real states always come from the pseudo-classes and ARIA attributes.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="states" data-palette="mint" id="toggle-demo">
+      <div><button class="btn" data-variant="primary" type="button">Start</button><p class="t-meta">Rest (primary)</p></div>
+      <div><button class="btn is-hover" data-variant="primary" type="button">Start</button><p class="t-meta">Hover</p></div>
+      <div><button class="btn is-focus" data-variant="primary" type="button">Start</button><p class="t-meta">Focus (lift only)</p></div>
+      <div><button class="btn is-active" data-variant="primary" type="button">Start</button><p class="t-meta">Pressed</p></div>
+      <div><button class="btn" type="button">Star</button><p class="t-meta">Rest (secondary)</p></div>
+      <div><button class="btn is-hover" type="button">Star</button><p class="t-meta">Hover</p></div>
+      <div><button class="btn" type="button" aria-pressed="true" data-toggle>Star</button><p class="t-meta">On (click to flip)</p></div>
+      <div><button class="btn" type="button" aria-busy="true">Saving</button><p class="t-meta">Busy</p></div>
+      <div><button class="btn" type="button" disabled>Star</button><p class="t-meta"><code>disabled</code></p></div>
+    </div>
+  </div>
+</div>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div>
+    <strong>Why the buttons above are in Mint</strong>
+    <p>In the default palette the accent is ink, so a filled button, its hard shadow and the second ring of "on" are all the same black and read as one lumpy shape. The offset is still there, but fill, frame and shadow cannot be told apart. In any palette with a colour accent they separate cleanly, so the specimens on this page use Mint for that reason. It is also why "on" needs a cue that is not colour: a check icon, as in the Selected section.</p>
+  </div>
+</div>
+<p>A whole card can be the pressable. The link card lifts as one piece and its round action fills with it:</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="cards">
+      <div>
+        <article class="card card--link" data-tone="1">
+          <div class="card__body"><div class="card__row"><p class="card__eyebrow">Deck · 12 cards</p><span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span></div>
+          <p class="card__title"><a class="card__link" href="#states">Shapes</a></p></div>
+        </article>
+        <p class="t-meta">Rest: flat, no shadow</p>
+      </div>
+      <div>
+        <article class="card card--link is-hover" data-tone="1">
+          <div class="card__body"><div class="card__row"><p class="card__eyebrow">Deck · 12 cards</p><span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span></div>
+          <p class="card__title"><a class="card__link" href="#states">Shapes</a></p></div>
+        </article>
+        <p class="t-meta">Hover or focus: lift 1, fill 1</p>
+      </div>
+      <div>
+        <article class="card card--link is-active" data-tone="1">
+          <div class="card__body"><div class="card__row"><p class="card__eyebrow">Deck · 12 cards</p><span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span></div>
+          <p class="card__title"><a class="card__link" href="#states">Shapes</a></p></div>
+        </article>
+        <p class="t-meta">Pressed: lift 0, fill 1</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="shadow">The hard shadow</h2>
+<p>A shadow means "you can press this". It is hard-edged (zero blur), drawn in <code>--line</code>, and sized by the number: <code>--lift</code> times <code>--space-1</code> across and down. Raised also moves the element half that distance up and left, so it looks lifted off the page rather than stuck to a shadow. The page has no other shadow; the one exception is the <code>--scrim</code> behind a modal or under text on a photo.</p>
+<div class="table-wrap"><table class="docs-table" id="flat-table">
+  <caption class="sr-only">What lifts and what stays flat</caption>
+  <thead><tr><th>Kind</th><th>Lifts (can be pressed)</th><th>Stays flat (holds)</th></tr></thead>
+  <tbody>
+    <tr><td>Examples</td><td><code>.btn</code>, <code>.card--link</code>, <code>.card--ghost</code> (<code>.card__action</code>, the round slot inside them, fills but does not lift)</td><td><code>.card</code>, a panel, a list, a tile, media, a bar, an input at rest</td></tr>
+    <tr><td>Hint</td><td>A pill or circle; or a whole card that is one link</td><td>A rectangle</td></tr>
+    <tr><td>Focus</td><td>Raises <em>and</em> shows the ring</td><td>Shows the ring only</td></tr>
+  </tbody>
+</table></div>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="flatpair">
+      <div>
+        <article class="card" data-tone="4"><div class="card__body"><p class="card__eyebrow">Stat</p><p class="card__title">Five known</p></div></article>
+        <p class="t-meta">Holds something. Flat, always.</p>
+      </div>
+      <div data-palette="mint">
+        <button class="btn is-hover" data-variant="primary" type="button">Study now</button>
+        <p class="t-meta">Does something. Raised when it can be pressed.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Let the state set <code>--lift</code> and <code>--fill</code> and nothing else. The shadow, the move and the colour all follow.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Put a shadow on a card "for depth", write a blur, or hand-set <code>box-shadow</code> in a hover rule. A shadow on something you cannot press is a lie, and lint fails any blurred one.</p></div>
+  </div>
+</div>
+
+<h2 id="selected">Selected and on</h2>
+<p>"On" is filled <strong>and</strong> the frame doubles: a second ring of <code>--bw</code> drawn with <code>box-shadow: 0 0 0 var(--bw) var(--line)</code>. The second cue is what makes it survive a pale accent (cream's yellow is 1.3:1 against its canvas), greyscale, and forced colours. A ring, not a wider border, so nothing shifts when it turns on. Add a check icon or a heavier weight when the meaning needs saying twice.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="cluster" role="group" aria-label="Show decks" id="sort-demo">
+      <button class="btn" type="button" aria-pressed="true" data-single><span class="ic ic--check" aria-hidden="true"></span>Known</button>
+      <button class="btn" type="button" aria-pressed="false" data-single>New</button>
+      <button class="btn" type="button" aria-pressed="false" data-single>Due</button>
+    </div>
+    <div data-f="cards">
+      <div><article class="card" aria-current="true" data-tone="1"><div class="card__body"><p class="card__eyebrow">Selected</p><p class="card__title">Shapes</p></div></article></div>
+      <div><article class="card" data-tone="1"><div class="card__body"><p class="card__eyebrow">Not selected</p><p class="card__title">Colours</p></div></article></div>
+    </div>
+  </div>
+</div>
+<p>Selection is ARIA, never a class: <code>aria-pressed</code> for a toggle, <code>aria-selected</code> for a choice in a listbox, tab list or grid, <code>aria-current</code> for where you are. The card above uses <code>aria-current</code>; the card styles either. CSS that styles a state the screen reader was not told about is a bug.</p>
+
+<h2 id="disabled">Unavailable</h2>
+<p>Dashed means "not here". A disabled control has a dashed frame, <code>--ink-faint</code> for its text and frame (never opacity), no shadow, no hover, and a <code>not-allowed</code> cursor. Prefer <code>aria-disabled="true"</code> with a reason in <code>aria-describedby</code> to the <code>disabled</code> attribute: it stays in the tab order, so a keyboard or screen-reader user can land on it and find out why. <code>aria-disabled</code> does nothing on its own, so <code>src/js/20-guard.js</code> makes it inert for click, Enter and Space, in the capture phase, for every button, link and <code>role="button"</code>.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="cluster">
+      <button class="btn" type="button" aria-disabled="true" aria-describedby="why-save">Save deck</button>
+      <span id="why-save" data-f="reason">Name the deck first.</span>
+    </div>
+  </div>
+</div>
+
+<h2 id="busy">Busy</h2>
+<p><code>aria-busy="true"</code> adds a spinner before the label (<code>var(--anim-spin)</code>, which becomes a slow pulse under reduced motion), ignores taps and shows a progress cursor. Nothing tells a screen reader that work has finished, so announce the result with <code>SG.announce()</code>.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="cluster">
+      <button class="btn" data-variant="primary" type="button" id="busy-btn">Save deck</button>
+      <span data-f="reason" id="busy-out" role="status">Not saved yet.</span>
+    </div>
+  </div>
+</div>
+
+<h2 id="focus">Focus</h2>
+<p>The ring is <code>outline: var(--ring) solid var(--focus)</code> with <code>outline-offset: var(--ring-gap, var(--ring-offset))</code>: 3px wide, 3px out. On every link, button, input and other interactive element it comes with a <code>--paper</code> halo (<code>--focus-shadow</code>) that fills the gap, so the ring still shows where <code>--focus</code> (which is ink) would vanish: on an ink bar, in a dock, on a dark photo. Keyboard focus also raises the control (lift 1, fill 1), exactly as hover does.</p>
+<ul>
+  <li><strong>A component that draws its own shadow keeps the halo:</strong> <code>box-shadow: var(--focus-shadow), &lt;own&gt;</code>. Button does.</li>
+  <li><strong>Inside something that clips (a card), use the inner offset:</strong> <code>--ring-gap: var(--ring-offset-in)</code> (2px). Do not put <code>overflow: hidden</code> between a focusable element and its ring.</li>
+  <li><strong>On an ink surface the ring follows the surface.</strong> An ink ring on an ink card vanishes, so the card recolours it to paper (<code>.card[data-tone="ink"] :focus-visible</code>) and the bar recolours it to the bar's text colour.</li>
+  <li><strong>Sticky chrome never hides it.</strong> App bars and docks set <code>--appbar-h</code> and <code>--dock-h</code>; <code>html</code> turns them into <code>scroll-padding-block</code> (WCAG 2.4.11).</li>
+</ul>
+<p>Press <kbd>Tab</kbd> through these four surfaces:</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="surfaces">
+      <div data-f="surface">
+        <p class="t-label">Canvas</p>
+        <div class="cluster"><button class="btn" type="button">Save</button><a href="#focus">Skip</a></div>
+      </div>
+      <article class="card" data-tone="2">
+        <div class="card__body"><p class="card__eyebrow">Pastel tone</p><div class="cluster"><button class="btn" type="button">Save</button><a href="#focus">Skip</a></div></div>
+      </article>
+      <article class="card" data-tone="2" data-emphasis="bold">
+        <div class="card__body"><p class="card__eyebrow">Bold tone</p><div class="cluster"><button class="btn" type="button">Save</button><a href="#focus">Skip</a></div></div>
+      </article>
+      <article class="card" data-tone="ink">
+        <div class="card__body"><p class="card__eyebrow">Ink tone</p><div class="cluster"><button class="btn" type="button">Save</button><a href="#focus">Skip</a></div></div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<h2 id="touch">Touch, pointer and time</h2>
+<ul>
+  <li><strong>Hover is gated</strong> with <code>@media (hover: hover)</code>, everywhere. Lint warns on an ungated <code>:hover</code>. On a touchscreen a tap would otherwise leave the control raised until the next tap.</li>
+  <li><strong>Press feedback is immediate.</strong> <code>:active</code> switches the transition to <code>--dur-press</code> (130ms), and the filled colour starts changing on the first frame. <code>html</code> sets <code>-webkit-tap-highlight-color: transparent</code>, which is only safe because every control has a pressed state.</li>
+  <li><strong>No double-tap delay.</strong> Links, buttons, inputs and labels get <code>touch-action: manipulation</code>.</li>
+  <li><strong>Gestures are an enhancement.</strong> Swipe, drag and reorder each need a tap or key equivalent (WCAG 2.5.7); every state above is reachable with Tab, Enter and Space.</li>
+  <li><strong>Reduced motion removes the travel, not the change.</strong> <code>--move</code> multiplies the translate, so at 0 the control does not move; the fill, the shadow and the frame still change. See <a href="@/foundations/motion.html">Motion</a>.</li>
+</ul>
+
+<h2 id="forced-colors">Forced colours</h2>
+<p>In Windows contrast themes (<code>forced-colors: active</code>) the browser replaces your colours with the reader's palette and <strong>deletes backgrounds and shadows</strong>. Everything that leaned on a fill or a shadow to show a state is gone, so the structure has to live in lines.</p>
+<ul>
+  <li><strong>A real border on every control and card</strong>, even one that is transparent. The component sets it to <code>ButtonText</code> or <code>CanvasText</code>.</li>
+  <li><strong>Hover, focus and selected become heavy lines.</strong> Raised and focus get an <code>outline: var(--bw-heavy) solid Highlight</code>; "on" gets <code>border-width: var(--bw-heavy)</code>; disabled is <code>GrayText</code>. The base focus ring becomes a 4px <code>Highlight</code> outline with <code>box-shadow: none</code>.</li>
+  <li><strong>Icons are backgrounds</strong> (masks), so <code>.ic</code> opts out with <code>forced-color-adjust: none</code> and paints with <code>CanvasText</code>; otherwise every glyph would vanish.</li>
+</ul>
+<pre aria-label="The forced-colours block of button.css"><code>@media (forced-colors: active) {
+  .btn {
+    border-color: ButtonText;
+    &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    &[aria-pressed="true"] { border-width: var(--bw-heavy); }
+    &:disabled, &[aria-disabled="true"] { color: GrayText; border-color: GrayText; }
+  }
+}</code></pre>
+<p>The accessibility gate runs every page once in forced colours and fails if a control has no visible border. To look yourself: Chromium DevTools, Rendering, <em>Emulate CSS media feature forced-colors</em>, or a Windows contrast theme. This has not been verified on a real Windows machine.</p>
+
+<h2 id="recipe">Make a new pressable</h2>
+<ol>
+  <li>Copy the structure of <code>src/components/button.css</code>. Declare <code>--lift: 0; --fill: 0;</code> on the element.</li>
+  <li>Keep what varies in private properties (<code>--_rest-bg</code>, <code>--_on-bg</code>, <code>--_select</code>); the base rule consumes them.</li>
+  <li>Build colour from <code>--fill</code> with <code>color-mix()</code>, the shadow and the translate from <code>--lift</code>, and multiply the translate by <code>--move</code>.</li>
+  <li>Write each state as a rule that sets <code>--lift</code> and <code>--fill</code> and nothing else: hover (gated), <code>:focus-visible</code>, <code>:active</code>, and the ARIA states.</li>
+  <li>One <code>transition</code> for both numbers. No <code>transition: all</code>.</li>
+  <li>Give it a real border, a 44px hit area (the <code>::after</code> pattern), <code>box-shadow: var(--focus-shadow), …</code> on focus, and a forced-colours block.</li>
+  <li>Write the spec. <code>tests/components/button.mjs</code> reads <code>--lift</code> and <code>--fill</code> at rest, on hover, while the mouse is down and on keyboard focus, and asserts 0/0, 1/1, 0/1 and 1 again.</li>
+</ol>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--lift</code>, <code>--fill</code>, <code>--space-1</code>, <code>--move</code>, <code>--line</code>, <code>--focus</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--ink-faint</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--ring-offset-in</code>, <code>--ring-gap</code>, <code>--focus-shadow</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--anim-spin</code>, <code>--appbar-h</code>, <code>--dock-h</code>, <code>--scrim</code>.</p>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  var SG = window.SG;
+  if (!SG) return;
+
+  /* ---- drive the numbers ---------------------------------------------------------------------- */
+  (function () {
+    var lift = document.getElementById('lab-lift'), fill = document.getElementById('lab-fill');
+    if (!lift || !fill) return;
+    var targets = ['lab-btn', 'lab-tone', 'lab-card'].map(function (id) { return document.getElementById(id); });
+    function apply() {
+      document.getElementById('lab-lift-out').textContent = lift.value;
+      document.getElementById('lab-fill-out').textContent = fill.value;
+      targets.forEach(function (t) { t.style.setProperty('--lift', lift.value); t.style.setProperty('--fill', fill.value); });
+    }
+    lift.addEventListener('input', apply);
+    fill.addEventListener('input', apply);
+    document.getElementById('lab-reset').addEventListener('click', function () {
+      targets.forEach(function (t) { t.style.removeProperty('--lift'); t.style.removeProperty('--fill'); });
+      lift.value = 0; fill.value = 0;
+      document.getElementById('lab-lift-out').textContent = '0';
+      document.getElementById('lab-fill-out').textContent = '0';
+      SG.announce('Back to the real states');
+    });
+  })();
+
+  /* ---- toggles ------------------------------------------------------------------------------ */
+  var demo = document.getElementById('toggle-demo');
+  if (demo) demo.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-toggle]');
+    if (b) b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+  });
+  var sort = document.getElementById('sort-demo');
+  if (sort) sort.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-single]');
+    if (!b) return;
+    var on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', String(on));
+    var icon = b.querySelector('.ic');
+    if (on && !icon) { var i = document.createElement('span'); i.className = 'ic ic--check'; i.setAttribute('aria-hidden', 'true'); b.prepend(i); }
+    if (!on && icon) icon.remove();
+  });
+
+  /* ---- busy ---------------------------------------------------------------------------------- */
+  var busy = document.getElementById('busy-btn'), out = document.getElementById('busy-out');
+  if (busy) busy.addEventListener('click', function () {
+    if (busy.getAttribute('aria-busy') === 'true') return;
+    busy.setAttribute('aria-busy', 'true');
+    out.textContent = 'Saving…';
+    window.setTimeout(function () {
+      busy.removeAttribute('aria-busy');
+      out.textContent = 'Deck saved.';
+      SG.announce('Deck saved');
+    }, 1800);
+  });
+});
+</script>
