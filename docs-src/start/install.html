@@ -209,7 +209,12 @@ SG.prefs.onChange(function (name, value) { /* keep your settings screen in step 
 SG.prefs.reset()                      // forget everything, follow the device</pre>
 <div class="note" data-kind="warn">
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
-  <div><strong>Known limit: the guide's defaults cannot be saved as a choice over your own default</strong><p>"No attribute" is the default, so <code>default</code> and <code>square</code> are stored as nothing. If your HTML says <code>data-palette="mint"</code> and a person picks <em>default</em>, the attribute is removed and nothing is stored, so the next page load is mint again. <code>SG.prefs.reset()</code> also removes the attributes you wrote until the next load. Checked in Chromium. Until <code>SG.prefs</code> can store an explicit default, either leave the look in the HTML alone and do not offer <em>default</em> and <em>square</em> as choices when your app's own look differs, or treat "never saved" as your app's default in the head snippet (<code>localStorage.getItem('sg:prefs') === null</code>): that way a saved <code>{}</code> means "they chose the guide's default". The second way was tried and works, with one wart: choosing the default palette also drops your default corners on the next load.</p></div>
+  <div><strong>Known limit: the guide's defaults cannot be saved as a choice over your own default</strong><p>"No attribute" is the default, so <code>default</code> and <code>square</code> are stored as nothing. If your HTML says <code>data-palette="mint"</code> and a person picks <em>default</em>, the attribute is removed and nothing is stored, so the next page load is mint again. <code>SG.prefs.reset()</code> also removes the attributes you wrote until the next load. Checked in Chromium.</p>
+<p>Until <code>SG.prefs</code> can store an explicit default, pick one:</p>
+<ul>
+  <li>Leave your look in the HTML alone, and do not offer <em>default</em> and <em>square</em> as choices when your app's own look differs.</li>
+  <li>Treat "never saved" as your app's default in the head snippet (<code>localStorage.getItem('sg:prefs') === null</code>), so a saved <code>{}</code> means "they chose the guide's default". It works, with one wart: choosing the default palette also drops your default corners on the next load.</li>
+</ul></div>
 </div>
 
 <h2 id="icons">Icons</h2>
@@ -301,6 +306,13 @@ SG.prefs.all()   // { theme: &quot;system&quot;, contrast: &quot;system&quot;, p
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
   }
+}
+
+/* In a wide table a file name or token is a word: keep it whole and let the column take the width,
+   because the docs' "anywhere" wrapping lets a column shrink until "styleguide.css" reads "styleg / uide.c / ss".
+   The table scrolls inside its own focusable wrapper when a row is wider than the column (1.4.10 exempts data tables). */
+@media (min-width: 40em) {
+  .docs-article .docs-table td code { overflow-wrap: break-word; }
 }
 
 /* a long unbreakable word in a note's title (a host name) must wrap at 200% text, not push the note wider */

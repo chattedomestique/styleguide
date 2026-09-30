@@ -4,7 +4,7 @@
 
 <div class="note" data-kind="warn">
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
-  <div><strong>What was and was not seen</strong><p>Everything on this page was run in <strong>Chromium 141 on Linux</strong>: the manifest was parsed, installability was asked of the browser, a service worker installed, reloaded offline and updated. <strong>Nothing was run on an iPhone or an Android phone.</strong> Install on a real device, the maskable icon on a real launcher, standalone safe areas, the iOS status bar and Dynamic Type are all listed under <a href="#limits">What could not be verified</a>. The example app is called Tasks; it is the complete minimal file from <a href="@/start/install.html#minimal">Install</a> with the additions below.</p></div>
+  <div><strong>What was and was not seen</strong><p>Everything on this page was run in <em>Chromium 141 on Linux</em>: the manifest was parsed, installability was asked of the browser, a service worker installed, reloaded offline and updated. <strong>Nothing was run on an iPhone or an Android phone.</strong> Install on a real device, the maskable icon on a real launcher, standalone safe areas, the iOS status bar and Dynamic Type are all listed under <a href="#limits">What could not be verified</a>. The example app is called Tasks; it is the complete minimal file from <a href="@/start/install.html#minimal">Install</a> with the additions below.</p></div>
 </div>
 
 <h2 id="installable">What installable means today</h2>
@@ -453,6 +453,13 @@ function sync() {
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
   }
+}
+
+/* In a wide table a file name or token is a word: keep it whole and let the column take the width,
+   because the docs' "anywhere" wrapping lets a column shrink until "styleguide.css" reads "styleg / uide.c / ss".
+   The table scrolls inside its own focusable wrapper when a row is wider than the column (1.4.10 exempts data tables). */
+@media (min-width: 40em) {
+  .docs-article .docs-table td code { overflow-wrap: break-word; }
 }
 
 /* a long unbreakable word in a note's title (a host name) must wrap at 200% text, not push the note wider */

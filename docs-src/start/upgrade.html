@@ -4,7 +4,7 @@
 
 <div class="note" data-kind="a11y">
   <span class="ic ic--info" aria-hidden="true"></span>
-  <div><strong>Where things stand</strong><p>The version is <strong>0.2.0</strong> (<code>package.json</code>). The repository has no git tags and nothing is published: <code>private: true</code> keeps it off npm. The changelog is <code>STYLE.md</code> §8; there is no separate <code>CHANGELOG.md</code>. Nothing has been upgraded from one release to another yet, so the update steps below are the policy and a recipe, not something anyone has done twice.</p></div>
+  <div><strong>Where things stand</strong><p>The version is 0.2.0 (<code>package.json</code>). The repository has no git tags and nothing is published: <code>private: true</code> keeps it off npm. The changelog is <code>STYLE.md</code> §8; there is no separate <code>CHANGELOG.md</code>. Nothing has been upgraded from one release to another yet, so the update steps below are the policy and a recipe, not something anyone has done twice.</p></div>
 </div>
 
 <h2 id="from-v01">From the Flashcards style sheet v0.1</h2>
@@ -208,6 +208,13 @@ git push --follow-tags</pre>
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
   }
+}
+
+/* In a wide table a file name or token is a word: keep it whole and let the column take the width,
+   because the docs' "anywhere" wrapping lets a column shrink until "styleguide.css" reads "styleg / uide.c / ss".
+   The table scrolls inside its own focusable wrapper when a row is wider than the column (1.4.10 exempts data tables). */
+@media (min-width: 40em) {
+  .docs-article .docs-table td code { overflow-wrap: break-word; }
 }
 
 /* a long unbreakable word in a note's title (a host name) must wrap at 200% text, not push the note wider */
