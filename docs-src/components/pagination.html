@@ -115,6 +115,20 @@
   </div>
 </div>
 
+<h3 id="switcher">As a month switcher</h3>
+<p><code>data-variant="switcher"</code> keeps the short form at any width, for a previous / next pair around <em>one value that is not a page number</em>: a month, a week, a deck. The value is the biggest thing in the row. It changes the view in place, so the controls are buttons, and the value is a polite live region: a screen reader hears <em>"February 2024"</em> when you press Next. The buttons keep their names current ("Previous month, January").</p>
+<div class="demo">
+  <div class="demo__stage">
+    <nav class="pagination" data-variant="switcher" aria-label="Month" id="pg-month">
+      <ul class="pagination__list" role="list">
+        <li class="pagination__prev"><button class="btn" type="button" aria-label="Previous month, December"><span class="ic ic--arrow-left" aria-hidden="true"></span></button></li>
+        <li class="pagination__status" aria-live="polite">January 2024</li>
+        <li class="pagination__next"><button class="btn" type="button" aria-label="Next month, February"><span class="ic ic--arrow-right" aria-hidden="true"></span></button></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
 <h3 id="context">In context</h3>
 <div class="demo" data-nocode>
   <div class="demo__stage">
@@ -150,7 +164,7 @@
   <li><strong>Page</strong> (<code>pagination__page</code>): a circle button with a tabular number. Its <code>aria-label</code> is "Page N".</li>
   <li><strong>Current page</strong>: <code>aria-current="page"</code>; filled, with a doubled frame.</li>
   <li><strong>Gap</strong> (<code>pagination__gap</code>): <em>&hellip;</em>, <code>aria-hidden</code>, not a control.</li>
-  <li><strong>Status</strong> (<code>pagination__status</code>): "Page 5 of 12", shown only in the short form.</li>
+  <li><strong>Status</strong> (<code>pagination__status</code>): "Page 5 of 12", shown only in the short form. In the switcher it is the value itself.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -163,6 +177,7 @@
     <tr><td><code>pagination__prev</code>, <code>__next</code>, <code>__page</code></td><td>list items holding a <code>.btn</code></td><td>The parts. Prev / Next become circles in the short form.</td></tr>
     <tr><td><code>pagination__label</code></td><td>a <code>span</code> inside Previous / Next</td><td>The word; visually hidden but kept in the name in the short form.</td></tr>
     <tr><td><code>pagination__gap</code>, <code>pagination__status</code></td><td>list items</td><td>The gap between page numbers; the "Page N of M" line.</td></tr>
+    <tr><td><code>data-variant="switcher"</code></td><td></td><td>Always the short form, with the status as a large value between the two buttons. For months, weeks, decks.</td></tr>
     <tr><td><code>aria-current="page"</code></td><td>on the current page's link</td><td>Filled + doubled frame. Exactly one.</td></tr>
     <tr><td><code>aria-disabled="true"</code></td><td>on a Previous / Next <code>&lt;button&gt;</code></td><td>Dashed and faint; inert; explain why in <code>aria-describedby</code>.</td></tr>
   </tbody>
@@ -252,5 +267,28 @@
     });
 
     render();
+  })();
+
+  // Docs-only: the month switcher changes its own value and keeps the button names current.
+  (function () {
+    var nav = document.getElementById('pg-month');
+    if (!nav) return;
+    var at = 0; // months from January 2024
+    var status = nav.querySelector('.pagination__status');
+    var prev = nav.querySelector('.pagination__prev .btn');
+    var next = nav.querySelector('.pagination__next .btn');
+    function date(offset) { return new Date(2024, offset, 1); }
+    function fmt(d, o) { return new Intl.DateTimeFormat('en', o).format(d); }
+    function render() {
+      status.textContent = fmt(date(at), { month: 'long', year: 'numeric' });
+      prev.setAttribute('aria-label', 'Previous month, ' + fmt(date(at - 1), { month: 'long' }));
+      next.setAttribute('aria-label', 'Next month, ' + fmt(date(at + 1), { month: 'long' }));
+    }
+    nav.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.btn');
+      if (!b) return;
+      at += b === next ? 1 : -1;
+      render();
+    });
   })();
 </script>

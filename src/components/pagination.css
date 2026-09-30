@@ -31,6 +31,9 @@
    status line says it in words. Never colour alone. Numbers are tabular.
    No JavaScript: this is links.
 
+   data-variant="switcher" is the same parts, always in the short form, for a value that is not a page
+   number (a month): see the docs.
+
    Private properties: none of its own; it sets the .btn ones (--_select) for the current page.
    ========================================================================== */
 
@@ -111,6 +114,51 @@
       padding: 0;
     }
     .pagination__label {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* ---- Switcher: the same parts, always in the short form ---------------------------------------------
+     A previous / next pair around ONE current value that is not a page number: a month, a week, a
+     deck. No numbers, so the status is the label and it is the biggest thing in the row.
+     <nav class="pagination" data-variant="switcher" aria-label="Month"> with buttons (the view changes
+     in place) and the status as a polite live region, so a screen reader hears the new value. */
+  .pagination[data-variant="switcher"] {
+    & .pagination__list {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+    & :is(.pagination__page, .pagination__gap) {
+      display: none;
+    }
+    & .pagination__status {
+      display: block;
+      order: 1;
+      flex: 1 1 auto;
+      font: var(--type-title);
+      text-align: center;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    & .pagination__prev {
+      order: 0;
+    }
+    & .pagination__next {
+      order: 2;
+    }
+    & :is(.pagination__prev, .pagination__next) .btn {
+      inline-size: var(--ctl);
+      padding: 0;
+    }
+    & .pagination__label {
       position: absolute;
       inline-size: 1px;
       block-size: 1px;

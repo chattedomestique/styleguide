@@ -118,6 +118,23 @@ export const tests = [
     },
   },
   {
+    name: 'Switcher: always the short form (even on a wide screen); the value is a polite live region; the buttons keep current names',
+    viewport: WIDE,
+    async run({ page, goto, expect }) {
+      await goto('components/pagination.html')
+      const nav = '#pg-month'
+      const disp = await page.evaluate((sel) => { const n = document.querySelector(sel); return { status: getComputedStyle(n.querySelector('.pagination__status')).display, live: n.querySelector('.pagination__status').getAttribute('aria-live'), size: getComputedStyle(n.querySelector('.pagination__status')).fontSize } }, nav)
+      expect.equal(disp.status, 'block', 'the value shows at 1024px'); expect.equal(disp.live, 'polite'); expect.ok(parseFloat(disp.size) >= 24, 'and it is the biggest thing in the row: ' + disp.size)
+      await expect.attr(page, `${nav} .pagination__next .btn`, 'aria-label', 'Next month, February')
+      await page.locator(`${nav} .pagination__next .btn`).focus()
+      await page.keyboard.press('Enter')
+      expect.equal((await page.locator(`${nav} .pagination__status`).textContent()).trim(), 'February 2024', 'Enter moved to the next month')
+      await expect.attr(page, `${nav} .pagination__next .btn`, 'aria-label', 'Next month, March')
+      await expect.attr(page, `${nav} .pagination__prev .btn`, 'aria-label', 'Previous month, January')
+      await expect.focused(page, `${nav} .pagination__next .btn`, 'focus stays on the pressed button')
+    },
+  },
+  {
     name: 'Reduced motion: a page button raises without travel',
     reducedMotion: true,
     viewport: WIDE,
