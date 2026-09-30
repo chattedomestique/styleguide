@@ -1,0 +1,199 @@
+<!--{"title":"Donut chart","group":"Components","order":106,"summary":"Parts of a whole, a handful of them: tone plus pattern sectors, the total in the hole, and a legend whose labels carry the values."}-->
+<style>
+  /* docs scaffolding only */
+  #demo-card .card { max-inline-size: 24rem; }
+  /* the docs article styles bare lists; a legend is its own layout */
+  .demo .legend { padding: 0; }
+  .demo .legend__item { margin: 0; }
+</style>
+<h1>Donut chart</h1>
+<p class="lede">A donut shows how a whole divides: where the month's money went. Five parts at most, the total in the middle, and a <a href="@/components/legend.html">legend</a> that says each part's name and value in words, because the ring itself has no labels.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it for a whole with three to five parts that add up to something meaningful. Keep the legend beside it with the values printed. Fold the tail into "Other".</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it to compare two close parts (angle is hard to read: use a <a href="@/components/chart-bar.html">bar chart</a>), draw more than six sectors, or show a single percentage (that is a number or a meter).</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="basic">With a legend</h3>
+<p>The ring sits at 11rem and grows with text size. The container decides the layout: stacked on a phone, ring-and-legend side by side from 32rem. Each sector is a tone <em>and</em> a pattern, told apart without colour; the 2px frames between sectors carry the edges.</p>
+<div class="demo" id="demo-basic">
+  <div class="demo__stage">
+    <figure class="donut">
+      <figcaption class="donut__title">Where April went</figcaption>
+      <div class="donut__layout">
+        <div class="donut__body">
+          <svg class="donut__ring" viewBox="0 0 176 176" role="img" focusable="false" aria-label="Where April went, $1,284 in total: rent 48%, food 22%, transport 12%, fun 10%, other 8%.">
+          <defs>
+            <pattern id="dn-a-p2" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0M-1 1L1 -1M7 9L9 7"/></pattern>
+            <pattern id="dn-a-p3" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.15"/><circle cx="6" cy="6" r="1.15"/></pattern>
+            <pattern id="dn-a-p4" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0L8 8M-1 7L1 9M7 -1L9 1"/></pattern>
+            <pattern id="dn-a-p5" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0M0 0L8 8M-1 1L1 -1M7 9L9 7M-1 7L1 9M7 -1L9 1"/></pattern>
+          </defs>
+          <g class="donut__seg" data-tone="1"><path class="donut__fill" d="M88 8A80 80 0 0 1 96.6 167.54L92.94 133.73A46 46 0 0 0 88 42Z"/></g>
+          <g class="donut__seg" data-tone="2"><path class="donut__fill" d="M96.6 167.54A80 80 0 0 1 11.31 110.78L43.9 101.1A46 46 0 0 0 92.94 133.73Z"/><path class="donut__pat" d="M96.6 167.54A80 80 0 0 1 11.31 110.78L43.9 101.1A46 46 0 0 0 92.94 133.73Z" fill="url(#dn-a-p2)"/></g>
+          <g class="donut__seg" data-tone="3"><path class="donut__fill" d="M11.31 110.78A80 80 0 0 1 16.14 52.84L46.68 67.78A46 46 0 0 0 43.9 101.1Z"/><path class="donut__pat" d="M11.31 110.78A80 80 0 0 1 16.14 52.84L46.68 67.78A46 46 0 0 0 43.9 101.1Z" fill="url(#dn-a-p3)"/></g>
+          <g class="donut__seg" data-tone="4"><path class="donut__fill" d="M16.14 52.84A80 80 0 0 1 50.4 17.39L66.38 47.4A46 46 0 0 0 46.68 67.78Z"/><path class="donut__pat" d="M16.14 52.84A80 80 0 0 1 50.4 17.39L66.38 47.4A46 46 0 0 0 46.68 67.78Z" fill="url(#dn-a-p4)"/></g>
+          <g class="donut__seg" data-tone="5"><path class="donut__fill" d="M50.4 17.39A80 80 0 0 1 88 8L88 42A46 46 0 0 0 66.38 47.4Z"/><path class="donut__pat" d="M50.4 17.39A80 80 0 0 1 88 8L88 42A46 46 0 0 0 66.38 47.4Z" fill="url(#dn-a-p5)"/></g>
+          </svg>
+          <div class="donut__centre"><p class="donut__total">$1,284</p><p class="donut__caption">spent</p></div>
+        </div>
+        <ul class="legend" role="list">
+          <li class="legend__item"><span class="legend__key" data-tone="1" aria-hidden="true"></span><span class="legend__label">Rent</span><span class="legend__value">$620</span><span class="legend__share">48%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="2" aria-hidden="true"></span><span class="legend__label">Food</span><span class="legend__value">$284</span><span class="legend__share">22%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="3" aria-hidden="true"></span><span class="legend__label">Transport</span><span class="legend__value">$152</span><span class="legend__share">12%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="4" aria-hidden="true"></span><span class="legend__label">Fun</span><span class="legend__value">$128</span><span class="legend__share">10%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="5" aria-hidden="true"></span><span class="legend__label">Other</span><span class="legend__value">$100</span><span class="legend__share">8%</span></li>
+        </ul>
+      </div>
+    </figure>
+  </div>
+</div>
+
+<h3 id="card">In a card</h3>
+<p>On a Card panel. The total moves to the hole, the legend keeps the values. The same markup, narrower.</p>
+<div class="demo" id="demo-card">
+  <div class="demo__stage">
+    <section class="card">
+      <header class="card__bar"><h4 class="card__label">April</h4></header>
+      <div class="card__body">
+        <figure class="donut">
+          <figcaption class="sr-only">Where April went</figcaption>
+          <div class="donut__layout">
+            <div class="donut__body">
+              <svg class="donut__ring" viewBox="0 0 176 176" role="img" focusable="false" aria-label="Where April went, $1,284 in total: rent 48%, food 22%, transport 12%, fun 10%, other 8%.">
+              <defs>
+                <pattern id="dn-b-p2" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0M-1 1L1 -1M7 9L9 7"/></pattern>
+                <pattern id="dn-b-p3" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.15"/><circle cx="6" cy="6" r="1.15"/></pattern>
+                <pattern id="dn-b-p4" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0L8 8M-1 7L1 9M7 -1L9 1"/></pattern>
+                <pattern id="dn-b-p5" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0M0 0L8 8M-1 1L1 -1M7 9L9 7M-1 7L1 9M7 -1L9 1"/></pattern>
+              </defs>
+              <g class="donut__seg" data-tone="1"><path class="donut__fill" d="M88 8A80 80 0 0 1 96.6 167.54L92.94 133.73A46 46 0 0 0 88 42Z"/></g>
+              <g class="donut__seg" data-tone="2"><path class="donut__fill" d="M96.6 167.54A80 80 0 0 1 11.31 110.78L43.9 101.1A46 46 0 0 0 92.94 133.73Z"/><path class="donut__pat" d="M96.6 167.54A80 80 0 0 1 11.31 110.78L43.9 101.1A46 46 0 0 0 92.94 133.73Z" fill="url(#dn-b-p2)"/></g>
+              <g class="donut__seg" data-tone="3"><path class="donut__fill" d="M11.31 110.78A80 80 0 0 1 16.14 52.84L46.68 67.78A46 46 0 0 0 43.9 101.1Z"/><path class="donut__pat" d="M11.31 110.78A80 80 0 0 1 16.14 52.84L46.68 67.78A46 46 0 0 0 43.9 101.1Z" fill="url(#dn-b-p3)"/></g>
+              <g class="donut__seg" data-tone="4"><path class="donut__fill" d="M16.14 52.84A80 80 0 0 1 50.4 17.39L66.38 47.4A46 46 0 0 0 46.68 67.78Z"/><path class="donut__pat" d="M16.14 52.84A80 80 0 0 1 50.4 17.39L66.38 47.4A46 46 0 0 0 46.68 67.78Z" fill="url(#dn-b-p4)"/></g>
+              <g class="donut__seg" data-tone="5"><path class="donut__fill" d="M50.4 17.39A80 80 0 0 1 88 8L88 42A46 46 0 0 0 66.38 47.4Z"/><path class="donut__pat" d="M50.4 17.39A80 80 0 0 1 88 8L88 42A46 46 0 0 0 66.38 47.4Z" fill="url(#dn-b-p5)"/></g>
+              </svg>
+              <div class="donut__centre"><p class="donut__total">$1,284</p><p class="donut__caption">spent</p></div>
+            </div>
+            <ul class="legend" role="list">
+              <li class="legend__item"><span class="legend__key" data-tone="1" aria-hidden="true"></span><span class="legend__label">Rent</span><span class="legend__value">$620</span><span class="legend__share">48%</span></li>
+              <li class="legend__item"><span class="legend__key" data-tone="2" aria-hidden="true"></span><span class="legend__label">Food</span><span class="legend__value">$284</span><span class="legend__share">22%</span></li>
+              <li class="legend__item"><span class="legend__key" data-tone="3" aria-hidden="true"></span><span class="legend__label">Transport</span><span class="legend__value">$152</span><span class="legend__share">12%</span></li>
+              <li class="legend__item"><span class="legend__key" data-tone="4" aria-hidden="true"></span><span class="legend__label">Fun</span><span class="legend__value">$128</span><span class="legend__share">10%</span></li>
+              <li class="legend__item"><span class="legend__key" data-tone="5" aria-hidden="true"></span><span class="legend__label">Other</span><span class="legend__value">$100</span><span class="legend__share">8%</span></li>
+            </ul>
+          </div>
+        </figure>
+      </div>
+    </section>
+  </div>
+</div>
+
+<h3 id="two">Two parts: spent and left</h3>
+<p>Two sectors make a progress ring. Keep both named: "Spent" and "Left" are words, and the hatched sector is the one that is used up. If the only question is how far along something is, a <code>&lt;meter&gt;</code> says it more plainly.</p>
+<div class="demo" id="demo-two">
+  <div class="demo__stage">
+    <figure class="donut">
+      <figcaption class="sr-only">April budget</figcaption>
+      <div class="donut__layout">
+        <div class="donut__body">
+          <svg class="donut__ring" viewBox="0 0 176 176" role="img" focusable="false" aria-label="April budget: $1,284 spent of $1,800, 71%. $516 left.">
+          <defs>
+            <pattern id="dn-c-p2" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0M-1 1L1 -1M7 9L9 7"/></pattern>
+          </defs>
+          <g class="donut__seg" data-tone="2"><path class="donut__fill" d="M88 8A80 80 0 1 1 10.11 106.27L43.22 98.5A46 46 0 1 0 88 42Z"/><path class="donut__pat" d="M88 8A80 80 0 1 1 10.11 106.27L43.22 98.5A46 46 0 1 0 88 42Z" fill="url(#dn-c-p2)"/></g>
+          <g class="donut__seg" data-tone="1"><path class="donut__fill" d="M10.11 106.27A80 80 0 0 1 88 8L88 42A46 46 0 0 0 43.22 98.5Z"/></g>
+          </svg>
+          <div class="donut__centre"><p class="donut__total">71%</p><p class="donut__caption">of $1,800</p></div>
+        </div>
+        <ul class="legend" role="list">
+          <li class="legend__item"><span class="legend__key" data-tone="2" aria-hidden="true"></span><span class="legend__label">Spent</span><span class="legend__value">$1,284</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="1" aria-hidden="true"></span><span class="legend__label">Left</span><span class="legend__value">$516</span></li>
+        </ul>
+      </div>
+    </figure>
+  </div>
+</div>
+
+<h3 id="whole">One part</h3>
+<p>A single part fills the ring (it is drawn as two halves, because an arc cannot close on itself). It is the edge case the helper covers, not a design to aim for.</p>
+<div class="demo" id="demo-whole">
+  <div class="demo__stage">
+    <figure class="donut">
+      <figcaption class="sr-only">Rent</figcaption>
+      <div class="donut__layout">
+        <div class="donut__body">
+          <svg class="donut__ring" viewBox="0 0 176 176" role="img" focusable="false" aria-label="Rent is all of the category: $620.">
+          <g class="donut__seg" data-tone="1"><path class="donut__fill" d="M88 8A80 80 0 0 1 88 168L88 134A46 46 0 0 0 88 42ZM88 168A80 80 0 0 1 88 8L88 42A46 46 0 0 0 88 134Z"/></g>
+          </svg>
+          <div class="donut__centre"><p class="donut__total">$620</p><p class="donut__caption">rent</p></div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+<h3 id="data">From data</h3>
+<p><code>SG.chart.donut(items, { label })</code> returns the whole <code>&lt;svg&gt;</code>: the sectors, the pattern tiles it needs and the text alternative. Pass the legend and the total as ordinary markup beside it.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <pre><code>const ring = SG.chart.donut(
+  [
+    { label: 'Rent', value: 620, tone: 1 },
+    { label: 'Food', value: 284, tone: 2 },
+    { label: 'Transport', value: 152, tone: 3 },
+  ],
+  { label: 'Where April went, $1,056 in total: rent 59%, food 27%, transport 14%.' }
+)
+document.querySelector('.donut__body').insertAdjacentHTML('afterbegin', ring)</code></pre>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Title</strong> (<code>.donut__title</code>): names the chart. Hide it with <code>sr-only</code> when a Card bar already says it.</li>
+  <li><strong>Ring</strong> (<code>.donut__ring</code>): an SVG with <code>role="img"</code> and a label that lists the parts and the total. 176 units = 11rem, so one unit is one pixel at the default text size.</li>
+  <li><strong>Sector</strong> (<code>.donut__seg</code> with <code>.donut__fill</code>, and <code>.donut__pat</code> for tones 2 to 6): the tone fill, the pattern on top, a 2px frame that stays 2px at any size.</li>
+  <li><strong>Hole</strong> (<code>.donut__centre</code>): the total and a one-word caption, as HTML text, so it scales with the reader's text size and is read as text.</li>
+  <li><strong>Legend</strong>: one row per sector with its value and share. It is the readable form of the chart.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Donut chart classes and helpers</caption>
+  <thead><tr><th>Hook</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.donut</code></td><td>a <code>figure</code></td><td>The chart and its size container.</td></tr>
+    <tr><td><code>.donut__layout</code></td><td></td><td>Stacks the ring over the legend; puts them side by side from 32rem of width.</td></tr>
+    <tr><td><code>.donut__body</code></td><td></td><td>The 11rem square that holds the ring and the hole text.</td></tr>
+    <tr><td><code>.donut__seg</code></td><td><code>data-tone="1"</code> to <code>"6"</code> on a <code>&lt;g&gt;</code></td><td>One sector. Tone 1 is solid; 2 to 6 add the pattern path with <code>fill="url(#id-pN)"</code>.</td></tr>
+    <tr><td><code>SG.chart.donut(items, opts)</code></td><td><code>items: [{ label, value, tone }]</code>, <code>opts: { label, id, size, outer, inner }</code></td><td>Returns the <code>&lt;svg&gt;</code> string. <code>label</code> is required: a donut with no text alternative is refused. <code>id</code> keeps the pattern ids unique on the page.</td></tr>
+    <tr><td><code>SG.chart.arcs(values, opts)</code></td><td><code>[{ d, start, end, share }]</code></td><td>Just the sector paths, if you draw the rest yourself.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Donut chart keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Nothing to reach. A static chart takes no focus and offers no hover-only detail.</td></tr>
+    <tr><td>Screen reader</td><td>The ring is one image whose label gives the total and every part with its share. The legend is a list of the same values as text. The hole's total is ordinary text.</td></tr>
+    <tr><td>Colour</td><td>Sectors differ by pattern as well as tone (WCAG 1.4.1) and each has a 2px frame for the 3:1 edge (1.4.11). The legend names them.</td></tr>
+    <tr><td>Zoom / text size</td><td>The ring is in rem and shrinks only when its container does. The hole text is HTML, so it scales; the ring is big enough at 200% (22rem) to keep it inside.</td></tr>
+    <tr><td>Reduced motion</td><td>Nothing moves: the ring does not sweep in.</td></tr>
+    <tr><td>Forced colours</td><td>Fills go; frames and patterns are drawn in system colours, so the parts still differ.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--tone-bg</code>, <code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--line</code>, <code>--bw</code>, <code>--type-title</code>, <code>--type-figure</code>, <code>--type-meta</code>, <code>--ls-title</code>, <code>--ls-figure</code>, <code>--text-lg</code>, <code>--text-xs</code>, <code>--space-4</code>, <code>--space-5</code>, <code>--space-7</code>.</p>

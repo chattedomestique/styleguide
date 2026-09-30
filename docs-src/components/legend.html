@@ -1,0 +1,115 @@
+<!--{"title":"Legend","group":"Components","order":108,"summary":"The key to a chart: a swatch that is a tone and a pattern, the name in words, and the number when the chart does not print it."}-->
+<style>
+  /* the docs article styles bare lists; a legend is its own layout */
+  .demo .legend { padding: 0; }
+  .demo .legend__item { margin: 0; }
+</style>
+<h1>Legend</h1>
+<p class="lede">A legend says which series is which. Its swatch is the series' tone <em>and</em> its pattern, and its name is words, so a chart never asks anyone to match colours by eye.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Give every chart with two or more series a legend, even when you also label marks directly. Put the number in the legend when the chart does not print it.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use a legend for a single series (the chart's title already says what it is), or colour the legend's text to match the series. Text stays ink; the swatch carries identity.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="stack">Stack, with values</h3>
+<p>Each item is a row of one shared grid, so the values and shares line up down the page in tabular figures. This is the legend that goes beside a <a href="@/components/donut.html">donut</a>.</p>
+<div class="demo" id="demo-stack">
+  <div class="demo__stage">
+    <section class="card" style="max-inline-size: 26rem">
+      <div class="card__body">
+        <p class="card__eyebrow">Where April went</p>
+        <ul class="legend" role="list">
+          <li class="legend__item"><span class="legend__key" data-tone="1" aria-hidden="true"></span><span class="legend__label">Rent</span><span class="legend__value">$620</span><span class="legend__share">48%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="2" aria-hidden="true"></span><span class="legend__label">Food</span><span class="legend__value">$284</span><span class="legend__share">22%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="3" aria-hidden="true"></span><span class="legend__label">Transport</span><span class="legend__value">$152</span><span class="legend__share">12%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="4" aria-hidden="true"></span><span class="legend__label">Fun</span><span class="legend__value">$128</span><span class="legend__share">10%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="5" aria-hidden="true"></span><span class="legend__label">Other</span><span class="legend__value">$100</span><span class="legend__share">8%</span></li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>
+
+<h3 id="row">Row, under a chart</h3>
+<p>Items flow and wrap. No values: the chart prints them.</p>
+<div class="demo" id="demo-row">
+  <div class="demo__stage">
+    <ul class="legend" role="list" data-layout="row">
+      <li class="legend__item"><span class="legend__key" data-tone="2" aria-hidden="true"></span><span class="legend__label">Food</span></li>
+      <li class="legend__item"><span class="legend__key" data-tone="3" aria-hidden="true"></span><span class="legend__label">Transport</span></li>
+      <li class="legend__item"><span class="legend__key" data-tone="4" aria-hidden="true"></span><span class="legend__label">Shopping</span></li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="series">The six series keys</h3>
+<p>A series is a tone slot, and the tone brings its pattern with it (set in <code>00-chart-marks.css</code>, so nobody has to remember). Tone 1 is solid and is the one to use for a single series. In the wire palette the six fills are six close greys; try it with the appearance panel and the patterns are still six different things. Tones carry rhythm, never meaning: a series means what its label says.</p>
+<div class="demo" id="demo-series">
+  <div class="demo__stage">
+    <ul class="legend" role="list">
+      <li class="legend__item"><span class="legend__key" data-tone="1" aria-hidden="true"></span><span class="legend__label">Tone 1 · solid</span></li>
+      <li class="legend__item"><span class="legend__key" data-tone="2" aria-hidden="true"></span><span class="legend__label">Tone 2 · hatch</span></li>
+      <li class="legend__item"><span class="legend__key" data-tone="3" aria-hidden="true"></span><span class="legend__label">Tone 3 · dots</span></li>
+      <li class="legend__item"><span class="legend__key" data-tone="4" aria-hidden="true"></span><span class="legend__label">Tone 4 · back-hatch</span></li>
+      <li class="legend__item"><span class="legend__key" data-tone="5" aria-hidden="true"></span><span class="legend__label">Tone 5 · cross-hatch</span></li>
+      <li class="legend__item"><span class="legend__key" data-tone="6" aria-hidden="true"></span><span class="legend__label">Tone 6 · lines</span></li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="marks">Any mark can be a key</h3>
+<p>The same swatch is available as <code>.mark</code> anywhere a chart-less thing needs to say "this colour and this pattern": a tag in a table cell, a category chip. It is a 2px-framed box with the tone fill and its pattern; size it yourself.</p>
+<div class="demo" id="demo-marks" data-layout="row">
+  <div class="demo__stage">
+    <span class="mark" data-tone="2" role="img" aria-label="Food" style="inline-size: 3rem; block-size: 3rem"></span>
+    <span class="mark" data-tone="3" role="img" aria-label="Transport" style="inline-size: 3rem; block-size: 3rem"></span>
+    <span class="mark" data-tone="5" role="img" aria-label="Shopping" style="inline-size: 6rem; block-size: 1.5rem"></span>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Key</strong> (<code>.legend__key</code>): a 20px swatch, tone fill + 2px frame + pattern. Decorative, so <code>aria-hidden</code>.</li>
+  <li><strong>Label</strong> (<code>.legend__label</code>): the series name, in ink. Wraps; never truncated.</li>
+  <li><strong>Value</strong> (<code>.legend__value</code>): optional, semibold, tabular, right-aligned.</li>
+  <li><strong>Share</strong> (<code>.legend__share</code>): optional, soft ink, tabular.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Legend classes and attributes</caption>
+  <thead><tr><th>Hook</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.legend</code></td><td><code>ul role="list"</code></td><td>The list. A grid of key, label, value, share; each item is a subgrid row.</td></tr>
+    <tr><td><code>data-layout</code></td><td><code>stack</code> (default), <code>row</code></td><td>Rows with aligned columns, or a wrapping line.</td></tr>
+    <tr><td><code>.legend__item</code></td><td><code>li</code></td><td>One series.</td></tr>
+    <tr><td><code>.legend__key</code></td><td><code>data-tone="1"</code> to <code>"6"</code>, <code>aria-hidden="true"</code></td><td>The swatch: tone + pattern.</td></tr>
+    <tr><td><code>.mark</code></td><td><code>data-tone</code></td><td>The same swatch for use outside a legend.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Legend keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Nothing to reach: a legend is a list, not a set of controls.</td></tr>
+    <tr><td>Screen reader</td><td>"List, 5 items", then "Food, $284, 22%". The keys are hidden because the label already names the series.</td></tr>
+    <tr><td>Colour</td><td>The swatch is tone + pattern, so series are told apart without colour (WCAG 1.4.1). The 2px frame gives the swatch its 3:1 edge (1.4.11). Text is ink, never the series colour.</td></tr>
+    <tr><td>Zoom / text size</td><td>Labels wrap; the key stays 20px (rem), and values stay aligned because the list is one grid.</td></tr>
+    <tr><td>Forced colours</td><td>The frame becomes <code>CanvasText</code> and the pattern is drawn with <code>CanvasText</code>, so the six keys still differ.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--tone-bg</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--paper</code>, <code>--line</code>, <code>--bw</code>, <code>--radius-ctl</code>, <code>--pat-size</code>, <code>--pat-1</code> to <code>--pat-6</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-4</code>, <code>--space-5</code>, <code>--type-body</code>, <code>--text-sm</code>.</p>

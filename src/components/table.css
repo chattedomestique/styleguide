@@ -1,0 +1,433 @@
+/* ==========================================================================
+   Table  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A real <table> inside a scroll region. Rows of the same kind of thing,
+   compared by eye: transactions, decks, sessions. Not a layout grid.
+
+   <div class="tbl">
+     <p class="tbl__title" id="t1">Transactions, April</p>
+     <div class="tbl__scroll" role="region" aria-labelledby="t1" tabindex="0">
+       <table aria-labelledby="t1" class="tbl__table">
+         <thead><tr>
+           <th scope="col" aria-sort="none"><button class="tbl__sort" type="button">Merchant</button></th>
+           <th scope="col" data-align="end">Amount</th>
+         </tr></thead>
+         <tbody><tr><th scope="row">Nike Store</th><td data-align="end" class="num">−$142.00</td></tr></tbody>
+       </table>
+     </div>
+   </div>
+
+   .tbl[data-select]     a leading checkbox column (.tbl__sel > label.tbl__check). Rows are
+                         aria-selected; the header checkbox is select-all (tri-state).
+   th/td [data-align=end] right-aligned, tabular figures. Numbers line up on the decimal.
+   th[aria-sort]         ascending | descending. The sorted label is underlined AND the icon
+                         flips, so the state never rests on colour.
+   .tbl__empty           a single row that says why there is nothing.
+   .tbl__hint            "scroll sideways": shown by SG.table only while the region overflows.
+
+   THE LOOK  the owner's rules, applied to data: a 2px frame around everything, a bar of ink
+   for the header row (uppercase labels are structure), 1px rules between rows. No zebra, so
+   nothing depends on telling two greys apart. The first column is sticky so the row's name
+   never scrolls away; its 1px right rule is a real border, so it survives forced colours.
+
+   STATES come from ARIA and native attributes:
+     aria-sort="ascending|descending"   sorted column (underline + arrow)
+     tr[aria-selected="true"]           selected row: accent-soft wash AND a checked box
+     input:checked / :indeterminate     the checkbox
+   Hover and focus on the sort buttons set --fill (ink bar -> paper), like a Button. Rows do not
+   lift: only pressable things lift, and a row is held, not pressed.
+
+   WHY border-collapse: separate  Sticky cells lose their borders under collapse (the border
+   belongs to the table grid, not the cell), so rules are drawn on the cells themselves.
+   WHY scroll-padding  A focused control scrolled under the sticky column would be hidden
+   (WCAG 2.4.11); the region reserves room for the sticky column and header.
+
+   PRIVATE  --_col1  width reserved for sticky columns (scroll-padding)   --_min  min table width
+   ========================================================================== */
+
+@layer sg.components {
+  .tbl {
+    --_min: 36rem;
+    --_sel: var(--hit);
+    container: tbl / inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+
+  .tbl__title {
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    letter-spacing: var(--ls-title);
+  }
+
+  /* the frame. The scroll region is focusable so keyboard users can scroll it (2.1.1) */
+  .tbl__scroll {
+    --_col1: 8rem;
+    overflow: auto;
+    overscroll-behavior-x: contain;
+    max-block-size: var(--tbl-max-h, none);
+    scroll-padding-inline-start: var(--_col1);
+    scroll-padding-block-start: var(--hit);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+  }
+
+  .tbl[data-select] .tbl__scroll {
+    --_col1: 10rem;
+  }
+
+  .tbl__table {
+    inline-size: 100%;
+    min-inline-size: var(--tbl-min, var(--_min));
+    border-collapse: separate;
+    border-spacing: 0;
+    font: var(--type-body);
+  }
+
+  /* ---- cells ---------------------------------------------------------------- */
+  .tbl__table :is(th, td) {
+    block-size: var(--hit);
+    padding: var(--space-2) var(--space-3);
+    text-align: start;
+    vertical-align: middle;
+    background: var(--paper);
+    border-block-end: var(--bw-thin) solid var(--line);
+  }
+
+  .tbl__table tbody tr:last-child > * {
+    border-block-end: 0;
+  }
+
+  .tbl__table tbody th {
+    font-weight: 600;
+  }
+
+  .tbl__table :is(th, td)[data-align="end"],
+  .tbl__table .num {
+    text-align: end;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* the first column stays put. Opaque, so scrolled cells never show through. */
+  .tbl__table :is(th, td):first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    border-inline-end: var(--bw-thin) solid var(--line);
+  }
+
+  .tbl__table tbody th:first-child {
+    min-inline-size: min(6.5rem, 40cqi);
+    max-inline-size: min(11rem, 45cqi);
+    overflow-wrap: anywhere;
+  }
+
+  /* with a checkbox column, the name column is the second sticky one */
+  .tbl[data-select] .tbl__table :is(th, td):first-child {
+    inline-size: var(--_sel);
+    min-inline-size: var(--_sel);
+    padding-inline: 0;
+    border-inline-end: 0;
+  }
+
+  .tbl[data-select] .tbl__table :is(th, td):nth-child(2) {
+    position: sticky;
+    inset-inline-start: var(--_sel);
+    z-index: 1;
+    border-inline-end: var(--bw-thin) solid var(--line);
+  }
+
+  .tbl[data-select] .tbl__table tbody th:nth-child(2) {
+    min-inline-size: min(6.5rem, 40cqi);
+    max-inline-size: min(11rem, 45cqi);
+    overflow-wrap: anywhere;
+  }
+
+  /* ---- header: the ink bar --------------------------------------------------- */
+  .tbl__table thead th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    padding-block: 0;
+    color: var(--paper);
+    background: var(--ink);
+    border-block-end: 0;
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .tbl__table thead th:first-child {
+    z-index: 3;
+    border-inline-end: 0;
+  }
+
+  .tbl[data-select] .tbl__table thead th:nth-child(2) {
+    z-index: 3;
+    border-inline-end: 0;
+  }
+
+  /* ---- sort button: the whole header cell is the target ----------------------- */
+  .tbl__sort {
+    --fill: 0;
+    --_up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='m5 12 7-7 7 7'/%3E%3Cpath d='M12 19V5'/%3E%3C/svg%3E");
+    --_down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 5v14'/%3E%3Cpath d='m19 12-7 7-7-7'/%3E%3C/svg%3E");
+    --_both: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='m7 15 5 5 5-5'/%3E%3Cpath d='m7 9 5-5 5 5'/%3E%3C/svg%3E");
+    --_dir: var(--_both);
+
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    inline-size: calc(100% + var(--space-3) * 2);
+    min-block-size: var(--hit);
+    margin-inline: calc(var(--space-3) * -1);
+    padding-inline: var(--space-3);
+    border: var(--bw) solid transparent; /* a real border, so forced colours can draw the edge */
+    color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper));
+    background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    text-align: start;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    &::after {
+      content: "";
+      flex: none;
+      inline-size: 1rem;
+      block-size: 1rem;
+      background: currentColor;
+      mask: var(--_dir) center / contain no-repeat;
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --fill: 1;
+      --ring-gap: calc(var(--ring) * -1);
+      outline-color: var(--ink);
+    }
+    &:is(:active, .is-active) {
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  .tbl__table th[data-align="end"] .tbl__sort {
+    justify-content: flex-end;
+  }
+
+  /* sorted: an arrow for the direction AND an underline on the label (two cues) */
+  .tbl__table th[aria-sort="ascending"] .tbl__sort {
+    --_dir: var(--_up);
+  }
+  .tbl__table th[aria-sort="descending"] .tbl__sort {
+    --_dir: var(--_down);
+  }
+  .tbl__table th:is([aria-sort="ascending"], [aria-sort="descending"]) .tbl__sort {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.3em;
+  }
+
+  /* ---- selection --------------------------------------------------------------- */
+  .tbl__check {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: var(--hit);
+    block-size: var(--hit);
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .tbl__check > input {
+    position: absolute;
+    z-index: 1; /* above the drawn box, so the real input is what a pointer (and a probe) hits */
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .tbl__box {
+    --lift: 0;
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    color: var(--on-accent);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+    box-shadow: var(--_shadow);
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition: --lift var(--dur-hover) var(--ease-out);
+
+    &::after {
+      content: "";
+      inline-size: 0.875rem;
+      block-size: 0.875rem;
+      background: currentColor;
+      mask: var(--icon-check) center / contain no-repeat;
+      visibility: hidden;
+    }
+  }
+
+  /* the header box sits on the ink bar: paper frame so it reads there */
+  .tbl__table thead .tbl__box {
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--paper);
+    border-color: var(--paper);
+  }
+
+  @media (hover: hover) {
+    .tbl__check:hover > input:not(:disabled) + .tbl__box {
+      --lift: 1;
+    }
+  }
+  .tbl__check > input:focus-visible + .tbl__box {
+    --lift: 1;
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-offset);
+    box-shadow: var(--focus-shadow, 0 0 0 var(--ring-offset) var(--paper)), var(--_shadow);
+  }
+  .tbl__table thead .tbl__check > input:focus-visible + .tbl__box {
+    outline-color: var(--paper);
+    box-shadow: none;
+  }
+  .tbl__check > input:active + .tbl__box {
+    --lift: 0;
+    transition-duration: var(--dur-press);
+  }
+
+  /* on: filled, a check, and (in the row) the row wash: three cues, none of them only colour */
+  .tbl__check > input:is(:checked, :indeterminate) + .tbl__box {
+    background: var(--accent);
+    box-shadow: 0 0 0 var(--bw-thin) var(--line), var(--_shadow);
+  }
+  .tbl__check > input:checked + .tbl__box::after {
+    visibility: visible;
+  }
+  .tbl__check > input:indeterminate + .tbl__box::after {
+    visibility: visible;
+    mask-image: var(--icon-minus);
+  }
+  .tbl__table thead .tbl__check > input:is(:checked, :indeterminate) + .tbl__box {
+    color: var(--ink);
+    background: var(--paper);
+    box-shadow: var(--_shadow);
+  }
+
+  .tbl__table tbody tr[aria-selected="true"] > * {
+    color: var(--on-accent-soft);
+    background: var(--accent-soft);
+  }
+
+  /* ---- empty / hint -------------------------------------------------------------- */
+  .tbl__empty > td {
+    block-size: auto;
+    padding: var(--space-7) var(--space-4);
+    color: var(--ink-soft);
+    text-align: center;
+    font: var(--type-body);
+  }
+
+  .tbl__hint {
+    display: none;
+    align-items: center;
+    gap: var(--space-2);
+    font: var(--type-meta);
+    color: var(--ink-soft);
+  }
+
+  .tbl[data-scrollable] .tbl__hint {
+    display: flex;
+  }
+
+  .tbl__hint::before {
+    content: "";
+    inline-size: 1rem;
+    block-size: 1rem;
+    background: currentColor;
+    mask: var(--icon-arrow) center / contain no-repeat;
+  }
+
+  /* ---- a squeezed container (a narrow column, or big text in a phone): a sticky column that
+     takes most of the width leaves nothing to scroll against, so it lets go. rem-based, so
+     200% text trips it exactly when it should. ---- */
+  @container tbl (max-width: 14rem) {
+    .tbl__table :is(th, td):first-child {
+      inset-inline-start: auto;
+    }
+  }
+  @container tbl (max-width: 18rem) {
+    .tbl[data-select] .tbl__table :is(th, td):nth-child(2) {
+      inset-inline-start: auto;
+    }
+  }
+
+  /* ---- a wide container: no need to scroll, so let the table fill and show no hint ---- */
+  @container tbl (min-width: 36rem) {
+    .tbl__table {
+      min-inline-size: 100%;
+    }
+  }
+
+  /* ---- forced colours: fills and masks are deleted, so lines and system colours carry it ----- */
+  @media (forced-colors: active) {
+    .tbl__scroll {
+      border-color: CanvasText;
+    }
+    .tbl__table :is(th, td) {
+      border-color: CanvasText;
+    }
+    .tbl__table thead th {
+      border-block-end: var(--bw) solid CanvasText;
+    }
+    .tbl__sort::after,
+    .tbl__box::after,
+    .tbl__hint::before {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+    .tbl__sort:is(.is-hover, :focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: calc(var(--bw-heavy) * -1);
+    }
+    .tbl__sort {
+      border-color: ButtonText;
+    }
+    .tbl__box {
+      border-color: CanvasText;
+    }
+    .tbl__check > input:is(:checked, :indeterminate) + .tbl__box {
+      border-width: var(--bw-heavy);
+    }
+    .tbl__table tbody tr[aria-selected="true"] > :first-child {
+      border-inline-start: var(--bw-heavy) solid Highlight;
+    }
+  }
+
+  @media (forced-colors: active) and (hover: hover) {
+    .tbl__sort:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: calc(var(--bw-heavy) * -1);
+    }
+  }
+}

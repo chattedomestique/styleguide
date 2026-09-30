@@ -1,0 +1,196 @@
+<!--{"title":"Table","group":"Components","order":100,"summary":"A real table in a scroll region: sticky first column, sortable headers, optional row selection, numbers that line up."}-->
+<h1>Table</h1>
+<p class="lede">A table compares rows of the same kind of thing: transactions, decks, sessions. It is a real <code>&lt;table&gt;</code>, so screen readers can move cell by cell, inside a scroll region, so it never breaks the page at 320px.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it when people compare values across rows or sort by a column. Put the row's name in the first column: it stays on screen while the rest scrolls.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use a table to lay out a page, or for a list of one or two facts (use <a href="@/components/card.html">Card</a> rows). Don't hide columns on small screens: scrolling loses nothing, hiding does.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="sortable">Sortable, with a sticky first column</h3>
+<p>Sortable headers are buttons. The sorted column wears <code>aria-sort</code>, an arrow, and an underline, so the state never depends on colour. Amounts are right-aligned with tabular figures so the decimals line up, and negative amounts use the true minus (U+2212). Click a header, or Tab to it and press <kbd>Enter</kbd>.</p>
+<div class="demo" id="demo-tx">
+  <div class="demo__stage">
+    <div class="tbl">
+      <p class="tbl__title" id="tbl-tx">Transactions, April</p>
+      <div class="tbl__scroll" role="region" aria-labelledby="tbl-tx" tabindex="0">
+        <table class="tbl__table" aria-labelledby="tbl-tx">
+          <thead>
+            <tr>
+              <th scope="col"><button class="tbl__sort" type="button">Merchant</button></th>
+              <th scope="col"><button class="tbl__sort" type="button">Category</button></th>
+              <th scope="col" aria-sort="descending"><button class="tbl__sort" type="button">Date</button></th>
+              <th scope="col">Method</th>
+              <th scope="col" data-align="end"><button class="tbl__sort" type="button">Amount</button></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Nike Store</th><td>Clothing</td><td><time datetime="2026-04-08">8 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="-142">−$142.00</td></tr>
+            <tr><th scope="row">Apple Store</th><td>Electronics</td><td><time datetime="2026-04-08">8 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="-1199">−$1,199.00</td></tr>
+            <tr><th scope="row">Uber</th><td>Transport</td><td><time datetime="2026-04-07">7 Apr</time></td><td>Wallet</td><td data-align="end" data-value="-18.4">−$18.40</td></tr>
+            <tr><th scope="row">Zara refund</th><td>Clothing</td><td><time datetime="2026-04-06">6 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="64.9">+$64.90</td></tr>
+            <tr><th scope="row">Fuel</th><td>Transport</td><td><time datetime="2026-04-05">5 Apr</time></td><td>Wallet</td><td data-align="end" data-value="-52.3">−$52.30</td></tr>
+            <tr><th scope="row">Salary</th><td>Income</td><td><time datetime="2026-04-01">1 Apr</time></td><td>Bank transfer</td><td data-align="end" data-value="3200">+$3,200.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl__hint">Scroll sideways for more columns.</p>
+    </div>
+  </div>
+</div>
+
+<h3 id="select">Row selection</h3>
+<p>Add <code>data-select</code> to the <code>.tbl</code> and a checkbox column. The header checkbox selects or clears every row and shows a dash when only some are selected. A selected row gets a wash <em>and</em> a checked box <em>and</em> <code>aria-selected</code>. The count below is a live region, so the change is announced without moving focus.</p>
+<div class="demo" id="demo-select">
+  <div class="demo__stage">
+    <div class="tbl" data-select>
+      <p class="tbl__title" id="tbl-decks">Decks</p>
+      <div class="tbl__scroll" role="region" aria-labelledby="tbl-decks" tabindex="0">
+        <table class="tbl__table" aria-labelledby="tbl-decks" style="--tbl-min: 30rem">
+          <thead>
+            <tr>
+              <th scope="col"><label class="tbl__check"><input type="checkbox" aria-label="Select all decks"><span class="tbl__box" aria-hidden="true"></span></label></th>
+              <th scope="col"><button class="tbl__sort" type="button">Deck</button></th>
+              <th scope="col" data-align="end"><button class="tbl__sort" type="button">Cards</button></th>
+              <th scope="col" data-align="end"><button class="tbl__sort" type="button">Due today</button></th>
+              <th scope="col" data-align="end"><button class="tbl__sort" type="button">Streak</button></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><label class="tbl__check"><input type="checkbox" aria-label="Select Shapes"><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Shapes</th><td data-align="end">12</td><td data-align="end">5</td><td data-align="end" data-value="4">4 days</td></tr>
+            <tr><td><label class="tbl__check"><input type="checkbox" aria-label="Select Capitals"><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Capitals</th><td data-align="end">40</td><td data-align="end">18</td><td data-align="end" data-value="9">9 days</td></tr>
+            <tr><td><label class="tbl__check"><input type="checkbox" aria-label="Select Kanji N5"><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Kanji N5</th><td data-align="end">80</td><td data-align="end">0</td><td data-align="end" data-value="31">31 days</td></tr>
+            <tr><td><label class="tbl__check"><input type="checkbox" aria-label="Select Bird calls"><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Bird calls</th><td data-align="end">24</td><td data-align="end">7</td><td data-align="end" data-value="0">0 days</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="t-meta" data-sg-count aria-live="polite">None selected</p>
+    </div>
+  </div>
+</div>
+
+<h3 id="empty">Empty</h3>
+<p>Say why there is nothing and what to do. The header stays, so the columns people would get are still visible.</p>
+<div class="demo" id="demo-empty">
+  <div class="demo__stage">
+    <div class="tbl">
+      <p class="tbl__title" id="tbl-empty">Reviews this week</p>
+      <div class="tbl__scroll" role="region" aria-labelledby="tbl-empty" tabindex="0">
+        <table class="tbl__table" aria-labelledby="tbl-empty" style="--tbl-min: 24rem">
+          <thead>
+            <tr>
+              <th scope="col">Deck</th>
+              <th scope="col" data-align="end">Reviewed</th>
+              <th scope="col" data-align="end">Correct</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="tbl__empty"><td colspan="3">No reviews yet this week. Open a deck and answer five cards to start one.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="phone">On a phone</h3>
+<p>The same markup at 390px. The table keeps its natural width and the region scrolls; the merchant column stays in place, and the region is reachable by keyboard (Tab to it, then the arrow keys). A hint appears while there is more to see.</p>
+<div class="demo" id="demo-phone" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="stack" data-gap="4">
+          <div class="split">
+            <p class="t-label">Wallet</p>
+            <p class="t-meta">April</p>
+          </div>
+          <div class="tbl">
+            <p class="tbl__title" id="tbl-phone">Recent payments</p>
+            <div class="tbl__scroll" role="region" aria-labelledby="tbl-phone" tabindex="0">
+              <table class="tbl__table" aria-labelledby="tbl-phone" style="--tbl-min: 30rem">
+                <thead>
+                  <tr>
+                    <th scope="col"><button class="tbl__sort" type="button">Merchant</button></th>
+                    <th scope="col">Method</th>
+                    <th scope="col" data-align="end"><button class="tbl__sort" type="button">Amount</button></th>
+                    <th scope="col" data-align="end">Tax</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Nike Store</th><td>Card ending 4021</td><td data-align="end" data-value="-142">−$142.00</td><td data-align="end">$11.36</td></tr>
+                  <tr><th scope="row">Uber</th><td>Wallet</td><td data-align="end" data-value="-18.4">−$18.40</td><td data-align="end">$0.00</td></tr>
+                  <tr><th scope="row">Fuel</th><td>Wallet</td><td data-align="end" data-value="-52.3">−$52.30</td><td data-align="end">$4.18</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="tbl__hint">Scroll sideways for more columns.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Title</strong> (<code>.tbl__title</code>): names the table. The scroll region and the <code>&lt;table&gt;</code> both point at it with <code>aria-labelledby</code>.</li>
+  <li><strong>Frame</strong> (<code>.tbl__scroll</code>): a 2px frame, <code>overflow: auto</code>, focusable so keyboard users can scroll it (WCAG 2.1.1). Its ring sits outside the frame.</li>
+  <li><strong>Header bar</strong>: ink fill, uppercase labels (uppercase is structure). Sortable headers hold a <code>.tbl__sort</code> button whose whole cell is the target; it fills with paper on hover and focus, like a <a href="@/components/button.html">Button</a>.</li>
+  <li><strong>Sort icon</strong>: a mask on the button's <code>::after</code>: up and down arrows when unsorted, one arrow when sorted. With the underline that is two cues.</li>
+  <li><strong>Row name</strong> (<code>&lt;th scope="row"&gt;</code>): sticky at the start edge, opaque, with a 1px rule that is a real border.</li>
+  <li><strong>Numbers</strong>: <code>data-align="end"</code> right-aligns and turns on tabular, lining figures.</li>
+  <li><strong>Row rules</strong>: 1px between rows, none after the last (the frame closes it). No zebra: nothing depends on telling two greys apart.</li>
+  <li><strong>Check column</strong> (optional): a 44px label around a 20px box. Checked = filled with a check mark; some = a dash.</li>
+  <li><strong>Hint</strong> (<code>.tbl__hint</code>): shown by <code>SG.table</code> only while the region overflows.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Table classes and attributes</caption>
+  <thead><tr><th>Hook</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.tbl</code></td><td></td><td>Wrapper and size container. Holds the title, the scroll region and the hint.</td></tr>
+    <tr><td><code>.tbl__scroll</code></td><td><code>role="region"</code>, <code>tabindex="0"</code>, <code>aria-labelledby</code></td><td>The frame and the scroll region. All three attributes are required.</td></tr>
+    <tr><td><code>.tbl__table</code></td><td></td><td>The <code>&lt;table&gt;</code>. Give it <code>aria-labelledby</code> pointing at the title. <code>--tbl-min</code> sets the width below which the region scrolls (default 36rem).</td></tr>
+    <tr><td><code>--tbl-max-h</code></td><td>a length</td><td>On <code>.tbl__scroll</code>: makes the region scroll vertically too, and the header bar sticks.</td></tr>
+    <tr><td><code>data-select</code></td><td>on <code>.tbl</code></td><td>The first column is a checkbox column (<code>label.tbl__check</code> with an <code>input</code> and a <code>span.tbl__box</code>); the name column becomes the second sticky one.</td></tr>
+    <tr><td><code>data-align="end"</code></td><td>on <code>th</code>, <code>td</code></td><td>Right-aligned with tabular figures.</td></tr>
+    <tr><td><code>.tbl__sort</code></td><td>a <code>button</code> in a <code>th</code></td><td>Sortable header. <code>SG.table</code> sets <code>aria-sort</code> on the <code>th</code>.</td></tr>
+    <tr><td><code>aria-sort</code></td><td><code>ascending</code>, <code>descending</code></td><td>The sorted column. Put it on the <code>th</code> for the initial order.</td></tr>
+    <tr><td><code>data-value</code></td><td>on <code>td</code></td><td>The sort key when the text is not it (prices, durations). Otherwise <code>&lt;time datetime&gt;</code>, then the text.</td></tr>
+    <tr><td><code>tr[aria-selected="true"]</code></td><td></td><td>Selected row wash. Set by <code>SG.table</code> from the checkbox.</td></tr>
+    <tr><td><code>[data-sg-count]</code></td><td>inside <code>.tbl</code></td><td>Receives "2 of 4 selected". Make it <code>aria-live="polite"</code>.</td></tr>
+    <tr><td><code>.tbl__empty</code></td><td>a <code>tr</code> with one <code>td colspan</code></td><td>The empty row.</td></tr>
+    <tr><td><code>sg-table-sort</code></td><td>event, cancelable</td><td><code>detail.column</code>, <code>detail.direction</code>. <code>preventDefault()</code> to sort on the server; <code>aria-sort</code> still updates.</td></tr>
+    <tr><td><code>sg-table-select</code></td><td>event</td><td><code>detail.count</code>, <code>detail.total</code>, <code>detail.rows</code>.</td></tr>
+    <tr><td><code>SG.table.sort(table, i, dir)</code></td><td>function</td><td>Sort programmatically. <code>SG.table.selected(table)</code> returns the selected rows.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Table keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Stops on the scroll region (so the keyboard can scroll it), then on each sort button, checkbox and link in reading order. The focus ring is inset on the ink header and stays clear of the sticky column (the region reserves room with <code>scroll-padding</code>, WCAG 2.4.11).</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>On a sort button: sorts, then reverses. On a checkbox: toggles. Focus stays where it was.</td></tr>
+    <tr><td>Arrow keys</td><td>With focus on the scroll region, they scroll it. (Screen-reader table commands move cell by cell.)</td></tr>
+    <tr><td>Screen reader</td><td>"Transactions, April, region", then "table with 7 rows and 5 columns". Headers are <code>th scope</code>; the sorted one announces "sorted descending". Sorting is announced ("Sorted by Amount, ascending") through the polite live region. A selected row announces "selected".</td></tr>
+    <tr><td>Touch</td><td>Every header and checkbox cell is at least 44px; rows are 44px. Sorting is a tap, not a gesture. The region scrolls with a swipe and with the keyboard.</td></tr>
+    <tr><td>Zoom / text size</td><td>Rows grow, nothing is fixed in px. At 320px or 200% text the table keeps its width and the region scrolls (tables are an exception to reflow, WCAG 1.4.10); the first column stays.</td></tr>
+    <tr><td>Reduced motion</td><td>The only motion is the header fill and the checkbox lift; the lift's travel is multiplied by <code>--move</code>, so it becomes a plain fill.</td></tr>
+    <tr><td>Forced colours</td><td>Frame and rules become <code>CanvasText</code>; hover and focus on a sort button draw a 4px <code>Highlight</code> outline; checked boxes get a 4px frame; a selected row gets a 4px <code>Highlight</code> edge.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--accent-soft</code>, <code>--on-accent-soft</code>, <code>--ink-soft</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--radius-card</code>, <code>--radius-ctl</code>, <code>--hit</code>, <code>--space-1</code> to <code>--space-7</code>, <code>--type-body</code>, <code>--type-label</code>, <code>--type-title</code>, <code>--type-meta</code>, <code>--ls-label</code>, <code>--ls-title</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>, <code>--focus</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--icon-check</code>, <code>--icon-minus</code>, <code>--icon-arrow</code>.</p>

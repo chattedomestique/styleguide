@@ -1,0 +1,133 @@
+/* ==========================================================================
+   Legend  (layer: sg.components)
+   --------------------------------------------------------------------------
+   The key to a chart: one line per series, a swatch that is the series' tone AND
+   its pattern (00-chart-marks.css), the name in words, and the number when the
+   chart does not print it. A chart with two or more series always has one
+   (WCAG 1.4.1: colour is never the only way to tell series apart).
+
+   <ul class="legend" role="list" data-layout="stack|row">
+     <li class="legend__item">
+       <span class="legend__key" data-tone="2" aria-hidden="true"></span>
+       <span class="legend__label">Food</span>
+       <span class="legend__value">$284</span>      optional
+       <span class="legend__share">22%</span>       optional
+     </li>
+   </ul>
+
+   data-layout   stack (default): rows, with value and share in aligned columns
+                 row: items flow and wrap in a line under a chart
+   The key is decorative (aria-hidden): the label names the series and the value is text, so a
+   screen reader hears "Food, $284, 22%". The swatch only has to match the chart visually.
+
+   It is a size container (container-type: inline-size), so like a Card it needs a width from its parent.
+
+   A legend is a LIST, not a set of controls. Hiding a series is a decision about the app's
+   data, so it is not built in; if you need it, make each item a <button aria-pressed> and keep
+   the pattern on the key so a hidden series is still recognisable.
+
+   PRIVATE  none. The key is a .mark (see 00-chart-marks.css): tone fill + 2px frame + pattern.
+   ========================================================================== */
+
+@layer sg.components {
+  .legend {
+    --_key: 1.25rem;
+    container: legend / inline-size;
+    display: grid;
+    grid-template-columns: var(--_key) minmax(0, 1fr) repeat(2, auto);
+    column-gap: var(--space-3);
+    row-gap: var(--space-2);
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: var(--type-body);
+    font-size: var(--text-sm);
+  }
+
+  /* each item is a row of the parent grid, so values line up across rows */
+  .legend__item {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    min-block-size: 1.75rem;
+  }
+
+  .legend__key {
+    inline-size: var(--_key);
+    block-size: var(--_key);
+  }
+
+  .legend__label {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .legend__value,
+  .legend__share {
+    text-align: end;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .legend__value {
+    font-weight: 600;
+  }
+
+  .legend__share {
+    min-inline-size: 2.5ch;
+    color: var(--ink-soft);
+  }
+
+  /* squeezed (a phone, or big text): four aligned columns no longer fit, so each item becomes a
+     flowing line: key and name first, the numbers wrap under when there is no room. rem-based,
+     so 200% text arrives here at twice the width. */
+  @container legend (max-width: 14rem) {
+    .legend__item {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: var(--space-2);
+      row-gap: 0;
+    }
+    .legend__label {
+      flex: 1 1 calc(100% - var(--_key) - var(--space-2)); /* takes the rest of line one; the numbers wrap under it */
+    }
+    .legend__value,
+    .legend__share {
+      text-align: start;
+    }
+    .legend__value {
+      margin-inline-start: calc(var(--_key) + var(--space-2));
+    }
+  }
+
+  /* a line under a chart: items flow */
+  .legend[data-layout="row"] {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--space-4);
+    row-gap: var(--space-2);
+  }
+
+  .legend[data-layout="row"] .legend__item {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .legend[data-layout="row"] .legend__key {
+    flex: none;
+  }
+
+  .legend[data-layout="row"] .legend__value,
+  .legend[data-layout="row"] .legend__share {
+    margin-inline-start: var(--space-1);
+  }
+
+  /* the swatch keeps a system-colour edge and pattern when forced colours deletes fills
+     (the same rule lives in 00-chart-marks.css; it is repeated so a legend is right on its own) */
+  @media (forced-colors: active) {
+    .legend__key {
+      border-color: CanvasText;
+    }
+  }
+}

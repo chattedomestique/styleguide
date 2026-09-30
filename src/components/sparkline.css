@@ -1,0 +1,97 @@
+/* ==========================================================================
+   Sparkline  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A trend in a corner: one line, no axes, no numbers. It answers "which way is
+   this going?" at a glance; it never answers "how much?". The numbers that
+   matter sit next to it as text, and the sparkline carries a text alternative
+   that says the trend in words (WCAG 1.1.1).
+
+   <svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false"
+        aria-label="Notion, last 12 days: up 1.7%, from $278.90 to $283.72">
+     <polygon class="spark__area" points="0,100 …points… 100,100"/>          optional
+     <polyline class="spark__line" points="0,60 10,52 …"/>
+     <path class="spark__dot spark__dot--ring" d="M100 12h0"/><path class="spark__dot" d="M100 12h0"/>
+   </svg>
+
+   Build the points with SG.chart.sparkline(values, { label, area: true }) (a string of the
+   whole <svg>) or SG.chart.points(values) if you template it yourself.
+
+   data-size   sm | (md, default) | lg     the height: 1.75rem, 2.5rem, 4rem. It fills the width.
+   --spark-h   any length, for a one-off
+
+   WHY preserveAspectRatio="none" + vector-effect: the box stretches to whatever space the layout
+   gives it, but the line stays 2px (the frame weight) and the end dot stays a circle, because
+   both are drawn in screen pixels (non-scaling-stroke), not in the 100x100 drawing space.
+   WHY the end dot is a zero-length path with a round cap: a <circle> would be stretched into an
+   ellipse by the same non-uniform scaling; a cap is always round.
+   WHY direction is never colour: "up" and "down" are words and an icon next to the sparkline
+   (see the docs), not a green and a red line.
+
+   STATES  none. It is not interactive and never takes focus; it casts no shadow.
+   PRIVATE  --_bg  the surface it sits on (for the dot's ring and the area wash). Inside a .card it
+   follows --card-bg by itself; set --spark-bg on anything else.
+   ========================================================================== */
+
+@layer sg.components {
+  .spark {
+    --_bg: var(--spark-bg, var(--card-bg, var(--paper)));
+    display: block;
+    flex: none;
+    inline-size: 100%;
+    block-size: var(--spark-h, 2.5rem);
+    overflow: visible;
+    color: inherit;
+  }
+
+  .spark[data-size="sm"] {
+    --spark-h: 1.75rem;
+  }
+
+  .spark[data-size="lg"] {
+    --spark-h: 4rem;
+  }
+
+  .spark__line {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--bw);
+    stroke-linejoin: round;
+    stroke-linecap: butt;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* a flat wash under the line: the text colour, mixed a little into the surface. No gradient. */
+  .spark__area {
+    fill: color-mix(in srgb, currentColor 14%, var(--_bg));
+    stroke: none;
+  }
+
+  .spark__dot {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--space-3);
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* a ring of surface colour around the dot, so it stays round where the line meets it */
+  .spark__dot--ring {
+    stroke: var(--_bg);
+    stroke-width: calc(var(--space-3) + var(--bw) * 2);
+  }
+
+  /* forced colours: system colours for everything the drawing uses */
+  @media (forced-colors: active) {
+    .spark__line,
+    .spark__dot {
+      stroke: CanvasText;
+    }
+    .spark__dot--ring {
+      stroke: Canvas;
+    }
+    .spark__area {
+      fill: Canvas;
+      stroke: none;
+    }
+  }
+}
