@@ -1,0 +1,225 @@
+<!--{"title":"Avatar","group":"Components","order":64,"summary":"A person as a circle: a photo or their initials, five sizes, a presence dot that is never colour alone, and the overlapping stack."}-->
+<style>
+  /* docs only: the article's list styles must not indent or re-space the specimens */
+  .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
+  .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
+</style>
+<h1>Avatar</h1>
+<p class="lede">A person, a team or an app, as a circle. A photo when there is one, their initials when there is not. In this guide circles are the shape of things that act, so an avatar stays a plain circle until it is a link or a button; then it raises like every other pressable circle.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Name it. If the person's name is written beside the avatar, hide the avatar (<code>aria-hidden="true"</code>). If not, it is an image with their name as its label.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Show presence with a coloured dot and nothing else, or make each circle in an overlapping stack its own button. Overlap and small targets do not mix.</p></div>
+  </div>
+</div>
+
+<h2 id="photo">Photo or initials</h2>
+<p>The initials are the avatar; the photo is an <code>&lt;img alt=""&gt;</code> laid over them. If the photo fails to load, a few lines of script (<code>src/js/30-avatar.js</code>) hide it and the initials show. The name lives on the avatar, so nothing about what a screen reader says depends on the photo.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span>
+    <span class="avatar" role="img" aria-label="Jonas Berg">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span>
+    <span class="avatar" role="img" aria-label="Priya Nair">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span>
+    <span class="avatar" role="img" aria-label="Sam Castillo">SC<img src="@/assets/surfaces/avatar-sam.svg" alt=""></span>
+    <span class="avatar" role="img" aria-label="Ines Duarte">ID</span>
+    <span class="avatar" data-tone="1" role="img" aria-label="Tomás Reyes">TR</span>
+    <span class="avatar" data-tone="2" role="img" aria-label="Aiko Mori">AM</span>
+    <span class="avatar" data-tone="3" role="img" aria-label="Lena Fischer">LF</span>
+    <span class="avatar" data-tone="4" role="img" aria-label="Omar Haddad">OH</span>
+    <span class="avatar" data-tone="ink" role="img" aria-label="Wallet app">W</span>
+  </div>
+</div>
+<p class="t-meta">With no photo, <code>data-tone</code> picks the field behind the initials. Choose it from the person's id (not their name, and not at random) so they keep the same colour everywhere. It is identity, never meaning.</p>
+
+<h3 id="named">When the name is already on the page</h3>
+<p>Next to a visible name the avatar is decoration. Hide it, or the name is read twice.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="cluster" data-gap="3">
+      <span class="avatar" aria-hidden="true">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span>
+      <div>
+        <p><strong>Maya Okafor</strong></p>
+        <p class="t-meta">Owner · joined March</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="sizes">Sizes</h2>
+<p>Five steps: 28, 36, 44 (the default), 64 and 96px. They are rem, so they grow with text size and the initials stay inside the circle at 200%.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="avatar" data-size="xs" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
+    <span class="avatar" data-size="sm" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
+    <span class="avatar" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
+    <span class="avatar" data-size="lg" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
+    <span class="avatar" data-size="xl" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span>
+  </div>
+</div>
+
+<h2 id="presence">Presence</h2>
+<p>A dot on the circle's corner says whether someone is around. Each state has its own <strong>shape</strong>, so it reads without colour: a filled circle is online, a filled diamond is away, a filled square is busy and an empty ring is offline. The state also goes into the avatar's name, because a dot has no text of its own. Presence starts at the 36px size; a 28px circle cannot carry four legible shapes.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <ul class="stack" role="list" data-gap="3">
+      <li class="cluster" data-gap="4"><span class="avatar" data-presence="online" role="img" aria-label="Maya Okafor, online">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span><span><strong>Online</strong><br><span class="t-meta">Filled circle</span></span></li>
+      <li class="cluster" data-gap="4"><span class="avatar" data-presence="away" role="img" aria-label="Jonas Berg, away">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span><span><strong>Away</strong><br><span class="t-meta">Filled diamond</span></span></li>
+      <li class="cluster" data-gap="4"><span class="avatar" data-presence="busy" role="img" aria-label="Priya Nair, busy">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span><span><strong>Busy</strong><br><span class="t-meta">Filled square</span></span></li>
+      <li class="cluster" data-gap="4"><span class="avatar" data-presence="offline" data-tone="3" role="img" aria-label="Lena Fischer, offline">LF</span><span><strong>Offline</strong><br><span class="t-meta">Empty ring</span></span></li>
+    </ul>
+  </div>
+</div>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="avatar" data-size="sm" data-presence="online" data-tone="2" role="img" aria-label="Aiko Mori, online">AM</span>
+    <span class="avatar" data-presence="away" data-tone="2" role="img" aria-label="Aiko Mori, away">AM</span>
+    <span class="avatar" data-size="lg" data-presence="busy" data-tone="2" role="img" aria-label="Aiko Mori, busy">AM</span>
+    <span class="avatar" data-size="xl" data-presence="offline" data-tone="2" role="img" aria-label="Aiko Mori, offline">AM</span>
+  </div>
+</div>
+
+<h2 id="pressable">Pressable</h2>
+<p>An avatar that goes somewhere (your profile) or does something (switch account) is an <code>&lt;a&gt;</code> or a <code>&lt;button&gt;</code> with the same class. It then behaves like every pressable circle: a hard shadow when it can be pressed, sinking when it is, and a 44&times;44px hit area even at 28px. It needs an <code>aria-label</code> that says what pressing does, not just who it shows.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <a class="avatar" href="#" aria-label="Your profile, Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></a>
+    <button class="avatar" type="button" data-tone="1" aria-label="Switch account, Maya Okafor">MO</button>
+    <button class="avatar" type="button" data-size="sm" data-tone="3" aria-label="Open Lena Fischer's card">LF</button>
+    <a class="avatar is-hover" href="#" data-tone="2" aria-label="Hover: Aiko Mori">AM</a>
+    <a class="avatar is-focus" href="#" data-tone="2" aria-label="Focus: Aiko Mori">AM</a>
+    <a class="avatar is-active" href="#" data-tone="2" aria-label="Pressed: Aiko Mori">AM</a>
+    <a class="avatar" href="#" data-tone="2" aria-current="true" aria-label="Current: Aiko Mori">AM</a>
+    <button class="avatar" type="button" aria-disabled="true" aria-label="Unavailable: Ines Duarte">ID</button>
+  </div>
+</div>
+
+<h2 id="stack">Stack</h2>
+<p>Who is in this? A flat row of overlapping circles, the last one on top, in DOM order. The closing <code>+3</code> is inverted (ink fill) so it cannot be mistaken for a person. It is a list, so a screen reader says how many people there are; give the list a label.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <ul class="avatar-stack" role="list" aria-label="Shared with Maya, Jonas, Priya and 3 more">
+      <li><span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span></li>
+      <li><span class="avatar" role="img" aria-label="Jonas Berg">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span></li>
+      <li><span class="avatar" role="img" aria-label="Priya Nair">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span></li>
+      <li><span class="avatar" data-overflow role="img" aria-label="+3 more people">+3</span></li>
+    </ul>
+  </div>
+</div>
+<p class="t-meta">Sizes are set once, on the stack: <code>data-size</code> on the list. Overlap is 22% of the diameter, so two letters stay legible; at the 28px size use photos or a single letter.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+      <ul class="avatar-stack" data-size="sm" role="list" aria-label="Studying together: Maya, Jonas and Sam">
+        <li><span class="avatar" data-tone="1" role="img" aria-label="Maya Okafor">MO</span></li>
+        <li><span class="avatar" data-tone="2" role="img" aria-label="Jonas Berg">JB</span></li>
+        <li><span class="avatar" data-tone="4" role="img" aria-label="Sam Castillo">SC</span></li>
+      </ul>
+      <ul class="avatar-stack" data-size="lg" role="list" aria-label="Family deck: Priya, Omar and 2 more">
+        <li><span class="avatar" data-tone="5" role="img" aria-label="Priya Nair">PN</span></li>
+        <li><span class="avatar" data-tone="3" role="img" aria-label="Omar Haddad">OH</span></li>
+        <li><span class="avatar" data-overflow role="img" aria-label="+2 more people">+2</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="stack-action">A stack you can open</h3>
+<p>Overlapping circles cannot each be a 44px target, so the stack itself is not interactive. If people should be able to see the full list, make the overflow a button. It keeps its 44px hit area, and the people in the stack stay text.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="cluster" data-gap="3">
+      <ul class="avatar-stack" role="list" aria-label="Members: Maya, Jonas and Priya">
+        <li><span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span></li>
+        <li><span class="avatar" role="img" aria-label="Jonas Berg">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span></li>
+        <li><span class="avatar" role="img" aria-label="Priya Nair">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span></li>
+        <li><button class="avatar" data-overflow type="button" aria-label="+12 more members">+12</button></li>
+      </ul>
+      <span class="t-meta">15 members</span>
+    </div>
+  </div>
+</div>
+
+<h2 id="context">In context</h2>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 15rem">
+      <article class="card" data-tone="2">
+        <div class="card__body">
+          <p class="card__eyebrow">Shared deck</p>
+          <p class="card__title">Spanish: travel</p>
+          <p class="card__meta">48 cards · 3 people studying</p>
+        </div>
+        <footer class="card__foot">
+          <ul class="avatar-stack" data-size="sm" role="list" aria-label="Studying: Maya, Jonas and Priya">
+            <li><span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span></li>
+            <li><span class="avatar" role="img" aria-label="Jonas Berg">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span></li>
+            <li><span class="avatar" role="img" aria-label="Priya Nair">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span></li>
+          </ul>
+          <a href="#">Invite</a>
+        </footer>
+      </article>
+      <article class="card">
+        <div class="card__body">
+          <div class="cluster" data-gap="3">
+            <a class="avatar" href="#" data-presence="online" aria-label="Your profile, Sam Castillo, online">SC<img src="@/assets/surfaces/avatar-sam.svg" alt=""></a>
+            <div>
+              <p class="t-meta">Good evening</p>
+              <p class="card__title">Sam</p>
+            </div>
+          </div>
+          <p class="card__text">Four days running. Twelve cards are ready to review.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Circle</strong>: <code>--radius-pill</code> with a 2px frame (<code>--line</code>). The frame is real, so forced-colours mode still draws it.</li>
+  <li><strong>Initials</strong>: <code>--type-ctl</code>, semi-expanded, sized to the circle in rem. On <code>--paper-2</code> or the tone.</li>
+  <li><strong>Photo</strong> (optional): <code>&lt;img alt=""&gt;</code>, <code>object-fit: cover</code>, laid over the initials. No background of its own.</li>
+  <li><strong>Presence dot</strong> (optional): a 2px-framed shape on the lower corner, with a paper halo. Shape carries the state; colour only backs it up.</li>
+  <li><strong>Hit area</strong> (pressable only): an invisible <code>::after</code> that guarantees 44&times;44px.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Avatar and avatar stack attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="avatar"</code></td><td></td><td>The circle. A <code>&lt;span&gt;</code> when it only shows someone; an <code>&lt;a&gt;</code> or <code>&lt;button&gt;</code> when it acts.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>xs</code> 28, <code>sm</code> 36, <code>lg</code> 64, <code>xl</code> 96 (default 44)</td><td>On an avatar or on its stack.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code></td><td>The field behind the initials. Identity colour; never meaning.</td></tr>
+    <tr><td><code>data-presence</code></td><td><code>online</code>, <code>away</code>, <code>busy</code>, <code>offline</code></td><td>The dot and its shape. Also say it in the <code>aria-label</code>.</td></tr>
+    <tr><td><code>data-overflow</code></td><td></td><td>The "+3" that closes a stack: ink fill, paper text.</td></tr>
+    <tr><td><code>aria-current="true"</code> / <code>aria-pressed="true"</code></td><td></td><td>Pressable avatars: the frame doubles.</td></tr>
+    <tr><td><code>aria-disabled="true"</code></td><td></td><td>Pressable avatars: dashed frame, faint ink.</td></tr>
+    <tr><td><code>class="avatar-stack"</code></td><td></td><td>A <code>&lt;ul role="list"&gt;</code> of <code>&lt;li&gt;</code> avatars, overlapping by 22% of the diameter. Needs an <code>aria-label</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Avatar keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>A static avatar is not a tab stop. A link or button avatar is, with the standard ring.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activate a button avatar (<kbd>Enter</kbd> follows a link). Native elements give this for free.</td></tr>
+    <tr><td>Screen reader</td><td>"Maya Okafor, image", or "Your profile, link". The presence state is in the name. A stack reads as "Shared with Maya, Jonas, Priya and 3 more, list, 4 items".</td></tr>
+    <tr><td>Colour</td><td>Presence is a shape (circle, diamond, square, ring) and a word in the name. The field colour is identity, not meaning.</td></tr>
+    <tr><td>Touch</td><td>Pressable avatars keep a 44&times;44px hit area at every size. Stack items are not pressable; the overflow button is.</td></tr>
+    <tr><td>Zoom / text size</td><td>Sizes and initials are rem. The photo is cropped, never stretched.</td></tr>
+    <tr><td>Reduced motion</td><td>No travel on press; the fill and shadow change stays.</td></tr>
+    <tr><td>Forced colours</td><td>The frame becomes <code>CanvasText</code>; presence shapes repaint in system colours (offline stays empty); pressable avatars get a 4px <code>Highlight</code> outline.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--ok-ink</code>, <code>--warn-ink</code>, <code>--bad-ink</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--radius-ctl</code>, <code>--hit</code>, <code>--type-ctl</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>

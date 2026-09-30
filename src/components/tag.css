@@ -1,0 +1,171 @@
+/* ==========================================================================
+   Tag  (layer: sg.components)           replaces .wf-pill from the wireframe kit
+   --------------------------------------------------------------------------
+   A tag NAMES something: a kind, a status, a priority. You read it; you do not
+   press it. So it gets what static things get and nothing a pressable thing
+   gets: a 1px frame (--bw-thin divides, --bw frames what you press), no hard
+   shadow, no hover, no pointer. It is a pill because the owner's kit draws
+   status tags as pills; the thin frame and the missing shadow are what tell
+   people it is not a button. Something you can press or remove is a Chip.
+
+   <span class="tag">Deck</span>                                   neutral
+   <span class="tag" data-tone="3">Shapes</span>                   tone (rhythm, never meaning)
+   <span class="tag" data-tone="ok">Synced</span>                  status: icon AND words
+   <span class="tag" data-priority="high">High</span>              priority: bars AND words AND weight
+
+   data-tone      1…6 | ink | ok | warn | bad | info   (the tone's own colours; data-emphasis="bold" works)
+   data-variant   soft (default) | solid | outline
+   data-size      sm | md (default) | lg
+   data-priority  high | medium | low
+
+   NEVER COLOUR-ONLY (WCAG 1.4.1)
+   · A status tone (ok, warn, bad, info) without its own .ic gets a built-in glyph
+     (circle-check, triangle-alert, circle-x, info), so "green" can never be the
+     only thing that says "done". Put your own .ic inside to replace it.
+   · A priority draws three bars (all, two, one of them filled) in front of the
+     word AND changes the weight: high is solid, medium gets the heavier frame,
+     low is outline. Squint at it in data-palette="wire": the order survives.
+   · The words are always in the tag. A tag never relies on its colour to be read.
+
+   PRIVATE PROPERTIES (--_*) hold what variants change; the base rule consumes them.
+   --_glyph-* are mask drawings on the 24 grid with the guide's 2px square-cap
+   stroke (the bundled icons.css is optional, so the tag cannot depend on it).
+
+   CONTRAST is by construction: --tone-ink on --tone-bg (7:1), --tone-on-fill on
+   --tone-fill (4.5:1) for solid, --ink on --paper for neutral.
+   ========================================================================== */
+
+@layer sg.components {
+  .tag {
+    --_bg: var(--tone-bg, var(--paper));
+    --_ink: var(--tone-ink, var(--ink));
+    --_line: currentColor;
+    --_bw: var(--bw-thin);
+    --_h: 1.5rem;
+    --_px: var(--space-2);
+    --_fs: var(--text-sm);
+    --_glyph: none;
+
+    /* Lucide circle-check / triangle-alert / circle-x / info, re-stroked to 2px square caps */
+    --_glyph-ok: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m16 9-5.5 5.5L8 12'/%3E%3C/svg%3E");
+    --_glyph-warn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+    --_glyph-bad: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m15 9-6 6'/%3E%3Cpath d='m9 9 6 6'/%3E%3C/svg%3E");
+    --_glyph-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4'/%3E%3Cpath d='M12 8h.01'/%3E%3C/svg%3E");
+    /* three rising bars, bottom-aligned: filled = this level or below, outlined = above it */
+    --_glyph-high: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 14h6v8H2zM9 8h6v14H9zM16 2h6v20h-6z'/%3E%3C/svg%3E");
+    --_glyph-medium: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 14h6v8H2zM9 8h6v14H9z'/%3E%3Cpath d='M17 3h4v18h-4z' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E");
+    --_glyph-low: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 14h6v8H2z'/%3E%3Cpath d='M10 9h4v12h-4zM17 3h4v18h-4z' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E");
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* beside other content in a row, the OTHER content gives way; max-inline-size still stops it outgrowing the row */
+    gap: var(--space-1);
+    max-inline-size: 100%;
+    min-block-size: var(--_h);
+    padding: calc(var(--space-1) / 2) var(--_px);
+    margin: 0;
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--_bw) solid var(--_line);
+    border-radius: var(--radius-pill);
+    font: var(--type-meta);
+    font-size: var(--_fs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: center;
+    overflow-wrap: anywhere; /* a long tag wraps at 200% text rather than spilling out of its card */
+    cursor: default;
+
+    /* the glyph: status tones and priorities draw one unless the author put an .ic inside */
+    &::before {
+      content: none;
+      flex: none;
+      inline-size: 1.125em;
+      block-size: 1.125em;
+      background: currentColor;
+      mask: var(--_glyph) center / contain no-repeat;
+    }
+    & > .ic {
+      --ic-size: 1.125em;
+    }
+
+    /* ---- status: the glyph travels with the colour, so colour is never alone.
+       A priority wins over a status tone: "High" in the bad tone shows bars, not a cross. ---- */
+    &[data-tone="ok"]:not([data-priority], :has(> .ic)) {
+      --_glyph: var(--_glyph-ok);
+    }
+    &[data-tone="warn"]:not([data-priority], :has(> .ic)) {
+      --_glyph: var(--_glyph-warn);
+    }
+    &[data-tone="bad"]:not([data-priority], :has(> .ic)) {
+      --_glyph: var(--_glyph-bad);
+    }
+    &[data-tone="info"]:not([data-priority], :has(> .ic)) {
+      --_glyph: var(--_glyph-info);
+    }
+    &[data-priority]:not(:has(> .ic))::before,
+    &:is([data-tone="ok"], [data-tone="warn"], [data-tone="bad"], [data-tone="info"]):not(:has(> .ic))::before {
+      content: "";
+    }
+
+    /* ---- priority: bars + words + weight. Before the variants, so data-variant can still override ---- */
+    &[data-priority="high"] {
+      --_glyph: var(--_glyph-high);
+      --_bg: var(--tone-fill, var(--ink));
+      --_ink: var(--tone-on-fill, var(--paper));
+      --_line: var(--_bg);
+    }
+    &[data-priority="medium"] {
+      --_glyph: var(--_glyph-medium);
+      --_bw: var(--bw);
+    }
+    &[data-priority="low"] {
+      --_glyph: var(--_glyph-low);
+      --_bg: transparent;
+      --_ink: var(--tone-ink, currentColor);
+    }
+
+    /* ---- variants ---- */
+    &[data-variant="solid"] {
+      --_bg: var(--tone-fill, var(--ink));
+      --_ink: var(--tone-on-fill, var(--paper));
+      --_line: var(--_bg);
+    }
+    &[data-variant="outline"] {
+      --_bg: transparent;
+      --_ink: var(--tone-ink, currentColor);
+      --_line: currentColor;
+    }
+
+    /* ---- sizes: a tag is never pressed, so it may be smaller than 44px ---- */
+    &[data-size="sm"] {
+      --_h: 1.25rem;
+      --_fs: var(--text-xs);
+    }
+    &[data-size="lg"] {
+      --_h: 2rem;
+      --_px: var(--space-3);
+      --_fs: var(--text-md);
+    }
+  }
+
+  /* a tag inside something you press is part of it: it takes that element's pointer, not the arrow */
+  :is(a[href], button, summary, label) .tag {
+    cursor: inherit;
+  }
+
+  /* forced colours: fills vanish, so what was solid or weighty gets the heavier frame, and the glyph follows the text */
+  @media (forced-colors: active) {
+    .tag {
+      border-color: CanvasText;
+      &::before {
+        forced-color-adjust: none;
+        background-color: CanvasText;
+      }
+      &:is([data-variant="solid"], [data-priority="high"], [data-priority="medium"]) {
+        --_bw: var(--bw);
+      }
+    }
+  }
+}

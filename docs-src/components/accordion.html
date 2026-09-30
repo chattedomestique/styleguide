@@ -1,0 +1,252 @@
+<!--{"title":"Accordion","group":"Components","order":68,"summary":"Sections that fold away, built on native details and summary: one open at a time or many, as rows or as Card panels."}-->
+<style>
+  /* docs only: the article's list styles must not indent or re-space the specimens */
+  .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
+  .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
+  .docs-article .demo h3 { margin-block-start: 0; }
+</style>
+<h1>Accordion</h1>
+<p class="lede">Sections that fold away, so a long page stays short until you ask for more. It is the browser's own <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code>, drawn in the Card panel's language: a 2px frame, and an ink bar with a square control that shows + or −. No script.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it for content people may not need: answers, advanced settings, the details behind a number. Make each heading say what is inside, in a few words.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Hide what most people need to finish the task, nest one accordion in another, or use it to switch between views. That is a set of tabs.</p></div>
+  </div>
+</div>
+
+<h2 id="one-open">One open at a time</h2>
+<p>Give the items the same <code>name</code> and the browser keeps one open: opening another closes the first. No JavaScript is involved. Where <code>name</code> is not supported, items simply open independently, which is still correct.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="accordion">
+      <details class="accordion__item" name="faq-streaks" open>
+        <summary class="accordion__head"><span class="accordion__title">How does a streak work?</span></summary>
+        <div class="accordion__body">
+          <p>Study at least one card before midnight and your streak goes up by one. Miss a day and it starts again at zero, unless you still have a freeze.</p>
+        </div>
+      </details>
+      <details class="accordion__item" name="faq-streaks">
+        <summary class="accordion__head"><span class="accordion__title">Can I study without a connection?</span></summary>
+        <div class="accordion__body">
+          <p>Yes. Decks you have opened are saved on your device. Your progress is sent when you are back online.</p>
+        </div>
+      </details>
+      <details class="accordion__item" name="faq-streaks">
+        <summary class="accordion__head"><span class="accordion__title">What happens to cards I get wrong?</span></summary>
+        <div class="accordion__body">
+          <p>They come back sooner: tomorrow, then in three days, then weekly until you know them.</p>
+        </div>
+      </details>
+      <details class="accordion__item" name="faq-streaks">
+        <summary class="accordion__head"><span class="accordion__title">Can I share a deck?</span></summary>
+        <div class="accordion__body">
+          <p>Send a link. People you invite study their own copy, and you can see who is studying yours.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<h2 id="many-open">Many open</h2>
+<p>Leave <code>name</code> off and each item opens on its own, for settings or filters where people compare sections. The open items keep their bar, so you can see at a glance which are open without reading a thing.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="accordion">
+      <details class="accordion__item" open>
+        <summary class="accordion__head"><span class="accordion__title">Reminders</span></summary>
+        <div class="accordion__body">
+          <p>Remind me at 18:00 on days I have not studied. Quiet hours are 22:00 to 07:00.</p>
+        </div>
+      </details>
+      <details class="accordion__item">
+        <summary class="accordion__head"><span class="accordion__title">Sync</span></summary>
+        <div class="accordion__body">
+          <p>Decks sync on Wi-Fi only. The last sync was yesterday at 21:40.</p>
+        </div>
+      </details>
+      <details class="accordion__item" open>
+        <summary class="accordion__head"><span class="accordion__title">Privacy</span></summary>
+        <div class="accordion__body">
+          <p>Only people you invite can see your decks. Nobody sees your streak unless you share it.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<h2 id="panels">Panels</h2>
+<p>With <code>data-variant="panels"</code> each item is a Card panel of its own: framed, and the bar is always there, closed or open. Use it when the sections are the content (a dashboard of groups), not a list of questions. <code>data-tone</code> on an item tints its body; the ink tone flips the bar to paper, as on the card.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="accordion" data-variant="panels">
+      <details class="accordion__item" data-tone="1" name="panels-decks" open>
+        <summary class="accordion__head"><span class="accordion__title">Decks · 4</span></summary>
+        <div class="accordion__body">
+          <p>Shapes, Colours, Numbers to twenty and Farm animals. Eleven cards are due today.</p>
+        </div>
+      </details>
+      <details class="accordion__item" data-tone="2" name="panels-decks">
+        <summary class="accordion__head"><span class="accordion__title">Shared with me · 2</span></summary>
+        <div class="accordion__body">
+          <p>Spanish: travel, from Maya. Geography capitals, from Jonas.</p>
+        </div>
+      </details>
+      <details class="accordion__item" data-tone="ink" name="panels-decks">
+        <summary class="accordion__head"><span class="accordion__title">Archive</span></summary>
+        <div class="accordion__body">
+          <p>Decks you have finished. They keep their history and come back if you restore them.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<h2 id="states">States</h2>
+<p>A head is a pressable thing, so its states only set <code>--fill</code>: a tint of the head's own text colour laid over its fill. It never lifts, because it lives inside a frame. <code>open</code> is the native attribute; the control and the bar both follow it. The <code>is-*</code> classes below only force a state for this page.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 16rem">
+      <div>
+        <div class="accordion">
+          <details class="accordion__item">
+            <summary class="accordion__head"><span class="accordion__title">Closed</span></summary>
+            <div class="accordion__body"><p>Hidden.</p></div>
+          </details>
+        </div>
+        <p class="t-meta"><b>Rest.</b> Paper, a + control.</p>
+      </div>
+      <div>
+        <div class="accordion">
+          <details class="accordion__item" open>
+            <summary class="accordion__head"><span class="accordion__title">Open</span></summary>
+            <div class="accordion__body"><p>Shown, under an ink bar with a − control.</p></div>
+          </details>
+        </div>
+        <p class="t-meta"><b>Open.</b> Inverted bar, − control.</p>
+      </div>
+      <div>
+        <div class="accordion">
+          <details class="accordion__item">
+            <summary class="accordion__head is-hover"><span class="accordion__title">Hover</span></summary>
+            <div class="accordion__body"><p>Hidden.</p></div>
+          </details>
+        </div>
+        <p class="t-meta"><b>Hover.</b> A 12% tint of the text colour.</p>
+      </div>
+      <div>
+        <div class="accordion">
+          <details class="accordion__item">
+            <summary class="accordion__head is-focus"><span class="accordion__title">Focus</span></summary>
+            <div class="accordion__body"><p>Hidden.</p></div>
+          </details>
+        </div>
+        <p class="t-meta"><b>Focus.</b> Same tint, plus a 3px ring inside the head.</p>
+      </div>
+      <div>
+        <div class="accordion">
+          <details class="accordion__item">
+            <summary class="accordion__head is-active"><span class="accordion__title">Pressed</span></summary>
+            <div class="accordion__body"><p>Hidden.</p></div>
+          </details>
+        </div>
+        <p class="t-meta"><b>Pressed.</b> A deeper tint, straight away.</p>
+      </div>
+      <div>
+        <div class="accordion">
+          <details class="accordion__item">
+            <summary class="accordion__head" aria-disabled="true" aria-describedby="why-locked"><span class="accordion__title">Streak history</span></summary>
+            <div class="accordion__body"><p>Hidden.</p></div>
+          </details>
+        </div>
+        <p class="t-meta" id="why-locked"><b>Unavailable.</b> Faint, blocked, still focusable. The reason is in the text.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="context">In context</h2>
+<p>A settings screen: each section is an item, and its body is a <a href="@/components/list.html">List</a> that runs edge to edge (<code>data-flush</code>). One accordion, many items, each a single tab stop.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="stack" data-gap="4">
+          <h3 class="t-title">Settings</h3>
+          <div class="accordion">
+            <details class="accordion__item" name="settings" open>
+              <summary class="accordion__head"><span class="accordion__title">Study</span></summary>
+              <div class="accordion__body" data-flush>
+                <ul class="list" role="list">
+                  <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Cards per session</span></span><span class="list__trail"><span class="list__value">20</span><span class="list__chevron" aria-hidden="true"></span></span></a></li>
+                  <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Daily reminder</span></span><span class="list__trail"><span class="list__value">18:00</span><span class="list__chevron" aria-hidden="true"></span></span></a></li>
+                </ul>
+              </div>
+            </details>
+            <details class="accordion__item" name="settings">
+              <summary class="accordion__head"><span class="accordion__title">Account</span></summary>
+              <div class="accordion__body" data-flush>
+                <ul class="list" role="list">
+                  <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Email</span></span><span class="list__trail"><span class="list__value">maya@example.com</span></span></a></li>
+                </ul>
+              </div>
+            </details>
+            <details class="accordion__item" name="settings">
+              <summary class="accordion__head"><span class="accordion__title">About</span></summary>
+              <div class="accordion__body"><p>Version 1.4.0. Decks are stored on this device.</p></div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Frame</strong>: <code>.accordion</code>, 2px <code>--line</code>, <code>--radius-card</code>. Items are separated by 1px rules. In <code>panels</code> each item has its own frame.</li>
+  <li><strong>Head</strong>: the <code>&lt;summary&gt;</code>. At least 56px tall, the whole row is the target. Closed it is paper; open it is the bar (<code>--ink</code> fill, <code>--paper</code> text), as on the card.</li>
+  <li><strong>Control</strong>: a 20px square with a 2px frame (<code>--radius-ctl</code>) holding a 12px + or −, drawn by <code>::before</code> and <code>::after</code>, so there is nothing to forget in the markup.</li>
+  <li><strong>Title</strong>: <code>--type-ctl</code>, wraps; write the heading, not a sentence.</li>
+  <li><strong>Body</strong>: <code>--type-body</code> with 16px padding, at most <code>--measure</code> wide. <code>data-flush</code> removes the padding for a list or a grid.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Accordion attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="accordion"</code></td><td></td><td>The group. A <code>&lt;div&gt;</code> holding the items.</td></tr>
+    <tr><td><code>data-variant</code></td><td><code>panels</code> (default: rows)</td><td>Rows: one frame, hairlines between, a bar only on open items. Panels: each item is its own framed panel with its bar always on.</td></tr>
+    <tr><td><code>class="accordion__item"</code></td><td></td><td>A <code>&lt;details&gt;</code>. The same <code>name</code> on several makes them exclusive. <code>open</code> opens it.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code></td><td>On an item: tints its body. Tone is rhythm, not meaning.</td></tr>
+    <tr><td><code>class="accordion__head"</code></td><td></td><td>The <code>&lt;summary&gt;</code>. <code>aria-disabled="true"</code> makes it unavailable and keeps it focusable.</td></tr>
+    <tr><td><code>class="accordion__title"</code></td><td></td><td>Wrap the heading text in it.</td></tr>
+    <tr><td><code>class="accordion__body"</code></td><td><code>data-flush</code></td><td>The content. Flush: no padding, no measure limit.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Accordion keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Each head is a tab stop, in page order. Closed content is out of the tab order; open content is in it. The ring is drawn inside the head, in paper on a bar.</td></tr>
+    <tr><td>Arrow keys</td><td>Not bound. The WAI-ARIA accordion pattern makes <kbd>Up</kbd> / <kbd>Down</kbd> / <kbd>Home</kbd> / <kbd>End</kbd> between heads optional, and native <code>&lt;summary&gt;</code> does not do it; <kbd>Tab</kbd> moves between heads.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Toggle the focused head. Native <code>&lt;summary&gt;</code> does this. Focus stays on the head.</td></tr>
+    <tr><td>Screen reader</td><td>The head is a focusable disclosure control named by its text, with an expanded or collapsed state; Chromium exposes exactly that. Nothing is added in script, so the state always matches what you see. VoiceOver, TalkBack and NVDA are not verified.</td></tr>
+    <tr><td>Colour</td><td>Open is an inverted bar, a − sign and the native expanded state; closed is paper and a + sign. None of it is colour.</td></tr>
+    <tr><td>Touch</td><td>The whole head is the target, at least 56px tall. No gesture is involved.</td></tr>
+    <tr><td>Zoom / text size</td><td>Heads grow and wrap at 200% text; the control stays 20px.</td></tr>
+    <tr><td>Reduced motion</td><td>Opening fades the body in and drops it 8px. Reduced motion removes the drop and keeps the fade. Closing is instant.</td></tr>
+    <tr><td>Forced colours</td><td>Frames become <code>CanvasText</code>; the open head gets a 4px line under it and the − sign; hover and focus get a 4px <code>Highlight</code> outline inside the head.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-card</code>, <code>--radius-ctl</code>, <code>--icon-plus</code>, <code>--icon-minus</code>, <code>--type-ctl</code>, <code>--type-body</code>, <code>--measure</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--move</code>.</p>

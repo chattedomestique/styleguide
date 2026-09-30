@@ -1,0 +1,157 @@
+<!--{"title":"Tag","group":"Components","order":62,"summary":"A small pill that names a kind, a status or a priority. Read, never pressed. Replaces the wireframe .wf-pill."}-->
+<h1>Tag</h1>
+<p class="lede">A tag names something: what kind of thing this is, where it stands, how much it matters. You read it; you do not press it. It is the real version of the wireframe's <code>.wf-pill</code>.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Keep the words in the tag and make them short: <em>Synced</em>, <em>Due tomorrow</em>, <em>High</em>. Status and priority already carry a symbol; the words are what a screen reader gets.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Put something you can press in a tag. A filter, a toggle or a removable chip is a <a href="@/components/chip.html">Chip</a>. A tag has no hover, no shadow and no pointer, so nobody tries.</p></div>
+  </div>
+</div>
+<p>Tag or Chip: if tapping it should do something, it is a chip. If it only tells you something, it is a tag.</p>
+
+<h2 id="variants">Variants</h2>
+<p>A tag is a pill with a thin frame (1px; the 2px frame is for what you press). The default is paper with ink text. <code>data-tone</code> gives it a tone, which is for rhythm across a screen, never for meaning.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="tag">Deck</span>
+    <span class="tag" data-tone="1">Shapes</span>
+    <span class="tag" data-tone="2">Colours</span>
+    <span class="tag" data-tone="3">Numbers to twenty</span>
+    <span class="tag" data-tone="4">Farm animals</span>
+    <span class="tag" data-tone="ink">Shared</span>
+  </div>
+</div>
+<p><code>data-variant</code> changes how much fill it carries: <code>soft</code> (the default), <code>solid</code> (the tone's saturated fill) and <code>outline</code> (no fill; it takes the colour of whatever it sits on).</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="tag" data-tone="2">Soft</span>
+    <span class="tag" data-tone="2" data-variant="solid">Solid</span>
+    <span class="tag" data-tone="2" data-variant="outline">Outline</span>
+    <span class="tag" data-variant="solid">Solid, no tone</span>
+    <span class="tag" data-tone="3" data-emphasis="bold">Bold</span>
+  </div>
+</div>
+
+<h2 id="status">Status: a symbol and words</h2>
+<p>The four status tones are <code>ok</code>, <code>warn</code>, <code>bad</code> and <code>info</code>. A tag in one of them draws its own symbol (check, warning, cross, info) before the words, so the colour is never the only thing that says <em>done</em> or <em>failed</em>. To use a different symbol, put your own <code>&lt;span class="ic"&gt;</code> inside and the built-in one steps aside.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="tag" data-tone="ok">Synced</span>
+    <span class="tag" data-tone="warn">Due tomorrow</span>
+    <span class="tag" data-tone="bad">Sync failed</span>
+    <span class="tag" data-tone="info">12 new cards</span>
+    <span class="tag" data-tone="ok" data-variant="solid">Paid</span>
+    <span class="tag" data-tone="bad" data-variant="solid">Overdue</span>
+    <span class="tag" data-tone="warn"><span class="ic ic--clock" aria-hidden="true"></span>Expires in 2 days</span>
+  </div>
+</div>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--eye" aria-hidden="true"></span>
+  <div><strong>Not colour alone</strong><p>Switch the palette to <em>Wire</em> in Appearance: every status still reads, by its symbol and its words. That is the test.</p></div>
+</div>
+
+<h2 id="priority">Priority: bars, words and weight</h2>
+<p>Priority is an order, and an order needs more than a hue. <code>data-priority</code> draws three rising bars (all filled, two, one) in front of the word, and changes the weight of the tag: <em>high</em> is solid, <em>medium</em> gets the heavier 2px frame, <em>low</em> is outline. Add a tone to colour it, or leave it neutral.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="tag" data-priority="high">High</span>
+    <span class="tag" data-priority="medium">Medium</span>
+    <span class="tag" data-priority="low">Low</span>
+    <span class="tag" data-priority="high" data-tone="bad">High</span>
+    <span class="tag" data-priority="medium" data-tone="warn">Medium</span>
+    <span class="tag" data-priority="low" data-tone="info">Low</span>
+  </div>
+</div>
+
+<h2 id="sizes">Sizes</h2>
+<p>Small (20px), medium (24px, the default) and large (32px). A tag is never pressed, so it is allowed to be under 44px. Heights are minimums in rem: at 200% text a tag grows and its words wrap.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="tag" data-size="sm" data-tone="1">Streak 4</span>
+    <span class="tag" data-tone="1">Streak 4</span>
+    <span class="tag" data-size="lg" data-tone="1">Streak 4</span>
+    <span class="tag" data-size="sm" data-tone="ok">Known</span>
+    <span class="tag" data-tone="ok">Known</span>
+    <span class="tag" data-size="lg" data-tone="ok">Known</span>
+  </div>
+</div>
+
+<h2 id="states">States</h2>
+<p>A tag has none, on purpose. No hover, no focus, no pressed, no disabled: those all say "this is a control", and a tag is not one. The cursor stays an arrow (inside a link or a button it takes that element's pointer), it casts no shadow, and it is not a tab stop. It is the same pill in square and soft corners, because a pill is what a tag is. If a tag starts needing a state, it has become a <a href="@/components/chip.html">Chip</a>.</p>
+
+<h2 id="context">In context</h2>
+<p>On a card, tags sit under the eyebrow or in the foot. On a toned card the default tag stays paper with ink text, so it reads on any tone. In a list row the trail is the place for one.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 15rem">
+      <article class="card" data-tone="3">
+        <div class="card__body">
+          <div class="cluster">
+            <span class="tag" data-size="sm">Deck · 20 cards</span>
+            <span class="tag" data-size="sm" data-tone="ok">Known</span>
+          </div>
+          <p class="card__title">Numbers to twenty</p>
+          <p class="card__meta">Last studied yesterday. Eleven known, nine to go.</p>
+        </div>
+        <footer class="card__foot"><span>Next review</span><span class="tag" data-priority="high" data-size="sm">Today</span></footer>
+      </article>
+      <article class="card">
+        <div class="card__body">
+          <div class="cluster">
+            <span class="tag" data-size="sm">Wallet</span>
+            <span class="tag" data-size="sm" data-tone="warn">Needs review</span>
+          </div>
+          <p class="card__title">Electric bill</p>
+          <p class="card__meta">−$62.40 · due 14 October</p>
+        </div>
+        <footer class="card__foot"><span>Priority</span><span class="tag" data-priority="medium" data-size="sm">Medium</span></footer>
+      </article>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Pill</strong>: <code>--radius-pill</code>, a 1px frame in the text colour (<code>--bw-thin</code>). The frame is a real border, so forced-colours mode still draws the tag.</li>
+  <li><strong>Symbol</strong> (status and priority): a 1.125em mask in the text colour, drawn before the words.</li>
+  <li><strong>Words</strong>: <code>--type-meta</code> at weight 600, sentence case, tabular figures. They wrap rather than spill at large text.</li>
+  <li><strong>Fill</strong>: <code>--tone-bg</code> (soft), <code>--tone-fill</code> (solid) or none (outline). Neutral is <code>--paper</code>.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Tag attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="tag"</code></td><td></td><td>The tag. A <code>&lt;span&gt;</code> or <code>&lt;li&gt;</code>; never a link or a button.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code>, <code>ok</code>, <code>warn</code>, <code>bad</code>, <code>info</code></td><td>The fill and text colours. The four status tones also draw a symbol unless you supply an <code>.ic</code>.</td></tr>
+    <tr><td><code>data-emphasis</code></td><td><code>bold</code></td><td>A saturated mid-dark fill with near-white text, on the same element as <code>data-tone</code>.</td></tr>
+    <tr><td><code>data-variant</code></td><td><code>solid</code>, <code>outline</code> (default: soft)</td><td>How much fill. Solid reads <code>--tone-fill</code> and <code>--tone-on-fill</code>; with no tone it is ink and paper.</td></tr>
+    <tr><td><code>data-priority</code></td><td><code>high</code>, <code>medium</code>, <code>low</code></td><td>Three bars, plus solid, framed or outline weight. An explicit <code>data-variant</code> still wins.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code> (20), <code>lg</code> (32) (default 24)</td><td>Minimum height and text size.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Tag keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Not a tab stop. A tag is text. If it needs to be reachable it is a chip or a link.</td></tr>
+    <tr><td>Screen reader</td><td>Reads the words in place ("Sync failed"). The symbols are masks with no text, so they are silent and the words do the work. Do not repeat the status in an <code>aria-label</code>.</td></tr>
+    <tr><td>Colour</td><td>Status has a symbol and words; priority has bars, words and weight; tone is rhythm only. Text is 7:1 (<code>--tone-ink</code> on <code>--tone-bg</code>) or 4.5:1 on a solid fill.</td></tr>
+    <tr><td>Touch</td><td>Nothing to hit. If you put a tag inside a link or a button, the target is that element's.</td></tr>
+    <tr><td>Zoom / text size</td><td>Height is a minimum in rem and the words wrap at 200% text and at 320px.</td></tr>
+    <tr><td>Reduced motion</td><td>A tag does not move.</td></tr>
+    <tr><td>Forced colours</td><td>The frame becomes <code>CanvasText</code>, symbols follow the text, and what was solid or medium gets the 2px frame so the weight still shows.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-pill</code>, <code>--type-meta</code>, <code>--text-xs</code>, <code>--text-sm</code>, <code>--text-md</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>.</p>
