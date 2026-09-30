@@ -1,0 +1,204 @@
+/* ==========================================================================
+   App bar  (layer: sg.components)                          the top bar of a screen
+   --------------------------------------------------------------------------
+   The strip at the top of a screen: where you are, how to go back, and one or two
+   actions. The title IS the page heading: an <h1> on a page, an <h2> inside a sheet
+   or dialog. Back is a real <a> or <button> with a name that says where it goes,
+   never a bare icon. Every control in it is a .btn (circle): the bar adds no buttons.
+
+   <header class="appbar">                               STANDARD
+     <a class="btn" data-shape="circle" data-size="sm" href="/" aria-label="Back to Inbox"><span class="ic ic--arrow-left" aria-hidden="true"></span></a>
+     <h1 class="appbar__title">Account</h1>
+     <div class="appbar__end"><button class="btn" data-shape="circle" data-size="sm" aria-label="Edit profile">…</button></div>
+   </header>
+
+   data-variant   (none) standard | greeting | editor | search
+   data-tone      the bar takes the tone: data-tone="ink" is the inverted strip (paper text on an ink
+                  fill, as the owner's card bar), "1"…"6" a hue, "ok|warn|bad|info" a status
+   data-sticky    stays at the top while content scrolls; bleeds to the screen edges of .app
+
+   greeting   <div class="appbar__heading"><p class="appbar__eyebrow">Good morning</p><h1 class="appbar__title">Taylor</h1></div>
+              + one trailing action. A small eyebrow over a large name; no rule under it.
+   editor     cancel × | title (+ help) | apply ✓. The tool-tray pattern: cancel always on one side,
+              apply always on the other, so it is learned once.
+   search     back | search field | add. The field is a real <input type="search"> with a name.
+
+   A BAR IS A FRAME, NOT A BUTTON: flat (no shadow), a 2px rule under it, the title an uppercase bar
+   label (--type-label; "uppercase is structure") except in the greeting, which is a sentence.
+   The bar owns its colours as two private properties (--_bg, --_ink). Buttons and the focus ring
+   inside follow them: on an ink bar a button inverts (paper fill, ink text) and the ring is paper,
+   or it would vanish into the bar.
+
+   --appbar-h  src/js/41-bars.js measures a sticky bar and publishes its height, so
+   html { scroll-padding-block-start } keeps a focused element clear of it (WCAG 2.4.11).
+   Without JS the :root rule below supplies an estimate. A bar inside [data-chrome-scope]
+   (a preview frame) publishes on the frame, not on <html>.
+
+   Private properties (--_*): --_bg --_ink --_ink-soft --_h (height of the controls in the row)
+   ========================================================================== */
+
+@layer sg.components {
+  :root:has(.appbar[data-sticky]:not([hidden], [data-chrome-scope] *)) {
+    --appbar-h: calc(var(--ctl-sm) + 2 * var(--space-2) + var(--bw) + var(--safe-top));
+  }
+
+  .appbar {
+    --_bg: var(--tone-bg, var(--canvas));
+    --_ink: var(--tone-ink, var(--ink));
+    --_ink-soft: var(--tone-ink-soft, var(--ink-soft));
+    --_h: var(--ctl-sm);
+    --focus: var(--_ink); /* the ring follows the surface */
+
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: calc(var(--_h) + 2 * var(--space-2));
+    padding-block: var(--space-2);
+    color: var(--_ink);
+    background: var(--_bg);
+    border-block-end: var(--bw) solid var(--line);
+
+    &[data-sticky] {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: var(--z-sticky);
+      /* bleed to the screen edges inside the padded .app column, and pad the status bar */
+      margin-inline: calc(-1 * max(var(--gutter), var(--safe-left))) calc(-1 * max(var(--gutter), var(--safe-right)));
+      padding-block-start: calc(var(--space-2) + var(--safe-top));
+      padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+    }
+  }
+
+  /* inside the bar: the halo that separates the ring from the control is the BAR's colour, not paper */
+  .appbar :focus-visible {
+    --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--_bg);
+  }
+
+  /* buttons invert with the bar: fill = the bar's ink, text = the bar's fill, frame = the bar's ink */
+  .appbar .btn {
+    --_rest-bg: var(--_bg);
+    --_rest-ink: var(--_ink);
+    --_on-bg: var(--_ink);
+    --_on-ink: var(--_bg);
+    --line: var(--_ink);
+  }
+
+  .appbar__title {
+    flex: 1 1 0;
+    min-inline-size: 0;
+    margin: 0;
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  /* a title with something else beside it (an eyebrow above, a help button next to it) */
+  .appbar__heading {
+    flex: 1 1 0;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+
+    & > .appbar__title {
+      flex: none;
+    }
+  }
+  .appbar__eyebrow {
+    margin: 0;
+    color: var(--_ink-soft);
+    font: var(--type-meta);
+  }
+
+  .appbar__start,
+  .appbar__end {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* ---- Greeting: a small eyebrow over a large name, one action at the end ----------------------- */
+  .appbar[data-variant="greeting"] {
+    padding-block: var(--space-3);
+    border-block-end-color: transparent; /* a real edge for forced colours, invisible otherwise */
+
+    & .appbar__title {
+      font: var(--type-title);
+      letter-spacing: var(--ls-title);
+      text-transform: none;
+    }
+  }
+
+  /* ---- Editor: cancel | title + help | apply ---------------------------------------------------- */
+  .appbar[data-variant="editor"] {
+    justify-content: space-between;
+
+    & .appbar__heading {
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      column-gap: var(--space-1);
+      text-align: center;
+    }
+    & .appbar__title {
+      flex: none;
+      max-inline-size: 100%;
+      font-size: var(--text-md);
+      text-align: center;
+    }
+    /* keep the centre title centred even when one side is wider than the other */
+    & > .btn {
+      flex: none;
+    }
+  }
+
+  /* ---- Search: back | field | add ---------------------------------------------------------------- */
+  .appbar[data-variant="search"] {
+    --_h: var(--ctl);
+  }
+  .appbar__search {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    min-inline-size: 0;
+    margin: 0;
+
+    & > .ic {
+      position: absolute;
+      inset-inline-start: var(--space-3);
+      color: var(--ink-soft);
+      pointer-events: none;
+    }
+  }
+  .appbar__input {
+    inline-size: 100%;
+    min-block-size: var(--ctl);
+    margin: 0;
+    padding-block: var(--space-2);
+    padding-inline: calc(var(--space-3) + var(--ic-size, 1.25rem) + var(--space-2)) var(--space-3);
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+    font: var(--type-body); /* 16px: iOS does not zoom the page on focus */
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  /* ---- Forced colours ---------------------------------------------------------------------------- */
+  @media (forced-colors: active) {
+    .appbar {
+      border-block-end-color: CanvasText;
+      background: Canvas;
+    }
+    .appbar__input {
+      border-color: FieldText;
+      background: Field;
+      color: FieldText;
+    }
+  }
+}

@@ -1,0 +1,252 @@
+<!--{"title":"Dock","group":"Components","order":45,"summary":"Bottom navigation: a floating pill or a full-width bar, icon and word per destination, a current-page fill, an optional round centre action."}-->
+<h1>Dock</h1>
+<p class="lede">The dock is the app's main navigation: three to five places, at the bottom where a thumb rests. Each one is an icon <em>and</em> a word. One of them is lit, and says so to everyone.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it for the three to five top-level areas of an app, the same on every screen and in the same order: <em>Study, Decks, Stats, Profile</em>. One short word each.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it for views of one screen (<a href="@/components/tabs.html">tabs</a>), for a setting such as a date range (<a href="@/components/segmented.html">segmented control</a>), or for where you are in a hierarchy (<a href="@/components/breadcrumb.html">breadcrumb</a>). Don't add a sixth item, hide the words to fit more, or put a destructive action in it.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+<p>The docks on this page are either in flow (<code>data-position="static"</code>) or inside a preview frame, so none of them covers the page you are reading. In an app the default <code>position: fixed</code> floats the dock above the safe area. Click an item to move the lit one.</p>
+
+<h3 id="basic">Floating pill</h3>
+<p>The default: a paper pill with a 2px frame. The current destination is a filled pill with a heavier word, and <code>aria-current="page"</code> tells assistive technology the same. A hover tints an item; a press fills it at once.</p>
+<div class="demo">
+  <div class="demo__stage" style="padding-inline: var(--space-2)">
+    <nav class="dock" data-position="static" aria-label="Main" data-dock-demo>
+      <ul class="dock__list" role="list">
+        <li><a class="dock__item" href="#basic" aria-current="page"><span class="ic ic--book-open" aria-hidden="true"></span><span class="dock__label">Study</span></a></li>
+        <li><a class="dock__item" href="#basic"><span class="ic ic--layers" aria-hidden="true"></span><span class="dock__label">Decks</span></a></li>
+        <li><a class="dock__item" href="#basic"><span class="ic ic--chart-column" aria-hidden="true"></span><span class="dock__label">Stats</span></a></li>
+        <li><a class="dock__item" href="#basic"><span class="ic ic--user" aria-hidden="true"></span><span class="dock__label">Profile</span></a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<h3 id="action">Ink, with a centre action</h3>
+<p><code>data-tone="ink"</code> inverts the dock: paper icons on an ink pill, and a paper pill for the current item. One primary action can sit in the middle. It is an <em>action</em>, not a destination, so it is a large circular <a href="@/components/button.html">button</a>: the only member without a visible word, with an <code>aria-label</code>. Use it for the thing people do most often.</p>
+<div class="demo">
+  <div class="demo__stage" style="padding-inline: var(--space-2)">
+    <nav class="dock" data-position="static" data-tone="ink" aria-label="Main, with action" data-dock-demo>
+      <ul class="dock__list" role="list">
+        <li><a class="dock__item" href="#action" aria-current="page"><span class="ic ic--house" aria-hidden="true"></span><span class="dock__label">Home</span></a></li>
+        <li><a class="dock__item" href="#action"><span class="ic ic--chart-column" aria-hidden="true"></span><span class="dock__label">Stats</span></a></li>
+        <li><button class="btn dock__action" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-label="Add transaction"><span class="ic ic--plus" aria-hidden="true"></span></button></li>
+        <li><a class="dock__item" href="#action"><span class="ic ic--wallet" aria-hidden="true"></span><span class="dock__label">Pots</span></a></li>
+        <li><a class="dock__item" href="#action"><span class="ic ic--user" aria-hidden="true"></span><span class="dock__label">You</span></a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<h3 id="tone">Tonal</h3>
+<p>Any tone works. The current item takes the tone's solid fill, so the dock stays one family.</p>
+<div class="demo">
+  <div class="demo__stage" style="padding-inline: var(--space-2)">
+    <nav class="dock" data-position="static" data-tone="4" aria-label="Main, tonal" data-dock-demo>
+      <ul class="dock__list" role="list">
+        <li><a class="dock__item" href="#tone" aria-current="page"><span class="ic ic--house" aria-hidden="true"></span><span class="dock__label">Home</span></a></li>
+        <li><a class="dock__item" href="#tone"><span class="ic ic--wallet" aria-hidden="true"></span><span class="dock__label">Wallet</span></a></li>
+        <li><a class="dock__item" href="#tone"><span class="ic ic--chart-column" aria-hidden="true"></span><span class="dock__label">Stats</span></a></li>
+        <li><a class="dock__item" href="#tone"><span class="ic ic--user" aria-hidden="true"></span><span class="dock__label">Profile</span></a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<h3 id="bar">Full width</h3>
+<p><code>data-variant="bar"</code> runs edge to edge with a rule above it and the safe area inside, for apps that want a conventional tab bar. The items are the same; only the container changes.</p>
+<div class="demo">
+  <div class="demo__stage" style="padding-inline: var(--space-2)">
+    <nav class="dock" data-position="static" data-variant="bar" aria-label="Main, full width" data-dock-demo>
+      <ul class="dock__list" role="list">
+        <li><a class="dock__item" href="#bar" aria-current="page"><span class="ic ic--house" aria-hidden="true"></span><span class="dock__label">Home</span></a></li>
+        <li><a class="dock__item" href="#bar"><span class="ic ic--layers" aria-hidden="true"></span><span class="dock__label">Decks</span></a></li>
+        <li><a class="dock__item" href="#bar"><span class="ic ic--chart-column" aria-hidden="true"></span><span class="dock__label">Stats</span></a></li>
+        <li><a class="dock__item" href="#bar"><span class="ic ic--settings" aria-hidden="true"></span><span class="dock__label">Settings</span></a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<h3 id="badge">With a count</h3>
+<p>A count is visible text, and its meaning is in the item's name: a screen reader hears <em>"Inbox, 3 unread"</em>, not just "Inbox". Put <code>data-tone="bad"</code> on the badge if it is an alert.</p>
+<div class="demo">
+  <div class="demo__stage" style="padding-inline: var(--space-2)">
+    <nav class="dock" data-position="static" aria-label="Main, with a count" data-dock-demo>
+      <ul class="dock__list" role="list">
+        <li><a class="dock__item" href="#badge" aria-current="page"><span class="ic ic--house" aria-hidden="true"></span><span class="dock__label">Home</span></a></li>
+        <li><a class="dock__item" href="#badge"><span class="ic ic--mail" aria-hidden="true"></span><span class="dock__label">Inbox</span><span class="dock__badge" data-tone="bad">3<span class="sr-only"> unread</span></span></a></li>
+        <li><a class="dock__item" href="#badge"><span class="ic ic--settings" aria-hidden="true"></span><span class="dock__label">Settings</span></a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<h3 id="compact">Compact</h3>
+<p><code>data-compact</code> keeps the icon for every item but shows the word only for the current one, which widens into a pill. The other words are hidden <em>visually</em>; they stay in each link's name. Use it when width is short and the icons are universal; never as the place to start.</p>
+<div class="demo">
+  <div class="demo__stage" style="padding-inline: var(--space-2)">
+    <nav class="dock" data-position="static" data-compact aria-label="Main, compact" data-dock-demo>
+      <ul class="dock__list" role="list">
+        <li><a class="dock__item" href="#compact" aria-current="page"><span class="ic ic--house" aria-hidden="true"></span><span class="dock__label">Home</span></a></li>
+        <li><a class="dock__item" href="#compact"><span class="ic ic--chart-column" aria-hidden="true"></span><span class="dock__label">Stats</span></a></li>
+        <li><a class="dock__item" href="#compact"><span class="ic ic--credit-card" aria-hidden="true"></span><span class="dock__label">Cards</span></a></li>
+        <li><a class="dock__item" href="#compact"><span class="ic ic--user" aria-hidden="true"></span><span class="dock__label">Profile</span></a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<div class="note" data-kind="a11y" id="why-labels">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div>
+    <strong>Words beat icons</strong>
+    <p>Icon-only bars make people guess. Is the document icon "Statements" or "Invoices"? Is the lightning bolt "Activity" or "Shortcuts"? A visible word removes the guess, helps people with cognitive or low-vision needs, is what voice-control users say to tap an item (WCAG 2.5.3 Label in Name), and means the screen reader and the screen agree. It costs about 15px of height. Compact mode is for icons everyone already knows.</p>
+  </div>
+</div>
+
+<h3 id="states">States</h3>
+<p>Rest is any item in the docks above. Hover tints, a press fills at once, the current item is filled and heavier, and an unavailable one is dashed and explains itself. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo">
+  <div class="demo__stage" style="padding-inline: var(--space-2)">
+    <nav class="dock" data-position="static" aria-label="Main, states" data-dock-demo>
+      <ul class="dock__list" role="list">
+        <li><a class="dock__item is-hover" href="#states"><span class="ic ic--layers" aria-hidden="true"></span><span class="dock__label">Hover</span></a></li>
+        <li><a class="dock__item is-active" href="#states"><span class="ic ic--chart-column" aria-hidden="true"></span><span class="dock__label">Press</span></a></li>
+        <li><a class="dock__item" href="#states" aria-current="page"><span class="ic ic--user" aria-hidden="true"></span><span class="dock__label">Now</span></a></li>
+        <li><a class="dock__item" href="#states" aria-disabled="true" aria-describedby="dock-why"><span class="ic ic--lock" aria-hidden="true"></span><span class="dock__label">Soon</span></a></li>
+      </ul>
+    </nav>
+    <p class="t-meta" id="dock-why">Locked until you finish your first deck.</p>
+  </div>
+</div>
+
+<h2 id="space">Keeping content clear of the dock</h2>
+<p>A floating dock covers the bottom of the page, and WCAG 2.4.11 says a focused control must never be entirely hidden behind it. The dock solves this by <em>telling the page how tall it is</em>: <code>src/js/41-bars.js</code> measures it with a <code>ResizeObserver</code> and publishes <code>--dock-h</code>, and the foundation uses it in two places:</p>
+<ul>
+  <li><code>.app__main</code> gets bottom padding of the dock's height, the safe area and some air, so the last row can be scrolled fully above the dock.</li>
+  <li><code>html</code> gets the same amount as <code>scroll-padding-block-end</code>, so when you Tab to a control or follow an anchor, the browser scrolls it clear of the dock instead of leaving it behind.</li>
+</ul>
+<p>The frame below is a real, scrolling <code>position: fixed</code> dock inside a preview. It has <code>contain: layout</code>, which makes the frame (and not the window) the thing a fixed dock is pinned to, and <code>data-chrome-scope</code>, so <code>--dock-h</code> is published on the frame and not on this page. The page scrolls in <code>&lt;html&gt;</code> in a real app, where the foundation's <code>scroll-padding</code> does the work; this frame scrolls itself, so it repeats that one line. Tab into the list: each row scrolls into view above the dock, and the last one can be reached. Switch on <em>Large</em> text: the dock grows and the space follows.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone" data-chrome-scope style="contain: layout">
+      <div class="app" style="block-size: 28rem; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: var(--space-3) calc(var(--dock-h) + var(--space-3))">
+        <div class="app__main">
+          <p class="t-title">Activity</p>
+          <article class="card">
+            <ul class="card__list" role="list">
+              <li><a href="#space">Coffee</a><span class="num">−$4.20</span></li>
+              <li><a href="#space">Groceries</a><span class="num">−$62.80</span></li>
+              <li><a href="#space">Salary</a><span class="num">+$2,400.00</span></li>
+              <li><a href="#space">Train pass</a><span class="num">−$86.00</span></li>
+              <li><a href="#space">Books</a><span class="num">−$23.50</span></li>
+              <li><a href="#space">Refund</a><span class="num">+$19.99</span></li>
+              <li><a href="#space">Gym</a><span class="num">−$35.00</span></li>
+              <li><a href="#space">Last row</a><span class="num">−$1.00</span></li>
+            </ul>
+          </article>
+        </div>
+      </div>
+      <nav class="dock" aria-label="Main, in a scrolling frame" data-dock-demo>
+        <ul class="dock__list" role="list">
+          <li><a class="dock__item" href="#space" aria-current="page"><span class="ic ic--house" aria-hidden="true"></span><span class="dock__label">Home</span></a></li>
+          <li><a class="dock__item" href="#space"><span class="ic ic--chart-column" aria-hidden="true"></span><span class="dock__label">Stats</span></a></li>
+          <li><a class="dock__item" href="#space"><span class="ic ic--user" aria-hidden="true"></span><span class="dock__label">Profile</span></a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+<p>In your app there is nothing to wire up: load <code>styleguide.js</code>, use <code>.app</code> and <code>.app__main</code>, and the dock reserves its own space. Without JavaScript a CSS estimate is used. On very short screens (landscape phones, large zoom) a floating dock stops floating and sits at the end of the page, as WCAG 1.4.10 advises.</p>
+
+<h3 id="app">In an app</h3>
+<pre style="overflow-x: auto; padding: var(--space-4); border: var(--bw-thin) solid var(--line); background: var(--paper-2)"><code>&lt;div class="app"&gt;
+  &lt;header class="appbar"&gt;…&lt;/header&gt;
+  &lt;main class="app__main"&gt;…&lt;/main&gt;
+&lt;/div&gt;
+&lt;nav class="dock" aria-label="Main"&gt;…&lt;/nav&gt;   &lt;!-- fixed, safe-area aware --&gt;</code></pre>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Container</strong> (<code>.dock</code>, a <code>&lt;nav&gt;</code>): a pill (floating) or a full-width bar, with a 2px frame. It floats <code>--safe-bottom</code> plus 12px above the screen edge and clears the notch at the sides. A canvas-coloured keyline keeps it apart from what scrolls beneath.</li>
+  <li><strong>Destination</strong> (<code>.dock__item</code>): a link or button, 56px tall, at least 44px wide. A 24px icon over a 13px uppercase word.</li>
+  <li><strong>Current cell</strong>: a filled pill with a heavier word, plus <code>aria-current="page"</code>.</li>
+  <li><strong>Centre action</strong> (optional): a large circular button with an <code>aria-label</code>.</li>
+  <li><strong>Count badge</strong> (optional): a visible number, its meaning in screen-reader text.</li>
+  <li><strong>Safe area</strong>: <code>--safe-bottom</code> under the row, and at the sides.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Dock classes and attributes</caption>
+  <thead><tr><th>Name</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="dock"</code></td><td>on a <code>&lt;nav aria-label="Main"&gt;</code></td><td>The container. Fixed at the bottom by default.</td></tr>
+    <tr><td><code>dock__list</code>, <code>dock__item</code>, <code>dock__label</code></td><td></td><td>The list, a link or button, and its visible word.</td></tr>
+    <tr><td><code>dock__action</code> with <code>btn</code></td><td>a <code>&lt;button&gt;</code> circle, large, primary</td><td>The optional centre action.</td></tr>
+    <tr><td><code>dock__badge</code></td><td>number + <code>sr-only</code> meaning; <code>data-tone="bad"</code></td><td>A count on an item.</td></tr>
+    <tr><td><code>aria-current="page"</code></td><td>on the current item</td><td>The filled pill. Exactly one per dock.</td></tr>
+    <tr><td><code>data-variant</code></td><td><code>bar</code> (default: floating)</td><td>Full width, edge to edge.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>ink</code>, <code>1</code>&ndash;<code>6</code></td><td>Dock colours; the centre action and the ring follow.</td></tr>
+    <tr><td><code>data-compact</code></td><td></td><td>Words of inactive items hidden visually, kept in the name.</td></tr>
+    <tr><td><code>data-position</code></td><td><code>static</code>, <code>absolute</code>, <code>sticky</code></td><td>Do not float. For previews and embedded frames; publishes no <code>--dock-h</code> unless sticky.</td></tr>
+    <tr><td><code>data-chrome-scope</code> on an ancestor</td><td></td><td>Publish <code>--dock-h</code> / <code>--appbar-h</code> there instead of on <code>&lt;html&gt;</code>.</td></tr>
+    <tr><td><code>--dock-h</code></td><td>length, set by script</td><td>Dock height + gap, without the safe area. Read by <code>.app__main</code> and <code>scroll-padding</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Dock keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Each item is a tab stop, in visual order. It is ordinary navigation: no arrow-key model, no <code>role="menu"</code>, no <code>tablist</code>.</td></tr>
+    <tr><td><kbd>Enter</kbd> (link), <kbd>Enter</kbd> / <kbd>Space</kbd> (button)</td><td>Go to the destination; run the action.</td></tr>
+    <tr><td>Screen reader</td><td>A "Main" navigation landmark; "Study, link, current page". The count reads as part of the name: "Inbox, 3 unread". The centre action reads "Add transaction, button".</td></tr>
+    <tr><td>Touch</td><td>Every item is at least 44&times;44px (56px tall) with 4px between cells. No gesture is needed.</td></tr>
+    <tr><td>Zoom / text size</td><td>In rem. At 200% text the words wrap instead of clipping, the dock grows, and <code>--dock-h</code> follows. On very short viewports it stops floating.</td></tr>
+    <tr><td>Reduced motion</td><td>Nothing slides. In compact mode the current word fades in with no travel; the fill is a colour change.</td></tr>
+    <tr><td>Forced colours</td><td>The dock and each item keep a border; the current item becomes <code>Highlight</code> with a 4px frame; the focus ring is a 4px <code>Highlight</code> outline.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>Same items, same order, on every screen (WCAG 3.2.3 Consistent Navigation). Mark the current one; never hide the dock on sub-screens without a clear way back.</li>
+  <li>Give each dock on a page a unique label. An app has one <code>aria-label="Main"</code>; this page has several demos, so they are named differently.</li>
+  <li>Words are 13px, the smallest text the guide permits, so keep them short: they are uppercase with positive tracking.</li>
+  <li>The dock's contrast (its ink on its fill, and the current fill against the dock) comes from the tone roles that <code>npm run test:contrast</code> covers for every palette, theme and contrast mode.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--canvas</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--line</code>, <code>--ink-faint</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--ctl-lg</code>, <code>--hit</code>, <code>--type-label</code>, <code>--ls-label</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--move</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--safe-right</code>, <code>--gutter</code>, <code>--z-dock</code>, <code>--container-sm</code>, <code>--dock-h</code>.</p>
+
+<h2 id="related">Related</h2>
+<ul>
+  <li><a href="@/components/appbar.html">App bar</a>: the top bar that pairs with the dock.</li>
+  <li><a href="@/components/tabs.html#choose">Tabs, segmented control or navigation?</a></li>
+  <li><a href="@/components/breadcrumb.html">Breadcrumb</a>: where you are in a hierarchy.</li>
+</ul>
+
+<script>
+  // Docs-only: let the demo docks show "current" moving. A real dock uses real links.
+  (function () {
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest && e.target.closest('[data-dock-demo] .dock__item');
+      if (!link || link.getAttribute('aria-disabled') === 'true') return;
+      e.preventDefault();
+      var dock = link.closest('.dock');
+      dock.querySelectorAll('.dock__item[aria-current]').forEach(function (i) { i.removeAttribute('aria-current'); });
+      link.setAttribute('aria-current', 'page');
+    });
+  })();
+</script>
