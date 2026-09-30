@@ -287,15 +287,19 @@
 
   /* ---- Compact: inactive words become visually hidden, names are kept ---------------------------- */
   .dock[data-compact] {
+    /* Visually hidden, still the item's accessible name. Not the usual 1px nowrap box: that leaves the
+       word laid out to the right of where its centred label would start, so the last item's "Profile"
+       ran out past the dock, the preview stage and the phone frame (text cut by the frame at 320px and
+       at 200% text). Here the label is the item's own box, the word wraps inside it, and clip-path
+       paints none of it; nothing is laid out beyond the item. */
     & .dock__item:not([aria-current="page"]) .dock__label {
       position: absolute;
-      inline-size: 1px;
-      block-size: 1px;
-      margin: -1px;
+      inset: 0;
+      max-inline-size: none;
+      margin: 0;
       padding: 0;
-      overflow: hidden;
       clip-path: inset(50%);
-      white-space: nowrap;
+      overflow-wrap: anywhere;
     }
     & .dock__item[aria-current="page"] {
       flex-direction: row;

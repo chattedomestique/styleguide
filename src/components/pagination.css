@@ -120,14 +120,15 @@
       padding: 0;
     }
     .pagination__label {
+      /* visually hidden, still the button's name: the button's own box, the word wrapped inside it, nothing
+         painted. The usual 1px nowrap box leaves "Previous" laid out to the right of the circle, past the
+         frame of a narrow demo (text cut at 320px / 200% text). */
       position: absolute;
-      inline-size: 1px;
-      block-size: 1px;
-      margin: -1px;
+      inset: 0;
+      margin: 0;
       padding: 0;
-      overflow: hidden;
       clip-path: inset(50%);
-      white-space: nowrap;
+      overflow-wrap: anywhere;
     }
   }
 
@@ -165,14 +166,13 @@
       padding: 0;
     }
     & .pagination__label {
+      /* visually hidden the same way as in the short form above */
       position: absolute;
-      inline-size: 1px;
-      block-size: 1px;
-      margin: -1px;
+      inset: 0;
+      margin: 0;
       padding: 0;
-      overflow: hidden;
       clip-path: inset(50%);
-      white-space: nowrap;
+      overflow-wrap: anywhere;
     }
   }
 

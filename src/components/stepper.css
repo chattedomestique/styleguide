@@ -45,6 +45,11 @@
     gap: var(--space-2); /* >= 8 px between the buttons and the field */
     inline-size: fit-content; /* a grid or flex parent would otherwise stretch the row */
     max-inline-size: 100%;
+    /* The stepper is a grid item of .field, whose single column is `auto`. Without this its automatic
+       minimum width (the 4.5rem number field: 144px at 200% text) became the column's minimum, so the
+       field grew wider than the card around it and "Cards per session" was cut off by the card's frame.
+       With 0 the column can be as narrow as the card; the row then wraps (flex-wrap above). */
+    min-inline-size: 0;
 
     > .btn {
       flex: none;

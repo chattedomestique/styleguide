@@ -206,4 +206,31 @@ export const tests = [
       expect.equal(Number(await page.locator('#stp-qty').inputValue()), before + 5, 'keyboard Enter stepped by one step')
     },
   },
+  {
+    name: 'Large text (200% at 390px): in a narrow field the stepper wraps inside the column instead of widening it past the card that clips it',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const r = await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%'
+        const host = document.createElement('div')
+        host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:4.8rem'
+        // a card frame clips (overflow: clip); its field is a grid whose one column is `auto`
+        host.innerHTML = '<section class="card"><div class="card__body"><div class="field"><label class="field__label" for="fx-n">Cards per session</label>'
+          + '<div class="stepper" role="group" aria-label="Cards"><button class="btn" type="button" data-shape="circle" aria-label="Fewer"><span class="ic ic--minus" aria-hidden="true"></span></button>'
+          + '<input class="input stepper__input" id="fx-n" type="number" value="20"><button class="btn" type="button" data-shape="circle" aria-label="More"><span class="ic ic--plus" aria-hidden="true"></span></button></div></div></div></section>'
+        document.body.appendChild(host)
+        const card = host.querySelector('.card').getBoundingClientRect()
+        const field = host.querySelector('.field').getBoundingClientRect()
+        const label = host.querySelector('.field__label'); const range = document.createRange(); range.selectNodeContents(label)
+        const text = [...range.getClientRects()].reduce((m, q) => Math.max(m, q.right), 0)
+        const out = { card: Math.round(card.right), field: Math.round(field.right), text: Math.round(text), input: Math.round(host.querySelector('.stepper__input').getBoundingClientRect().right) }
+        host.remove(); document.documentElement.style.fontSize = ''
+        return out
+      })
+      expect.ok(r.field <= r.card, 'the field stays inside the card: ' + JSON.stringify(r))
+      expect.ok(r.text <= r.card, 'the label text is not cut by the card: ' + JSON.stringify(r))
+      expect.ok(r.input <= r.card, 'the number field stays inside the card: ' + JSON.stringify(r))
+    },
+  },
 ]
