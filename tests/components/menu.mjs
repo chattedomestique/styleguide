@@ -44,6 +44,7 @@ export const tests = [
         await btn.focus()
         await page.keyboard.press(key)
         expect.ok(await isOpen(page, 'm-actions'), `${key} opens`)
+        await page.waitForFunction(() => !!document.activeElement.closest('.menu')) // the toggle event that moves focus is asynchronous
         expect.equal(await activeLabel(page), 'Rename', `${key}: first row`)
         await page.keyboard.press('Escape')
         await expect.focused(page, '#mb-actions')
@@ -270,6 +271,23 @@ export const tests = [
       const r = await page.evaluate(() => { const b = document.getElementById('mb-more').getBoundingClientRect(); const m = document.getElementById('m-more').getBoundingClientRect(); return { dRight: m.right - b.right, inside: m.left >= 0 && m.right <= innerWidth } })
       expect.ok(Math.abs(r.dRight) <= 2.5, `end edges aligned (${r.dRight})`)
       expect.ok(r.inside, 'inside the viewport')
+    },
+  },
+  {
+    name: 'right-to-left: start means the right edge, in CSS placement and in the script fallback',
+    async run({ page, goto, expect }) {
+      for (const js of [false, true]) {
+        await goto('components/menu.html')
+        await page.evaluate((forceJs) => { document.documentElement.dir = 'rtl'; SG.anchor.forceJs = forceJs }, js)
+        await page.locator('#mb-actions').scrollIntoViewIfNeeded()
+        await page.locator('#mb-actions').focus()
+        await page.keyboard.press('Enter')
+        await page.waitForTimeout(400)
+        const r = await page.evaluate(() => { const b = document.getElementById('mb-actions').getBoundingClientRect(); const m = document.getElementById('m-actions').getBoundingClientRect(); return { dRight: m.right - b.right, dLeft: m.left - b.left, inside: m.left >= 0 && m.right <= innerWidth } })
+        expect.ok(Math.abs(r.dRight) <= 2.5, `[${js ? 'script' : 'css'}] start edges (the right ones) are aligned (${r.dRight}; left ${r.dLeft})`)
+        expect.ok(r.inside, 'on screen')
+        await page.keyboard.press('Escape')
+      }
     },
   },
   {

@@ -11,6 +11,8 @@
   #pop-options input { inline-size: 1.25rem; block-size: 1.25rem; flex: none; margin: 0; }
   #pop-options fieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
   #pop-options legend { padding: 0; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  #pop-remind label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  #pop-remind input { box-sizing: border-box; inline-size: 100%; min-block-size: var(--ctl); padding-inline: var(--space-3); border: var(--bw) solid var(--line); border-radius: var(--radius-ctl); background: var(--paper); color: var(--ink); font: var(--type-body); font-variant-numeric: tabular-nums; }
   #pop-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-4); }
   #pop-places .btn { justify-self: start; }
 </style>
@@ -82,6 +84,33 @@
           <label><input type="checkbox" /> Show the answer first</label>
           <label><input type="checkbox" checked /> Read cards aloud</label>
         </fieldset>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="actions">With actions</h3>
+<p>A popover with a field that must be saved gets an action row under a 1px rule (<code>.popover__actions</code>). Cancel is a visible button because light dismiss (clicking outside, <kbd>Esc</kbd>) discards what was typed.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" popovertarget="pop-remind" aria-haspopup="dialog" aria-expanded="false">
+      <span class="ic ic--clock" aria-hidden="true"></span>Daily reminder
+    </button>
+
+    <div class="popover card" id="pop-remind" popover role="dialog" aria-labelledby="pop-remind-t" data-size="sm">
+      <header class="card__bar">
+        <h2 class="card__label" id="pop-remind-t">Reminder</h2>
+        <button class="card__ctl" type="button" popovertarget="pop-remind" popovertargetaction="hide" aria-label="Close">
+          <span class="ic ic--close" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card__body">
+        <label for="pop-remind-time">Remind me to study at</label>
+        <input id="pop-remind-time" type="time" value="19:30" />
+      </div>
+      <div class="popover__actions">
+        <button class="btn" type="button" popovertarget="pop-remind" popovertargetaction="hide">Cancel</button>
+        <button class="btn" data-variant="primary" type="button" popovertarget="pop-remind" popovertargetaction="hide">Save</button>
       </div>
     </div>
   </div>

@@ -82,7 +82,7 @@ export const tests = [
   {
     name: 'axe finds nothing on any OPEN popover, in five appearances',
     async run(ctx) {
-      await auditOpenOverlays({ ...ctx, pageUrl: 'components/popover.html', openers: [{ open: '[popovertarget="pop-known"][aria-haspopup]', scope: ['#pop-known', '[popovertarget="pop-known"][aria-haspopup]'] }, { open: '[popovertarget="pop-options"][aria-haspopup]', scope: ['#pop-options', '[popovertarget="pop-options"][aria-haspopup]'] }, { open: '[popovertarget="pop-tone"]', scope: ['#pop-tone', '[popovertarget="pop-tone"]'] }] })
+      await auditOpenOverlays({ ...ctx, pageUrl: 'components/popover.html', openers: [{ open: '[popovertarget="pop-known"][aria-haspopup]', scope: ['#pop-known', '[popovertarget="pop-known"][aria-haspopup]'] }, { open: '[popovertarget="pop-options"][aria-haspopup]', scope: ['#pop-options', '[popovertarget="pop-options"][aria-haspopup]'] }, { open: '[popovertarget="pop-tone"]', scope: ['#pop-tone', '[popovertarget="pop-tone"]'] }, { open: '[popovertarget="pop-remind"]', scope: ['#pop-remind', '[popovertarget="pop-remind"]'] }] })
     },
   },
   {
