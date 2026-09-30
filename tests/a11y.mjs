@@ -8,9 +8,10 @@
  *
  * Checks (ERROR unless noted)
  *   axe        axe-core, tags wcag2a/2aa/21a/21aa/22aa + best-practice (colour-contrast skipped under forced colours)
- *   reflow     no horizontal scroll at 320px wide, and none at 390px with text at 200%      (WCAG 1.4.10, 1.4.4)
- *   focus      tabbing reaches controls; each focused control has a visible indicator and is not
- *              covered by other content                                                    (2.4.7, 2.4.11)
+ *   reflow     no horizontal scroll at 320px wide, and none at 390px with text at 200%, with every <details> open;
+ *              no text cut off by a clipping frame (overflow: clip|hidden) at either size      (WCAG 1.4.10, 1.4.4)
+ *   focus      tabbing reaches controls; each focused control has a visible indicator, the ring is >= 3:1
+ *              against what it is drawn on, and the control is not covered by other content      (2.4.7, 2.4.11, 1.4.11)
  *   targets    interactive elements are >= 24px (error) and >= 44px (warning) incl. invisible hit areas (2.5.8, 2.5.5)
  *   forced     under forced colours every control keeps a visible border                   (1.4.11)
  *   console    no uncaught errors or failed requests
@@ -54,6 +55,8 @@ function probeFocus(maxTabs) {
     }
     for (let i = 0; i < maxTabs; i++) {
       await window.__tab()
+      // let hover/focus transitions finish: a ring measured mid-fade is measured against the wrong colour
+      await Promise.race([Promise.all(document.getAnimations().filter((a) => a instanceof CSSTransition).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 600))])
       const el = document.activeElement
       if (!el || el === document.body) break
       if (seen.has(el)) break
@@ -69,6 +72,13 @@ function probeFocus(maxTabs) {
         shown = outline || !!shadow
       }
       if (!shown) res.push({ kind: 'no-indicator', el: desc(el) })
+      else {
+        // Is the ring actually visible? Compare it with what it is drawn against (WCAG 1.4.11 / 2.4.11):
+        // outside the box -> the nearest opaque ancestor background (or the paper halo between box and ring);
+        // inside the box (negative offset) -> the element's own background.
+        const ring = ringContrast(el)
+        if (ring && ring.ratio < 3) res.push({ kind: 'ring-contrast', el: desc(el), ratio: ring.ratio.toFixed(2), detail: ring.detail })
+      }
       const r = el.getBoundingClientRect()
       const hit = document.elementFromPoint(Math.min(Math.max(r.left + r.width / 2, 0), innerWidth - 1), Math.min(Math.max(r.top + r.height / 2, 0), innerHeight - 1))
       if (hit && !(hit === el || el.contains(hit) || hit.contains(el))) res.push({ kind: 'obscured', el: desc(el), by: desc(hit) })
@@ -76,6 +86,29 @@ function probeFocus(maxTabs) {
     res.push({ kind: 'tab-count', n: seen.size })
     return res
     function desc(e) { return e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).slice(0, 2).join('.') : '') + (e.textContent ? ` "${e.textContent.trim().replace(/\s+/g, ' ').slice(0, 24)}"` : '') }
+    function ringContrast(el) {
+      const cv = document.createElement('canvas'); cv.width = cv.height = 1
+      const cx = cv.getContext('2d', { willReadFrequently: true })
+      const rgba = (css) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = css; cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255] }
+      const lum = ([r, g, b]) => { const f = (c) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+      const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+      const bgOf = (n) => { for (; n; n = n.parentElement) { const c = rgba(getComputedStyle(n).backgroundColor); if (c[3] >= 0.99) return c } return rgba('canvas') }
+      // the node that wears the ring: the control itself or the nearest ancestor with an outline / ring shadow
+      let holder = null
+      for (let n = el, k = 0; n && k < 6; n = n.parentElement, k++) { const cs = getComputedStyle(n); if (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0) { holder = n; break } }
+      if (!holder) return null
+      const cs = getComputedStyle(holder)
+      const ringC = rgba(cs.outlineColor)
+      const off = parseFloat(cs.outlineOffset) || 0
+      const neighbours = []
+      if (off >= 0) {
+        neighbours.push(['behind', bgOf(holder.parentElement || holder)])
+        const m = cs.boxShadow.match(/(rgba?\([^)]*\)|color\([^)]*\)|oklch\([^)]*\)|oklab\([^)]*\))\s+0px\s+0px\s+0px\s+([\d.]+)px/)
+        if (m && parseFloat(m[2]) >= off - 0.5) neighbours.push(['halo', rgba(m[1])])
+      } else neighbours.push(['inside', bgOf(holder)])
+      const best = neighbours.map(([n, c]) => [n, ratio(ringC, c)]).sort((a, b) => b[1] - a[1])[0]
+      return { ratio: best[1], detail: neighbours.map(([n, c]) => `${n} ${ratio(ringC, c).toFixed(2)}`).join(', ') }
+    }
   })()
 }
 
@@ -119,6 +152,39 @@ function probeOverflow() {
     return { overflow: document.documentElement.scrollWidth - W, bad }
   }
   return null
+}
+
+
+/** Text that a clipping frame cuts off (overflow: clip | hidden): invisible to scrollWidth checks and to axe. */
+function probeClipped() {
+  const out = []
+  const desc = (e) => e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).slice(0, 2).join('.') : '')
+  for (const box of document.querySelectorAll('*')) {
+    const cs = getComputedStyle(box)
+    if (!/^(clip|hidden)$/.test(cs.overflowX) && !/^(clip|hidden)$/.test(cs.overflowY)) continue
+    if (box.closest('.sr-only, [hidden], details:not([open]) > :not(summary), pre, .marquee, [data-allow-clip]')) continue
+    const b = box.getBoundingClientRect()
+    if (!b.width || !b.height) continue
+    const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT)
+    for (let t; (t = walker.nextNode()); ) {
+      if (!t.nodeValue.trim()) continue
+      const host = t.parentElement
+      const hs = getComputedStyle(host)
+      if (hs.visibility === 'hidden' || hs.display === 'none' || host.closest('.sr-only, [aria-hidden="true"]') || hs.textOverflow === 'ellipsis') continue
+      // text inside its own scroller (a <pre>, a table wrapper) is reachable by scrolling, not cut off
+      let scrollsX = false, scrollsY = false
+      for (let n = host; n && n !== box; n = n.parentElement) { const ns = getComputedStyle(n); if (/^(auto|scroll)$/.test(ns.overflowX)) scrollsX = true; if (/^(auto|scroll)$/.test(ns.overflowY)) scrollsY = true }
+      const r = document.createRange(); r.selectNodeContents(t)
+      for (const q of r.getClientRects()) {
+        if (!q.width) continue
+        const cutX = !scrollsX && /^(clip|hidden)$/.test(cs.overflowX) && (q.right > b.right + 1 || q.left < b.left - 1)
+        const cutY = !scrollsY && /^(clip|hidden)$/.test(cs.overflowY) && (q.bottom > b.bottom + 1 || q.top < b.top - 1)
+        if (cutX || cutY) { out.push(`"${t.nodeValue.trim().slice(0, 28)}" cut off by ${desc(box)} (${cutX ? 'x ' + Math.round(Math.max(q.right - b.right, b.left - q.left)) : 'y ' + Math.round(Math.max(q.bottom - b.bottom, b.top - q.top))}px)`); break }
+      }
+    }
+    if (out.length > 6) break
+  }
+  return out
 }
 
 function probeForced() {
@@ -169,6 +235,7 @@ async function audit(pg, app) {
     const focus = await page.evaluate(probeFocus, 120)
     for (const f of focus) {
       if (f.kind === 'no-indicator') rec.errors.push(`focus: no visible focus indicator on ${f.el}`)
+      else if (f.kind === 'ring-contrast') rec.errors.push(`focus: ring on ${f.el} is ${f.ratio}:1 against what it is drawn on (needs 3:1; ${f.detail})`)
       else if (f.kind === 'obscured') rec.errors.push(`focus: ${f.el} is covered by ${f.by} when focused`)
       else if (f.kind === 'invisible-focus') rec.warnings.push(`focus: focus lands on an invisible element ${f.el}`)
       else if (f.kind === 'tab-count') rec.tabStops = f.n
@@ -181,15 +248,19 @@ async function audit(pg, app) {
     // forced colours
     if (app.forced) for (const b of await page.evaluate(probeForced)) rec.errors.push(`forced-colors: control has no visible border: ${b}`)
 
-    // reflow (once per page, on the first appearance)
+    // reflow (once per page, on the first appearance). Every <details> is opened first: the copy-paste
+    // markup panels are part of the page and must not break WCAG 1.4.10 either.
     if (app === APPEARANCES[0]) {
+      await page.evaluate(() => document.querySelectorAll('details').forEach((d) => { d.open = true }))
       await page.setViewportSize({ width: 320, height: 640 })
       const o1 = await page.evaluate(probeOverflow)
       if (o1) rec.errors.push(`reflow@320: horizontal overflow ${o1.overflow}px. ${o1.bad.join('; ')}`)
+      for (const c of await page.evaluate(probeClipped)) rec.errors.push(`clipped@320: ${c}`)
       await page.setViewportSize({ width: 390, height: 844 })
       await page.addStyleTag({ content: 'html{font-size:200%!important}' })
       const o2 = await page.evaluate(probeOverflow)
       if (o2) rec.errors.push(`reflow@200% text: horizontal overflow ${o2.overflow}px. ${o2.bad.join('; ')}`)
+      for (const c of await page.evaluate(probeClipped)) rec.errors.push(`clipped@200% text: ${c}`)
     }
   } catch (e) {
     rec.errors.push('runner: ' + e.message.split('\n')[0])

@@ -15,7 +15,16 @@
      reduced motion removes the travel (--move) and keeps the fill.
 
    Ported from the owner's Flashcards style sheet v0.1 (card.css) with the class
-   names, anatomy, variants and states unchanged.
+   names, anatomy and variants kept. Changes made after auditing the original in a
+   browser (each one is a defect the original's gate could not see):
+   · the ring follows the surface it is drawn on (ink bar, ink card, every tone)
+   · selected is visible on the inverted tone, and is keyed to roles that allow it
+   · every text slot wraps instead of being clipped by the frame, at any text size
+   · <button class="card"> no longer collapses; foot links are 44px targets
+   · bar control, list rows, actions and ghosts have hover / focus / pressed
+   · forced-colours hover, focus and selected are three different cues, none shifts layout
+   · notch and stack mirror in right-to-left text
+   · study -> portrait (old names kept as aliases); secondary text is an explicit 7:1 role
    ========================================================================== */
 
 @layer sg.components {
@@ -24,7 +33,11 @@
     --card-bg: var(--tone-bg, var(--paper));
     --card-ink: var(--tone-ink, var(--ink));
     --card-line: var(--line);
-    --card-ink-soft: color-mix(in srgb, var(--card-ink) 72%, var(--card-bg));
+    --card-ink-soft: var(--tone-ink-soft, var(--ink-soft));
+    /* the surface contract (10-color.css): what anything placed on this card reads */
+    --surface-bg: var(--card-bg);
+    --surface-ink: var(--card-ink);
+    --surface-ink-soft: var(--card-ink-soft);
     --card-bar-bg: var(--ink);
     --card-bar-ink: var(--paper);
     --card-radius: var(--radius-card);
@@ -42,7 +55,10 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    min-inline-size: 0;
+    /* A container has no intrinsic width, so in a shrink-to-fit parent (a flex row, a dialog, a
+       popover, a table cell) a card would collapse to its two borders. This floor keeps it a card;
+       it never exceeds the parent, so grids and narrow screens are unaffected. */
+    min-inline-size: min(10rem, 100%);
     container: card / inline-size;
     color: var(--card-ink);
     background: var(--card-bg);
@@ -52,9 +68,16 @@
     box-shadow: var(--shadow-select), var(--shadow-lift), var(--shadow-stack);
   }
 
+  /* a <button class="card"> is shrink-to-fit, and a container has no intrinsic width */
+  button.card {
+    inline-size: 100%;
+    font: inherit;
+    text-align: start;
+  }
+
   /* gate 4: --lift and --fill are registered numbers, so ONE transition animates
      every state that sets them (hover, focus, pressed) on any element that uses them. */
-  :is(.card--link, .card--ghost, .card__action) {
+  :is(.card--link, .card--ghost, .card__action, .card__ctl, .card__list > li) {
     transition:
       --lift var(--dur-hover) var(--ease-out),
       --fill var(--dur-hover) var(--ease-out);
@@ -71,19 +94,25 @@
 
   /* --- focus inside a card -----------------------------------------------------
      The card clips, so a ring has to fit inside it, and it has to contrast with
-     whatever it lands on: the bar is ink, and so is an inverted card. */
+     whatever it lands on. Controls inside a [data-tone] card already follow the
+     tone (20-tones.css); the bar is a different surface again: the inverse of the
+     card, so its controls follow the bar. */
 
-  .card :focus-visible {
+  /* :where() keeps these descendant-wide rules at the lowest specificity, so an element placed in a
+     card (a button, a chip) can still set its own ring without a specificity fight */
+  :where(.card) :focus-visible {
     --ring-gap: var(--ring-offset-in);
   }
 
-  .card__bar :focus-visible {
-    --ring-gap: calc(var(--ring) * -1);
-    outline-color: var(--card-bar-ink);
+  .card__bar {
+    --surface-bg: var(--card-bar-bg);
+    --surface-ink: var(--card-bar-ink);
+    --focus: var(--card-bar-ink);
+    --focus-halo: var(--card-bar-bg);
   }
 
-  .card[data-tone="ink"] :focus-visible {
-    outline-color: var(--card-ink);
+  :where(.card__bar) :focus-visible {
+    --ring-gap: calc(var(--ring) * -1);
   }
 
   /* --- parts ----------------------------------------------------------------- */
@@ -108,6 +137,7 @@
 
   /* the control slot: a 44px hit area around a 20px box. */
   .card__ctl {
+    --fill: 0;
     display: grid;
     place-items: center;
     flex: none;
@@ -130,12 +160,31 @@
     content: "";
     inline-size: 1.25rem;
     block-size: 1.25rem;
+    background: color-mix(in srgb, var(--card-bar-ink) calc(var(--fill) * 100%), var(--card-bar-bg));
     border: var(--bw) solid currentColor;
     border-radius: var(--radius-ctl);
   }
 
   .card__ctl > .ic {
     --ic-size: 0.75rem;
+    color: color-mix(in srgb, var(--card-bar-bg) calc(var(--fill) * 100%), var(--card-bar-ink));
+  }
+
+  /* a disclosure control: the glyph follows the state, the name stays constant (APG disclosure) */
+  .card__ctl[aria-expanded="false"] > .ic {
+    --ic: var(--icon-plus);
+  }
+
+  /* the same two numbers as every other pressable thing: hover and focus fill the box,
+     pressed keeps it filled */
+  .card__ctl:is(.is-hover, :focus-visible, .is-focus, :active) {
+    --fill: 1;
+  }
+
+  @media (hover: hover) {
+    .card__ctl:hover {
+      --fill: 1;
+    }
   }
 
   /* media: full bleed, closed off from the body by a frame-weight line. */
@@ -170,6 +219,14 @@
     gap: var(--card-gap);
   }
 
+  /* Every text slot wraps. The frame clips (overflow: clip), so anything that cannot
+     wrap is cut off silently at large text sizes, in narrow cards and with real copy. */
+  :is(.card__eyebrow, .card__title, .card__text, .card__meta, .card__label, .card__trail, .card__list li) {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+
   .card__eyebrow {
     font: var(--type-meta);
     color: var(--card-ink-soft);
@@ -180,7 +237,6 @@
     font-size: clamp(1.375rem, 8cqi, 2rem);
     letter-spacing: var(--ls-title);
     text-wrap: balance;
-    overflow-wrap: break-word;
   }
 
   .card__text {
@@ -197,7 +253,7 @@
 
   .card__figure {
     font: var(--type-figure);
-    font-size: clamp(3rem, 27cqi, 6.5rem);
+    font-size: clamp(1.75rem, 27cqi, 6.5rem);
     letter-spacing: var(--ls-figure);
     font-variant-numeric: tabular-nums lining-nums;
   }
@@ -215,7 +271,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-3);
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
     min-block-size: var(--hit);
     padding: var(--space-2) var(--card-pad);
     margin-block-start: auto;
@@ -223,10 +280,20 @@
     border-block-start: var(--bw-thin) solid var(--card-ink);
   }
 
-  .card__foot :is(a, button) {
+  /* a 44px target inside a 44px foot: the negative margin gives the padding back */
+  .card__foot :is(a, button):not(.btn) {
     display: inline-flex;
     align-items: center;
-    min-block-size: 1.5rem;
+    min-block-size: var(--hit);
+    margin-block: calc(var(--space-2) * -1);
+    text-decoration-thickness: var(--bw-thin);
+    text-underline-offset: 0.2em;
+  }
+
+  @media (hover: hover) {
+    .card__foot a:hover {
+      text-decoration-thickness: var(--bw);
+    }
   }
 
   /* layout helpers inside a body */
@@ -243,16 +310,24 @@
     gap: var(--space-1);
   }
 
-  /* a list of links, ruled. Used in panels. */
+  /* a list of links, ruled. Used in panels. The whole row is the target: the link's ::after is
+     stretched over it (one tab stop, one name), the row inverts on hover, focus and press, and the
+     ring sits inside the row because the card clips. The inversion uses the bar's colours, which
+     are the card's inverse on every tone. */
   .card__list > li {
+    --fill: 0;
+    position: relative;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: 0 var(--space-3);
     min-block-size: var(--hit);
     padding-inline: var(--card-pad);
     font: var(--type-body);
     font-variant-numeric: tabular-nums;
+    color: color-mix(in srgb, var(--card-bar-ink) calc(var(--fill) * 100%), var(--card-ink));
+    background: color-mix(in srgb, var(--card-bar-bg) calc(var(--fill) * 100%), var(--card-bg));
     border-block-start: var(--bw-thin) solid var(--card-ink);
   }
 
@@ -263,13 +338,53 @@
   .card__list a {
     display: flex;
     align-items: center;
-    flex: 1;
+    flex: 1 1 auto;
+    min-inline-size: 0;
     min-block-size: var(--hit);
+    color: inherit;
     text-decoration: none;
   }
 
-  .card__list a:focus-visible {
-    --ring-gap: calc(var(--ring) * -1);
+  .card__list a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .card__list > li:is(.is-hover, .is-focus, :active, :has(> a:focus-visible)) {
+    --fill: 1;
+  }
+
+  .card__list > li.is-hover a,
+  .card__list > li:is(.is-focus, :has(> a:focus-visible)) a {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.18em;
+  }
+
+  .card__list > li:has(> a:focus-visible),
+  .card__list > li.is-focus {
+    outline: var(--ring) solid var(--card-bar-ink);
+    outline-offset: calc(var(--ring) * -1);
+  }
+
+  @supports selector(:has(*)) {
+    .card__list a:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+  }
+
+  @media (hover: hover) {
+    .card__list > li:hover {
+      --fill: 1;
+    }
+
+    .card__list > li:hover a {
+      text-decoration: underline;
+      text-decoration-thickness: var(--bw);
+      text-underline-offset: 0.18em;
+    }
   }
 
   /* a square card, for grids of stats and decks: first part up top, last at the bottom */
@@ -297,7 +412,7 @@
     cursor: pointer;
   }
 
-  .card__action.is-hover {
+  .card__action:is(.is-hover, .is-focus, :focus-visible, :active) {
     --fill: 1;
   }
 
@@ -346,7 +461,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  @container card (max-width: 18rem) {
+  @container card (inline-size <= 18rem) {
     .card--row .card__trail {
       grid-column: 2;
       grid-row: 2;
@@ -408,6 +523,8 @@
   .card--ghost {
     flex-direction: row;
     align-items: center;
+    inline-size: 100%; /* a <button> is shrink-to-fit and a container has no intrinsic width: it would collapse to a sliver */
+    text-align: start;
     gap: var(--space-3);
     padding: var(--space-4);
     color: var(--card-ink-soft);
@@ -419,6 +536,10 @@
 
   .card--ghost .card__title {
     font-size: var(--text-lg);
+  }
+
+  .card--ghost > * {
+    min-inline-size: 0;
   }
 
   /* --- variant: stack --------------------------------------------------------
@@ -485,6 +606,23 @@
     inset-inline-end: calc(var(--notch-w) / 2 - var(--hit) / 2 - var(--bw));
   }
 
+  /* right-to-left: the sheets fall to the other side, and the notch moves to the top-left */
+  .card--stack:dir(rtl) {
+    --shadow-stack:
+      calc(var(--stack) * -1) var(--stack) 0 0 var(--card-bg),
+      calc(var(--stack) * -1) var(--stack) 0 var(--bw) var(--card-line),
+      calc(var(--stack) * -2) calc(var(--stack) * 2) 0 0 var(--card-bg),
+      calc(var(--stack) * -2) calc(var(--stack) * 2) 0 var(--bw) var(--card-line);
+  }
+
+  .card--notch:dir(rtl) {
+    background-position:
+      right var(--bw) top var(--bw),
+      right var(--bw) top calc(var(--notch-h) + var(--bw)),
+      right 0 top 0,
+      right 0 top var(--notch-h);
+  }
+
   /* --- variant: portrait -----------------------------------------------------
      A tall card with one big subject and one hint: a flashcard, a ticket, a
      poster. 5:7. Flipping it is motion, designed at gate 4; the faces here are
@@ -492,16 +630,16 @@
      names and stay as aliases. */
 
   :is(.card--portrait, .card--study) {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    /* a flex column, not a grid with fixed rows: the stage takes the spare height, and when text
+       is large the card grows with its content instead of clipping it */
     aspect-ratio: var(--ratio-portrait);
-    max-inline-size: 22rem;
+    max-inline-size: min(22rem, 55svh); /* on a landscape phone the whole card still fits the screen */
   }
 
   .card__stage {
     display: grid;
+    flex: 1 1 auto;
     place-items: center;
-    min-block-size: 0;
     padding: var(--card-pad);
   }
 
@@ -512,12 +650,21 @@
 
   :is(.card__hero, .card__answer) {
     font: var(--type-title);
-    font-size: clamp(2.25rem, 17cqi, 3.75rem);
+    font-size: clamp(1.75rem, 12cqi, 3.75rem);
+    font-stretch: 85%; /* a long word in the deck's own vocabulary ("Parallelogram") has to fit one line */
     font-weight: 700;
     letter-spacing: var(--ls-title);
     text-align: center;
     text-wrap: balance;
     overflow-wrap: anywhere; /* at big text sizes a long word breaks rather than clipping */
+    hyphens: auto;
+  }
+
+  /* narrow cards (two to a phone row): the poster sizes come down so real values still fit */
+  @container card (inline-size <= 12rem) {
+    .card__figure {
+      font-size: 18cqi;
+    }
   }
 
   /* --- states ----------------------------------------------------------------
@@ -538,13 +685,15 @@
     z-index: 1;
   }
 
+  /* the ring sits clear of the 4px hard shadow (offset + the shadow), or the two merge into one band */
   .card--link:is(.is-focus, :has(.card__link:focus-visible)),
   .card--ghost.is-focus {
     outline: var(--ring) solid var(--focus);
-    outline-offset: var(--ring-offset);
+    outline-offset: calc(var(--ring-offset) + var(--space-1));
   }
 
   .card--ghost:is(.is-hover, :focus-visible, .is-focus) {
+    --lift: 1;
     --fill: 1;
   }
 
@@ -568,10 +717,33 @@
     --fill: 1;
   }
 
-  /* selected: the frame doubles. A ring, not a wider border, so nothing shifts. */
-  .card:is([aria-selected="true"], [aria-current="true"], .is-selected) {
+  .card--ghost:is(:active, .is-active) {
+    --fill: 1;
+  }
+
+  /* selected: the frame doubles. A ring, not a wider border, so nothing shifts. Keyed to the
+     attribute that is VALID for what the card is (aria-selected is not allowed on article/link):
+       · a card that is a link to the current page/step   aria-current
+       · a card that is a toggle button                   aria-pressed="true"
+       · a card that is an option in a listbox / tab      role + aria-selected="true"
+     On the inverted tone the ring would be ink on ink, so it gets a gap of canvas. */
+  .card:is(
+      [aria-current]:not([aria-current="false"]),
+      [aria-pressed="true"],
+      [aria-selected="true"]:is([role="option"], [role="tab"], [role="row"], [role="gridcell"], [role="treeitem"]),
+      .is-selected
+    ) {
     --shadow-select: 0 0 0 var(--bw) var(--card-line);
     z-index: 1;
+  }
+
+  .card[data-tone="ink"]:is(
+      [aria-current]:not([aria-current="false"]),
+      [aria-pressed="true"],
+      [aria-selected="true"]:is([role="option"], [role="tab"], [role="row"], [role="gridcell"], [role="treeitem"]),
+      .is-selected
+    ) {
+    --shadow-select: 0 0 0 var(--bw) var(--canvas), 0 0 0 calc(var(--bw) * 2) var(--card-line);
   }
 
   /* disabled: dashed, muted, inert. The hatch is the wireframe kit's job. */
@@ -580,7 +752,14 @@
     color: var(--ink-faint);
     border-style: dashed;
     pointer-events: none;
-    cursor: not-allowed;
+  }
+
+  /* The notch is painted in four background layers, so it takes the faint line and no hatch. */
+  .card:not(.card--notch):is([aria-disabled="true"], .is-disabled) {
+    /* The hatch is lighter than the text on purpose: the words must stay readable through it.
+       Hard stops only, so it is a pattern and not a gradient. (It used to live in wire.css, a
+       later layer, where it erased the notch's painted silhouette.) */
+    background-image: repeating-linear-gradient(135deg, transparent 0 0.4375rem, var(--tone-4) 0.4375rem 0.5rem);
   }
 
   .card:is([aria-disabled="true"], .is-disabled) :is(.card__eyebrow, .card__meta, .card__text, .card__title) {
@@ -621,19 +800,49 @@
       border-color: CanvasText;
     }
 
-    .card--link:is(:hover, .is-hover, .is-focus, :has(.card__link:focus-visible)) {
-      outline: var(--bw-heavy) solid Highlight;
+    /* three states, three cues, none of which moves the layout:
+       hover = 2px outline, focus = 4px outline with a gap, selected = an inner frame line */
+    .card--link:is(:hover, .is-hover) {
+      outline: var(--bw) solid Highlight;
       outline-offset: 0;
     }
 
-    .card:is([aria-selected="true"], [aria-current="true"], .is-selected) {
-      border-width: var(--bw-heavy);
+    .card--link:is(.is-focus, :has(.card__link:focus-visible)),
+    .card--ghost:is(.is-focus, :focus-visible) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: var(--ring-offset);
+    }
+
+    .card:is(
+        [aria-current]:not([aria-current="false"]),
+        [aria-pressed="true"],
+        [aria-selected="true"]:is([role="option"], [role="tab"], [role="row"], [role="gridcell"], [role="treeitem"]),
+        .is-selected
+      ) {
+      outline: var(--bw) solid Highlight;
+      outline-offset: calc(var(--bw) * -2);
+    }
+
+    .card__ctl:is(:hover, :focus-visible) {
+      outline: var(--bw) solid Highlight;
+    }
+
+    .card__list > li:is(:hover, :has(> a:focus-visible)) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: calc(var(--bw-heavy) * -1);
     }
 
     .card--notch {
       border-color: CanvasText;
       border-radius: 0;
       background-image: none;
+      border-style: solid;
+    }
+
+    /* the stack's sheets are box-shadows, which this mode deletes: one outline says "a deck" */
+    .card--stack {
+      outline: var(--bw) solid CanvasText;
+      outline-offset: var(--stack);
     }
   }
 }
