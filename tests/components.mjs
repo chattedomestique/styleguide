@@ -5,6 +5,7 @@
  *
  *   npm run test:components                  run every spec in tests/components/
  *   npm run test:components -- button tabs   only these
+ *   SG_JS=min npm run test:components        the same specs against the minified bundle (dist/styleguide.min.js)
  *
  * A spec is tests/components/<name>.mjs:
  *
@@ -20,7 +21,7 @@
  * Every spec should cover: Tab reaches it; the documented keys work; aria-* state flips with the
  * visual state; Escape/focus return for overlays; nothing throws in the console.
  */
-import { readdirSync, existsSync } from 'node:fs'
+import { readdirSync, existsSync, readFileSync } from 'node:fs'
 import { join, basename } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { start, ROOT } from './lib/browser.mjs'
@@ -66,6 +67,9 @@ try {
       page.on('pageerror', (e) => errs.push(String(e)))
       page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()) })
       await page.addInitScript(() => { try { localStorage.clear() } catch (e) {} })
+      // SG_JS=min runs every spec against dist/styleguide.min.js instead of the readable bundle: the minifier is
+      // hand-written, so the shipped file is held to the same behaviour as the source.
+      if (process.env.SG_JS === 'min') await page.route('**/assets/styleguide.js', (route) => route.fulfill({ contentType: 'text/javascript', body: readFileSync(join(ROOT, 'dist', 'styleguide.min.js'), 'utf8') }))
       const goto = async (p) => { await page.goto(`${url}/docs/${p}`, { waitUntil: 'networkidle' }); await page.addStyleTag({ content: 'html{scroll-behavior:auto!important}' }) }
       try {
         await t.run({ page, goto, expect, url, browser })
