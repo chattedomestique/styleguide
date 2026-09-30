@@ -25,7 +25,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { join, relative, basename, sep } from 'node:path'
-import { checkCss, checkHtml, undefinedTokens, unknownClasses, stripComments, lineOf } from './lib/rules.mjs'
+import { checkCss, checkHtml, undefinedTokens, unknownClasses, declaredIn, stripComments, lineOf } from './lib/rules.mjs'
 import { ROOT, walk, collectProject } from './lib/project.mjs'
 
 const rel = (p) => relative(ROOT, p).split(sep).join('/')
@@ -34,9 +34,13 @@ const warnings = []
 const add = (bucket, file, line, msg) => bucket.push(`${file}${line ? ':' + line : ''}  ${msg}`)
 const err = (file, line, msg) => add(errors, file, line, msg)
 const warn = (file, line, msg) => add(warnings, file, line, msg)
-const emit = (file, res) => { for (const r of res.errors) err(file, r.line, r.msg); for (const r of res.warnings) warn(file, r.line, r.msg) }
+const emit = (file, res) => { for (const r of res.errors) err(file, r.line, r.msg); for (const r of res.warnings) warn(file, r.line, r.msg); for (const w of res.waived ?? []) waivedAll.push(`${file}:${w.line}  [${w.rule}] ${w.why}`) }
 
 const project = collectProject()
+const waivedAll = []
+const privByFile = new Map(srcCssPriv())
+function srcCssPriv() { return project.cssFiles.filter((f) => rel(f).startsWith('src/')).map((f) => [rel(f), declaredPrivate(readFileSync(f, 'utf8'))]) }
+function declaredPrivate(css) { return new Set([...declaredIn(css)].filter((x) => x.startsWith('--_'))) }
 const kindOf = (name) => name.startsWith('src/tokens/') ? 'token' : name.startsWith('src/base/') ? 'base' : name.startsWith('src/layout/') ? 'layout' : name.startsWith('src/components/') ? 'component' : name.startsWith('src/wire/') ? 'wire' : 'other'
 const srcCss = project.cssFiles.filter((f) => rel(f).startsWith('src/'))
 const docsCss = project.cssFiles.filter((f) => rel(f).startsWith('docs-src/'))
@@ -46,7 +50,8 @@ for (const f of srcCss) {
   const name = rel(f)
   const css = readFileSync(f, 'utf8')
   const kind = kindOf(name)
-  emit(name, checkCss({ name, css, kind }))
+  const privateElsewhere = new Set([...privByFile].filter(([n]) => n !== name).flatMap(([, set]) => [...set]))
+  emit(name, checkCss({ name, css, kind, privateElsewhere }))
   for (const r of undefinedTokens({ css, declared: project.declared })) err(name, r.line, r.msg)
 }
 // the docs' own CSS may use roles and tokens but is held to the same colour / flat / line rules
@@ -144,6 +149,7 @@ const unused = [...project.declared].filter((t) => /^--(?:radius|bw)-/.test(t)).
 if (unused.length) warn('tokens', '', `declared but never used: ${unused.join(', ')}`)
 
 const uniq = (a) => [...new Set(a)]
+if (waivedAll.length) console.log(`\n${waivedAll.length} waived by lint-allow (each has a reason in the source):\n` + waivedAll.map((w) => '  ~ ' + w).join('\n'))
 if (warnings.length) console.log(`\n${uniq(warnings).length} warning(s):\n` + uniq(warnings).map((w) => '  ! ' + w).join('\n'))
 if (errors.length) {
   console.log(`\n${uniq(errors).length} error(s):\n` + uniq(errors).map((e) => '  x ' + e).join('\n'))

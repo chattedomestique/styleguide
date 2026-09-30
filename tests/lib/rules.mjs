@@ -105,7 +105,7 @@ const NAMED = new Set(('aliceblue antiquewhite aqua aquamarine azure beige bisqu
 const COLOUR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|light-dark)\(/i
 const HEX = /#[0-9a-f]{3,8}\b/i
 const BAD_FONTS = /^(inter|roboto|open sans|lato|poppins|space grotesk|dm sans|plus jakarta sans|manrope|montserrat|geist|figtree|system-ui|ui-sans-serif|-apple-system|blinkmacsystemfont|segoe ui|sf pro|arial|helvetica(?: neue)?)$/i
-const RADIUS_ROLE = /^(0|0px|inherit|initial|unset|var\(--radius-(?:card|tile|ctl|pill)\)|var\(--card-radius\)|var\(--_[\w-]*radius[\w-]*\))$/
+const RADIUS_ROLE = /^(0|0px|inherit|initial|unset|var\(--_[\w-]+\)|var\(--radius-(?:card|tile|ctl|pill)\)|var\(--card-radius\)|var\(--_[\w-]*radius[\w-]*\))$/
 const BORDER_WIDTH_OK = /^(0|0px|var\(--(?:bw|bw-thin|bw-heavy|ring)\)|calc\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\))$/
 const NOT_A_BORDER = /^(border-(?:spacing|collapse|image[\w-]*|radius|[\w-]*radius))$/
 const FONT_PX = /(?:^|[\s/])(\d*\.?\d+)px\b/
@@ -149,11 +149,17 @@ const COLOURISH = /^(?:color|background(?:-color|-image)?|border(?:-[a-z-]+)?|ou
 
 /* ---------------------------------------------------------------------------- CSS */
 
-export function checkCss({ name, css, kind, gates = { motion: true } }) {
+export function checkCss({ name, css, kind, gates = { motion: true }, privateElsewhere = new Set() }) {
   const errors = []
   const warnings = []
-  const err = (line, rule, msg) => errors.push({ line, rule, msg })
-  const warn = (line, rule, msg) => warnings.push({ line, rule, msg })
+  // A rule can be waived on one line, with a reason, by `/* lint-allow <rule>: why */` on that line or the line
+  // above. Waivers are returned so the report can list them: an exception is allowed, never invisible.
+  const allows = []
+  for (const m of css.matchAll(/\/\*\s*lint-allow\s+([a-z0-9-]+)\s*:\s*([^*]+?)\s*\*\//g)) allows.push({ rule: m[1], why: m[2], line: lineOf(css, m.index) })
+  const waived = []
+  const isAllowed = (line, rule) => allows.find((a) => a.rule === rule && (a.line === line || a.line === line - 1))
+  const err = (line, rule, msg) => { const a = isAllowed(line, rule); if (a) waived.push({ line, rule, msg, why: a.why }); else errors.push({ line, rule, msg }) }
+  const warn = (line, rule, msg) => { const a = isAllowed(line, rule); if (a) waived.push({ line, rule, msg, why: a.why }); else warnings.push({ line, rule, msg }) }
   const decls = tokenize(css)
   const isToken = kind === 'token'
   const isWire = kind === 'wire'
@@ -207,7 +213,7 @@ export function checkCss({ name, css, kind, gates = { motion: true } }) {
         const slots = toks.slice(first, first + 4)
         if (slots.length >= 3 && isLength(slots[2]) && parseFloat(slots[2]) !== 0) err(line, 'flat', `shadow with blur "${slots[2]}": shadows are hard-edged (zero blur)`)
         // a zero-blur shadow whose spread is a literal length is a line drawn with a shadow: a third weight
-        if (!isToken && slots.length >= 4 && isLength(slots[3]) && parseFloat(slots[3]) !== 0 && /^\d/.test(slots[3].replace(/^-/, ''))) err(line, 'line', `shadow spread ${slots[3]} draws a line: use --bw, --bw-thin or --ring`)
+        if (!isToken && slots.length >= 4 && isLength(slots[3]) && parseFloat(slots[3]) !== 0 && /^\d/.test(slots[3].replace(/^-/, '')) && ((/px$/.test(slots[3]) && parseFloat(slots[3]) <= 8) || (/r?em$/.test(slots[3]) && parseFloat(slots[3]) <= 0.5))) err(line, 'line', `shadow spread ${slots[3]} draws a line: use --bw, --bw-thin or --ring`)
         // an inset shadow offset on one axis only is the "accent stripe down one edge" (owner rule 7)
         if (/^inset\b/.test(sh) && slots.length >= 2 && isLength(slots[0]) && isLength(slots[1]) && ((parseFloat(slots[0]) === 0) !== (parseFloat(slots[1]) === 0)) && (!isLength(slots[3] ?? '') || parseFloat(slots[3]) === 0)) warn(line, 'rule-7', 'an inset shadow on one edge is an accent stripe: no decoration')
       }
@@ -228,7 +234,7 @@ export function checkCss({ name, css, kind, gates = { motion: true } }) {
         for (const tok of splitTop(v, ' ')) {
           if (/^(?:thin|medium|thick)$/.test(tok)) err(line, 'line', `"${tok}" as a line weight in "${prop}": use --bw, --bw-thin or --bw-heavy`)
           else if (/^-?\d*\.?\d+(?:px|rem|em)$/.test(tok) && parseFloat(tok) !== 0) err(line, 'line', `literal ${tok} in "${prop}": use --bw, --bw-thin, --bw-heavy or --ring`)
-          else if (prop === 'stroke-width' && /^\d*\.?\d+$/.test(tok) && parseFloat(tok) !== 0) err(line, 'line', `literal stroke-width ${tok}: use var(--bw)`)
+          else if (prop === 'stroke-width' && /^\d*\.?\d+$/.test(tok) && parseFloat(tok) !== 0) err(line, 'line', `literal stroke-width ${tok}: use var(--bw), or waive with lint-allow when it is SVG geometry in viewBox units`)
           else if (/^var\(\s*(--[\w-]+)/.test(tok)) {
             const nm = tok.match(/^var\(\s*(--[\w-]+)/)[1]
             // a width token: --bw*, --ring, or a component-private --_x. Anything named like a weight (--w, --thick …) is a third weight.
@@ -250,6 +256,10 @@ export function checkCss({ name, css, kind, gates = { motion: true } }) {
       if (/var\(\s*--radius-[123]\b/.test(v)) err(line, 'shape', 'read a radius ROLE (--radius-card, -tile, -ctl, -pill), not the --radius-1/2/3 primitives')
     }
 
+    if (!isToken && /^--_[\w-]*(?:radius|-r|^--_r)$/.test(prop) || prop === '--_r') {
+      if (/(?<![\w.-])\d*\.?\d+(?:px|rem|em)\b/.test(v.replace(/var\([^)]*\)/g, '')) && !/^0(?:px|rem)?$/.test(v)) err(line, 'shape', `${prop} is a private radius holding a literal length: assign a role (var(--radius-card), -tile, -ctl, -pill)`)
+    }
+
     /* ---- layering: a component stands alone; primitives stay in the colour file ---- */
     if (isComponent && /\.wf-[\w-]+/.test(sel)) err(line, 'layer', 'a component must work without the wireframe kit (.wf-*)')
     if (!isToken && /var\(\s*--grey-\d+/.test(v)) err(line, 'layer', 'read a role, not a --grey-N primitive')
@@ -260,11 +270,17 @@ export function checkCss({ name, css, kind, gates = { motion: true } }) {
       if (prop === 'line-height' && /^\d+(\.\d+)?px$/.test(v)) err(line, 'a11y', 'line-height in px: use a unitless value or --lh-*')
     }
     if (prop === 'font-size' && /^(?:html|:root)$/i.test(sel.split(' ').pop() ?? '') && !/^(?:100%|1rem|inherit|initial)$/.test(v) && !isToken) err(line, 'a11y', 'html font-size other than 100% overrides the reader\'s text size (WCAG 1.4.4)')
-    if (prop === 'outline' && /^(?:none|0|0px)\b/.test(v) || prop === 'outline-style' && v === 'none' || prop === 'outline-width' && /^0/.test(v)) {
+    if ((prop === 'outline' && /^(?:none|0|0px)\b/.test(v)) || (prop === 'outline-style' && v === 'none') || (prop === 'outline-width' && /^0/.test(v))) {
+      const ctxText = sel + ' ' + d.stack.join(' ')
       const sameRule = decls.filter((o) => o !== d && o.stack.join('\u0000') === d.stack.join('\u0000'))
-      const replaced = sameRule.some((o) => (o.prop === 'box-shadow' && !/^none$/.test(o.value)) || (o.prop === 'outline' && !/^(?:none|0|0px)\b/.test(o.value)) || /^outline-(?:width|style)$/.test(o.prop) && !/^(?:none|0)/.test(o.value)) // the same rule draws another indicator
-      const ok = replaced || /:focus:not\(:focus-visible\)|\[tabindex="-1"\]|@supports selector\(:has|:where\(\[tabindex="-1"\]\)/.test(sel + ' ' + d.stack.join(' ')) || /forced-colors/.test(d.stack.join(' '))
-      if (!ok) err(line, 'a11y', 'outline removed without a replacement (WCAG 2.4.7)')
+      const replaced = sameRule.some((o) => (o.prop === 'box-shadow' && !/^none$/.test(o.value)) || (o.prop === 'outline' && !/^(?:none|0|0px)\b/.test(o.value)) || (/^outline-(?:width|style)$/.test(o.prop) && !/^(?:none|0)/.test(o.value))) // the same rule draws another indicator
+      const safe = replaced || /:focus:not\(:focus-visible\)|\[tabindex="-1"\]|@supports selector\(:has|:where\(\[tabindex="-1"\]\)/.test(ctxText) || /forced-colors/.test(d.stack.join(' '))
+      const pseudoElement = /::(?:before|after|backdrop|marker|placeholder|selection)/.test(sel)   // not focusable
+      const focusy = /:focus|:focus-visible|:focus-within/.test(sel) || /(?:^|[\s>+~,])(?:a|button|input|select|textarea|summary|details|\*)(?![\w-])/.test(sel.replace(/\[[^\]]*\]/g, ''))
+      if (!safe && !pseudoElement) {
+        if (focusy) err(line, 'a11y', 'outline removed without a replacement (WCAG 2.4.7)')
+        else warn(line, 'a11y', 'outline removed on a class: make sure a :focus-visible rule draws the ring (WCAG 2.4.7), or waive it with lint-allow if this is a decorative outline')
+      }
     }
     if (/^transition(?:-property)?$/.test(prop) && /(?:^|[\s,])all\b/.test(v)) err(line, 'a11y', 'transition: all. List the properties')
     if (/!\s*important/i.test(value) && !/\[hidden\]|sr-only|display:\s*none/.test(sel + value)) warn(line, 'hygiene', '!important: avoid; layers already let apps override')
@@ -288,13 +304,16 @@ export function checkCss({ name, css, kind, gates = { motion: true } }) {
     if (!gates.motion && (/^(?:transition|animation)(?:-[a-z-]+)?$/.test(prop) && !/^(?:none|0s)$/.test(v) || prop === 'scroll-behavior' && v === 'smooth' || prop === 'view-transition-name' || d.stack.some((p) => /^@keyframes/i.test(p)))) err(line, 'gate', `"${prop}": motion is gate 4, and it is not open`)
 
     /* ---- private tokens stay inside their file ---- */
-    for (const m of value.matchAll(/var\(\s*(--_[\w-]+)/g)) if (!privDeclared.has(m[1]) && !isToken) err(line, 'tokens', `${m[1]} is component-private but is not declared in this file`)
+    if (!isDocs) for (const m of value.matchAll(/var\(\s*(--_[\w-]+)/g)) if (!privDeclared.has(m[1]) && !isToken) {
+      if (privateElsewhere.has(m[1])) warn(line, 'tokens', `${m[1]} is declared in another component file: a shared private property couples the two (fine for a family such as input + select; say so in the header)`)
+      else err(line, 'tokens', `${m[1]} is component-private but is declared nowhere`)
+    }
   }
 
   // whole-file checks
   if (isComponent || kind === 'layout' || kind === 'base') if (!/@layer\s+sg\.[a-z]+/.test(plain) && !/@font-face/.test(plain)) err(1, 'layer', 'no @layer sg.* block')
   for (const m of plain.matchAll(/@media[^{]*\((?:min|max)-width\s*:\s*\d+(?:\.\d+)?px\)/g)) if (!isToken && !decls.length) warn(lineOf(plain, m.index), 'a11y', 'px media query: use em')
-  return { errors, warnings }
+  return { errors, warnings, waived }
 }
 
 /* ---------------------------------------------------------------------------- HTML */
