@@ -215,4 +215,33 @@ export const tests = [
       expect.ok(t === 'none' || t === 'matrix(1, 0, 0, 1, 0, 0)', `no travel (got ${t})`)
     },
   },
+  {
+    name: 'head text is 7:1 or better in every state, theme, palette and contrast mode',
+    async run({ page, goto, expect }) {
+      await goto('components/accordion.html')
+      const fails = await page.evaluate(async () => {
+        const cv = document.createElement('canvas'); cv.width = cv.height = 1
+        const cx = cv.getContext('2d', { willReadFrequently: true })
+        const rgb = (css) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = css; cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]] }
+        const lum = ([r, g, b]) => { const f = (c) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+        const ratio = (a, b) => { const x = lum(a), y = lum(b); return ((x > y ? x : y) + 0.05) / ((x > y ? y : x) + 0.05) }
+        const heads = [...document.querySelectorAll('#states ~ .demo summary.accordion__head'), ...document.querySelectorAll('#panels ~ .demo summary.accordion__head'), ...document.querySelectorAll('#one-open ~ .demo summary.accordion__head')].filter((h) => !h.hasAttribute('aria-disabled'))
+        const root = document.documentElement
+        const bad = []
+        for (const theme of ['light', 'dark']) for (const palette of ['default', 'mint', 'wire']) for (const contrast of ['off', 'more']) {
+          root.setAttribute('data-theme', theme)
+          if (palette === 'default') root.removeAttribute('data-palette'); else root.setAttribute('data-palette', palette)
+          if (contrast === 'more') root.setAttribute('data-contrast', 'more'); else root.removeAttribute('data-contrast')
+          await new Promise((r) => setTimeout(r, 380)) // the tint transition settles
+          for (const h of heads) {
+            const cs = getComputedStyle(h)
+            const r = ratio(rgb(cs.color), rgb(cs.backgroundColor))
+            if (r < 7) bad.push(`${theme}/${palette}/${contrast} "${h.textContent.trim()}"${h.className.includes('is-') ? ' (' + h.className.match(/is-\w+/)[0] + ')' : ''} ${r.toFixed(2)}`)
+          }
+        }
+        return bad
+      })
+      expect.ok(fails.length === 0, `below 7:1: ${fails.slice(0, 6).join(' | ')}`)
+    },
+  },
 ]

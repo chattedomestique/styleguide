@@ -207,4 +207,50 @@ export const tests = [
       expect.equal(r.bw, '2px', 'framed with --bw')
     },
   },
+  {
+    name: 'row text is 7:1 and meta text 4.5:1 or better on every tint, theme, palette and contrast mode',
+    async run({ page, goto, expect }) {
+      await goto('components/list.html')
+      const fails = await page.evaluate(async () => {
+        const cv = document.createElement('canvas'); cv.width = cv.height = 1
+        const cx = cv.getContext('2d', { willReadFrequently: true })
+        const rgb = (css) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = css; cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]] }
+        const lum = ([r, g, b]) => { const f = (c) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+        const ratio = (a, b) => { const x = lum(a), y = lum(b); return ((x > y ? x : y) + 0.05) / ((x > y ? y : x) + 0.05) }
+        const mix = (a, b, t) => a.map((v, i) => v * t + b[i] * (1 - t))
+        // the surface behind a row: its own fill (the current row), else the nearest opaque ancestor, then the tint layer over it
+        const surface = (row) => { for (let n = row; n; n = n.parentElement) { const c = getComputedStyle(n).backgroundColor; const d = rgb(c); if (!/rgba\(.*, 0\)$|transparent/.test(c)) return d } return [255, 255, 255] }
+        const rows = [...new Set(document.querySelectorAll('.list__row'))].filter((r) => !r.hasAttribute('aria-disabled'))
+        const kvs = [...document.querySelectorAll('.kv dt, .kv dd')]
+        const root = document.documentElement
+        const bad = []
+        for (const theme of ['light', 'dark']) for (const palette of ['default', 'mint', 'wire']) for (const contrast of ['off', 'more']) {
+          root.setAttribute('data-theme', theme)
+          if (palette === 'default') root.removeAttribute('data-palette'); else root.setAttribute('data-palette', palette)
+          if (contrast === 'more') root.setAttribute('data-contrast', 'more'); else root.removeAttribute('data-contrast')
+          await new Promise((r) => setTimeout(r, 380))
+          const tag = `${theme}/${palette}/${contrast}`
+          for (const row of rows) {
+            const pseudo = getComputedStyle(row, '::before')
+            const alpha = pseudo.content === 'none' ? 0 : Number(pseudo.opacity) // only pressable rows have a tint layer
+            const base = surface(row)
+            const fg = rgb(getComputedStyle(row).color)
+            const bg = mix(fg, base, alpha)
+            const title = row.querySelector('.list__title')
+            if (title) { const r = ratio(rgb(getComputedStyle(title).color), bg); if (r < 7) bad.push(`${tag} title "${title.textContent.trim()}" ${r.toFixed(2)}`) }
+            const meta = row.querySelector('.list__meta')
+            if (meta) { const r = ratio(rgb(getComputedStyle(meta).color), bg); if (r < 4.5) bad.push(`${tag} meta "${meta.textContent.trim().slice(0, 18)}" ${r.toFixed(2)}`) }
+          }
+          for (const el of kvs) {
+            const base = surface(el)
+            const r = ratio(rgb(getComputedStyle(el).color), base)
+            const min = el.tagName === 'DT' ? 4.5 : 7
+            if (r < min) bad.push(`${tag} ${el.tagName.toLowerCase()} "${el.textContent.trim().slice(0, 14)}" ${r.toFixed(2)} < ${min}`)
+          }
+        }
+        return bad
+      })
+      expect.ok(fails.length === 0, `contrast failures: ${fails.slice(0, 8).join(' | ')}`)
+    },
+  },
 ]

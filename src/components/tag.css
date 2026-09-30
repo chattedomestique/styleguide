@@ -59,6 +59,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0; /* beside other content in a row, the OTHER content gives way; max-inline-size still stops it outgrowing the row */
     gap: var(--space-1);
     max-inline-size: 100%;
     min-block-size: var(--_h);
@@ -147,6 +148,11 @@
       --_px: var(--space-3);
       --_fs: var(--text-md);
     }
+  }
+
+  /* a tag inside something you press is part of it: it takes that element's pointer, not the arrow */
+  :is(a[href], button, summary, label) .tag {
+    cursor: inherit;
   }
 
   /* forced colours: fills vanish, so what was solid or weighty gets the heavier frame, and the glyph follows the text */

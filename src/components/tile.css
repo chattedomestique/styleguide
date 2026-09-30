@@ -37,7 +37,12 @@
    no number is colour-only and is not offered.
 
    REFLOW. A tile is square because the grid gives it a width; it grows taller, never
-   clips, when the label wraps at 200% text. Sizes are rem.
+   clips, when the label wraps at 200% text. Sizes are rem. The tile is a size container
+   (so, like a card, it needs a width from its parent: a grid cell): its icon grows from 24px
+   to 48px and its label from 14px to 20px with the tile's own width, and its padding follows
+   the cell (8 to 16px), so a label like "Geography" still fits an 88px tile.
+   Pick the grid's --grid-min so your longest label fits on a line; a word that cannot fit
+   breaks rather than spilling out.
 
    PRIVATE PROPERTIES (--_*) hold what variants change; the base rule consumes them.
    ========================================================================== */
@@ -52,7 +57,7 @@
     --_on-ink: var(--tone-on-fill, var(--on-accent));
     --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
     --_select: 0 0 0 0 transparent;
-    --_icon: 1.5rem;
+    --_icon: clamp(1.5rem, 26cqi, 3rem);
 
     position: relative;
     display: flex;
@@ -60,7 +65,9 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: var(--space-1);
+    inline-size: 100%; /* a <button> shrink-wraps, and a container has no content width to shrink-wrap to */
     min-inline-size: 0;
+    container: tile / inline-size; /* the icon and label scale with the tile's own width, as a card's figure does */
     aspect-ratio: 1 / 1;
     margin: 0;
     /* a percentage is of the grid cell's width: 8px in a narrow cell, 16px in a wide one, so a
@@ -143,7 +150,7 @@
 
   .tile__label {
     font: var(--type-ctl);
-    font-size: var(--text-sm);
+    font-size: clamp(var(--text-sm), 9cqi, var(--text-lg));
     line-height: var(--lh-snug);
     overflow-wrap: anywhere;
     text-wrap: balance;
@@ -180,7 +187,7 @@
     --_on-bg: var(--_rest-bg);
     --_on-ink: var(--_rest-ink);
     --_rest-bg: var(--tone-bg, var(--paper-2));
-    --_icon: 2.5rem;
+    --_icon: clamp(2rem, 34cqi, 4rem);
 
     justify-content: stretch;
     gap: 0;
