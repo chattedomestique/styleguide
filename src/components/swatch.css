@@ -205,6 +205,7 @@
      L = 0.565 is where black and white contrast equally (relative luminance 0.179). */
   @supports (color: oklch(from currentcolor l c h)) {
     .swatch-set__opt {
+      /* lint-allow colour: a swatch IS user data (--swatch); this only picks black or white for its check mark */
       --_on: oklch(from var(--swatch, var(--paper-2)) clamp(0, (0.565 - l) * 1000, 1) 0 0);
     }
   }
