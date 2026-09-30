@@ -87,11 +87,11 @@ export const tests = [
       const r = await page.evaluate((sel) => {
         const nav = document.querySelector(sel)
         const d = (s) => getComputedStyle(nav.querySelector(s)).display
-        const b = nav.querySelector('.pagination__next .btn'); const br = b.getBoundingClientRect(); const label = nav.querySelector('.pagination__next .pagination__label').getBoundingClientRect()
-        return { page: d('.pagination__page'), gap: d('.pagination__gap'), status: d('.pagination__status'), statusText: nav.querySelector('.pagination__status').textContent, w: Math.round(br.width), h: Math.round(br.height), labelW: Math.round(label.width), name: b.textContent.trim() }
+        const b = nav.querySelector('.pagination__next .btn'); const br = b.getBoundingClientRect(); const labelEl = nav.querySelector('.pagination__next .pagination__label')
+        return { page: d('.pagination__page'), gap: d('.pagination__gap'), status: d('.pagination__status'), statusText: nav.querySelector('.pagination__status').textContent, w: Math.round(br.width), h: Math.round(br.height), labelIn: (() => { const rg = document.createRange(); rg.selectNodeContents(labelEl); return [...rg.getClientRects()].every((q) => q.left >= br.left - 1 && q.right <= br.right + 1) })(), clip: getComputedStyle(labelEl).clipPath, abs: getComputedStyle(labelEl).position, name: b.textContent.trim() }
       }, LIVE)
       expect.equal(r.page, 'none'); expect.equal(r.gap, 'none'); expect.equal(r.status, 'block'); expect.equal(r.statusText, 'Page 5 of 12')
-      expect.ok(r.w >= 44 && r.h >= 44 && r.w <= 46, `Next is a ${r.w}x${r.h} circle`); expect.ok(r.labelW <= 1, 'its word is visually hidden'); expect.equal(r.name, 'Next', 'but still its name')
+      expect.ok(r.w >= 44 && r.h >= 44 && r.w <= 46, `Next is a ${r.w}x${r.h} circle`); expect.ok(r.clip === 'inset(50%)' && r.abs === 'absolute', 'its word is visually hidden (painted nowhere, takes no room)'); expect.ok(r.labelIn, 'and laid out inside the circle, not past it'); expect.equal(r.name, 'Next', 'but still its name')
     },
   },
   {

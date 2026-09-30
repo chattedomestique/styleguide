@@ -111,11 +111,15 @@ export const tests = [
     async run({ page, goto, expect }) {
       await goto('components/dock.html')
       const r = await page.evaluate(() => [...document.querySelectorAll('nav.dock[data-compact] .dock__item')].map((i) => {
-        const l = i.querySelector('.dock__label'); const b = l.getBoundingClientRect()
-        return { current: i.hasAttribute('aria-current'), w: Math.round(b.width), name: i.textContent.trim() }
+        const l = i.querySelector('.dock__label'); const b = l.getBoundingClientRect(); const ib = i.getBoundingClientRect()
+        // the hidden word's TEXT is laid out inside its item (not past the dock, where a preview frame clips it)
+        const rg = document.createRange(); rg.selectNodeContents(l)
+        const inside = [...rg.getClientRects()].every((q) => q.left >= ib.left - 1 && q.right <= ib.right + 1)
+        return { current: i.hasAttribute('aria-current'), w: Math.round(b.width), clip: getComputedStyle(l).clipPath, abs: getComputedStyle(l).position, inside, name: i.textContent.trim() }
       }))
-      expect.ok(r.find((x) => x.current).w > 10, 'the current word is visible')
-      expect.ok(r.filter((x) => !x.current).every((x) => x.w <= 1), 'inactive words collapse to a 1px clip box')
+      expect.ok(r.find((x) => x.current).w > 10 && r.find((x) => x.current).clip === 'none', 'the current word is visible')
+      expect.ok(r.filter((x) => !x.current).every((x) => x.clip === 'inset(50%)' && x.abs === 'absolute'), 'inactive words are painted nowhere (clip-path) and take no room (absolute)')
+      expect.ok(r.filter((x) => !x.current).every((x) => x.inside), 'an inactive word is laid out inside its own item, never past the dock: ' + JSON.stringify(r))
       expect.ok(r.every((x) => x.name.length > 1), 'every link still has its text name: ' + JSON.stringify(r.map((x) => x.name)))
     },
   },
