@@ -1,0 +1,203 @@
+<!--{"title":"Tile","group":"Components","order":70,"summary":"The square quick action: an icon and a name on a field of colour, pressable, with an optional count. Plus a caption variant for decks and photos."}-->
+<h1>Tile</h1>
+<p class="lede">The square quick action: Send, Bills, Top up, Study. An icon and a name on a field of colour. You press it, so it has a 2px frame and a hard shadow that appears when it can be pressed; the field is the tone, so a row of tiles gives a screen its colour.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use three to eight of them for what people do most, each with a word under the icon. Put the most used first.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Show a tile with only an icon, use tone to say which one matters, or build your main navigation from them. That is a dock.</p></div>
+  </div>
+</div>
+
+<h2 id="quick">Quick actions</h2>
+<p>A tile is a link or a button, so it is an <code>&lt;a&gt;</code> or a <code>&lt;button&gt;</code>. Put them in a grid with a minimum width; the grid decides how many fit. The icon is a mask in the text colour, directly on the field: no circle behind it.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 5.5rem">
+      <a class="tile" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></a>
+      <a class="tile" href="#" data-tone="2"><span class="ic ic--receipt" aria-hidden="true"></span><span class="tile__label">Bills</span></a>
+      <a class="tile" href="#" data-tone="3"><span class="ic ic--smartphone" aria-hidden="true"></span><span class="tile__label">Mobile top-up</span></a>
+      <a class="tile" href="#"><span class="ic ic--layout-grid" aria-hidden="true"></span><span class="tile__label">All</span></a>
+    </div>
+  </div>
+</div>
+
+<h2 id="tones">Tones</h2>
+<p>The six slots, the inverted <code>ink</code> tone and the four status tones all work. Hover fills with the tone's own solid (<code>--tone-fill</code>); with no tone it fills with the accent. <code>data-emphasis="bold"</code> gives a saturated field.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 5.5rem">
+      <a class="tile" href="#" data-tone="1"><span class="ic ic--wallet" aria-hidden="true"></span><span class="tile__label">Wallet</span></a>
+      <a class="tile" href="#" data-tone="4"><span class="ic ic--credit-card" aria-hidden="true"></span><span class="tile__label">Cards</span></a>
+      <a class="tile" href="#" data-tone="5"><span class="ic ic--gift" aria-hidden="true"></span><span class="tile__label">Gifts</span></a>
+      <a class="tile" href="#" data-tone="6"><span class="ic ic--shopping-bag" aria-hidden="true"></span><span class="tile__label">Shop</span></a>
+      <a class="tile" href="#" data-tone="ink"><span class="ic ic--zap" aria-hidden="true"></span><span class="tile__label">Quick pay</span></a>
+      <a class="tile" href="#" data-tone="2" data-emphasis="bold"><span class="ic ic--target" aria-hidden="true"></span><span class="tile__label">Goals</span></a>
+    </div>
+  </div>
+</div>
+
+<h2 id="badge">Badge</h2>
+<p>A count in the corner, for what is waiting: bills due, unread, new. It is a paper pill with an ink frame, so it reads on any field, filled or not. Put the unit in visually hidden text so the tile's name is <em>Bills, 3 due</em>. A dot with no number is colour alone and is not offered.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 5.5rem">
+      <a class="tile" href="#" data-tone="2"><span class="ic ic--receipt" aria-hidden="true"></span><span class="tile__label">Bills</span><span class="tile__badge">3<span class="sr-only"> due</span></span></a>
+      <a class="tile" href="#" data-tone="3"><span class="ic ic--mail" aria-hidden="true"></span><span class="tile__label">Inbox</span><span class="tile__badge">99+<span class="sr-only"> unread</span></span></a>
+      <a class="tile" href="#" data-tone="4"><span class="ic ic--gift" aria-hidden="true"></span><span class="tile__label">Rewards</span><span class="tile__badge">New</span></a>
+    </div>
+  </div>
+</div>
+
+<h2 id="toggle">As a toggle</h2>
+<p>A tile that picks something is a button with <code>aria-pressed</code>. On is <strong>filled and the frame doubles</strong>, so it never depends on the fill being dark.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 5.5rem" role="group" aria-label="Topics to study">
+      <button class="tile" type="button" data-tone="1" aria-pressed="true"><span class="ic ic--book-open" aria-hidden="true"></span><span class="tile__label">Reading</span></button>
+      <button class="tile" type="button" data-tone="2" aria-pressed="false"><span class="ic ic--globe" aria-hidden="true"></span><span class="tile__label">Geography</span></button>
+      <button class="tile" type="button" data-tone="3" aria-pressed="false"><span class="ic ic--hash" aria-hidden="true"></span><span class="tile__label">Numbers</span></button>
+    </div>
+  </div>
+</div>
+
+<h2 id="states">States</h2>
+<p>The same two numbers as the button: <code>--lift</code> (0 flat, 1 raised) and <code>--fill</code> (0 outline, 1 filled). Hover and keyboard focus are the same state, so a keyboard user sees what a mouse user sees. The <code>is-*</code> classes below only force a state for this page.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 5.5rem">
+      <div><a class="tile" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Rest</span></a></div>
+      <div><a class="tile is-hover" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Hover</span></a></div>
+      <div><a class="tile is-focus" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Focus</span></a></div>
+      <div><a class="tile is-active" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Pressed</span></a></div>
+      <div><a class="tile" href="#" data-tone="1" aria-current="page"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Current</span></a></div>
+      <div><button class="tile" type="button" data-tone="1" aria-disabled="true" aria-describedby="tile-off-why"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Off</span></button></div>
+    </div>
+  </div>
+</div>
+<p class="t-meta" id="tile-off-why">"Off": Send is unavailable until you verify your email.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Tile states</caption>
+  <thead><tr><th>State</th><th>Trigger</th><th><code>--lift</code></th><th><code>--fill</code></th><th>Also</th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td>none</td><td>0</td><td>0</td><td>Flat. The field is the tone.</td></tr>
+    <tr><td>Hover</td><td><code>:hover</code>, only where <code>(hover: hover)</code></td><td>1</td><td>1</td><td>Moves −2px, −2px; 4px hard shadow; fills with the tone's solid.</td></tr>
+    <tr><td>Focus</td><td><code>:focus-visible</code></td><td>1</td><td>1</td><td>Same lift, plus the 3px ring outside the frame.</td></tr>
+    <tr><td>Pressed</td><td><code>:active</code></td><td>0</td><td>1</td><td>Back onto the surface; the fill stays.</td></tr>
+    <tr><td>On / current</td><td><code>aria-pressed="true"</code>, <code>aria-current</code></td><td></td><td>1</td><td>The frame doubles (<code>0 0 0 2px</code>).</td></tr>
+    <tr><td>Unavailable</td><td><code>aria-disabled="true"</code></td><td>0</td><td>0</td><td>Dashed frame, faint ink, no shadow. Give it a reason.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="caption">Caption tiles</h2>
+<p>A field (colour, an icon or a photo) closed by a bar that carries the name. Text never sits on the photo, so its contrast does not depend on what the photo is. On hover the bar swaps polarity where the quick tile fills.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 9rem">
+      <a class="tile" data-variant="caption" data-tone="3" href="#">
+        <span class="tile__field"><span class="ic ic--droplet" aria-hidden="true"></span></span>
+        <span class="tile__bar"><span class="tile__label">Colours</span><span class="tile__meta">8 cards</span></span>
+      </a>
+      <a class="tile" data-variant="caption" data-tone="1" href="#">
+        <span class="tile__field"><span class="ic ic--hash" aria-hidden="true"></span></span>
+        <span class="tile__bar"><span class="tile__label">Numbers to twenty</span><span class="tile__meta">20 cards</span></span>
+      </a>
+      <a class="tile" data-variant="caption" href="#">
+        <span class="tile__field"><img src="@/assets/surfaces/avatar-priya.svg" alt=""></span>
+        <span class="tile__bar"><span class="tile__label">Faces</span><span class="tile__meta">12 cards</span></span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<h2 id="corners">Square and soft corners</h2>
+<p>The frame uses <code>--radius-tile</code>: square by default, 12px with <code>data-corners="soft"</code>. Nothing else changes.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 14rem">
+      <div data-corners="square" class="grid" style="--grid-min: 5.5rem">
+        <a class="tile" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Square</span></a>
+        <a class="tile" href="#" data-tone="2"><span class="ic ic--receipt" aria-hidden="true"></span><span class="tile__label">Bills</span><span class="tile__badge">3<span class="sr-only"> due</span></span></a>
+      </div>
+      <div data-corners="soft" class="grid" style="--grid-min: 5.5rem">
+        <a class="tile" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Soft</span></a>
+        <a class="tile" href="#" data-tone="2"><span class="ic ic--receipt" aria-hidden="true"></span><span class="tile__label">Bills</span><span class="tile__badge">3<span class="sr-only"> due</span></span></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="context">In context</h2>
+<p>The home screen of a wallet: a card with one number, then the quick actions under it. Tiles sit in a grid; the card holds one idea.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="stack" data-gap="4">
+          <article class="card" data-tone="ink">
+            <div class="card__body">
+              <p class="card__eyebrow">Wallet balance</p>
+              <p class="card__figure num">$324<small>.25</small></p>
+              <p class="card__meta">Updated just now</p>
+            </div>
+          </article>
+          <div class="grid" style="--grid-min: 4.5rem">
+            <a class="tile" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></a>
+            <a class="tile" href="#" data-tone="2"><span class="ic ic--receipt" aria-hidden="true"></span><span class="tile__label">Bills</span><span class="tile__badge">3<span class="sr-only"> due</span></span></a>
+            <a class="tile" href="#" data-tone="3"><span class="ic ic--plus" aria-hidden="true"></span><span class="tile__label">Top up</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Frame</strong>: 2px <code>--line</code>, <code>--radius-tile</code>, a real border so forced-colours mode draws it.</li>
+  <li><strong>Field</strong>: <code>--tone-bg</code>, or <code>--paper</code> with no tone. <code>--fill</code> mixes it toward <code>--tone-fill</code> (or <code>--accent</code>).</li>
+  <li><strong>Icon</strong>: a 24px mask at the start, in the text colour, decorative (<code>aria-hidden</code>).</li>
+  <li><strong>Label</strong>: <code>--type-ctl</code> at 14px, at the bottom. Wraps; never truncated.</li>
+  <li><strong>Badge</strong> (optional): paper pill with an ink frame, top end.</li>
+  <li><strong>Hard shadow</strong>: 4px, zero blur, appears with <code>--lift</code>. It means "you can press this".</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Tile attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="tile"</code></td><td></td><td>The tile. An <code>&lt;a&gt;</code> or a <code>&lt;button&gt;</code>. Needs a width from its parent (a grid cell).</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code>, <code>ok</code>, <code>warn</code>, <code>bad</code>, <code>info</code></td><td>The field and the hover fill. <code>data-emphasis="bold"</code> for a saturated field.</td></tr>
+    <tr><td><code>data-variant</code></td><td><code>caption</code> (default: quick)</td><td>A field closed by a bar with <code>.tile__label</code> and <code>.tile__meta</code>.</td></tr>
+    <tr><td><code>class="tile__label"</code></td><td></td><td>The name.</td></tr>
+    <tr><td><code>class="tile__badge"</code></td><td></td><td>A count or "New" in the corner. Put the unit in <code>.sr-only</code>.</td></tr>
+    <tr><td><code>aria-pressed</code></td><td><code>true</code> | <code>false</code></td><td>A toggle. On = filled and a doubled frame.</td></tr>
+    <tr><td><code>aria-current</code></td><td><code>page</code>, <code>true</code></td><td>The tile for where you are. Same look as on.</td></tr>
+    <tr><td><code>aria-disabled="true"</code></td><td></td><td>Dashed, faint, no shadow. Prefer it to <code>disabled</code> so the reason can be read.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Tile keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Each tile is one tab stop, in DOM order. The ring (3px, offset 3px) plus a paper halo stays visible; the tile lifts exactly as on hover.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>A link follows on <kbd>Enter</kbd>; a button activates on both. Native elements give this for free.</td></tr>
+    <tr><td>Screen reader</td><td>"Bills 3 due, link". A toggle adds pressed / not pressed; a current tile adds current page. The icon is hidden.</td></tr>
+    <tr><td>Colour</td><td>The tone is never the message. On is fill and a doubled frame; the badge is a number and a word.</td></tr>
+    <tr><td>Touch</td><td>72 to 88px square at the grid minimums shown here, well beyond 44px, with the grid gap (8 to 12px) between targets.</td></tr>
+    <tr><td>Zoom / text size</td><td>The grid's minimum is rem, so tiles drop to fewer columns as text grows. A wrapping label makes the tile taller, never clipped.</td></tr>
+    <tr><td>Reduced motion</td><td>No travel on hover (the tile stays in place); the fill and shadow still change.</td></tr>
+    <tr><td>Forced colours</td><td>Frame is <code>ButtonText</code>; hover and focus get a 4px <code>Highlight</code> outline; on and current get a 4px frame.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-tile</code>, <code>--radius-pill</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>

@@ -1,0 +1,343 @@
+/* ==========================================================================
+   List  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Rows, ruled by 1px lines: a settings screen, a transaction history, a list of
+   decks. And the key / value grid (<dl class="kv">) for facts about one thing.
+   Both are flat containers: rectangles hold, so nothing here lifts or casts a
+   shadow. A row you can press tints instead (hover), and inverts when it is the
+   current one.
+
+   <ul class="list" role="list">
+     <li>
+       <a class="list__row" href="/settings/language">
+         <span class="list__main"><span class="list__title">Language</span></span>
+         <span class="list__trail">
+           <span class="list__value">English</span>
+           <span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span>
+         </span>
+       </a>
+     </li>
+     <li>
+       <div class="list__row">                                   a row that is only information
+         <span class="list__lead"><span class="avatar" aria-hidden="true">MO</span></span>
+         <span class="list__main">
+           <span class="list__title">Maya Okafor</span>
+           <span class="list__meta">Owner · joined March</span>
+         </span>
+         <span class="list__trail"><span class="tag" data-tone="ok">Synced</span></span>
+       </div>
+     </li>
+   </ul>
+
+   <dl class="kv">
+     <div><dt>Brightness</dt><dd>−24.0</dd></div> …
+   </dl>
+
+   PARTS   .list__lead   icon, avatar or a square tile (data-shape="tile" + data-tone)
+           .list__main   .list__title (600) and .list__meta (soft ink)
+           .list__trail  a value, a tag, a chevron, or ONE control (a button)
+   data-variant  on .list:   framed (a 2px frame and the card radius, for a stand-alone group)
+   data-layout   on .kv:     grid (default: cells wrap to fit) | rows (ruled, key left and value right)
+
+   ONE CONTROL PER ROW. Either the whole row is the control (an <a>, <button> or <label>) and its
+   trail is only decoration (a value, a chevron), or the row is static and its trail holds one control.
+   Never a control inside a control. A row with two actions is two rows, or a row that opens a page.
+
+   STATES come from ARIA and native attributes:
+     :hover / :focus-visible   tint (8% of the text colour); the ring is drawn INSIDE the row
+     :active                   a deeper tint
+     aria-current / aria-pressed="true"   inverted (text colour as fill) AND a check AND bold title
+     aria-disabled="true"      faint ink, blocked
+   Only --fill is set; there is no --lift, because a row lives inside a frame and does not raise.
+
+   INSIDE A CARD. A list reads the card's own --card-ink, --card-ink-soft and --card-bg when it
+   is inside one, so the same markup is right in a plain card, a toned card and an inverted one.
+
+   PRIVATE PROPERTIES (--_*) hold what states change; the base rules consume them.
+   ========================================================================== */
+
+@layer sg.components {
+  .list {
+    --_ink: var(--card-ink, var(--ink));
+    --_ink-soft: var(--card-ink-soft, var(--ink-soft));
+    --_rule: var(--card-ink, var(--line));
+    --_surface: var(--card-bg, var(--paper));
+
+    display: block;
+    margin: 0;
+    padding: 0;
+    color: var(--_ink);
+    list-style: none;
+
+    & > li + li {
+      border-block-start: var(--bw-thin) solid var(--_rule);
+    }
+
+    &[data-variant="framed"] {
+      background: var(--_surface);
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-card);
+      overflow: clip; /* a row's ring is drawn inside it, so nothing is cut */
+    }
+  }
+
+  .list__row {
+    --_row-ink: var(--_ink);
+    --_row-soft: var(--_ink-soft);
+
+    position: relative;
+    isolation: isolate; /* the tint sits behind the row's content, above nothing else */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+    inline-size: 100%; /* a <button> row shrink-wraps unless told otherwise */
+    min-block-size: 3.5rem;
+    margin: 0;
+    padding: var(--space-2) var(--space-4);
+    color: var(--_row-ink);
+    font: var(--type-body);
+    text-align: start;
+    text-decoration: none;
+
+    & > .ic {
+      --ic-size: 1.5rem;
+    }
+  }
+
+  .list__lead {
+    display: grid;
+    flex: none;
+    place-items: center;
+    min-inline-size: var(--hit);
+    min-block-size: var(--hit);
+
+    & > .ic {
+      --ic-size: 1.5rem;
+    }
+    /* a square tile in a tone: the owner's card tile, holding an icon */
+    &[data-shape="tile"] {
+      inline-size: var(--hit);
+      block-size: var(--hit);
+      background: var(--tone-bg, var(--tone-1));
+      color: var(--tone-ink, var(--ink));
+      border: var(--bw) solid var(--_row-ink);
+      border-radius: var(--radius-tile);
+    }
+  }
+
+  .list__main {
+    display: flex;
+    flex: 1 1 6rem;
+    flex-direction: column;
+    gap: calc(var(--space-1) / 2);
+    min-inline-size: 0;
+  }
+
+  .list__title {
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    overflow-wrap: anywhere;
+  }
+
+  .list__meta {
+    color: var(--_row-soft);
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  .list__trail {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+    max-inline-size: 100%;
+  }
+
+  .list__value {
+    font: var(--type-body);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+
+  .list__chevron {
+    --ic-size: 1.25rem;
+    color: var(--_row-soft);
+  }
+  .list__chevron:dir(rtl) {
+    transform: scaleX(-1); /* the arrow points the way the page reads */
+  }
+
+  /* ---- a row you can press: a link, a button or a label ---- */
+  :is(a, button, label).list__row {
+    --fill: 0;
+
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    /* the tint: a layer of the text colour, at 0 to 8% (16% while pressed). Decorative only;
+       the text is never faded. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: currentColor;
+      opacity: calc(var(--fill) * var(--_tint, 0.08));
+      pointer-events: none;
+    }
+
+    /* the ring is drawn inside the row: the list clips, and the row is edge to edge */
+    &:focus-visible {
+      --ring-gap: calc(var(--ring) * -1);
+      outline-color: var(--_row-ink);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --fill: 1;
+    }
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --fill: 1;
+      --_tint: 0.16;
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  /* ---- current: inverted (the text colour becomes the fill), bold, and a check. Three cues, none of them colour.
+     The row paints the inversion itself, so hover still tints on top of it (paper at 8% over ink). ---- */
+  .list__row:is([aria-current="page"], [aria-current="true"], [aria-pressed="true"]) {
+    --_row-ink: var(--_surface);
+    --_row-soft: var(--_surface);
+
+    background: var(--_ink);
+
+    .list__title {
+      font-weight: 800;
+    }
+    &::after {
+      content: "";
+      flex: none;
+      inline-size: 1.25rem;
+      block-size: 1.25rem;
+      background: currentColor;
+      mask: var(--icon-check) center / contain no-repeat;
+    }
+  }
+
+  /* ---- unavailable ---- */
+  .list__row[aria-disabled="true"] {
+    --_row-ink: var(--ink-faint);
+    --_row-soft: var(--ink-faint);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ==== key / value =========================================================================
+     <dl class="kv"> of <div><dt>Key</dt><dd>Value</dd></div> groups. A wrapping grid by
+     default, so it reflows at 320px with no sideways scroll. The key is a label (uppercase in
+     CSS, natural case in the HTML); the value is what you read. */
+  .kv {
+    --_ink: var(--card-ink, var(--ink));
+    --_ink-soft: var(--card-ink-soft, var(--ink-soft));
+    --_rule: var(--card-ink, var(--line));
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--kv-min, 9rem)), 1fr));
+    gap: var(--space-4) var(--space-5);
+    margin: 0;
+    color: var(--_ink);
+    container: kv / inline-size;
+
+    & > div {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      min-inline-size: 0;
+    }
+    & dt {
+      color: var(--_ink-soft);
+      font: var(--type-label);
+      letter-spacing: var(--ls-label);
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+    }
+    & dd {
+      margin: 0;
+      font: var(--type-body);
+      font-variant-numeric: tabular-nums lining-nums;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  /* rows: ruled, key left and value right; below 20rem the value drops under its key */
+  .kv[data-layout="rows"] {
+    display: block;
+
+    & > div {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      column-gap: var(--space-4);
+      padding-block: var(--space-3);
+    }
+    & > div + div {
+      border-block-start: var(--bw-thin) solid var(--_rule);
+    }
+    & dd {
+      text-align: end;
+      margin-inline-start: auto;
+    }
+  }
+  @container kv (max-width: 20rem) {
+    .kv[data-layout="rows"] > div {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-1);
+    }
+    .kv[data-layout="rows"] dd {
+      text-align: start;
+      margin-inline-start: 0;
+    }
+  }
+
+  /* ---- forced colours: tints and fills vanish, so focus, hover and current get a line ---- */
+  @media (forced-colors: active) {
+    :is(a, button, label).list__row:is(:hover, .is-hover, :focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: calc(var(--bw-heavy) * -1);
+    }
+    .list[data-variant="framed"] {
+      border-color: CanvasText;
+    }
+    .list > li + li,
+    .kv[data-layout="rows"] > div + div {
+      border-block-start-color: CanvasText;
+    }
+    /* a real border on every pressable row, or forced colours draws no control at all */
+    :is(a, button, label).list__row {
+      border: var(--bw-thin) solid ButtonText;
+    }
+    .list__row:is([aria-current="page"], [aria-current="true"], [aria-pressed="true"]) {
+      border-inline-start: var(--bw-heavy) solid Highlight;
+    }
+    .list__row[aria-disabled="true"] {
+      color: GrayText;
+    }
+    .list__row::after {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+  }
+}

@@ -1,0 +1,264 @@
+/* ==========================================================================
+   Avatar and avatar stack  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A person, team or app, as a circle: a photo, or their initials when there is
+   none (or it fails to load). Circles are the shape of things that ACT in this
+   guide, so an avatar is a plain, static circle until it is a link or a button;
+   then it behaves like every other pressable circle (hard shadow on hover and
+   focus, sinks on press, 44px hit area).
+
+   <span class="avatar" role="img" aria-label="Maya Okafor">MO</span>
+   <span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="maya.jpg" alt=""></span>
+   <span class="avatar" data-presence="online" role="img" aria-label="Maya Okafor, online">MO</span>
+   <a class="avatar" href="/me" aria-label="Your profile">MO</a>        pressable: a or button
+   <ul class="avatar-stack" role="list" aria-label="Members">
+     <li><span class="avatar" role="img" aria-label="Maya Okafor">MO</span></li> …
+     <li><span class="avatar" data-overflow role="img" aria-label="3 more people">+3</span></li>
+   </ul>
+
+   data-size      xs 28 | sm 36 | md 44 (default) | lg 64 | xl 96     (on .avatar or on .avatar-stack)
+   data-tone      1…6 | ink   the field colour behind initials. Identity, never meaning:
+                  derive it from the user id so a person keeps their colour.
+   data-presence  online | away | busy | offline
+   data-overflow  the "+3" that closes a stack: inverted, so it cannot be mistaken for a person
+
+   NAMES. The avatar's name is the person's name. If the name is written next to it,
+   mark the avatar aria-hidden="true" so it is not read twice; if not, role="img" and
+   aria-label. A presence dot has no text of its own, so put the state in the name
+   ("Maya Okafor, online").
+
+   PRESENCE IS NEVER COLOUR-ONLY (WCAG 1.4.1). Each state has its own SHAPE:
+   online = filled circle, away = filled diamond, busy = filled square, offline = empty ring.
+   The shapes survive data-palette="wire" and forced colours, which repaints them with
+   system colours.
+
+   STACKS are for "who is in this": a flat row of overlapping circles, DOM order = visual
+   order, the last one on top. Their items are NOT pressable (overlapping targets fail
+   WCAG 2.5.8 spacing). To make the stack do something, put ONE control beside it, or make
+   the "+3" a <button class="avatar"> that opens the list.
+
+   PRIVATE PROPERTIES (--_*) hold what sizes and variants change. --lift and --fill are
+   only declared on the pressable forms: a static avatar inside a lifted card must not
+   inherit the card's lift.
+   ========================================================================== */
+
+@layer sg.components {
+  .avatar,
+  .avatar-stack {
+    &[data-size="xs"] {
+      --avatar-size: 1.75rem;
+      --avatar-fs: 0.75rem;
+    }
+    &[data-size="sm"] {
+      --avatar-size: 2.25rem;
+      --avatar-fs: var(--text-xs);
+      --avatar-dot: 0.75rem;
+    }
+    &[data-size="lg"] {
+      --avatar-size: 4rem;
+      --avatar-fs: 1.5rem;
+      --avatar-dot: 1.125rem;
+    }
+    &[data-size="xl"] {
+      --avatar-size: 6rem;
+      --avatar-fs: 2.25rem;
+      --avatar-dot: 1.5rem;
+    }
+  }
+
+  .avatar {
+    --_size: var(--avatar-size, var(--hit));
+    --_fs: var(--avatar-fs, var(--text-md));
+    --_dot: var(--avatar-dot, 0.875rem);
+    --_bg: var(--tone-bg, var(--paper-2));
+    --_ink: var(--tone-ink, var(--ink));
+
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    inline-size: var(--_size);
+    block-size: var(--_size);
+    margin: 0;
+    padding: 0;
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+    font: var(--type-ctl);
+    font-size: var(--_fs);
+    font-stretch: semi-expanded;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+
+    /* the photo sits over the initials. No background of its own: if it fails to load,
+       the initials underneath are what the person sees. */
+    & > img {
+      position: absolute;
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100%;
+      max-inline-size: none;
+      object-fit: cover;
+      border-radius: var(--radius-pill);
+    }
+    & > img[hidden] {
+      display: none;
+    }
+
+    /* the closing "+3" of a stack: inverted, so it is plainly not a person */
+    &[data-overflow] {
+      --_bg: var(--ink);
+      --_ink: var(--paper);
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    /* ---- presence: four shapes, so the state survives without colour ---- */
+    &[data-presence]::before {
+      content: "";
+      position: absolute;
+      inset-block-end: calc(var(--_dot) * -0.1);
+      inset-inline-end: calc(var(--_dot) * -0.1);
+      inline-size: var(--_dot);
+      block-size: var(--_dot);
+      background: var(--paper);
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-pill);
+      outline: var(--bw) solid var(--paper);
+    }
+    &[data-presence="online"]::before {
+      background: var(--ok-ink);
+    }
+    &[data-presence="away"]::before {
+      background: var(--warn-ink);
+      border-radius: 0;
+      transform: rotate(45deg) scale(0.8);
+      outline-style: none; /* a rotated halo would be a second, larger diamond */
+    }
+    &[data-presence="busy"]::before {
+      background: var(--bad-ink);
+      border-radius: var(--radius-ctl);
+    }
+  }
+  /* a 28px circle cannot carry four legible shapes: presence starts at sm */
+  :is(.avatar[data-size="xs"], .avatar-stack[data-size="xs"] .avatar)[data-presence]::before {
+    display: none;
+  }
+
+  /* ---- pressable: a link or a button is a circle that acts, so it lifts like one ---- */
+  a.avatar,
+  button.avatar {
+    --lift: 0;
+    --fill: 0;
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+
+    cursor: pointer;
+    color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--_ink));
+    background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--_bg));
+    box-shadow: var(--_shadow);
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* hit area: the drawn circle may be smaller than 44px, the target is not */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), var(--_shadow);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --lift: 1;
+      --fill: 1;
+    }
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* current: the frame doubles (a second cue that survives a pale accent) */
+    &[aria-current="true"],
+    &[aria-pressed="true"] {
+      --_shadow: 0 0 0 var(--bw) var(--line);
+    }
+
+    &[aria-disabled="true"] {
+      --_ink: var(--ink-faint);
+      --_bg: transparent;
+      --_shadow: 0 0 0 0 transparent;
+      border-color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+  }
+
+  /* ---- stack: overlapping circles, DOM order = visual order, the last one on top ---- */
+  .avatar-stack {
+    --avatar-size: var(--hit);
+    --_overlap: 0.22; /* how much of a circle the next one covers; enough to read as a group, little enough to keep two letters legible */
+
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    & > li {
+      display: flex;
+      flex: none;
+    }
+    & > li + li {
+      margin-inline-start: calc(var(--avatar-size) * var(--_overlap) * -1);
+    }
+    /* the next circle covers the last 22% of this one, so its initials are centred in the part that shows */
+    & > li:not(:last-child) > .avatar {
+      padding-inline-end: calc(var(--avatar-size) * var(--_overlap));
+    }
+  }
+
+  /* forced colours: backgrounds vanish, so the presence shapes are repainted in system colours */
+  @media (forced-colors: active) {
+    .avatar {
+      border-color: CanvasText;
+      &[data-presence]::before {
+        forced-color-adjust: none;
+        background-color: CanvasText;
+        border-color: CanvasText;
+        outline-color: Canvas;
+      }
+      &[data-presence="offline"]::before {
+        background-color: Canvas;
+      }
+    }
+    a.avatar,
+    button.avatar {
+      &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &[aria-disabled="true"] {
+        color: GrayText;
+        border-color: GrayText;
+      }
+    }
+  }
+}

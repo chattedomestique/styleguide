@@ -1,0 +1,288 @@
+<!--{"title":"List","group":"Components","order":72,"summary":"Ruled rows for settings, history and decks, with a leading slot and a trailing value, tag, chevron or control; and the key / value grid."}-->
+<style>
+  /* docs only: the article's list styles must not indent or re-space the specimens */
+  .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
+  .docs-article .demo ul[role="list"] > li { max-inline-size: none; }
+  .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
+  .docs-article .demo dl { max-inline-size: none; }
+  .docs-article .demo .card__body > .kv { margin-block-start: var(--space-2); }
+  .docs-article .demo h3 { margin-block-start: 0; }
+</style>
+<h1>List</h1>
+<p class="lede">Rows, ruled by 1px lines: a settings screen, a history, a list of decks. And the key / value grid for facts about one thing. Both are flat containers: rectangles hold, so nothing here lifts or casts a shadow. A row you can press tints instead, and inverts when it is the current one.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Keep one job per row: it opens something, or it shows something, or it holds one control. Put the name first and the value or the chevron at the end.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Put a button inside a row that is itself a link, or use rows for a grid of equal things (that is tiles or cards). A row with two actions is two rows, or a row that opens a page.</p></div>
+  </div>
+</div>
+
+<h2 id="rows">Ruled rows</h2>
+<p>A <code>&lt;ul class="list" role="list"&gt;</code> of <code>&lt;li&gt;</code>, each holding one <code>.list__row</code>. A row has a <strong>lead</strong> (optional), a <strong>main</strong> block with a title and a soft meta line, and a <strong>trail</strong> (optional). The row is a <code>&lt;div&gt;</code> when it is only information. A stand-alone list takes <code>data-variant="framed"</code> (its own 2px frame); inside a card, a panel or an accordion body leave it bare, because the container is the frame.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <ul class="list" role="list" data-variant="framed">
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · last studied yesterday</span></span><span class="list__trail"><span class="list__value">5 known</span></span></div></li>
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards · new</span></span><span class="list__trail"><span class="list__value">0 known</span></span></div></li>
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards · last studied 3 days ago</span></span><span class="list__trail"><span class="list__value">11 known</span></span></div></li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="links">Rows that go somewhere</h2>
+<p>When the whole row is a link or a button, it is the target: the full width and at least 56px tall. The chevron is decoration (<code>aria-hidden</code>) and mirrors in right-to-left. A value before the chevron shows the current setting. Hover, focus and press tint the row; the ring is drawn <em>inside</em> it.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <ul class="list" role="list" data-variant="framed">
+      <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Language</span></span><span class="list__trail"><span class="list__value">English</span><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Cards per session</span><span class="list__meta">How many you see before a break</span></span><span class="list__trail"><span class="list__value">20</span><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Notifications</span></span><span class="list__trail"><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Export my decks</span></span><span class="list__trail"><span class="ic ic--download list__chevron" aria-hidden="true"></span></span></a></li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="lead">Leading slot</h2>
+<p>An avatar, a bare icon, or a square tile in a tone. The square tile is the owner's card tile: a 44px square with a 2px frame holding one icon. There is no circle behind an icon, because a tinted circle carries nothing.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <ul class="list" role="list" data-variant="framed">
+      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="3"><span class="ic ic--shopping-bag" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Nike Store</span><span class="list__meta">Clothing · 8 April</span></span><span class="list__trail"><span class="list__value">−$734.00</span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="2"><span class="ic ic--receipt" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Electric bill</span><span class="list__meta">Utilities · 6 April</span></span><span class="list__trail"><span class="list__value">−$62.40</span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="4"><span class="ic ic--wallet" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Salary</span><span class="list__meta">Income · 1 April</span></span><span class="list__trail"><span class="list__value">+$3,200.00</span></span></a></li>
+    </ul>
+  </div>
+</div>
+<div class="demo">
+  <div class="demo__stage">
+    <ul class="list" role="list">
+      <li><a class="list__row" href="#"><span class="list__lead"><span class="avatar" aria-hidden="true" data-tone="1">MO</span></span><span class="list__main"><span class="list__title">Maya Okafor</span><span class="list__meta">Shared Spanish: travel with you</span></span><span class="list__trail"><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__lead"><span class="avatar" aria-hidden="true" data-tone="2">JB</span></span><span class="list__main"><span class="list__title">Jonas Berg</span><span class="list__meta">Invited 2 days ago</span></span><span class="list__trail"><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__lead"><span class="ic ic--users" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Invite someone</span></span><span class="list__trail"><span class="ic ic--plus list__chevron" aria-hidden="true"></span></span></a></li>
+    </ul>
+  </div>
+</div>
+<p class="t-meta">The avatar is hidden (<code>aria-hidden</code>) because the name is written beside it.</p>
+
+<h2 id="trail">Trailing slot</h2>
+<p>The end of a row holds a value, a <a href="@/components/tag.html">Tag</a>, a chevron, or <strong>one</strong> control. A row is either the control (a link, button or label) and its trail is decoration, or it is static and its trail holds one control: never a control inside a control. A toggle in a settings row is a <a href="@/components/switch.html">Switch</a> in a static row.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <ul class="list" role="list" data-variant="framed">
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards</span></span><span class="list__trail"><span class="tag" data-tone="ok">Synced</span></span></div></li>
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards</span></span><span class="list__trail"><span class="tag" data-tone="warn">Due tomorrow</span></span></div></li>
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Dropbox</span><span class="list__meta">Not connected</span></span><span class="list__trail"><button class="btn" data-size="sm" type="button">Connect</button></span></div></li>
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Review queue</span><span class="list__meta">Order by</span></span><span class="list__trail"><span class="tag" data-priority="high">High</span></span></div></li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="current">Current row</h2>
+<p><code>aria-current</code> (or <code>aria-pressed</code> on a button) inverts the row: the text colour becomes the fill. It also adds a <strong>check</strong> and makes the title bolder, so the current row is three things, none of them a colour. Hover still tints on top.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <ul class="list" role="list" data-variant="framed">
+      <li><a class="list__row" href="#" aria-current="page"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards</span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards</span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards</span></span></a></li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="states">States</h2>
+<p>Only <code>--fill</code> is set (there is no <code>--lift</code>: a row lives inside a frame and does not raise). The tint is a layer of the row's own text colour at 8% (16% pressed); the text itself is never faded.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 15rem">
+      <div>
+        <ul class="list" role="list" data-variant="framed"><li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Rest</span></span><span class="list__trail"><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li></ul>
+      </div>
+      <div>
+        <ul class="list" role="list" data-variant="framed"><li><a class="list__row is-hover" href="#"><span class="list__main"><span class="list__title">Hover</span></span><span class="list__trail"><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li></ul>
+      </div>
+      <div>
+        <ul class="list" role="list" data-variant="framed"><li><a class="list__row is-focus" href="#"><span class="list__main"><span class="list__title">Focus</span></span><span class="list__trail"><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li></ul>
+      </div>
+      <div>
+        <ul class="list" role="list" data-variant="framed"><li><a class="list__row is-active" href="#"><span class="list__main"><span class="list__title">Pressed</span></span><span class="list__trail"><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li></ul>
+      </div>
+      <div>
+        <ul class="list" role="list" data-variant="framed"><li><a class="list__row" href="#" aria-current="true"><span class="list__main"><span class="list__title">Current</span></span></a></li></ul>
+      </div>
+      <div>
+        <ul class="list" role="list" data-variant="framed"><li><button class="list__row" type="button" aria-disabled="true" aria-describedby="list-off-why"><span class="list__main"><span class="list__title">Unavailable</span></span></button></li></ul>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="t-meta" id="list-off-why">"Unavailable": export needs at least one deck.</p>
+
+<h2 id="in-card">Inside a card</h2>
+<p>Inside a <code>.card</code> the list reads the card's own ink, soft ink and fill, so the same markup is right on a plain card, a toned card and the inverted one. In a card panel it runs edge to edge under the bar.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 15rem">
+      <section class="card">
+        <header class="card__bar"><p class="card__label">Decks</p></header>
+        <ul class="list" role="list">
+          <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Shapes</span></span><span class="list__trail"><span class="list__value">12</span></span></a></li>
+          <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span></span><span class="list__trail"><span class="list__value">8</span></span></a></li>
+          <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Farm animals</span></span><span class="list__trail"><span class="list__value">15</span></span></a></li>
+        </ul>
+      </section>
+      <section class="card" data-tone="ink">
+        <header class="card__bar"><p class="card__label">Shared with me</p></header>
+        <ul class="list" role="list">
+          <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Spanish: travel</span><span class="list__meta">From Maya</span></span><span class="list__trail"><span class="list__value">48</span></span></a></li>
+          <li><a class="list__row" href="#" aria-current="true"><span class="list__main"><span class="list__title">Geography capitals</span><span class="list__meta">From Jonas</span></span><span class="list__trail"><span class="list__value">31</span></span></a></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+
+<h2 id="reflow">Reflow</h2>
+<p>A row wraps instead of squeezing: the main block keeps at least 6rem, and the trail drops under it when there is no room. Drag the corner of the dashed box, or raise the text size.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="resize-box">
+      <ul class="list" role="list" data-variant="framed">
+        <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="3"><span class="ic ic--shopping-bag" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Supermercado La Esperanza</span><span class="list__meta">Groceries · 14 April</span></span><span class="list__trail"><span class="list__value">−$1,204.50</span></span></a></li>
+        <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Streak freeze</span></span><span class="list__trail"><span class="tag" data-tone="info">2 left</span></span></a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h2 id="kv">Key / value</h2>
+<p>A description list for facts about one thing: a photo's adjustments, a deck's numbers, a plan. <code>&lt;dl class="kv"&gt;</code> of <code>&lt;div&gt;&lt;dt&gt;&lt;dd&gt;&lt;/div&gt;</code> groups, which HTML allows. The key is a label (uppercase in CSS, natural case in the HTML); the value is what you read, with tabular figures and the true minus sign (U+2212). By default it wraps to as many columns as fit, so it reflows at 320px without scrolling sideways.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <dl class="kv" style="--kv-min: 6.5rem">
+      <div><dt>Brightness</dt><dd>−24.0</dd></div>
+      <div><dt>Contrast</dt><dd>+12.0</dd></div>
+      <div><dt>Saturation</dt><dd>0.0</dd></div>
+      <div><dt>Warmth</dt><dd>+6.5</dd></div>
+      <div><dt>Grain</dt><dd>18</dd></div>
+      <div><dt>Vignette</dt><dd>−8.0</dd></div>
+    </dl>
+  </div>
+</div>
+<p><code>data-layout="rows"</code> rules the pairs with 1px lines, the key at the start and the value at the end. Below 20rem the value drops under its key.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <dl class="kv" data-layout="rows">
+      <div><dt>Plan</dt><dd>Family</dd></div>
+      <div><dt>Renews</dt><dd>12 October</dd></div>
+      <div><dt>Members</dt><dd>4 of 6</dd></div>
+      <div><dt>Payment</dt><dd>Card ending 4242</dd></div>
+    </dl>
+  </div>
+</div>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 15rem">
+      <article class="card" data-tone="1">
+        <div class="card__body">
+          <p class="card__eyebrow">Deck</p>
+          <p class="card__title">Shapes</p>
+          <dl class="kv" style="--kv-min: 6rem">
+            <div><dt>Cards</dt><dd>12</dd></div>
+            <div><dt>Known</dt><dd>5</dd></div>
+            <div><dt>Streak</dt><dd>4 days</dd></div>
+            <div><dt>Last studied</dt><dd>Yesterday</dd></div>
+          </dl>
+        </div>
+      </article>
+      <article class="card" data-tone="ink">
+        <div class="card__body">
+          <p class="card__eyebrow">Plan</p>
+          <p class="card__title">Family</p>
+          <dl class="kv" data-layout="rows">
+            <div><dt>Renews</dt><dd>12 October</dd></div>
+            <div><dt>Members</dt><dd>4 of 6</dd></div>
+          </dl>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<h2 id="context">In context</h2>
+<p>A settings screen: a labelled <a href="@/components/divider.html">Divider</a> names each group, and the groups are framed lists.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="stack" data-gap="5">
+          <h3 class="t-title">Settings</h3>
+          <div class="stack" data-gap="3">
+            <h4 class="divider" data-align="start">Study</h4>
+            <ul class="list" role="list" data-variant="framed">
+              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Cards per session</span></span><span class="list__trail"><span class="list__value">20</span><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li>
+              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Daily reminder</span></span><span class="list__trail"><span class="list__value">18:00</span><span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span></span></a></li>
+            </ul>
+          </div>
+          <div class="stack" data-gap="3">
+            <h4 class="divider" data-align="start">Account</h4>
+            <ul class="list" role="list" data-variant="framed">
+              <li><div class="list__row"><span class="list__lead"><span class="avatar" aria-hidden="true" data-tone="1">MO</span></span><span class="list__main"><span class="list__title">Maya Okafor</span><span class="list__meta">maya@example.com</span></span></div></li>
+              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Sign out</span></span><span class="list__trail"><span class="ic ic--log-out list__chevron" aria-hidden="true"></span></span></a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>List</strong>: <code>&lt;ul role="list"&gt;</code>, no frame by default; rules between rows are 1px in the text colour. <code>data-variant="framed"</code> adds the 2px frame and the card radius.</li>
+  <li><strong>Row</strong>: at least 56px tall, padded 16px at the sides, edge to edge so the whole width is the target. Wraps when narrow.</li>
+  <li><strong>Lead</strong> (<code>.list__lead</code>): a 44px slot for an avatar, an icon or a square tile (<code>data-shape="tile"</code>).</li>
+  <li><strong>Main</strong> (<code>.list__main</code>): <code>.list__title</code> (600) over <code>.list__meta</code> (soft ink, tabular).</li>
+  <li><strong>Trail</strong> (<code>.list__trail</code>): <code>.list__value</code>, a tag, <code>.list__chevron</code> or one control.</li>
+  <li><strong>Key / value</strong>: <code>dl.kv</code> with <code>dt</code> in label type and <code>dd</code> in body type.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">List and key / value attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="list"</code></td><td><code>data-variant="framed"</code></td><td>The list. Framed: a 2px frame and the card radius, for a stand-alone group.</td></tr>
+    <tr><td><code>class="list__row"</code></td><td></td><td>The row inside each <code>&lt;li&gt;</code>. An <code>&lt;a&gt;</code>, <code>&lt;button&gt;</code> or <code>&lt;label&gt;</code> is pressable; a <code>&lt;div&gt;</code> is information.</td></tr>
+    <tr><td><code>class="list__lead"</code></td><td><code>data-shape="tile"</code>, <code>data-tone</code></td><td>The leading slot. Tile: the owner's square with a 2px frame, in a tone.</td></tr>
+    <tr><td><code>class="list__main"</code>, <code>__title</code>, <code>__meta</code></td><td></td><td>The text block.</td></tr>
+    <tr><td><code>class="list__trail"</code>, <code>__value</code>, <code>__chevron</code></td><td></td><td>The end of the row.</td></tr>
+    <tr><td><code>aria-current</code> / <code>aria-pressed</code></td><td><code>page</code>, <code>true</code></td><td>The current row: inverted, a check and a bolder title.</td></tr>
+    <tr><td><code>aria-disabled="true"</code></td><td></td><td>Faint, blocked. Give a reason in <code>aria-describedby</code>.</td></tr>
+    <tr><td><code>class="kv"</code></td><td><code>data-layout="rows"</code>, <code>--kv-min</code></td><td>The key / value grid. Rows: ruled pairs. <code>--kv-min</code>: the narrowest a cell gets (default 9rem).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">List keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Each pressable row is one tab stop. The ring (3px) is drawn inside the row, in the row's own ink, so it shows on the inverted current row too.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>A link follows on <kbd>Enter</kbd>; a button activates on both.</td></tr>
+    <tr><td>Screen reader</td><td><code>role="list"</code> keeps the list semantics that <code>list-style: none</code> would drop in Safari. A row's name is its text in order: title, meta, value. <code>dl</code> is read as a description list. Chevrons and leading icons are hidden.</td></tr>
+    <tr><td>Colour</td><td>Current is inversion, a check and bold. The meta line and keys are 7:1 (soft ink). Rules are the text colour.</td></tr>
+    <tr><td>Touch</td><td>A row is at least 56px tall and full width. Rows touch, so there is no gap to size; nothing in a pressable row is a second target.</td></tr>
+    <tr><td>Zoom / text size</td><td>Rows grow and wrap; the trail drops under the title when there is no room. The key / value grid drops to one column.</td></tr>
+    <tr><td>Reduced motion</td><td>The tint fades in and out with no travel.</td></tr>
+    <tr><td>Forced colours</td><td>Rules and frames are <code>CanvasText</code>; hover and focus get a 4px <code>Highlight</code> outline inside the row; the current row gets a 4px <code>Highlight</code> bar at its start, and keeps its check and bold title.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--card-ink</code>, <code>--card-ink-soft</code>, <code>--card-bg</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-card</code>, <code>--radius-tile</code>, <code>--hit</code>, <code>--type-ctl</code>, <code>--type-body</code>, <code>--type-meta</code>, <code>--type-label</code>, <code>--ls-label</code>, <code>--icon-check</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>.</p>

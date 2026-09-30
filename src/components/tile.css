@@ -1,0 +1,240 @@
+/* ==========================================================================
+   Tile  (layer: sg.components)
+   --------------------------------------------------------------------------
+   The square quick action: an icon and a name, on a field of colour. Send,
+   Bills, Top up, Study. You press it, so it gets what pressable things get:
+   a 2px frame and a hard shadow that appears when it can be pressed. The field
+   is the tone, so a row of tiles gives a screen its colour and rhythm; the tone
+   never says which one matters, the label does.
+
+   <a class="tile" href="/send" data-tone="1">
+     <span class="ic ic--send" aria-hidden="true"></span>
+     <span class="tile__label">Send</span>
+   </a>
+   <a class="tile" href="/bills">…<span class="tile__badge">3<span class="sr-only"> due</span></span></a>
+   <button class="tile" type="button" aria-pressed="true">…</button>
+
+   CAPTION variant: a field (colour, an icon or a photo) closed by a bar that carries the name.
+   Text never sits on the photo, so its contrast does not depend on the photo.
+   <a class="tile" data-variant="caption" data-tone="3" href="/decks/colours">
+     <span class="tile__field"><span class="ic ic--droplet" aria-hidden="true"></span></span>
+     <span class="tile__bar"><span class="tile__label">Colours</span><span class="tile__meta">8 cards</span></span>
+   </a>
+
+   data-tone     1…6 | ink | ok | warn | bad | info    the field. Hover fills with the tone's own solid.
+   data-variant  quick (default) | caption
+   Put a grid around them:  <div class="grid" style="--grid-min: 5.5rem">
+
+   STATES come from ARIA and native attributes, never classes:
+     :hover (where a pointer hovers) and :focus-visible   raised: 2px up, 4px hard shadow; fills
+     :active                                              back onto the surface, fill stays
+     aria-pressed="true" / aria-current                   filled AND the frame doubles
+     aria-disabled="true"                                 dashed frame, faint ink, no lift
+   The .is-hover / .is-focus / .is-active classes force a state for docs and tests; not API.
+
+   THE BADGE is a count (or "New"), drawn paper-on-ink-frame so it reads on any field, and
+   its words belong in the tile's name: "Bills, 3 due" (put the unit in .sr-only). A dot with
+   no number is colour-only and is not offered.
+
+   REFLOW. A tile is square because the grid gives it a width; it grows taller, never
+   clips, when the label wraps at 200% text. Sizes are rem.
+
+   PRIVATE PROPERTIES (--_*) hold what variants change; the base rule consumes them.
+   ========================================================================== */
+
+@layer sg.components {
+  .tile {
+    --lift: 0;
+    --fill: 0;
+    --_rest-bg: var(--tone-bg, var(--paper));
+    --_rest-ink: var(--tone-ink, var(--ink));
+    --_on-bg: var(--tone-fill, var(--accent));
+    --_on-ink: var(--tone-on-fill, var(--on-accent));
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    --_select: 0 0 0 0 transparent;
+    --_icon: 1.5rem;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-1);
+    min-inline-size: 0;
+    aspect-ratio: 1 / 1;
+    margin: 0;
+    /* a percentage is of the grid cell's width: 8px in a narrow cell, 16px in a wide one, so a
+       word like "Geography" fits a 88px tile instead of breaking */
+    padding: clamp(var(--space-2), 10%, var(--space-4));
+    color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
+    background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-tile);
+    box-shadow: var(--_select), var(--_shadow);
+    font: var(--type-meta);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    & > .ic,
+    & .tile__field > .ic {
+      --ic-size: var(--_icon);
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+    }
+
+    /* raised: where a pointer can hover, and always on keyboard focus (same lift, so both match) */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --lift: 1;
+      --fill: 1;
+    }
+    /* pressed: back onto the surface, the fill stays. After hover so it wins. */
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* on / current: filled, and the frame doubles, so it does not depend on the fill being dark */
+    &:is([aria-pressed="true"], [aria-current="true"], [aria-current="page"]) {
+      --fill: 1;
+      --_select: 0 0 0 var(--bw) var(--line);
+    }
+
+    /* unavailable: dashed = not here. Faint, not opacity. */
+    &[aria-disabled="true"] {
+      --lift: 0;
+      --fill: 0;
+      --_rest-bg: transparent;
+      --_rest-ink: var(--ink-faint);
+      --_shadow: 0 0 0 0 transparent;
+      color: var(--ink-faint);
+      background: transparent;
+      border-color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+    &[aria-disabled="true"] .tile__badge {
+      color: var(--ink-faint);
+      border-color: var(--ink-faint);
+      border-style: dashed;
+    }
+    &[aria-disabled="true"] {
+      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
+    }
+  }
+
+  .tile__label {
+    font: var(--type-ctl);
+    font-size: var(--text-sm);
+    line-height: var(--lh-snug);
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .tile__meta {
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  /* the count: paper with an ink frame, so it reads on any field, filled or not */
+  .tile__badge {
+    position: absolute;
+    inset-block-start: var(--space-2);
+    inset-inline-end: var(--space-2);
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 1.5rem;
+    block-size: 1.5rem;
+    padding-inline: var(--space-1);
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+    font: var(--type-meta);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+    line-height: 1;
+  }
+
+  /* ---- caption: a field closed by a bar. The bar swaps polarity where the quick tile fills. ---- */
+  .tile[data-variant="caption"] {
+    --_on-bg: var(--_rest-bg);
+    --_on-ink: var(--_rest-ink);
+    --_rest-bg: var(--tone-bg, var(--paper-2));
+    --_icon: 2.5rem;
+
+    justify-content: stretch;
+    gap: 0;
+    padding: 0;
+    overflow: clip;
+
+    .tile__field {
+      display: grid;
+      flex: 1 1 auto;
+      place-items: center;
+      inline-size: 100%;
+      min-block-size: 0;
+      overflow: clip;
+
+      & > img {
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .tile__bar {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      inline-size: 100%;
+      padding: var(--space-2) var(--space-3);
+      color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper));
+      background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+      border-block-start: var(--bw) solid var(--line);
+    }
+  }
+
+  /* ---- forced colours: shadows and fills vanish, so raised / on get a heavier line instead ---- */
+  @media (forced-colors: active) {
+    .tile {
+      border-color: ButtonText;
+      &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &:is([aria-pressed="true"], [aria-current="true"], [aria-current="page"]) {
+        border-width: var(--bw-heavy);
+      }
+      &[aria-disabled="true"] {
+        color: GrayText;
+        border-color: GrayText;
+      }
+    }
+    .tile__badge {
+      border-color: CanvasText;
+    }
+    .tile[data-variant="caption"] .tile__bar {
+      border-block-start-color: CanvasText;
+    }
+  }
+}
