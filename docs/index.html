@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f6f6f6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#151515" media="(prefers-color-scheme: dark)" />
+    <title>Overview · Style Guide</title>
+    <meta name="description" content="A reusable, accessible, brand-agnostic style guide for progressive web apps and mobile apps, built on the Flashcards style sheet." />
+    <!-- Apply saved appearance before first paint so there is no flash of the wrong theme. -->
+    <script>try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}</script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141414'/%3E%3Crect x='6' y='6' width='20' height='20' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E" />
+    <link rel="preload" href="./assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="./assets/styleguide.css" />
+    <link rel="stylesheet" href="./assets/icons.css" />
+    <link rel="stylesheet" href="./assets/wire.css" />
+    <link rel="stylesheet" href="./assets/docs.css" />
+  </head>
+  <body class="docs">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="docs-bar" id="docs-bar">
+      <button class="btn docs-bar__menu" data-shape="circle" data-size="sm" type="button" aria-label="Menu" aria-expanded="false" aria-controls="docs-nav">
+        <span class="ic ic--menu" aria-hidden="true"></span>
+      </button>
+      <a class="docs-bar__title" href="./index.html"><span class="t-label">Style guide</span> <span class="docs-bar__version t-label">v0.2.0</span></a>
+      <button class="btn docs-bar__prefs" data-size="sm" type="button" popovertarget="docs-prefs" aria-label="Appearance settings">
+        <span class="ic ic--sliders-horizontal" aria-hidden="true"></span>
+        <span>Appearance</span>
+      </button>
+    </header>
+
+    <div class="docs-scrim" data-docs-scrim hidden></div>
+
+    <div class="docs-shell">
+      <nav class="docs-nav" id="docs-nav" aria-label="Primary"><section class="docs-nav__group"><h2 class="docs-nav__heading">Start</h2><ul role="list"><li><a href="./index.html" aria-current="page">Overview</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Components</h2><ul role="list"><li><a href="./components/button.html">Button</a></li><li><a href="./components/card.html">Card</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Project</h2><ul role="list"><li><a href="./project/audit.html">Audit</a></li></ul></section></nav>
+
+      <main class="docs-main" id="main" tabindex="-1">
+        <article class="docs-article">
+          <p class="docs-crumb t-label">Start</p>
+          <h1>Style guide</h1>
+<p class="lede">One system for every app you build: minimal, brutalist, friendly, and clear about what to do next. It grows one element at a time; this is where they live.</p>
+
+<h2 id="origin">Where it comes from</h2>
+<p>This guide <strong>is</strong> the owner's Flashcards style sheet v0.1, generalised. The type, space, line, shape, hit-target and focus tokens, the role names (<code>--paper</code>, <code>--ink</code>, <code>--tone-1…6</code>), the <code>.card</code> element and its ten variants, the gates and the checker rules are theirs. Added on top: real colour (dark mode, high contrast, six palettes) with contrast verified in a browser, an accessibility test gate, and the elements that came from the reference screens.</p>
+
+<h2 id="rules">The seven rules</h2>
+<ol>
+  <li><strong>Two line weights.</strong> 2px frames what you press or what contains. 1px only divides. 4px exists for forced colours and nothing else.</li>
+  <li><strong>Flat.</strong> No gradients, no blur, no glass. A shadow is hard-edged and means "you can press this".</li>
+  <li><strong>Rectangles hold, circles act.</strong> Containers are rectangles (square or soft). Buttons, handles and action slots are circles or pills.</li>
+  <li><strong>Uppercase is structure.</strong> Bar labels, index numbers, the display line. Everything you read is sentence case.</li>
+  <li><strong>Say something real.</strong> No lorem ipsum, no "John Doe", no "seamless". Copy comes from the app.</li>
+  <li><strong>Colour is a swap.</strong> Components read roles. Only <code>src/tokens</code> contains a colour literal.</li>
+  <li><strong>No decoration.</strong> If it carries no information and offers no action, it goes.</li>
+</ol>
+
+<h2 id="use">Use it in an app</h2>
+<pre class="t-mono"><code>&lt;html lang="en" data-palette="mint" data-corners="soft"&gt;
+  &lt;link rel="stylesheet" href="styleguide.css"&gt;
+  &lt;button class="btn" data-variant="primary"&gt;Add funds&lt;/button&gt;</code></pre>
+
+<h2 id="try">Try it</h2>
+<p>Open <strong>Appearance</strong> at the top right and change the theme, palette, corners, contrast or motion. Every page on this site, including this one, updates live.</p>
+
+<h2 id="map">What is here</h2>
+<ul class="cards-index">
+  <li><a href="./components/card.html"><strong>Card</strong><span>The original element: ten variants, six states, two grids.</span></a></li>
+  <li><a href="./components/button.html"><strong>Button</strong><span>Pills and circles you press.</span></a></li>
+</ul>
+
+        </article>
+        <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__heading">On this page</h2><ul role="list"><li><a href="#origin">Where it comes from</a></li><li><a href="#rules">The seven rules</a></li><li><a href="#use">Use it in an app</a></li><li><a href="#try">Try it</a></li><li><a href="#map">What is here</a></li></ul></nav>
+      </main>
+    </div>
+
+    <!-- Appearance panel: built by docs.js (theme, contrast, palette, corners, motion). -->
+    <div class="docs-prefs" id="docs-prefs" popover aria-label="Appearance settings"></div>
+
+    <script src="./assets/styleguide.js" defer></script>
+    <script src="./assets/docs.js" defer></script>
+  </body>
+</html>
