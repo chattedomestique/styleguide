@@ -122,15 +122,11 @@
     border-block-end: var(--bw) solid var(--line);
   }
 
-  /* a solid plate in the surface colour, so the reference line breaks behind a number instead of
-     striking through it. Set --bars-bg if the chart sits on canvas or a tone; inside a .card it
-     follows the card by itself. */
   .bars__value {
     position: relative; /* positioned, so it paints above the reference line (which is absolute) */
     flex: none;
     max-inline-size: 100%;
     padding: 0 var(--space-1) var(--space-1);
-    background: var(--bars-bg, var(--card-bg, var(--paper)));
     font: var(--type-meta);
     font-size: var(--text-xs);
     font-weight: 600;
@@ -213,6 +209,13 @@
     inset-block-end: calc(var(--ref, 0) * (100% - var(--_val-h)));
     border-block-start: var(--bw-thin) dashed var(--line);
     pointer-events: none;
+  }
+
+  /* with a reference line, each number gets a solid plate in the surface colour, so the line breaks
+     behind a number instead of striking through it. Set --bars-bg if the chart sits on canvas or a
+     tone; inside a .card it follows the card by itself. */
+  .bars[data-ref] .bars__value {
+    background: var(--bars-bg, var(--card-bg, var(--paper)));
   }
 
   .bars__note {

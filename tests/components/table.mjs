@@ -122,6 +122,24 @@ export const tests = [
     },
   },
   {
+    name: 'with --tbl-max-h the region scrolls vertically and the header bar stays at the top',
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      const r = await page.locator(`${TX} .tbl__scroll`).evaluate(async (el) => {
+        el.style.setProperty('--tbl-max-h', '9rem')
+        await new Promise((res) => setTimeout(res, 50))
+        const th = el.querySelector('thead th:nth-child(2)')
+        const before = th.getBoundingClientRect().top - el.getBoundingClientRect().top
+        el.scrollTop = 80
+        await new Promise((res) => setTimeout(res, 50))
+        const after = th.getBoundingClientRect().top - el.getBoundingClientRect().top
+        return { before, after, scrolled: el.scrollTop, tall: el.scrollHeight > el.clientHeight }
+      })
+      expect.ok(r.tall && r.scrolled > 0, 'the region scrolls vertically')
+      expect.ok(Math.abs(r.before - r.after) < 2, `header bar did not move (${r.before} -> ${r.after})`)
+    },
+  },
+  {
     name: 'the scroll hint shows only while the region overflows',
     async run({ page, goto, expect }) {
       await goto('components/table.html')

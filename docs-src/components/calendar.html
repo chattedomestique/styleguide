@@ -1,5 +1,7 @@
 <!--{"title":"Calendar","group":"Components","order":110,"summary":"A month grid or a week strip with arrow-key navigation, today and chosen days marked by shape, event markers that are also text, and Intl names."}-->
 <style>
+  /* docs scaffolding only: keep the class names in the API tables whole */
+  .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
   /* docs scaffolding only: a calendar wants its width, so keep the stage padding small on phones */
   .demo__stage:has(> .cal) { padding: var(--space-3); }
   .demo__stage:has(> .cal) > .cal { max-inline-size: 26rem; }
@@ -834,6 +836,42 @@
   </div>
 </div>
 
+<h3 id="states">States</h3>
+<p>Each state has a cue that is not colour: hover and focus lift the day and draw its ring; pressing sinks it; today is ringed and underlined; the chosen day is filled and framed twice; "Other" is a day of a neighbouring month (quieter, not faint); "Off" is unavailable (dashed and faint). Under the numeral, one, two or three-plus event markers. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo" id="demo-states" data-nocode>
+  <div class="demo__stage">
+    <div class="cal" style="max-inline-size: 26rem">
+      <table class="cal__grid" role="grid" aria-label="Day states, one specimen of each">
+        <tbody>
+          <tr>
+            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">14</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day is-hover" type="button" tabindex="-1"><span class="cal__num">15</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day is-focus" type="button" tabindex="-1"><span class="cal__num">16</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day is-active" type="button" tabindex="-1"><span class="cal__num">17</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day" aria-current="date" type="button" tabindex="-1"><span class="cal__num">18</span><span class="cal__pips"></span></button></td>
+            <td aria-selected="true"><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">19</span><span class="cal__pips"></span></button></td>
+            <td aria-selected="true"><button class="cal__day" aria-current="date" type="button" tabindex="-1"><span class="cal__num">20</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
+          </tr>
+          <tr>
+            <td class="t-meta">Rest</td><td class="t-meta">Hover</td><td class="t-meta">Focus</td><td class="t-meta">Press</td><td class="t-meta">Today</td><td class="t-meta">Chosen</td><td class="t-meta">Both</td>
+          </tr>
+          <tr>
+            <td><button class="cal__day" data-outside type="button" tabindex="-1"><span class="cal__num">28</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day" aria-disabled="true" type="button" tabindex="-1"><span class="cal__num">29</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">30</span><span class="cal__pips"><i class="cal__pip"></i></span></button></td>
+            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">1</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
+            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">2</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
+            <td></td><td></td>
+          </tr>
+          <tr>
+            <td class="t-meta">Other</td><td class="t-meta">Off</td><td class="t-meta">One</td><td class="t-meta">Two</td><td class="t-meta">3+</td><td></td><td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Frame</strong> (<code>.cal</code>): 2px, paper, the card radius. A size container.</li>
@@ -858,6 +896,7 @@
     <tr><td><code>data-locale</code></td><td>BCP 47 tag</td><td>Names and formats. Default: the page's <code>lang</code>.</td></tr>
     <tr><td><code>data-min</code>, <code>data-max</code></td><td><code>YYYY-MM-DD</code></td><td>Days outside are <code>aria-disabled</code>.</td></tr>
     <tr><td><code>data-today</code></td><td><code>YYYY-MM-DD</code></td><td>Pin "today" for demos and tests.</td></tr>
+    <tr><td><code>data-list</code></td><td><code>off</code></td><td>Hide the list of the chosen day's events, when you show them somewhere else (an <a href="@/components/agenda.html">Agenda</a>).</td></tr>
     <tr><td><code>script[data-sg-events]</code></td><td>JSON <code>{ "YYYY-MM-DD": [{ title, time, end, tone }] }</code></td><td>Events. <code>time</code> and <code>end</code> are <code>HH:MM</code> (none = all day); <code>tone</code> is 1 to 6.</td></tr>
     <tr><td><code>sg-calendar-select</code></td><td>event</td><td><code>detail.value</code> and <code>detail.date</code> when a day is chosen.</td></tr>
     <tr><td><code>SG.calendar.select(el, iso)</code> / <code>.value(el)</code> / <code>.setEvents(el, map)</code> / <code>.init(scope)</code></td><td>functions</td><td>Drive it from code; call <code>init</code> for calendars you add later.</td></tr>

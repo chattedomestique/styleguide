@@ -1,4 +1,8 @@
 <!--{"title":"Table","group":"Components","order":100,"summary":"A real table in a scroll region: sticky first column, sortable headers, optional row selection, numbers that line up."}-->
+<style>
+  /* docs scaffolding only: keep the class names in the API tables whole */
+  .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
+</style>
 <h1>Table</h1>
 <p class="lede">A table compares rows of the same kind of thing: transactions, decks, sessions. It is a real <code>&lt;table&gt;</code>, so screen readers can move cell by cell, inside a scroll region, so it never breaks the page at 320px.</p>
 
@@ -140,6 +144,35 @@
   </div>
 </div>
 
+<h3 id="states">States</h3>
+<p>Hover, focus and pressed set <code>--fill</code> on a sort button (the ink bar becomes paper and the ring goes inset, in ink); a sorted header gets its arrow and an underline; a checked row gets a wash, a filled box with a check, and <code>aria-selected</code>. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo" id="demo-states">
+  <div class="demo__stage">
+    <div class="tbl" data-select>
+      <p class="tbl__title" id="tbl-states">Sort button and row states</p>
+      <div class="tbl__scroll" role="region" aria-labelledby="tbl-states" tabindex="0">
+        <table class="tbl__table" aria-labelledby="tbl-states" style="--tbl-min: 60rem">
+          <thead>
+            <tr>
+              <th scope="col"><label class="tbl__check"><input type="checkbox" aria-label="Select all states"><span class="tbl__box" aria-hidden="true"></span></label></th>
+              <th scope="col"><button class="tbl__sort" type="button">Rest</button></th>
+              <th scope="col"><button class="tbl__sort is-hover" type="button">Hover</button></th>
+              <th scope="col"><button class="tbl__sort is-focus" type="button">Focus</button></th>
+              <th scope="col"><button class="tbl__sort is-active" type="button">Pressed</button></th>
+              <th scope="col" aria-sort="ascending"><button class="tbl__sort" type="button">Ascending</button></th>
+              <th scope="col" aria-sort="descending"><button class="tbl__sort" type="button">Descending</button></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><label class="tbl__check"><input type="checkbox" aria-label="Select the unselected row"><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Unselected</th><td>Plain row</td><td>Paper</td><td>1px rule below</td><td data-align="end">1</td><td data-align="end">2</td></tr>
+            <tr aria-selected="true"><td><label class="tbl__check"><input type="checkbox" aria-label="Select the selected row" checked><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Selected</th><td>Wash</td><td>Checked box</td><td>aria-selected</td><td data-align="end">3</td><td data-align="end">4</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Title</strong> (<code>.tbl__title</code>): names the table. The scroll region and the <code>&lt;table&gt;</code> both point at it with <code>aria-labelledby</code>.</li>
@@ -172,7 +205,7 @@
     <tr><td><code>.tbl__empty</code></td><td>a <code>tr</code> with one <code>td colspan</code></td><td>The empty row.</td></tr>
     <tr><td><code>sg-table-sort</code></td><td>event, cancelable</td><td><code>detail.column</code>, <code>detail.direction</code>. <code>preventDefault()</code> to sort on the server; <code>aria-sort</code> still updates.</td></tr>
     <tr><td><code>sg-table-select</code></td><td>event</td><td><code>detail.count</code>, <code>detail.total</code>, <code>detail.rows</code>.</td></tr>
-    <tr><td><code>SG.table.sort(table, i, dir)</code></td><td>function</td><td>Sort programmatically. <code>SG.table.selected(table)</code> returns the selected rows.</td></tr>
+    <tr><td><code>SG.table.sort(table, i, dir)</code></td><td>function</td><td>Sort programmatically. <code>SG.table.selected(table)</code> returns the selected rows; <code>SG.table.init(scope)</code> measures the overflow hint for tables you add later (sorting and selection work on any table without it).</td></tr>
   </tbody>
 </table></div>
 

@@ -25,7 +25,7 @@ export const tests = [
       expect.ok(r.card, 'built on .card')
       expect.equal(r.tone, '1', 'has a tone')
       expect.equal(r.time, '2026-09-30', 'the date is a <time>')
-      expect.equal(r.links, 6, 'six events')
+      expect.equal(r.links, 7, 'seven events (one is all day)')
       expect.equal(r.body, 'grid', 'the body is a grid (beats Card\'s flex)')
       // the accessible name (computed by the browser's own rules) is the title followed by both times
       expect.equal(await page.getByRole('link', { name: /^Design review\s+14:00\s+–\s+15:30$/ }).count(), 1, 'the link is named with its times')
@@ -71,7 +71,7 @@ export const tests = [
     async run({ page, goto, expect }) {
       await goto('components/agenda.html')
       const r = await page.locator(DAYS).evaluate((el) => [...el.querySelectorAll('.agenda__day')].flatMap((d) => [...d.querySelectorAll('.agenda__event')].map((a) => ({ chip: getComputedStyle(a).backgroundColor, ink: getComputedStyle(a).color, card: getComputedStyle(d).backgroundColor }))))
-      expect.equal(r.length, 6, 'six chips')
+      expect.equal(r.length, 7, 'seven chips')
       for (const c of r) {
         expect.ok(c.chip !== c.card, 'the chip differs from the card')
         const k = await contrast(page, c.chip, c.ink)

@@ -1,5 +1,7 @@
 <!--{"title":"Agenda","group":"Components","order":112,"summary":"What is on, when: tonal day cards with hour columns, and a one-day time grid whose overlapping events sit in lanes or stack."}-->
 <style>
+  /* docs scaffolding only: keep the class names in the API tables whole */
+  .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
   /* docs scaffolding only: the docs article styles bare lists and h3/h4; an agenda is its own layout */
   .demo :is(.agenda, .agenda__slots, .agenda__events, .agenda-day__hours) { padding: 0; }
   .demo .agenda-day__events { padding: 0 0 0 var(--space-2); }
@@ -27,7 +29,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="days">Days, with hour columns</h3>
-<p>Each day is a Card with a tone. Only the hours that have something are shown. On a phone the hours are rows; once the card is 34rem wide they become columns with 1px rules between, and the date becomes a rail (the query is on the card, not the screen). Two events in the same hour stack: Friday's 14:00 column holds two. The chips take the card's tone, darker, and lift when pressed like a Button. A day with nothing on says so.</p>
+<p>Each day is a Card with a tone. Only the hours that have something are shown, and an all-day event is a slot whose label says so (Friday's rent). On a phone the hours are rows; once the card is 34rem wide they become columns with 1px rules between, and the date becomes a rail (the query is on the card, not the screen). Two events in the same hour stack: Friday's 14:00 column holds two. The chips take the card's tone, darker, and lift when pressed like a Button. A day with nothing on says so.</p>
 <div class="demo" id="demo-days">
   <div class="demo__stage">
     <ol class="agenda" role="list">
@@ -77,6 +79,12 @@
           </header>
           <ol class="agenda__slots" role="list">
             <li class="agenda__slot">
+              <span class="agenda__hour">All day</span>
+              <ul class="agenda__events" role="list">
+                <li><a class="agenda__event" href="#">Rent due</a></li>
+              </ul>
+            </li>
+            <li class="agenda__slot">
               <time class="agenda__hour" datetime="09:00">9:00</time>
               <ul class="agenda__events" role="list">
                 <li><a class="agenda__event" href="#">Standup <span class="agenda__len"><time datetime="09:30">9:30</time> &ndash; <time datetime="10:00">10:00</time></span></a></li>
@@ -99,6 +107,25 @@
             <h4 class="agenda__num" id="ag-4"><time datetime="2026-10-03">3<small>Oct</small></time></h4>
           </header>
           <p class="card__text">Nothing planned. A good day to catch up on cards.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<h3 id="states">Event states</h3>
+<p>A chip is a link, so it lifts on hover and on keyboard focus (same lift), and sinks when pressed. The day card itself is not pressable, so it never lifts. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo" id="demo-states">
+  <div class="demo__stage">
+    <ol class="agenda" role="list">
+      <li class="card agenda__day" data-tone="3">
+        <div class="card__body">
+          <ul class="agenda__events" role="list">
+            <li><a class="agenda__event" href="#">Rest <span class="agenda__len">9:00 &ndash; 9:30</span></a></li>
+            <li><a class="agenda__event is-hover" href="#">Hover <span class="agenda__len">9:30 &ndash; 10:00</span></a></li>
+            <li><a class="agenda__event is-focus" href="#">Focus <span class="agenda__len">10:00 &ndash; 10:30</span></a></li>
+            <li><a class="agenda__event is-active" href="#">Pressed <span class="agenda__len">10:30 &ndash; 11:00</span></a></li>
+          </ul>
         </div>
       </li>
     </ol>

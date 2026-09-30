@@ -1,5 +1,7 @@
 <!--{"title":"Bar chart","group":"Components","order":102,"summary":"Compare a few values by length: tone plus pattern, printed values, a selected bar, and the data one disclosure away as a table."}-->
 <style>
+  /* docs scaffolding only: keep the class names in the API tables whole */
+  .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
   /* docs scaffolding only */
   #demo-wallet .card__figure { font-size: var(--text-2xl); }
   .demo__stage .bars { --bars-bg: var(--canvas); }
@@ -319,6 +321,23 @@
   </div>
 </div>
 
+<h3 id="states">States</h3>
+<p>A bar in an interactive chart is pressable, so it is the only kind that lifts: hover and keyboard focus raise it (2px, with a hard shadow) and fill it with the accent; pressing sinks it; selected is filled and framed twice. Focus adds the ring, inset on the column. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo" id="demo-states">
+  <div class="demo__stage">
+    <figure class="bars" data-sg-bars style="--bars-h: 8rem">
+      <figcaption class="bars__title" id="bars-states">Bar states</figcaption>
+      <div class="bars__plot" role="radiogroup" aria-labelledby="bars-states">
+        <label class="bars__col" style="--v: 0.7"><input class="bars__input" type="radio" name="state-demo" aria-label="Rest: 70"><span class="bars__track"><span class="bars__value">70</span><span class="bars__bar" data-tone="1"></span></span><span class="bars__label">Rest</span></label>
+        <label class="bars__col is-hover" style="--v: 0.7"><input class="bars__input" type="radio" name="state-demo" aria-label="Hover: 70"><span class="bars__track"><span class="bars__value">70</span><span class="bars__bar" data-tone="1"></span></span><span class="bars__label">Hover</span></label>
+        <label class="bars__col is-focus" style="--v: 0.7"><input class="bars__input" type="radio" name="state-demo" aria-label="Focus: 70"><span class="bars__track"><span class="bars__value">70</span><span class="bars__bar" data-tone="1"></span></span><span class="bars__label">Focus</span></label>
+        <label class="bars__col is-active" style="--v: 0.7"><input class="bars__input" type="radio" name="state-demo" aria-label="Pressed: 70"><span class="bars__track"><span class="bars__value">70</span><span class="bars__bar" data-tone="1"></span></span><span class="bars__label">Press</span></label>
+        <label class="bars__col" style="--v: 0.7"><input class="bars__input" type="radio" name="state-demo" aria-label="Selected: 70" checked><span class="bars__track"><span class="bars__value">70</span><span class="bars__bar" data-tone="1"></span></span><span class="bars__label">Chosen</span></label>
+      </div>
+    </figure>
+  </div>
+</div>
+
 <h3 id="wallet">In context: a wallet category</h3>
 <p>The chart sits in a Card panel. The figure is the week's total, the chart is how it was spent, and what the chart says is also in the readout and in the table.</p>
 <div class="demo" id="demo-wallet" data-nocode>
@@ -407,6 +426,9 @@
     <tr><td><code>data-values</code></td><td><code>all</code>, <code>selected</code>, <code>none</code></td><td>Which bars print their value.</td></tr>
     <tr><td><code>data-ref</code> + <code>--ref</code></td><td>0 to 1 on <code>.bars__plot</code></td><td>A dashed reference line at that fraction of the largest bar.</td></tr>
     <tr><td><code>--bars-h</code>, <code>--bar-w</code></td><td>lengths</td><td>Plot height (11rem) and the widest a bar gets (2.75rem).</td></tr>
+    <tr><td><code>--bars-bg</code></td><td>a colour role</td><td>The surface under the chart, for the plates that let the reference line break behind a number. Inside a <code>.card</code> it follows the card; on the canvas set it to <code>var(--canvas)</code>.</td></tr>
+    <tr><td><code>.bars__note</code></td><td><code>p</code></td><td>Says what the dashed line is. Required with <code>data-ref</code>.</td></tr>
+    <tr><td><code>.bars__stack</code> / <code>--s</code></td><td><code>style="--s: 0.49"</code></td><td>A stacked bar, in place of <code>.bars__bar</code>; each <code>.bars__seg</code> takes its share with <code>--s</code> (shares of the stack, not of the chart).</td></tr>
     <tr><td><code>.bars__data</code></td><td><code>details</code></td><td>The table alternative.</td></tr>
   </tbody>
 </table></div>

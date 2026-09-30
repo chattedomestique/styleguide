@@ -203,6 +203,44 @@ export const tests = [
     },
   },
   {
+    name: 'data-values="selected" prints only the chosen bar\'s number, and the space stays reserved',
+    async run({ page, goto, expect }) {
+      await goto('components/chart-bar.html')
+      const r = await page.locator('#demo-values').evaluate((el) => {
+        const cols = [...el.querySelectorAll('.bars__col')]
+        const vis = cols.map((c) => getComputedStyle(c.querySelector('.bars__value')).visibility)
+        const h = cols.map((c) => Math.round(c.querySelector('.bars__value').getBoundingClientRect().height))
+        return { vis, same: new Set(h).size === 1 }
+      })
+      expect.equal(r.vis.filter((v) => v === 'visible').length, 1, 'one value visible')
+      expect.equal(r.vis[5], 'visible', 'Saturday (chosen) is the one')
+      expect.ok(r.same, 'hidden values still take their room, so nothing jumps')
+      await page.locator('#demo-values input').first().check()
+      const v = await page.locator('#demo-values .bars__col').first().locator('.bars__value').evaluate((e) => getComputedStyle(e).visibility)
+      expect.equal(v, 'visible', 'choosing Monday reveals Monday\'s')
+    },
+  },
+  {
+    name: 'SG.chart.scale and format: proportions against the largest, clamped; true minus',
+    async run({ page, goto, expect }) {
+      await goto('components/chart-bar.html')
+      const r = await page.evaluate(() => ({
+        scale: SG.chart.scale([18.5, 42, 27.3]).map((x) => Math.round(x * 1000) / 1000),
+        withMax: SG.chart.scale([5, 50], { max: 20 }),
+        withMin: SG.chart.scale([10, 15, 20], { min: 10, max: 20 }),
+        zero: SG.chart.scale([0, 0]),
+        money: SG.chart.format(-1199, { style: 'currency', currency: 'USD' }),
+        plus: SG.chart.format(64.9, { style: 'currency', currency: 'USD', signDisplay: 'always' }),
+      }))
+      expect.equal(JSON.stringify(r.scale), '[0.44,1,0.65]', 'against the largest')
+      expect.equal(JSON.stringify(r.withMax), '[0.25,1]', 'clamped to 1')
+      expect.equal(JSON.stringify(r.withMin), '[0,0.5,1]', 'min and max')
+      expect.equal(JSON.stringify(r.zero), '[0,0]', 'all zero is not NaN')
+      expect.equal(r.money.charCodeAt(0), 0x2212, `the minus is U+2212 (got ${r.money})`)
+      expect.ok(/^\+/.test(r.plus), 'plus sign kept')
+    },
+  },
+  {
     name: 'each interactive column is at least 44px wide and tall',
     async run({ page, goto, expect }) {
       await goto('components/chart-bar.html')
