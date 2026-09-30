@@ -157,7 +157,8 @@ export function checkCss({ name, css, kind, gates = { motion: true }, privateEls
   const allows = []
   for (const m of css.matchAll(/\/\*\s*lint-allow\s+([a-z0-9-]+)\s*:\s*([^*]+?)\s*\*\//g)) allows.push({ rule: m[1], why: m[2], line: lineOf(css, m.index) })
   const waived = []
-  const isAllowed = (line, rule) => allows.find((a) => a.rule === rule && (a.line === line || a.line === line - 1))
+  const fileAllows = [...css.matchAll(/\/\*\s*lint-allow-file\s+([a-z0-9-]+)\s*:\s*([^*]+?)\s*\*\//g)].map((m) => ({ rule: m[1], why: m[2] }))
+  const isAllowed = (line, rule) => allows.find((a) => a.rule === rule && (a.line === line || a.line === line - 1)) ?? fileAllows.find((a) => a.rule === rule)
   const err = (line, rule, msg) => { const a = isAllowed(line, rule); if (a) waived.push({ line, rule, msg, why: a.why }); else errors.push({ line, rule, msg }) }
   const warn = (line, rule, msg) => { const a = isAllowed(line, rule); if (a) waived.push({ line, rule, msg, why: a.why }); else warnings.push({ line, rule, msg }) }
   const decls = tokenize(css)
@@ -248,7 +249,7 @@ export function checkCss({ name, css, kind, gates = { motion: true }, privateEls
         for (const grp of splitTop(v, '/')) {
           for (const tok of splitTop(grp, ' ')) {
             if (RADIUS_ROLE.test(tok)) continue
-            if (/^calc\(/.test(tok) && !/\d*\.?\d+(?:px|rem|em)\b/.test(tok.replace(/var\([^)]*\)/g, ''))) continue
+            if (/^(?:calc|max|min|clamp)\(/.test(tok) && ![...tok.replace(/var\([^)]*\)/g, '').matchAll(/(?<![\w.-])(\d*\.?\d+)(?:px|rem|em)\b/g)].some((m) => parseFloat(m[1]) !== 0)) continue
             err(line, 'shape', `border-radius "${tok}": use --radius-card, -tile, -ctl or -pill (or 0)`)
           }
         }
@@ -258,7 +259,7 @@ export function checkCss({ name, css, kind, gates = { motion: true }, privateEls
     }
 
     if (!isToken && /^--_[\w-]*(?:radius|-r|^--_r)$/.test(prop) || prop === '--_r') {
-      if (/(?<![\w.-])\d*\.?\d+(?:px|rem|em)\b/.test(v.replace(/var\([^)]*\)/g, '')) && !/^0(?:px|rem)?$/.test(v)) err(line, 'shape', `${prop} is a private radius holding a literal length: assign a role (var(--radius-card), -tile, -ctl, -pill)`)
+      if ([...v.replace(/var\([^)]*\)/g, '').matchAll(/(?<![\w.-])(\d*\.?\d+)(?:px|rem|em)\b/g)].some((m) => parseFloat(m[1]) !== 0)) err(line, 'shape', `${prop} is a private radius holding a literal length: assign a role (var(--radius-card), -tile, -ctl, -pill)`)
     }
 
     /* ---- layering: a component stands alone; primitives stay in the colour file ---- */
@@ -287,7 +288,7 @@ export function checkCss({ name, css, kind, gates = { motion: true }, privateEls
     if (/!\s*important/i.test(value) && !/\[hidden\]|sr-only|display:\s*none/.test(sel + value)) warn(line, 'hygiene', '!important: avoid; layers already let apps override')
     // overflow: hidden is not flagged here: whether a ring is clipped is MEASURED (tests/a11y.mjs checks ring contrast and cut-off text)
     if (prop === 'opacity' && isComponent) { const n = parseFloat(v); if (!Number.isNaN(n) && n > 0 && n < 1 && !/disabled|aria-disabled|::|skeleton|is-disabled|\[hidden\]|@keyframes|spinner|marquee/.test(sel + d.stack.join(' '))) warn(line, 'a11y', 'opacity dims text and borders below their contrast: use a solid role') }
-    if (prop === 'text-transform' && v === 'uppercase' && !isDocs && !/label|display|eyebrow|idx|kbd|caption|tag|badge|\bth\b|thead|\.t-|stat|count|skip|dow|\bdt\b|title|summary|heading|dock|appbar|marquee|legend|divider|hour|\bnum\b|weekday|unit|axis|tick/i.test(sel)) warn(line, 'rule-4', 'uppercase is structure (labels, index numbers, the display line): content is sentence case')
+    if (prop === 'text-transform' && v === 'uppercase' && !isDocs && !/label|display|eyebrow|idx|kbd|caption|tag|badge|\bth\b|thead|\.t-|stat|count|skip|dow|\bdt\b|title|summary|heading|dock|appbar|marquee|legend|divider|hour|num|weekday|unit|axis|tick/i.test(sel)) warn(line, 'rule-4', 'uppercase is structure (labels, index numbers, the display line): content is sentence case')
     if ((isComponent || kind === 'layout' || kind === 'base') && /^(?:margin|padding)-(?:left|right)$|^(?:left|right)$|^border-(?:left|right)(?:-[a-z]+)?$/.test(prop) && !/forced-colors/.test(d.stack.join(' '))) warn(line, 'rtl', `physical property "${prop}": prefer logical (margin-inline, inset-inline-start …)`)
     if (prop === 'text-align' && /^(?:left|right)$/.test(v) && isComponent) warn(line, 'rtl', `text-align: ${v}: prefer start / end`)
     if (isComponent && /^(?:width|height|min-width|min-height|max-width|max-height|inline-size|block-size|min-inline-size|min-block-size|max-inline-size|max-block-size|padding[\w-]*|margin[\w-]*|gap|inset[\w-]*)$/.test(prop)) {
@@ -325,6 +326,7 @@ export function checkHtml({ name, html, page = false }) {
   const err = (line, rule, msg) => errors.push({ line, rule, msg })
   const warn = (line, rule, msg) => warnings.push({ line, rule, msg })
   const L = (i) => lineOf(html, i)
+  const fileAllow = (rule) => new RegExp('<!--\\s*lint-allow-file\\s+' + rule + '\\s*:').test(html)
   if (page && !/^\s*<!--\s*\{/.test(html)) err(1, 'docs', 'missing page metadata comment on line 1')
   for (const m of html.matchAll(/tabindex\s*=\s*["']?([1-9]\d*)/g)) err(L(m.index), 'a11y', 'positive tabindex breaks natural order')
   for (const m of html.matchAll(/<(?:div|span)[^>]*role\s*=\s*["']?button/g)) err(L(m.index), 'a11y', 'use a real <button>, not role="button" on a div/span')
@@ -336,7 +338,7 @@ export function checkHtml({ name, html, page = false }) {
     const text = m[2].replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<span class="ic[^>]*><\/span>/g, '').replace(/<[^>]+>/g, '').trim()
     if (!text && !/aria-label(?:ledby)?\s*=/.test(m[1])) err(L(m.index), 'a11y', '<button> with no text and no aria-label')
   }
-  for (const m of html.matchAll(/style\s*=\s*"([^"]*)"/g)) if (HEX.test(m[1]) || COLOUR_FN.test(m[1])) warn(L(m.index), 'colour', 'literal colour in an inline style: use a colour role')
+  if (!fileAllow('colour')) for (const m of html.matchAll(/style\s*=\s*"([^"]*)"/g)) if (HEX.test(m[1]) || COLOUR_FN.test(m[1])) warn(L(m.index), 'colour', 'literal colour in an inline style: use a colour role')
   for (const m of html.matchAll(/\b(?:fill|stroke)\s*=\s*"#[0-9a-f]{3,8}"/gi)) warn(L(m.index), 'colour', 'literal colour in an SVG attribute: use currentColor or a role')
   for (const m of html.matchAll(/[✓✔✗✕→←↑↓▸▾•★☆]/g)) warn(L(m.index), 'icons', `text glyph "${m[0]}" is missing from the bundled font: use an icon`)
   // owner rule 5: say something real
@@ -381,6 +383,6 @@ export function unknownClasses({ source, known }) {
   for (const m of source.matchAll(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>"'=`]+))/g)) { const v = m[1] ?? m[2] ?? m[3] ?? ''; if (/['+]/.test(v)) continue; add(m.index, v) }
   for (const m of source.matchAll(/classList\.(?:add|toggle|remove|replace)\(([^)]*)\)/g)) for (const s of m[1].matchAll(/['"`]([^'"`]+)['"`]/g)) add(m.index, s[1])
   for (const m of source.matchAll(/\bclassName\s*[+]?=\s*(['"`])([^'"`]*)\1/g)) add(m.index, m[2])
-  for (const m of source.matchAll(/data-tone\s*=\s*["']([^"']*)["']/g)) if (!TONES.has(m[1]) && !/[{$]/.test(m[1])) out.push({ line: lineOf(source, m.index), rule: 'markup', msg: `data-tone="${m[1]}" is not a tone (1-6, ink, ok, warn, bad, info)` })
+  for (const m of source.matchAll(/data-tone\s*=\s*["']([^"']*)["']/g)) if (m[1] !== '' && !TONES.has(m[1]) && !/[{$]/.test(m[1])) out.push({ line: lineOf(source, m.index), rule: 'markup', msg: `data-tone="${m[1]}" is not a tone (1-6, ink, ok, warn, bad, info)` })
   return out
 }

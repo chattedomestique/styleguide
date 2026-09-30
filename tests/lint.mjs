@@ -86,7 +86,9 @@ for (const f of docPages) {
 for (const f of [...walk(join(ROOT, 'src', 'js'), (p) => p.endsWith('.js')), join(ROOT, 'docs-src', 'assets', 'docs.js')].filter(existsSync)) {
   const name = rel(f)
   const js = readFileSync(f, 'utf8')
-  for (const r of unknownClasses({ source: js, known: project.classes })) warn(name, r.line, r.msg)
+  // comments may show markup, e.g. <span class="ic ic--name">; only code is checked
+  const code = js.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' ')).replace(/(^|[^:\w])\/\/.*$/gm, (m, a) => a + ' '.repeat(m.length - a.length))
+  for (const r of unknownClasses({ source: code, known: project.classes })) warn(name, r.line, r.msg)
   if (/^\s*(?:import|export)\s/m.test(js)) err(name, '', 'import/export: scripts must be plain (they run from file://)')
 }
 
