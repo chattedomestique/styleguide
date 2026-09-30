@@ -132,4 +132,25 @@ export const tests = [
       expect.equal(r.slice(0, 6).join(' | '), '', 'contrast below 7:1')
     },
   },
+  {
+    name: '200% text on a phone: titles, messages and button labels wrap inside the card; nothing is clipped',
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(200)
+      // the phone mock nests the card in a further 100px of docs padding at 200%: not a real screen
+      const r = await page.evaluate(() => [...document.querySelectorAll('.empty:not(.phone .empty)')].map((c) => {
+        const cr = c.getBoundingClientRect()
+        const inner = c.querySelector('.card__body').getBoundingClientRect()
+        const parts = [...c.querySelectorAll('.card__title, .card__text, .empty__actions .btn, .empty__icon')]
+        return { worst: Math.max(...parts.map((p) => p.getBoundingClientRect().right - cr.right)), left: Math.min(...parts.map((p) => p.getBoundingClientRect().left - cr.left)), sw: c.querySelector('.card__body').scrollWidth - c.querySelector('.card__body').clientWidth, title: c.querySelector('.card__title').textContent.trim() }
+      }))
+      expect.ok(r.length >= 5, 'states: ' + r.length)
+      for (const x of r) {
+        expect.ok(x.worst <= 0.5, `a part pokes ${x.worst}px past the card: ${x.title}`)
+        expect.ok(x.left >= 0, `a part starts ${x.left}px outside the card: ${x.title}`)
+        expect.ok(x.sw <= 1, `body scrolls sideways by ${x.sw}px: ${x.title}`)
+      }
+    },
+  },
 ]

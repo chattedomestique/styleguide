@@ -97,6 +97,15 @@
     margin-block-start: var(--space-2);
   }
 
+  /* A button's label is nowrap; at 200% text in a narrow card that would clip it (WCAG 1.4.4).
+     Here it may wrap, stays centred, and keeps its 44px minimum height. */
+  .empty__actions .btn {
+    max-inline-size: 100%;
+    padding-block: var(--space-2);
+    white-space: normal;
+    line-height: var(--lh-snug);
+  }
+
   /* ---- Page: fills what the app shell leaves, so the state sits at the optical centre
      instead of hugging the top. --empty-page-h lets a preview frame override. ---------------- */
   .card.empty[data-layout="page"] {
@@ -153,6 +162,18 @@
       grid-area: actions;
       justify-content: flex-start;
       margin-block-start: var(--space-2);
+    }
+  }
+
+  /* narrow (200% text on a phone): the tile goes above the words instead of squeezing them */
+  @container card (max-width: 14rem) {
+    .card.empty[data-layout="list"] > .card__body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "icon"
+        "title"
+        "text"
+        "actions";
     }
   }
 }

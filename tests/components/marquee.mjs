@@ -51,6 +51,8 @@ export const tests = [
       expect.equal(t.label, 'Pause ticker')
       expect.equal(t.pressed, 'false')
       expect.ok(t.visible && t.hit, 'visible, and the hit area reaches 44px each way')
+      const box = await page.locator(`${FIRST} .marquee__toggle`).boundingBox()
+      expect.ok(Math.abs(box.width - box.height) < 1, `drawn ${box.width}x${box.height}: a circle, not an oval`)
     },
   },
   {
@@ -240,6 +242,28 @@ export const tests = [
         return { slow, fast }
       })
       expect.ok(Math.abs(d.slow / d.fast - 2) < 0.15 || d.fast === 8, `slow ${d.slow}s vs fast ${d.fast}s`)
+    },
+  },
+  {
+    name: '200% text on a phone: too little room to scroll, so it stays a static wrapped list with nothing clipped, and the toggle says why',
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.evaluate(() => { for (const el of document.querySelectorAll('.marquee')) SG.marquee.refresh(el) })
+      await page.waitForTimeout(250)
+      const r = await page.evaluate(() => [...document.querySelectorAll('.marquee')].map((el) => {
+        const vp = el.querySelector('.marquee__viewport')
+        const lists = [...el.querySelectorAll('.marquee__list:not([data-clone])')]
+        const t = el.querySelector('.marquee__toggle')
+        const overflow = Math.max(...lists.flatMap((l) => [...l.children].map((li) => li.getBoundingClientRect().right - vp.getBoundingClientRect().right)))
+        return { loop: el.hasAttribute('data-loop'), overflow, disabled: t.getAttribute('aria-disabled'), desc: (document.getElementById(t.getAttribute('aria-describedby')) || {}).textContent || '', fit: el.hasAttribute('data-fit') }
+      }))
+      expect.ok(r.length >= 6, 'strips: ' + r.length)
+      for (const x of r) {
+        expect.equal(x.loop, false, 'nothing scrolls in a few letters of room')
+        expect.ok(x.overflow <= 1, `text does not spill past the strip (${x.overflow}px)`)
+        expect.ok(x.fit || x.desc.length > 10, 'the toggle says why: ' + x.desc)
+      }
     },
   },
   {

@@ -148,8 +148,18 @@
   .toast__close {
     margin-inline-start: var(--space-1);
   }
+  /* A small circle Button is square, 36 x 36, and reaches 44 x 44 through its ::after. Button's
+     own min-inline-size (--hit) would make it a 44 x 36 oval, so it is lifted here. */
+  .btn.toast__close {
+    min-inline-size: 0;
+    justify-self: end;
+  }
   .toast__action {
     flex: none;
+    max-inline-size: 100%;
+    padding-block: var(--space-1);
+    white-space: normal; /* at 200% text a long label wraps instead of clipping (WCAG 1.4.4) */
+    line-height: var(--lh-snug);
   }
 
   /* The plain toast is an ink surface: a button's ink frame would vanish on it, so the
@@ -198,6 +208,41 @@
         grid-template-areas:
           "msg close"
           "action action";
+      }
+    }
+  }
+
+  /* ---- Very narrow lists (200% text on a phone: 14rem is 448px there): the icon and the
+     dismiss button share a row, the message gets the full width under them, the action goes
+     last. Without this the message column shrinks to a letter or two. ------------------------- */
+  @container (max-width: 14rem) {
+    .toast,
+    .toast:has(> .toast__action),
+    .toast:has(> .toast__action):not(:has(> .toast__icon)) {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "icon . close"
+        "msg msg msg"
+        "action action action";
+      align-items: center;
+      column-gap: var(--space-2);
+      row-gap: var(--space-1);
+      padding-inline: var(--space-4) var(--space-2);
+
+      > .toast__icon {
+        grid-area: icon;
+      }
+      > .toast__msg {
+        grid-area: msg;
+      }
+      > .toast__close {
+        grid-area: close;
+      }
+      > .toast__action {
+        grid-area: action;
+        justify-self: start;
+        margin-block-end: var(--space-1);
       }
     }
   }

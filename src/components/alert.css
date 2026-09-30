@@ -96,12 +96,53 @@
     gap: var(--space-2);
   }
 
+  /* A button's label is nowrap; at 200% text in a narrow card that would clip it (WCAG 1.4.4).
+     Here it may wrap, stays centred, and keeps its 44px minimum height. */
+  .alert__actions .btn {
+    max-inline-size: 100%;
+    padding-block: var(--space-2);
+    white-space: normal;
+    line-height: var(--lh-snug);
+  }
+
   /* Dismiss: a circle button. Its drawn 36px is pulled in by the difference to the 24px line
      it sits beside, so the row is not taller than its text. The 44px hit area is the button's. */
   .alert__close {
     align-self: start;
     margin-block: calc(var(--space-1) * -1.5);
     margin-inline-end: calc(var(--space-1) * -1);
+  }
+  /* A small circle Button is square, 36 x 36, and reaches 44 x 44 through its ::after. Button's
+     own min-inline-size (--hit) would make it a 44 x 36 oval, so it is lifted here. */
+  .btn.alert__close {
+    min-inline-size: 0;
+    justify-self: end;
+  }
+
+  /* ---- Narrow card (a 320px phone with padding around it, or 200% text, where 14rem is 448px): the icon and the
+     dismiss button share a row above the words, so the text column gets the full width
+     instead of a few letters. rem in a container query scales with the reader's text size. --- */
+  @container card (max-width: 14rem) {
+    .alert > .card__body,
+    .alert > .card__body:has(> .alert__close) {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "icon . close"
+        "main main main"
+        "actions actions actions";
+    }
+    .alert > .card__body > .ic {
+      grid-area: icon;
+    }
+    .alert__main {
+      grid-area: main;
+    }
+    .alert__actions {
+      grid-area: actions;
+    }
+    .alert__close {
+      grid-area: close;
+    }
   }
 
   /* ---- Banner row: everything on one line; the text column is the only one that wraps. ---- */
@@ -110,12 +151,13 @@
 
     display: flex;
     flex-direction: row; /* .card__body is a column */
+    flex-wrap: wrap; /* at 200% text the action and close wrap under the words */
     align-items: center;
     padding-block: var(--space-2);
     padding-inline: var(--space-3) var(--space-2);
 
     > .alert__main {
-      flex: 1 1 auto;
+      flex: 1 1 10rem;
     }
     > .alert__actions,
     > .alert__close {

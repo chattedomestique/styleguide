@@ -167,6 +167,8 @@
     align-items: center;
     gap: var(--space-4);
     min-block-size: var(--space-6);
+    min-inline-size: 0;
+    overflow-wrap: anywhere; /* wrapped (static) text breaks rather than clips, at 200% too */
     /* The strip's own surface, repeated on each item. While the loop runs, items spend half
        their time scrolled out beyond the clip; a contrast checker that samples such an item
        finds the PAGE behind it (paper text on a canvas) and reports a failure for text nobody
@@ -268,6 +270,12 @@
     &[aria-pressed="true"] > .ic:nth-child(2) {
       display: inline-block;
     }
+  }
+
+  /* A small circle Button is square, 36 x 36, and reaches 44 x 44 through its ::after. Button's
+     own min-inline-size (--hit) would make it a 44 x 36 oval, so it is lifted here. */
+  .btn.marquee__toggle {
+    min-inline-size: 0;
   }
 
   /* On the ink band a button's ink frame would vanish: frame and ring follow the surface. */

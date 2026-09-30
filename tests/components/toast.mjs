@@ -181,6 +181,8 @@ export const tests = [
         return { h: r.height, left: at(cx - 21.5, cy), right: at(cx + 21.5, cy), up: at(cx, cy - 21.5), down: at(cx, cy + 21.5) }
       })
       expect.ok(hit.left && hit.right && hit.up && hit.down, 'the hit area reaches 44px each way')
+      const box = await close.boundingBox()
+      expect.ok(Math.abs(box.width - box.height) < 1, `drawn ${box.width}x${box.height}: a circle, not an oval`)
       await close.click()
       await waitVisible(page, 0)
     },

@@ -17,6 +17,8 @@
        the toggle then shows "paused" and is aria-disabled with the reason as its
        description, because it would have nothing to do;
      - the text already fits inside the strip (nothing to scroll);
+     - there is under 8rem of room for the moving text (200% text on a phone): it stays a
+       static, wrapped list, with the toggle disabled and the reason as its description;
      - there is no .marquee__toggle in the markup. WCAG 2.2.2 requires a pause control
        for anything that moves on its own for more than five seconds, and hover or focus
        pausing does not satisfy it, so the loop never starts without the button.
@@ -111,7 +113,12 @@
     if (!inst) return;
     var reduced = SG.motion.reduced();
     var natural = naturalWidth(inst);
-    var fits = natural <= availableWidth(inst) - 4;
+    var room = availableWidth(inst);
+    var fits = natural <= room - 4;
+    // With 200% text on a phone the label and the button leave a window a few letters wide:
+    // a ticker nobody can read. Below 8rem of room it stays a static, wrapped list.
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var cramped = !fits && room < 8 * rem;
 
     if (fits) root.setAttribute('data-fit', '');
     else root.removeAttribute('data-fit');
@@ -128,6 +135,13 @@
       dropClone(inst);
       setPressed(inst, false);
       setReason(inst, 'Nothing is scrolling because the text fits.');
+      return;
+    }
+    if (cramped) {
+      root.removeAttribute('data-loop');
+      dropClone(inst);
+      setPressed(inst, true);
+      setReason(inst, 'There is not enough room to scroll, so the ticker shows all of its text.');
       return;
     }
 

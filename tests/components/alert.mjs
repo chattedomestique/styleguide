@@ -75,10 +75,10 @@ export const tests = [
         const r = el.getBoundingClientRect()
         const cx = r.left + r.width / 2, cy = r.top + r.height / 2
         const at = (x, y) => { const t = document.elementFromPoint(x, y); return !!t && (t === el || el.contains(t)) }
-        return { w: r.width, h: r.height, up: at(cx, cy - 21.5), down: at(cx, cy + 21.5) }
+        return { w: r.width, h: r.height, up: at(cx, cy - 21.5), down: at(cx, cy + 21.5), left: at(cx - 21.5, cy), right: at(cx + 21.5, cy) }
       })
-      expect.ok(hits.h < 44, `drawn ${hits.w}x${hits.h}`)
-      expect.ok(hits.up && hits.down, 'the hit area reaches 44px')
+      expect.ok(hits.h < 44 && Math.abs(hits.w - hits.h) < 1, `drawn ${hits.w}x${hits.h}: a circle, not an oval`)
+      expect.ok(hits.up && hits.down && hits.left && hits.right, 'the hit area reaches 44px each way')
     },
   },
   {
@@ -158,6 +158,27 @@ export const tests = [
       })
       for (const h of r.heights) expect.ok(h >= 43.5, `button height ${h}`)
       for (const g of r.gaps) expect.ok(g >= 7.5, `gap ${g}`)
+    },
+  },
+  {
+    name: '200% text on a phone: the icon and dismiss share a row above the words, and nothing pokes out of the card',
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(200)
+      const r = await page.evaluate(() => [...document.querySelectorAll('#actions ~ .demo .alert, #dismiss-stage .alert')].map((c) => {
+        const cr = c.getBoundingClientRect()
+        const parts = [...c.querySelectorAll('.alert__title, .alert__text, .alert__actions .btn, .alert__close, .card__body > .ic')]
+        const icon = c.querySelector('.card__body > .ic').getBoundingClientRect()
+        const main = c.querySelector('.alert__main').getBoundingClientRect()
+        return { worst: Math.max(...parts.map((p) => p.getBoundingClientRect().right - cr.right)), iconAbove: icon.bottom <= main.top + 1, mainW: main.width, cardW: cr.width }
+      }))
+      expect.ok(r.length >= 4, 'alerts: ' + r.length)
+      for (const x of r) {
+        expect.ok(x.worst <= 0.5, `a part pokes ${x.worst}px out of the card`)
+        expect.ok(x.iconAbove, 'icon sits above the words in a narrow card')
+        expect.ok(x.mainW > x.cardW * 0.6, `the words get most of the width (${x.mainW} of ${x.cardW})`)
+      }
     },
   },
 ]
