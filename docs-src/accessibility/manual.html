@@ -12,7 +12,7 @@
   <li><strong>Get the page onto the device.</strong> <code>npm run serve</code> listens on 127.0.0.1 only, so a phone cannot reach it. Put <code>docs/</code> on GitHub Pages (it is served as it is), or use a tunnel or any static host that answers on your network. A service worker and installing need HTTPS (or <code>localhost</code>); everything else works over plain http on a local network.</li>
   <li><strong>Choose the pages.</strong> Test the screens of your app. To test the guide itself, use the element pages named in each step; the keys and announcements they should give are on <a href="@/accessibility/patterns.html">Patterns</a> and in the Accessibility table of each element's page.</li>
   <li><strong>Record as you go.</strong> Device and OS version, browser, assistive technology, date, page, pass or fail, and what you heard or saw. <a href="#record">A sheet is at the end</a>.</li>
-  <li><strong>Read "Expect" as a description, not a script.</strong> Screen readers word things differently between versions and languages. What must be conveyed is the <em>name</em>, the <em>role</em>, the <em>state</em> and the <em>position</em>; the exact phrase is not the test.</li>
+  <li><strong>Read "Pass looks like" as a description, not a script.</strong> Screen readers word things differently between versions and languages. What must be conveyed is the <em>name</em>, the <em>role</em>, the <em>state</em> and the <em>position</em>; the exact phrase is not the test.</li>
 </ul>
 
 <h2 id="ios">iPhone: VoiceOver in Safari</h2>
@@ -82,13 +82,13 @@
 </table></div>
 
 <h2 id="zoom">400% zoom and text spacing</h2>
-<p><strong>400% zoom.</strong> On a desktop browser at 1280&nbsp;px wide, zoom to 400%: that is 320 CSS pixels (WCAG 1.4.10). Then at 1024&nbsp;×&nbsp;768 zoom to 400% for a 256&nbsp;px-tall viewport. On an iPhone, pinch-zoom a page. The gate proves the 320&nbsp;px case; the rest is yours.</p>
+<p><strong>400% zoom.</strong> Open a desktop browser window 1280&nbsp;px wide and 1024&nbsp;px tall and zoom to 400%: the page now has 320&nbsp;×&nbsp;256 CSS pixels (WCAG 1.4.10). The 320 is the width that content must reflow to; the 256 is the height that content scrolling sideways must still fit. A window shorter than 1024&nbsp;px gives an even shorter viewport, which is a harsher test. On an iPhone, pinch-zoom a page. The gate proves the 320&nbsp;px case; the rest is yours.</p>
 <div class="table-wrap"><table class="docs-table" data-stack role="table">
   <caption class="sr-only">The zoom script</caption>
   <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
   <tbody role="rowgroup">
-    <tr role="row"><td role="cell" data-label="Step">1. 400% at 1280 wide</td><td role="cell" data-label="Do">Zoom the page to 400% and scroll the whole page.</td><td role="cell" data-label="Pass looks like">There is no sideways scroll except inside a table, a code block or a scroller that has a label. No content or function is missing.</td></tr>
-    <tr role="row"><td role="cell" data-label="Step">2. 256 px tall</td><td role="cell" data-label="Do">Zoom to 400% in a 1024 × 768 window, then open a dialog, a sheet and a menu.</td><td role="cell" data-label="Pass looks like">Each fits or scrolls inside itself, and its close control is reachable. A floating dock stops floating on very short screens.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">1. 400% in a 1280 × 1024 window</td><td role="cell" data-label="Do">Zoom the page to 400% and scroll the whole page.</td><td role="cell" data-label="Pass looks like">There is no sideways scroll except inside a table, a code block or a scroller that has a label. No content or function is missing.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. Only 256 px tall</td><td role="cell" data-label="Do">At the same 400%, open a dialog, a sheet and a menu.</td><td role="cell" data-label="Pass looks like">Each fits or scrolls inside itself, and its close control is reachable. A floating dock stops floating on very short screens.</td></tr>
     <tr role="row"><td role="cell" data-label="Step">3. Pinch zoom</td><td role="cell" data-label="Do">On a phone, pinch-zoom the page and a dialog.</td><td role="cell" data-label="Pass looks like">Zoom works everywhere; nothing blocks it (<code>touch-action</code> is limited to the control).</td></tr>
   </tbody>
 </table></div>

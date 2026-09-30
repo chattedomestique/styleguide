@@ -10,8 +10,10 @@
   <tbody role="rowgroup">
     <tr role="row"><td role="cell" data-label="File"><code>styleguide.css</code></td><td role="cell" data-label="What it is">Every layer, tokens to utilities, with the comments that explain why a rule exists. Read this one when something looks odd.</td><td role="cell" data-label="Needed?">One of the two CSS files</td></tr>
     <tr role="row"><td role="cell" data-label="File"><code>styleguide.min.css</code></td><td role="cell" data-label="What it is">The same CSS with comments and whitespace removed, and the version banner kept. Use it in production.</td><td role="cell" data-label="Needed?">One of the two CSS files</td></tr>
-    <tr role="row"><td role="cell" data-label="File"><code>styleguide.js</code></td><td role="cell" data-label="What it is">A plain script that defines <code>window.SG</code>: saved appearance, screen-reader announcements, the <code>aria-disabled</code> guard, and the behaviour of every element that needs script. No modules, so it runs from <code>file://</code> too. Newer builds also write <code>styleguide.min.js</code>.</td><td role="cell" data-label="Needed?">Recommended. <a href="@/start/customize.html#off">What you lose without it</a></td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>styleguide.js</code></td><td role="cell" data-label="What it is">A plain script that defines <code>window.SG</code>: saved appearance, screen-reader announcements, the <code>aria-disabled</code> guard, and the behaviour of every element that needs script. No modules, so it runs from <code>file://</code> too. It keeps the comments that document every function.</td><td role="cell" data-label="Needed?">Recommended, in one of its two forms. <a href="@/start/customize.html#off">What you lose without it</a></td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>styleguide.min.js</code></td><td role="cell" data-label="What it is">The same script with comments and indentation removed, and the version banner kept. Use it in production; it is well over a third smaller.</td><td role="cell" data-label="Needed?">One of the two script files</td></tr>
     <tr role="row"><td role="cell" data-label="File"><code>icons.css</code></td><td role="cell" data-label="What it is">Well over a hundred more masked icons. The five the owner drew (<code>arrow</code>, <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code>) are already in the main file.</td><td role="cell" data-label="Needed?">Only if you use more than those five. See <a href="#icons">Icons</a></td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>core.min.css</code>, <code>core.min.js</code>, <code>elements/</code>, <code>js/</code></td><td role="cell" data-label="What it is">The main files cut into pieces: the foundation once, then one file per element and one script per element that needs one, each also unminified. <code>elements/manifest.json</code> says what builds on what.</td><td role="cell" data-label="Needed?">Only if you link pieces instead of the whole guide. See <a href="#pieces">Only some elements</a></td></tr>
     <tr role="row"><td role="cell" data-label="File"><code>wire.css</code></td><td role="cell" data-label="What it is">The wireframe placeholders (<code>.wf-*</code>). For designing screens before real elements exist.</td><td role="cell" data-label="Needed?">No. Development only; nothing in the guide depends on it</td></tr>
     <tr role="row"><td role="cell" data-label="File"><code>fonts/</code></td><td role="cell" data-label="What it is">Archivo Variable in three files (<code>archivo-latin-var.woff2</code>, <code>archivo-latin-ext-var.woff2</code>, <code>archivo-vietnamese-var.woff2</code>) and the licence. A browser downloads a file only when a page uses a character in its range, so an English app pays for the latin file alone.</td><td role="cell" data-label="Needed?">Yes, unless you <a href="@/start/customize.html#font">change the font</a>. Keep the licence next to it</td></tr>
   </tbody>
@@ -31,7 +33,7 @@
   index.html
   styleguide/
     styleguide.min.css
-    styleguide.js
+    styleguide.min.js
     icons.css                               (optional, see Icons)
     fonts/
       archivo-latin-var.woff2
@@ -60,10 +62,10 @@
 <p>Good for a prototype: nothing to copy. jsDelivr serves any tag of a public GitHub repository, and pins a tag as immutable.</p>
 <pre aria-label="Head lines that load the guide from jsDelivr">&lt;link rel=&quot;preload&quot; href=&quot;https://cdn.jsdelivr.net/gh/chattedomestique/styleguide@v0.2.0/dist/fonts/archivo-latin-var.woff2&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/chattedomestique/styleguide@v0.2.0/dist/styleguide.min.css&quot;&gt;
-&lt;script src=&quot;https://cdn.jsdelivr.net/gh/chattedomestique/styleguide@v0.2.0/dist/styleguide.js&quot; defer&gt;&lt;/script&gt;</pre>
+&lt;script src=&quot;https://cdn.jsdelivr.net/gh/chattedomestique/styleguide@v0.2.0/dist/styleguide.min.js&quot; defer&gt;&lt;/script&gt;</pre>
 <div class="note" data-kind="warn">
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
-  <div><strong>Do not use raw.githubusercontent.com, and do not use @main</strong><p>Headers checked on 30 September 2026: <code>raw.githubusercontent.com</code> answers with <code>content-type: text/plain</code> and <code>x-content-type-options: nosniff</code>, so a browser refuses the file as a stylesheet or a script. A jsDelivr tag URL answered <code>text/css</code> with <code>access-control-allow-origin: *</code> and <code>cache-control: public, max-age=31536000, immutable</code>. A branch URL such as <code>@main</code> is not immutable: it is cached for a while and changes under you.</p></div>
+  <div><strong>Link a tag, not raw GitHub or a branch</strong><p>Headers checked on 30 September 2026: <code>raw.githubusercontent.com</code> answers with <code>content-type: text/plain</code> and <code>x-content-type-options: nosniff</code>, so a browser refuses the file as a stylesheet or a script. A jsDelivr tag URL answered <code>text/css</code> with <code>access-control-allow-origin: *</code> and <code>cache-control: public, max-age=31536000, immutable</code>. A branch URL such as <code>@main</code> is not immutable: it is cached for a while and changes under you.</p></div>
 </div>
 <ul>
   <li><strong>The tag in the example does not exist yet.</strong> On 30 September 2026 the repository had no tags (GitHub's tags API returned an empty list), so the URL above returns 404 until you push <code>v0.2.0</code> (see <a href="@/start/upgrade.html#release">Upgrade</a>). The URL shape is jsDelivr's documented one, checked against another project's tag; this repository has never served the guide through jsDelivr.</li>
@@ -74,7 +76,7 @@
 <pre aria-label="Command that prints the integrity hash">openssl dgst -sha384 -binary dist/styleguide.min.css | openssl base64 -A</pre>
 
 <h2 id="pieces">Only some elements</h2>
-<p>Newer builds of the guide also write the main file in pieces, so an app can link only what it uses. <code>dist/core.min.css</code> holds the tokens, base, layout and utilities (everything but the elements); <code>dist/elements/&lt;name&gt;.min.css</code> is one element; <code>dist/core.min.js</code> is <code>SG</code>, the prefs, the guard and the disclosure helper; <code>dist/js/&lt;NN-name&gt;.min.js</code> is one element's script. <code>dist/elements/manifest.json</code> says which elements each one builds on and which script each needs. If your <code>dist/</code> has no <code>core.css</code>, use the one file above.</p>
+<p>The build also writes the main file in pieces, so an app can link only what it uses. <code>dist/core.min.css</code> holds the tokens, base, layout and utilities (everything but the elements); <code>dist/elements/&lt;name&gt;.min.css</code> is one element; <code>dist/core.min.js</code> is <code>SG</code>, the prefs, the guard and the disclosure helper; <code>dist/js/&lt;NN-name&gt;.min.js</code> is one element's script. <code>dist/elements/manifest.json</code> says which elements each one builds on and which script each needs.</p>
 <pre aria-label="Linking core and three elements instead of the whole guide">&lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/core.min.css&quot;&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/elements/button.min.css&quot;&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/elements/card.min.css&quot;&gt;
@@ -100,7 +102,7 @@
     <tr role="row"><td role="cell" data-label="Element">Two <code>theme-color</code> metas with <code>media</code></td><td role="cell" data-label="Why">Colour the browser toolbar to match the canvas in light and dark. Use the pair in <a href="#theme-color">the table below</a>. When a person overrides the theme or palette in your settings, <code>SG.prefs</code> rewrites both tags to the live canvas colour.</td></tr>
     <tr role="row"><td role="cell" data-label="Element">Inline prefs script</td><td role="cell" data-label="Why">Applies the saved theme, contrast, palette, corners and motion to <code>&lt;html&gt;</code> before the first paint, so a dark-mode user does not see a white flash. It must be inline and in the head, and it is wrapped in <code>try/catch</code> for private windows.</td></tr>
     <tr role="row"><td role="cell" data-label="Element"><code>&lt;link rel="preload"&gt;</code> for the latin font</td><td role="cell" data-label="Why">Starts the download before the CSS is parsed. <code>crossorigin</code> is required even on the same origin, because fonts are always fetched in CORS mode; without it the file is fetched twice. The complete file below made one request for the font. Drop the preload if you change the font.</td></tr>
-    <tr role="row"><td role="cell" data-label="Element">Stylesheet, then <code>styleguide.js</code> with <code>defer</code></td><td role="cell" data-label="Why">A deferred script runs after the page is parsed and before <code>DOMContentLoaded</code>, so <code>SG</code> exists for your own code in a <code>DOMContentLoaded</code> handler or a later deferred script.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element">Stylesheet, then <code>styleguide.min.js</code> with <code>defer</code></td><td role="cell" data-label="Why">A deferred script runs after the page is parsed and before <code>DOMContentLoaded</code>, so <code>SG</code> exists for your own code in a <code>DOMContentLoaded</code> handler or a later deferred script.</td></tr>
     <tr role="row"><td role="cell" data-label="Element"><code>text-scale</code> = <code>scale</code> (optional)</td><td role="cell" data-label="Why"><code>&lt;meta name="text-scale" content="scale"&gt;</code> asks Chrome and Edge on Android (version 146 and later, per the compatibility data) to scale <code>rem</code> text with the OS font size. Other browsers ignore it. <strong>Not verified on a device.</strong> It scales only text set in <code>rem</code> or <code>em</code>, and can cause sideways scrolling in layouts that use <code>px</code>. The guide uses <code>rem</code> throughout, but it is not in the complete file below because nobody has seen it work.</td></tr>
   </tbody>
 </table></div>
@@ -139,7 +141,7 @@
   &lt;link rel=&quot;preload&quot; href=&quot;styleguide/fonts/archivo-latin-var.woff2&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;
   &lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/styleguide.min.css&quot;&gt;
   &lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/icons.css&quot;&gt;
-  &lt;script src=&quot;styleguide/styleguide.js&quot; defer&gt;&lt;/script&gt;
+  &lt;script src=&quot;styleguide/styleguide.min.js&quot; defer&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
   &lt;a class=&quot;skip-link&quot; href=&quot;#main&quot;&gt;Skip to content&lt;/a&gt;
@@ -157,7 +159,7 @@
   &lt;/div&gt;
 
   &lt;script&gt;
-    // styleguide.js is deferred: it runs before DOMContentLoaded, so SG exists here.
+    // The guide's script is deferred: it runs before DOMContentLoaded, so SG exists here.
     document.addEventListener('DOMContentLoaded', function () {
       var count = document.getElementById('count');
       var n = 3;
@@ -209,7 +211,7 @@ SG.prefs.onChange(function (name, value) { /* keep your settings screen in step 
 SG.prefs.reset()                      // forget everything, follow the device</pre>
 <div class="note" data-kind="warn">
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
-  <div><strong>Known limit: the guide's defaults cannot be saved as a choice over your own default</strong><p>"No attribute" is the default, so <code>default</code> and <code>square</code> are stored as nothing. If your HTML says <code>data-palette="mint"</code> and a person picks <em>default</em>, the attribute is removed and nothing is stored, so the next page load is mint again. <code>SG.prefs.reset()</code> also removes the attributes you wrote until the next load. Checked in Chromium.</p>
+  <div><strong>Known limit: a chosen default is not saved</strong><p>"No attribute" is the default, so <code>default</code> and <code>square</code> are stored as nothing. If your HTML says <code>data-palette="mint"</code> and a person picks <em>default</em>, the attribute is removed and nothing is stored, so the next page load is mint again. <code>SG.prefs.reset()</code> also removes the attributes you wrote until the next load. Checked in Chromium.</p>
 <p>Until <code>SG.prefs</code> can store an explicit default, pick one:</p>
 <ul>
   <li>Leave your look in the HTML alone, and do not offer <em>default</em> and <em>square</em> as choices when your app's own look differs.</li>
@@ -233,16 +235,16 @@ SG.prefs.reset()                      // forget everything, follow the device</p
 <ol>
   <li><strong>The prefs snippet is inline.</strong> Allow that one script by hash. The hash is over the exact text between the tags, so whitespace matters; this prints it for the snippet as written in the complete file above:
 <pre aria-label="Command that prints the CSP hash of the prefs snippet">printf '%s' &quot;try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}&quot; | openssl dgst -sha256 -binary | openssl base64 -A</pre>
-    Put the result in <code>script-src 'self' 'sha256-…'</code>. Without it the snippet is refused (checked), and the saved look is applied a moment later by <code>styleguide.js</code>: you keep the theme but lose the no-flash guarantee.</li>
+    Put the result in <code>script-src 'self' 'sha256-…'</code>. Without it the snippet is refused (checked), and the saved look is applied a moment later by the guide's script: you keep the theme but lose the no-flash guarantee.</li>
   <li><strong>The icon masks are <code>data:</code> URIs.</strong> A policy of <code>default-src 'self'</code> alone refuses them as images and every icon paints as a solid square (checked: "Refused to load the image 'data:image/svg+xml…'"). Add <code>img-src 'self' data:</code>.</li>
 </ol>
 <pre aria-label="A policy that works with the guide">Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-HASH-FROM-ABOVE'; img-src 'self' data:</pre>
-<p>Checked in Chromium with exactly this policy. The guide's own CSS has no inline styles, so it needs nothing in <code>style-src</code>. Inline <code>style="…"</code> attributes in your own markup (the docs here use <code>style="--grid-min: 14rem"</code>) are blocked by a strict <code>style-src</code>; put them in a class instead.</p>
+<p>Checked in Chromium with exactly this policy: the guide, its font and its icons load. <strong>Your own inline scripts are blocked too.</strong> The last script in the complete file above is the example app's own code, not the guide's, and this policy refuses it (checked: <em>Add task</em> stops counting). Put your code in a file (<code>&lt;script src="app.js" defer&gt;</code>), which <code>'self'</code> allows, as the <a href="@/start/pwa.html#register">PWA page</a> does. The guide's own CSS has no inline styles, so it needs nothing in <code>style-src</code>. Inline <code>style="…"</code> attributes in your own markup (the docs here use <code>style="--grid-min: 14rem"</code>) are blocked by a strict <code>style-src</code>; put them in a class instead.</p>
 
 <h2 id="cache">Caching and offline</h2>
 <ul>
   <li><strong>File names are not hashed.</strong> <code>styleguide.min.css</code> is the same URL in every release, so a browser or service worker can keep serving an old copy. Put the version in the folder name (<code>styleguide-0.2.0/</code>) or bump your service worker's cache name on every upgrade.</li>
-  <li><strong>Precache</strong> your HTML, the CSS, <code>styleguide.js</code>, the latin font, <code>icons.css</code> if you use it, and the latin-ext and vietnamese fonts if your content needs them. The <a href="@/start/pwa.html#sw">PWA page</a> has a working service worker.</li>
+  <li><strong>Precache</strong> your HTML, the CSS, the script, the latin font, <code>icons.css</code> if you use it, and the latin-ext and vietnamese fonts if your content needs them. The <a href="@/start/pwa.html#sw">PWA page</a> has a working service worker.</li>
   <li><strong>Static hosts cache briefly.</strong> GitHub Pages answered with <code>max-age=600</code> when measured during the research for this guide, so allow ten minutes of stale files after a deploy, or use the versioned-folder approach.</li>
   <li><strong>Which version does an app have?</strong> Both CSS files start with a banner: <code>head -c 120 styleguide/styleguide.min.css</code> prints <code>/*! styleguide v0.2.0 …</code>. There are no source maps.</li>
 </ul>
