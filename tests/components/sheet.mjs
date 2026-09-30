@@ -403,6 +403,16 @@ export const tests = [
     },
   },
   {
+    name: 'the app-level data-motion="reduced" setting behaves like the OS one, and "full" overrides an OS request',
+    async run({ page, goto, expect }) {
+      await goto('components/sheet.html')
+      const ty = (attr) => page.evaluate((a) => { document.documentElement.setAttribute('data-motion', a); const d = document.getElementById('sh-deck'); d.showModal(); const m = new DOMMatrix(getComputedStyle(d).transform); d.close(); return m.m42 }, attr)
+      expect.equal(await ty('reduced'), 0, 'reduced: a fade')
+      await page.waitForTimeout(500) // let the exit finish, or the next entry starts mid-flight
+      expect.ok((await ty('full')) > 200, 'full: a slide')
+    },
+  },
+  {
     name: 'full motion: the sheet starts below the screen',
     async run({ page, goto, expect }) {
       await goto('components/sheet.html')
@@ -422,6 +432,25 @@ export const tests = [
       expect.ok(!(await isOpen(page, 'sh-deck')), 'closed')
       await page.waitForTimeout(800)
       expect.equal(await page.evaluate(() => document.getElementById('sh-deck').style.transform), '', 'pose reset after hiding')
+    },
+  },
+  {
+    name: 'data-required: no Esc, no scrim tap, no drag; the Close control still closes it',
+    async run({ page, goto, expect }) {
+      await goto('components/sheet.html')
+      await page.evaluate(() => document.getElementById('sh-deck').setAttribute('data-required', ''))
+      await page.locator('[data-sg-open="#sh-deck"]').click()
+      await page.waitForTimeout(500)
+      await page.keyboard.press('Escape'); await page.keyboard.press('Escape')
+      expect.ok(await isOpen(page, 'sh-deck'), 'Esc does nothing')
+      await page.mouse.click(10, 10)
+      expect.ok(await isOpen(page, 'sh-deck'), 'scrim tap does nothing')
+      const hb = await page.locator('#sh-deck .sheet__handle').boundingBox()
+      await page.mouse.move(hb.x + 24, hb.y + 14); await page.mouse.down(); await page.mouse.move(hb.x + 24, hb.y + 500, { steps: 8 }); await page.mouse.up()
+      await page.waitForTimeout(400)
+      expect.ok(await isOpen(page, 'sh-deck'), 'and a long drag does not dismiss it')
+      await page.locator('#sh-deck [data-sg-close]').click()
+      expect.ok(!(await isOpen(page, 'sh-deck')), 'Close still works')
     },
   },
   {

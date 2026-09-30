@@ -299,6 +299,16 @@ export const tests = [
     },
   },
   {
+    name: 'the app-level data-motion="reduced" setting behaves like the OS one, and "full" overrides an OS request',
+    async run({ page, goto, expect }) {
+      await goto('components/dialog.html')
+      const ty = (attr) => page.evaluate((a) => { document.documentElement.setAttribute('data-motion', a); const d = document.getElementById('dlg-confirm'); d.showModal(); const m = new DOMMatrix(getComputedStyle(d).transform); d.close(); return m.m42 }, attr)
+      expect.equal(await ty('reduced'), 0, 'reduced: a fade')
+      await page.waitForTimeout(500) // let the exit finish, or the next entry starts mid-flight
+      expect.ok((await ty('full')) > 1, 'full: a rise')
+    },
+  },
+  {
     name: 'full motion: the entry does travel (proves the reduced test can fail)',
     async run({ page, goto, expect }) {
       await goto('components/dialog.html')

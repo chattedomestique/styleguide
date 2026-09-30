@@ -135,4 +135,35 @@ export const tests = [
       await expect.focused(page, '#mb-danger', 'focus is back on the menu button')
     },
   },
+  {
+    name: 'a menu and a tooltip inside a modal dialog: both work, Esc peels them off one layer at a time, focus ends where it began',
+    async run({ page, goto, expect }) {
+      await goto('components/menu.html')
+      await page.evaluate(() => {
+        const d = document.createElement('dialog')
+        d.className = 'dialog card'; d.id = 'dlg-x'; d.setAttribute('aria-label', 'Nested')
+        d.innerHTML = '<div class="card__body"><button class="btn" id="x-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="x-menu" popovertarget="x-menu" aria-describedby="x-tip">Options</button><div class="tooltip" id="x-tip" role="tooltip" popover="manual">Options for this deck</div><div class="menu" id="x-menu" popover role="menu" aria-labelledby="x-btn"><button class="menu__item" role="menuitem" type="button">Rename</button><button class="menu__item" role="menuitem" type="button">Duplicate</button></div></div>'
+        document.body.append(d)
+        SG.dialog.open(d)
+      })
+      await page.waitForTimeout(300)
+      await page.locator('#x-btn').focus()
+      await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Tab')
+      await page.waitForTimeout(150)
+      expect.ok(await page.evaluate(() => document.getElementById('x-tip').matches(':popover-open')), 'the tooltip shows inside the dialog')
+      await page.keyboard.press('Enter')
+      await page.waitForFunction(() => !!document.activeElement.closest('#x-menu'))
+      expect.ok(await page.evaluate(() => document.getElementById('x-menu').matches(':popover-open')), 'the menu opens above the dialog')
+      expect.ok(!(await page.evaluate(() => document.getElementById('x-tip').matches(':popover-open'))), 'and the tooltip has gone')
+      await page.keyboard.press('ArrowDown')
+      expect.equal(await page.evaluate(() => document.activeElement.textContent.trim()), 'Duplicate', 'roving works in the top layer')
+      await page.keyboard.press('Escape')
+      expect.ok(!(await page.evaluate(() => document.getElementById('x-menu').matches(':popover-open'))), 'first Esc closes the menu')
+      expect.ok(await page.evaluate(() => document.getElementById('dlg-x').open), 'the dialog is still open')
+      await expect.focused(page, '#x-btn', 'focus is back on the menu button inside the dialog')
+      await page.keyboard.press('Escape') // may hide the re-shown tooltip first
+      if (await page.evaluate(() => document.getElementById('dlg-x').open)) await page.keyboard.press('Escape')
+      expect.ok(!(await page.evaluate(() => document.getElementById('dlg-x').open)), 'Esc then closes the dialog')
+    },
+  },
 ]
