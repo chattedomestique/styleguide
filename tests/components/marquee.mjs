@@ -256,12 +256,18 @@ export const tests = [
         const lists = [...el.querySelectorAll('.marquee__list:not([data-clone])')]
         const t = el.querySelector('.marquee__toggle')
         const overflow = Math.max(...lists.flatMap((l) => [...l.children].map((li) => li.getBoundingClientRect().right - vp.getBoundingClientRect().right)))
-        return { loop: el.hasAttribute('data-loop'), overflow, disabled: t.getAttribute('aria-disabled'), desc: (document.getElementById(t.getAttribute('aria-describedby')) || {}).textContent || '', fit: el.hasAttribute('data-fit') }
+        // Measured against the STRIP, not the viewport: the viewport is the thing that used to spill (a grid
+        // of label + toggle wider than the strip pushed the toggle and the text out past the phone's frame).
+        const strip = el.getBoundingClientRect()
+        const parts = [...el.querySelectorAll('.marquee__label, .marquee__toggle, .marquee__viewport'), ...lists.flatMap((l) => [...l.children])]
+        const spill = Math.max(...parts.flatMap((n) => { const r = n.getBoundingClientRect(); return [r.right - strip.right, strip.left - r.left] }))
+        return { loop: el.hasAttribute('data-loop'), overflow, spill, disabled: t.getAttribute('aria-disabled'), desc: (document.getElementById(t.getAttribute('aria-describedby')) || {}).textContent || '', fit: el.hasAttribute('data-fit') }
       }))
       expect.ok(r.length >= 6, 'strips: ' + r.length)
       for (const x of r) {
         expect.equal(x.loop, false, 'nothing scrolls in a few letters of room')
-        expect.ok(x.overflow <= 1, `text does not spill past the strip (${x.overflow}px)`)
+        expect.ok(x.overflow <= 1, `text does not spill past the viewport (${x.overflow}px)`)
+        expect.ok(x.spill <= 1, `label, toggle, viewport and text all stay inside the strip (${x.spill}px past it)`)
         expect.ok(x.fit || x.desc.length > 10, 'the toggle says why: ' + x.desc)
       }
     },

@@ -31,7 +31,9 @@
    THE KEYS ARE BUTTONS. Circles act, so each key is an ordinary circle .btn (outline at rest, fills and
    lifts on hover and focus, sinks when pressed); this file only sizes them and sets their figures. Keys
    are at least 44 px, at most 88, with a 12 px gap: a big key whose neighbours touch is how people
-   mis-tap a payment. The DOM order IS the visual order, and the visible text of a key is its name
+   mis-tap a payment. (Squeezed under 12rem, a phone frame at 200% text, the keypad tightens the gap and
+   lets the figures follow the key: the keys are drawn a little under 44 px, their ::after hit area still
+   reaches 44, and the amount stays on one line.) The DOM order IS the visual order, and the visible text of a key is its name
    (WCAG 2.5.3). The decimal key is punctuation, so it gets a spoken name ("Decimal point").
 
    THE DISPLAY is an <output>: a live region (polite, atomic) that reads the whole amount after each key.
@@ -126,6 +128,29 @@
   .keypad__keys > .btn.keypad__key[data-key="."] {
     font-size: clamp(2rem, 11cqi, 2.75rem);
     font-weight: 900;
+  }
+
+  /* A keypad squeezed by large text in a narrow frame (under 12rem of width: a phone frame at 200 %
+     text is about 5rem). Sizes are rem, so every gap and glyph doubled while the frame did not:
+     three 44 px keys and two 24 px gaps no longer fit, the digits grew past their circles, and the
+     amount broke into one character per line. So: a smaller gap, the display's side padding gives
+     room to the figure (its floor drops from 2.25rem to 1.25rem, still following the keypad's width),
+     and the key glyphs take a lower floor. 44 px hit areas and >= 8 px between them hold. */
+  @container keypad (max-width: 12rem) {
+    .keypad__display {
+      padding-inline: var(--space-2);
+      font-size: clamp(1.25rem, 13cqi, 3.5rem);
+    }
+    .keypad__keys {
+      gap: var(--space-2);
+    }
+    .keypad__keys > .btn.keypad__key {
+      font-size: clamp(1rem, 8cqi, 2rem);
+      --ic-size: 1rem;
+    }
+    .keypad__keys > .btn.keypad__key[data-key="."] {
+      font-size: clamp(1.25rem, 11cqi, 2.75rem);
+    }
   }
 
   @media (forced-colors: active) {
