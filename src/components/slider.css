@@ -39,7 +39,7 @@
    as a precise control. Arrow keys do NOT satisfy 2.5.7 (keyboard is a different requirement). The
    buttons become aria-disabled (not removed) at the ends.
 
-   DISABLED. The rail, fill and thumb go dashed and faint and the cursor says no; the label and the readout
+   DISABLED. The rail and fill go faint, the thumb goes dashed (the frame of the part that acts), and the cursor says no; the label and the readout
    keep their ink, because they are text people still read (an <output> is not a disabled control, so the
    exemption for disabled controls does not cover it).
 
@@ -57,6 +57,7 @@
     --_rail-top: calc((var(--hit) - var(--_tr)) / 2);
 
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* the row may not widen the column: it wraps instead */
     gap: var(--space-1);
     min-inline-size: 0;
 
@@ -69,6 +70,7 @@
 
   .slider__head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-3);
@@ -87,6 +89,7 @@
 
   .slider__row {
     display: flex;
+    flex-wrap: wrap; /* at large text in a narrow column the track takes its own row */
     align-items: flex-start;
     gap: var(--space-3); /* the 44 px hit areas of the buttons stay 8 px clear of the slider's */
 
@@ -99,10 +102,10 @@
 
   .slider__track {
     position: relative;
-    flex: 1 1 auto;
+    flex: 1 1 8rem;
     min-inline-size: 0;
 
-    /* rail: a rectangle that holds (dashed when the slider is not available) */
+    /* rail: a rectangle that holds */
     &::before {
       content: "";
       position: absolute;
@@ -124,10 +127,6 @@
       background: var(--_fillc);
       border-radius: var(--radius-ctl);
     }
-  }
-
-  .slider:has(.slider__input:disabled) .slider__track::before {
-    border-style: dashed;
   }
 
   /* ---- Tick marks: the ends of each step, under the rail (made by 31-slider.js) ----------- */

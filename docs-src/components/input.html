@@ -223,19 +223,19 @@
   <caption class="sr-only">Recommended attributes by kind of data</caption>
   <thead><tr><th>Data</th><th><code>type</code></th><th><code>inputmode</code></th><th><code>autocomplete</code></th><th><code>enterkeyhint</code></th><th>Also</th></tr></thead>
   <tbody>
-    <tr><td>Full name</td><td>text</td><td>none</td><td><code>name</code></td><td>next</td><td><code>autocapitalize="words"</code></td></tr>
+    <tr><td>Full name</td><td>text</td><td>not set</td><td><code>name</code></td><td>next</td><td><code>autocapitalize="words"</code></td></tr>
     <tr><td>Email</td><td>email</td><td>email</td><td><code>email</code></td><td>next</td><td><code>autocapitalize="none" spellcheck="false"</code></td></tr>
-    <tr><td>Username</td><td>text</td><td>none</td><td><code>username</code></td><td>next</td><td><code>autocapitalize="none" spellcheck="false"</code></td></tr>
-    <tr><td>Password (sign in)</td><td>password</td><td>none</td><td><code>current-password</code></td><td>go</td><td>Allow paste. Keep the show / hide toggle.</td></tr>
-    <tr><td>Password (new)</td><td>password</td><td>none</td><td><code>new-password</code></td><td>go</td><td>State the rules in a hint before the field.</td></tr>
+    <tr><td>Username</td><td>text</td><td>not set</td><td><code>username</code></td><td>next</td><td><code>autocapitalize="none" spellcheck="false"</code></td></tr>
+    <tr><td>Password (sign in)</td><td>password</td><td>not set</td><td><code>current-password</code></td><td>go</td><td>Allow paste. Keep the show / hide toggle.</td></tr>
+    <tr><td>Password (new)</td><td>password</td><td>not set</td><td><code>new-password</code></td><td>go</td><td>State the rules in a hint before the field.</td></tr>
     <tr><td>One-time code</td><td>text</td><td>numeric</td><td><code>one-time-code</code></td><td>go</td><td><code>pattern="[0-9]*"</code>. Never block paste.</td></tr>
-    <tr><td>Phone</td><td>tel</td><td>tel</td><td><code>tel</code></td><td>next</td><td>none</td></tr>
+    <tr><td>Phone</td><td>tel</td><td>tel</td><td><code>tel</code></td><td>next</td><td>nothing more</td></tr>
     <tr><td>Website</td><td>url</td><td>url</td><td><code>url</code></td><td>go</td><td><code>autocapitalize="none"</code></td></tr>
-    <tr><td>Street, city, postcode</td><td>text</td><td>none</td><td><code>street-address</code>, <code>address-level2</code>, <code>postal-code</code></td><td>next</td><td>Postcode: <code>autocapitalize="characters"</code></td></tr>
+    <tr><td>Street, city, postcode</td><td>text</td><td>not set</td><td><code>street-address</code>, <code>address-level2</code>, <code>postal-code</code></td><td>next</td><td>Postcode: <code>autocapitalize="characters"</code></td></tr>
     <tr><td>Quantity</td><td>number</td><td>numeric</td><td><code>off</code></td><td>done</td><td><code>min</code>, <code>max</code>, <code>step</code>; or use a <a href="@/components/stepper.html">stepper</a></td></tr>
     <tr><td>Amount of money</td><td>text</td><td>decimal</td><td><code>off</code></td><td>done</td><td><code>pattern="[0-9]*[.,]?[0-9]*"</code>; format in the app</td></tr>
     <tr><td>Card number</td><td>text</td><td>numeric</td><td><code>cc-number</code></td><td>next</td><td>Not <code>type="number"</code>: it strips spaces and zeros.</td></tr>
-    <tr><td>Birthday</td><td>date</td><td>none</td><td><code>bday</code></td><td>next</td><td>Or three fields for memorable dates.</td></tr>
+    <tr><td>Birthday</td><td>date</td><td>not set</td><td><code>bday</code></td><td>next</td><td>Or three fields for memorable dates.</td></tr>
     <tr><td>Search</td><td>search</td><td>search</td><td><code>off</code></td><td>search</td><td>Name it with a visually hidden label.</td></tr>
   </tbody>
 </table></div>
@@ -261,11 +261,11 @@
     <tr><td><code>class="input-group"</code></td><td>with <code>.input-group__start</code> / <code>.input-group__end</code></td><td>Adornments inside the frame. The group is the bordered element.</td></tr>
     <tr><td><code>class="input-group__btn"</code></td><td>a <code>&lt;button&gt;</code> in the end slot</td><td>A 36&nbsp;px circle with a 44&nbsp;px hit area. Fills on hover, focus and press; <code>aria-pressed</code> fills and doubles.</td></tr>
     <tr><td><code>data-variant="amount"</code></td><td>on the group</td><td>Big tabular figures and a currency prefix.</td></tr>
-    <tr><td><code>class="input-bar"</code></td><td>none</td><td>Search app bar row: back button, group, action button.</td></tr>
+    <tr><td><code>class="input-bar"</code></td><td></td><td>Search app bar row: back button, group, action button.</td></tr>
     <tr><td><code>data-sg-clear</code></td><td>on a button in the group</td><td>Clears the input, refocuses it, and hides itself while the input is empty (<code>33-input.js</code>).</td></tr>
     <tr><td><code>data-sg-reveal</code></td><td>on a button, with <code>aria-pressed</code></td><td>Switches the input between <code>password</code> and <code>text</code>; keeps the caret.</td></tr>
-    <tr><td><code>aria-invalid="true"</code> / <code>:user-invalid</code></td><td>none</td><td>Bad-ink frame plus an inner frame. <code>:user-invalid</code> only applies after the person has touched the field.</td></tr>
-    <tr><td><code>readonly</code> / <code>disabled</code></td><td>none</td><td>Recessed value / dashed and faint. Disabled controls are skipped by Tab, so prefer <code>readonly</code> when the value matters.</td></tr>
+    <tr><td><code>aria-invalid="true"</code> / <code>:user-invalid</code></td><td></td><td>Bad-ink frame plus an inner frame. <code>:user-invalid</code> only applies after the person has touched the field.</td></tr>
+    <tr><td><code>readonly</code> / <code>disabled</code></td><td></td><td>Recessed value / dashed and faint. Disabled controls are skipped by Tab, so prefer <code>readonly</code> when the value matters.</td></tr>
   </tbody>
 </table></div>
 

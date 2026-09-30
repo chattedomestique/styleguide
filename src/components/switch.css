@@ -49,9 +49,9 @@
     --_solid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24'/%3E%3C/svg%3E");
 
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    align-items: start;
+    display: flex;
+    flex-wrap: wrap; /* at large text the switch and its word drop under the label instead of squeezing it */
+    align-items: flex-start;
     column-gap: var(--space-3);
     min-block-size: var(--hit);
     color: var(--ink);
@@ -61,9 +61,7 @@
     transition: --lift var(--dur-hover) var(--ease-out);
 
     &[data-layout="start"] {
-      display: inline-grid;
-      grid-template-columns: auto auto auto;
-      column-gap: var(--space-3);
+      display: inline-flex;
       inline-size: fit-content; /* a flex or grid parent would otherwise stretch it */
       max-inline-size: 100%;
     }
@@ -79,8 +77,8 @@
       --_cut: none;
 
       position: relative;
-      grid-column: 3;
-      grid-row: 1;
+      order: 3;
+      flex: none;
       inline-size: calc(var(--_tw) + var(--space-2));
       block-size: var(--hit);
       margin: 0;
@@ -187,12 +185,12 @@
 
     /* ---- Label and words ------------------------------------------------------------- */
     .switch__label {
-      grid-column: 1;
-      grid-row: 1;
+      order: 1;
+      flex: 1 1 10rem;
       min-inline-size: 0;
       padding-block: calc((var(--hit) - 1lh) / 2);
       font: var(--type-body);
-      overflow-wrap: anywhere;
+      overflow-wrap: break-word;
     }
     .switch__hint {
       display: block;
@@ -200,10 +198,11 @@
       color: var(--ink-soft);
     }
     .switch__state {
-      grid-column: 2;
-      grid-row: 1;
+      order: 2;
+      flex: none;
       display: grid;
       align-items: center;
+      margin-inline-start: auto; /* wrapped under the label, the word and the switch stay at the end */
       min-block-size: var(--hit);
       font: var(--type-ctl);
       color: var(--ink-soft);
@@ -225,18 +224,24 @@
 
     &[data-layout="start"] {
       > input {
-        grid-column: 1;
+        order: 1;
         margin-inline: calc(var(--space-1) * -1) 0;
       }
       .switch__label {
-        grid-column: 2;
+        order: 2;
+        flex: 0 1 auto;
       }
       .switch__state {
-        grid-column: 3;
+        order: 3;
+        margin-inline-start: 0;
       }
     }
 
-    /* Words hidden on request: still in the DOM, not on screen. */
+    /* Words hidden on request: still in the DOM, not on screen. The switch then takes the free space
+       (it is what sits at the end). */
+    &[data-state="hidden"]:not([data-layout="start"]) > input {
+      margin-inline-start: auto;
+    }
     &[data-state="hidden"] .switch__state {
       position: absolute;
       inline-size: 1px;

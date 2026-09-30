@@ -224,7 +224,7 @@ export const tests = [
     },
   },
   {
-    name: 'disabled slider is skipped by Tab, dashed and faint',
+    name: 'disabled slider is skipped by Tab and faint',
     async run({ page, goto, expect }) {
       await open(page, goto)
       expect.ok(await page.locator('#sld-dis').isDisabled(), 'disabled')

@@ -407,6 +407,7 @@
      ========================================================================== */
   .choice-group[data-variant="segmented"] {
     display: flex;
+    flex-wrap: wrap; /* at large text the segments take a second row rather than breaking words */
     gap: var(--space-1);
     inline-size: fit-content;
     max-inline-size: 100%;
@@ -438,7 +439,9 @@
       /* the input covers the segment and reaches 44 px tall */
       > input {
         position: absolute;
-        inset: calc((var(--ctl-sm) - var(--hit)) / 2) 0;
+        /* measured from the padding box, inside the segment's 2px frame */
+        inset-block: min(0px, calc((var(--ctl-sm) - var(--hit)) / 2 - var(--bw)));
+        inset-inline: calc(var(--bw) * -1);
         inline-size: auto;
         block-size: auto;
         border-radius: var(--radius-pill);
@@ -451,7 +454,7 @@
         padding-block: 0;
         font: var(--type-ctl);
         line-height: var(--lh-snug);
-        overflow-wrap: anywhere;
+        overflow-wrap: break-word;
       }
 
       @media (hover: hover) {

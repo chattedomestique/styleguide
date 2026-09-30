@@ -30,7 +30,7 @@
 
    THE KEYS ARE BUTTONS. Circles act, so each key is an ordinary circle .btn (outline at rest, fills and
    lifts on hover and focus, sinks when pressed); this file only sizes them and sets their figures. Keys
-   are at least 44 px, usually 72, with a 12 px gap: a big key whose neighbours touch is how people
+   are at least 44 px, at most 88, with a 12 px gap: a big key whose neighbours touch is how people
    mis-tap a payment. The DOM order IS the visual order, and the visible text of a key is its name
    (WCAG 2.5.3). The decimal key is punctuation, so it gets a spoken name ("Decimal point").
 
@@ -97,28 +97,29 @@
     border-color: var(--bad-ink);
   }
 
-  /* The 3 x 4 grid. */
+  /* The 3 x 4 grid. Columns are at most 88 px, centred, so the gap is 12 px both ways whatever the
+     width (a circle inside a wider cell leaves uneven gaps, and uneven gaps read as a loose pad). */
   .keypad__keys {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 5.5rem));
+    justify-content: center;
     gap: var(--space-3);
-    justify-items: center;
   }
 
   /* Keys are .btn circles; this sizes and sets them. (Three classes beat .btn[data-shape]'s two
      without relying on file order.) */
   .keypad__keys > .btn.keypad__key {
-    inline-size: min(100%, 4.5rem);
+    inline-size: 100%;
     block-size: auto;
     aspect-ratio: 1;
-    font-size: clamp(1.25rem, 7cqi, 1.75rem);
+    font-size: clamp(1.5rem, 8cqi, 2rem);
     font-variant-numeric: tabular-nums lining-nums;
-    --ic-size: 1.5rem;
+    --ic-size: 1.75rem;
   }
 
   /* the point is the smallest glyph on the pad and the one people miss: draw it bigger and bolder */
   .keypad__keys > .btn.keypad__key[data-key="."] {
-    font-size: clamp(1.75rem, 10cqi, 2.5rem);
+    font-size: clamp(2rem, 11cqi, 2.75rem);
     font-weight: 900;
   }
 

@@ -142,7 +142,7 @@ export const tests = [
     },
   },
   {
-    name: 'keys are at least 44px (72 at phone width) circles with at least 8px between them, at 390 and 320 wide',
+    name: 'keys are at least 44px (up to 88) and circles with at least 8px between them, at 390 and 320 wide',
     async run({ page, goto, expect }) {
       await open(page, goto)
       for (const w of [390, 320]) {
@@ -154,7 +154,7 @@ export const tests = [
         expect.ok(r.every((k) => parseFloat(k.rad) >= 100), w + ': round')
         expect.ok(r[1].x - r[0].r >= 7.9, w + ': 8px across: ' + (r[1].x - r[0].r))
         expect.ok(r[3].y - r[0].b >= 7.9, w + ': 8px down: ' + (r[3].y - r[0].b))
-        if (w === 390) expect.ok(r[0].w >= 70, 'phone width keys are 72: ' + r[0].w)
+        if (w === 390) expect.ok(r[0].w >= 80, 'phone width keys are 88: ' + r[0].w)
       }
     },
   },
