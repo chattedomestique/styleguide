@@ -1,0 +1,295 @@
+/* ==========================================================================
+   Marquee / ticker strip  (layer: sg.components)     behaviour: src/js/64-marquee.js
+   --------------------------------------------------------------------------
+   A strip of short announcements that scrolls past. Decoration and "nice to know"
+   only: a headline, a sync status, a what's-new line. NEVER the only place a piece
+   of information appears, and never a link target people must chase.
+
+   <div class="marquee" data-tone="ink" role="group" aria-label="Announcements">
+     <span class="marquee__label">News</span>
+     <button class="btn marquee__toggle" data-variant="tone" data-tone="ink" data-shape="circle" data-size="sm"
+             type="button" aria-pressed="false" aria-label="Pause ticker">
+       <span class="ic ic--pause" aria-hidden="true"></span><span class="ic ic--play" aria-hidden="true"></span>
+     </button>
+     <div class="marquee__viewport">
+       <div class="marquee__track">
+         <ul class="marquee__list" role="list">
+           <li>Dark palette is here</li>
+           <li>Backups run nightly</li>
+         </ul>
+       </div>
+     </div>
+   </div>
+
+   The toggle comes BEFORE the moving content in the DOM on purpose: a keyboard or
+   screen-reader user meets the control that stops it before they reach the thing it
+   stops (WAI-ARIA carousel pattern). Grid areas put it at the end visually. It is the
+   Button element, small and round, with a tone that matches the strip.
+
+   data-tone      ink = the ink band (paper text, the look of the reference screen); ok | warn |
+                  bad | info | 1…6 = a tone; none = a paper strip. Put the SAME tone on the toggle
+                  (data-variant="tone").
+   data-size      lg: display-size words (the display line: uppercase, expanded, heavy)
+   data-loop      set BY JS once the loop exists (never author it). Without it the strip is
+                  a plain, readable, wrapped list: that is the no-JS, reduced-motion and
+                  paused presentation, laid out as a title row (label + toggle) over the text.
+   data-fit       set BY JS when the text already fits on one line: nothing to scroll, so
+                  the single-row layout stays and the toggle is dashed with an explanation.
+   data-ready     set BY JS on init. Until then the toggle is hidden: it would do nothing.
+   data-speed     px per second, default 40 (read by the JS)
+
+   WCAG 2.2.2 (Pause, Stop, Hide): anything that moves on its own for more than 5 s and sits
+   beside other content needs a pause control, and pausing on hover or focus alone does NOT
+   count, because it stops only while the pointer is there. So:
+     - the Pause/Play button is always in the markup (the JS refuses to start the loop
+       without it) and is a real, keyboard-reachable toggle: aria-pressed="true" = paused
+     - hover and focus-within ALSO freeze the strip in place, as a courtesy
+     - paused OR reduced motion = no animation at all and the text wraps, fully readable
+     - never autoplays without that button being visible
+
+   SCREEN READERS: the list is read once, as a list. The JS appends a second copy to make the
+   loop seamless; that copy is aria-hidden AND inert, so it is never read and never takes focus.
+
+   MOTION: only transform moves. The keyframe multiplies the travel by --move, so under
+   reduced motion it is exactly zero; the JS additionally drops data-loop so the text wraps
+   instead of sitting clipped. There is no edge fade: a fade is a gradient, and this system has
+   none. The words are clipped by the strip's inner edge, with breathing room inside it.
+
+   A strip is not pressable, so: no lift and no shadow. The toggle is. Private properties:
+   --_bg --_ink --_label-bg --_label-ink (strip), --_dir (1 | -1 in RTL),
+   --marquee-duration (set by JS from the content width).
+   ========================================================================== */
+
+@layer sg.components {
+  /* Travel is one copy's width: the track holds two identical lists. */
+  @keyframes sg-ticker {
+    to {
+      transform: translateX(calc(var(--_dir, 1) * var(--move, 1) * -50%));
+    }
+  }
+
+  .marquee {
+    /* no tone = a paper strip with an ink label */
+    --_bg: var(--tone-bg, var(--paper));
+    --_ink: var(--tone-ink, var(--ink));
+    --_label-bg: var(--tone-fill, var(--ink));
+    --_label-ink: var(--tone-on-fill, var(--paper));
+    --_dir: 1;
+
+    /* One row while the text is scrolling or fits; a title row (label, toggle) over the
+       wrapped text when it is paused, reduced or unenhanced. The areas do the moving, so
+       the DOM order (label, toggle, viewport) never changes. */
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label . toggle"
+      "viewport viewport viewport";
+    align-items: center;
+    column-gap: var(--space-2);
+    row-gap: var(--space-1);
+    min-inline-size: 0;
+    padding: var(--space-2);
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+
+    &:dir(rtl) {
+      --_dir: -1;
+    }
+
+    &[data-loop]:not(:has(> .marquee__toggle[aria-pressed="true"])),
+    &[data-fit] {
+      grid-template-areas: "label viewport toggle";
+    }
+
+    /* Without the script the toggle could only lie. */
+    &:not([data-ready]) > .marquee__toggle {
+      display: none;
+    }
+  }
+
+  /* ---- Label: the caption at the start. Uppercase is structure. -------------------------- */
+  .marquee__label {
+    grid-area: label;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--ctl-sm);
+    padding-inline: var(--space-3);
+    color: var(--_label-ink);
+    background: var(--_label-bg);
+    border-radius: var(--radius-ctl);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ---- Viewport / track / list ---------------------------------------------------------------- */
+  .marquee__viewport {
+    grid-area: viewport;
+    min-inline-size: 0;
+    /* Room for a link's focus ring inside the clip; see .marquee__list a below. */
+    padding-block: var(--space-1);
+    overflow: clip;
+  }
+  /* Wrapped presentation: breathing room at the sides. */
+  .marquee:not([data-loop], [data-fit]) .marquee__viewport,
+  .marquee:has(> .marquee__toggle[aria-pressed="true"]) .marquee__viewport {
+    padding-inline: var(--space-2);
+    padding-block-end: var(--space-2);
+  }
+  .marquee__track {
+    display: flex;
+    inline-size: 100%;
+  }
+  .marquee__list {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-4);
+    row-gap: var(--space-1);
+    inline-size: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    /* >= 1.3 and real padding: the reference clipped the bottoms of capitals (E read as F). */
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+  .marquee__list > li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-block-size: var(--space-6);
+    /* The strip's own surface, repeated on each item. While the loop runs, items spend half
+       their time scrolled out beyond the clip; a contrast checker that samples such an item
+       finds the PAGE behind it (paper text on a canvas) and reports a failure for text nobody
+       can see. An explicit surface keeps the pair true wherever the item is. */
+    background: var(--_bg);
+  }
+  /* Decorative separator drawn with a box, not a text glyph (glyphs get read aloud). */
+  .marquee__list > li::before {
+    content: "";
+    flex: none;
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    background: currentColor;
+  }
+  .marquee__list > li:first-child::before {
+    display: none;
+  }
+  .marquee__list a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+  }
+  /* A clipped ring is no ring: draw it inside the box (WCAG 2.4.7). */
+  .marquee__list a:focus-visible {
+    --ring-gap: calc(var(--ring) * -1);
+  }
+
+  /* The loop copy only exists while looping. */
+  .marquee__list[data-clone] {
+    display: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* the display line: uppercase, expanded, heavy */
+  .marquee[data-size="lg"] .marquee__list {
+    font: var(--type-display);
+    font-size: var(--text-2xl);
+    letter-spacing: var(--ls-display);
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+  .marquee[data-size="lg"] .marquee__list > li {
+    min-block-size: var(--space-7);
+  }
+  .marquee[data-size="lg"] .marquee__label {
+    min-block-size: var(--ctl);
+  }
+
+  /* ---- Looping: JS has built the copy AND the user has not paused ---------------------
+     Not looping (the default, and when paused or reduced) keeps the wrapped list above. */
+  .marquee[data-loop]:not(:has(> .marquee__toggle[aria-pressed="true"])) {
+    & .marquee__viewport {
+      padding-inline: var(--space-1);
+    }
+    & .marquee__track {
+      inline-size: max-content;
+      will-change: transform;
+      animation: sg-ticker var(--marquee-duration, 30s) linear infinite;
+    }
+    & .marquee__list {
+      flex-wrap: nowrap;
+      inline-size: auto;
+      padding-inline-end: var(--space-4); /* the gap before the copy; equal in both lists */
+      white-space: nowrap;
+    }
+    & .marquee__list > li:first-child::before {
+      display: inline-block;
+    }
+    & .marquee__list[data-clone] {
+      display: flex;
+    }
+
+    /* Courtesy freeze while the pointer or focus is inside. It is NOT the pause mechanism. */
+    &:focus-within .marquee__track {
+      animation-play-state: paused;
+    }
+    @media (hover: hover) {
+      &:hover .marquee__track {
+        animation-play-state: paused;
+      }
+    }
+  }
+  /* Paused by the user: explicit, so scripts and tests can read it. */
+  .marquee:has(> .marquee__toggle[aria-pressed="true"]) .marquee__track {
+    animation-play-state: paused;
+  }
+
+  /* ---- Pause / Play toggle ---------------------------------------------------------------
+     The Button element (small, round). The label is stable ("Pause ticker"); aria-pressed
+     carries the state (Button fills it AND doubles its frame), and the icon swaps to show the
+     state you are in: pause while it runs, play while it is paused. */
+  .marquee__toggle {
+    grid-area: toggle;
+
+    & > .ic:nth-child(2),
+    &[aria-pressed="true"] > .ic:nth-child(1) {
+      display: none;
+    }
+    &[aria-pressed="true"] > .ic:nth-child(2) {
+      display: inline-block;
+    }
+  }
+
+  /* On the ink band a button's ink frame would vanish: frame and ring follow the surface. */
+  .marquee[data-tone="ink"] .btn {
+    --line: var(--paper);
+  }
+  .marquee[data-tone="ink"] :is(a, button):focus-visible {
+    --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--ink);
+    outline-color: var(--paper);
+  }
+
+  /* ---- Forced colours: the strip and the label keep real edges; the toggle is a Button. ---- */
+  @media (forced-colors: active) {
+    .marquee {
+      border-color: CanvasText;
+    }
+    .marquee__label {
+      border: var(--bw-thin) solid CanvasText;
+    }
+    .marquee__list > li::before {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+  }
+}

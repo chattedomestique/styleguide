@@ -1,0 +1,425 @@
+/* ==========================================================================
+   SG.toast: short, passing, non-blocking messages          styles: components/toast.css
+   --------------------------------------------------------------------------
+     SG.toast.show({ message, status, action, duration, persistent, id })  -> handle
+       message     text (plain text only: it is set with textContent, never as HTML)
+       status      'info' | 'success' | 'warning' | 'danger' ('error' is an alias). The tone
+                   names ok | warn | bad are accepted too. No status = the plain (ink) toast.
+                   A status sets data-tone on the toast: ok | warn | bad | info.
+       action      { label: 'Undo', onClick(handle) }   dismisses the toast after it runs
+       duration    ms until it goes away. Never below SG.toast.config.minDuration (6 s) and,
+                   when omitted, grows with the message length (see SG.toast.duration()).
+       persistent  true = stays until dismissed. Always true for errors and for toasts with
+                   an action, because a timer must not take away the only chance to press
+                   Undo or to read what failed (WCAG 2.2.1).
+       id          a second show() with the same id UPDATES that toast instead of stacking
+     SG.toast.show('Link copied')              a bare string is the message
+     handle: { id, el, dismiss(), update({ message, status }) }
+     SG.toast.dismiss(idOrHandle) · SG.toast.clear() · SG.toast.count() · SG.toast.duration(msg)
+
+   No JavaScript at the call site? Put data attributes on the trigger:
+     <button data-sg-toast="Link copied" data-toast-status="success">Copy link</button>
+     data-toast-action="Undo" also dispatches a bubbling 'sg:toast-action' event on the
+     trigger when the action is pressed (detail.toast is the handle).
+
+   WHAT IT DOES FOR YOU
+   - One region labelled "Notifications", at most 3 toasts (the oldest self-closing one
+     makes room; toasts that cannot close themselves queue instead of being lost).
+   - Announcement goes through two persistent live regions, created at load: polite for
+     everything, assertive for errors. The visible toast is NOT inside a live region,
+     because interactive content (Undo) must not be read out as if it were text. An
+     action is announced as "Undo is available in notifications".
+   - The timer PAUSES while the pointer is over a toast, while focus is inside it, while a
+     finger is held on it, and while the tab is hidden; it resumes with at least 1.5 s
+     left. Focus is never moved to a toast. Press Esc on a focused toast to dismiss it
+     (focus returns to where it was); F8 jumps to the newest toast from anywhere.
+   - Motion: CSS only (rise + fade, fade only under reduced motion).
+
+   WHAT YOU MUST STILL DO: never let a toast be the only place something important
+   appears (a failed save also needs an inline message), and keep Undo reachable
+   elsewhere too. Use SG.announce() instead when nothing should appear on screen.
+
+   ICONS used: info, circle-check, triangle-alert, circle-alert, close. They are masks
+   (ic ic--name), so they must be in your icon CSS (dist/icons.css has all of them; `close` is
+   built in). Change them with SG.toast.config.icons.
+   ========================================================================== */
+(function (SG) {
+  'use strict';
+
+  var CFG = {
+    max: 3,
+    minDuration: 6000, // ms. WCAG 2.2.1 guidance; the UX floor for reading one sentence
+    maxDuration: 20000,
+    baseMs: 3000, // duration = baseMs + perChar * characters, clamped
+    perChar: 75, // ~ 13 characters per second: slow readers, non-native readers
+    resumeGrace: 1500, // never resume with less than this after a pause
+    leaveMs: 320, // fallback if transitionend never fires (hidden tab)
+    icons: { info: 'info', success: 'circle-check', warning: 'triangle-alert', danger: 'circle-alert', close: 'close' },
+    words: { info: 'Information', success: 'Success', warning: 'Warning', danger: 'Error' },
+    tones: { info: 'info', success: 'ok', warning: 'warn', danger: 'bad' }, // status -> data-tone
+  };
+
+  var live = null; // { polite, assertive }
+  var region = null;
+  var list = null;
+  var items = []; // visible toasts, oldest first
+  var queue = []; // waiting (only when every visible toast is persistent)
+  var seq = 0;
+  var returnTo = null; // where focus was before it entered the region
+  var supportsPopover = typeof HTMLElement !== 'undefined' && typeof HTMLElement.prototype.showPopover === 'function';
+
+  /* ---- Live regions (exist from load, so the first message is announced too) ------------ */
+  function makeLive(kind) {
+    var el = document.createElement('div');
+    el.setAttribute('role', kind === 'assertive' ? 'alert' : 'status');
+    el.setAttribute('aria-live', kind);
+    el.setAttribute('aria-atomic', 'true');
+    el.setAttribute('data-toast-live', kind);
+    return el;
+  }
+  function ensureLive() {
+    if (live || !document.body) return live;
+    var wrap = document.createElement('div');
+    wrap.className = 'sr-only';
+    live = { polite: makeLive('polite'), assertive: makeLive('assertive') };
+    wrap.appendChild(live.polite);
+    wrap.appendChild(live.assertive);
+    document.body.appendChild(wrap);
+    return live;
+  }
+  /** Clear, then set on the next frame, so an identical message is announced again. */
+  function say(kind, text) {
+    var el = ensureLive()[kind];
+    el.textContent = '';
+    window.requestAnimationFrame(function () {
+      el.textContent = text;
+      clearTimeout(el._sgClear);
+      el._sgClear = setTimeout(function () { el.textContent = ''; }, 8000);
+    });
+  }
+
+  /* ---- Region ---------------------------------------------------------------------------- */
+  function ensureRegion() {
+    if (region) return region;
+    region = document.createElement('section');
+    region.className = 'toast-region';
+    region.setAttribute('aria-label', 'Notifications');
+    if (supportsPopover) region.setAttribute('popover', 'manual');
+    else region.hidden = true;
+    list = document.createElement('ol');
+    list.className = 'toast-list';
+    list.setAttribute('role', 'list');
+    region.appendChild(list);
+    document.body.appendChild(region);
+
+    // Remember where focus came from, so Esc / dismiss can put it back.
+    region.addEventListener('focusin', function (e) {
+      if (!region.contains(e.relatedTarget)) returnTo = e.relatedTarget || returnTo;
+    });
+    return region;
+  }
+  function openRegion() {
+    if (supportsPopover) {
+      try {
+        if (!region.matches(':popover-open')) region.showPopover();
+        else if (!region.contains(document.activeElement) && document.querySelector('dialog:modal')) {
+          // A modal opened after us sits above us in the top layer: re-enter it on top.
+          region.hidePopover();
+          region.showPopover();
+        }
+      } catch (e) { /* older engines: position: fixed fallback still shows it */ }
+    } else region.hidden = false;
+  }
+  function closeRegion() {
+    if (!region || items.length || queue.length) return;
+    if (supportsPopover) { try { region.hidePopover(); } catch (e) { /* already closed */ } }
+    else region.hidden = true;
+  }
+
+  /* ---- Helpers ----------------------------------------------------------------------------- */
+  function normStatus(s) {
+    if (s === 'error' || s === 'bad') return 'danger';
+    if (s === 'ok') return 'success';
+    if (s === 'warn') return 'warning';
+    return s === 'info' || s === 'success' || s === 'warning' || s === 'danger' ? s : null;
+  }
+  function duration(message) {
+    var ms = CFG.baseMs + CFG.perChar * String(message || '').length;
+    return Math.max(CFG.minDuration, Math.min(CFG.maxDuration, ms));
+  }
+  /** An icon is a CSS mask: <span class="ic ic--name" aria-hidden="true">. */
+  function icon(name, cls) {
+    var el = document.createElement('span');
+    el.className = 'ic ic--' + name + (cls ? ' ' + cls : '');
+    el.setAttribute('aria-hidden', 'true');
+    return el;
+  }
+  /** A small Button: tone variant so it takes the toast's colours. */
+  function button(cls, tone) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn ' + cls;
+    b.setAttribute('data-variant', 'tone');
+    b.setAttribute('data-tone', tone);
+    b.setAttribute('data-size', 'sm');
+    return b;
+  }
+  function find(id) {
+    for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i];
+    return null;
+  }
+  function findByEl(el) {
+    for (var i = 0; i < items.length; i++) if (items[i].el === el) return items[i];
+    return null;
+  }
+
+  /* ---- Timer with pause reasons ------------------------------------------------------------ */
+  function isPaused(t) { return Object.keys(t.flags).length > 0; }
+  function schedule(t) {
+    clearTimeout(t.timer);
+    t.timer = null;
+    if (t.persistent || isPaused(t) || t.gone) return;
+    t.startedAt = Date.now();
+    t.timer = setTimeout(function () { dismissItem(t); }, t.remaining);
+  }
+  function pause(t, reason) {
+    if (t.flags[reason]) return;
+    if (t.timer) {
+      clearTimeout(t.timer);
+      t.timer = null;
+      t.remaining = Math.max(0, t.remaining - (Date.now() - t.startedAt));
+    }
+    t.flags[reason] = true;
+  }
+  function resume(t, reason) {
+    if (!t.flags[reason]) return;
+    delete t.flags[reason];
+    if (!isPaused(t)) {
+      t.remaining = Math.max(t.remaining, CFG.resumeGrace);
+      schedule(t);
+    }
+  }
+
+  /* ---- Build ---------------------------------------------------------------------------------- */
+  function fill(t) {
+    var el = t.el;
+    var tone = t.status ? CFG.tones[t.status] : 'ink';
+    el.textContent = '';
+    el.setAttribute('data-tone', tone);
+    if (t.status) el.appendChild(icon(CFG.icons[t.status], 'toast__icon'));
+    var p = document.createElement('p');
+    p.className = 'toast__msg';
+    if (t.status) {
+      var w = document.createElement('span');
+      w.className = 'sr-only';
+      w.textContent = CFG.words[t.status] + ': ';
+      p.appendChild(w);
+    }
+    p.appendChild(document.createTextNode(t.message));
+    el.appendChild(p);
+    if (t.action) {
+      var a = button('toast__action', tone);
+      a.textContent = t.action.label;
+      a.addEventListener('click', function () {
+        try { if (typeof t.action.onClick === 'function') t.action.onClick(t.handle); }
+        finally { dismissItem(t); }
+      });
+      el.appendChild(a);
+    }
+    var c = button('toast__close', tone);
+    c.setAttribute('data-shape', 'circle');
+    c.setAttribute('aria-label', 'Dismiss notification');
+    c.appendChild(icon(CFG.icons.close));
+    c.addEventListener('click', function () { dismissItem(t); });
+    el.appendChild(c);
+  }
+
+  function announce(t) {
+    var text = (t.status ? CFG.words[t.status] + ': ' : '') + t.message;
+    if (t.action) text += '. ' + t.action.label + ' is available in notifications.';
+    say(t.status === 'danger' ? 'assertive' : 'polite', text);
+  }
+
+  function wire(t) {
+    var el = t.el;
+    el.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch') pause(t, 'hover'); });
+    el.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') resume(t, 'hover'); });
+    el.addEventListener('pointerdown', function (e) { if (e.pointerType === 'touch') pause(t, 'touch'); });
+    var release = function (e) { if (e.pointerType === 'touch') resume(t, 'touch'); };
+    el.addEventListener('pointerup', release);
+    el.addEventListener('pointercancel', release);
+    el.addEventListener('pointerleave', release);
+    el.addEventListener('focusin', function () { pause(t, 'focus'); });
+    el.addEventListener('focusout', function (e) { if (!el.contains(e.relatedTarget)) resume(t, 'focus'); });
+    if (document.hidden) pause(t, 'page');
+  }
+
+  function mount(t) {
+    ensureRegion();
+    openRegion();
+    list.appendChild(t.el);
+    items.push(t);
+    announce(t);
+    schedule(t);
+  }
+
+  /* ---- Dismiss ---------------------------------------------------------------------------------- */
+  function restoreFocus(t) {
+    var target = null;
+    if (returnTo && document.contains(returnTo) && !returnTo.closest('[inert],[hidden]')) target = returnTo;
+    else {
+      var next = items.filter(function (o) { return o !== t && !o.gone; }).pop();
+      if (next) target = next.el.querySelector('button');
+    }
+    returnTo = null;
+    if (target && target.focus) target.focus({ preventScroll: true });
+  }
+
+  function dismissItem(t) {
+    if (!t || t.gone) return;
+    t.gone = true;
+    clearTimeout(t.timer);
+    var hadFocus = t.el.contains(document.activeElement);
+    items = items.filter(function (o) { return o !== t; });
+    if (hadFocus) restoreFocus(t);
+
+    var finished = false;
+    function finish() {
+      if (finished) return;
+      finished = true;
+      if (t.el.parentNode) t.el.parentNode.removeChild(t.el);
+      var next = queue.shift();
+      if (next) mount(next);
+      else closeRegion();
+    }
+    t.el.addEventListener('transitionend', function (e) { if (e.target === t.el && e.propertyName === 'opacity') finish(); });
+    t.el.setAttribute('data-state', 'leaving');
+    setTimeout(finish, CFG.leaveMs);
+  }
+
+  /* ---- Public API ---------------------------------------------------------------------------------- */
+  function show(opts) {
+    if (typeof opts === 'string') opts = { message: opts };
+    opts = opts || {};
+    var message = opts.message == null ? '' : String(opts.message);
+    if (!message) return null;
+    if (!document.body) { SG.ready(function () { show(opts); }); return null; }
+    ensureLive();
+
+    var status = normStatus(opts.status);
+    var action = opts.action && opts.action.label ? { label: String(opts.action.label), onClick: opts.action.onClick } : null;
+
+    // Same id: update in place (e.g. "Saving…" -> "Saved").
+    var existing = opts.id ? find(String(opts.id)) : null;
+    // Same text and status already showing: extend it rather than stacking a twin.
+    if (!existing && !action) {
+      existing = items.filter(function (o) { return o.message === message && o.status === status && !o.action; })[0] || null;
+    }
+    if (existing) {
+      var changed = existing.message !== message || existing.status !== status;
+      existing.message = message;
+      existing.status = status;
+      if (changed) { fill(existing); announce(existing); }
+      existing.remaining = opts.duration ? Math.max(CFG.minDuration, opts.duration) : duration(message);
+      schedule(existing);
+      return existing.handle;
+    }
+
+    var t = {
+      id: opts.id ? String(opts.id) : 'sg-toast-' + ++seq,
+      message: message,
+      status: status,
+      action: action,
+      persistent: opts.persistent === true || status === 'danger' || !!action || opts.duration === 0 || opts.duration === Infinity,
+      flags: {},
+      timer: null,
+      gone: false,
+    };
+    t.remaining = opts.duration > 0 && opts.duration !== Infinity ? Math.max(CFG.minDuration, opts.duration) : duration(message);
+    t.el = document.createElement('li');
+    t.el.className = 'toast';
+    fill(t);
+    wire(t);
+    t.handle = {
+      id: t.id,
+      el: t.el,
+      dismiss: function () { dismissItem(t); },
+      update: function (next) {
+        next = next || {};
+        if (next.message != null) t.message = String(next.message);
+        if ('status' in next) t.status = normStatus(next.status);
+        fill(t);
+        announce(t);
+        t.remaining = duration(t.message);
+        schedule(t);
+      },
+    };
+
+    if (items.length >= CFG.max) {
+      // Newest wins: drop the oldest toast that would have closed itself anyway.
+      var victim = items.filter(function (o) { return !o.persistent; })[0];
+      if (victim) dismissItem(victim);
+      else { queue.push(t); return t.handle; }
+    }
+    mount(t);
+    return t.handle;
+  }
+
+  function dismiss(ref) {
+    var t = null;
+    if (ref && ref.id) t = find(ref.id);
+    else if (typeof ref === 'string') t = find(ref);
+    if (t) dismissItem(t);
+  }
+  function clear() {
+    queue = [];
+    items.slice().forEach(dismissItem);
+  }
+
+  SG.toast = {
+    show: show,
+    dismiss: dismiss,
+    clear: clear,
+    count: function () { return items.length; },
+    duration: duration,
+    config: CFG,
+  };
+
+  /* ---- Events ----------------------------------------------------------------------------------------- */
+  SG.ready(ensureLive);
+
+  document.addEventListener('visibilitychange', function () {
+    items.forEach(function (t) { if (document.hidden) pause(t, 'page'); else resume(t, 'page'); });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      var el = e.target && e.target.closest ? e.target.closest('.toast') : null;
+      var t = el && findByEl(el);
+      if (t) { e.preventDefault(); e.stopPropagation(); dismissItem(t); }
+    } else if (e.key === 'F8' && items.length) {
+      var newest = items[items.length - 1];
+      var b = newest.el.querySelector('button');
+      if (b) { e.preventDefault(); returnTo = document.activeElement; b.focus(); }
+    }
+  }, true);
+
+  // Declarative triggers: <button data-sg-toast="Saved" data-toast-status="success">
+  document.addEventListener('click', function (e) {
+    var trigger = e.target.closest ? e.target.closest('[data-sg-toast]') : null;
+    if (!trigger) return;
+    var d = trigger.dataset;
+    var opts = { message: d.sgToast, status: d.toastStatus };
+    if (d.toastDuration) opts.duration = Number(d.toastDuration);
+    if (d.toastPersistent != null) opts.persistent = true;
+    if (d.toastAction) {
+      opts.action = {
+        label: d.toastAction,
+        onClick: function (handle) {
+          trigger.dispatchEvent(new CustomEvent('sg:toast-action', { bubbles: true, detail: { toast: handle } }));
+        },
+      };
+    }
+    show(opts);
+  });
+})((window.SG = window.SG || {}));

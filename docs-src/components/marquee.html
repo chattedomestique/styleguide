@@ -1,0 +1,246 @@
+<!--{"title":"Marquee","group":"Components","order":96,"summary":"A scrolling ticker strip with an always-visible Pause/Play button; static when paused or when motion is reduced."}-->
+<style>
+  /* Docs-only scaffolding. docs.css gives article lists a start padding, li margins and a
+     measure; a ticker opts out of all three. */
+  .demo .marquee__list { padding-inline-start: 0; }
+  .demo .marquee__list > li + li { margin-block-start: 0; }
+  .docs-article .marquee__list > li { max-inline-size: none; }
+</style>
+
+<h1>Marquee</h1>
+<p class="lede">A ticker strip: a line of short announcements that drifts past. It is for "nice to know" (what's new, sync status, a headline), and it is built so nobody is ever trapped by it: a Pause button that is always there, a static wrapped list when paused or when motion is reduced, and a single reading for screen readers.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it for information that is also available elsewhere: a headline that links to the article, a sync status that also lives in settings. Keep each item to a few words.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Put anything essential in a ticker: a price, a deadline, an error. Don't make people chase a link that is moving, and don't leave out the Pause button "because it is small".</p></div>
+  </div>
+</div>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div><strong>WCAG 2.2.2 Pause, Stop, Hide</strong><p>Anything that moves on its own for more than five seconds, beside other content, needs a way to pause it. Pausing on hover or focus does <em>not</em> count, because it stops only while the pointer is there. So the button is required, and the script refuses to start the loop without it.</p></div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="default">Default strip</h3>
+<p>A paper strip with a 2px frame: a label, the toggle, and the scrolling list. Press the button (or <kbd>Space</kbd> on it) to pause: the movement stops and the text wraps, fully readable. Hover or focus anywhere in the strip also freezes it as a courtesy. The markup shown is what you write; the script adds the loop on top.</p>
+<div class="demo">
+  <div class="demo__stage" data-code="&lt;div class=&quot;marquee&quot; role=&quot;group&quot; aria-label=&quot;Announcements&quot;&gt;
+  &lt;span class=&quot;marquee__label&quot;&gt;News&lt;/span&gt;
+  &lt;button class=&quot;btn marquee__toggle&quot; data-shape=&quot;circle&quot; data-size=&quot;sm&quot; type=&quot;button&quot;
+          aria-pressed=&quot;false&quot; aria-label=&quot;Pause ticker&quot;&gt;
+    &lt;span class=&quot;ic ic--pause&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+    &lt;span class=&quot;ic ic--play&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+  &lt;/button&gt;
+  &lt;div class=&quot;marquee__viewport&quot;&gt;
+    &lt;div class=&quot;marquee__track&quot;&gt;
+      &lt;ul class=&quot;marquee__list&quot; role=&quot;list&quot;&gt;
+        &lt;li&gt;Dark palette is live&lt;/li&gt;
+        &lt;li&gt;Backups now run every night&lt;/li&gt;
+        &lt;li&gt;New: shared decks&lt;/li&gt;
+        &lt;li&gt;Offline mode is faster&lt;/li&gt;
+        &lt;li&gt;Version 0.2 is out&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;">
+    <div class="marquee" role="group" aria-label="Announcements">
+      <span class="marquee__label">News</span>
+      <button class="btn marquee__toggle" data-shape="circle" data-size="sm" type="button" aria-pressed="false" aria-label="Pause ticker">
+        <span class="ic ic--pause" aria-hidden="true"></span>
+        <span class="ic ic--play" aria-hidden="true"></span>
+      </button>
+      <div class="marquee__viewport">
+        <div class="marquee__track">
+          <ul class="marquee__list" role="list">
+            <li>Dark palette is live</li>
+            <li>Backups now run every night</li>
+            <li>New: shared decks</li>
+            <li>Offline mode is faster</li>
+            <li>Version 0.2 is out</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="ink">Ink band</h3>
+<p><code>data-tone="ink"</code>: paper text on an ink band, the look of the reference screen. The label flips polarity, as a card's bar does, and the toggle takes the same tone. In the dark theme the band turns light.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="marquee" data-tone="ink" role="group" aria-label="Status">
+      <span class="marquee__label">Status</span>
+      <button class="btn marquee__toggle" data-variant="tone" data-tone="ink" data-shape="circle" data-size="sm" type="button" aria-pressed="false" aria-label="Pause status ticker">
+        <span class="ic ic--pause" aria-hidden="true"></span>
+        <span class="ic ic--play" aria-hidden="true"></span>
+      </button>
+      <div class="marquee__viewport">
+        <div class="marquee__track">
+          <ul class="marquee__list" role="list">
+            <li>All systems normal</li>
+            <li>Last backup 2:14 am</li>
+            <li>12 cards waiting for Wi-Fi</li>
+            <li>Sync is on</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="large">Display size</h3>
+<p><code>data-size="lg"</code>: poster-sized words in the display line (uppercase, expanded, heavy). This one starts paused, to show the static presentation: the same content wrapped onto as many lines as it needs, nothing clipped.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="marquee" data-size="lg" data-tone="ink" role="group" aria-label="Highlights">
+      <span class="marquee__label">Live</span>
+      <button class="btn marquee__toggle" data-variant="tone" data-tone="ink" data-shape="circle" data-size="sm" type="button" aria-pressed="true" aria-label="Pause highlights ticker">
+        <span class="ic ic--pause" aria-hidden="true"></span>
+        <span class="ic ic--play" aria-hidden="true"></span>
+      </button>
+      <div class="marquee__viewport">
+        <div class="marquee__track">
+          <ul class="marquee__list" role="list">
+            <li>Focus mode</li>
+            <li>Shared decks</li>
+            <li>Dark palette</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="tone">Tone</h3>
+<p>A tone colours the strip and the label from its own roles, and keeps 7:1 text contrast in every hue. The second strip shows the third rule: when the text already fits, nothing scrolls, and the button says why (it is dashed, and its description reads "Nothing is scrolling because the text fits").</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="stack" data-gap="3">
+    <div class="marquee" data-tone="3" role="group" aria-label="Reminders">
+      <span class="marquee__label">Tip</span>
+      <button class="btn marquee__toggle" data-variant="tone" data-tone="3" data-shape="circle" data-size="sm" type="button" aria-pressed="true" aria-label="Pause reminders ticker">
+        <span class="ic ic--pause" aria-hidden="true"></span>
+        <span class="ic ic--play" aria-hidden="true"></span>
+      </button>
+      <div class="marquee__viewport">
+        <div class="marquee__track">
+          <ul class="marquee__list" role="list">
+            <li>Press and hold a card to reorder it</li>
+            <li>Swipe is optional: every row has a menu</li>
+            <li>Shake to undo can be switched off in settings</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="marquee" data-tone="info" role="group" aria-label="Service notices">
+      <span class="marquee__label">Notice</span>
+      <button class="btn marquee__toggle" data-variant="tone" data-tone="info" data-shape="circle" data-size="sm" type="button" aria-pressed="false" aria-label="Pause notices ticker">
+        <span class="ic ic--pause" aria-hidden="true"></span>
+        <span class="ic ic--play" aria-hidden="true"></span>
+      </button>
+      <div class="marquee__viewport">
+        <div class="marquee__track">
+          <ul class="marquee__list" role="list">
+            <li>All caught up</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="3">
+    <div class="marquee" data-tone="ink" role="group" aria-label="Headlines">
+      <span class="marquee__label">Today</span>
+      <button class="btn marquee__toggle" data-variant="tone" data-tone="ink" data-shape="circle" data-size="sm" type="button" aria-pressed="false" aria-label="Pause headlines ticker">
+        <span class="ic ic--pause" aria-hidden="true"></span>
+        <span class="ic ic--play" aria-hidden="true"></span>
+      </button>
+      <div class="marquee__viewport">
+        <div class="marquee__track">
+          <ul class="marquee__list" role="list">
+            <li>Rain after 4 pm</li>
+            <li>Bins go out tonight</li>
+            <li>Library closes at 6</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+        <h4 class="t-title">Home</h4>
+        <article class="card card--row"><span class="card__tile" data-tone="1" aria-hidden="true"></span><div class="card__main"><p class="card__title">Dentist</p><p class="card__meta">Tomorrow, 9:30</p></div></article>
+        <article class="card card--row"><span class="card__tile" data-tone="4" aria-hidden="true"></span><div class="card__main"><p class="card__title">Groceries</p><p class="card__meta">6 items left</p></div></article>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="behaviour">When it moves and when it does not</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Marquee motion rules</caption>
+  <thead><tr><th>Situation</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>Default</td><td>Scrolls at <code>data-speed</code> px per second (40 by default), so long and short lists move at the same pace.</td></tr>
+    <tr><td>Pause pressed (<code>aria-pressed="true"</code>)</td><td>Animation off, loop copy hidden. The strip becomes a title row (label and toggle) over the text, which wraps. Press again to resume.</td></tr>
+    <tr><td>Pointer over the strip, or focus anywhere inside it</td><td>Frozen in place (<code>animation-play-state: paused</code>). A courtesy, not the pause mechanism.</td></tr>
+    <tr><td>Reduced motion (OS, or the Motion switch in Appearance)</td><td>Never starts. Static wrapped list; the button shows "pressed" and is dashed, described as "Motion is turned off in your settings". Try it: switch Motion to Reduced.</td></tr>
+    <tr><td>The text fits in the strip</td><td>Nothing to scroll, so nothing moves.</td></tr>
+    <tr><td>No script, or no toggle in the markup</td><td>Static wrapped list. The loop needs JavaScript (a seamless loop needs a duplicate) and needs the button.</td></tr>
+    <tr><td>Right-to-left</td><td>Direction mirrors with <code>:dir(rtl)</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Strip</strong> (<code>.marquee</code>): a rectangle with the 2px frame (<code>--radius-card</code>) in a tone or on paper. It is not pressable, so it casts no shadow.</li>
+  <li><strong>Label</strong>: the caption at the start, in the uppercase label style on the tone's fill. Not interactive.</li>
+  <li><strong>Toggle</strong>: the small round <a href="@/components/button.html">button</a>, 44&times;44px hit area, stable name "Pause ticker", <code>aria-pressed</code> for state (filled and a doubled frame when paused), an icon that swaps between pause and play. It comes <em>before</em> the moving text in the DOM, so a keyboard or screen-reader user meets the control that stops the motion before the motion. Grid areas put it at the end visually.</li>
+  <li><strong>Viewport</strong>: clips the moving track, with block padding so a link's focus ring is never clipped. There is no edge fade: a fade is a gradient.</li>
+  <li><strong>List</strong>: a real <code>&lt;ul&gt;</code>, read once, left in the DOM for assistive technology. Items are separated by a small square drawn with a box, not a text glyph, so it is not read aloud.</li>
+  <li><strong>Loop copy</strong> (added by script): a second list, <code>aria-hidden</code> and <code>inert</code>, for the seamless wrap.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Marquee classes, attributes and script</caption>
+  <thead><tr><th>Member</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.marquee</code></td><td></td><td>Container. Parts: <code>marquee__label</code>, <code>__viewport</code>, <code>__track</code>, <code>__list</code>, <code>__toggle</code> (a <code>.btn</code>).</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>ink</code>, <code>ok</code>, <code>warn</code>, <code>bad</code>, <code>info</code>, <code>1</code> to <code>6</code></td><td>Colours strip and label. No attribute = paper with an ink label. Put the same tone on the toggle (<code>data-variant="tone"</code>).</td></tr>
+    <tr><td><code>data-size</code></td><td><code>lg</code></td><td>Display-size text.</td></tr>
+    <tr><td><code>data-speed</code></td><td>number (px/s)</td><td>Scroll speed. Default 40.</td></tr>
+    <tr><td><code>data-loop</code>, <code>data-fit</code>, <code>data-ready</code></td><td>set by script</td><td>Looping is active; the text fits on one line; the script has run (until then the toggle is hidden, because it could do nothing). Do not write them yourself.</td></tr>
+    <tr><td><code>aria-pressed</code> on the toggle</td><td><code>true</code> = paused</td><td>The only state. An initial <code>true</code> starts the strip paused.</td></tr>
+    <tr><td><code>SG.marquee.init(el)</code>, <code>.refresh(el)</code></td><td></td><td>Enhance a strip added later (automatic), or rebuild after changing the list items.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Marquee keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td>Screen reader</td><td>The group is named ("Announcements"), the list is read once, item by item. The loop copy is <code>aria-hidden</code> and <code>inert</code>. Nothing is live: a moving ticker is never announced, so updates that matter must also appear somewhere that is (a status region, a toast).</td></tr>
+    <tr><td><kbd>Tab</kbd></td><td>Reaches the toggle (and any links in the list). Entering the strip freezes it.</td></tr>
+    <tr><td><kbd>Space</kbd> / <kbd>Enter</kbd> on the toggle</td><td>Pauses or resumes. Announced as "Pause ticker, toggle button, pressed / not pressed".</td></tr>
+    <tr><td>Touch</td><td>The toggle has a 44&times;44px hit area.</td></tr>
+    <tr><td>Reduced motion</td><td>Never scrolls; travel is multiplied by <code>--move</code> (0) and the script also stops the loop so the text wraps instead of sitting clipped.</td></tr>
+    <tr><td>Legibility</td><td>Line height 1.4 and block padding: the reference design clipped the bottoms of capitals ("E" read as "F").</td></tr>
+    <tr><td>Focus ring</td><td>On the ink band the ring is paper and its halo ink, so it follows the surface.</td></tr>
+    <tr><td>Forced colours</td><td>Strip and label keep real borders in <code>CanvasText</code>; the toggle is a Button, whose border doubles when pressed.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--radius-ctl</code>, <code>--ctl-sm</code>, <code>--type-label</code>, <code>--type-title</code>, <code>--type-display</code>, <code>--ls-label</code>, <code>--ls-display</code>, <code>--text-lg</code>, <code>--text-2xl</code>, <code>--focus-shadow</code>, <code>--move</code>, <code>--space-1</code> to <code>--space-7</code>. The keyframe <code>sg-ticker</code> is this component's own.</p>

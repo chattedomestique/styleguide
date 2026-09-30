@@ -1,0 +1,211 @@
+/* ==========================================================================
+   Toast  (layer: sg.components)                  behaviour: src/js/63-toast.js
+   --------------------------------------------------------------------------
+   A short, passing message that confirms something the person just did ("Deck
+   saved", "Link copied"). It never takes focus and never blocks anything.
+
+     SG.toast.show({ message: "Deck saved", status: "success" })
+     SG.toast.show({ message: "Card deleted", action: { label: "Undo", onClick: undo } })
+     SG.toast.show({ message: "Could not save. Check your connection.", status: "danger" })
+
+   JS builds this markup; the CSS also works on static markup (the docs show it):
+
+   <section class="toast-region" aria-label="Notifications" popover="manual">
+     <ol class="toast-list" role="list">
+       <li class="toast" data-tone="ok">
+         <span class="ic ic--circle-check toast__icon" aria-hidden="true"></span>
+         <p class="toast__msg"><span class="sr-only">Success: </span>Deck saved</p>
+         <button class="btn toast__action" data-variant="tone" data-tone="ok" data-size="sm" type="button">Undo</button>
+         <button class="btn toast__close" data-variant="tone" data-tone="ok" data-shape="circle" data-size="sm"
+                 type="button" aria-label="Dismiss notification"><span class="ic ic--close" aria-hidden="true"></span></button>
+       </li>
+     </ol>
+   </section>
+
+   data-tone    ink (or none) = the plain toast: an ink frame, ink fill, paper text, so it stands
+                apart from the page in light AND dark. ok | warn | bad | info = a status: the tone's
+                fill and its own icon shape. Put the SAME tone on the buttons (data-variant="tone").
+   data-state   "leaving" while the exit transition plays (set by JS)
+
+   A TOAST IS NOT PRESSABLE, so it gets no shadow and no lift (only the buttons inside do). It
+   separates from the page with a 2px frame, the way every overlay in this system does, and
+   needs no scrim because it blocks nothing.
+
+   PLACEMENT  bottom centre, ABOVE the dock and the safe area: --dock-h and --safe-bottom are
+   the same variables the dock sets, so a toast never covers navigation. The region is in the
+   TOP LAYER (popover="manual") where supported, which puts it above <dialog> modals without a
+   z-index war; elsewhere it falls back to position: fixed at --z-overlay.
+
+   STATUS IS NEVER COLOUR ALONE (WCAG 1.4.1): an icon with its own shape (check circle, warning
+   triangle, alert circle, information circle) plus words in the message, and a visually hidden
+   status word for screen readers.
+
+   WHAT IT IS NOT  a place for the only copy of important information, or for a message the
+   person must act on. Errors and toasts with an action stay until they are dismissed; see the
+   docs page for the rules, and SG.announce for updates that need no visible toast.
+
+   FOCUS  The plain toast is an ink surface, where the page's ink ring would vanish, so inside it
+   the ring is paper and the halo is ink: the ring follows the surface. On a status tone the
+   default ring already contrasts.
+   ========================================================================== */
+
+@layer sg.components {
+  @keyframes sg-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(calc(var(--move, 1) * 0.75rem));
+    }
+  }
+
+  /* ---- Region ---------------------------------------------------------------------- */
+  .toast-region {
+    /* Undo the UA popover box (centred, bordered, padded, Canvas-coloured). */
+    position: fixed;
+    inset: auto;
+    inset-inline: 0;
+    inset-block-end: calc(var(--dock-h) + var(--safe-bottom) + var(--space-4));
+    z-index: var(--z-overlay); /* fallback layer when popover is unsupported */
+    inline-size: auto;
+    block-size: auto;
+    max-block-size: none;
+    margin: 0;
+    padding-block: 0;
+    padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+    border: 0;
+    background: transparent;
+    color: inherit;
+    overflow: visible;
+    /* Clicks fall through the empty strip around and between toasts. */
+    pointer-events: none;
+  }
+  /* Two rules, not a selector list: an unknown pseudo-class would drop a whole list. */
+  .toast-region:not([popover]) {
+    display: flex;
+    justify-content: center;
+  }
+  .toast-region:popover-open {
+    display: flex;
+    justify-content: center;
+  }
+
+  .toast-list {
+    display: flex;
+    flex-direction: column; /* newest last = closest to the thumb */
+    gap: var(--space-2);
+    inline-size: min(100%, 28rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    /* Toasts adapt to the width of THEIR list, not the screen (see the query below). */
+    container-type: inline-size;
+  }
+
+  /* ---- Toast ----------------------------------------------------------------------- */
+  .toast {
+    /* no tone = the plain (ink) toast */
+    --_bg: var(--tone-bg, var(--ink));
+    --_ink: var(--tone-ink, var(--paper));
+
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: calc(var(--ctl-sm) + var(--space-3));
+    padding-block: var(--space-2);
+    padding-inline: var(--space-4) var(--space-2);
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+    pointer-events: auto;
+    animation: sg-toast-in var(--dur-enter) var(--ease-out);
+    transition:
+      opacity var(--dur-enter) var(--ease-in),
+      transform var(--dur-enter) var(--ease-in);
+
+    &[data-state="leaving"] {
+      opacity: 0;
+      transform: translateY(calc(var(--move) * 0.5rem));
+      pointer-events: none;
+    }
+  }
+
+  .toast__icon {
+    --ic-size: 1.5rem;
+  }
+
+  .toast__msg {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    padding-block: var(--space-1);
+    font: var(--type-body);
+    font-weight: 600;
+    line-height: var(--lh-snug);
+    overflow-wrap: anywhere;
+  }
+
+  /* The buttons are the Button element, small. Their hit areas reach 44px; the gap keeps 8px
+     between those areas (a 36px circle grows 4px each side). */
+  .toast__close {
+    margin-inline-start: var(--space-1);
+  }
+  .toast__action {
+    flex: none;
+  }
+
+  /* The plain toast is an ink surface: a button's ink frame would vanish on it, so the
+     frame, and the ring, follow the surface. */
+  .toast:not([data-tone]) .btn,
+  .toast[data-tone="ink"] .btn {
+    --line: var(--paper);
+  }
+  .toast:not([data-tone]) :is(a, button):focus-visible,
+  .toast[data-tone="ink"] :is(a, button):focus-visible {
+    --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--ink);
+    outline-color: var(--paper);
+  }
+
+  /* ---- Narrow lists: the message keeps the whole row; the action drops below it -------
+     On a 390px phone an icon, an action and a 44px dismiss button leave ~70px for the
+     sentence, which then breaks mid-word. Stacking the action costs one short row. */
+  @container (max-width: 24rem) {
+    .toast:has(> .toast__action) {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "icon msg close"
+        ".    action action";
+      align-items: center;
+      column-gap: var(--space-2);
+      row-gap: var(--space-1);
+
+      > .toast__icon {
+        grid-area: icon;
+      }
+      > .toast__msg {
+        grid-area: msg;
+      }
+      > .toast__close {
+        grid-area: close;
+      }
+      > .toast__action {
+        grid-area: action;
+        justify-self: start;
+        margin-block-end: var(--space-1);
+      }
+
+      &:not(:has(> .toast__icon)) {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "msg close"
+          "action action";
+      }
+    }
+  }
+
+  /* ---- Forced colours: the fill disappears; the frame and the buttons' own borders stay. ---- */
+  @media (forced-colors: active) {
+    .toast {
+      border-color: CanvasText;
+    }
+  }
+}
