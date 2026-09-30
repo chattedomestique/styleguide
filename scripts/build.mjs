@@ -209,6 +209,12 @@ function buildDocs() {
     const toc = [...page.body.matchAll(/<h2[^>]*\sid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/g)]
       .map((m) => `<li><a href="#${m[1]}">${m[2].replace(/<[^>]+>/g, '')}</a></li>`).join('')
 
+    // {{icon-grid}} in a page becomes a grid of every icon in src/icons, generated so it never goes stale.
+    if (page.body.includes('{{icon-grid}}')) {
+      const grid = `<ul class="icon-grid" role="list">${[...ICONS.keys()].sort().map((id) => `<li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-${id}"></use></svg><code>${id}</code></li>`).join('')}</ul>`
+      page.body = page.body.replace('{{icon-grid}}', grid)
+    }
+
     let html = layout
       .replaceAll('{{title}}', esc(page.meta.title))
       .replaceAll('{{summary}}', esc(page.meta.summary))
