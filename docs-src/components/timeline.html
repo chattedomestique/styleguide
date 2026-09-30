@@ -1,0 +1,287 @@
+<!--{"title":"Timeline","group":"Components","order":133,"summary":"Clips along time with a playhead: a keyboard-operable track where every drag has a button or a key."}-->
+<h1>Timeline</h1>
+<p class="lede">A timeline shows clips laid out along time, and a playhead that says where you are. It is the most drag-heavy screen in an editor, so every drag here has a button or a key that does the same thing: the playhead is a slider, the ruler is a place to click, and splitting and trimming are buttons that act at the playhead.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it where order and length in time are the point: a video edit, an audio mix, a day of recordings. Name every clip and show its length. Keep Split and Trim as buttons with words on them.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it for a calendar or an agenda (those are a grid of days), or for progress through one file (that is a <a href="@/components/scrubber.html">Scrubber</a> or a <a href="@/components/player.html">Player</a>). Do not make dragging the only way to cut, trim or seek.</p></div>
+  </div>
+</div>
+
+<h2 id="editor">Editor</h2>
+<p>Live: click a clip or press <kbd>Enter</kbd> on it to select it, move the playhead into it, then Split or Trim. The buttons say why they are unavailable when they are. Two tracks here: video clips, and one audio clip with a waveform.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="timeline" role="group" aria-label="Timeline: Harbour morning">
+      <div class="timeline__bar">
+        <div class="timeline__time">
+          <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="back" aria-label="Back one second"><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+          <output for="tl1-head">0:30</output><small>/ 1:24</small>
+          <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="forward" aria-label="Forward one second"><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+        </div>
+        <div class="timeline__actions">
+          <button class="btn" data-size="sm" type="button" data-timeline="split" aria-describedby="tl1-hint"><span class="ic ic--scissors" aria-hidden="true"></span>Split</button>
+          <button class="btn" data-size="sm" type="button" data-timeline="trim-start" aria-describedby="tl1-hint"><span class="ic ic--arrow-left-to-line" aria-hidden="true"></span>Trim start</button>
+          <button class="btn" data-size="sm" type="button" data-timeline="trim-end" aria-describedby="tl1-hint"><span class="ic ic--arrow-right-to-line" aria-hidden="true"></span>Trim end</button>
+        </div>
+        <div class="timeline__zoom">
+          <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="zoom-out" aria-label="Zoom out"><span class="ic ic--zoom-out" aria-hidden="true"></span></button>
+          <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="zoom-in" aria-label="Zoom in"><span class="ic ic--zoom-in" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <div class="timeline__hint" id="tl1-hint">Split and trim act on “Lighthouse” at 0:30.</div>
+      <div class="timeline__scroll">
+        <div class="timeline__body" style="--total: 84">
+          <div class="timeline__ruler" aria-hidden="true"></div>
+          <div class="timeline__playhead" style="--t: 30">
+            <div class="timeline__head" id="tl1-head" role="slider" tabindex="0" aria-label="Playhead" aria-valuemin="0" aria-valuemax="84" aria-valuenow="30" aria-valuetext="0:30 of 1:24"></div>
+          </div>
+          <div class="timeline__track" role="listbox" aria-label="Video clips" aria-orientation="horizontal">
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 0; --dur: 22">
+            <span class="timeline__name">Harbour at dawn</span>
+            <span class="timeline__dur num" aria-hidden="true">0:22</span><span class="sr-only">, 22 seconds</span>
+          </div>
+          <div class="timeline__clip" role="option" aria-selected="true" tabindex="0" data-tone="2" style="--start: 22; --dur: 30">
+            <span class="timeline__name">Lighthouse</span>
+            <span class="timeline__dur num" aria-hidden="true">0:30</span><span class="sr-only">, 30 seconds</span>
+          </div>
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 52; --dur: 32">
+            <span class="timeline__name">Gulls over the quay</span>
+            <span class="timeline__dur num" aria-hidden="true">0:32</span><span class="sr-only">, 32 seconds</span>
+          </div>
+          </div>
+          <div class="timeline__track" role="listbox" aria-label="Audio" aria-orientation="horizontal" data-kind="audio">
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" aria-describedby="tl1-wave" data-tone="4" data-kind="audio" style="--start: 0; --dur: 84">
+            <span class="timeline__name">Low tide ambience</span>
+            <span class="timeline__dur num" aria-hidden="true">1:24</span><span class="sr-only">, 1 minute 24 seconds</span>
+            <svg class="timeline__wave" aria-hidden="true" focusable="false" data-peaks="789788688967698699882131221334343432554422214343541253564775458745447566575746558758"></svg>
+          </div>
+          </div>
+        </div>
+      </div>
+      <p class="sr-only" id="tl1-wave">Waveform of Low tide ambience: loud for the first 20 seconds, quiet from 0:20 to 0:55, then fairly loud to the end.</p>
+    </div>
+  </div>
+</div>
+
+<h2 id="playhead">The playhead</h2>
+<p>The head is a circle with a line through every track, and it is a <code>role="slider"</code>: <kbd>Left</kbd> and <kbd>Right</kbd> move it one step (<code>data-step</code> on <code>.timeline</code>, default one second), <kbd>PageUp</kbd> and <kbd>PageDown</kbd> ten steps, <kbd>Home</kbd> and <kbd>End</kbd> the ends. Its value is spoken as "0:30 of 1:24". Dragging is an enhancement: the same move is a click on the ruler (or empty track), and the round buttons by the time readout nudge it one step for anyone who cannot drag or press keys.</p>
+
+<h2 id="clips">Clips</h2>
+<p>A track is a listbox and a clip is an option: a name, a length, and a selected state. The selected clip is filled and its frame doubles, so selection is never just a darker tone. <kbd>Left</kbd> and <kbd>Right</kbd> move focus between clips; <kbd>Enter</kbd> or <kbd>Space</kbd> selects. The tone on a clip is rhythm only (video blue, audio green here); it does not mean anything.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="timeline" role="group" aria-label="Clip states">
+      <div class="timeline__scroll">
+        <div class="timeline__body" style="--total: 56">
+          <div class="timeline__track" role="listbox" aria-label="Clip states" aria-orientation="horizontal">
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 0; --dur: 7">
+            <span class="timeline__name">Rest</span>
+            <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
+          </div>
+          <div class="timeline__clip is-hover" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 8; --dur: 7">
+            <span class="timeline__name">Hover</span>
+            <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
+          </div>
+          <div class="timeline__clip is-focus" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 16; --dur: 7">
+            <span class="timeline__name">Focus</span>
+            <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
+          </div>
+          <div class="timeline__clip is-active" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 24; --dur: 7">
+            <span class="timeline__name">Pressed</span>
+            <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
+          </div>
+          <div class="timeline__clip" role="option" aria-selected="true" tabindex="-1" data-tone="2" style="--start: 32; --dur: 7">
+            <span class="timeline__name">Selected</span>
+            <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="waveform">Waveform</h2>
+<p>The waveform is a flat silhouette of stepped bars: one SVG <code>&lt;path&gt;</code>, <code>aria-hidden</code>, filled with the clip's own ink so it is always readable on the clip. Give the <code>&lt;svg&gt;</code> <code>data-peaks</code>: one digit from 0 to 9 per second of the <em>source</em>. The script draws as many 3px bars as fit the clip, taking the loudest digit under each, and only the part of the source the clip shows, so a split or a trim cuts the waveform where it cuts the clip, and zoom never stretches a bar. A picture of sound is not the sound, so the same facts are written as text in <code>aria-describedby</code>: <em>loud for the first 20 seconds, quiet from 0:20 to 0:55, then fairly loud to the end</em>. No gradient, no fade.</p>
+
+<h2 id="dark">On a dark stage</h2>
+<p>Editors are dark so the picture leads. <code>data-theme="dark"</code> on the timeline makes it an island; the playhead line keeps a hard paper edge so it shows on the dark selected clip too.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="timeline" role="group" aria-label="Timeline: Harbour morning, dark" data-theme="dark">
+      <div class="timeline__bar">
+        <div class="timeline__time">
+          <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="back" aria-label="Back one second"><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+          <output for="tl2-head">0:12</output><small>/ 1:24</small>
+          <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="forward" aria-label="Forward one second"><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+        </div>
+        <div class="timeline__actions">
+          <button class="btn" data-size="sm" type="button" data-timeline="split" aria-describedby="tl2-hint"><span class="ic ic--scissors" aria-hidden="true"></span>Split</button>
+          <button class="btn" data-size="sm" type="button" data-timeline="trim-start" aria-describedby="tl2-hint"><span class="ic ic--arrow-left-to-line" aria-hidden="true"></span>Trim start</button>
+          <button class="btn" data-size="sm" type="button" data-timeline="trim-end" aria-describedby="tl2-hint"><span class="ic ic--arrow-right-to-line" aria-hidden="true"></span>Trim end</button>
+        </div>
+        <div class="timeline__zoom">
+          <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="zoom-out" aria-label="Zoom out"><span class="ic ic--zoom-out" aria-hidden="true"></span></button>
+          <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="zoom-in" aria-label="Zoom in"><span class="ic ic--zoom-in" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <div class="timeline__hint" id="tl2-hint">Split and trim act on “Lighthouse” at 0:12.</div>
+      <div class="timeline__scroll">
+        <div class="timeline__body" style="--total: 84">
+          <div class="timeline__ruler" aria-hidden="true"></div>
+          <div class="timeline__playhead" style="--t: 12">
+            <div class="timeline__head" id="tl2-head" role="slider" tabindex="0" aria-label="Playhead" aria-valuemin="0" aria-valuemax="84" aria-valuenow="12" aria-valuetext="0:12 of 1:24"></div>
+          </div>
+          <div class="timeline__track" role="listbox" aria-label="Video clips" aria-orientation="horizontal">
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 0; --dur: 22">
+            <span class="timeline__name">Harbour at dawn</span>
+            <span class="timeline__dur num" aria-hidden="true">0:22</span><span class="sr-only">, 22 seconds</span>
+          </div>
+          <div class="timeline__clip" role="option" aria-selected="true" tabindex="0" data-tone="2" style="--start: 22; --dur: 30">
+            <span class="timeline__name">Lighthouse</span>
+            <span class="timeline__dur num" aria-hidden="true">0:30</span><span class="sr-only">, 30 seconds</span>
+          </div>
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 52; --dur: 32">
+            <span class="timeline__name">Gulls over the quay</span>
+            <span class="timeline__dur num" aria-hidden="true">0:32</span><span class="sr-only">, 32 seconds</span>
+          </div>
+          </div>
+          <div class="timeline__track" role="listbox" aria-label="Audio" aria-orientation="horizontal" data-kind="audio">
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" aria-describedby="tl2-wave" data-tone="4" data-kind="audio" style="--start: 0; --dur: 84">
+            <span class="timeline__name">Low tide ambience</span>
+            <span class="timeline__dur num" aria-hidden="true">1:24</span><span class="sr-only">, 1 minute 24 seconds</span>
+            <svg class="timeline__wave" aria-hidden="true" focusable="false" data-peaks="789788688967698699882131221334343432554422214343541253564775458745447566575746558758"></svg>
+          </div>
+          </div>
+        </div>
+      </div>
+      <p class="sr-only" id="tl2-wave">Waveform of Low tide ambience: loud for the first 20 seconds, quiet from 0:20 to 0:55, then fairly loud to the end.</p>
+    </div>
+  </div>
+</div>
+
+<h2 id="context">In context</h2>
+<p>A phone-sized edit screen: the preview above, the timeline below it, and the same Cancel and Apply circles every tool uses.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone" data-theme="dark">
+      <div class="phone__screen stack" data-gap="3">
+        <div class="card__media wf-media" data-tone="2" style="--ratio: 16 / 9" role="img" aria-label="Preview: a lighthouse at dawn">
+          <span class="wf-tag">Preview 16:9</span>
+        </div>
+        <div class="timeline" role="group" aria-label="Timeline: Harbour morning, phone">
+          <div class="timeline__bar">
+            <div class="timeline__time">
+              <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="back" aria-label="Back one second"><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+              <output for="tl3-head">0:52</output><small>/ 1:24</small>
+              <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="forward" aria-label="Forward one second"><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+            </div>
+            <div class="timeline__actions">
+              <button class="btn" data-size="sm" type="button" data-timeline="split" aria-describedby="tl3-hint"><span class="ic ic--scissors" aria-hidden="true"></span>Split</button>
+              <button class="btn" data-size="sm" type="button" data-timeline="trim-start" aria-describedby="tl3-hint"><span class="ic ic--arrow-left-to-line" aria-hidden="true"></span>Trim start</button>
+              <button class="btn" data-size="sm" type="button" data-timeline="trim-end" aria-describedby="tl3-hint"><span class="ic ic--arrow-right-to-line" aria-hidden="true"></span>Trim end</button>
+            </div>
+            <div class="timeline__zoom">
+              <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="zoom-out" aria-label="Zoom out"><span class="ic ic--zoom-out" aria-hidden="true"></span></button>
+              <button class="btn" data-shape="circle" data-size="sm" type="button" data-timeline="zoom-in" aria-label="Zoom in"><span class="ic ic--zoom-in" aria-hidden="true"></span></button>
+            </div>
+          </div>
+          <div class="timeline__hint" id="tl3-hint">Split and trim act on “Lighthouse” at 0:52.</div>
+          <div class="timeline__scroll">
+            <div class="timeline__body" style="--total: 84">
+              <div class="timeline__ruler" aria-hidden="true"></div>
+              <div class="timeline__playhead" style="--t: 52">
+                <div class="timeline__head" id="tl3-head" role="slider" tabindex="0" aria-label="Playhead" aria-valuemin="0" aria-valuemax="84" aria-valuenow="52" aria-valuetext="0:52 of 1:24"></div>
+              </div>
+              <div class="timeline__track" role="listbox" aria-label="Video clips" aria-orientation="horizontal">
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 0; --dur: 22">
+            <span class="timeline__name">Harbour at dawn</span>
+            <span class="timeline__dur num" aria-hidden="true">0:22</span><span class="sr-only">, 22 seconds</span>
+          </div>
+          <div class="timeline__clip" role="option" aria-selected="true" tabindex="0" data-tone="2" style="--start: 22; --dur: 30">
+            <span class="timeline__name">Lighthouse</span>
+            <span class="timeline__dur num" aria-hidden="true">0:30</span><span class="sr-only">, 30 seconds</span>
+          </div>
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 52; --dur: 32">
+            <span class="timeline__name">Gulls over the quay</span>
+            <span class="timeline__dur num" aria-hidden="true">0:32</span><span class="sr-only">, 32 seconds</span>
+          </div>
+              </div>
+              <div class="timeline__track" role="listbox" aria-label="Audio" aria-orientation="horizontal" data-kind="audio">
+          <div class="timeline__clip" role="option" aria-selected="false" tabindex="-1" aria-describedby="tl3-wave" data-tone="4" data-kind="audio" style="--start: 0; --dur: 84">
+            <span class="timeline__name">Low tide ambience</span>
+            <span class="timeline__dur num" aria-hidden="true">1:24</span><span class="sr-only">, 1 minute 24 seconds</span>
+            <svg class="timeline__wave" aria-hidden="true" focusable="false" data-peaks="789788688967698699882131221334343432554422214343541253564775458745447566575746558758"></svg>
+          </div>
+              </div>
+            </div>
+          </div>
+          <p class="sr-only" id="tl3-wave">Waveform of Low tide ambience: loud for the first 20 seconds, quiet from 0:20 to 0:55, then fairly loud to the end.</p>
+        </div>
+        <div class="cluster" data-justify="between">
+          <button class="btn" data-shape="circle" type="button" aria-label="Discard edit"><span class="ic ic--close" aria-hidden="true"></span></button>
+          <button class="btn" data-shape="circle" data-variant="primary" type="button" aria-label="Save edit"><span class="ic ic--check" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Bar</strong> (<code>.timeline__bar</code>): the time readout with one-second nudge buttons, the Split / Trim actions, and zoom. Every action is a labelled Button.</li>
+  <li><strong>Hint</strong> (<code>.timeline__hint</code>): says what Split and Trim would do to which clip, or why they cannot. The buttons point at it with <code>aria-describedby</code>.</li>
+  <li><strong>Ruler</strong> (<code>.timeline__ruler</code>): ticks and labels, drawn for the current zoom, <code>aria-hidden</code>. Clicking it moves the playhead.</li>
+  <li><strong>Playhead</strong> (<code>.timeline__playhead</code> with <code>.timeline__head</code>): a line through every track and a 28px head with a 44px hit area. The head is the slider.</li>
+  <li><strong>Track</strong> (<code>.timeline__track</code>, <code>role="listbox"</code>): a row of clips with a label. <code>data-kind="audio"</code> makes it taller.</li>
+  <li><strong>Clip</strong> (<code>.timeline__clip</code>, <code>role="option"</code>): a rectangle with a name (up to two lines) and a length. <code>--start</code> and <code>--dur</code> place it, in seconds.</li>
+  <li><strong>Waveform</strong> (<code>.timeline__wave</code>): stepped bars as one SVG path.</li>
+  <li><strong>Scroller</strong> (<code>.timeline__scroll</code>): scrolls sideways when the time is longer than the screen. Padded so focus rings and shadows are not clipped.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Timeline attributes, properties, buttons and events</caption>
+  <thead><tr><th>Name</th><th>Where</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>--total</code></td><td><code>.timeline__body</code></td><td>Length of the timeline, in seconds. Width is <code>--total</code> times <code>--pps</code>.</td></tr>
+    <tr><td><code>--pps</code></td><td><code>.timeline</code></td><td>Width of one second (default <code>0.875rem</code> times the zoom). Override to change the scale.</td></tr>
+    <tr><td><code>--start</code>, <code>--dur</code>, <code>--in</code></td><td><code>.timeline__clip</code></td><td>Where the clip starts on the timeline, how long it is, and where in its source it begins (seconds). Set inline.</td></tr>
+    <tr><td><code>--t</code></td><td><code>.timeline__playhead</code></td><td>The playhead position (seconds). The script keeps it in step with <code>aria-valuenow</code>.</td></tr>
+    <tr><td><code>data-step</code></td><td><code>.timeline</code></td><td>The playhead's step in seconds (default 1). Page keys move ten steps.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>.timeline__clip</code></td><td>Clip colour: a tone slot. Rhythm only.</td></tr>
+    <tr><td><code>data-kind="audio"</code></td><td><code>.timeline__track</code>, <code>.timeline__clip</code></td><td>A taller track; a clip that starts with its waveform.</td></tr>
+    <tr><td><code>data-timeline</code></td><td>a Button</td><td><code>back</code>, <code>forward</code>, <code>split</code>, <code>trim-start</code>, <code>trim-end</code>, <code>zoom-in</code>, <code>zoom-out</code>. Split and trim act on the selected clip at the playhead.</td></tr>
+    <tr><td><code>sg:timeline-action</code></td><td>event, cancelable</td><td>Fired before a split or trim with <code>{ action, clip, time }</code>. Call <code>preventDefault()</code> to apply it in your own model.</td></tr>
+    <tr><td><code>sg:timeline-seek</code> / <code>sg:timeline-change</code></td><td>events</td><td>The playhead moved; the script changed the clips.</td></tr>
+    <tr><td><code>SG.timeline</code></td><td>JS</td><td><code>init(el)</code>, <code>setTime(el, seconds)</code>, <code>select(el, clip)</code>, <code>refresh(el)</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Timeline keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Bar buttons, then the playhead, then one stop per track (the last clip you were on). The scroller is not a stop: its contents are.</td></tr>
+    <tr><td>Playhead: <kbd>Left</kbd> <kbd>Right</kbd> <kbd>PageUp</kbd> <kbd>PageDown</kbd> <kbd>Home</kbd> <kbd>End</kbd></td><td>One step, ten steps, start, end. The value is announced as "0:30 of 1:24". The view scrolls to keep the head visible.</td></tr>
+    <tr><td>Clips: <kbd>Left</kbd> <kbd>Right</kbd> <kbd>Home</kbd> <kbd>End</kbd></td><td>Move focus along the track (no wrap). <kbd>Enter</kbd> / <kbd>Space</kbd> select. Arrow keys never change what is selected.</td></tr>
+    <tr><td>Split, Trim start, Trim end</td><td>Work at the playhead on the selected clip and announce the result ("Split Lighthouse at 0:30. 4 clips on the timeline"). <code>aria-disabled</code> when they cannot, with the reason in the hint. Focus stays on the button.</td></tr>
+    <tr><td>Screen reader</td><td>"Video clips, listbox. Lighthouse, 30 seconds, selected, 2 of 3." The waveform is hidden and described in text.</td></tr>
+    <tr><td>Pointer and touch</td><td>Drag the head, or click the ruler or empty track. Nothing needs a drag or a pinch: the buttons nudge the playhead, split and trim, and zoom (WCAG 2.5.7, 2.5.1). Every target is 44px.</td></tr>
+    <tr><td>Zoom / text size</td><td>The timeline scrolls sideways inside its frame; the bar re-flows. Times are written, not only drawn.</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the view jumps instead of gliding to the playhead.</td></tr>
+    <tr><td>Forced colours</td><td>Frames are <code>CanvasText</code>; the selected clip has a 4px frame; the playhead line and ruler take system colours.</td></tr>
+    <tr><td>Right-to-left</td><td>Time still runs left to right (<code>direction: ltr</code>), as on a ruler.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--line</code>, <code>--line-soft</code>, <code>--accent</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--radius-card</code>, <code>--radius-tile</code>, <code>--radius-pill</code>, <code>--hit</code>, <code>--space-1</code> to <code>--space-4</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>

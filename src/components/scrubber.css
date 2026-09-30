@@ -80,6 +80,7 @@
     gap: var(--space-3);
   }
   .scrubber__row > .btn[data-shape="circle"] {
+    flex: none;
     min-inline-size: 0; /* a small circle is 36px wide; .btn's 44px minimum would stretch it into a pill (the hit area still reaches 44px) */
   }
 
@@ -148,6 +149,7 @@
     --_edge: 0px; /* the bar has no frame, except in forced colours, where it gets one (see the end of the file) */
 
     position: relative;
+    z-index: 1; /* above the rail, fill and ruler (the fill is a later pseudo-element and would paint over the thumb) */
     box-sizing: border-box;
     display: block;
     inline-size: 100%;
