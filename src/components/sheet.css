@@ -177,9 +177,17 @@
     transition: none;
   }
 
+  /* A persistent panel covers part of a page that stays usable. Keep a focused control clear of
+     it (WCAG 2.4.11), exactly as the dock and app bar do: 61-sheet.js publishes the panel's size
+     and this turns it into scroll-padding. Layers beat the base's :where(html) rule. */
+  :root:has(.sheet[popover]:popover-open) {
+    scroll-padding-block-end: calc(var(--dock-h) + var(--safe-bottom) + var(--sg-sheet-block, 0px) + var(--space-3));
+    scroll-padding-inline-end: calc(var(--sg-sheet-inline, 0px) + var(--space-3));
+  }
+
   /* ---- The handle: a pill that acts ------------------------------------------------------
      The button is 48×28px (the strip above the bar); the pill is drawn by ::before and the
-     hit area by ::after, which reaches 44px. Same --lift / --fill pattern as Button. */
+     hit area by ::after, which reaches 44px (downward). Same --lift / --fill pattern as Button. */
   .sheet__handle {
     --lift: 0;
     --fill: 0;
@@ -217,11 +225,12 @@
       );
     }
 
-    /* hit area: 44px tall and at least 44px wide */
+    /* hit area: at least 44px wide and 44px tall. It grows DOWNWARD only, into the bar's label
+       row (which holds no target): the card clips at its frame, so upward growth would be cut. */
     &::after {
       content: "";
       position: absolute;
-      inset-block: min(0px, calc((100% - var(--hit)) / 2));
+      inset-block: 0 calc(100% - var(--hit));
       inset-inline: min(0px, calc((100% - var(--hit)) / 2));
     }
 

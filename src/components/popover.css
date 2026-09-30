@@ -105,13 +105,17 @@
         margin-block: 0 var(--_gap);
       }
       &[data-placement="start"] {
-        position-area: inline-start;
+        /* Side placements name BOTH axes. A lone inline-start spans the whole page in the block axis,
+           and on a scrolled page the popover lands a screen's worth of pixels away from the trigger
+           (measured in Chromium). Top and bottom can keep the lone keyword: their free axis is the
+           inline one, which does not scroll in this system. */
+        position-area: inline-start center;
         margin-block: 0;
         margin-inline: 0 var(--_gap);
         position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
       }
       &[data-placement="end"] {
-        position-area: inline-end;
+        position-area: inline-end center;
         margin-block: 0;
         margin-inline: var(--_gap) 0;
         position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;

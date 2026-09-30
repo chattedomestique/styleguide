@@ -18,6 +18,10 @@
      not close a manual popover on Esc. Only while focus is inside it, so the page behind keeps
      its own Esc.
    - focus return and scroll-region fix-up for non-modal sheets (toggle event)
+   - FOCUS NOT OBSCURED (WCAG 2.4.11) for a persistent panel: it covers part of a page that stays
+     usable, so while it is open its size is written to --sg-sheet-block / --sg-sheet-inline on
+     <html> and sheet.css turns that into scroll-padding, the same way the dock and app bar keep
+     a focused control clear of themselves.
 
    There is no drag in the side-panel layout (48em and up): sheet.css sets --_side to 1 there
    and this file reads it, so CSS and JS cannot disagree about which layout is showing.
@@ -148,12 +152,38 @@
     SG.dialog.close(sheet);
   });
 
+  var watchers = typeof ResizeObserver === 'function' ? new WeakMap() : null;
+  function publishSize(sheet) {
+    var root = document.documentElement;
+    var r = sheet.getBoundingClientRect();
+    var panel = isPanel(sheet);
+    root.style.setProperty('--sg-sheet-block', panel ? '0px' : Math.ceil(r.height) + 'px');
+    root.style.setProperty('--sg-sheet-inline', panel ? Math.ceil(r.width) + 'px' : '0px');
+  }
+  function watchSize(sheet, on) {
+    var root = document.documentElement;
+    if (!on) {
+      root.style.removeProperty('--sg-sheet-block');
+      root.style.removeProperty('--sg-sheet-inline');
+      if (watchers && watchers.has(sheet)) { watchers.get(sheet).disconnect(); watchers.delete(sheet); }
+      return;
+    }
+    publishSize(sheet);
+    if (watchers) {
+      var ro = new ResizeObserver(function () { publishSize(sheet); });
+      ro.observe(sheet);
+      watchers.set(sheet, ro);
+    }
+  }
+
   document.addEventListener('toggle', function (e) {
     var sheet = e.target;
     if (!sheet.classList || !sheet.classList.contains('sheet') || !sheet.hasAttribute('popover')) return;
     if (e.newState === 'open') {
       SG.dialog.settle(sheet);
+      watchSize(sheet, true);
     } else {
+      watchSize(sheet, false);
       SG.dialog.restoreFocus(sheet);
       settleLater(sheet);
     }
