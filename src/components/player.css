@@ -1,0 +1,190 @@
+/* ==========================================================================
+   Player  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Transport controls for a native <audio> or <video>: play / pause, back and forward,
+   a seek bar, the time, mute. The media element does the playing; the browser's own
+   controls are the fallback. src/js/74-player.js takes them off and shows these, and
+   only then: with no script (or a script that failed) the native controls stay, so the
+   recording is never unplayable.
+
+   <div class="player" role="group" aria-labelledby="memo-title" data-skip="5">
+     <div class="player__stage">                                  video only
+       <video class="player__media" controls playsinline preload="metadata" poster="…">
+         <source src="…" type="video/webm">
+       </video>
+     </div>
+     <div class="player__head">
+       <p class="player__title" id="memo-title">Harbour bell</p>
+       <p class="player__desc" id="memo-desc">Four strikes of a bell, then silence.</p>
+     </div>
+     <audio class="player__media" controls preload="metadata" aria-describedby="memo-desc"><source src="…" type="audio/wav"></audio>
+     <div class="player__controls" hidden>                         shown by the script
+       <div class="scrubber" data-variant="plain" data-format="time">…the seek bar, a Scrubber…</div>
+       <p class="player__time num" aria-hidden="true"><span data-player="current">0:00</span><span data-player="duration">0:12</span></p>
+       <div class="player__row">
+         <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play">
+           <span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+         <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds">…arrow, 5…</button>
+         <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds">…5, arrow…</button>
+         <div class="player__end"><button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute">…</button></div>
+       </div>
+       <p class="player__status" role="status"></p>
+     </div>
+   </div>
+
+   data-skip   seconds the back / forward buttons jump (default 10). The aria-labels must say the same number.
+
+   THE NAME DOES NOT CHANGE. Play is a toggle button: its name stays "Play" and aria-pressed says
+   whether it is playing, as in the WAI-ARIA toggle-button pattern. A button that renames itself
+   AND flips aria-pressed says "Pause, pressed" while it is paused. The icon swaps play / pause,
+   and pressed is also a filled circle with a doubled frame: three cues, and the name is stable.
+   Mute works the same way ("Mute", pressed = muted).
+
+   WHY THE CONTROLS ARE BELOW THE PICTURE, NOT ON IT. Text and icons laid over video have to
+   survive any frame, so they would need a scrim; a solid plate under the picture needs nothing
+   and never covers it.
+
+   THE PATTERN (same as button.css): every button is a Button. The seek bar is a Scrubber, so the
+   keys, the click-to-jump and the readout are the Scrubber's. The frame is a 2px rectangle.
+   ========================================================================== */
+
+@layer sg.components {
+  .player {
+    --_bg: var(--tone-bg, var(--paper));
+    --_ink: var(--tone-ink, var(--ink));
+
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+    min-inline-size: 0;
+    container: player / inline-size;
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+    overflow: clip;
+  }
+
+  /* video: the picture, closed off by a frame-weight rule like a Card's media */
+  .player__stage {
+    aspect-ratio: var(--ratio, 16 / 9);
+    background: var(--tone-bg, var(--paper-3));
+    border-block-end: var(--bw) solid var(--line);
+    overflow: clip;
+  }
+  .player__media {
+    display: block;
+    inline-size: 100%;
+  }
+  .player__stage > .player__media {
+    block-size: 100%;
+    object-fit: cover;
+  }
+  /* before the script takes the controls off, audio shows the browser's bar: keep it on the frame */
+  audio.player__media[controls] {
+    padding: var(--space-3);
+    box-sizing: border-box;
+  }
+  .player__stage[data-tap] {
+    cursor: pointer;
+  }
+
+  .player__head {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4) var(--space-4) 0;
+  }
+  .player__title {
+    margin: 0;
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    letter-spacing: var(--ls-title);
+    overflow-wrap: anywhere;
+  }
+  .player__desc {
+    margin: 0;
+    max-inline-size: none;
+    font: var(--type-meta);
+    color: var(--tone-ink-soft, var(--ink-soft));
+  }
+
+  /* the custom controls: seek bar, then one row of buttons */
+  .player__controls {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4) var(--space-4);
+  }
+  .player__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+  .player__row .btn {
+    flex: none;
+  }
+  .player__row .btn[data-size="sm"] {
+    --_px: var(--space-3); /* the skip pills: arrow + digit need no more, and it keeps the row on one line on a phone */
+  }
+  .player__row .btn[data-shape="circle"][data-size="sm"] {
+    min-inline-size: 0; /* a small circle is 36px wide; .btn's 44px minimum would make it a pill (the hit area is 44 anyway) */
+  }
+  /* position at one end of the bar, length at the other */
+  .player__time {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin: 0;
+    max-inline-size: none;
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--tone-ink-soft, var(--ink-soft));
+  }
+  .player__end {
+    display: flex;
+    flex: none;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+  }
+
+  /* play / pause: two icons, one shows. The name stays "Play"; aria-pressed is the state. */
+  .player__play[aria-pressed="true"] .ic--play,
+  .player__play[aria-pressed="false"] .ic--pause {
+    display: none;
+  }
+  /* mute / unmute likewise */
+  .player [data-player="mute"][aria-pressed="true"] .ic--volume-2,
+  .player [data-player="mute"][aria-pressed="false"] .ic--volume-x {
+    display: none;
+  }
+
+  /* the plain-language state line: empty until something goes wrong */
+  .player__status {
+    margin: 0;
+    max-inline-size: none;
+    font: var(--type-meta);
+    color: var(--tone-ink-soft, var(--ink-soft));
+  }
+  .player__status:empty {
+    display: none;
+  }
+  .player[data-state="error"] .player__status {
+    color: var(--bad-ink);
+    font-weight: 700;
+  }
+
+  /* a player that cannot play: dashed, the way every unavailable thing is */
+  .player[data-state="error"] {
+    border-style: dashed;
+  }
+
+  @media (forced-colors: active) {
+    .player,
+    .player__stage {
+      border-color: CanvasText;
+    }
+    .player__status {
+      color: CanvasText;
+    }
+  }
+}

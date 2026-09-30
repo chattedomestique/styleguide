@@ -1,0 +1,200 @@
+// Interaction spec for Toolbar. See tests/components.mjs for the contract and tests/components/button.mjs for a model.
+const TOOLS = '#tools + p + .demo .toolbar'
+const TOGGLES = '#toggles + p + .demo .toolbar'
+
+const state = (page, sel) =>
+  page.evaluate((s) => {
+    const list = document.querySelector(s + ' .toolbar__list')
+    const btns = [...list.querySelectorAll('.btn')]
+    return {
+      tabbable: btns.filter((b) => b.tabIndex === 0).map((b) => b.id),
+      checked: btns.filter((b) => b.getAttribute('aria-checked') === 'true').map((b) => b.id),
+      focused: document.activeElement && document.activeElement.id,
+    }
+  }, sel)
+
+export const tests = [
+  {
+    name: 'the toolbar is one tab stop, on the tool that is on; Tab leaves it',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const s = await state(page, TOOLS)
+      expect.equal(s.tabbable.length, 1, 'exactly one button is in the tab order')
+      expect.equal(s.tabbable[0], 't1-light', 'it is the checked tool')
+      // put focus on the paragraph before the demo and Tab once: it lands on the roving stop
+      await page.evaluate(() => { const p = document.querySelector('#tools + p'); p.setAttribute('tabindex', '-1'); p.focus() })
+      await page.keyboard.press('Tab')
+      const f = await state(page, TOOLS)
+      expect.equal(f.focused, 't1-light', 'Tab enters on the checked tool (the scroll buttons are not tab stops)')
+      await page.keyboard.press('Tab')
+      const after = await state(page, TOOLS)
+      expect.ok(after.focused !== 't1-light' && !/^t1-/.test(after.focused || ''), `the next Tab leaves the toolbar (focus on "${after.focused}")`)
+    },
+  },
+  {
+    name: 'arrow keys move focus and wrap; Home and End jump; arrows never change what is on',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      await page.locator('#t1-light').focus()
+      await page.keyboard.press('ArrowRight')
+      expect.equal((await state(page, TOOLS)).focused, 't1-colour', 'Right moves to the next tool')
+      expect.equal((await state(page, TOOLS)).tabbable[0], 't1-colour', 'roving: the tab stop follows focus')
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('ArrowLeft')
+      expect.equal((await state(page, TOOLS)).focused, 't1-crop', 'Left moves back')
+      await page.keyboard.press('ArrowLeft')
+      expect.equal((await state(page, TOOLS)).focused, 't1-rotate', 'Left from the first wraps to the last')
+      await page.keyboard.press('ArrowRight')
+      expect.equal((await state(page, TOOLS)).focused, 't1-crop', 'Right from the last wraps to the first')
+      await page.keyboard.press('End')
+      expect.equal((await state(page, TOOLS)).focused, 't1-rotate', 'End')
+      await page.keyboard.press('Home')
+      expect.equal((await state(page, TOOLS)).focused, 't1-crop', 'Home')
+      expect.equal((await state(page, TOOLS)).checked.join(), 't1-light', 'moving focus does not change the choice')
+    },
+  },
+  {
+    name: 'Enter and Space turn a radio tool on and the others off; pressing the label does the same',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      await page.locator('#t1-light').focus()
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('Enter')
+      expect.equal((await state(page, TOOLS)).checked.join(), 't1-crop', 'Enter turns Crop on')
+      expect.equal(await page.locator('#t1-light').getAttribute('aria-checked'), 'false', 'Light goes off')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('Space')
+      expect.equal((await state(page, TOOLS)).checked.join(), 't1-colour', 'Space turns Colour on')
+      await page.locator('#t1-colour-l').scrollIntoViewIfNeeded()
+      await page.locator('#t1-colour-l').click()
+      expect.equal((await state(page, TOOLS)).checked.join(), 't1-colour', 'colour stays on')
+      await page.locator('#t1-crop-l').click()
+      expect.equal((await state(page, TOOLS)).checked.join(), 't1-crop', 'tapping the words presses the tool')
+    },
+  },
+  {
+    name: 'each tool is named by its visible label (label in name), and the on tool is underlined as well as filled',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const r = await page.evaluate(() => {
+        const out = []
+        for (const b of document.querySelectorAll('#tools + p + .demo .toolbar__list .btn')) {
+          const label = document.querySelector('label[for="' + b.id + '"]').textContent.trim()
+          const name = b.getAttribute('aria-labelledby') && document.getElementById(b.getAttribute('aria-labelledby')).textContent.trim()
+          out.push(label === name && label.length > 0)
+        }
+        const on = document.querySelector('#t1-light-l'), off = document.querySelector('#t1-crop-l')
+        return { named: out.every(Boolean), n: out.length, onLine: getComputedStyle(on).textDecorationLine, offLine: getComputedStyle(off).textDecorationLine }
+      })
+      expect.ok(r.named && r.n === 7, 'all seven tools are named by their visible label')
+      expect.equal(r.onLine, 'underline', 'the label of the tool that is on is underlined')
+      expect.equal(r.offLine, 'none', 'the others are not')
+    },
+  },
+  {
+    name: 'toggles flip aria-pressed; an aria-disabled tool stays in the arrow order but is inert',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const grid = page.locator('#t2-grid')
+      await grid.focus()
+      await page.keyboard.press('Enter')
+      expect.equal(await grid.getAttribute('aria-pressed'), 'true', 'Enter turns the toggle on')
+      await page.keyboard.press('Space')
+      expect.equal(await grid.getAttribute('aria-pressed'), 'false', 'Space turns it off')
+      await page.locator('#t2-undo').focus()
+      await page.keyboard.press('ArrowRight')
+      await expect.focused(page, '#t2-redo', 'the unavailable tool can take focus by arrow key')
+      await page.evaluate(() => { window.__c = 0; document.getElementById('t2-redo').addEventListener('click', () => window.__c++) })
+      await page.keyboard.press('Enter')
+      await page.keyboard.press('Space')
+      expect.equal(await page.evaluate(() => window.__c), 0, 'keyboard activation is blocked')
+      expect.equal(await page.locator('#t2-redo').getAttribute('aria-describedby'), 't2-redo-why', 'the reason is attached')
+      await page.keyboard.press('ArrowRight')
+      await expect.focused(page, '#t2-compare', 'the separator is not a stop')
+    },
+  },
+  {
+    name: 'overflow: the scroll buttons appear, scroll the list, and are aria-disabled at the ends',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const r = await page.evaluate((s) => {
+        const bar = document.querySelector(s), list = bar.querySelector('.toolbar__list')
+        const back = bar.querySelector('[data-dir="back"]'), fwd = bar.querySelector('[data-dir="forward"]')
+        return { over: list.scrollWidth > list.clientWidth, backHidden: back.hidden, fwdHidden: fwd.hidden, backOff: back.getAttribute('aria-disabled'), fwdOff: fwd.getAttribute('aria-disabled') }
+      }, TOOLS)
+      expect.ok(r.over, 'seven tools overflow a phone-width tray')
+      expect.ok(!r.backHidden && !r.fwdHidden, 'both scroll buttons are shown when it overflows')
+      expect.equal(r.backOff, 'true', 'back is unavailable at the start')
+      expect.equal(r.fwdOff, null, 'forward is available')
+      const fwd = page.locator(`${TOOLS} [data-dir="forward"]`)
+      await fwd.scrollIntoViewIfNeeded()
+      await fwd.click()
+      await page.waitForTimeout(700)
+      const left = await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => el.scrollLeft)
+      expect.ok(left > 50, `forward scrolled the list (scrollLeft ${left})`)
+      expect.equal(await page.locator(`${TOOLS} [data-dir="back"]`).getAttribute('aria-disabled'), null, 'back is now available')
+      for (let i = 0; i < 6; i++) { await fwd.click({ force: true }).catch(() => {}); await page.waitForTimeout(450) }
+      expect.equal(await fwd.getAttribute('aria-disabled'), 'true', 'forward is unavailable at the end')
+      expect.equal(await fwd.evaluate((el) => el.disabled), false, 'never the disabled attribute')
+      expect.equal(await fwd.evaluate((el) => el.tabIndex), -1, 'scroll buttons are not tab stops')
+    },
+  },
+  {
+    name: 'hovering the label lifts the circle as if it were pressed',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const btn = page.locator('#t1-crop')
+      await page.locator('#t1-crop-l').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(60)
+      const lift = () => btn.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--lift')))
+      expect.equal(await lift(), 0, 'rest')
+      await page.locator('#t1-crop-l').hover()
+      await page.waitForTimeout(400)
+      expect.equal(await lift(), 1, 'hovering the words raises the circle')
+      await page.mouse.down()
+      await page.waitForTimeout(300)
+      expect.equal(await lift(), 0, 'pressing the words sinks it')
+      await page.mouse.up()
+    },
+  },
+  {
+    name: 'the circle keeps a 44px target and the ring is not clipped by the scroller',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const r = await page.evaluate(() => {
+        const b = document.getElementById('t1-crop'), list = b.closest('.toolbar__list')
+        const br = b.getBoundingClientRect(), lr = list.getBoundingClientRect()
+        return { w: br.width, h: br.height, padTop: br.top - lr.top, padStart: br.left - lr.left }
+      })
+      expect.ok(r.w >= 43.5 && r.h >= 43.5, `44px circle (${r.w}x${r.h})`)
+      expect.ok(r.padTop >= 6, `room above the circle for the 6px focus ring (${r.padTop}px)`)
+    },
+  },
+  {
+    name: 'reduced motion: hovering the circle does not move it',
+    reducedMotion: true,
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const btn = page.locator('#t1-crop')
+      await btn.scrollIntoViewIfNeeded()
+      await btn.hover()
+      await page.waitForTimeout(500)
+      const t = await btn.evaluate((el) => getComputedStyle(el).transform)
+      expect.ok(t === 'none' || t === 'matrix(1, 0, 0, 1, 0, 0)', `no movement (got ${t})`)
+    },
+  },
+  {
+    name: 'right-to-left: the arrow keys are mirrored (Right goes to the previous tool)',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      await page.evaluate(() => { document.documentElement.dir = 'rtl' })
+      await page.locator('#t1-colour').focus()
+      await page.keyboard.press('ArrowRight')
+      expect.equal((await state(page, TOOLS)).focused, 't1-light', 'Right moves back in a right-to-left page')
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('ArrowLeft')
+      expect.equal((await state(page, TOOLS)).focused, 't1-effects', 'Left moves forward')
+    },
+  },
+]

@@ -1,0 +1,242 @@
+/* ==========================================================================
+   Swatch  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Pick one colour from a set: a backdrop, a deck's cover, a label, a pen. A group
+   of native radio buttons in a fieldset, each drawn as a round chip with its NAME
+   under it. The browser supplies the radio-group behaviour (Tab enters on the
+   chosen one, arrows move AND choose, Space chooses, one form value).
+
+   <fieldset class="swatch-set">
+     <legend>Backdrop</legend>
+     <div class="swatch-set__list">
+       <label class="swatch-set__opt" style="--swatch: #b4c8dc">
+         <input type="radio" name="backdrop" value="sky" checked>
+         <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+         <span class="swatch-set__name">Sky</span>
+       </label>
+       …
+     </div>
+   </fieldset>
+
+   --swatch   the colour of ONE swatch, set inline on its <label>. THE one place a component
+              takes a colour from data instead of from a role. Swatches are the user's content
+              (their deck colours, their brand palette, the colours of a photo), like an
+              <img>: the style guide cannot know them, and inventing a role per user colour is
+              not possible. Everything around the swatch (frame, selection ring, focus ring,
+              name) is still a role, so the swatch is always findable and readable whatever
+              colour it is.
+
+   WHAT A SWATCH HAS TO SURVIVE. An unknown colour can sit next to, inside or against any
+   surface. So:
+   · the chip has its own 2px --line frame (a pale swatch on a pale card still has an edge; 1.4.11)
+   · the check mark is black or white, whichever contrasts more with that swatch: a relative
+     colour flips on the swatch's lightness (always at least 4.5:1, measured by the spec). Where
+     relative colours are missing, and in forced colours, it sits on a small paper plate instead,
+     which needs no calculation
+   · "selected" is three cues, none of them the colour: a check, a second ring with a gap
+     (the doubled frame) and an underlined name
+   · the name is text, so nobody has to tell two greens apart by eye (1.4.1)
+   · the whole label, chip and name, is the target (at least 44px)
+
+   THE PATTERN (same as button.css): --lift raises the chip on hover and keyboard focus (a hard
+   shadow; a swatch is something you press), one transition, travel x --move, hover gated.
+   ========================================================================== */
+
+@layer sg.components {
+  .swatch-set {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    & > legend {
+      margin-block-end: var(--space-2);
+      padding: 0;
+      font: var(--type-ctl);
+    }
+  }
+
+  .swatch-set__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 4.75rem), 1fr));
+    gap: var(--space-2) var(--space-1);
+  }
+
+  .swatch-set__opt {
+    --lift: 0;
+    --_chip: var(--ctl);
+    --_ring-gap: 0px; /* extra room the focus ring leaves for the selection ring */
+    --_on: var(--ink);
+    --_plate: none;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    min-inline-size: var(--hit);
+    padding: var(--space-3) var(--space-1) var(--space-2); /* room for the ring (3 x 2px) and the lift */
+    cursor: pointer;
+    transition: --lift var(--dur-hover) var(--ease-out);
+
+    /* The radio itself is the hit area: invisible, the size of the label, above the chip and the name
+       so a tap lands on the radio (and a focus-obscured check finds nothing on top of it). */
+    & > input {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: inherit;
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):has(> input:not(:disabled)) {
+        --lift: 1;
+      }
+    }
+    &:is(:has(> input:focus-visible), .is-focus) {
+      --lift: 1;
+    }
+    &:is(:has(> input:checked), .is-selected) {
+      --_ring-gap: calc(var(--bw) * 3);
+    }
+    /* pressed: back onto the surface. After hover so it wins. */
+    &:is(:active, .is-active):has(> input:not(:disabled)) {
+      --lift: 0;
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  /* the chip: a circle filled with the swatch's colour */
+  .swatch-set__chip {
+    position: relative;
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: var(--_chip);
+    block-size: var(--_chip);
+    color: var(--_on);
+    background: var(--swatch, var(--paper-2));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+    box-shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    transform: translate(calc(var(--lift) * var(--space-1) / -2 * var(--move)), calc(var(--lift) * var(--space-1) / -2 * var(--move)));
+    forced-color-adjust: none; /* the swatch IS the content: forced colours must not repaint it */
+
+    /* the check: shown only on the chosen one */
+    & > .ic {
+      --ic-size: 1.25rem;
+      grid-area: 1 / 1;
+      position: relative; /* above the plate */
+      visibility: hidden;
+    }
+    /* the plate behind the check, for forced colours and old engines */
+    &::before {
+      content: "";
+      grid-area: 1 / 1;
+      inline-size: 1.75rem;
+      block-size: 1.75rem;
+      background: var(--paper);
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-pill);
+      display: none;
+    }
+    /* the second ring of the doubled frame: a gap of one line width, then another line */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: calc(var(--bw) * -3);
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-pill);
+      display: none;
+    }
+  }
+
+  .swatch-set__opt:is(:has(> input:checked), .is-selected) .swatch-set__chip {
+    & > .ic {
+      visibility: visible;
+    }
+    &::after {
+      display: block;
+    }
+    &::before {
+      display: var(--_plate); /* none unless forced colours or no relative colours: then the check sits on a paper plate */
+    }
+  }
+
+  /* keyboard focus: the ring sits outside the selection ring, with the paper halo in the gap */
+  .swatch-set__opt:is(:has(> input:focus-visible), .is-focus) .swatch-set__chip {
+    outline: var(--ring) solid var(--focus);
+    outline-offset: calc(var(--ring-offset) + var(--_ring-gap));
+    box-shadow:
+      0 0 0 calc(var(--ring-offset) + var(--_ring-gap)) var(--paper),
+      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+  }
+
+  .swatch-set__name {
+    max-inline-size: 100%;
+    font: var(--type-meta);
+    text-align: center;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+  .swatch-set__opt:is(:has(> input:checked), .is-selected) .swatch-set__name {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.2em;
+  }
+
+  /* unavailable: dashed chip, faint name, no lift */
+  .swatch-set__opt:has(> input:disabled) {
+    cursor: not-allowed;
+    .swatch-set__chip {
+      border-color: var(--ink-faint);
+      border-style: dashed;
+    }
+    .swatch-set__name {
+      color: var(--ink-faint);
+    }
+  }
+
+  /* The check's colour: black or white, whichever contrasts more with THIS swatch.
+     L = 0.565 is where black and white contrast equally (relative luminance 0.179). */
+  @supports (color: oklch(from currentcolor l c h)) {
+    .swatch-set__opt {
+      --_on: oklch(from var(--swatch, var(--paper-2)) clamp(0, (0.565 - l) * 1000, 1) 0 0);
+    }
+  }
+  /* no relative colours: the check goes on a paper plate instead of being calculated */
+  @supports not (color: oklch(from currentcolor l c h)) {
+    .swatch-set__opt {
+      --_plate: block;
+    }
+  }
+
+  /* forced colours: the swatch keeps its colour (forced-color-adjust above); everything else
+     becomes a system colour, and the check always sits on a Canvas plate */
+  @media (forced-colors: active) {
+    .swatch-set__opt {
+      --_plate: block;
+      --_on: CanvasText;
+    }
+    .swatch-set__chip {
+      border-color: CanvasText;
+      &::before {
+        background: Canvas;
+        border-color: CanvasText;
+      }
+      &::after {
+        border-color: Highlight;
+      }
+    }
+    .swatch-set__opt:is(:has(> input:checked), .is-selected) .swatch-set__chip {
+      border-width: var(--bw-heavy);
+    }
+    .swatch-set__opt:is(:has(> input:focus-visible), .is-focus) .swatch-set__chip {
+      outline: var(--bw-heavy) solid Highlight;
+    }
+  }
+}

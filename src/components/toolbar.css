@@ -1,0 +1,179 @@
+/* ==========================================================================
+   Toolbar  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A tray of tools: round buttons with their names under them, one tab stop,
+   arrow keys between them. The tools of a photo editor (Crop, Light, Colour),
+   the undo row above a canvas. It holds Buttons; it does not restyle them.
+
+   <div class="toolbar">
+     <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="back" aria-label="Scroll tools back" hidden>…</button>
+     <div class="toolbar__list" role="toolbar" aria-label="Edit tools">
+       <div class="toolbar__item">
+         <button class="btn" data-shape="circle" type="button" id="tool-crop"><span class="ic ic--crop" aria-hidden="true"></span></button>
+         <label class="toolbar__label" for="tool-crop">Crop</label>
+       </div>
+       <span class="toolbar__sep" role="separator" aria-orientation="vertical"></span>
+       …
+     </div>
+     <button class="btn toolbar__scroll" … data-dir="forward" aria-label="Scroll tools forward" hidden>…</button>
+   </div>
+
+   .toolbar          the tray: a 2px frame, rectangle (--radius-card), a size container. data-tone="1…6" tints it.
+                     It takes the width of its parent (inline-size: 100%): a container has no intrinsic width.
+   .toolbar__list    the ARIA toolbar AND the scroller. Give it an aria-label.
+   .toolbar__group   optional wrapper for a radiogroup of tools (role="radiogroup" + aria-label)
+   .toolbar__item    a circle Button and its label
+   .toolbar__label   a real <label for> the button: it names it, and tapping the words presses it
+   .toolbar__sep     a thin rule between groups
+   .toolbar__scroll  previous / next when the list overflows (shown by the script, hidden when it fits)
+   State is the Button's: aria-pressed (a toggle), role="radio" + aria-checked (pick one of a group),
+   aria-disabled. The label of the on item is underlined as well, so "on" is never only a fill.
+
+   WHY THE LABEL IS A <label>. The name has to be visible (WCAG 2.5.3, and icons alone are
+   ambiguous: what does a flame do?) and the words under a round button look like part of it,
+   so tapping them must work. A <label for> does both natively: it names the button and forwards
+   the tap, with no script and no stretched pseudo-element (the Button's own transform would make
+   that pseudo-element's containing block the 44px circle anyway).
+
+   WHY THE LIST HAS PADDING. overflow-x: auto also clips y. The focus ring (6px), the lift
+   (2px) and the hard shadow (4px) all live outside the circle, so the list pads them in
+   (WCAG 2.4.7: a ring that is clipped is not visible).
+   ========================================================================== */
+
+@layer sg.components {
+  .toolbar {
+    --_bg: var(--tone-bg, var(--paper));
+    --_ink: var(--tone-ink, var(--ink));
+
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    inline-size: 100%;
+    min-inline-size: 0;
+    container: toolbar / inline-size;
+    padding-inline: var(--space-1);
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+
+    /* On an inverted tray the ring follows the surface (an ink ring on ink vanishes). */
+    &[data-tone="ink"] :focus-visible {
+      outline-color: var(--tone-ink);
+    }
+  }
+
+  .toolbar__list {
+    display: flex;
+    align-items: flex-start;
+    flex: 1 1 auto;
+    gap: var(--space-2);
+    min-inline-size: 0;
+    padding: var(--space-2);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--space-2);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  /* a labelled cluster inside the list (a radiogroup, say); the list itself stays the single toolbar */
+  .toolbar__group {
+    display: flex;
+    flex: none;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .toolbar__item {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    min-inline-size: 4.5rem;
+    max-inline-size: 6rem;
+    scroll-snap-align: start;
+  }
+
+  .toolbar__label {
+    font: var(--type-meta);
+    color: var(--_ink);
+    text-align: center;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* On (a pressed toggle, the checked radio): the circle is filled with a doubled frame (Button),
+     and the words underline, so "on" is shape and text as well as fill. Underline, not bold: bold
+     would change the width and nudge the neighbours. */
+  .toolbar__item:has(> :is([aria-pressed="true"], [aria-checked="true"])) .toolbar__label {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.2em;
+  }
+  .toolbar__item:has(> [aria-disabled="true"], > :disabled) .toolbar__label {
+    color: var(--ink-faint);
+    cursor: not-allowed;
+  }
+
+  /* A radio in a toolbar is a Button that stands for one choice of a group: on = pressed. */
+  .toolbar .btn[role="radio"][aria-checked="true"] {
+    --fill: 1;
+    --_select: 0 0 0 var(--bw) var(--line);
+  }
+
+  /* Pressing or hovering the words lifts the circle, as if you had pressed the circle. */
+  @media (hover: hover) {
+    .toolbar__item:has(> .toolbar__label:hover) > .btn:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+      --lift: 1;
+      --fill: 1;
+    }
+  }
+  .toolbar__item:has(> .toolbar__label:active) > .btn:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    --lift: 0;
+    --fill: 1;
+    transition-duration: var(--dur-press);
+  }
+
+  /* group divider: a 1px rule the height of the circles */
+  .toolbar__sep {
+    flex: none;
+    align-self: flex-start;
+    inline-size: 0;
+    block-size: var(--hit);
+    margin-inline: var(--space-1);
+    border-inline-start: var(--bw-thin) solid var(--line-soft);
+  }
+
+  /* overflow: previous / next. Unavailable at the ends, hidden when everything fits. */
+  .toolbar .toolbar__scroll {
+    flex: none;
+    min-inline-size: 0; /* a small circle is 36px wide; .btn's 44px minimum would stretch it into a pill (the hit area below already reaches 44px) */
+  }
+
+  /* In a narrow tray (a small phone, or large text, where every rem doubles) two 44px buttons would
+     eat the tools: swiping and arrowing still scroll, so the buttons step aside. */
+  @container toolbar (inline-size < 18rem) {
+    .toolbar__scroll {
+      display: none;
+    }
+  }
+
+  /* forced colours: the tray frame and the separators are borders, so they stay; the underline is text */
+  @media (forced-colors: active) {
+    .toolbar {
+      border-color: CanvasText;
+    }
+    .toolbar__sep {
+      border-color: GrayText;
+    }
+  }
+}

@@ -1,0 +1,318 @@
+/* ==========================================================================
+   Scrubber  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A native <input type="range"> with a ruler, a readout and step buttons. The
+   dial you drag in a photo editor (exposure, warmth, strength), and the seek
+   bar of the Player. The input is the control: the browser already gives it
+   arrow keys, PageUp/PageDown, Home/End, a click-on-track jump, touch drag and
+   the slider role. This file only dresses it; src/js/70-scrubber.js formats the
+   readout, sets aria-valuetext and wires the buttons.
+
+   <div class="scrubber" data-format="signed" data-origin="0">
+     <div class="scrubber__head">
+       <label class="scrubber__label" for="exposure">Exposure</label>
+       <output class="scrubber__value" for="exposure" aria-live="off">0</output>
+     </div>
+     <div class="scrubber__row">
+       <button class="btn" data-shape="circle" data-size="sm" type="button" data-step="down" aria-label="Decrease exposure">…minus…</button>
+       <div class="scrubber__track"><input class="scrubber__input" id="exposure" type="range" min="-50" max="50" value="0"></div>
+       <button class="btn" data-shape="circle" data-size="sm" type="button" data-step="up" aria-label="Increase exposure">…plus…</button>
+     </div>
+   </div>
+
+   data-variant   dial (default: ruler ticks, thumb on top) | plain (a rail with a fill: seek bars)
+   data-format    number | signed | percent | time   (readout + aria-valuetext)
+   data-origin    the value the fill/covered ticks start from (default: the minimum)
+   data-ticks     dial only: number of divisions (default: one per step, or 20)
+   data-major     dial only: every Nth tick is taller (default 5)
+   --scrubber-thumb   the drawn thumb, default 1.75rem. The hit area is the whole 44px bar.
+
+   WHY NATIVE. A dragged custom slider needs every key, every pointer path and every
+   assistive-tech convention rebuilt by hand; a native range has them all (WCAG 4.1.2,
+   2.1.1). Dragging alone fails WCAG 2.5.7, so the bar also jumps where you click, and
+   the minus / plus buttons step by one. They are aria-disabled at the ends, not disabled,
+   so focus is not thrown away when the last step lands (WCAG 2.4.3).
+
+   THE PATTERN (same as button.css)
+   1. --lift / --fill live on the INPUT: the thumb pseudo-elements inherit them. Hover and
+      keyboard focus raise the thumb (hard shadow + fill); pressing sinks it.
+   2. Private --_* properties; colours and radii are roles only.
+   3. Ticks are real (decorative) elements made by the script, not a gradient: flat rules
+      forbid gradients, and a tiled mask drifts by a pixel at fractional widths.
+   4. The bar is 44px tall (--hit) whatever the thumb looks like.
+   5. Forced colours delete backgrounds: ticks, fill and thumb get system colours.
+   ========================================================================== */
+
+@layer sg.components {
+  .scrubber {
+    --_thumb: var(--scrubber-thumb, 1.75rem);
+    --_from: 0; /* 0..1, set by the script: where the fill / covered ticks start … */
+    --_to: 0; /* … and where they end (the thumb) */
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr); /* without this the implicit column grows to its widest content and the row overflows its parent */
+    gap: var(--space-2);
+    min-inline-size: 0;
+    container: scrubber / inline-size;
+  }
+
+  /* label left, value right */
+  .scrubber__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .scrubber__label {
+    font: var(--type-ctl);
+    overflow-wrap: anywhere;
+  }
+  .scrubber__value {
+    min-inline-size: 3ch;
+    font: var(--type-ctl);
+    font-size: var(--text-lg);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  .scrubber__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .scrubber__row > .btn[data-shape="circle"] {
+    flex: none;
+    min-inline-size: 0; /* a small circle is 36px wide; .btn's 44px minimum would stretch it into a pill (the hit area still reaches 44px) */
+  }
+
+  /* Too narrow for minus, bar and plus on one line (large text doubles every rem, so the buttons alone fill
+     the row): the bar takes the first line and the buttons sit under it, one at each end. The reading order
+     stays minus, bar, plus; only the picture regroups. */
+  @container scrubber (inline-size < 13rem) {
+    .scrubber__row {
+      flex-wrap: wrap;
+    }
+    .scrubber__row > .scrubber__track {
+      flex-basis: 100%;
+      order: -1;
+    }
+    .scrubber__row > .btn[data-step="up"] {
+      margin-inline-start: auto;
+    }
+  }
+
+  /* the bar: a 44px band the input fills. Rail, fill and ticks are drawn behind it. */
+  .scrubber__track {
+    position: relative;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    block-size: var(--hit);
+  }
+
+  /* ---- plain variant: a rail with a fill inside it ---- */
+  .scrubber[data-variant="plain"] .scrubber__track::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: calc(50% - var(--_rail-h) / 2);
+    block-size: var(--_rail-h);
+    background: var(--paper-2);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+  }
+  .scrubber[data-variant="plain"] .scrubber__track::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: var(--bw);
+    inline-size: calc(var(--_thumb) / 2 + var(--_to) * (100% - var(--_thumb)) - var(--bw)); /* rail start to the thumb's centre; the origin is a dial idea */
+    inset-block-start: calc(50% - var(--_rail-h) / 2 + var(--bw) / 2); /* half under the rail's frame, so no light seam shows where two curves meet */
+    block-size: calc(var(--_rail-h) - var(--bw));
+    background: var(--line);
+    border-radius: var(--radius-pill);
+  }
+  .scrubber[data-variant="plain"] {
+    --_rail-h: 0.75rem;
+  }
+
+  /* ---- dial variant: the ruler. Ticks stand on the travel of the thumb's centre. ---- */
+  .scrubber__ticks {
+    position: absolute;
+    inset-block: 0;
+    inset-inline: calc(var(--_thumb) / 2);
+    pointer-events: none;
+  }
+  .scrubber__ticks > i {
+    --p: 0; /* 0..1 along the travel; the script sets it per tick (inline) */
+    --_c: clamp(0, calc(min(var(--p) - var(--_from), var(--_to) - var(--p)) * 1000 + 1), 1); /* 1 while the tick is between origin and thumb */
+    --_h: 0.75rem;
+    position: absolute;
+    inset-inline-start: calc(var(--p) * 100%);
+    inset-block-start: calc(50% - var(--_h) / 2);
+    inline-size: var(--bw);
+    block-size: var(--_h);
+    margin-inline-start: calc(var(--bw) / -2);
+    background: color-mix(in srgb, var(--line) calc(var(--_c) * 100%), var(--line-soft));
+  }
+  .scrubber__ticks > i[data-major] {
+    --_h: 1.25rem;
+  }
+
+  /* ---- the input: transparent, 44px tall, on top of everything ---- */
+  .scrubber__input {
+    --lift: 0;
+    --fill: 0;
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+
+    --_edge: 0px; /* the bar has no frame, except in forced colours, where it gets one (see the end of the file) */
+
+    position: relative;
+    z-index: 1; /* above the rail, fill and ruler (the fill is a later pseudo-element and would paint over the thumb) */
+    box-sizing: border-box;
+    display: block;
+    inline-size: 100%;
+    block-size: var(--hit);
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    background: transparent;
+    border: var(--_edge) solid transparent;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* thumb: a circle you drag. Paper at rest, accent when it can be pressed. */
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      box-sizing: border-box;
+      inline-size: var(--_thumb);
+      block-size: var(--_thumb);
+      margin-block-start: calc((var(--hit) - 2 * var(--_edge) - var(--_thumb)) / 2);
+      background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--_shadow);
+      transform: translate(calc(var(--lift) * var(--space-1) / -2 * var(--move)), calc(var(--lift) * var(--space-1) / -2 * var(--move)));
+    }
+    &::-moz-range-thumb {
+      box-sizing: border-box;
+      inline-size: var(--_thumb);
+      block-size: var(--_thumb);
+      background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--_shadow);
+      transform: translate(calc(var(--lift) * var(--space-1) / -2 * var(--move)), calc(var(--lift) * var(--space-1) / -2 * var(--move)));
+    }
+    &::-webkit-slider-runnable-track {
+      block-size: calc(var(--hit) - 2 * var(--_edge));
+      background: transparent;
+      border: 0;
+    }
+    &::-moz-range-track {
+      block-size: calc(var(--hit) - 2 * var(--_edge));
+      background: transparent;
+      border: 0;
+    }
+
+    /* raised where a pointer can hover, and on keyboard focus (same lift, so both match) */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:disabled) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not(:disabled) {
+      --lift: 1;
+      --fill: 1;
+    }
+    /* dragging: the thumb sinks onto the bar, the fill stays. After hover so it wins. */
+    &:is(:active, .is-active):not(:disabled) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* unavailable: dashed thumb, faint ticks */
+    &:disabled {
+      --lift: 0;
+      --fill: 0;
+      --_shadow: 0 0 0 0 transparent;
+      cursor: not-allowed;
+    }
+    &:disabled::-webkit-slider-thumb {
+      background: var(--paper);
+      border-color: var(--ink-faint);
+      border-style: dashed;
+    }
+    &:disabled::-moz-range-thumb {
+      background: var(--paper);
+      border-color: var(--ink-faint);
+      border-style: dashed;
+    }
+  }
+
+  /* an unavailable dial: quiet ticks */
+  .scrubber:has(.scrubber__input:disabled) .scrubber__ticks > i {
+    background: var(--ink-faint);
+  }
+
+  /* the reset link-button under a dial: dashed while there is nothing to reset */
+  .scrubber__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font: var(--type-meta);
+    color: var(--ink-soft);
+  }
+
+  /* forced colours: backgrounds are deleted, so the ruler, the fill and the thumb get system colours */
+  @media (forced-colors: active) {
+    .scrubber__input {
+      --_edge: var(--bw);
+      border-color: ButtonText;
+    }
+    .scrubber__input:is(:hover, .is-hover, :focus-visible, .is-focus)::-webkit-slider-thumb {
+      border-width: var(--bw-heavy);
+      border-color: Highlight;
+    }
+    .scrubber__input:is(:hover, .is-hover, :focus-visible, .is-focus)::-moz-range-thumb {
+      border-width: var(--bw-heavy);
+      border-color: Highlight;
+    }
+    .scrubber__ticks > i {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .scrubber[data-variant="plain"] .scrubber__track::before {
+      border-color: CanvasText;
+    }
+    .scrubber[data-variant="plain"] .scrubber__track::after {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+    .scrubber__input::-webkit-slider-thumb {
+      forced-color-adjust: none;
+      background: Canvas;
+      border-color: ButtonText;
+    }
+    .scrubber__input::-moz-range-thumb {
+      forced-color-adjust: none;
+      background: Canvas;
+      border-color: ButtonText;
+    }
+    .scrubber__input:disabled::-webkit-slider-thumb {
+      border-color: GrayText;
+    }
+    .scrubber__input:disabled::-moz-range-thumb {
+      border-color: GrayText;
+    }
+  }
+}
