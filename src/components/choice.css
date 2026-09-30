@@ -415,7 +415,10 @@
   .choice-group[data-variant="segmented"] {
     display: flex;
     flex-wrap: wrap; /* at large text the segments take a second row rather than breaking words */
-    gap: var(--space-1);
+    /* 4 px between segments in a row (one composite control); 8 px between wrapped ROWS, so the 44 px
+       tall hit areas of two rows (36 px segments, 4 px of reach above and below) touch instead of overlapping */
+    column-gap: var(--space-1);
+    row-gap: var(--space-2);
     inline-size: fit-content;
     max-inline-size: 100%;
     padding: var(--space-1);

@@ -279,4 +279,25 @@ export const tests = [
       expect.ok(Math.abs(nest.indent - nest.labelOffset) <= 6, 'child box sits under the parent label text: ' + nest.indent + ' vs ' + nest.labelOffset)
     },
   },
+  {
+    name: 'segmented wrapped onto two rows (320 px): the 44px hit areas of the rows do not overlap',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const r = await page.evaluate(() => {
+        const g = document.querySelector('[data-variant=segmented]:has(input[name=sg-range])')
+        const rects = [...g.querySelectorAll('input')].map((i) => i.getBoundingClientRect())
+        const rows = new Set(rects.map((x) => Math.round(x.top))).size
+        let overlap = 0
+        for (let a = 0; a < rects.length; a++) for (let b = a + 1; b < rects.length; b++) {
+          const x = Math.min(rects[a].right, rects[b].right) - Math.max(rects[a].left, rects[b].left)
+          const y = Math.min(rects[a].bottom, rects[b].bottom) - Math.max(rects[a].top, rects[b].top)
+          if (x > 0.5 && y > 0.5) overlap++
+        }
+        return { rows, overlap }
+      })
+      expect.ok(r.rows >= 2, 'this width wraps the four segments: ' + r.rows + ' row(s)')
+      expect.equal(r.overlap, 0, 'no two segment hit areas overlap')
+    },
+  },
 ]
