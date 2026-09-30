@@ -1,0 +1,143 @@
+/* ==========================================================================
+   Fixed and sticky bars: publish their size so nothing hides behind them
+   --------------------------------------------------------------------------
+   A floating dock or a sticky app bar covers part of the page. WCAG 2.4.11 (Focus Not
+   Obscured) says a focused control must not be entirely hidden by such author-created
+   content. The foundation already reacts to two custom properties:
+
+     --dock-h     html { scroll-padding-block-end }  and  .app__main { padding-block-end }
+     --appbar-h   html { scroll-padding-block-start }
+
+   This script measures every .dock and .appbar and keeps those properties true:
+
+     --dock-h     the dock's height PLUS the gap between it and the bottom of the screen,
+                  minus the bottom safe area (the foundation adds --safe-bottom itself)
+     --appbar-h   the app bar's height plus its offset from the top (it includes the
+                  status-bar padding when the bar pads for it)
+
+   Only bars that really cover content count: position fixed or sticky, displayed. A dock
+   with data-position="static" or "absolute", or one the short-viewport media query made
+   static, publishes 0.
+
+   SCOPE  Values are written on <html>. Put data-chrome-scope on an ancestor of the bar (a
+   preview frame, an embedded panel) and they are written there instead, so a frame never
+   changes the page around it.
+
+   ResizeObserver tracks size changes (wrapping labels at 200% text, font load); a
+   MutationObserver finds bars added or changed later; resize / orientationchange recompute
+   the safe area and the media-query switch to static. Without JS the CSS estimates in
+   dock.css and appbar.css apply.
+
+   API   SG.chrome.update()   re-measure now
+   ========================================================================== */
+(function (SG) {
+  'use strict';
+
+  var root = document.documentElement;
+  // `estimated` = the bars the CSS already gives an estimate for (dock.css / appbar.css). Those must
+  // write their real value even when it is 0 (for example a dock the short-viewport query made
+  // static), or the estimate would keep reserving space. Other bars write only when they cover content.
+  var KINDS = [
+    { sel: '.dock', prop: '--dock-h', kind: 'dock', estimated: '.dock:not([data-position])' },
+    { sel: '.appbar', prop: '--appbar-h', kind: 'appbar', estimated: '.appbar[data-sticky]' },
+  ];
+  var observed = [];
+  var written = []; // { scope, prop } pairs we have set, so they can be cleared when the bar goes away
+  var frame = 0;
+  var ro = 'ResizeObserver' in window ? new ResizeObserver(schedule) : null;
+  var probe;
+
+  /** env(safe-area-inset-bottom) in pixels, resolved by the browser through a throwaway element. */
+  function safeBottom() {
+    if (!probe) {
+      probe = document.createElement('div');
+      probe.setAttribute('aria-hidden', 'true');
+      probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;inset-inline-start:0;inset-block-start:0;inline-size:0;block-size:0;padding-block-end:env(safe-area-inset-bottom,0px)';
+    }
+    if (!probe.isConnected) document.body.appendChild(probe);
+    return parseFloat(getComputedStyle(probe).paddingBottom) || 0;
+  }
+
+  function measure(el, kind) {
+    var cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return 0;
+    if (cs.position !== 'fixed' && cs.position !== 'sticky') return 0;
+    var h = el.getBoundingClientRect().height;
+    if (!h) return 0;
+    if (kind === 'dock') {
+      var bottom = parseFloat(cs.bottom);
+      return Math.max(0, h + (isNaN(bottom) ? 0 : bottom) - safeBottom());
+    }
+    var top = parseFloat(cs.top);
+    return h + (isNaN(top) ? 0 : Math.max(0, top));
+  }
+
+  function scopeOf(el) {
+    return el.closest('[data-chrome-scope]') || root;
+  }
+
+  function update() {
+    frame = 0;
+    var next = []; // { scope, prop, value }
+    KINDS.forEach(function (k) {
+      SG.qsa(k.sel).forEach(function (el) {
+        if (ro && observed.indexOf(el) < 0) { observed.push(el); ro.observe(el); }
+        var value = measure(el, k.kind);
+        if (!value && !el.matches(k.estimated)) return;
+        var scope = scopeOf(el);
+        var hit = next.filter(function (n) { return n.scope === scope && n.prop === k.prop; })[0];
+        if (hit) hit.value = Math.max(hit.value, value);
+        else next.push({ scope: scope, prop: k.prop, value: value });
+      });
+    });
+    next.forEach(function (n) {
+      n.scope.style.setProperty(n.prop, Math.round(n.value * 100) / 100 + 'px');
+    });
+    // A scope that no longer holds any bar: clear what we wrote, so CSS defaults apply again.
+    written.forEach(function (w) {
+      var still = next.some(function (n) { return n.scope === w.scope && n.prop === w.prop; });
+      if (!still) w.scope.style.removeProperty(w.prop);
+    });
+    written = next.map(function (n) { return { scope: n.scope, prop: n.prop }; });
+    observed = observed.filter(function (el) {
+      if (el.isConnected) return true;
+      if (ro) ro.unobserve(el);
+      return false;
+    });
+  }
+
+  function schedule() {
+    if (!frame) frame = window.requestAnimationFrame(update);
+  }
+
+  SG.chrome = { update: update };
+
+  SG.ready(function () {
+    update();
+    window.addEventListener('resize', schedule);
+    window.addEventListener('orientationchange', schedule);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+    if ('MutationObserver' in window) {
+      var BARS = '.dock, .appbar';
+      var touchesBar = function (nodes) {
+        for (var j = 0; j < nodes.length; j++) {
+          var n = nodes[j];
+          if (n.nodeType === 1 && (n.matches(BARS) || n.querySelector(BARS))) return true;
+        }
+        return false;
+      };
+      new MutationObserver(function (records) {
+        for (var i = 0; i < records.length; i++) {
+          var r = records[i];
+          if (r.type === 'attributes') {
+            var t = r.target;
+            if (t.matches(BARS) || t.closest(BARS)) { schedule(); return; }
+          } else if (touchesBar(r.addedNodes) || touchesBar(r.removedNodes)) {
+            schedule();
+            return;
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-position', 'data-sticky', 'data-compact', 'hidden', 'class'] });
+    }
+  });
+})((window.SG = window.SG || {}));

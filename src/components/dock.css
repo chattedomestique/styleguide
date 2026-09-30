@@ -1,0 +1,381 @@
+/* ==========================================================================
+   Dock  (layer: sg.components)                          bottom navigation
+   --------------------------------------------------------------------------
+   The main areas of an app, always one thumb away. Three to five destinations, each an
+   icon AND a visible word, the current one marked by aria-current="page".
+
+   <nav class="dock" aria-label="Main">
+     <ul class="dock__list" role="list">
+       <li><a class="dock__item" href="/" aria-current="page">
+             <span class="ic ic--house" aria-hidden="true"></span><span class="dock__label">Home</span></a></li>
+       <li><a class="dock__item" href="/stats">…<span class="dock__label">Stats</span></a></li>
+       <li><button class="btn dock__action" data-shape="circle" data-size="lg" data-variant="primary"
+                   type="button" aria-label="Add transaction"><span class="ic ic--plus" aria-hidden="true"></span></button></li>
+       <li><a class="dock__item" href="/cards">…</a></li>
+     </ul>
+   </nav>
+
+   Links if each destination has a URL (recommended: Back works, deep links work); buttons if the app
+   swaps views in place. Either way the current item carries aria-current="page".
+
+   data-variant   floating (default: a pill that hovers above the safe area) | bar (full width, a rule above)
+   data-tone      the dock takes the tone: "ink" is the dark pill (paper icons, a paper pill for the
+                  current item), "1"…"6" a hue. Default is a paper dock with a 2px frame.
+   data-compact   hides the word of INACTIVE items visually (it stays in the accessible name); the
+                  current item shows icon + word. See the docs for why labelled is the default.
+   data-position  fixed (default) | static | absolute | sticky. static / absolute are for previews and
+                  embedded frames; they publish no --dock-h.
+
+   THE CENTRE ACTION is an ACTION, not a destination, so it is a .btn circle (large, primary) and the
+   one member with no visible word: it needs an aria-label. One per dock.
+
+   CELLS IN A FRAME, like the segmented control: the pill is the frame (2px, --line) and the items are
+   cells. Cells do not lift (a hard shadow would have to leave the dock); hovering draws the cell's own
+   frame, pressing fills it at once, and --fill carries the CURRENT one: a filled pill AND a frame of its
+   own in the dock's ink, never colour alone.
+   Forced colours: the current item is Highlight with a 4px frame.
+
+   RESERVING SPACE (WCAG 2.4.11 Focus Not Obscured). A fixed dock covers the bottom of the page.
+   src/js/41-bars.js measures it with a ResizeObserver and publishes --dock-h (its height plus the gap
+   under it, without the safe area). The foundation does the rest:
+     .app__main      padding-block-end: dock height + safe area + space
+     html            scroll-padding-block-end: the same, so a focused or anchored element is
+                     scrolled clear of the dock
+   Without JS the :root rules below supply an estimate, so nothing is ever hidden. A dock inside a
+   preview frame (data-chrome-scope) publishes there instead of on <html>.
+   Landscape phones and big text: on very short viewports a floating dock stops floating and flows at
+   the end of the page (WCAG 1.4.10).
+
+   LARGE TEXT (WCAG 1.4.4). Every cell keeps at least its longest WORD and a 44px target; cells share the
+   width equally when there is room. When the cells cannot all fit on one row at 200% text they wrap onto a
+   second row, and the dock keeps the corner radius of ONE row so it does not balloon into an egg. The
+   alternative (shrinking cells below their words) made neighbouring labels print over each other.
+   RIGHT-TO-LEFT: arrows (.ic--arrow-left|right) inside a dock mirror.
+
+   Private properties (--_*): --_bg --_ink --_cur-bg --_cur-ink --_gap --_pad --_item-h
+   ========================================================================== */
+
+@layer sg.components {
+  /* No-JS estimate of --dock-h: item + padding + borders + (floating) the gap under the dock.
+     Docks that do not float (data-position) or live in a preview frame publish none. */
+  :root:has(.dock:not([data-position], [hidden], [data-chrome-scope] *)) {
+    --dock-h: calc(var(--ctl-lg) + 2 * var(--space-2) + 2 * var(--bw) + var(--space-3));
+  }
+  :root:has(.dock[data-variant="bar"]:not([data-position], [hidden], [data-chrome-scope] *)) {
+    --dock-h: calc(var(--ctl-lg) + 2 * var(--space-2) + var(--bw));
+  }
+
+  .dock {
+    --_bg: var(--tone-bg, var(--paper));
+    --_ink: var(--tone-ink, var(--ink));
+    --_cur-bg: var(--tone-fill, var(--accent));
+    --_cur-ink: var(--tone-on-fill, var(--on-accent));
+    --_gap: var(--space-3);
+    --_pad: var(--space-1);
+    --_item-h: var(--ctl-lg);
+    --focus: var(--_ink); /* the ring follows the surface */
+
+    position: fixed;
+    inset-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+    inset-block-end: calc(var(--safe-bottom) + var(--_gap));
+    z-index: var(--z-dock);
+    max-inline-size: 28rem;
+    margin-inline: auto;
+    padding: var(--_pad);
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+    /* A keyline in the canvas colour: separates the dock from whatever scrolls under it (an ink card
+       under an ink dock would otherwise fuse into one odd silhouette). */
+    outline: var(--bw) solid var(--canvas);
+
+    &[data-position="static"] {
+      position: static;
+      margin-block-start: var(--space-4);
+    }
+    &[data-position="absolute"] {
+      position: absolute;
+      inset-inline: var(--space-3);
+      inset-block-end: var(--space-3);
+      max-inline-size: none;
+    }
+    &[data-position="sticky"] {
+      position: sticky;
+    }
+
+    /* Short viewports (landscape phones, huge zoom): stop floating, flow after the content. */
+    @media (max-height: 26em) {
+      &:not([data-position]) {
+        position: static;
+        margin-block: var(--space-4);
+      }
+    }
+
+    /* ---- Bar: edge to edge, a rule above, the safe area inside ---- */
+    &[data-variant="bar"] {
+      inset-inline: 0;
+      inset-block-end: 0;
+      max-inline-size: none;
+      margin-inline: 0;
+      padding-inline: max(var(--_pad), var(--safe-left)) max(var(--_pad), var(--safe-right));
+      padding-block-end: calc(var(--_pad) + var(--safe-bottom));
+      border-width: var(--bw) 0 0;
+      border-radius: 0;
+      outline-width: 0; /* the keyline is for the floating pill; a bar already sits on the screen edge */
+
+      &[data-position="absolute"] {
+        inset-inline: 0;
+        inset-block-end: 0;
+      }
+      & > .dock__list {
+        max-inline-size: var(--container-sm);
+        margin-inline: auto;
+      }
+    }
+  }
+
+  /* inside the dock: the halo between ring and control is the DOCK's colour, not paper */
+  .dock :focus-visible {
+    --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--_bg);
+  }
+
+  /* buttons (the centre action) take the dock's colours: frame and ring in its ink, fill in its current colour */
+  .dock .btn {
+    --_rest-bg: var(--_bg);
+    --_rest-ink: var(--_ink);
+    --_on-bg: var(--_cur-bg);
+    --_on-ink: var(--_cur-ink);
+    --line: var(--_ink);
+  }
+
+  .dock__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    /* Equal shares when there is room. The floor is the cell's longest word (its item never goes under 44px), so a
+       word is never broken and two labels never overlap; the row wraps when the floors do not fit. */
+    & > li {
+      display: flex;
+      flex: 1 1 0;
+      justify-content: center;
+      min-inline-size: min-content;
+    }
+  }
+
+  /* ---- Destination ------------------------------------------------------------------------- */
+  .dock__item {
+    --fill: 0;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    inline-size: 100%;
+    min-inline-size: var(--hit);
+    min-block-size: var(--_item-h);
+    margin: 0;
+    padding: var(--space-1) 0;
+    color: color-mix(in srgb, var(--_cur-ink) calc(var(--fill) * 100%), var(--_ink));
+    /* No background of its own: the fill is the ::before below. A cell that painted the dock's colour over
+       itself at rest covered the dock's frame wherever a wrapped row reached a rounded corner. */
+    isolation: isolate;
+    border: var(--bw) solid transparent; /* a real edge for forced colours */
+    border-radius: var(--radius-pill);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    & > .ic {
+      --ic-size: 1.5rem;
+    }
+
+    /* the fill: the current colour fading in with --fill (opacity on a decoration layer, never on text) */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: calc(var(--bw) * -1);
+      z-index: -1;
+      background: var(--_cur-bg);
+      border-radius: inherit;
+      opacity: var(--fill);
+      pointer-events: none;
+    }
+
+    /* hover: the cell's own frame appears, in the dock's ink (gated). An outline, not a tint: a tint would
+       move the text's contrast, an outline cannot. The current cell stays as it is. */
+    @media (hover: hover) {
+      &:hover:not([aria-current="page"], [aria-disabled="true"]) {
+        border-color: var(--_ink);
+      }
+    }
+    &.is-hover:not([aria-current="page"]) {
+      border-color: var(--_ink);
+    }
+
+    /* pressed: fills at once (feedback inside 100ms), before navigation has happened */
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* where you are: a filled pill AND its own frame in the dock's ink, so it still reads when the
+       accent is pale (cream) or the palette is mono. The weight stays put: a bolder word is wider and
+       the row would shuffle each time the current item changed. */
+    &[aria-current="page"] {
+      --fill: 1;
+      border-color: var(--_ink);
+    }
+
+    &[aria-disabled="true"] {
+      color: var(--ink-faint);
+      border-color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
+    }
+  }
+
+  /* break-word (not anywhere): the cell's minimum width is its longest word, not one letter */
+  .dock__label {
+    display: block;
+    max-inline-size: 100%;
+    overflow-wrap: break-word;
+  }
+
+  /* A count on an item. The number is visible; its meaning ("unread") is sr-only text, so the item's
+     name reads "Inbox, 3 unread". Never colour alone: it has text. data-tone="bad" makes it status-coloured. */
+  .dock__badge {
+    position: absolute;
+    inset-block-start: calc(var(--space-1) * -1);
+    inset-inline-start: calc(50% + var(--space-1));
+    display: grid;
+    place-items: center;
+    min-inline-size: 1.375rem;
+    block-size: 1.375rem;
+    padding-inline: var(--space-1);
+    color: var(--tone-on-fill, var(--_cur-ink));
+    background: var(--tone-fill, var(--_cur-bg));
+    border: var(--bw) solid var(--_bg);
+    border-radius: var(--radius-pill);
+    font: var(--type-label);
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums lining-nums;
+    text-transform: none;
+    pointer-events: none;
+  }
+
+  /* ---- Centre action --------------------------------------------------------------------------- */
+  .dock__action {
+    flex: none;
+  }
+
+  /* ---- Compact: inactive words become visually hidden, names are kept ---------------------------- */
+  .dock[data-compact] {
+    & .dock__item:not([aria-current="page"]) .dock__label {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    & .dock__item[aria-current="page"] {
+      flex-direction: row;
+      gap: var(--space-2);
+      padding-inline: var(--space-3);
+      white-space: nowrap;
+    }
+    & .dock__item[aria-current="page"] .dock__label {
+      animation: dock-label-in var(--dur-enter) var(--ease-out);
+    }
+  }
+  @keyframes dock-label-in {
+    from {
+      opacity: 0;
+      transform: translateX(calc(var(--space-2) * var(--move) * -1));
+    }
+  }
+  @keyframes dock-label-in-rtl {
+    from {
+      opacity: 0;
+      transform: translateX(calc(var(--space-2) * var(--move)));
+    }
+  }
+  .dock[data-compact] .dock__item[aria-current="page"] .dock__label:dir(rtl) {
+    animation-name: dock-label-in-rtl;
+  }
+  @supports selector(:has(a)) {
+    /* the current item takes the room its word needs; the others share what is left */
+    .dock[data-compact] .dock__list > li:has(> [aria-current="page"]) {
+      flex: 0 0 auto;
+    }
+  }
+
+  /* ---- Right-to-left: arrows point the other way ---------------------------------------------- */
+  .dock .ic:is(.ic--arrow-left, .ic--arrow-right, .ic--chevron-left, .ic--chevron-right):dir(rtl) {
+    transform: scaleX(-1);
+  }
+
+  /* ---- Forced colours ---------------------------------------------------------------------------
+     Fills vanish, so the dock and every item keep an edge and the current item becomes Highlight with
+     a heavier frame. The icons are masks (backgrounds), so they need a system colour too. */
+  @media (forced-colors: active) {
+    .dock {
+      border-color: CanvasText;
+      outline-color: Canvas;
+      background: Canvas;
+      color: CanvasText;
+    }
+    .dock__item {
+      border-color: ButtonBorder;
+
+      &::before {
+        content: none; /* the current item is painted Highlight below; an author-coloured layer would sit on it */
+      }
+
+      &[aria-current="page"] {
+        forced-color-adjust: none;
+        border-width: var(--bw-heavy);
+        border-color: Highlight;
+        background: Highlight;
+        color: HighlightText;
+
+        & > .ic {
+          background-color: HighlightText;
+        }
+      }
+      &:focus-visible {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+        box-shadow: none;
+      }
+      &[aria-disabled="true"] {
+        color: GrayText;
+        border-color: GrayText;
+      }
+    }
+    .dock__badge {
+      forced-color-adjust: none;
+      border-color: CanvasText;
+      background: CanvasText;
+      color: Canvas;
+    }
+  }
+}

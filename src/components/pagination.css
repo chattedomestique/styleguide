@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Pagination  (layer: sg.components)                 move through a long list
+   --------------------------------------------------------------------------
+   Previous, a few numbered pages, Next. It is NAVIGATION: a <nav> landmark with a label, a list of
+   links (real hrefs, so Back and deep links work), and the current page marked aria-current="page".
+   Every link is a .btn: the numbers are circles, Previous and Next are pills.
+
+   <nav class="pagination" aria-label="Decks pages">
+     <ul class="pagination__list" role="list">
+       <li class="pagination__prev"><a class="btn" href="?page=1" rel="prev"><span class="ic ic--arrow-left" aria-hidden="true"></span><span class="pagination__label">Previous</span></a></li>
+       <li class="pagination__page"><a class="btn" data-shape="circle" href="?page=1" aria-label="Page 1">1</a></li>
+       <li class="pagination__page"><a class="btn" data-shape="circle" href="?page=2" aria-label="Page 2" aria-current="page">2</a></li>
+       <li class="pagination__gap" aria-hidden="true">…</li>
+       <li class="pagination__page"><a class="btn" data-shape="circle" href="?page=12" aria-label="Page 12">12</a></li>
+       <li class="pagination__status">Page 2 of 12</li>
+       <li class="pagination__next"><a class="btn" href="?page=3" rel="next"><span class="pagination__label">Next</span><span class="ic ic--arrow-right" aria-hidden="true"></span></a></li>
+     </ul>
+   </nav>
+
+   Unavailable (first page has no Previous): <button class="btn" type="button" aria-disabled="true"
+   aria-describedby="why">…</button> with the reason in sr-only text. It stays in the tab order, so a
+   keyboard user can find out why; the guard (src/js/20-guard.js) makes it inert.
+
+   TWO LAYOUTS FROM ONE MARKUP. The nav is a size container. Wide: Previous, the numbers, Next.
+   Narrow (under 38rem of its OWN width, not the screen's; the widest row of numbers needs about 37rem): the numbers give way to one line of
+   text, "Page 2 of 12", and Previous / Next shrink to circles with their words kept for assistive
+   tech, so a 320px phone gets three big targets instead of a row of tiny ones, and a row never wraps awkwardly
+   in between.
+
+   LARGE TEXT (WCAG 1.4.4). In the short form the status line may wrap onto two lines between the two
+   circles (it never prints under them), and when the nav is narrower than 16rem of its own width (200%
+   text on a phone) the status takes a row to itself above the two circles.
+   RIGHT-TO-LEFT: the arrows mirror.
+
+   CURRENT PAGE is filled AND its frame doubles (the .btn "on" look, as a pressed toggle), and the
+   status line says it in words. Never colour alone. Numbers are tabular.
+   No JavaScript: this is links.
+
+   data-variant="switcher" is the same parts, always in the short form, for a value that is not a page
+   number (a month): see the docs.
+
+   Private properties: none of its own; it sets the .btn ones (--_select) for the current page.
+   ========================================================================== */
+
+@layer sg.components {
+  .pagination {
+    container: pagination / inline-size;
+    min-inline-size: 0;
+  }
+
+  .pagination__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-2);
+    list-style: none;
+
+    /* :where() keeps this at zero specificity, so a class like .pagination__status can set display itself */
+    & > :where(li) {
+      display: flex;
+      align-items: center;
+      min-inline-size: 0;
+    }
+    & .btn {
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+  }
+
+  /* the page you are on: filled, and the frame doubles (as a pressed toggle) */
+  .pagination .btn[aria-current="page"] {
+    --fill: 1;
+    --_select: 0 0 0 var(--bw) var(--line);
+  }
+
+  /* pages left out: a gap in the numbers, not a control */
+  .pagination__gap {
+    min-inline-size: var(--space-4);
+    justify-content: center;
+    font: var(--type-ctl);
+  }
+
+  /* the short form of the current position; shown only when there is no room for the numbers */
+  .pagination__status {
+    display: none;
+    font: var(--type-ctl);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: center;
+    overflow-wrap: break-word;
+  }
+
+  /* ---- Narrow: no room for the numbers ------------------------------------------------------------
+     Container query on the nav's own width. The numbers and the gap hide (display: none removes them
+     from the accessibility tree too, so nothing is read twice); the status shows; Previous and Next
+     keep their text for assistive tech and become 44px circles. */
+  @container pagination (max-width: 38rem) {
+    .pagination__page,
+    .pagination__gap {
+      display: none;
+    }
+    .pagination__status {
+      display: block;
+      order: 1;
+    }
+    .pagination__prev {
+      order: 0;
+    }
+    .pagination__next {
+      order: 2;
+    }
+    .pagination__list {
+      flex-wrap: nowrap;
+      gap: var(--space-4);
+    }
+    .pagination__prev .btn,
+    .pagination__next .btn {
+      inline-size: var(--ctl);
+      padding: 0;
+    }
+    .pagination__label {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* ---- Switcher: the same parts, always in the short form ---------------------------------------------
+     A previous / next pair around ONE current value that is not a page number: a month, a week, a
+     deck. No numbers, so the status is the label and it is the biggest thing in the row.
+     <nav class="pagination" data-variant="switcher" aria-label="Month"> with buttons (the view changes
+     in place) and the status as a polite live region, so a screen reader hears the new value. */
+  .pagination[data-variant="switcher"] {
+    & .pagination__list {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+    & :is(.pagination__page, .pagination__gap) {
+      display: none;
+    }
+    & .pagination__status {
+      display: block;
+      order: 1;
+      flex: 1 1 auto;
+      font: var(--type-title);
+      text-align: center;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    & .pagination__prev {
+      order: 0;
+    }
+    & .pagination__next {
+      order: 2;
+    }
+    & :is(.pagination__prev, .pagination__next) .btn {
+      inline-size: var(--ctl);
+      padding: 0;
+    }
+    & .pagination__label {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* ---- Very narrow (200% text on a phone): the status gets a row of its own ----------------------
+     Two 88px circles and a gap leave a sliver of a 326px line for "Page 12 of 12"; it would print under
+     a button. So the circles share the second row (Previous at the start, Next at the end) and the
+     status, first in the visual order, spans the first. Reading order in the DOM is unchanged. */
+  @container pagination (max-width: 16rem) {
+    .pagination__list,
+    .pagination[data-variant="switcher"] .pagination__list {
+      flex-wrap: wrap;
+      justify-content: space-between;
+      row-gap: var(--space-3);
+    }
+    .pagination .pagination__status,
+    .pagination[data-variant="switcher"] .pagination__status {
+      order: -1;
+      flex: 1 0 100%;
+    }
+  }
+
+  /* ---- Right-to-left: Previous / Next arrows point the other way ---------------------------------- */
+  .pagination .ic:is(.ic--arrow-left, .ic--arrow-right, .ic--chevron-left, .ic--chevron-right):dir(rtl) {
+    transform: scaleX(-1);
+  }
+
+  @media (forced-colors: active) {
+    .pagination .btn[aria-current="page"] {
+      border-width: var(--bw-heavy);
+    }
+  }
+}
