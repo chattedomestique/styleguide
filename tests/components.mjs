@@ -31,6 +31,18 @@ const specs = (existsSync(dir) ? readdirSync(dir) : []).filter((f) => f.endsWith
 
 const expect = {
   ok(v, msg) { if (!v) throw new Error(msg || 'expected truthy') },
+  /** Poll until `test(await read())` holds (default 3s). Use it for anything that settles after an event (focus moving into a
+   *  popover, a live-region announcement, a transition) instead of a fixed wait: a fixed wait passes on a quiet machine and fails on a busy one. */
+  async eventually(read, test, msg, timeout = 3000) {
+    const end = Date.now() + timeout
+    let v
+    for (;;) {
+      v = await read()
+      if (test(v)) return v
+      if (Date.now() > end) throw new Error(`${msg || 'condition'}: not met after ${timeout}ms, last value ${JSON.stringify(v)}`)
+      await new Promise((r) => setTimeout(r, 50))
+    }
+  },
   equal(a, b, msg) { if (a !== b) throw new Error(`${msg || 'not equal'}: expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`) },
   async focused(page, selector, msg) {
     const ok = await page.evaluate((s) => document.activeElement?.matches(s), selector)
