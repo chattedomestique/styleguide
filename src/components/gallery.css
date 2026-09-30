@@ -45,8 +45,9 @@
     padding: calc(var(--_gap) / 2);
   }
 
+  /* min-block-size stays `auto` on purpose: at 200% text a caption taller than its cell makes the cell grow
+     instead of clipping the words (WCAG 1.4.4). At normal size the caption is shorter and nothing changes. */
   .gallery > li {
-    min-block-size: 0;
     min-inline-size: 0;
     /* an item with an aspect-ratio would otherwise sit at the start of its cell and size itself from the other axis */
     place-self: stretch;
@@ -73,6 +74,7 @@
   /* the tile fills its cell: a picture, or a card */
   .gallery > li > .card {
     block-size: 100%;
+    --card-radius: var(--radius-tile); /* a card among pictures takes the pictures' corners */
   }
   .gallery .media {
     block-size: 100%;

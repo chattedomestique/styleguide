@@ -213,6 +213,10 @@
   .filmstrip__thumb > input:disabled {
     cursor: not-allowed;
   }
+  /* a picture that is unavailable also loses its colour, so dashed is not the only cue it has gone quiet */
+  .filmstrip__thumb:has(> input:disabled) > img {
+    filter: grayscale(1);
+  }
 
   /* ---- forced colours: backgrounds, masks' colours and shadows change, borders stay --------- */
   @media (forced-colors: active) {

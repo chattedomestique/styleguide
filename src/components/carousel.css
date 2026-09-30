@@ -40,7 +40,11 @@
            ("Pause slide show" / "Start slide show"), which is what a screen reader hears.
 
    THE BAR  is paper, not a scrim over the photo: the controls never depend on what the picture looks like.
-            Below 36rem the dots get their own row; 6 dots of 44px fit a 360px phone.
+            Below 36rem the dots get their own row; six 44px dots fit a 320px phone. Under 17rem wide they are
+            hidden (the count and the buttons stay), because a half-wrapped row of dots reads as a bug.
+   DOTS     are 44px cells that touch (a 12px circle in the middle of each, so the circles sit 32px apart). The
+            house wants 8px between targets; six of them with gaps would need 304px and would not fit a 320px
+            phone. Touching 44px cells leave no dead zone to mis-tap into, which is what the gap is for.
    PRIVATE  --slide-size (public): slide width, 100% (84% with data-peek).
    ========================================================================== */
 
@@ -151,6 +155,15 @@
     flex: 1 0 100%;
     flex-wrap: wrap;
     justify-content: center;
+    /* six 44px dots are 264px; the bar's padding would leave a 320px phone 4px short and wrap the last one */
+    margin-inline: calc(var(--space-1) * -1);
+  }
+
+  /* too narrow for a row of 44px dots: the count and the buttons do the job, and a wrapped half-row would not */
+  @container carousel (max-width: 17rem) {
+    .carousel__dots {
+      display: none;
+    }
   }
 
   /* wide enough: one row, dots in the middle (count and nav share the rest equally) */

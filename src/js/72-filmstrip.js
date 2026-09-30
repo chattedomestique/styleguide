@@ -19,6 +19,7 @@
                   recolours the space behind a cut-out picture
    and the change is announced ("Showing Harbour at dawn, 2 of 6") because the picture that changed is
    not where focus is. Home / End jump to the first / last thumbnail (the browser gives the arrows).
+   On load the track is scrolled, sideways only, so the chosen thumbnail is in view.
    ========================================================================== */
 (function (SG) {
   'use strict';
@@ -80,5 +81,16 @@
     to.dispatchEvent(new Event('change', { bubbles: true }));
   });
 
-  SG.filmstrip = { show: show };
+  /** Scroll the track (sideways only, never the page) so the chosen thumbnail is fully in view. */
+  function reveal(track) {
+    var on = track.querySelector('.filmstrip__thumb > input:checked');
+    if (!on) return;
+    var t = on.parentNode.getBoundingClientRect(), tr = track.getBoundingClientRect();
+    var pad = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    if (t.right > tr.right) track.scrollLeft += t.right - tr.right + pad;
+    else if (t.left < tr.left) track.scrollLeft -= tr.left - t.left + pad;
+  }
+
+  SG.filmstrip = { show: show, reveal: reveal };
+  SG.ready(function () { SG.qsa('.filmstrip__track').forEach(reveal); });
 })((window.SG = window.SG || {}));
