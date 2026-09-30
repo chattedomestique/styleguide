@@ -155,7 +155,7 @@ export const tests = [
       const tick = await pseudo(page, 'input[value=card]', '::after', ['opacity', 'maskImage'])
       expect.equal(tick.opacity, '1', 'tick shows on the selected card')
       expect.ok(/svg/.test(tick.maskImage), 'the tick is an svg mask')
-      expect.ok((await pseudo(page, 'input[value=card]', '::before', ['borderRadius'])).borderRadius === '50%', 'radio cards mark with a circle')
+      expect.ok(/^(50%|999px)$/.test((await pseudo(page, 'input[value=card]', '::before', ['borderRadius'])).borderRadius), 'radio cards mark with a circle (the pill radius on a square box)')
       expect.ok((await pseudo(page, 'input[value=offline]', '::before', ['borderRadius'])).borderRadius !== '50%', 'checkbox cards mark with a square')
       await page.locator('input[value=card]').focus()
       await page.keyboard.press('ArrowDown')

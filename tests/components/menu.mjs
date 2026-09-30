@@ -28,7 +28,7 @@ export const tests = [
       await page.keyboard.press('Enter')
       expect.ok(await isOpen(page, 'm-actions'), 'open')
       expect.equal(await btn.getAttribute('aria-expanded'), 'true')
-      expect.equal(await activeLabel(page), 'Rename', 'first row focused')
+      await expect.eventually(() => activeLabel(page), (v) => v === 'Rename', 'first row focused')
       await page.keyboard.press('Escape')
       expect.ok(!(await isOpen(page, 'm-actions')), 'closed')
       await expect.focused(page, '#mb-actions', 'focus back on the button')

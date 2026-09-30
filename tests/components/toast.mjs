@@ -316,13 +316,15 @@ export const tests = [
         await page.locator(`${VISIBLE} .toast__close`).nth(idx).focus()
         await page.keyboard.press('Shift+Tab')
         await page.keyboard.press('Tab')
-        return page.evaluate(() => { const e = document.activeElement; return { ring: SG.colorToHex(getComputedStyle(e).outlineColor), w: getComputedStyle(e).outlineWidth, ink: SG.tokenToHex('--ink'), paper: SG.tokenToHex('--paper') } })
+        return page.evaluate(() => { const e = document.activeElement; return { ring: SG.colorToHex(getComputedStyle(e).outlineColor), w: getComputedStyle(e).outlineWidth, ink: SG.tokenToHex('--ink'), paper: SG.tokenToHex('--paper'), surfaceInk: SG.tokenToHex('--surface-ink', e) } })
       }
       const plain = await ring(0)
       expect.equal(plain.w, '3px')
       expect.equal(plain.ring, plain.paper, 'ring is paper on the ink toast')
       const tone = await ring(1)
-      expect.equal(tone.ring, tone.ink, 'ring is ink on a status tone')
+      // the ring follows the surface (20-tones.css): a status tone's own ink, which is >= 7:1 on its fill (tests/contrast.mjs)
+      expect.equal(tone.ring, tone.surfaceInk, "ring is the status tone's ink")
+      expect.ok(tone.ring !== tone.paper, 'and not the paper colour of the ink toast')
     },
   },
   {
