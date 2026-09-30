@@ -43,7 +43,8 @@ Never edit `dist/` or `docs/` by hand. Edit `src/` and `docs-src/`, then `npm ru
 | | |
 |---|---|
 | `npm run build` | generate `dist/` and `docs/` (`--allow-broken-links` while pages are unfinished) |
-| `npm run lint` | the owner's gate rules + ours: undefined tokens, colour literals outside `src/tokens`, AI tells (gradients, blur, text-shadow, blurred shadows, default fonts), literal line widths and radii, layering, unknown classes in docs, physical properties, `:hover` not gated |
+| `npm run lint` | the owner's gate, rebuilt on a CSS tokenizer and extended (see `STYLE.md` §5): undefined tokens, colour literals (incl. named colours and `data:` URIs) outside `src/tokens`, AI tells, literal line widths and radii, layering, unknown classes in docs and JS, a11y hygiene, ungated `:hover`, placeholder copy |
+| `npm run test:lint` | replays the tooling audit's 146 violations and 34 legitimate snippets against the lint (`tests/lint-cases.json`); add a case whenever you add a rule |
 | `npm run test:contrast` | every colour role pair × 2 themes × 2 contrast modes × 6 palettes (× 6 tone slots + ink + 4 status, pastel and bold), resolved by a real browser |
 | `npm run test:components` | keyboard / ARIA / focus / state specs in `tests/components/` |
 | `npm run test:a11y -- --pages a.html,b.html` | axe + focus walk + target sizes + reflow at 320 and 200 % text + forced colours on those docs pages (`--quick` for 2 appearances) |
@@ -70,7 +71,7 @@ Colour is built in three steps: **knobs** (`--k-*`, plain numbers: OKLCH lightne
 
 Interaction is two registered numbers: `--lift` (0 flat, 1 raised: the hard shadow and the 2px move) and `--fill` (0 outline, 1 filled). Every state only sets them; one `transition` animates both. See `src/components/button.css`.
 
-Cascade layers, lowest to highest: `sg.reset, sg.tokens, sg.base, sg.layout, sg.components, sg.wire, sg.utilities`. Every source file opens its own `@layer sg.x { }`. An app's unlayered CSS always wins, so apps override without `!important`.
+Cascade layers, lowest to highest: `sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities` (the wireframe kit sits BELOW components so a placeholder can never override a real element; utilities sit last so `.sr-only` and `.num` win over a component's `position` and `font:`). Every source file opens its own `@layer sg.x { }`. An app's unlayered CSS always wins, so apps override without `!important`.
 
 ## Golden rules (beyond the seven above)
 
