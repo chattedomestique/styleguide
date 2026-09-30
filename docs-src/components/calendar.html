@@ -1,0 +1,925 @@
+<!--{"title":"Calendar","group":"Components","order":110,"summary":"A month grid or a week strip with arrow-key navigation, today and chosen days marked by shape, event markers that are also text, and Intl names."}-->
+<style>
+  /* docs scaffolding only: keep the class names in the API tables whole */
+  .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
+  /* docs scaffolding only: a calendar wants its width, so keep the stage padding small on phones */
+  .demo__stage:has(> .cal) { padding: var(--space-3); }
+  .demo__stage:has(> .cal) > .cal { max-inline-size: 26rem; }
+  /* the docs article styles bare lists; the calendar's list is its own layout */
+  .demo .cal__list { padding: 0; }
+  .demo .cal__event { margin: 0; }
+</style>
+<h1>Calendar</h1>
+<p class="lede">A calendar answers "what day?" and "what is on it?". The month is a grid of seven columns you can cross with the arrow keys; the chosen day's events are listed below it as text. Week start, month names and weekday names come from <code>Intl</code>.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it to pick or browse a day when context matters (what else is that week?). Use the week strip when the screen is short. Put the events in text below; the markers only say "something is on".</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it to type a birthday or a date far away (a date field is faster: <code>&lt;input type="date"&gt;</code>), colour days by meaning, or hide the event list behind a hover.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="month">Month</h3>
+<p>Today (30 September here, pinned with <code>data-today</code> so this page does not change with the date) has a ring and an underlined numeral. The chosen day, the 2nd, is filled and its frame doubles. The squares under a numeral count events up to three; the day's name says the count in words and the list below says what they are. Days of the neighbouring months are quieter, not faint, because they are real buttons. Try the arrow keys, <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>PageUp</kbd> and <kbd>PageDown</kbd>.</p>
+<div class="demo" id="demo-month">
+  <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-value=&quot;2026-10-02&quot; data-today=&quot;2026-09-30&quot; data-first-day=&quot;1&quot; data-locale=&quot;en-GB&quot;&gt;
+  &lt;script type=&quot;application/json&quot; data-sg-events&gt;
+{
+  &quot;2026-09-16&quot;: [
+    {
+      &quot;title&quot;: &quot;Bird calls: review 10 cards&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:15&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-09-22&quot;: [
+    {
+      &quot;title&quot;: &quot;Capitals test&quot;,
+      &quot;time&quot;: &quot;18:30&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 4
+    }
+  ],
+  &quot;2026-09-30&quot;: [
+    {
+      &quot;title&quot;: &quot;Flashcards: 20 cards due&quot;,
+      &quot;time&quot;: &quot;08:30&quot;,
+      &quot;end&quot;: &quot;08:50&quot;,
+      &quot;tone&quot;: 1
+    },
+    {
+      &quot;title&quot;: &quot;Study group&quot;,
+      &quot;time&quot;: &quot;18:00&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 2
+    }
+  ],
+  &quot;2026-10-01&quot;: [
+    {
+      &quot;title&quot;: &quot;Dentist&quot;,
+      &quot;time&quot;: &quot;10:00&quot;,
+      &quot;end&quot;: &quot;11:00&quot;,
+      &quot;tone&quot;: 3
+    }
+  ],
+  &quot;2026-10-02&quot;: [
+    {
+      &quot;title&quot;: &quot;Standup&quot;,
+      &quot;time&quot;: &quot;09:30&quot;,
+      &quot;end&quot;: &quot;09:45&quot;,
+      &quot;tone&quot;: 4
+    },
+    {
+      &quot;title&quot;: &quot;Design review&quot;,
+      &quot;time&quot;: &quot;14:00&quot;,
+      &quot;end&quot;: &quot;15:30&quot;,
+      &quot;tone&quot;: 2
+    },
+    {
+      &quot;title&quot;: &quot;Rent due&quot;,
+      &quot;tone&quot;: 5
+    }
+  ],
+  &quot;2026-10-05&quot;: [
+    {
+      &quot;title&quot;: &quot;Kanji N5 quiz&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:30&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-10-08&quot;: [
+    {
+      &quot;title&quot;: &quot;Birthday dinner&quot;,
+      &quot;time&quot;: &quot;19:30&quot;,
+      &quot;end&quot;: &quot;21:30&quot;,
+      &quot;tone&quot;: 3
+    }
+  ]
+}
+  &lt;/script&gt;
+&lt;/div&gt;">
+    <div class="cal" data-sg-calendar data-value="2026-10-02" data-today="2026-09-30" data-first-day="1" data-locale="en-GB">
+      <script type="application/json" data-sg-events>
+{
+  "2026-09-16": [
+    {
+      "title": "Bird calls: review 10 cards",
+      "time": "19:00",
+      "end": "19:15",
+      "tone": 1
+    }
+  ],
+  "2026-09-22": [
+    {
+      "title": "Capitals test",
+      "time": "18:30",
+      "end": "19:00",
+      "tone": 4
+    }
+  ],
+  "2026-09-30": [
+    {
+      "title": "Flashcards: 20 cards due",
+      "time": "08:30",
+      "end": "08:50",
+      "tone": 1
+    },
+    {
+      "title": "Study group",
+      "time": "18:00",
+      "end": "19:00",
+      "tone": 2
+    }
+  ],
+  "2026-10-01": [
+    {
+      "title": "Dentist",
+      "time": "10:00",
+      "end": "11:00",
+      "tone": 3
+    }
+  ],
+  "2026-10-02": [
+    {
+      "title": "Standup",
+      "time": "09:30",
+      "end": "09:45",
+      "tone": 4
+    },
+    {
+      "title": "Design review",
+      "time": "14:00",
+      "end": "15:30",
+      "tone": 2
+    },
+    {
+      "title": "Rent due",
+      "tone": 5
+    }
+  ],
+  "2026-10-05": [
+    {
+      "title": "Kanji N5 quiz",
+      "time": "19:00",
+      "end": "19:30",
+      "tone": 1
+    }
+  ],
+  "2026-10-08": [
+    {
+      "title": "Birthday dinner",
+      "time": "19:30",
+      "end": "21:30",
+      "tone": 3
+    }
+  ]
+}
+      </script>
+    </div>
+  </div>
+</div>
+
+<h3 id="sunday">Week starts on Sunday</h3>
+<p>No <code>data-first-day</code>: the week start comes from the locale (<code>Intl.Locale</code> week info), and the names follow it. <code>en-US</code> starts on Sunday; set <code>data-first-day="1"</code> to force Monday for your app.</p>
+<div class="demo" id="demo-sunday">
+  <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-value=&quot;2026-10-01&quot; data-today=&quot;2026-09-30&quot; data-locale=&quot;en-US&quot;&gt;
+  &lt;script type=&quot;application/json&quot; data-sg-events&gt;
+{
+  &quot;2026-09-16&quot;: [
+    {
+      &quot;title&quot;: &quot;Bird calls: review 10 cards&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:15&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-09-22&quot;: [
+    {
+      &quot;title&quot;: &quot;Capitals test&quot;,
+      &quot;time&quot;: &quot;18:30&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 4
+    }
+  ],
+  &quot;2026-09-30&quot;: [
+    {
+      &quot;title&quot;: &quot;Flashcards: 20 cards due&quot;,
+      &quot;time&quot;: &quot;08:30&quot;,
+      &quot;end&quot;: &quot;08:50&quot;,
+      &quot;tone&quot;: 1
+    },
+    {
+      &quot;title&quot;: &quot;Study group&quot;,
+      &quot;time&quot;: &quot;18:00&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 2
+    }
+  ],
+  &quot;2026-10-01&quot;: [
+    {
+      &quot;title&quot;: &quot;Dentist&quot;,
+      &quot;time&quot;: &quot;10:00&quot;,
+      &quot;end&quot;: &quot;11:00&quot;,
+      &quot;tone&quot;: 3
+    }
+  ],
+  &quot;2026-10-02&quot;: [
+    {
+      &quot;title&quot;: &quot;Standup&quot;,
+      &quot;time&quot;: &quot;09:30&quot;,
+      &quot;end&quot;: &quot;09:45&quot;,
+      &quot;tone&quot;: 4
+    },
+    {
+      &quot;title&quot;: &quot;Design review&quot;,
+      &quot;time&quot;: &quot;14:00&quot;,
+      &quot;end&quot;: &quot;15:30&quot;,
+      &quot;tone&quot;: 2
+    },
+    {
+      &quot;title&quot;: &quot;Rent due&quot;,
+      &quot;tone&quot;: 5
+    }
+  ],
+  &quot;2026-10-05&quot;: [
+    {
+      &quot;title&quot;: &quot;Kanji N5 quiz&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:30&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-10-08&quot;: [
+    {
+      &quot;title&quot;: &quot;Birthday dinner&quot;,
+      &quot;time&quot;: &quot;19:30&quot;,
+      &quot;end&quot;: &quot;21:30&quot;,
+      &quot;tone&quot;: 3
+    }
+  ]
+}
+  &lt;/script&gt;
+&lt;/div&gt;">
+    <div class="cal" data-sg-calendar data-value="2026-10-01" data-today="2026-09-30" data-locale="en-US">
+      <script type="application/json" data-sg-events>
+{
+  "2026-09-16": [
+    {
+      "title": "Bird calls: review 10 cards",
+      "time": "19:00",
+      "end": "19:15",
+      "tone": 1
+    }
+  ],
+  "2026-09-22": [
+    {
+      "title": "Capitals test",
+      "time": "18:30",
+      "end": "19:00",
+      "tone": 4
+    }
+  ],
+  "2026-09-30": [
+    {
+      "title": "Flashcards: 20 cards due",
+      "time": "08:30",
+      "end": "08:50",
+      "tone": 1
+    },
+    {
+      "title": "Study group",
+      "time": "18:00",
+      "end": "19:00",
+      "tone": 2
+    }
+  ],
+  "2026-10-01": [
+    {
+      "title": "Dentist",
+      "time": "10:00",
+      "end": "11:00",
+      "tone": 3
+    }
+  ],
+  "2026-10-02": [
+    {
+      "title": "Standup",
+      "time": "09:30",
+      "end": "09:45",
+      "tone": 4
+    },
+    {
+      "title": "Design review",
+      "time": "14:00",
+      "end": "15:30",
+      "tone": 2
+    },
+    {
+      "title": "Rent due",
+      "tone": 5
+    }
+  ],
+  "2026-10-05": [
+    {
+      "title": "Kanji N5 quiz",
+      "time": "19:00",
+      "end": "19:30",
+      "tone": 1
+    }
+  ],
+  "2026-10-08": [
+    {
+      "title": "Birthday dinner",
+      "time": "19:30",
+      "end": "21:30",
+      "tone": 3
+    }
+  ]
+}
+      </script>
+    </div>
+  </div>
+</div>
+
+<h3 id="week">Week strip</h3>
+<p>One row of seven tall days, for a screen that shares space with a list. Same buttons, same keys; <kbd>PageUp</kbd> and <kbd>PageDown</kbd> move a week, and the two round buttons page by week. The weekday names are part of each day's button.</p>
+<div class="demo" id="demo-week">
+  <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-view=&quot;week&quot; data-value=&quot;2026-10-02&quot; data-today=&quot;2026-09-30&quot; data-first-day=&quot;1&quot; data-locale=&quot;en-GB&quot;&gt;
+  &lt;script type=&quot;application/json&quot; data-sg-events&gt;
+{
+  &quot;2026-09-16&quot;: [
+    {
+      &quot;title&quot;: &quot;Bird calls: review 10 cards&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:15&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-09-22&quot;: [
+    {
+      &quot;title&quot;: &quot;Capitals test&quot;,
+      &quot;time&quot;: &quot;18:30&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 4
+    }
+  ],
+  &quot;2026-09-30&quot;: [
+    {
+      &quot;title&quot;: &quot;Flashcards: 20 cards due&quot;,
+      &quot;time&quot;: &quot;08:30&quot;,
+      &quot;end&quot;: &quot;08:50&quot;,
+      &quot;tone&quot;: 1
+    },
+    {
+      &quot;title&quot;: &quot;Study group&quot;,
+      &quot;time&quot;: &quot;18:00&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 2
+    }
+  ],
+  &quot;2026-10-01&quot;: [
+    {
+      &quot;title&quot;: &quot;Dentist&quot;,
+      &quot;time&quot;: &quot;10:00&quot;,
+      &quot;end&quot;: &quot;11:00&quot;,
+      &quot;tone&quot;: 3
+    }
+  ],
+  &quot;2026-10-02&quot;: [
+    {
+      &quot;title&quot;: &quot;Standup&quot;,
+      &quot;time&quot;: &quot;09:30&quot;,
+      &quot;end&quot;: &quot;09:45&quot;,
+      &quot;tone&quot;: 4
+    },
+    {
+      &quot;title&quot;: &quot;Design review&quot;,
+      &quot;time&quot;: &quot;14:00&quot;,
+      &quot;end&quot;: &quot;15:30&quot;,
+      &quot;tone&quot;: 2
+    },
+    {
+      &quot;title&quot;: &quot;Rent due&quot;,
+      &quot;tone&quot;: 5
+    }
+  ],
+  &quot;2026-10-05&quot;: [
+    {
+      &quot;title&quot;: &quot;Kanji N5 quiz&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:30&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-10-08&quot;: [
+    {
+      &quot;title&quot;: &quot;Birthday dinner&quot;,
+      &quot;time&quot;: &quot;19:30&quot;,
+      &quot;end&quot;: &quot;21:30&quot;,
+      &quot;tone&quot;: 3
+    }
+  ]
+}
+  &lt;/script&gt;
+&lt;/div&gt;">
+    <div class="cal" data-sg-calendar data-view="week" data-value="2026-10-02" data-today="2026-09-30" data-first-day="1" data-locale="en-GB">
+      <script type="application/json" data-sg-events>
+{
+  "2026-09-16": [
+    {
+      "title": "Bird calls: review 10 cards",
+      "time": "19:00",
+      "end": "19:15",
+      "tone": 1
+    }
+  ],
+  "2026-09-22": [
+    {
+      "title": "Capitals test",
+      "time": "18:30",
+      "end": "19:00",
+      "tone": 4
+    }
+  ],
+  "2026-09-30": [
+    {
+      "title": "Flashcards: 20 cards due",
+      "time": "08:30",
+      "end": "08:50",
+      "tone": 1
+    },
+    {
+      "title": "Study group",
+      "time": "18:00",
+      "end": "19:00",
+      "tone": 2
+    }
+  ],
+  "2026-10-01": [
+    {
+      "title": "Dentist",
+      "time": "10:00",
+      "end": "11:00",
+      "tone": 3
+    }
+  ],
+  "2026-10-02": [
+    {
+      "title": "Standup",
+      "time": "09:30",
+      "end": "09:45",
+      "tone": 4
+    },
+    {
+      "title": "Design review",
+      "time": "14:00",
+      "end": "15:30",
+      "tone": 2
+    },
+    {
+      "title": "Rent due",
+      "tone": 5
+    }
+  ],
+  "2026-10-05": [
+    {
+      "title": "Kanji N5 quiz",
+      "time": "19:00",
+      "end": "19:30",
+      "tone": 1
+    }
+  ],
+  "2026-10-08": [
+    {
+      "title": "Birthday dinner",
+      "time": "19:30",
+      "end": "21:30",
+      "tone": 3
+    }
+  ]
+}
+      </script>
+    </div>
+  </div>
+</div>
+
+<h3 id="range">A range</h3>
+<p><code>data-min</code> and <code>data-max</code> make the days outside them unavailable: dashed, faint, not choosable, but still reachable by keyboard so nobody is left guessing why.</p>
+<div class="demo" id="demo-range">
+  <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-value=&quot;2026-09-30&quot; data-today=&quot;2026-09-30&quot; data-min=&quot;2026-09-14&quot; data-max=&quot;2026-10-10&quot; data-first-day=&quot;1&quot; data-locale=&quot;en-GB&quot;&gt;
+  &lt;script type=&quot;application/json&quot; data-sg-events&gt;
+{
+  &quot;2026-09-16&quot;: [
+    {
+      &quot;title&quot;: &quot;Bird calls: review 10 cards&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:15&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-09-22&quot;: [
+    {
+      &quot;title&quot;: &quot;Capitals test&quot;,
+      &quot;time&quot;: &quot;18:30&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 4
+    }
+  ],
+  &quot;2026-09-30&quot;: [
+    {
+      &quot;title&quot;: &quot;Flashcards: 20 cards due&quot;,
+      &quot;time&quot;: &quot;08:30&quot;,
+      &quot;end&quot;: &quot;08:50&quot;,
+      &quot;tone&quot;: 1
+    },
+    {
+      &quot;title&quot;: &quot;Study group&quot;,
+      &quot;time&quot;: &quot;18:00&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 2
+    }
+  ],
+  &quot;2026-10-01&quot;: [
+    {
+      &quot;title&quot;: &quot;Dentist&quot;,
+      &quot;time&quot;: &quot;10:00&quot;,
+      &quot;end&quot;: &quot;11:00&quot;,
+      &quot;tone&quot;: 3
+    }
+  ],
+  &quot;2026-10-02&quot;: [
+    {
+      &quot;title&quot;: &quot;Standup&quot;,
+      &quot;time&quot;: &quot;09:30&quot;,
+      &quot;end&quot;: &quot;09:45&quot;,
+      &quot;tone&quot;: 4
+    },
+    {
+      &quot;title&quot;: &quot;Design review&quot;,
+      &quot;time&quot;: &quot;14:00&quot;,
+      &quot;end&quot;: &quot;15:30&quot;,
+      &quot;tone&quot;: 2
+    },
+    {
+      &quot;title&quot;: &quot;Rent due&quot;,
+      &quot;tone&quot;: 5
+    }
+  ],
+  &quot;2026-10-05&quot;: [
+    {
+      &quot;title&quot;: &quot;Kanji N5 quiz&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:30&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-10-08&quot;: [
+    {
+      &quot;title&quot;: &quot;Birthday dinner&quot;,
+      &quot;time&quot;: &quot;19:30&quot;,
+      &quot;end&quot;: &quot;21:30&quot;,
+      &quot;tone&quot;: 3
+    }
+  ]
+}
+  &lt;/script&gt;
+&lt;/div&gt;">
+    <div class="cal" data-sg-calendar data-value="2026-09-30" data-today="2026-09-30" data-min="2026-09-14" data-max="2026-10-10" data-first-day="1" data-locale="en-GB">
+      <script type="application/json" data-sg-events>
+{
+  "2026-09-16": [
+    {
+      "title": "Bird calls: review 10 cards",
+      "time": "19:00",
+      "end": "19:15",
+      "tone": 1
+    }
+  ],
+  "2026-09-22": [
+    {
+      "title": "Capitals test",
+      "time": "18:30",
+      "end": "19:00",
+      "tone": 4
+    }
+  ],
+  "2026-09-30": [
+    {
+      "title": "Flashcards: 20 cards due",
+      "time": "08:30",
+      "end": "08:50",
+      "tone": 1
+    },
+    {
+      "title": "Study group",
+      "time": "18:00",
+      "end": "19:00",
+      "tone": 2
+    }
+  ],
+  "2026-10-01": [
+    {
+      "title": "Dentist",
+      "time": "10:00",
+      "end": "11:00",
+      "tone": 3
+    }
+  ],
+  "2026-10-02": [
+    {
+      "title": "Standup",
+      "time": "09:30",
+      "end": "09:45",
+      "tone": 4
+    },
+    {
+      "title": "Design review",
+      "time": "14:00",
+      "end": "15:30",
+      "tone": 2
+    },
+    {
+      "title": "Rent due",
+      "tone": 5
+    }
+  ],
+  "2026-10-05": [
+    {
+      "title": "Kanji N5 quiz",
+      "time": "19:00",
+      "end": "19:30",
+      "tone": 1
+    }
+  ],
+  "2026-10-08": [
+    {
+      "title": "Birthday dinner",
+      "time": "19:30",
+      "end": "21:30",
+      "tone": 3
+    }
+  ]
+}
+      </script>
+    </div>
+  </div>
+</div>
+
+<h3 id="locale">Another language</h3>
+<p>Nothing is translated by hand: month, weekday and date names are <code>Intl</code>. The strings the calendar adds itself ("today", "events", the button names) are in <code>SG.calendar.labels</code>; replace them to translate.</p>
+<div class="demo" id="demo-locale">
+  <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-value=&quot;2026-10-02&quot; data-today=&quot;2026-09-30&quot; data-locale=&quot;de-DE&quot;&gt;
+  &lt;script type=&quot;application/json&quot; data-sg-events&gt;
+{
+  &quot;2026-09-16&quot;: [
+    {
+      &quot;title&quot;: &quot;Bird calls: review 10 cards&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:15&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-09-22&quot;: [
+    {
+      &quot;title&quot;: &quot;Capitals test&quot;,
+      &quot;time&quot;: &quot;18:30&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 4
+    }
+  ],
+  &quot;2026-09-30&quot;: [
+    {
+      &quot;title&quot;: &quot;Flashcards: 20 cards due&quot;,
+      &quot;time&quot;: &quot;08:30&quot;,
+      &quot;end&quot;: &quot;08:50&quot;,
+      &quot;tone&quot;: 1
+    },
+    {
+      &quot;title&quot;: &quot;Study group&quot;,
+      &quot;time&quot;: &quot;18:00&quot;,
+      &quot;end&quot;: &quot;19:00&quot;,
+      &quot;tone&quot;: 2
+    }
+  ],
+  &quot;2026-10-01&quot;: [
+    {
+      &quot;title&quot;: &quot;Dentist&quot;,
+      &quot;time&quot;: &quot;10:00&quot;,
+      &quot;end&quot;: &quot;11:00&quot;,
+      &quot;tone&quot;: 3
+    }
+  ],
+  &quot;2026-10-02&quot;: [
+    {
+      &quot;title&quot;: &quot;Standup&quot;,
+      &quot;time&quot;: &quot;09:30&quot;,
+      &quot;end&quot;: &quot;09:45&quot;,
+      &quot;tone&quot;: 4
+    },
+    {
+      &quot;title&quot;: &quot;Design review&quot;,
+      &quot;time&quot;: &quot;14:00&quot;,
+      &quot;end&quot;: &quot;15:30&quot;,
+      &quot;tone&quot;: 2
+    },
+    {
+      &quot;title&quot;: &quot;Rent due&quot;,
+      &quot;tone&quot;: 5
+    }
+  ],
+  &quot;2026-10-05&quot;: [
+    {
+      &quot;title&quot;: &quot;Kanji N5 quiz&quot;,
+      &quot;time&quot;: &quot;19:00&quot;,
+      &quot;end&quot;: &quot;19:30&quot;,
+      &quot;tone&quot;: 1
+    }
+  ],
+  &quot;2026-10-08&quot;: [
+    {
+      &quot;title&quot;: &quot;Birthday dinner&quot;,
+      &quot;time&quot;: &quot;19:30&quot;,
+      &quot;end&quot;: &quot;21:30&quot;,
+      &quot;tone&quot;: 3
+    }
+  ]
+}
+  &lt;/script&gt;
+&lt;/div&gt;">
+    <div class="cal" data-sg-calendar data-value="2026-10-02" data-today="2026-09-30" data-locale="de-DE">
+      <script type="application/json" data-sg-events>
+{
+  "2026-09-16": [
+    {
+      "title": "Bird calls: review 10 cards",
+      "time": "19:00",
+      "end": "19:15",
+      "tone": 1
+    }
+  ],
+  "2026-09-22": [
+    {
+      "title": "Capitals test",
+      "time": "18:30",
+      "end": "19:00",
+      "tone": 4
+    }
+  ],
+  "2026-09-30": [
+    {
+      "title": "Flashcards: 20 cards due",
+      "time": "08:30",
+      "end": "08:50",
+      "tone": 1
+    },
+    {
+      "title": "Study group",
+      "time": "18:00",
+      "end": "19:00",
+      "tone": 2
+    }
+  ],
+  "2026-10-01": [
+    {
+      "title": "Dentist",
+      "time": "10:00",
+      "end": "11:00",
+      "tone": 3
+    }
+  ],
+  "2026-10-02": [
+    {
+      "title": "Standup",
+      "time": "09:30",
+      "end": "09:45",
+      "tone": 4
+    },
+    {
+      "title": "Design review",
+      "time": "14:00",
+      "end": "15:30",
+      "tone": 2
+    },
+    {
+      "title": "Rent due",
+      "tone": 5
+    }
+  ],
+  "2026-10-05": [
+    {
+      "title": "Kanji N5 quiz",
+      "time": "19:00",
+      "end": "19:30",
+      "tone": 1
+    }
+  ],
+  "2026-10-08": [
+    {
+      "title": "Birthday dinner",
+      "time": "19:30",
+      "end": "21:30",
+      "tone": 3
+    }
+  ]
+}
+      </script>
+    </div>
+  </div>
+</div>
+
+<h3 id="states">States</h3>
+<p>Each state has a cue that is not colour: hover and focus lift the day and draw its ring; pressing sinks it; today is ringed and underlined; the chosen day is filled and framed twice; "Other" is a day of a neighbouring month (quieter, not faint); "Off" is unavailable (dashed and faint). Under the numeral, one, two or three-plus event markers. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo" id="demo-states" data-nocode>
+  <div class="demo__stage">
+    <div class="cal" style="max-inline-size: 26rem">
+      <table class="cal__grid" role="grid" aria-label="Day states, one specimen of each">
+        <tbody>
+          <tr>
+            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">14</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day is-hover" type="button" tabindex="-1"><span class="cal__num">15</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day is-focus" type="button" tabindex="-1"><span class="cal__num">16</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day is-active" type="button" tabindex="-1"><span class="cal__num">17</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day" aria-current="date" type="button" tabindex="-1"><span class="cal__num">18</span><span class="cal__pips"></span></button></td>
+            <td aria-selected="true"><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">19</span><span class="cal__pips"></span></button></td>
+            <td aria-selected="true"><button class="cal__day" aria-current="date" type="button" tabindex="-1"><span class="cal__num">20</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
+          </tr>
+          <tr>
+            <td class="t-meta">Rest</td><td class="t-meta">Hover</td><td class="t-meta">Focus</td><td class="t-meta">Press</td><td class="t-meta">Today</td><td class="t-meta">Chosen</td><td class="t-meta">Both</td>
+          </tr>
+          <tr>
+            <td><button class="cal__day" data-outside type="button" tabindex="-1"><span class="cal__num">28</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day" aria-disabled="true" type="button" tabindex="-1"><span class="cal__num">29</span><span class="cal__pips"></span></button></td>
+            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">30</span><span class="cal__pips"><i class="cal__pip"></i></span></button></td>
+            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">1</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
+            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">2</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
+            <td></td><td></td>
+          </tr>
+          <tr>
+            <td class="t-meta">Other</td><td class="t-meta">Off</td><td class="t-meta">One</td><td class="t-meta">Two</td><td class="t-meta">3+</td><td></td><td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Frame</strong> (<code>.cal</code>): 2px, paper, the card radius. A size container.</li>
+  <li><strong>Head</strong> (<code>.cal__head</code>): previous and next as round Buttons, and the month (<code>.cal__title</code>), a polite live region so paging is announced.</li>
+  <li><strong>Weekday bar</strong> (<code>thead</code>): the ink bar with uppercase names. <code>abbr</code> carries the long name; below 15rem wide, one letter.</li>
+  <li><strong>Day</strong> (<code>.cal__day</code>): a circle of up to 2.5rem inside a 44px-tall cell; the hit area is the whole cell. Its name is the full date.</li>
+  <li><strong>Today</strong>: a 2px ring and an underlined, heavy numeral.</li>
+  <li><strong>Chosen day</strong> (<code>td[aria-selected="true"]</code>): filled with the accent, frame doubled, numeral in paper.</li>
+  <li><strong>Markers</strong> (<code>.cal__pips</code>): one to three squares under the numeral. Decorative.</li>
+  <li><strong>Events</strong> (<code>.cal__events</code>): the chosen day's title and a list of time + title, as text, each row in its tone.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Calendar attributes, events and helpers</caption>
+  <thead><tr><th>Hook</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>data-sg-calendar</code></td><td>on <code>.cal</code></td><td>Renders the calendar. Everything inside the element is replaced except the events script.</td></tr>
+    <tr><td><code>data-view</code></td><td><code>month</code> (default), <code>week</code></td><td>Six-week grid or one strip.</td></tr>
+    <tr><td><code>data-value</code></td><td><code>YYYY-MM-DD</code></td><td>The chosen day. Kept up to date as people choose.</td></tr>
+    <tr><td><code>data-first-day</code></td><td><code>0</code> (Sunday) to <code>6</code></td><td>Week start. Default: the locale's, else Monday.</td></tr>
+    <tr><td><code>data-locale</code></td><td>BCP 47 tag</td><td>Names and formats. Default: the page's <code>lang</code>.</td></tr>
+    <tr><td><code>data-min</code>, <code>data-max</code></td><td><code>YYYY-MM-DD</code></td><td>Days outside are <code>aria-disabled</code>.</td></tr>
+    <tr><td><code>data-today</code></td><td><code>YYYY-MM-DD</code></td><td>Pin "today" for demos and tests.</td></tr>
+    <tr><td><code>data-list</code></td><td><code>off</code></td><td>Hide the list of the chosen day's events, when you show them somewhere else (an <a href="@/components/agenda.html">Agenda</a>).</td></tr>
+    <tr><td><code>script[data-sg-events]</code></td><td>JSON <code>{ "YYYY-MM-DD": [{ title, time, end, tone }] }</code></td><td>Events. <code>time</code> and <code>end</code> are <code>HH:MM</code> (none = all day); <code>tone</code> is 1 to 6.</td></tr>
+    <tr><td><code>sg-calendar-select</code></td><td>event</td><td><code>detail.value</code> and <code>detail.date</code> when a day is chosen.</td></tr>
+    <tr><td><code>SG.calendar.select(el, iso)</code> / <code>.value(el)</code> / <code>.setEvents(el, map)</code> / <code>.init(scope)</code></td><td>functions</td><td>Drive it from code; call <code>init</code> for calendars you add later.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Calendar keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Previous, next, then one stop in the grid (the focused day; roving tabindex), then on.</td></tr>
+    <tr><td>Arrow keys</td><td>Left and right: a day (mirrored in right-to-left). Up and down: a week. Crossing a month edge pages the grid and keeps focus on the new day.</td></tr>
+    <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>The first or last day of the week (per the week start).</td></tr>
+    <tr><td><kbd>PageUp</kbd> / <kbd>PageDown</kbd></td><td>The same day in the previous or next month (week view: a week). With <kbd>Shift</kbd>: a year (week view: a month).</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Choose the day; its events are read out.</td></tr>
+    <tr><td>Screen reader</td><td>A grid with column headers (full names via <code>abbr</code>). A day reads "Wednesday 30 September 2026, today, 2 events"; the chosen cell is "selected". Paging announces the new month. The markers are hidden because the count is in the name and the list below is text.</td></tr>
+    <tr><td>Touch</td><td>Every day has a full-cell hit area, 44px tall (about 47px wide at 390px; 40 to 43px at 320px, still over the 24px floor). Paging is a button, not a swipe.</td></tr>
+    <tr><td>Zoom / text size</td><td>Sizes are rem and the circle shrinks to the column, so 200% text keeps seven columns; weekday names drop to one letter below 15rem.</td></tr>
+    <tr><td>Reduced motion</td><td>The only motion is a day's lift on hover and focus, multiplied by <code>--move</code>; it becomes a frame appearing. Paging is instant.</td></tr>
+    <tr><td>Forced colours</td><td>Every day keeps a <code>ButtonText</code> frame, the chosen day a 4px one, focus a 4px <code>Highlight</code> outline; today is still underlined; markers use <code>CanvasText</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--ink-mute</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--radius-card</code>, <code>--radius-tile</code>, <code>--radius-pill</code>, <code>--hit</code>, <code>--space-1</code> to <code>--space-3</code>, <code>--type-title</code>, <code>--type-label</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--type-body</code>, <code>--ls-title</code>, <code>--ls-label</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>, <code>--focus-shadow</code>.</p>

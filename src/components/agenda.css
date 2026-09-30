@@ -1,0 +1,414 @@
+/* ==========================================================================
+   Agenda  (layer: sg.components)
+   --------------------------------------------------------------------------
+   What is on, when. Two layouts built on the owner's Card, for two questions:
+
+   1 · DAYS (.agenda)      "what is this week like?" A list of tonal day cards; in each, the
+                           hours that have something are columns (rows on a phone) and the events
+                           in an hour stack.
+   2 · ONE DAY (.agenda-day)  "what does Friday look like?" A time grid: hours down the side, event
+                           cards as tall as they last, overlapping events side by side in lanes.
+                           When the lanes cannot fit, they stack into a plain list in time order.
+
+   Days list
+   <ol class="agenda" role="list">
+     <li class="card agenda__day" data-tone="1">
+       <div class="card__body agenda__body">
+         <header class="agenda__date">
+           <p class="agenda__dow">Wednesday</p>
+           <h3 class="agenda__num"><time datetime="2026-09-30">30<small>Sep</small></time></h3>
+         </header>
+         <ol class="agenda__slots" role="list">
+           <li class="agenda__slot">
+             <time class="agenda__hour" datetime="08:00">8:00</time>
+             <ul class="agenda__events" role="list">
+               <li><a class="agenda__event" href="#">Cards due<span class="agenda__len">20 min</span></a></li>
+             </ul>
+           </li>
+         </ol>
+       </div>
+     </li>
+   </ol>
+
+   One day
+   <div class="agenda-day" role="group" aria-labelledby="t" data-lanes="2" style="--steps: 24; --lanes: 2">
+     <h3 id="t">Friday 2 October</h3>
+     <div class="agenda-day__grid">
+       <ol class="agenda-day__hours" aria-hidden="true"><li><time>9:00</time></li> … one per hour</ol>
+       <ol class="agenda-day__events" role="list">
+         <li class="card card--link agenda-day__event" data-tone="4" style="--from: 3; --to: 5; --lane: 1">
+           <div class="card__body">
+             <h4 class="card__title"><a class="card__link" href="#">Standup</a></h4>
+             <p class="card__meta"><time datetime="09:30">9:30</time> to <time datetime="10:00">10:00</time></p>
+           </div>
+         </li>
+       </ol>
+     </div>
+   </div>
+
+   --from / --to   the grid lines the event starts and ends on; the grid has a line every 15 minutes
+                   (from = minutes after the first hour / 15 + 1). --lane is 1, 2, 3 ... and --span
+                   how many lanes wide it is (default 1). SG.agenda.layout() works all four out.
+   --steps         how many 15-minute rows the grid has (4 x the hours shown)
+   --lanes  and  data-lanes  how many events ever overlap (1 to 3). data-lanes lets CSS know when
+                   the lanes no longer fit: 2 lanes need 16rem, 3 lanes 26rem of width.
+   --step          the height of 15 minutes (default 1.75rem; an hour is 7rem)
+
+   WHY THE EVENT CARDS ARE CARDS  They are the owner's element: a 2px frame, a tone, the stretched
+   link with one tab stop, the lift on hover. Each event keeps the whole card's hit area. Nothing is
+   re-implemented; only its size is decided here (grid rows), and its body is tightened.
+   WHY OVERLAPS STACK BELOW A WIDTH  Two lanes at 10rem each read fine; three at 6rem do not. Rather
+   than shrink the text, the lanes give up the time scale and stack in time order: every event still
+   shows its own start and end.
+   WHY THE HOUR LABELS ARE aria-hidden  Every event states its own times as text, so the ruler on
+   the side is a visual aid; reading it aloud would add 6 meaningless "9:00, 10:00" stops.
+
+   STATES  events in the days list are links: hover and keyboard focus lift them (--lift) and pressing
+   sinks them, like a Button; the day card itself is not pressable, so it never lifts.
+   ========================================================================== */
+
+@layer sg.components {
+  /* =========================================================================
+     1 · DAYS
+     ========================================================================= */
+  .agenda {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* the card's own tone decides the chip colours: read on the element that has data-tone */
+  .agenda__day {
+    --_fill: var(--tone-fill, var(--ink));
+    --_on-fill: var(--tone-on-fill, var(--paper));
+    --_rule: var(--card-ink);
+  }
+
+  /* two classes: Card sets .card__body to a flex column, and this file sorts before card.css */
+  .card__body.agenda__body {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .agenda__date {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--space-3);
+  }
+
+  .agenda__dow {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--card-ink-soft);
+  }
+
+  .agenda__num {
+    font: var(--type-figure);
+    font-size: clamp(2.25rem, 16cqi, 4rem);
+    letter-spacing: var(--ls-figure);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .agenda__num small {
+    margin-inline-start: 0.25em;
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--card-ink-soft);
+  }
+
+  /* the hours that have something: rows on a phone */
+  .agenda__slots {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .agenda__slot {
+    display: grid;
+    align-content: start;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    column-gap: var(--space-3);
+    padding-block: var(--space-2);
+    border-block-start: var(--bw-thin) solid var(--_rule);
+  }
+
+  .agenda__hour {
+    padding-block-start: var(--space-2);
+    font: var(--type-meta);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .agenda__events {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* an event: a filled chip you press. Hard shadow and lift only while it can be pressed. */
+  .agenda__event {
+    --lift: 0;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-3);
+    min-block-size: var(--hit);
+    padding: var(--space-2) var(--space-3);
+    color: var(--_on-fill);
+    background: var(--_fill);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+    box-shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    font: var(--type-body);
+    font-weight: 600;
+    font-size: var(--text-md);
+    line-height: var(--lh-snug);
+    overflow-wrap: anywhere;
+    text-decoration: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition: --lift var(--dur-hover) var(--ease-out);
+
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --lift: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --lift: 1;
+    }
+    &:is(:active, .is-active) {
+      --lift: 0;
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  .agenda__len {
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* wide: the hours become columns with 1px rules between, and the date is a rail on the left.
+     The query is on the CARD (every .card is a size container named "card"). */
+  @container card (min-width: 34rem) {
+    .card__body.agenda__body {
+      grid-template-columns: 8.5rem minmax(0, 1fr);
+      align-items: start;
+      column-gap: var(--space-5);
+    }
+    .agenda__date {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    /* room inside the scroller for a chip's 4px shadow and the focus ring, which overflow clipping would cut off */
+    .agenda__slots {
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(9rem, 1fr);
+      margin: calc(var(--space-2) * -1);
+      padding: var(--space-2);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+    }
+    .agenda__slot {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-2);
+      padding: 0 var(--space-3);
+      border-block-start: 0;
+      border-inline-start: var(--bw-thin) solid var(--_rule);
+    }
+    .agenda__slot:first-child {
+      border-inline-start: 0;
+      padding-inline-start: 0;
+    }
+    .agenda__hour {
+      padding-block-start: 0;
+    }
+  }
+
+  /* =========================================================================
+     2 · ONE DAY
+     ========================================================================= */
+  .agenda-day {
+    --step: 1.75rem; /* 15 minutes; an hour is 7rem */
+    container: agenda-day / inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-inline-size: 0;
+  }
+
+  .agenda-day__title {
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    letter-spacing: var(--ls-title);
+  }
+
+  .agenda-day__grid {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    grid-template-rows: repeat(var(--steps, 24), var(--step));
+  }
+
+  /* the ruler: one row per hour, each spanning four 15-minute rows, across the whole width */
+  .agenda-day__hours {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .agenda-day__hours > li {
+    grid-row: span 4;
+    padding-block-start: var(--space-1);
+    border-block-start: var(--bw-thin) solid var(--line-soft);
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--ink-soft);
+  }
+
+  .agenda-day__hours > li:last-child {
+    border-block-end: var(--bw-thin) solid var(--line-soft);
+  }
+
+  /* the events sit in the second column, on the same rows, in lanes */
+  .agenda-day__events {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+    grid-template-columns: repeat(var(--lanes, 1), minmax(0, 1fr));
+    column-gap: var(--space-2);
+    margin: 0;
+    padding: 0 0 0 var(--space-2);
+    list-style: none;
+  }
+
+  .agenda-day__event {
+    grid-row: var(--from, auto) / var(--to, auto);
+    grid-column: var(--lane, 1) / span var(--span, 1);
+    --card-pad: var(--space-2);
+    --card-gap: 0;
+    z-index: 1;
+  }
+
+  /* title and times flow on one line when they fit and wrap when they do not; the title keeps to two
+     lines so a 30-minute event never spills into the next */
+  .agenda-day__event.card--link .card__body {
+    display: flex;
+    flex-flow: row wrap;
+    align-content: flex-start;
+    align-items: baseline;
+    column-gap: var(--space-2);
+    row-gap: 0;
+    min-block-size: 0;
+    padding: 0.125rem var(--space-2);
+  }
+
+  .agenda-day__event .card__title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font: var(--type-body);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: var(--lh-snug);
+  }
+
+  .agenda-day__event .card__meta {
+    font-size: var(--text-xs);
+    line-height: var(--lh-snug);
+    white-space: nowrap;
+  }
+
+  /* the lanes do not fit: give up the time scale, keep the order. Every event says its own times.
+     Two lanes need about 16rem, three about 26rem (rem, so bigger text stacks sooner). */
+  @container agenda-day (max-width: 16rem) {
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__grid {
+      display: block;
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__hours {
+      display: none;
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__events {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-2);
+      padding: 0;
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__event {
+      grid-row: auto;
+      grid-column: auto;
+      min-block-size: var(--hit);
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__event .card__meta {
+      white-space: normal;
+    }
+  }
+
+  @container agenda-day (max-width: 26rem) {
+    .agenda-day[data-lanes="3"] .agenda-day__grid {
+      display: block;
+    }
+    .agenda-day[data-lanes="3"] .agenda-day__hours {
+      display: none;
+    }
+    .agenda-day[data-lanes="3"] .agenda-day__events {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-2);
+      padding: 0;
+    }
+    .agenda-day[data-lanes="3"] .agenda-day__event {
+      grid-row: auto;
+      grid-column: auto;
+      min-block-size: var(--hit);
+    }
+  }
+
+  /* ---- forced colours: fills go, so the chip keeps a system-colour frame and a heavier one on focus ---- */
+  @media (forced-colors: active) {
+    .agenda__event {
+      border-color: ButtonText;
+      color: ButtonText;
+    }
+    .agenda__event:is(.is-hover, :focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    .agenda__slot {
+      border-color: CanvasText;
+    }
+    .agenda-day__hours > li {
+      border-color: CanvasText;
+    }
+  }
+
+  @media (forced-colors: active) and (hover: hover) {
+    .agenda__event:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+}

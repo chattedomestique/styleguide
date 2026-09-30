@@ -1,0 +1,328 @@
+// Interaction spec for the calendar. See tests/components.mjs for the contract and tests/components/button.mjs for a model.
+const M = '#demo-month .cal'
+const cursorDate = (page) => page.evaluate(() => document.activeElement?.dataset?.date)
+
+export const tests = [
+  {
+    name: 'renders a labelled grid: seven named columns, six weeks, the month as its name',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const r = await page.locator(M).evaluate((el) => {
+        const grid = el.querySelector('table')
+        return {
+          role: grid.getAttribute('role'),
+          name: document.getElementById(grid.getAttribute('aria-labelledby')).textContent,
+          cols: [...grid.tHead.rows[0].cells].map((c) => c.getAttribute('abbr')),
+          days: grid.querySelectorAll('tbody .cal__day').length,
+          rows: grid.tBodies[0].rows.length,
+        }
+      })
+      expect.equal(r.role, 'grid', 'role=grid')
+      expect.equal(r.name, 'October 2026', 'named by the month title')
+      expect.equal(r.cols.join(','), 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday', 'Monday first, full names in abbr')
+      expect.equal(r.days, 42, 'six weeks, always')
+      expect.equal(r.rows, 6, 'six rows')
+    },
+  },
+  {
+    name: 'each day is a button named with its full date; today, events and the count are in the name',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const r = await page.locator(M).evaluate((el) => {
+        const name = (d) => el.querySelector(`.cal__day[data-date="${d}"]`).getAttribute('aria-label')
+        return { today: name('2026-09-30'), chosen: name('2026-10-02'), plain: name('2026-10-07'), tag: el.querySelector('.cal__day').tagName }
+      })
+      expect.equal(r.tag, 'BUTTON', 'a real button')
+      expect.ok(/Wednesday 30 September 2026, today, 2 events/.test(r.today), `today: ${r.today}`)
+      expect.ok(/Friday 2 October 2026, 3 events/.test(r.chosen), `chosen: ${r.chosen}`)
+      expect.equal(r.plain, 'Wednesday 7 October 2026', 'a quiet day is just its date')
+    },
+  },
+  {
+    name: 'one tab stop in the grid (roving tabindex), after the two nav buttons',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const r = await page.locator(M).evaluate((el) => ({ stops: el.querySelectorAll('.cal__day[tabindex="0"]').length, which: el.querySelector('.cal__day[tabindex="0"]').dataset.date, others: el.querySelectorAll('.cal__day[tabindex="-1"]').length }))
+      expect.equal(r.stops, 1, 'exactly one day is tabbable')
+      expect.equal(r.which, '2026-10-02', 'the chosen day')
+      expect.equal(r.others, 41, 'the rest are -1')
+      await page.locator(`${M} [data-cal="prev"]`).focus()
+      await page.keyboard.press('Tab')
+      await expect.focused(page, '[data-cal="next"]', 'prev then next')
+      await page.keyboard.press('Tab')
+      expect.equal(await cursorDate(page), '2026-10-02', 'then the grid, on the chosen day')
+    },
+  },
+  {
+    name: 'arrow keys move a day or a week and focus follows; in-view moves do not rebuild the buttons',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.locator(`${M} .cal__day[tabindex="0"]`).focus()
+      await page.evaluate(() => { window.__first = document.activeElement })
+      await page.keyboard.press('ArrowRight')
+      expect.equal(await cursorDate(page), '2026-10-03', 'right = +1 day')
+      await page.keyboard.press('ArrowDown')
+      expect.equal(await cursorDate(page), '2026-10-10', 'down = +1 week')
+      await page.keyboard.press('ArrowLeft')
+      expect.equal(await cursorDate(page), '2026-10-09', 'left = -1 day')
+      await page.keyboard.press('ArrowUp')
+      expect.equal(await cursorDate(page), '2026-10-02', 'up = -1 week')
+      expect.equal(await page.evaluate(() => document.body.contains(window.__first)), true, 'the same button element is still in the page')
+      expect.equal(await page.locator(`${M} .cal__day[tabindex="0"]`).count(), 1, 'still one tab stop')
+    },
+  },
+  {
+    name: 'Home and End go to the week edges; crossing a month edge pages the grid and keeps focus',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.locator(`${M} .cal__day[tabindex="0"]`).focus()
+      await page.keyboard.press('End')
+      expect.equal(await cursorDate(page), '2026-10-04', 'End = Sunday')
+      await page.keyboard.press('Home')
+      expect.equal(await cursorDate(page), '2026-09-28', 'Home = Monday (which is in September)')
+      expect.equal(await page.locator(`${M} .cal__title`).textContent(), 'September 2026', 'the grid paged to September')
+      await expect.focused(page, '.cal__day', 'and focus is on a day')
+    },
+  },
+  {
+    name: 'PageUp / PageDown move a month and clamp the day; Shift moves a year',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.locator(`${M} .cal__day[tabindex="0"]`).focus()
+      await page.keyboard.press('PageDown')
+      expect.equal(await cursorDate(page), '2026-11-02', 'next month, same day')
+      await page.keyboard.press('PageUp')
+      await page.keyboard.press('PageUp')
+      expect.equal(await cursorDate(page), '2026-09-02', 'two back')
+      await page.keyboard.press('Shift+PageDown')
+      expect.equal(await cursorDate(page), '2027-09-02', 'Shift = a year')
+      await page.evaluate(() => SG.calendar.select(document.querySelector('#demo-month .cal'), '2026-01-31'))
+      await page.keyboard.press('PageDown')
+      expect.equal(await cursorDate(page), '2026-02-28', 'the 31st clamps to the end of February')
+    },
+  },
+  {
+    name: 'Enter and Space choose a day: aria-selected moves, the events list changes, the event fires',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.evaluate(() => { window.__sel = []; document.querySelector('#demo-month .cal').addEventListener('sg-calendar-select', (e) => window.__sel.push(e.detail.value)) })
+      await page.locator(`${M} .cal__day[tabindex="0"]`).focus()
+      await page.keyboard.press('ArrowLeft') // 1 Oct
+      await page.keyboard.press('Enter')
+      let r = await page.locator(M).evaluate((el) => ({ sel: [...el.querySelectorAll('td[aria-selected="true"] .cal__day')].map((b) => b.dataset.date), title: el.querySelector('.cal__events-title').textContent, items: [...el.querySelectorAll('.cal__event')].map((e) => e.querySelector('.cal__what').textContent), value: el.getAttribute('data-value') }))
+      expect.equal(r.sel.join(), '2026-10-01', 'exactly one selected cell')
+      expect.equal(r.items.join(), 'Dentist', 'that day\'s events')
+      expect.ok(/Thursday 1 October/.test(r.title), r.title)
+      expect.equal(r.value, '2026-10-01', 'data-value follows')
+      await expect.focused(page, '.cal__day', 'focus stays on the day')
+      await page.keyboard.press('ArrowRight')
+      await page.keyboard.press('Space')
+      r = await page.locator(M).evaluate((el) => [...el.querySelectorAll('.cal__event .cal__what')].map((e) => e.textContent))
+      expect.equal(r.join(), 'Standup,Design review,Rent due', 'Space chooses too')
+      expect.equal(await page.evaluate(() => window.__sel.join()), '2026-10-01,2026-10-02', 'one event per choice')
+    },
+  },
+  {
+    name: 'today and the chosen day are marked by shape, not colour: ring, underline, fill, doubled frame',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const r = await page.locator(M).evaluate((el) => {
+        const today = el.querySelector('.cal__day[aria-current="date"]')
+        const chosen = el.querySelector('td[aria-selected="true"] .cal__day')
+        const plain = el.querySelector('.cal__day[data-date="2026-10-07"]')
+        const cs = (e) => getComputedStyle(e)
+        return {
+          todayRing: cs(today).borderTopColor !== 'rgba(0, 0, 0, 0)' && cs(today).borderTopWidth === '2px',
+          todayUnderline: cs(today.querySelector('.cal__num')).textDecorationLine,
+          plainRing: cs(plain).borderTopColor,
+          chosenBg: cs(chosen).backgroundColor, plainBg: cs(plain).backgroundColor,
+          chosenShadow: cs(chosen).boxShadow,
+          chosenInk: cs(chosen).color, plainInk: cs(plain).color,
+        }
+      })
+      expect.ok(r.todayRing, 'today has a 2px ring')
+      expect.equal(r.todayUnderline, 'underline', 'today\'s numeral is underlined')
+      expect.equal(r.plainRing, 'rgba(0, 0, 0, 0)', 'an ordinary day has no frame at rest')
+      expect.ok(r.chosenBg !== r.plainBg, 'the chosen day is filled')
+      expect.ok(/0px 0px 0px 2px/.test(r.chosenShadow), `doubled frame (${r.chosenShadow})`)
+      expect.ok(r.chosenInk !== r.plainInk, 'and its numeral inverts')
+    },
+  },
+  {
+    name: 'event markers are decorative squares (max three); the count is in the name and the list is text',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const r = await page.locator(M).evaluate((el) => {
+        const d = (x) => el.querySelector(`.cal__day[data-date="${x}"]`)
+        return { two: d('2026-09-30').querySelectorAll('.cal__pip').length, three: d('2026-10-02').querySelectorAll('.cal__pip').length, none: d('2026-10-07').querySelectorAll('.cal__pip').length, hidden: d('2026-10-02').querySelector('.cal__pips').getAttribute('aria-hidden') }
+      })
+      expect.equal(r.two, 2, 'two events, two squares')
+      expect.equal(r.three, 3, 'three')
+      expect.equal(r.none, 0, 'none')
+      expect.equal(r.hidden, 'true', 'decorative')
+    },
+  },
+  {
+    name: 'paging with the round buttons announces the month and keeps focus on the button',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const next = page.locator(`${M} [data-cal="next"]`)
+      await next.focus()
+      await page.keyboard.press('Enter')
+      await expect.focused(page, '[data-cal="next"]', 'focus stays so you can page again')
+      expect.equal(await page.locator(`${M} .cal__title`).textContent(), 'November 2026', 'title changed')
+      const live = await page.locator(`${M} .cal__title`).evaluate((e) => [e.getAttribute('aria-live'), e.getAttribute('aria-atomic')])
+      expect.equal(live.join(), 'polite,true', 'the title is a polite live region')
+      await page.keyboard.press('Enter')
+      expect.equal(await page.locator(`${M} .cal__title`).textContent(), 'December 2026', 'and again')
+      expect.equal(await page.locator(`${M} [data-cal="prev"]`).getAttribute('aria-label'), 'Previous month', 'buttons are named')
+    },
+  },
+  {
+    name: 'the week starts where the locale or data-first-day says, and names come from Intl',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const heads = (sel) => page.locator(sel).evaluate((el) => [...el.querySelector('thead').rows[0].cells].map((c) => c.getAttribute('abbr')).join(','))
+      expect.ok((await heads('#demo-sunday .cal')).startsWith('Sunday,Monday'), 'en-US starts on Sunday')
+      expect.ok((await heads('#demo-month .cal')).startsWith('Monday,Tuesday'), 'data-first-day=1 starts on Monday')
+      expect.ok((await heads('#demo-locale .cal')).startsWith('Montag,Dienstag'), 'de-DE names')
+      expect.equal(await page.locator('#demo-locale .cal__title').textContent(), 'Oktober 2026', 'German month')
+    },
+  },
+  {
+    name: 'days outside data-min / data-max are aria-disabled, reachable, and cannot be chosen',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const R = '#demo-range .cal'
+      const r = await page.locator(R).evaluate((el) => ({ off: el.querySelector('.cal__day[data-date="2026-09-10"]').getAttribute('aria-disabled'), on: el.querySelector('.cal__day[data-date="2026-09-15"]').getAttribute('aria-disabled'), label: el.querySelector('.cal__day[data-date="2026-09-10"]').getAttribute('aria-label') }))
+      expect.equal(r.off, 'true', 'before min')
+      expect.equal(r.on, null, 'inside')
+      expect.ok(/not available/.test(r.label), `the name says so (${r.label})`)
+      await page.locator(`${R} .cal__day[data-date="2026-09-15"]`).focus()
+      for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowLeft')
+      // the cursor is clamped at the minimum: it never lands before 14 September
+      const at = await cursorDate(page)
+      expect.ok(at >= '2026-09-14', `clamped at min (${at})`)
+      const before = await page.locator(R).getAttribute('data-value')
+      await page.locator(`${R} .cal__day[data-date="2026-09-13"]`).focus()
+      await page.keyboard.press('Enter')
+      expect.equal(await page.locator(R).getAttribute('data-value'), before, 'Enter on an unavailable day does nothing')
+    },
+  },
+  {
+    name: 'week view: seven days, weekday names in the day, Page keys move a week, title is a range',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const W = '#demo-week .cal'
+      const r = await page.locator(W).evaluate((el) => ({ days: el.querySelectorAll('.cal__day').length, title: el.querySelector('.cal__title').textContent, dow: el.querySelector('.cal__day .cal__dow .cal__dow-long')?.textContent, head: getComputedStyle(el.querySelector('thead')).position, prev: el.querySelector('[data-cal="prev"]').getAttribute('aria-label') }))
+      expect.equal(r.days, 7, 'seven days')
+      expect.ok(/28 Sep.*4 Oct 2026/.test(r.title), `range title: ${r.title}`)
+      expect.equal(r.dow, 'Mon', 'the name is in the pill')
+      expect.equal(r.head, 'absolute', 'the real header stays for screen readers, visually hidden')
+      expect.equal(r.prev, 'Previous week', 'buttons say week')
+      await page.locator(`${W} .cal__day[tabindex="0"]`).focus()
+      await page.keyboard.press('PageDown')
+      expect.equal(await cursorDate(page), '2026-10-09', 'PageDown = +1 week')
+      expect.ok(/5.*11 Oct 2026/.test(await page.locator(`${W} .cal__title`).textContent()), 'and the title follows')
+    },
+  },
+  {
+    name: 'right-to-left mirrors the arrow keys',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.locator(M).evaluate((el) => { el.setAttribute('dir', 'rtl') })
+      await page.locator(`${M} .cal__day[tabindex="0"]`).focus()
+      await page.keyboard.press('ArrowRight')
+      expect.equal(await cursorDate(page), '2026-10-01', 'right goes back a day in RTL')
+    },
+  },
+  {
+    name: 'choosing a day from a neighbouring month moves the grid to it',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.locator(`${M} .cal__day[data-date="2026-11-01"]`).click()
+      expect.equal(await page.locator(`${M} .cal__title`).textContent(), 'November 2026', 'the month changed')
+      expect.equal(await page.locator(M).getAttribute('data-value'), '2026-11-01', 'and the day is chosen')
+    },
+  },
+  {
+    name: 'every day cell is a 44px-tall target at least 40px wide at 390px',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const r = await page.locator(M).evaluate((el) => {
+        const btn = el.querySelector('.cal__day')
+        const cell = btn.parentElement.getBoundingClientRect()
+        const b = btn.getBoundingClientRect()
+        const hit = (x, y) => { const t = document.elementFromPoint(x, y); return !!t && (t === btn || btn.contains(t)) }
+        btn.scrollIntoView({ block: 'center' })
+        const c = btn.getBoundingClientRect()
+        const cx = c.left + c.width / 2, cy = c.top + c.height / 2
+        return { cellW: cell.width, cellH: cell.height, drawnW: b.width, up: hit(cx, cy - 21), down: hit(cx, cy + 21) }
+      })
+      expect.ok(r.cellW >= 40, `cell width ${r.cellW}`)
+      expect.ok(r.cellH >= 44, `cell height ${r.cellH}`)
+      expect.ok(r.drawnW <= 41, 'the drawn circle is at most 40px')
+      expect.ok(r.up && r.down, 'the hit area reaches 44px tall')
+    },
+  },
+  {
+    name: 'hover and keyboard focus lift a day the same way; pressing sinks it',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const b = page.locator(`${M} .cal__day[data-date="2026-10-14"]`)
+      const nums = () => b.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      await page.waitForTimeout(50)
+      expect.equal((await nums()).lift, 0, 'rest')
+      await b.hover()
+      await page.waitForTimeout(400)
+      expect.equal((await nums()).lift, 1, 'hover lifts')
+      await page.mouse.down()
+      await page.waitForTimeout(300)
+      expect.equal((await nums()).lift, 0, 'pressed sinks')
+      await page.mouse.move(0, 0)
+      await page.mouse.up()
+    },
+  },
+  {
+    name: 'reduced motion: no travel, the frame still appears',
+    reducedMotion: true,
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const b = page.locator(`${M} .cal__day[data-date="2026-10-14"]`)
+      await b.hover()
+      await page.waitForTimeout(500)
+      const r = await b.evaluate((el) => ({ t: getComputedStyle(el).transform, bc: getComputedStyle(el).borderTopColor }))
+      expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', `no travel (${r.t})`)
+      expect.ok(r.bc !== 'rgba(0, 0, 0, 0)', 'the frame appears')
+    },
+  },
+  {
+    name: 'forced colours: days keep a frame, the chosen day a heavy one',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.emulateMedia({ forcedColors: 'active' })
+      await page.waitForTimeout(100)
+      const r = await page.locator(M).evaluate((el) => ({ rest: getComputedStyle(el.querySelector('.cal__day[data-date="2026-10-07"]')).borderTopWidth, chosen: getComputedStyle(el.querySelector('td[aria-selected="true"] .cal__day')).borderTopWidth, today: getComputedStyle(el.querySelector('[aria-current="date"] .cal__num')).textDecorationLine }))
+      expect.equal(r.rest, '2px', 'rest has a frame')
+      expect.equal(r.chosen, '4px', 'chosen is heavy')
+      expect.equal(r.today, 'underline', 'today is still underlined')
+    },
+  },
+  {
+    name: '200% text keeps seven columns without clipping',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(200)
+      const r = await page.locator(M).evaluate((el) => {
+        const g = el.querySelector('table').getBoundingClientRect()
+        const days = [...el.querySelectorAll('tbody tr:first-child .cal__day')].map((d) => d.getBoundingClientRect())
+        const narrow = getComputedStyle(el.querySelector('.cal__dow-narrow')).display
+        return { over: el.scrollWidth > el.clientWidth + 1, cols: days.length, allInside: days.every((d) => d.left >= g.left - 1 && d.right <= g.right + 1), narrow }
+      })
+      expect.equal(r.over, false, 'no horizontal overflow')
+      expect.ok(r.allInside, 'all seven days sit inside the grid')
+      expect.equal(r.narrow, 'inline', 'weekday names shrink to one letter')
+    },
+  },
+]
