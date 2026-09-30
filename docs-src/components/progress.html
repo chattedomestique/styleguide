@@ -1,0 +1,358 @@
+<!--{"title":"Progress","group":"Components","order":92,"summary":"Linear, indeterminate, ring and step progress, plus the meter that Card's stat uses: always with the value as text."}-->
+<h1>Progress</h1>
+<p class="lede">Progress answers "how far, and how long?". Every form here writes the value as words as well as length, so nobody has to read a percentage off a bar or tell two hues apart. The same flat pill frame holds all of them, and the meter at the end is the one Card's stat recipe uses.</p>
+
+<h2 id="when">When to use</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Which progress indicator to use</caption>
+  <thead><tr><th>Indicator</th><th>Use it for</th><th>Built on</th></tr></thead>
+  <tbody>
+    <tr><td>Linear</td><td>A task with a known length: import, upload, download, a form that saves.</td><td><code>&lt;progress value max&gt;</code></td></tr>
+    <tr><td>Indeterminate</td><td>A task that is running but cannot say how long. Swap to linear the moment you can. A short wait is better served by a <a href="@/components/spinner.html">spinner</a>.</td><td><code>&lt;progress&gt;</code> without <code>value</code></td></tr>
+    <tr><td>Meter</td><td>A quantity in a known range: cards learned, storage used, budget spent. It is not a task that finishes.</td><td><code>role="meter"</code></td></tr>
+    <tr><td>Ring</td><td>One figure against a goal in a small space: daily cards, a streak, battery.</td><td><code>role="progressbar"</code> + SVG</td></tr>
+    <tr><td>Steps</td><td>A flow with a fixed number of screens: sign-up, checkout.</td><td>Text + a segmented bar</td></tr>
+  </tbody>
+</table></div>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Label what is progressing ("Importing deck"), show the number, and add what the number means ("12 of 18 cards") when it helps.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Fake it. A bar that crawls to 90% and stalls is worse than an honest indeterminate one. And never let colour alone say "done" or "at risk".</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="linear">Linear</h3>
+<p>The native <code>&lt;progress&gt;</code> with a real <code>&lt;label&gt;</code>, inside a framed track. The value is repeated as text, the fill is at least 3:1 against the track, and the 2px frame shows the whole length too.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="progress">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-upload">Importing deck</label>
+        <span class="progress__value">68%</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-upload" value="68" max="100">68%</progress></div>
+      <p class="progress__hint">146 of 214 cards</p>
+    </div>
+  </div>
+</div>
+
+<h3 id="sizes">Sizes and values</h3>
+<p>Three heights: 10, 14 and 20px. An empty bar keeps its frame; a full one is solid, so the ends never disappear.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="progress" data-size="sm">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-sm">Small, empty</label>
+        <span class="progress__value">0%</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-sm" value="0" max="100">0%</progress></div>
+    </div>
+    <div class="progress">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-md">Medium, a quarter</label>
+        <span class="progress__value">25%</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-md" value="25" max="100">25%</progress></div>
+    </div>
+    <div class="progress" data-size="lg">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-lg">Large, complete</label>
+        <span class="progress__value">100%</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-lg" value="100" max="100">100%</progress></div>
+    </div>
+  </div>
+</div>
+
+<h3 id="live">Live, with milestones</h3>
+<p>Do not announce every tick: a screen reader would talk over itself. <code>SG.progress.set()</code> keeps the bar, the number and the ARIA value in step, and with <code>announce</code> it speaks once at 25, 50, 75 and 100%.</p>
+<div class="demo" data-layout="stack" data-code="const bar = document.querySelector('#import')
+SG.progress.set(bar, 50, { announce: 'Importing deck', hint: '107 of 214 cards' })
+// speaks &quot;Importing deck: 50 percent&quot; once; 51, 52, 53 stay silent
+SG.progress.set(bar, 100, { announce: 'Importing deck' })
+// speaks &quot;Importing deck: complete&quot;">
+  <div class="demo__stage">
+    <div class="progress" id="pg-live-root">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-live">Importing deck</label>
+        <span class="progress__value" id="pg-live-val">0%</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-live" value="0" max="100">0%</progress></div>
+      <p class="progress__hint" id="pg-live-hint">0 of 214 cards</p>
+    </div>
+    <div class="cluster"><button class="btn" type="button" id="pg-live-btn">Start import</button></div>
+  </div>
+</div>
+
+<h3 id="indeterminate">Indeterminate</h3>
+<p>Remove the <code>value</code> attribute. A segment slides across. Under reduced motion it stops travelling and the whole bar pulses in opacity instead. Say what is happening in words, since there is no number.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="progress">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-ind">Preparing your export</label>
+        <span class="progress__value">Working</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-ind" max="100">Working</progress></div>
+    </div>
+  </div>
+</div>
+
+<h3 id="tone">Tone</h3>
+<p>The fill takes the tone's dark colour and the track its pastel. The words carry the meaning, so a colour-blind reader, the <code>wire</code> palette and forced colours lose nothing.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="progress" data-tone="ok">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-ok">Backup complete</label>
+        <span class="progress__value">100%</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-ok" value="100" max="100">100%</progress></div>
+    </div>
+    <div class="progress" data-tone="warn">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-warn">Storage used</label>
+        <span class="progress__value">85%</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-warn" value="85" max="100">85%</progress></div>
+      <p class="progress__hint">Warning: 750 MB left. Old backups can go.</p>
+    </div>
+    <div class="progress" data-tone="bad">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-bad">Import failed</label>
+        <span class="progress__value">41%</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-bad" value="41" max="100">41%</progress></div>
+      <p class="progress__hint">Error: the connection dropped. Try again.</p>
+    </div>
+    <div class="progress" data-tone="5">
+      <div class="progress__head">
+        <label class="progress__label" for="pg-violet">Reading streak</label>
+        <span class="progress__value">5 of 7 days</span>
+      </div>
+      <div class="progress__track"><progress class="progress__bar" id="pg-violet" value="5" max="7">5 of 7 days</progress></div>
+    </div>
+  </div>
+</div>
+
+<h3 id="meter">Meter</h3>
+<p>A scalar inside a known range. It is a <code>div</code> with <code>role="meter"</code>, a name, <code>aria-valuemin</code>, <code>aria-valuemax</code> and <code>aria-valuenow</code>; the fill comes from <code>--value</code>, a percentage <em>with</em> its <code>%</code>. It takes its colours from the card it sits in: ink on the card's own fill, so a toned card just works.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 14rem">
+      <article class="card card--square" data-tone="1">
+        <div class="card__body">
+          <p class="card__eyebrow">Learned so far</p>
+          <p class="card__figure">5<small>/12</small></p>
+          <div class="meter" role="meter" aria-label="Shapes learned" aria-valuemin="0" aria-valuemax="12" aria-valuenow="5" aria-valuetext="5 of 12 shapes" style="--value: 41.6%"></div>
+          <p class="card__meta">Seven to go.</p>
+        </div>
+      </article>
+      <article class="card card--square">
+        <div class="card__body">
+          <p class="card__eyebrow">Daily goal</p>
+          <p class="card__figure">68<small>%</small></p>
+          <div class="meter" role="meter" aria-label="Daily goal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="68" style="--value: 68%"></div>
+          <p class="card__meta">17 of 25 cards today.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+<p>On its own, a meter needs a name and a visible value next to it. Give it a tone when the level matters, and say what the level means in words.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="stack" data-gap="2">
+      <div class="split"><span id="mt-storage" class="t-body">Storage</span><span class="num">4.6 of 5 GB</span></div>
+      <div class="meter" data-tone="warn" role="meter" aria-labelledby="mt-storage" aria-valuemin="0" aria-valuemax="5" aria-valuenow="4.6" aria-valuetext="4.6 of 5 gigabytes used" style="--value: 92%"></div>
+      <p class="t-meta">Warning: almost full.</p>
+    </div>
+    <div class="stack" data-gap="2">
+      <div class="split"><span id="mt-budget" class="t-body">Study budget</span><span class="num">3 of 10 hours left</span></div>
+      <div class="meter" data-size="lg" role="meter" aria-labelledby="mt-budget" aria-valuemin="0" aria-valuemax="10" aria-valuenow="7" aria-valuetext="7 of 10 hours used" style="--value: 70%"></div>
+    </div>
+  </div>
+</div>
+
+<h3 id="ring">Ring</h3>
+<p>No native circular progress exists, so the ring is an SVG with <code>role="progressbar"</code>. Set <code>--value</code> (a bare number, 0 to 100: an SVG dash array cannot take a <code>%</code>) for the arc and <code>aria-valuenow</code> for assistive tech; the centre text is what sighted people read. The arc starts at 12 o'clock and its ends are flat.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="cluster" data-gap="5">
+      <div class="progress-ring" data-size="sm" role="progressbar" aria-label="Battery" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100" style="--value: 42">
+        <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+          <circle class="progress-ring__track" cx="18" cy="18" r="16" pathLength="100" />
+          <circle class="progress-ring__arc" cx="18" cy="18" r="16" pathLength="100" />
+        </svg>
+        <span class="progress-ring__label"><span class="progress-ring__num">42%</span></span>
+      </div>
+      <div class="progress-ring" role="progressbar" aria-label="Daily goal" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100" style="--value: 68">
+        <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+          <circle class="progress-ring__track" cx="18" cy="18" r="16" pathLength="100" />
+          <circle class="progress-ring__arc" cx="18" cy="18" r="16" pathLength="100" />
+        </svg>
+        <span class="progress-ring__label"><span class="progress-ring__num">68%</span><span class="progress-ring__cap">of goal</span></span>
+      </div>
+      <div class="progress-ring" data-size="lg" data-tone="4" role="progressbar" aria-label="Cards today" aria-valuenow="18" aria-valuemin="0" aria-valuemax="25" aria-valuetext="18 of 25 cards" style="--value: 72">
+        <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+          <circle class="progress-ring__track" cx="18" cy="18" r="16" pathLength="100" />
+          <circle class="progress-ring__arc" cx="18" cy="18" r="16" pathLength="100" />
+        </svg>
+        <span class="progress-ring__label"><span class="progress-ring__num">18</span><span class="progress-ring__cap">of 25 cards</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="steps">Steps</h3>
+<p>"Step 2 of 4" is the content; the bar is a glance. Completed steps are full, the current step is half full (a difference of shape, not only of shade), the rest are empty.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="progress-steps">
+      <p class="progress-steps__text"><strong>Step 2 of 4</strong> <span class="progress-steps__name">Pick a deck</span></p>
+      <div class="progress-steps__bar" aria-hidden="true">
+        <span data-state="done"></span>
+        <span data-state="current"></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    <div class="progress-steps" data-tone="ok" data-size="sm">
+      <p class="progress-steps__text"><strong>Step 4 of 4</strong> <span class="progress-steps__name">Done</span></p>
+      <div class="progress-steps__bar" aria-hidden="true">
+        <span data-state="done"></span>
+        <span data-state="done"></span>
+        <span data-state="done"></span>
+        <span data-state="done"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>A session summary: a ring for today's goal, a meter for the deck, a linear bar for a sync that is running.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="4">
+        <h4 class="t-title">Today</h4>
+        <section class="card" aria-labelledby="pg-ctx-h">
+          <header class="card__bar"><h5 class="card__label" id="pg-ctx-h">Daily goal</h5></header>
+          <div class="card__body">
+            <div class="split">
+              <div>
+                <p class="card__title">18 of 25 cards</p>
+                <p class="card__meta">Seven to go. Streak: 12 days.</p>
+              </div>
+              <div class="progress-ring" role="progressbar" aria-label="Daily goal" aria-valuenow="18" aria-valuemin="0" aria-valuemax="25" aria-valuetext="18 of 25 cards" style="--value: 72">
+                <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+                  <circle class="progress-ring__track" cx="18" cy="18" r="16" pathLength="100" />
+                  <circle class="progress-ring__arc" cx="18" cy="18" r="16" pathLength="100" />
+                </svg>
+                <span class="progress-ring__label"><span class="progress-ring__num">72%</span></span>
+              </div>
+            </div>
+            <div class="meter" data-size="sm" role="meter" aria-label="Shapes deck learned" aria-valuemin="0" aria-valuemax="12" aria-valuenow="9" aria-valuetext="9 of 12 shapes learned" style="--value: 75%"></div>
+            <p class="card__meta">Shapes: 9 of 12 learned.</p>
+          </div>
+        </section>
+        <div class="progress" data-size="sm">
+          <div class="progress__head">
+            <label class="progress__label" for="pg-ctx-sync">Syncing decks</label>
+            <span class="progress__value">Working</span>
+          </div>
+          <div class="progress__track"><progress class="progress__bar" id="pg-ctx-sync" max="100">Working</progress></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="motion">Motion</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Progress motion by setting</caption>
+  <thead><tr><th>Setting</th><th>What you see</th></tr></thead>
+  <tbody>
+    <tr><td>Default</td><td>Determinate bars, meters and rings do not animate: the value is the value. Indeterminate: a segment (40% of the track) slides across in 1.4&nbsp;s, linearly.</td></tr>
+    <tr><td>Reduced motion</td><td>The segment stops travelling, fills the track, and pulses in opacity over 1.8&nbsp;s. <code>--move</code> is 0 and every translate is multiplied by it.</td></tr>
+    <tr><td>Forced colours</td><td>Fill in <code>Highlight</code> on a <code>Canvas</code> track with a <code>CanvasText</code> frame.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Label</strong> (<code>.progress__label</code>): a real <code>&lt;label for&gt;</code>; the accessible name. Meters and rings take <code>aria-label</code> or <code>aria-labelledby</code>.</li>
+  <li><strong>Value</strong> (<code>.progress__value</code>): the number as text, tabular figures, so the layout does not wobble while it counts.</li>
+  <li><strong>Frame</strong>: <code>--bw</code> (2px) in <code>--line</code> (or the card's ink), <code>--radius-pill</code>. The fill is clipped to it, so the left end is round and the value end is flat.</li>
+  <li><strong>Fill</strong>: <code>--card-ink</code> inside a card, <code>--ink</code> otherwise, or <code>--tone-fill</code> with <code>data-tone</code>. Always at least 3:1 against the track.</li>
+  <li><strong>Track</strong>: the surface itself (<code>--card-bg</code> or <code>--paper</code>), or <code>--tone-bg</code>.</li>
+  <li><strong>Hint</strong> (<code>.progress__hint</code>): what the number means, and the status word when the tone is meaningful.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<h3 id="api-css">Classes and attributes</h3>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Progress classes and attributes</caption>
+  <thead><tr><th>Class or attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.progress</code></td><td><code>data-size</code> <code>sm</code> | <code>lg</code>, <code>data-tone</code></td><td>Linear. Parts: <code>__head</code>, <code>__label</code>, <code>__value</code>, <code>__track</code> &gt; <code>progress.progress__bar</code>, <code>__hint</code>. No <code>value</code> = indeterminate.</td></tr>
+    <tr><td><code>.meter</code></td><td><code>role="meter"</code>, <code>aria-valuemin | max | now</code>, <code>--value: 41.6%</code></td><td>The fill. Same sizes and tones.</td></tr>
+    <tr><td><code>.progress-ring</code></td><td><code>role="progressbar"</code>, <code>--value: 68</code></td><td>Ring. Parts: <code>svg</code> with <code>__track</code> and <code>__arc</code> (<code>pathLength="100"</code>), <code>__label</code>, <code>__num</code>, <code>__cap</code> (hidden at <code>sm</code>).</td></tr>
+    <tr><td><code>.progress-steps</code></td><td><code>data-state="done | current"</code> on each segment</td><td>Parts: <code>__text</code> (<code>strong</code>, <code>__name</code>), <code>__bar</code> (<code>aria-hidden</code>).</td></tr>
+  </tbody>
+</table></div>
+<h3 id="api-js">SG.progress</h3>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">SG.progress methods and options</caption>
+  <thead><tr><th>Member</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>set(el, value, opts)</code></td><td>Updates the native value or <code>aria-valuenow</code>, <code>--value</code>, the visible value text and (for a ring) the centre number. <code>null</code> makes a <code>.progress</code> indeterminate. Returns the percentage.</td></tr>
+    <tr><td><code>opts.max</code>, <code>opts.text</code>, <code>opts.hint</code>, <code>opts.valuetext</code></td><td>Range, visible value, hint line, <code>aria-valuetext</code>.</td></tr>
+    <tr><td><code>opts.announce</code></td><td>A short name. Announces once on crossing 25, 50, 75 and 100%, politely, through <code>SG.announce</code>.</td></tr>
+    <tr><td><code>percent(el)</code></td><td>Current value as 0 to 100, or <code>null</code> when indeterminate.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Progress keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td>Screen reader</td><td><code>&lt;progress&gt;</code> is a progressbar with the label as its name and the value when asked. A meter says "Shapes learned, 5 of 12, meter". Rings say the same as a progressbar. Nothing is announced by itself: milestones go through <code>SG.announce</code>, never every tick (WCAG 4.1.3).</td></tr>
+    <tr><td>Keyboard</td><td>Not focusable. There is nothing to operate.</td></tr>
+    <tr><td>Colour</td><td>The value is always text too, and the level of a toned bar is said in words (WCAG 1.4.1). Fill against track is at least 3:1 (1.4.11).</td></tr>
+    <tr><td>Reduced motion</td><td>Indeterminate pulses in place instead of sliding.</td></tr>
+    <tr><td>Zoom / text size</td><td>Labels wrap; heights are rem. Rings scale with their <code>data-size</code>, so check the centre text at 200%.</td></tr>
+    <tr><td>Forced colours</td><td><code>Highlight</code> fill, <code>Canvas</code> track, <code>CanvasText</code> frame; ring arc <code>Highlight</code> on a <code>GrayText</code> track.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--ink</code>, <code>--ink-soft</code>, <code>--paper</code>, <code>--canvas</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-fill</code>, <code>--card-ink</code>, <code>--card-bg</code>, <code>--card-ink-soft</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--type-figure</code>, <code>--ls-figure</code>, <code>--lh-snug</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--move</code>.</p>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    var SG = window.SG;
+    var btn = document.getElementById('pg-live-btn');
+    var root = document.getElementById('pg-live-root');
+    if (!btn || !root) return;
+    var timer = null;
+    var total = 214;
+    btn.addEventListener('click', function () {
+      clearInterval(timer);
+      var n = 0;
+      btn.setAttribute('aria-disabled', 'true');
+      timer = setInterval(function () {
+        n = Math.min(100, n + 4);
+        SG.progress.set(root, n, { announce: 'Importing deck', hint: Math.round((n / 100) * total) + ' of ' + total + ' cards' });
+        if (n >= 100) { clearInterval(timer); btn.removeAttribute('aria-disabled'); }
+      }, 120);
+    });
+  });
+</script>

@@ -1,0 +1,158 @@
+<!--{"title":"Spinner","group":"Components","order":93,"summary":"A working indicator with a real label, a 300 ms delay, and a pulse instead of a spin when motion is reduced."}-->
+<h1>Spinner</h1>
+<p class="lede">A spinner says "working" when nothing else can: a save, a refresh, a wait with no shape and no length. It always has a name, it waits 300&nbsp;ms before it shows, and under reduced motion it pulses instead of turning.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Put it where the result will land, with words: <em>Saving deck</em>, <em>Loading tasks</em>. Use a <a href="@/components/skeleton.html">skeleton</a> when you know the layout and <a href="@/components/progress.html">progress</a> when you know the length.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Spin for ever. After about ten seconds say something ("Still working. This is taking longer than usual.") and offer a way out. Don't cover the screen for a background refresh.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="inline">Inline, with a visible label</h3>
+<p>The default. The label is real text, read by everyone. The ring is decorative and <code>aria-hidden</code>.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="spinner" role="status">
+      <span class="spinner__ring" aria-hidden="true"></span>
+      <span class="spinner__label">Loading tasks</span>
+    </span>
+  </div>
+</div>
+
+<h3 id="sizes">Sizes</h3>
+<p>Four sizes, from text height to a hero loader. The ring and its stroke scale together, so the weight looks the same.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <div class="cluster" data-gap="5">
+      <span class="spinner" data-size="sm" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="sr-only">Small</span></span>
+      <span class="spinner" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="sr-only">Medium</span></span>
+      <span class="spinner" data-size="lg" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="sr-only">Large</span></span>
+      <span class="spinner" data-size="xl" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="sr-only">Extra large</span></span>
+    </div>
+  </div>
+</div>
+
+<h3 id="sr-label">Label for screen readers only</h3>
+<p>When the spot is tiny and the meaning obvious, hide the label visually with <code>sr-only</code>. It is still the accessible name.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <span class="spinner" data-size="sm" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="sr-only">Syncing</span></span>
+    <button class="btn" type="button" aria-busy="true">Saving deck</button>
+  </div>
+</div>
+<p class="t-meta">A button that is working uses <code>aria-busy="true"</code> on the <a href="@/components/button.html">button</a> itself. It draws its own small spinner and ignores taps.</p>
+
+<h3 id="on-tones">On a tone</h3>
+<p>The arc takes <code>currentColor</code>, so it is right on any tone, on ink, and inside a card without a colour role of its own.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 14rem">
+      <div class="card" data-tone="3"><div class="card__body"><span class="spinner" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="spinner__label">Syncing decks</span></span></div></div>
+      <div class="card" data-tone="ink"><div class="card__body"><span class="spinner" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="spinner__label">Syncing decks</span></span></div></div>
+    </div>
+  </div>
+</div>
+
+<h3 id="overlay">Overlay</h3>
+<p>Covers a region while it reloads. The overlay is positioned against its parent, so the parent needs <code>position: relative</code> (a card is). The label stays on a solid plate, never directly on the dimmed content. Mark the region <code>aria-busy="true"</code> and make what is underneath <code>inert</code>, so a keyboard cannot reach controls nobody can see.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="card" aria-busy="true">
+      <div class="card__body" inert>
+        <p class="card__eyebrow">Cards due today</p>
+        <p class="card__figure">12<small>/20</small></p>
+        <p class="card__meta">Last synced a minute ago</p>
+      </div>
+      <div class="spinner-overlay">
+        <span class="spinner" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="spinner__label">Refreshing</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="delay">Delay: nothing for the first 300&nbsp;ms</h3>
+<p>Add <code>data-delay</code> (to the spinner or the overlay) and it fades in only if the wait outlasts 300&nbsp;ms. A quick answer then shows no spinner at all, which feels faster than a flash.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage" data-code="&lt;span class=&quot;spinner&quot; data-delay role=&quot;status&quot;&gt;
+  &lt;span class=&quot;spinner__ring&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+  &lt;span class=&quot;spinner__label&quot;&gt;Saving&lt;/span&gt;
+&lt;/span&gt;">
+    <button class="btn" type="button" id="sp-go">Run a 2 s task</button>
+    <span class="cluster" id="sp-slot"></span>
+  </div>
+</div>
+
+<h2 id="motion">Motion</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Spinner motion by setting</caption>
+  <thead><tr><th>Setting</th><th>What you see</th></tr></thead>
+  <tbody>
+    <tr><td>Default</td><td>The arc turns once every 800&nbsp;ms (<code>--anim-spin</code>).</td></tr>
+    <tr><td>Reduced motion (OS, or the Motion switch)</td><td>The arc does not turn. It pulses in opacity every 1.4&nbsp;s. <code>--anim-spin</code> swaps itself, so no component needs a motion media query.</td></tr>
+    <tr><td>Forced colours</td><td>Arc in <code>Highlight</code> on a <code>GrayText</code> track. A masked arc keeps its gap, where a border-based spinner turns into a solid circle.</td></tr>
+  </tbody>
+</table></div>
+<p>Loading indicators are an essential activity and exempt from WCAG 2.2.2 pause controls, but the words still have to change when the wait turns out to be long.</p>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Ring</strong>: a masked track plus a 28% arc (<code>::after</code>), <code>aria-hidden</code>. The arc is <code>currentColor</code>; the track is <code>--line-soft</code>. No <code>&lt;svg&gt;</code> in the markup.</li>
+  <li><strong>Label</strong>: visible (<code>spinner__label</code>) or <code>sr-only</code>. Never absent.</li>
+  <li><strong>Status role</strong>: <code>role="status"</code> on the wrapper.</li>
+  <li><strong>Overlay</strong> (optional): <code>--scrim</code> over the region plus a solid, framed plate that holds the spinner and its label.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Spinner classes and attributes</caption>
+  <thead><tr><th>Class or attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.spinner</code></td><td></td><td>Wrapper. Parts: <code>.spinner__ring</code>, <code>.spinner__label</code>.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code> (16), md (24), <code>lg</code> (40), <code>xl</code> (56)</td><td>Ring size, in rem.</td></tr>
+    <tr><td><code>data-delay</code></td><td></td><td>Fade in after 300&nbsp;ms. Works on <code>.spinner</code> and <code>.spinner-overlay</code>.</td></tr>
+    <tr><td><code>.spinner-overlay</code></td><td><code>data-fixed</code></td><td>Covers the positioned parent; <code>data-fixed</code> covers the viewport.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Spinner keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td>Screen reader</td><td>Reads the label ("Loading tasks") through <code>role="status"</code>. A live region inserted together with its text is announced by some readers and skipped by others, so for a wait that matters also set <code>aria-busy="true"</code> on the region and announce the result with <code>SG.announce()</code> (WCAG 4.1.3).</td></tr>
+    <tr><td>Keyboard</td><td>Not focusable. An overlay does not trap focus: make the content beneath <code>inert</code>, and never cover a Cancel control.</td></tr>
+    <tr><td>Text contrast</td><td>The overlay label sits on a solid paper plate at 7:1, not on the scrim (WCAG 1.4.3).</td></tr>
+    <tr><td>Reduced motion</td><td>The arc pulses instead of turning.</td></tr>
+    <tr><td>Zoom / text size</td><td>Sizes are in rem and grow with text. Labels wrap.</td></tr>
+    <tr><td>Forced colours</td><td>Track <code>GrayText</code>, arc <code>Highlight</code>, plate <code>Canvas</code> with a <code>CanvasText</code> frame.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--anim-spin</code>, <code>--ink</code>, <code>--paper</code>, <code>--line</code>, <code>--line-soft</code>, <code>--scrim</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--type-ctl</code>, <code>--text-sm</code>, <code>--lh-snug</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--z-raised</code>, <code>--z-overlay</code>.</p>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    var SG = window.SG;
+    var go = document.getElementById('sp-go');
+    var slot = document.getElementById('sp-slot');
+    if (!go) return;
+    go.addEventListener('click', function () {
+      go.setAttribute('aria-busy', 'true');
+      slot.innerHTML = '<span class="spinner" data-delay role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="spinner__label">Saving</span></span>';
+      setTimeout(function () {
+        slot.innerHTML = '';
+        go.removeAttribute('aria-busy');
+        SG.announce('Saved');
+      }, 2000);
+    });
+  });
+</script>

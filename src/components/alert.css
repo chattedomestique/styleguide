@@ -1,0 +1,129 @@
+/* ==========================================================================
+   Alert  (layer: sg.components)                  dismiss: src/js/65-dismiss.js
+   --------------------------------------------------------------------------
+   An inline banner that stays where it is put until the problem is fixed or the
+   person dismisses it. A toast (toast.css) is for a passing confirmation; an alert
+   is for something that still matters after a glance.
+
+   AN ALERT IS A CARD. It is the owner's .card with a tone and one row of parts in
+   its body, not a second kind of surface: the frame, the tone fill, the radius
+   role, the focus-ring rule and the forced-colours border all come from card.css.
+   This file only lays out the row.
+
+   <div class="card alert" data-tone="warn" role="status">
+     <div class="card__body">
+       <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+       <div class="alert__main">
+         <p class="alert__title"><span class="sr-only">Warning: </span>Storage almost full</p>
+         <p class="alert__text">You have used 92% of your space.</p>
+       </div>
+       <button class="btn alert__close" data-variant="tone" data-tone="warn" data-shape="circle"
+               data-size="sm" type="button" data-sg-dismiss aria-label="Dismiss alert">
+         <span class="ic ic--close" aria-hidden="true"></span></button>
+       <div class="alert__actions">
+         <button class="btn" data-variant="tone" data-tone="warn" type="button">Manage storage</button>
+       </div>
+     </div>
+   </div>
+
+   data-tone       ok | warn | bad | info for a status; 1…6 | ink for a tip or promo; none =
+                   a plain paper card. Put the SAME data-tone on the buttons (data-variant="tone")
+                   so they take the alert's colours.
+   data-emphasis   bold: a saturated fill with near-white text, once per screen at most
+   data-size       sm: a banner ROW (icon, one or two lines, action, close side by side)
+   data-dismissible + [data-sg-dismiss]   the close button, handled by SG.dismiss
+
+   ICON + WORDS, NEVER COLOUR ALONE (WCAG 1.4.1). Every status has its own icon SHAPE
+   (info circle, check circle, warning triangle, alert circle) AND a title that says what
+   happened, with a visually hidden status word in front of it for screen readers. The hue is
+   rhythm on top; the mono palette and forced colours lose nothing.
+
+   WHICH ROLE? (WCAG 4.1.3)  static on page load: none. Appears or changes later:
+   role="status" (polite). Needs attention now, e.g. a failed save: role="alert"
+   (assertive, use sparingly). Put the role on an element that already exists and insert
+   the alert into it: a live region created together with its text is announced by some
+   screen readers and skipped by others.
+
+   Not pressable as a whole, so no lift and no shadow; its buttons are. Text is the card's
+   full ink (>= 7:1), never the softer ink, so the pastel fills cannot drag it under.
+
+   FORCED COLOURS  nothing to add here: the frame is card.css's real border (CanvasText in
+   forced colours) and each button keeps its own, so the edge and every control survive.
+   ========================================================================== */
+
+@layer sg.components {
+  .alert > .card__body {
+    --_gap: var(--space-3);
+
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--_gap);
+    row-gap: var(--_gap);
+
+    &:has(> .alert__close) {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    /* the status icon is 24px: the height of the first line of the title */
+    > .ic {
+      --ic-size: 1.5rem;
+    }
+  }
+
+  .alert__main {
+    display: grid;
+    gap: var(--space-1);
+    min-inline-size: 0;
+  }
+  .alert__title {
+    font: var(--type-body);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .alert__text {
+    font: var(--type-body);
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+  }
+
+  /* actions sit under the text, in the text column */
+  .alert__actions {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* Dismiss: a circle button. Its drawn 36px is pulled in by the difference to the 24px line
+     it sits beside, so the row is not taller than its text. The 44px hit area is the button's. */
+  .alert__close {
+    align-self: start;
+    margin-block: calc(var(--space-1) * -1.5);
+    margin-inline-end: calc(var(--space-1) * -1);
+  }
+
+  /* ---- Banner row: everything on one line; the text column is the only one that wraps. ---- */
+  .alert[data-size="sm"] > .card__body {
+    --_gap: var(--space-2);
+
+    display: flex;
+    flex-direction: row; /* .card__body is a column */
+    align-items: center;
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3) var(--space-2);
+
+    > .alert__main {
+      flex: 1 1 auto;
+    }
+    > .alert__actions,
+    > .alert__close {
+      flex: none;
+    }
+    > .alert__close {
+      margin-block: 0;
+      margin-inline-end: 0;
+    }
+  }
+}
