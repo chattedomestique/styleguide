@@ -168,6 +168,7 @@ export function checkCss({ name, css, kind, gates = { motion: true }, privateEls
   const plain = stripComments(css)
 
   // private tokens (--_x) are a component's own: they may not be read from another file
+  const sharedSeen = new Set()
   const privDeclared = new Set(decls.filter((d) => d.prop.startsWith('--_')).map((d) => d.prop))
 
   for (const d of decls) {
@@ -284,9 +285,9 @@ export function checkCss({ name, css, kind, gates = { motion: true }, privateEls
     }
     if (/^transition(?:-property)?$/.test(prop) && /(?:^|[\s,])all\b/.test(v)) err(line, 'a11y', 'transition: all. List the properties')
     if (/!\s*important/i.test(value) && !/\[hidden\]|sr-only|display:\s*none/.test(sel + value)) warn(line, 'hygiene', '!important: avoid; layers already let apps override')
-    if (prop === 'overflow' && /\bhidden\b/.test(v) && isComponent) warn(line, 'a11y', 'overflow: hidden clips focus rings: use overflow: clip and set --ring-gap')
-    if (prop === 'opacity' && isComponent) { const n = parseFloat(v); if (!Number.isNaN(n) && n < 1 && !/disabled|aria-disabled|::|skeleton|is-disabled|\[hidden\]|@keyframes|spinner|marquee/.test(sel + d.stack.join(' '))) warn(line, 'a11y', 'opacity dims text and borders below their contrast: use a solid role') }
-    if (prop === 'text-transform' && v === 'uppercase' && !isDocs && !/label|display|eyebrow|idx|kbd|caption|tag|badge|\bth\b|thead|\.t-|stat|count|skip/i.test(sel)) warn(line, 'rule-4', 'uppercase is structure (labels, index numbers, the display line): content is sentence case')
+    // overflow: hidden is not flagged here: whether a ring is clipped is MEASURED (tests/a11y.mjs checks ring contrast and cut-off text)
+    if (prop === 'opacity' && isComponent) { const n = parseFloat(v); if (!Number.isNaN(n) && n > 0 && n < 1 && !/disabled|aria-disabled|::|skeleton|is-disabled|\[hidden\]|@keyframes|spinner|marquee/.test(sel + d.stack.join(' '))) warn(line, 'a11y', 'opacity dims text and borders below their contrast: use a solid role') }
+    if (prop === 'text-transform' && v === 'uppercase' && !isDocs && !/label|display|eyebrow|idx|kbd|caption|tag|badge|\bth\b|thead|\.t-|stat|count|skip|dow|\bdt\b|title|summary|heading|dock|appbar|marquee|legend|divider|hour|\bnum\b|weekday|unit|axis|tick/i.test(sel)) warn(line, 'rule-4', 'uppercase is structure (labels, index numbers, the display line): content is sentence case')
     if ((isComponent || kind === 'layout' || kind === 'base') && /^(?:margin|padding)-(?:left|right)$|^(?:left|right)$|^border-(?:left|right)(?:-[a-z]+)?$/.test(prop) && !/forced-colors/.test(d.stack.join(' '))) warn(line, 'rtl', `physical property "${prop}": prefer logical (margin-inline, inset-inline-start …)`)
     if (prop === 'text-align' && /^(?:left|right)$/.test(v) && isComponent) warn(line, 'rtl', `text-align: ${v}: prefer start / end`)
     if (isComponent && /^(?:width|height|min-width|min-height|max-width|max-height|inline-size|block-size|min-inline-size|min-block-size|max-inline-size|max-block-size|padding[\w-]*|margin[\w-]*|gap|inset[\w-]*)$/.test(prop)) {
@@ -305,7 +306,7 @@ export function checkCss({ name, css, kind, gates = { motion: true }, privateEls
 
     /* ---- private tokens stay inside their file ---- */
     if (!isDocs) for (const m of value.matchAll(/var\(\s*(--_[\w-]+)/g)) if (!privDeclared.has(m[1]) && !isToken) {
-      if (privateElsewhere.has(m[1])) warn(line, 'tokens', `${m[1]} is declared in another component file: a shared private property couples the two (fine for a family such as input + select; say so in the header)`)
+      if (privateElsewhere.has(m[1])) { if (!sharedSeen.has(m[1])) { sharedSeen.add(m[1]); warn(line, 'tokens', `${m[1]} is declared in another component file: a shared private property couples the two (fine for a family such as input + select; say so in the header)`) } }
       else err(line, 'tokens', `${m[1]} is component-private but is declared nowhere`)
     }
   }
