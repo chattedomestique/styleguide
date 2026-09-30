@@ -4,7 +4,7 @@
   .phone h3 { margin: 0; }
   .phone dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-4); margin: 0; }
   .phone dl > div { min-inline-size: 0; }
-  .phone dt { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .phone dt { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; overflow-wrap: anywhere; }
   .phone dd { margin: 0; font: var(--type-body); overflow-wrap: anywhere; }
   .phone [data-role="actions"] { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   .phone [data-role="actions"] > .btn { flex: 1 1 auto; }
@@ -109,7 +109,7 @@
 </div>
 
 <h2 id="states">States</h2>
-<p>An image has no attribute that says "still loading" or "gave up", so the state is <code>data-state</code> on the figure. <code>src/js/70-media.js</code> sets it from the image's own <code>load</code> and <code>error</code> events; without the script the picture just appears. The frame keeps its ratio the whole time, so nothing around it moves.</p>
+<p>An image has no attribute that says "still loading" or "gave up", so the state is <code>data-state</code> on the figure. <code>src/js/70-media.js</code> sets it from the image's own <code>load</code> and <code>error</code> events; without the script the picture just appears. The frame keeps its ratio the whole time, so nothing around it moves; only when the words need more room than the ratio gives (large text, a narrow tile) does it grow, because the words are never cut off.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="grid" style="--grid-min: 14rem; align-items: start">

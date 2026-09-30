@@ -132,10 +132,14 @@
     min-inline-size: 0;
   }
 
-  /* what the actions would do, or why they cannot: read by the buttons through aria-describedby */
+  /* what the actions would do, or why they cannot: read by the buttons through aria-describedby.
+     The script writes the clip's name into it ("Move the playhead inside “Lighthouse” …") and the frame
+     clips, so a name wider than the column (a phone, or 200% text) must break instead of being cut off. */
   .timeline__hint {
     margin: 0;
     max-inline-size: none;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     padding: var(--space-2) var(--space-3);
     font: var(--type-meta);
     border-block-end: var(--bw-thin) solid var(--line);

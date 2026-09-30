@@ -233,9 +233,14 @@
   }
 
   /* ---- states: loading and failed ---------------------------------------------------- */
+  /* The status sits IN FLOW, stacked on the picture in one grid cell, so the frame is at least as tall as
+     the words it has to show: the ratio is a minimum and the frame grows past it. It used to be absolutely
+     placed in a frame with a fixed `min-block-size: 8rem`; through the aspect-ratio that minimum height was
+     turned into a minimum WIDTH (8rem x 3/2 = 12rem), so at 200% text the frame was wider than its figure
+     and the clipping figure cut "Loading photo" and "Try again" off the side (WCAG 1.4.4 / 1.4.10).
+     Never give an aspect-ratio box a min-block-size to make room for text: put the room on its content. */
   .media__status {
-    position: absolute;
-    inset: 0;
+    position: relative;
     z-index: 2; /* above a stretched link (z 1), or "Try again" could not be pressed on a linked tile */
     display: none;
     flex-direction: column;
@@ -255,7 +260,12 @@
   }
 
   .media:is([data-state="loading"], [data-state="failed"]) > .media__frame {
-    min-block-size: 8rem;
+    display: grid;
+    min-block-size: auto; /* the status counts towards the frame's height: it grows past its ratio, it never clips the words */
+  }
+  /* one cell: the status covers the (hidden) picture instead of starting a second row under it */
+  .media:is([data-state="loading"], [data-state="failed"]) > .media__frame > * {
+    grid-area: 1 / 1;
   }
   .media:is([data-state="loading"], [data-state="failed"]) .media__status {
     display: flex;
