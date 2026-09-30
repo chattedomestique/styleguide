@@ -23,7 +23,7 @@
 
    The toggle comes BEFORE the moving content in the DOM on purpose: a keyboard or
    screen-reader user meets the control that stops it before they reach the thing it
-   stops (WAI-ARIA carousel pattern). Grid areas put it at the end visually. It is the
+   stops (WAI-ARIA carousel pattern). `order` puts it at the end visually. It is the
    Button element, small and round, with a tone that matches the strip.
 
    data-tone      ink = the ink band (paper text, the look of the reference screen); ok | warn |
@@ -37,6 +37,14 @@
                   the single-row layout stays and the toggle is dashed with an explanation.
    data-ready     set BY JS on init. Until then the toggle is hidden: it would do nothing.
    data-speed     px per second, default 40 (read by the JS)
+
+   LARGE TEXT AND NARROW STRIPS (WCAG 1.4.4, 1.4.10)  The strip is a wrapping flex row, not a
+   grid of fixed areas. At 200% text the label and the round toggle together are wider than a
+   phone-width strip, and a grid could only let the toggle spill out of it (and the text under
+   it with it) into whatever clips. Flex wraps instead: label and toggle share the title row
+   while they fit; when they do not, the toggle drops to its own row (at the start, since it is
+   then alone on its line) and the text always has the strip's full width. The label wraps
+   inside its pill rather than growing past the strip.
 
    WCAG 2.2.2 (Pause, Stop, Hide): anything that moves on its own for more than 5 s and sits
    beside other content needs a pause control, and pausing on hover or focus alone does NOT
@@ -77,14 +85,12 @@
     --_dir: 1;
 
     /* One row while the text is scrolling or fits; a title row (label, toggle) over the
-       wrapped text when it is paused, reduced or unenhanced. The areas do the moving, so
+       wrapped text when it is paused, reduced or unenhanced. `order` does the moving, so
        the DOM order (label, toggle, viewport) never changes. */
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      "label . toggle"
-      "viewport viewport viewport";
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between; /* label and toggle at the two ends; a toggle alone on its line sits at the start */
     column-gap: var(--space-2);
     row-gap: var(--space-1);
     min-inline-size: 0;
@@ -98,9 +104,16 @@
       --_dir: -1;
     }
 
+    /* the one-row presentation: label, moving text, toggle */
     &[data-loop]:not(:has(> .marquee__toggle[aria-pressed="true"])),
     &[data-fit] {
-      grid-template-areas: "label viewport toggle";
+      > .marquee__viewport {
+        order: 2;
+        flex: 1 1 0; /* basis 0: it takes what is left and never forces a wrap of its own */
+      }
+      > .marquee__toggle {
+        order: 3;
+      }
     }
 
     /* Without the script the toggle could only lie. */
@@ -111,10 +124,10 @@
 
   /* ---- Label: the caption at the start. Uppercase is structure. -------------------------- */
   .marquee__label {
-    grid-area: label;
-    justify-self: start;
+    order: 1;
     display: inline-flex;
     align-items: center;
+    max-inline-size: 100%; /* never wider than the strip: a longer label wraps inside its pill */
     min-block-size: var(--ctl-sm);
     padding-inline: var(--space-3);
     color: var(--_label-ink);
@@ -123,12 +136,14 @@
     font: var(--type-label);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
-    white-space: nowrap;
+    overflow-wrap: break-word;
   }
 
   /* ---- Viewport / track / list ---------------------------------------------------------------- */
   .marquee__viewport {
-    grid-area: viewport;
+    container: marquee-view / inline-size; /* the wrapped text answers to the room it has, not to the page */
+    order: 3;
+    flex: 1 1 100%; /* its own row under the title row */
     min-inline-size: 0;
     /* Room for a link's focus ring inside the clip; see .marquee__list a below. */
     padding-block: var(--space-1);
@@ -193,6 +208,21 @@
   /* A clipped ring is no ring: draw it inside the box (WCAG 2.4.7). */
   .marquee__list a:focus-visible {
     --ring-gap: calc(var(--ring) * -1);
+  }
+
+  /* Wrapped text in a narrow viewport (a phone at 200% text). Every item then starts its own line, so
+     the square between items separates nothing, yet it and its gap would cost 3rem of a line that may
+     be 6rem wide and push the words into a letter per line. Dropped here only: the looping row and any
+     wider wrapped list keep it. 9rem is where that 3rem is a third of the line; a phone at 100% text
+     has about 12rem and keeps its separators. */
+  @container marquee-view (max-width: 9rem) {
+    .marquee:is(:not([data-loop], [data-fit]), :has(> .marquee__toggle[aria-pressed="true"])) .marquee__list > li {
+      gap: 0;
+
+      &::before {
+        display: none;
+      }
+    }
   }
 
   /* The loop copy only exists while looping. */
@@ -261,7 +291,8 @@
      carries the state (Button fills it AND doubles its frame), and the icon swaps to show the
      state you are in: pause while it runs, play while it is paused. */
   .marquee__toggle {
-    grid-area: toggle;
+    order: 2;
+    flex: none;
 
     & > .ic:nth-child(2),
     &[aria-pressed="true"] > .ic:nth-child(1) {

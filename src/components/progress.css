@@ -50,6 +50,12 @@
    - Not pressable, so: no lift, no shadow. Motion is transform + opacity only, travel x --move.
    - Forced colours: fills and tracks are given system colours (Highlight on Canvas).
 
+   LARGE TEXT AND NARROW COLUMNS (WCAG 1.4.4, 1.4.10)  Sizes are rem, so everything grows with text and
+   a card's frame (overflow: clip) then has less room than the ring or the value wants. Two things give
+   way instead of being cut off: the head wraps (the value drops under the label, as in Slider), and the
+   ring is capped at its container (max-inline-size: 100%, still square) with its figure sized against
+   the RING, never the page (clamp from a rem floor, so it never drops below the reader's text size).
+
    PRIVATE PROPERTIES  --_h bar height · --_fill · --_track · --_frame · --_dir (1 | -1 in RTL)
    ========================================================================== */
 
@@ -119,9 +125,10 @@
   }
   .progress__head {
     display: flex;
+    flex-wrap: wrap; /* at large text or in a narrow column the value drops under the label: a flat row would squeeze the label to a letter per line */
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-1) var(--space-3);
   }
   .progress__label {
     min-inline-size: 0;
@@ -189,21 +196,26 @@
   .progress-ring {
     --_d: 5.5rem;
     --_fs: var(--text-lg);
+    --_fr: 0.23; /* figure size as a fraction of the ring's width at its natural size (20 / 88) */
 
+    container: progress-ring / inline-size; /* the figure sizes itself against the ring, not the page */
     position: relative;
     display: inline-grid;
     place-items: center;
     flex: none;
     inline-size: var(--_d);
-    block-size: var(--_d);
+    max-inline-size: 100%; /* a ring wider than its card is cut off by the card's frame: it gives way instead, and stays round */
+    aspect-ratio: 1;
 
     &[data-size="sm"] {
       --_d: 3.5rem;
       --_fs: var(--text-sm);
+      --_fr: 0.25; /* 14 / 56 */
     }
     &[data-size="lg"] {
       --_d: 8rem;
       --_fs: var(--text-2xl);
+      --_fr: 0.41; /* 52 / 128, the widest --text-2xl gets */
     }
 
     > svg {
@@ -240,7 +252,10 @@
   }
   .progress-ring__num {
     font: var(--type-figure);
-    font-size: var(--_fs);
+    /* --_fs while the ring is its natural size (--_fr is chosen so the middle value never bites there);
+       once the ring is squeezed the figure follows its width, so it stays inside the stroke.
+       The floor is rem, so the figure never falls below the reader's own text size. */
+    font-size: clamp(0.875rem, calc(var(--_fr) * 100cqi), var(--_fs));
     letter-spacing: var(--ls-figure);
     font-variant-numeric: tabular-nums lining-nums;
   }
