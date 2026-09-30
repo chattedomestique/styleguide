@@ -1,0 +1,402 @@
+/* ==========================================================================
+   Media  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A figure: one picture (or video) in a 2px frame, with an optional caption.
+   It holds, so it is a rectangle with --radius-tile and no shadow. The only
+   time it lifts is when the WHOLE figure is one link (data-link), because a
+   hard shadow means "you can press this".
+
+   <figure class="media" data-ratio="4:3">
+     <div class="media__frame"><img src="…" alt="Three boats under a low sun" width="1200" height="900"></div>
+     <figcaption class="media__caption">
+       <span class="media__label"><time datetime="2026-03-29">Mar 29</time></span>
+       <span class="media__title">Harbour at dawn</span>
+       <span class="media__meta">Three boats, flat water.</span>
+     </figcaption>
+   </figure>
+
+   data-ratio     1:1 | 4:3 (default) | 3:2 | 16:9 | 21:9 | 3:4 | 4:5 | free (the file's own shape)
+                  Also works on .carousel / .filmstrip: the ratio is inherited through --ratio.
+   data-caption   plain (default: paper strip) | bar (solid ink bar, paper text) | over (a --scrim-strong
+                  plate over the bottom of the picture). Text NEVER sits on a bare photo (1.4.3).
+   data-fit       cover (default) | contain (letterboxed on --paper-2: logos, product shots)
+   data-fill      fill the height the parent gives it (gallery tiles); the ratio is ignored
+   data-tone      1…6 | ink | ok | … : the colour behind the picture while it loads, and the caption strip
+   data-link      the whole figure is one link: put class="media__link" on the title's <a>
+   --pos          focal point, e.g. style="--pos: 50% 20%" (object-position)
+
+   STATES come from data-state on the figure (an image has no native "loading" or "failed" attribute):
+     data-state="loading"   skeleton + spinner (a pulse under reduced motion); aria-busy on the figure
+     data-state="failed"    dashed frame, an icon, words and a "Try again" button. Status = icon + words.
+   src/js/70-media.js sets both for you from the img's load / error events. Without it the picture simply
+   shows; nothing here depends on it.
+
+   PARTS  .media__frame (the ratio box) · .media__badge (a corner label on a --scrim-strong plate)
+          .media__status (loading / failed) · .media__caption > .media__label .media__title .media__meta
+
+   PRIVATE PROPERTIES
+     --_bg / --_bg-ink            what the frame shows before the picture (tone, else --paper-2) and its text
+     --_cap-bg / -ink / -soft     caption strip colours (tone, else paper); the bar and over variants swap them
+     --_pad                       caption padding, from the figure's width (cqi lives on parts, never on .media)
+   They are read on the figure because --tone-* are registered inherits:false: a child cannot see them.
+
+   FOUNDATION REQUEST  a role for "always-dark ink" would let a filled control sit on a photo in both themes;
+   until then, controls on media use --scrim-strong with --on-media and a --on-media frame.
+   ========================================================================== */
+
+@layer sg.components {
+  /* ratio presets: one place, inherited by anything inside (a carousel sets it for every slide) */
+  :where(.media, .carousel, .filmstrip)[data-ratio="1:1"] {
+    --ratio: 1 / 1;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="4:3"] {
+    --ratio: 4 / 3;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="3:2"] {
+    --ratio: 3 / 2;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="16:9"] {
+    --ratio: 16 / 9;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="21:9"] {
+    --ratio: 21 / 9;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="3:4"] {
+    --ratio: 3 / 4;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="4:5"] {
+    --ratio: 4 / 5;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="free"] {
+    --ratio: auto;
+  }
+
+  .media {
+    --lift: 0;
+    --fill: 0;
+    --_bg: var(--tone-bg, var(--paper-2));
+    --_bg-ink: var(--tone-ink-soft, var(--ink-soft));
+    --_cap-bg: var(--tone-bg, var(--paper));
+    --_cap-ink: var(--tone-ink, var(--ink));
+    --_cap-soft: var(--tone-ink-soft, var(--ink-soft));
+    --_pad: clamp(var(--space-3), 4cqi, var(--space-4));
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    min-inline-size: 0;
+    isolation: isolate;
+    container: media / inline-size;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-tile);
+    overflow: clip;
+    box-shadow: var(--_shadow);
+  }
+
+  /* the inverted tone flips the bar, or it would vanish into the figure (same move as .card) */
+  .media[data-caption="bar"] {
+    --_cap-bg: var(--ink);
+    --_cap-ink: var(--paper);
+    --_cap-soft: color-mix(in srgb, var(--paper) 80%, var(--ink));
+  }
+  .media[data-caption="bar"][data-tone="ink"] {
+    --_cap-bg: var(--paper);
+    --_cap-ink: var(--ink);
+    --_cap-soft: color-mix(in srgb, var(--ink) 80%, var(--paper));
+  }
+
+  /* the frame has to fit a ring inside it (it clips), and the bar is ink, so its ring is paper */
+  .media :focus-visible {
+    --ring-gap: var(--ring-offset-in);
+  }
+  .media[data-caption="bar"] .media__caption :focus-visible {
+    outline-color: var(--_cap-ink);
+  }
+
+  /* ---- frame ------------------------------------------------------------------- */
+  .media__frame {
+    position: relative;
+    grid-area: 1 / 1;
+    min-block-size: 0;
+    aspect-ratio: var(--ratio, var(--ratio-media));
+    color: var(--_bg-ink);
+    background: var(--_bg);
+    overflow: clip;
+  }
+
+  /* absolutely placed: the ratio alone sizes the frame, so a picture's own size can never stretch a
+     grid row (gallery) or fight the ratio. `free` switches back to normal flow below. */
+  .media__frame > :is(img, video, canvas, svg, iframe),
+  .media__frame picture > img {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    object-position: var(--pos, 50% 50%);
+    transition: opacity var(--dur-enter) var(--ease-out);
+  }
+  .media__frame > picture {
+    display: contents;
+  }
+  .media[data-fit="contain"] .media__frame > :is(img, video, picture > img) {
+    object-fit: contain;
+  }
+
+  :where([data-ratio="free"]) .media__frame > :is(img, video, svg),
+  :where([data-ratio="free"]) .media__frame picture > img {
+    position: static;
+    block-size: auto;
+  }
+
+  .media[data-fill] {
+    block-size: 100%;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .media[data-fill] > .media__frame {
+    aspect-ratio: auto;
+  }
+
+  /* ---- badge: a label on the picture, on a plate (never bare text on a photo) ----- */
+  .media__badge {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: var(--space-2);
+    inset-inline-start: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-block-size: 1.5rem;
+    padding-inline: var(--space-2);
+    color: var(--on-media);
+    background: var(--scrim-strong);
+    border: var(--bw-thin) solid var(--on-media);
+    border-radius: var(--radius-pill);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+
+  .media__badge > .ic {
+    --ic-size: 0.875rem;
+  }
+
+  /* ---- caption ---------------------------------------------------------------------- */
+  .media__caption {
+    z-index: 1; /* a grid item honours z-index without position: the over variant stacks on the frame */
+    grid-area: 2 / 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--_pad);
+    color: var(--_cap-ink);
+    background: var(--_cap-bg);
+    border-block-start: var(--bw) solid var(--line);
+    font: var(--type-meta);
+    overflow-wrap: anywhere;
+  }
+
+  .media__label {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .media__title {
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    text-wrap: balance;
+  }
+
+  .media__meta {
+    color: var(--_cap-soft);
+    font-variant-numeric: tabular-nums;
+    text-wrap: pretty;
+  }
+
+  /* over: the caption sits on the bottom of the picture, on a scrim plate. --scrim-strong is black at 0.75:
+     white text stays >= 8.5:1 even over a pure white photo. The plate is a flat band, not a fade. */
+  .media[data-caption="over"] > .media__caption {
+    grid-area: 1 / 1;
+    align-self: end;
+    color: var(--on-media);
+    background: var(--scrim-strong);
+    border-block-start: 0;
+    --_cap-soft: var(--on-media);
+  }
+
+  /* ---- states: loading and failed ---------------------------------------------------- */
+  .media__status {
+    position: absolute;
+    inset: 0;
+    z-index: 2; /* above a stretched link (z 1), or "Try again" could not be pressed on a linked tile */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    color: var(--_bg-ink);
+    font: var(--type-meta);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .media__note {
+    max-inline-size: 28ch;
+    text-wrap: balance;
+  }
+
+  .media:is([data-state="loading"], [data-state="failed"]) > .media__frame {
+    min-block-size: 8rem;
+  }
+  .media:is([data-state="loading"], [data-state="failed"]) .media__status {
+    display: flex;
+  }
+  .media:is([data-state="loading"], [data-state="failed"]) .media__frame > :is(img, video, canvas, svg, iframe),
+  .media:is([data-state="loading"], [data-state="failed"]) .media__frame picture > img {
+    opacity: 0;
+  }
+
+  /* loading: a ring that spins (pulses under reduced motion). Shape + motion, never colour alone. */
+  .media[data-state="loading"] .media__status::before {
+    content: "";
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border: var(--bw) solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    animation: var(--anim-spin);
+  }
+  .media[data-state="loading"] .media__status > :is(.ic, .btn) {
+    display: none;
+  }
+
+  /* failed: dashed = not here (the house legend), plus an icon and a sentence and a way out */
+  .media[data-state="failed"] {
+    border-style: dashed;
+  }
+  .media__status > .ic {
+    --ic-size: 1.75rem;
+  }
+
+  /* small tiles: a tighter caption; keep the sentence and the button, drop the icon */
+  @container media (max-width: 12rem) {
+    .media__caption {
+      padding: var(--space-2);
+    }
+    .media__title {
+      font-size: var(--text-sm);
+    }
+    .media__status {
+      gap: var(--space-1);
+      padding: var(--space-2);
+      font-size: var(--text-xs);
+    }
+    .media__status > .ic {
+      display: none;
+    }
+  }
+
+  /* ---- variant: the whole figure is one link -------------------------------------------
+     The anchor lives in the title and its ::after stretches over the figure: one tab stop, one name,
+     the hit area is the whole thing (same move as .card--link). */
+  .media[data-link] {
+    cursor: pointer;
+    overflow-clip-margin: border-box;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+  }
+  .media[data-link]:active {
+    transition-duration: var(--dur-press);
+  }
+
+  .media__link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.18em;
+    text-decoration-color: color-mix(in srgb, currentColor calc(var(--fill) * 100%), transparent);
+  }
+  .media__link::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--bw) * -1);
+  }
+  /* an image-only link lives in the frame, which is positioned: stretch it over the figure all the same */
+  .media__frame > .media__link {
+    position: static;
+    display: block;
+    block-size: 100%;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .media[data-link]:hover {
+      --lift: 1;
+      --fill: 1;
+      z-index: 1;
+    }
+  }
+  .media[data-link]:is(.is-hover, .is-focus, :has(.media__link:focus-visible)) {
+    --lift: 1;
+    --fill: 1;
+    z-index: 1;
+  }
+  .media[data-link]:is(:active, .is-active) {
+    --lift: 0;
+    --fill: 1;
+  }
+
+  /* the figure wears the focus ring, not the anchor inside it */
+  .media[data-link]:is(.is-focus, :has(.media__link:focus-visible)) {
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-offset);
+  }
+  @supports selector(:has(*)) {
+    .media__link:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+  }
+
+  /* ---- inside a card: the card already has the frame. Same rule under the picture as .card__media ---- */
+  .card > .media {
+    border-width: 0 0 var(--bw);
+    border-color: var(--card-ink, var(--ink));
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* ---- forced colours: fills, scrims and shadows vanish, so lines do the work ----------------- */
+  @media (forced-colors: active) {
+    .media {
+      border-color: CanvasText;
+    }
+    .media__caption {
+      border-block-start-color: CanvasText;
+    }
+    .media[data-caption="over"] > .media__caption {
+      border-block-start: var(--bw) solid CanvasText;
+    }
+    .media__badge {
+      border-color: CanvasText;
+    }
+    .media[data-link]:is(:hover, .is-hover, .is-focus, :has(.media__link:focus-visible)) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+}

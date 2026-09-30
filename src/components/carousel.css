@@ -1,0 +1,287 @@
+/* ==========================================================================
+   Carousel  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Slides in a row that scroll and snap, one at a time, with the controls in a bar underneath. The
+   slides are a NATIVE scroll container (scroll-snap), so a swipe, a trackpad and Shift+wheel work with
+   no script; src/js/71-carousel.js adds the buttons, dots and counter and keeps them truthful.
+   It holds, so it is a rectangle (--radius-card) in a 2px frame; the circles in the bar act.
+
+   <section class="carousel" aria-roledescription="carousel" aria-label="Field notes" data-ratio="3:2">
+     <div class="carousel__track" id="notes-track" tabindex="0" role="group" aria-label="Slides">
+       <div class="carousel__slide" role="group" aria-roledescription="slide" aria-label="1 of 6">
+         <figure class="media">…</figure>
+       </div>
+     </div>
+     <div class="carousel__bar">
+       <p class="carousel__count"><span class="num" data-sg-current>1</span> of <span class="num" data-sg-total>6</span></p>
+       <div class="carousel__dots" role="group" aria-label="Choose a slide">
+         <button class="carousel__dot" type="button" aria-label="Slide 1" aria-current="true"></button> …
+       </div>
+       <div class="carousel__nav">
+         <button class="btn carousel__prev" data-shape="circle" type="button" aria-label="Previous slide" aria-controls="notes-track">…
+         <button class="btn carousel__next" …>
+   Needs dist/icons.css for the chevrons (ic--chevron-left / -right, ic--play / -pause).
+
+   data-ratio        the slides' picture ratio (see media.css); every slide should share one, or heights jump
+   data-peek         slides are 84% wide so the next one shows: a cue, never the only way on
+   data-loop         prev on the first slide goes to the last, and next on the last to the first
+   data-autoplay     "5000" = ms between slides. OFF until the person presses Play; needs a .carousel__play
+                     button; never starts under reduced motion; see 71-carousel.js for the stop rules
+   data-autoplay-start   start playing on load (still never under reduced motion)
+
+   FOCUS   the track is a focusable, named group so a keyboard can reach a scroller (Left / Right / Home / End on
+           it do what the buttons do). The FRAME wears its ring (:has), drawn outside the clip, in the same
+           ink as every other ring; the track's own outline is dropped so it is not doubled inside the photo.
+
+   STATES  aria-current="true" on the dot of the current slide: it fills AND stretches into a pill (a
+           second cue that survives forced colours). aria-disabled on prev / next at the ends (a real
+           aria-disabled, so focus is never lost when the last slide is reached).
+           data-playing="true|false" on the Play button swaps its icon; the NAME changes too
+           ("Pause slide show" / "Start slide show"), which is what a screen reader hears.
+
+   THE BAR  is paper, not a scrim over the photo: the controls never depend on what the picture looks like.
+            Below 36rem the dots get their own row; six 44px dots fit a 320px phone. Under 17rem wide they are
+            hidden (the count and the buttons stay), because a half-wrapped row of dots reads as a bug.
+   DOTS     are 44px cells that touch (a 12px circle in the middle of each, so the circles sit 32px apart). The
+            house wants 8px between targets; six of them with gaps would need 304px and would not fit a 320px
+            phone. Touching 44px cells leave no dead zone to mis-tap into, which is what the gap is for.
+   PRIVATE  --slide-size (public): slide width, 100% (84% with data-peek).
+   ========================================================================== */
+
+@layer sg.components {
+  .carousel {
+    --slide-size: 100%;
+
+    position: relative;
+    display: grid;
+    min-inline-size: 0;
+    container: carousel / inline-size;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+    overflow: clip;
+  }
+
+  .carousel[data-peek] {
+    --slide-size: 84%;
+  }
+
+  /* anything focusable in here has to fit its ring inside the clip */
+  .carousel :focus-visible {
+    --ring-gap: var(--ring-offset-in);
+  }
+
+  /* the frame wears the ring for the track, because the track's own would be drawn over the picture's edge */
+  .carousel:has(> .carousel__track:focus-visible) {
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-offset);
+  }
+  @supports selector(:has(*)) {
+    .carousel__track:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+  }
+
+  /* ---- the track: native scroll + snap ------------------------------------------------ */
+  .carousel__track {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .carousel__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carousel[data-peek] .carousel__track {
+    gap: var(--space-3);
+    padding: var(--space-3);
+    scroll-padding-inline: var(--space-3);
+  }
+
+  .carousel__slide {
+    flex: 0 0 var(--slide-size);
+    min-inline-size: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always; /* a fast swipe lands on the next slide, it never skips one */
+    /* the track clips: a ring on something inside a slide is drawn inward, or its edge is cut off */
+    --ring-offset: calc(var(--ring) * -1);
+  }
+  .carousel .carousel__slide :focus-visible {
+    --ring-gap: calc(var(--ring) * -1);
+  }
+
+  /* a picture in a slide is already inside the carousel's frame; with data-peek each slide keeps its own */
+  .carousel:not([data-peek]) .carousel__slide > .media {
+    border: 0;
+    border-radius: 0;
+  }
+  .carousel__slide > .media {
+    block-size: 100%;
+  }
+
+  /* ---- the bar ------------------------------------------------------------------------- */
+  .carousel__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-block-start: var(--bw) solid var(--line);
+  }
+
+  .carousel__count {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .carousel__nav {
+    display: flex;
+    flex: none;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+  }
+
+  .carousel__dots {
+    order: 3;
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    /* six 44px dots are 264px; the bar's padding would leave a 320px phone 4px short and wrap the last one */
+    margin-inline: calc(var(--space-1) * -1);
+  }
+
+  /* too narrow for a row of 44px dots: the count and the buttons do the job, and a wrapped half-row would not */
+  @container carousel (max-width: 17rem) {
+    .carousel__dots {
+      display: none;
+    }
+  }
+
+  /* wide enough: one row, dots in the middle (count and nav share the rest equally) */
+  @container carousel (min-width: 36rem) {
+    .carousel__count,
+    .carousel__nav {
+      flex: 1 1 0;
+    }
+    .carousel__nav {
+      justify-content: flex-end;
+      margin-inline-start: 0;
+    }
+    .carousel__dots {
+      order: 0;
+      flex: 0 1 auto;
+    }
+  }
+
+  /* chevrons point the way the slides go, in both directions */
+  .carousel :is(.carousel__prev, .carousel__next):dir(rtl) .ic {
+    transform: scaleX(-1);
+  }
+
+  /* play / pause: one button, two icons, the state on the button */
+  .carousel__play .ic--pause {
+    display: none;
+  }
+  .carousel__play[data-playing="true"] .ic--play {
+    display: none;
+  }
+  .carousel__play[data-playing="true"] .ic--pause {
+    display: inline-block;
+  }
+
+  /* ---- a dot: a 44px target around a 12px circle ------------------------------------------ */
+  .carousel__dot {
+    --fill: 0;
+
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: var(--hit);
+    block-size: var(--hit);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: --fill var(--dur-hover) var(--ease-out);
+  }
+
+  .carousel__dot::before {
+    content: "";
+    inline-size: 0.75rem;
+    block-size: 0.75rem;
+    background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+  }
+
+  /* here: filled AND stretched into a pill, so "here" never rests on the fill alone */
+  .carousel__dot[aria-current="true"] {
+    --fill: 1;
+  }
+  .carousel__dot[aria-current="true"]::before {
+    inline-size: 1.75rem;
+  }
+
+  @media (hover: hover) {
+    .carousel__dot:is(:hover, .is-hover) {
+      --fill: 1;
+    }
+  }
+  .carousel__dot:is(:focus-visible, .is-focus, :active, .is-active) {
+    --fill: 1;
+  }
+  /* .is-focus only forces the state on the docs page: a real focus gets the ring from the base layer */
+  .carousel__dot.is-focus {
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-gap, var(--ring-offset));
+  }
+  .carousel__dot:active {
+    transition-duration: var(--dur-press);
+  }
+
+  /* ---- no script, no controls that do nothing -------------------------------------------- */
+  @media (scripting: none) {
+    .carousel__bar {
+      display: none;
+    }
+  }
+
+  /* ---- forced colours: fills vanish, so "here" is the heavier, longer outline ------------- */
+  @media (forced-colors: active) {
+    .carousel {
+      border-color: CanvasText;
+    }
+    .carousel__bar {
+      border-block-start-color: CanvasText;
+    }
+    .carousel:has(> .carousel__track:focus-visible) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    .carousel__dot::before {
+      border-color: CanvasText;
+    }
+    .carousel__dot[aria-current="true"]::before {
+      border-width: var(--bw-heavy);
+    }
+    .carousel__dot:is(.is-hover, :focus-visible, .is-focus)::before {
+      border-color: Highlight;
+    }
+  }
+  @media (forced-colors: active) and (hover: hover) {
+    .carousel__dot:hover::before {
+      border-color: Highlight;
+    }
+  }
+}
