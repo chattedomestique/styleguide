@@ -17,6 +17,8 @@
                                           next to the trigger, flipped if there is no room, kept on
                                           screen. No-op when native.
      SG.anchor.release(popover)           stop tracking a JS-placed popover
+     SG.anchor.verify(popover)            safety net: if a natively placed popover still runs off the screen,
+                                          place it with the script (called after every open)
      SG.anchor.native                     true when CSS anchor positioning is available
      SG.anchor.forceJs                    set true to use the fallback everywhere (tests, old WebViews)
 
@@ -74,6 +76,23 @@
     pop.style.removeProperty('position-anchor');
     pop.style.removeProperty('inset-inline-start');
     pop.style.removeProperty('inset-block-start');
+    pop.style.removeProperty('max-block-size');
+  };
+
+  /** A SAFETY NET for CSS anchor positioning. If an open, natively placed popover still runs off the
+      screen (nothing in its fallback list fits, for example a menu taller than either side of its
+      button at 200% text), place it with the script instead: same gap, clamped inside the screen. */
+  A.verify = function (pop) {
+    if (!pop.hasAttribute('data-anchored') || pop.hasAttribute('data-anchor-js') || !popoverOpen(pop)) return;
+    var r = pop.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth;
+    var vh = document.documentElement.clientHeight;
+    var slack = 12; // the entry settles by a few px; do not mistake that for overflow
+    if (r.left >= -1 && r.right <= vw + 1 && r.top >= -slack && r.bottom <= vh + slack) return;
+    pop.removeAttribute('data-placed');
+    pop.setAttribute('data-anchor-js', '');
+    pop.style.removeProperty('position-anchor');
+    A.place(pop);
   };
 
   /** Fallback placement. Physical coordinates are computed from logical placement names. */
@@ -117,6 +136,8 @@
     var y = Math.max(MARGIN, Math.min(pos.y, vh - p.height - MARGIN));
     // Viewport coordinates of a position: fixed box. The logical inset is used for the inline
     // axis so the same number means the same thing in RTL.
+    // Taller than the screen (200% text on a phone): let it scroll inside instead of running off.
+    if (p.height > vh - MARGIN * 2) pop.style.maxBlockSize = (vh - MARGIN * 2) + 'px';
     pop.style.insetInlineStart = Math.round(rtl ? vw - x - p.width : x) + 'px';
     pop.style.insetBlockStart = Math.round(y) + 'px';
     pop.setAttribute('data-placed', '');
@@ -203,6 +224,7 @@
     if (!kind) return;
     if (e.newState === 'open') {
       A.place(pop);
+      window.requestAnimationFrame(function () { A.verify(pop); });
       kind.afterOpen(pop);
     } else {
       A.release(pop);

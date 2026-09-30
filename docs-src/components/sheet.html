@@ -9,12 +9,13 @@
   .docs-article .sheet p { max-inline-size: none; }
   /* A stage: a dimmed "page" with a static sheet docked to the bottom. */
   [data-stage] { position: relative; display: flex; align-items: flex-end; min-block-size: 24rem; overflow: clip; border: var(--bw) solid var(--line); background: var(--canvas); }
-  [data-stage]::before { content: ""; position: absolute; inset: 0; background: var(--scrim); }
-  [data-stage] > .card { position: absolute; inset-block-start: var(--space-4); inset-inline: var(--space-4); }
+  [data-stage] > .card[aria-hidden] { position: absolute; inset-block-start: var(--space-4); inset-inline: var(--space-4); }
+  [data-stage] > [data-scrim] { position: absolute; inset: 0; background: var(--scrim); }
   [data-stage] > .sheet { position: relative; }
   #sh-corners > div { min-inline-size: 0; }
   #sh-corners .t-label { margin-block-end: var(--space-2); }
   #sh-states .card { inline-size: 12rem; }
+  #sh-filter .card__body { gap: var(--space-5); }
   #sh-filter fieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
   #sh-filter legend { padding: 0; margin-block-end: var(--space-2); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
 </style>
@@ -176,6 +177,7 @@
         <p class="t-label">Square</p>
         <div data-stage>
           <div class="card" aria-hidden="true"><div class="card__body"><p class="card__title">Decks</p></div></div>
+          <div data-scrim aria-hidden="true"></div>
           <section class="sheet card" data-inline role="group" aria-labelledby="sh-sq-t">
             <button class="sheet__handle" type="button" data-sg-sheet-size aria-pressed="false" aria-label="Full height"></button>
             <header class="card__bar"><h3 class="card__label" id="sh-sq-t">Shapes</h3><button class="card__ctl" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button></header>
@@ -187,6 +189,7 @@
         <p class="t-label">Soft</p>
         <div data-stage>
           <div class="card" aria-hidden="true"><div class="card__body"><p class="card__title">Decks</p></div></div>
+          <div data-scrim aria-hidden="true"></div>
           <section class="sheet card" data-inline role="group" aria-labelledby="sh-so-t">
             <button class="sheet__handle" type="button" data-sg-sheet-size aria-pressed="true" aria-label="Full height"></button>
             <header class="card__bar"><h3 class="card__label" id="sh-so-t">Shapes</h3><button class="card__ctl" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button></header>

@@ -435,6 +435,19 @@ export const tests = [
     },
   },
   {
+    name: 'at 200% text on a phone the open menu still fits on the screen (scripted placement takes over when CSS has no room)',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/menu.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.locator('#mb-actions').scrollIntoViewIfNeeded()
+      await page.locator('#mb-actions').focus(); await page.keyboard.press('Enter')
+      await page.waitForTimeout(600)
+      const r = await page.evaluate(() => { const b = document.querySelector('#m-actions').getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, vw: document.documentElement.clientWidth, vh: innerHeight } })
+      expect.ok(r.l >= -1 && r.r <= r.vw + 1 && r.t >= -1 && r.b <= r.vh + 1, `inside the screen (${JSON.stringify(r)})`)
+    },
+  },
+  {
     name: 'reduced motion: the menu appears with a fade, no vertical travel, and the chevron stays put',
     reducedMotion: true,
     async run({ page, goto, expect }) {

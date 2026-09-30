@@ -147,7 +147,7 @@ export const tests = [
     },
   },
   {
-    name: 'the handle is drawn 48x28 but its hit area reaches 44px',
+    name: 'the handle is drawn 48x28 but its hit area is 44px tall',
     async run({ page, goto, expect }) {
       await goto('components/sheet.html')
       await page.locator('[data-sg-open="#sh-deck"]').click()
@@ -157,10 +157,10 @@ export const tests = [
         const b = el.getBoundingClientRect()
         const cx = b.left + b.width / 2
         const at = (x, y) => { const t = document.elementFromPoint(x, y); return !!t && (t === el || el.contains(t)) }
-        return { w: b.width, h: b.height, up: at(cx, b.top + 1), down: at(cx, b.top + 43), beyond: at(cx, b.top + 46) }
+        return { w: b.width, h: b.height, up: at(cx, b.top - 5), down: at(cx, b.bottom + 9), beyond: at(cx, b.bottom + 12), above: at(cx, b.top - 8) }
       })
       expect.ok(r.h < 44 && r.w >= 44, `drawn ${r.w}x${r.h}`)
-      expect.ok(r.up && r.down, 'the invisible hit area reaches 44px tall')
+      expect.ok(r.up && r.down, 'the invisible hit area reaches 44px tall (6px above, 10px below the capsule)')
       expect.ok(!r.beyond, 'and stops there')
     },
   },

@@ -54,7 +54,9 @@
     position: fixed;
     display: none; /* a closed menu stays hidden while the exit animation needs display to be discrete */
     box-sizing: border-box;
-    min-inline-size: 12rem;
+    /* min-width beats max-width, so the minimum must also respect the screen: at 200% text 12rem
+       is wider than a phone and the menu would run off the right edge */
+    min-inline-size: min(12rem, calc(100vw - var(--_edge)));
     max-inline-size: min(22rem, calc(100vw - var(--_edge)));
     max-block-size: min(28rem, calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--space-6)));
     padding: 0;
@@ -107,7 +109,7 @@
   /* At least as wide as its button, so a "Sort: Newest" button and its menu line up. */
   @supports (position-area: block-end) and (anchor-name: --a) {
     [popover].menu[data-anchored]:not([data-anchor-js]) {
-      min-inline-size: max(12rem, anchor-size(inline));
+      min-inline-size: max(min(12rem, calc(100vw - var(--_edge))), anchor-size(inline));
     }
   }
 

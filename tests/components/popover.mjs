@@ -140,7 +140,7 @@ export const tests = [
         await page.locator(`[popovertarget="${id}"]`).scrollIntoViewIfNeeded()
         await page.locator(`[popovertarget="${id}"]`).click()
         await page.waitForTimeout(400)
-        const r = await page.evaluate((i) => { const b = document.querySelector(`[popovertarget="${i}"]`).getBoundingClientRect(); const m = document.getElementById(i).getBoundingClientRect(); return { dRight: m.right - b.right, below: m.top - b.bottom, above: b.top - m.bottom, besideGap: m.left - b.right, cx: (m.left + m.right) / 2 - (b.left + b.right) / 2, cy: (m.top + m.bottom) / 2 - (b.top + b.bottom) / 2 } }, id)
+        const r = await page.evaluate((i) => { const b = document.querySelector(`[popovertarget="${i}"]`).getBoundingClientRect(); const m = document.getElementById(i).getBoundingClientRect(); return { dRight: m.right - b.right, below: m.top - b.bottom, above: b.top - m.bottom, besideGap: m.left - b.right, besideGapStart: b.left - m.right, cx: (m.left + m.right) / 2 - (b.left + b.right) / 2, cy: (m.top + m.bottom) / 2 - (b.top + b.bottom) / 2 } }, id)
         await page.keyboard.press('Escape')
         return r
       }
@@ -150,7 +150,8 @@ export const tests = [
       expect.ok(Math.abs(top.above - 8) <= 2.5, `8px above (${top.above})`)
       expect.ok(Math.abs(top.cx) <= 3, `centred (${top.cx})`)
       const end = await place('pop-p4')
-      expect.ok(Math.abs(end.besideGap - 8) <= 2.5, `8px beside (${end.besideGap})`)
+      // beside it: on the end side, or flipped to the start side when the button is too near the screen edge
+      expect.ok(Math.abs(end.besideGap - 8) <= 2.5 || Math.abs(end.besideGapStart - 8) <= 2.5, `8px beside (end side ${end.besideGap}, start side ${end.besideGapStart})`)
       expect.ok(Math.abs(end.cy) <= 3, `and centred on the button, not a screen away (${end.cy})`)
     },
   },
@@ -208,6 +209,19 @@ export const tests = [
       await page.touchscreen.tap(5, 300)
       await page.waitForTimeout(300)
       expect.ok(!(await isOpen(page, 'pop-known')))
+    },
+  },
+  {
+    name: 'at 200% text on a phone the open popover still fits on the screen (scripted placement takes over when CSS has no room)',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/popover.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.locator('[popovertarget="pop-known"][aria-haspopup]').scrollIntoViewIfNeeded()
+      await page.locator('[popovertarget="pop-known"][aria-haspopup]').click()
+      await page.waitForTimeout(600)
+      const r = await page.evaluate(() => { const b = document.querySelector('#pop-known').getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, vw: document.documentElement.clientWidth, vh: innerHeight } })
+      expect.ok(r.l >= -1 && r.r <= r.vw + 1 && r.t >= -1 && r.b <= r.vh + 1, `inside the screen (${JSON.stringify(r)})`)
     },
   },
   {

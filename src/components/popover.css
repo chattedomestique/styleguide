@@ -78,15 +78,28 @@
       margin-block: var(--_gap) 0;
     }
 
+    /* The last resort, when the popover is nearly as wide as the screen (200% text on a phone):
+       neither edge-aligned option fits, so span the whole width and centre it. */
+    @position-try --sg-ab {
+      position-area: block-end span-all;
+      justify-self: center;
+      margin-block: var(--_gap) 0;
+    }
+    @position-try --sg-aa {
+      position-area: block-start span-all;
+      justify-self: center;
+      margin-block: 0 var(--_gap);
+    }
+
     [popover][data-anchored]:not([data-anchor-js]) {
       /* default: below, start edges aligned */
       position-area: block-end span-inline-end;
       margin-block-start: var(--_gap);
-      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline, --sg-ab, --sg-aa;
 
       &[data-placement="bottom"] {
         position-area: block-end;
-        position-try-fallbacks: --sg-bs, --sg-be, flip-block, --sg-ts, --sg-te;
+        position-try-fallbacks: --sg-bs, --sg-be, flip-block, --sg-ts, --sg-te, --sg-ab, --sg-aa;
       }
       &[data-placement="bottom-end"] {
         position-area: block-end span-inline-start;
@@ -98,7 +111,7 @@
       &[data-placement="top"] {
         position-area: block-start;
         margin-block: 0 var(--_gap);
-        position-try-fallbacks: --sg-ts, --sg-te, flip-block, --sg-bs, --sg-be;
+        position-try-fallbacks: --sg-ts, --sg-te, flip-block, --sg-bs, --sg-be, --sg-aa, --sg-ab;
       }
       &[data-placement="top-end"] {
         position-area: block-start span-inline-start;

@@ -69,6 +69,7 @@
       if (!tip.hasAttribute('data-placement')) tip.setAttribute('data-placement', 'top');
       try { tip.showPopover(); } catch (e) { return; }
       SG.anchor.place(tip);
+      window.requestAnimationFrame(function () { SG.anchor.verify(tip); });
     }
     current = { tip: tip, trigger: trigger };
   }
