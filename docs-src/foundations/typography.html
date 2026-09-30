@@ -1,0 +1,333 @@
+<!--{"title":"Typography","group":"Foundations","order":12,"summary":"One family, three widths: Archivo Variable, the six type styles, the rem size scale, container-relative sizes, numerals, case and wrapping."}-->
+<style>
+  /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--space-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* A ten-letter expanded 900 title does not fit the docs h1 size: fit it, never break mid-word. */
+  .docs-article h1 { font-size: clamp(1.5rem, 7.2vw, 4rem); }
+  .docs-table td:first-child code { white-space: nowrap; }
+  .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+  #styles-table td:nth-child(n+2) { min-inline-size: 9rem; }
+  #styles-table td:last-child { min-inline-size: 14rem; }
+  #scale-table td:nth-child(2) { min-inline-size: 15rem; }
+  #scale-table td:nth-child(3) { min-inline-size: 8rem; }
+
+  .docs-article [data-f="specs"] { display: grid; margin: 0; padding: 0; list-style: none; border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="specs"] > li { display: grid; gap: var(--space-3); max-inline-size: none; margin: 0; padding: var(--space-4); }
+  .docs-article [data-f="specs"] > li + li { margin: 0; border-block-start: var(--bw-thin) solid var(--line); }
+  .docs-article [data-f="specs"] p { margin: 0; max-inline-size: none; }
+  .docs-article [data-f="cap"] { font: var(--type-meta); color: var(--ink-soft); }
+  .docs-article [data-f="cap"] code { white-space: nowrap; }
+
+  .docs-article [data-f="widths"] { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+  .docs-article [data-f="widths"] li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); max-inline-size: none; margin: 0; padding: var(--space-3) var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="widths"] li + li { margin: 0; }
+  .docs-article [data-f="widths"] strong { font-weight: 700; font-size: var(--text-2xl); line-height: var(--lh-tight); overflow-wrap: anywhere; }
+
+  .docs-article [data-f="lab"] { display: grid; gap: var(--space-4); }
+  .docs-article [data-f="controls"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--space-4); }
+  .docs-article [data-f="row"] { display: grid; gap: var(--space-1); }
+  .docs-article [data-f="lab"] label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="lab"] output { font-variant-numeric: tabular-nums lining-nums; }
+  .docs-article [data-f="lab"] input[type="range"] { inline-size: 100%; block-size: var(--hit); margin: 0; border: var(--bw) solid transparent; }
+  .docs-article [data-f="lab-sample"] { margin: 0; padding: var(--space-5); border: var(--bw) solid var(--line); background: var(--paper); font-family: var(--font-sans); font-size: var(--text-2xl); line-height: var(--lh-tight); font-weight: var(--_w, 600); font-stretch: var(--_s, 100%); overflow-wrap: anywhere; }
+
+  .docs-article [data-f="nums"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--space-3); }
+  .docs-article [data-f="nums"] > div { padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="nums"] p { margin: 0; max-inline-size: none; text-align: end; }
+  .docs-article [data-f="nums"] p:not(.t-label) { font-size: var(--text-lg); }
+  .docs-article [data-f="nums"] p.t-label { text-align: start; margin-block-end: var(--space-2); }
+
+  .docs-article [data-f="wrap"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--space-3); }
+  .docs-article [data-f="wrap"] > div { min-inline-size: 0; }
+  .docs-article [data-f="wrap"] .t-label { margin: 0 0 var(--space-2); color: var(--ink-soft); }
+  /* a flex row is where overflow-wrap: break-word fails: the item's min-content is still the whole word */
+  .docs-article [data-f="box"] { display: flex; inline-size: 9rem; max-inline-size: 100%; padding: var(--space-3); overflow: clip; border: var(--bw) dashed var(--line); }
+  .docs-article [data-f="box"] p { margin: 0; max-inline-size: none; }
+  .docs-article [data-f="sizes"] { margin-block-start: var(--space-3); }
+</style>
+
+<h1>Typography</h1>
+<p class="lede">One family, three widths, six styles. Archivo's width axis does the job a second typeface normally does: expanded for posters, normal for reading, condensed for labels. Everything is in <code>rem</code>, so it follows the size the reader chose.</p>
+
+<h2 id="family">Archivo Variable</h2>
+<p><code>--font-sans</code> is <code>"Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif</code>. One self-hosted file, <code>src/fonts/archivo-latin-var.woff2</code>, is variable on both axes: weight 100 to 900 and width 62% to 125%. It is declared in <code>50-fonts.css</code> with <code>font-display: swap</code>, so text shows immediately in the fallback and swaps when the font arrives. Licence: SIL OFL 1.1 (<code>src/fonts/OFL-Archivo.txt</code>).</p>
+<ul>
+  <li><strong>Why self-hosted.</strong> No third-party request on first load, it works offline in an installed PWA, and from <code>file://</code>. Copy the <code>fonts/</code> folder next to <code>styleguide.css</code>; the <code>@font-face</code> points at <code>fonts/archivo-latin-var.woff2</code>.</li>
+  <li><strong>Latin subset.</strong> It includes the true minus (U+2212), the euro sign and the tabular figures. It does <em>not</em> include check marks, left and right arrows, or the signs for at most, at least and approximately. Draw those as <a href="@/foundations/icons.html">icons</a>; <code>npm run lint</code> warns on the glyphs it knows are missing. For another script, add its subset as a second <code>@font-face</code> with its own <code>unicode-range</code>.</li>
+  <li><strong><code>--font-mono</code></strong> is the system monospace stack, for code in docs and apps. It is the only other family, and it never appears in the product UI.</li>
+</ul>
+
+<h3 id="widths">Three widths</h3>
+<p>Width is a font property, set with <code>font-stretch</code> (the <code>font</code> shorthand takes the keywords). The type styles use four of the values the axis offers:</p>
+<ul data-f="widths" role="list">
+  <li><strong style="font-stretch: 75%">Streak 12</strong><span data-f="cap"><code>condensed</code> (75%): <code>--type-label</code>. Uppercase labels.</span></li>
+  <li><strong style="font-stretch: 100%">Streak 12</strong><span data-f="cap"><code>normal</code> (100%): title, body, meta, control. Everything you read.</span></li>
+  <li><strong style="font-stretch: 112.5%">Streak 12</strong><span data-f="cap"><code>semi-expanded</code> (112.5%): <code>--type-figure</code>. Big numbers.</span></li>
+  <li><strong style="font-stretch: 125%">Streak 12</strong><span data-f="cap"><code>expanded</code> (125%): <code>--type-display</code>. The poster line.</span></li>
+</ul>
+<p>Try the axes. The sample is one element with <code>font-weight</code> and <code>font-stretch</code> set from the sliders.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="lab" id="axes">
+      <div data-f="controls">
+        <div data-f="row">
+          <label for="axis-w">Weight <output id="axis-w-out" for="axis-w">600</output></label>
+          <input id="axis-w" type="range" min="100" max="900" step="50" value="600" />
+        </div>
+        <div data-f="row">
+          <label for="axis-s">Width <output id="axis-s-out" for="axis-s">100</output>%</label>
+          <input id="axis-s" type="range" min="62" max="125" step="1" value="100" />
+        </div>
+      </div>
+      <p data-f="lab-sample" id="axis-sample">Numbers to twenty</p>
+    </div>
+  </div>
+</div>
+
+<h2 id="styles">The six type styles</h2>
+<p>Each style is a whole <code>font</code> shorthand, so weight, width, size, line-height and family travel together. Write <code>font: var(--type-title)</code>, or use the <code>.t-*</code> class, which adds what the shorthand cannot carry: tracking (<code>letter-spacing</code>), case and wrapping.</p>
+<ul data-f="specs" role="list">
+  <li>
+    <p data-f="cap"><code>.t-display</code> · <code>--type-display</code> · uppercase</p>
+    <p class="t-display">Go</p>
+  </li>
+  <li>
+    <p data-f="cap"><code>.t-title</code> · <code>--type-title</code> · balanced</p>
+    <p class="t-title">Numbers to twenty</p>
+  </li>
+  <li>
+    <p data-f="cap"><code>.t-body</code> · <code>--type-body</code> · pretty-wrapped</p>
+    <p class="t-body">Count up, then count back. Good for the car, the bus and the queue at the bakery.</p>
+  </li>
+  <li>
+    <p data-f="cap"><code>.t-meta</code> · <code>--type-meta</code> · tabular figures · soft ink</p>
+    <p class="t-meta">Deck · 20 cards · last opened yesterday</p>
+  </li>
+  <li>
+    <p data-f="cap"><code>.t-label</code> · <code>--type-label</code> · uppercase · tracked</p>
+    <p class="t-label">Weekly goal</p>
+  </li>
+  <li>
+    <p data-f="cap"><code>.t-figure</code> · <code>--type-figure</code> · tabular, lining</p>
+    <p class="t-figure">1,204</p>
+  </li>
+  <li>
+    <p data-f="cap"><code>--type-ctl</code> · what you read on a control (no <code>.t-*</code> class; <code>.btn</code> uses it)</p>
+    <p><button class="btn" data-variant="primary" type="button">Add funds</button></p>
+  </li>
+</ul>
+<div class="table-wrap"><table class="docs-table" id="styles-table">
+  <caption class="sr-only">The type styles and their values</caption>
+  <thead><tr><th>Token</th><th>Weight, width</th><th>Size</th><th class="num">Line height</th><th>Tracking</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td><code>--type-display</code></td><td>900, expanded</td><td><code>--text-4xl</code> (68 to 240px)</td><td class="num"><code>--lh-none</code> 0.85</td><td><code>--ls-display</code> −0.035em</td><td>One per page. Uppercase. The line you would shout.</td></tr>
+    <tr><td><code>--type-title</code></td><td>500, normal</td><td><code>--text-xl</code> (24 to 32px)</td><td class="num"><code>--lh-tight</code> 1.1</td><td><code>--ls-title</code> −0.015em</td><td>Card and section titles. <code>h1</code> to <code>h3</code> use it by default.</td></tr>
+    <tr><td><code>--type-body</code></td><td>400, normal</td><td><code>--text-md</code> (16px)</td><td class="num"><code>--lh-body</code> 1.5</td><td>none</td><td>Everything you read. <code>h4</code> to <code>h6</code> use it, bold.</td></tr>
+    <tr><td><code>--type-meta</code></td><td>400, normal</td><td><code>--text-sm</code> (14px)</td><td class="num"><code>--lh-snug</code> 1.3</td><td>none</td><td>Dates, counts, small print.</td></tr>
+    <tr><td><code>--type-label</code></td><td>700, condensed</td><td><code>--text-xs</code> (13px)</td><td class="num">1</td><td><code>--ls-label</code> +0.08em</td><td>Bar labels, index numbers. Structure only.</td></tr>
+    <tr><td><code>--type-figure</code></td><td>600, semi-expanded</td><td><code>--text-3xl</code> (48 to 104px)</td><td class="num"><code>--lh-none</code> 0.85</td><td><code>--ls-figure</code> −0.03em</td><td>The one big number.</td></tr>
+    <tr><td><code>--type-ctl</code></td><td>600, normal</td><td><code>--text-md</code> (16px)</td><td class="num">1</td><td>none</td><td>The label on a button or control.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="scale">The size scale</h2>
+<p>Eight steps, all in <code>rem</code>. The first four are fixed; <code>--text-xl</code> and up are <code>clamp()</code> ranges that follow the viewport, so a page title is smaller on a phone and larger on a desk without a media query. The last column is the computed size at this window width.</p>
+<div class="table-wrap"><table class="docs-table" id="scale-table">
+  <caption class="sr-only">The size scale with live samples</caption>
+  <thead><tr><th>Token</th><th>Value</th><th>Sample</th><th class="num">Now</th></tr></thead>
+  <tbody>
+    <tr><td><code>--text-xs</code></td><td>0.8125rem (13px)</td><td><span style="font-size: var(--text-xs)" data-tok="--text-xs">Aa Numbers</span></td><td class="num" data-now></td></tr>
+    <tr><td><code>--text-sm</code></td><td>0.875rem (14px)</td><td><span style="font-size: var(--text-sm)" data-tok="--text-sm">Aa Numbers</span></td><td class="num" data-now></td></tr>
+    <tr><td><code>--text-md</code></td><td>1rem (16px)</td><td><span style="font-size: var(--text-md)" data-tok="--text-md">Aa Numbers</span></td><td class="num" data-now></td></tr>
+    <tr><td><code>--text-lg</code></td><td>1.25rem (20px)</td><td><span style="font-size: var(--text-lg)" data-tok="--text-lg">Aa Numbers</span></td><td class="num" data-now></td></tr>
+    <tr><td><code>--text-xl</code></td><td><code>clamp(1.5rem, 1.3rem + 0.9vw, 2rem)</code> (24 to 32px)</td><td><span style="font-size: var(--text-xl)" data-tok="--text-xl">Aa</span></td><td class="num" data-now></td></tr>
+    <tr><td><code>--text-2xl</code></td><td><code>clamp(2rem, 1.5rem + 2.2vw, 3.25rem)</code> (32 to 52px)</td><td><span style="font-size: var(--text-2xl)" data-tok="--text-2xl">Aa</span></td><td class="num" data-now></td></tr>
+    <tr><td><code>--text-3xl</code></td><td><code>clamp(3rem, 1.6rem + 5.6vw, 6.5rem)</code> (48 to 104px)</td><td><span style="font-size: var(--text-3xl)" data-tok="--text-3xl">Aa</span></td><td class="num" data-now></td></tr>
+    <tr><td><code>--text-4xl</code></td><td><code>clamp(4.25rem, 1rem + 15vw, 15rem)</code> (68 to 240px)</td><td><span style="font-size: var(--text-4xl)" data-tok="--text-4xl">Aa</span></td><td class="num" data-now></td></tr>
+  </tbody>
+</table></div>
+<p>Two more rules keep the scale honest. Sizes are never written in <code>px</code> (lint fails it), and the root is never resized: no <code>html { font-size: … }</code>. The reader's setting is the scale.</p>
+
+<h3 id="cqi">Inside a card, the card's width decides</h3>
+<p>A card can sit in a one-column phone layout or a four-column desk grid, and the viewport cannot tell which. So type inside a card is sized from the card's own width with <code>cqi</code> (1% of the container's inline size): <code>.card__title</code> is <code>clamp(1.375rem, 8cqi, 2rem)</code>, <code>.card__figure</code> is <code>clamp(3rem, 27cqi, 6.5rem)</code>, <code>.card__hero</code> is <code>clamp(2.25rem, 17cqi, 3.75rem)</code>, and the card's padding <code>clamp(1rem, 5cqi, 1.5rem)</code>. Narrow the box below; the card answers to its own width, not the window's.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="cluster" role="group" aria-label="Width of the box below" id="cq-buttons">
+      <button class="btn" data-size="sm" type="button" data-w="14rem" aria-pressed="false">Narrow</button>
+      <button class="btn" data-size="sm" type="button" data-w="20rem" aria-pressed="false">Medium</button>
+      <button class="btn" data-size="sm" type="button" data-w="100%" aria-pressed="true">Wide</button>
+    </div>
+    <div class="resize-box" id="cq-box">
+      <article class="card">
+        <div class="card__body">
+          <p class="card__eyebrow">Streak</p>
+          <p class="card__figure num">31<small>days</small></p>
+          <p class="card__title">Your longest run yet</p>
+        </div>
+      </article>
+    </div>
+    <p class="t-meta">Drag the corner of the dashed box, or use the buttons.</p>
+  </div>
+</div>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div>
+    <strong>Never put <code>cqi</code> on the container itself</strong>
+    <p>A container's own <code>cqi</code> resolves against <em>its</em> container, not itself. That is why <code>.card</code> never sizes itself in <code>cqi</code>, and why sizes that use it live on the parts (<code>.card__body</code>, <code>.card__title</code>). The card's <code>--card-pad</code> holds a <code>cqi</code> value and is safe: a custom property is substituted where it is used, so it resolves on the part.</p>
+  </div>
+</div>
+
+<h2 id="numerals">Numerals</h2>
+<p>Money, time and counters use tabular figures, so columns line up and a ticking number does not jitter. <code>.num</code> does it (<code>font-variant-numeric: tabular-nums lining-nums</code>), and <code>.t-meta</code> and <code>.t-figure</code> already include it. Archivo's default figures are proportional: in the first column below a 1 is narrower than an 8.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="nums">
+      <div>
+        <p class="t-label">Default figures</p>
+        <p>$1,111.00</p>
+        <p>$88.00</p>
+        <p>−$312.75</p>
+        <p>$8,888.88</p>
+      </div>
+      <div>
+        <p class="t-label">Tabular, <span class="t-mono" style="text-transform: none">.num</span></p>
+        <p class="num">$1,111.00</p>
+        <p class="num">$88.00</p>
+        <p class="num">−$312.75</p>
+        <p class="num">$8,888.88</p>
+      </div>
+    </div>
+  </div>
+</div>
+<h3 id="format">Format with Intl, and use the true minus</h3>
+<p>Format numbers, dates and currency with <code>Intl</code>, never by hand, and never hard-code a separator. <code>Intl.NumberFormat</code> in most locales returns a hyphen-minus, which is a dash; a negative amount should use the true minus, U+2212 (<code>−</code>), which the font has and which is as wide as the plus. The table is computed in your browser.</p>
+<pre aria-label="Formatting money with Intl and the true minus"><code>const money = (n, locale = 'en-US', currency = 'USD') =&gt;
+  new Intl.NumberFormat(locale, { style: 'currency', currency }).format(n).replace('-', '−');</code></pre>
+<div class="table-wrap"><table class="docs-table" id="intl-table">
+  <caption class="sr-only">The same amounts formatted for three locales</caption>
+  <thead><tr><th>Locale</th><th class="num">Balance</th><th class="num">Refund</th><th class="num">Streak</th></tr></thead>
+  <tbody data-intl><tr><td colspan="4">This table is computed by script.</td></tr></tbody>
+</table></div>
+
+<h2 id="case">Case and tracking are CSS</h2>
+<p>Uppercase is structure: the display line, bar labels, index numbers. Everything you read is sentence case. Write the natural case in the HTML and let <code>text-transform</code> do the rest: <code>.t-display</code> and <code>.t-label</code> uppercase themselves. Typed capitals get copied as shouting, read as the translator saw them, and ignore the language: <code>text-transform</code> follows the page's language, so Turkish <em>i</em> becomes a dotted capital, which typed capitals get wrong</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p><code>&lt;p class="t-label"&gt;Weekly goal&lt;/p&gt;</code></p><p class="t-label">Weekly goal</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p><code>&lt;p&gt;WEEKLY GOAL&lt;/p&gt;</code>, or an uppercase sentence.</p></div>
+  </div>
+</div>
+<p>Tracking follows size and case: labels are tracked out (+0.08em) so small capitals breathe; the display line and the big figure are tightened (−0.035em, −0.03em) because letter gaps grow with the type. Those values live in <code>--ls-display</code>, <code>--ls-title</code>, <code>--ls-figure</code> and <code>--ls-label</code>.</p>
+
+<h2 id="wrapping">Wrapping, line length and long words</h2>
+<ul>
+  <li><strong>Titles balance, body text is pretty-wrapped.</strong> <code>.t-title</code> and the <code>h1</code> to <code>h3</code> defaults use <code>text-wrap: balance</code>; <code>.t-body</code> uses <code>pretty</code>, which avoids a last line of one word.</li>
+  <li><strong>Long words wrap.</strong> The reset gives headings, paragraphs and list items <code>overflow-wrap: break-word</code>. In a flex or grid row the item's minimum width is still the whole word, so a long word is clipped or overflows (first box below). Add <code>.break</code> (<code>overflow-wrap: anywhere</code> with hyphenation). <code>.card__hero</code> already does.</li>
+  <li><strong>Truncate on purpose only.</strong> <code>.truncate</code> is one line with an ellipsis, <code>.clamp-2</code> is two lines. Anything truncated needs its full text available somewhere else.</li>
+  <li><strong>Measure.</strong> <code>--measure</code> is 62ch, the widest a paragraph gets; <code>.prose</code> applies it and spaces its children. <code>.card__text</code> stops at 40ch.</li>
+</ul>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="wrap">
+      <div><p class="t-label">Default</p><div data-f="box"><p>Donaudampfschifffahrtsgesellschaft</p></div></div>
+      <div><p class="t-label">.break</p><div data-f="box"><p class="break">Donaudampfschifffahrtsgesellschaft</p></div></div>
+      <div><p class="t-label">.truncate</p><div data-f="box"><p class="truncate">Donaudampfschifffahrtsgesellschaft</p></div></div>
+      <div><p class="t-label">.clamp-2</p><div data-f="box"><p class="clamp-2">Count up to twenty, then count back down, in the car.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<h2 id="scaling">Text size scaling</h2>
+<ul>
+  <li>Every size, line height and spacing that depends on text is in <code>rem</code>. Browser text size, browser zoom and (on Android) font scale all work, and layouts are tested with text at 200% and width at 320px by <code>npm run test:a11y</code>.</li>
+  <li>On iOS, <code>base</code> asks for Dynamic Type through <code>font: -apple-system-body</code> behind <code>@supports</code>, and pins desktop Safari back to 100%. <strong>That is unverified on a device.</strong> If it misbehaves in your app, delete the two <code>@supports</code> blocks in <code>src/base/10-base.css</code>; everything is still in <code>rem</code>.</li>
+  <li>Controls grow with their text: heights are <code>min-block-size</code> in <code>rem</code>, and labels wrap instead of clipping.</li>
+</ul>
+
+<h2 id="change">Change the typeface</h2>
+<p>The typeface is one token and one <code>@font-face</code>. Add the new face's file and <code>@font-face</code> to <code>src/tokens/50-fonts.css</code> and point <code>--font-sans</code> at it in <code>00-foundation.css</code>; nothing in a component names a family. Three things to know: <code>npm run lint</code> rejects a default as the first family (Inter, Roboto, Arial, system-ui and a short list of others: "a default, not a choice") and any <code>font-family</code> that is not a token; a face without a width axis ignores <code>expanded</code> and <code>condensed</code>, so the display, label and figure styles lose the width they depend on and need their tokens reworked; and the glyphs you need (true minus, tabular figures) must be in the new subset.</p>
+
+<h2 id="rules">Do and don't</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Reach for a style first: <code>font: var(--type-title)</code> or <code>.t-title</code>. Use <code>.num</code> on anything that counts or adds up. Size with <code>rem</code> and <code>cqi</code>.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Add a second family, write a size in <code>px</code>, resize the root, type capitals, or draw a check mark or arrow with a text glyph the font does not have.</p></div>
+  </div>
+</div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--font-sans</code>, <code>--font-mono</code>, <code>--text-xs</code> to <code>--text-4xl</code>, <code>--lh-none</code>, <code>--lh-tight</code>, <code>--lh-snug</code>, <code>--lh-body</code>, <code>--ls-display</code>, <code>--ls-title</code>, <code>--ls-figure</code>, <code>--ls-label</code>, <code>--type-display</code>, <code>--type-title</code>, <code>--type-label</code>, <code>--type-body</code>, <code>--type-meta</code>, <code>--type-figure</code>, <code>--type-ctl</code>, <code>--measure</code>. Classes: <code>.t-display</code>, <code>.t-title</code>, <code>.t-body</code>, <code>.t-meta</code>, <code>.t-label</code>, <code>.t-figure</code>, <code>.t-mono</code>, <code>.num</code>, <code>.prose</code>, <code>.break</code>, <code>.truncate</code>, <code>.clamp-2</code>.</p>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  var SG = window.SG;
+  if (!SG) return;
+
+  /* ---- variable axes --------------------------------------------------------------------- */
+  (function () {
+    var w = document.getElementById('axis-w'), s = document.getElementById('axis-s'), sample = document.getElementById('axis-sample');
+    if (!w || !s) return;
+    function update() {
+      document.getElementById('axis-w-out').textContent = w.value;
+      document.getElementById('axis-s-out').textContent = s.value;
+      sample.style.setProperty('--_w', w.value);
+      sample.style.setProperty('--_s', s.value + '%');
+    }
+    w.addEventListener('input', update);
+    s.addEventListener('input', update);
+    update();
+  })();
+
+  /* ---- computed sizes, live ------------------------------------------------------------------ */
+  function sizes() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-tok]'), function (el) {
+      var cell = el.closest('tr').querySelector('[data-now]');
+      if (cell) cell.textContent = parseFloat(getComputedStyle(el).fontSize).toFixed(1) + 'px';
+    });
+  }
+  sizes();
+  window.addEventListener('resize', sizes);
+
+  /* ---- container width buttons (a tap equivalent for dragging the resize handle) -------------------- */
+  (function () {
+    var group = document.getElementById('cq-buttons'), box = document.getElementById('cq-box');
+    if (!group || !box) return;
+    group.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-w]');
+      if (!b) return;
+      box.style.inlineSize = b.getAttribute('data-w') === '100%' ? '' : 'min(100%, ' + b.getAttribute('data-w') + ')';
+      Array.prototype.forEach.call(group.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  })();
+
+  /* ---- Intl table ----------------------------------------------------------------------------- */
+  (function () {
+    var body = document.querySelector('[data-intl]');
+    if (!body) return;
+    var rows = [['en-US', 'USD', 'USD'], ['de-DE', 'EUR', 'EUR'], ['en-GB', 'GBP', 'GBP']];
+    var minus = function (t) { return t.replace('-', '−'); };
+    body.innerHTML = '';
+    rows.forEach(function (r) {
+      var money = new Intl.NumberFormat(r[0], { style: 'currency', currency: r[1] });
+      var plain = new Intl.NumberFormat(r[0]);
+      var tr = document.createElement('tr');
+      var cells = [r[0], minus(money.format(1204.5)), minus(money.format(-312.75)), plain.format(31) + ' ' + (r[0] === 'de-DE' ? 'Tage' : 'days')];
+      cells.forEach(function (t, i) {
+        var td = document.createElement('td');
+        if (i) td.className = 'num';
+        if (i === 0) { var c = document.createElement('code'); c.textContent = t; td.append(c); } else td.textContent = t;
+        tr.append(td);
+      });
+      body.append(tr);
+    });
+  })();
+});
+</script>
