@@ -13,7 +13,7 @@
  * To cover a NEW role pair: add a line in PAIRS / TONE_PAIRS below. A role that is used as text
  * or as a control boundary and is not listed here is unverified.
  */
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { start, ROOT } from './lib/browser.mjs'
 
@@ -22,7 +22,9 @@ const SHOW_ALL = process.argv.includes('--all')
 const THEMES = ['light', 'dark']
 const CONTRASTS = ['off', 'more']
 const PALETTES = ['default', 'mint', 'periwinkle', 'sand', 'cream', 'wire']
-const TONES = ['1', '2', '3', '4', '5', '6', 'ink', 'ok', 'warn', 'bad', 'info']
+// Tones are discovered from the CSS, not listed here: add a [data-tone="x"] rule and it is tested.
+const TONES = [...new Set([...readFileSync(join(ROOT, 'dist', 'styleguide.css'), 'utf8').matchAll(/\[data-tone="([^"]+)"\]/g)].map((m) => m[1]))]
+if (TONES.length < 11) throw new Error(`expected at least 11 tones in dist/styleguide.css (run npm run build); found ${TONES.join(', ')}`)
 
 const TEXT_SURFACES = ['--canvas', '--paper', '--paper-2']
 const ALL_SURFACES = [...TEXT_SURFACES, '--paper-3']
@@ -52,17 +54,24 @@ function buildPairs() {
   add('--on-accent-soft', '--accent-soft', 4.5, 'text on soft accent', 7)
   add('--ink', '--accent-soft', 7, 'primary text on soft accent')
   add('--paper', '--ink', 7, 'paper on ink (the inverted tone, the card bar)')
+  add('--surface-ink', '--surface-bg', 7, 'surface ink on the page surface')
+  add('--surface-ink-soft', '--surface-bg', 7, 'surface soft ink on the page surface')
   return P
 }
 
 /** Pairs read inside a [data-tone] scope. `bold` = threshold under data-emphasis="bold". */
 const TONE_PAIRS = [
   { fg: '--tone-ink', bg: '--tone-bg', min: 7, bold: 6.5, what: 'tone text' },
-  { fg: '--tone-ink-soft', bg: '--tone-bg', min: 4.5, bold: 4.5, what: 'tone secondary text' },
+  { fg: '--tone-ink-soft', bg: '--tone-bg', min: 7, bold: 6.5, what: 'tone secondary text' },
   { fg: '--tone-on-fill', bg: '--tone-fill', min: 4.5, bold: 4.5, what: 'text on tone pill' },
   { fg: '--tone-fill', bg: '--tone-bg', min: 3, bold: 3, what: 'tone pill vs its card' },
   { fg: '--line', bg: '--tone-bg', min: 3, bold: 3, what: 'frame and icons on a tone', skipBold: true, skipInk: true },
-  { fg: '--focus', bg: '--tone-bg', min: 3, bold: 3, what: 'focus ring on a tone', skipBold: true, skipInk: true }  // ink: the ring is drawn outside the card, or recoloured inside it (card.css),
+  // A focusable thing INSIDE a toned element draws its ring in the tone's ink over a halo in the tone's fill.
+  // Read on a child, because --tone-* do not inherit (the _tone-* copies do).
+  { fg: '--focus', bg: '--surface-bg', min: 3, bold: 3, what: 'focus ring on a tone (child)', child: true },
+  { fg: '--surface-ink', bg: '--surface-bg', min: 7, bold: 6.5, what: 'surface ink on surface (child)', child: true },
+  { fg: '--surface-ink-soft', bg: '--surface-bg', min: 7, bold: 6.5, what: 'surface soft ink on surface (child)', child: true },
+  { fg: '--focus', bg: '--focus-halo', min: 3, bold: 3, what: 'focus ring against its own halo (child)', child: true },
 ]
 
 /** Runs in the browser. Returns [{key, fgHex, bgHex, ratio, min, ...}] */
@@ -106,9 +115,12 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, use
 
   const out = []
   const scopeKey = `${theme}/${contrast}/${palette}`
-  const check = (scope, p, extra, minKey = 'min') => {
+  const check = (scope0, p, extra, minKey = 'min') => {
+    let scope = scope0
+    if (p.child) { scope = document.createElement('i'); scope0.appendChild(scope) }
     const fg = resolve(scope, p.fg)
     const bg = resolve(scope, p.bg)
+    if (p.child) scope.remove()
     if (bg[3] < 1) return
     const r = ratio(fg, bg)
     const min = contrast === 'more' && p.more != null ? p.more : p[minKey]
