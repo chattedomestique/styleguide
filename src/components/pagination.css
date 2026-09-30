@@ -27,6 +27,11 @@
    tech, so a 320px phone gets three big targets instead of a row of tiny ones, and a row never wraps awkwardly
    in between.
 
+   LARGE TEXT (WCAG 1.4.4). In the short form the status line may wrap onto two lines between the two
+   circles (it never prints under them), and when the nav is narrower than 16rem of its own width (200%
+   text on a phone) the status takes a row to itself above the two circles.
+   RIGHT-TO-LEFT: the arrows mirror.
+
    CURRENT PAGE is filled AND its frame doubles (the .btn "on" look, as a pressed toggle), and the
    status line says it in words. Never colour alone. Numbers are tabular.
    No JavaScript: this is links.
@@ -82,7 +87,8 @@
     display: none;
     font: var(--type-ctl);
     font-variant-numeric: tabular-nums lining-nums;
-    white-space: nowrap;
+    text-align: center;
+    overflow-wrap: break-word;
   }
 
   /* ---- Narrow: no room for the numbers ------------------------------------------------------------
@@ -168,6 +174,29 @@
       clip-path: inset(50%);
       white-space: nowrap;
     }
+  }
+
+  /* ---- Very narrow (200% text on a phone): the status gets a row of its own ----------------------
+     Two 88px circles and a gap leave a sliver of a 326px line for "Page 12 of 12"; it would print under
+     a button. So the circles share the second row (Previous at the start, Next at the end) and the
+     status, first in the visual order, spans the first. Reading order in the DOM is unchanged. */
+  @container pagination (max-width: 16rem) {
+    .pagination__list,
+    .pagination[data-variant="switcher"] .pagination__list {
+      flex-wrap: wrap;
+      justify-content: space-between;
+      row-gap: var(--space-3);
+    }
+    .pagination .pagination__status,
+    .pagination[data-variant="switcher"] .pagination__status {
+      order: -1;
+      flex: 1 0 100%;
+    }
+  }
+
+  /* ---- Right-to-left: Previous / Next arrows point the other way ---------------------------------- */
+  .pagination .ic:is(.ic--arrow-left, .ic--arrow-right, .ic--chevron-left, .ic--chevron-right):dir(rtl) {
+    transform: scaleX(-1);
   }
 
   @media (forced-colors: active) {

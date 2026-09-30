@@ -29,6 +29,14 @@
    inside follow them: on an ink bar a button inverts (paper fill, ink text) and the ring is paper,
    or it would vanish into the bar.
 
+   LARGE TEXT AND NARROW SCREENS (WCAG 1.4.4, 1.4.10). The bar WRAPS instead of squeezing: the title, the
+   greeting and the search field each keep at least 6rem, and whatever does not fit
+   drops to a second row with its actions at the end. Without that floor a flexible title shrinks to a
+   sliver next to three 88px buttons at 200% text and breaks into one letter per line, and a sticky bar
+   that tall eats half the screen. A toned or ink bar pads its sides so the buttons never touch the
+   edge of the fill (and the focus ring has room).
+   RIGHT-TO-LEFT: Back / forward arrows (.ic--arrow-left|right, .ic--chevron-left|right) mirror.
+
    --appbar-h  src/js/41-bars.js measures a sticky bar and publishes its height, so
    html { scroll-padding-block-start } keeps a focused element clear of it (WCAG 2.4.11).
    Without JS the :root rule below supplies an estimate. A bar inside [data-chrome-scope]
@@ -50,6 +58,7 @@
     --focus: var(--_ink); /* the ring follows the surface */
 
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
     min-block-size: calc(var(--_h) + 2 * var(--space-2));
@@ -57,6 +66,11 @@
     color: var(--_ink);
     background: var(--_bg);
     border-block-end: var(--bw) solid var(--line);
+
+    /* a filled bar is a block of colour: its buttons must not touch the edge of it */
+    &[data-tone] {
+      padding-inline: var(--space-3);
+    }
 
     &[data-sticky] {
       position: sticky;
@@ -83,26 +97,37 @@
     --line: var(--_ink);
   }
 
+  /* the actions sit at the end of whichever row they land on */
+  .appbar > :is(.appbar__end, .btn:last-child) {
+    margin-inline-start: auto;
+  }
+
+  /* The title asks for its longest WORD (flex-basis: min-content, which is why overflow-wrap is break-word:
+     "anywhere" would make that one letter) and never less than 6rem, then grows into what is left. A row
+     that cannot give it that wraps the title onto a row of its own. */
   .appbar__title {
-    flex: 1 1 0;
-    min-inline-size: 0;
+    flex: 1 1 min-content;
+    min-inline-size: min(100%, 6rem);
+    max-inline-size: 100%;
     margin: 0;
     font: var(--type-label);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     text-wrap: balance;
   }
 
   /* a title with something else beside it (an eyebrow above, a help button next to it) */
   .appbar__heading {
-    flex: 1 1 0;
-    min-inline-size: 0;
+    flex: 1 1 min-content;
+    min-inline-size: min(100%, 6rem);
+    max-inline-size: 100%;
     display: flex;
     flex-direction: column;
 
     & > .appbar__title {
       flex: none;
+      min-inline-size: 0;
     }
   }
   .appbar__eyebrow {
@@ -164,7 +189,7 @@
     display: flex;
     flex: 1 1 0;
     align-items: center;
-    min-inline-size: 0;
+    min-inline-size: min(100%, 6rem);
     margin: 0;
 
     & > .ic {
@@ -187,6 +212,11 @@
     font: var(--type-body); /* 16px: iOS does not zoom the page on focus */
     appearance: none;
     -webkit-appearance: none;
+  }
+
+  /* ---- Right-to-left: back and forward arrows point the other way ------------------------------ */
+  .appbar .ic:is(.ic--arrow-left, .ic--arrow-right, .ic--chevron-left, .ic--chevron-right):dir(rtl) {
+    transform: scaleX(-1);
   }
 
   /* ---- Forced colours ---------------------------------------------------------------------------- */

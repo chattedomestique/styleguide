@@ -250,6 +250,19 @@
       }
       & .segmented__label {
         --_show: calc(var(--fill) * (1 - var(--move)));
+        /* The text colour follows the thumb's glide (same duration and curve). At the hover speed the
+           label flipped to its chosen colour 300ms before the thumb arrived: black on the black thumb
+           and white on the pale track, unreadable mid-flight (WCAG 1.4.3). */
+        transition-duration: var(--dur-move);
+      }
+      /* Pressing fills the label at once in the plain control. Here no thumb is under it yet, so a filled
+         label would be white on the pale track for as long as the press lasts: draw the cell's frame
+         instead, as hover does. The chosen cell keeps its text colour. */
+      & .segmented__opt > input:not(:checked, :disabled):active + .segmented__label,
+      & .segmented__label.is-active {
+        --fill: 0;
+        border-color: var(--line);
+        transition-duration: var(--dur-press);
       }
     }
   }

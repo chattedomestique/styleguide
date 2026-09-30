@@ -28,6 +28,7 @@
    (currentColor), so it works on the canvas, on a card, on an ink or tonal surface.
 
    NOT COLOUR ALONE: ancestors are underlined links; the current page is bold, not underlined.
+   PRESS FEEDBACK: on hover and press the underline moves away from the word (text-underline-offset).
    TARGETS: each link is 44px tall, and its hit area reaches 44px wide (the ::after pattern).
 
    Private properties (--_*): --_sep (the chevron: the same drawing as src/icons/chevron-right.svg,
@@ -92,13 +93,15 @@
       inset-block: 0;
     }
 
+    /* The line drops away from the word on hover and on press. Not a thicker line: --bw-heavy is for
+       forced colours only, and a third line weight would break "two line weights". */
     @media (hover: hover) {
       &:hover {
-        text-decoration-thickness: var(--bw-heavy);
+        text-underline-offset: 0.36em;
       }
     }
     &:active {
-      text-decoration-thickness: var(--bw-heavy);
+      text-underline-offset: 0.36em;
     }
   }
 

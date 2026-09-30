@@ -161,4 +161,27 @@ export const tests = [
       expect.ok(sizes.every(([w, h]) => w >= 44 && h >= 44), 'every radio hit area is at least 44x44: ' + JSON.stringify(sizes.filter(([w, h]) => w < 44 || h < 44)))
     },
   },
+  {
+    name: 'Sliding thumb: pressing an unchosen option keeps its text readable (no white label on the pale track), and the text follows the glide',
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      const lab = page.locator('input[name="seg-slide"][value="b"] + .segmented__label')
+      await lab.evaluate((e) => e.scrollIntoView({ block: 'center' }))
+      const b = await lab.boundingBox()
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+      await page.mouse.down()
+      await page.waitForTimeout(450)
+      const r = await page.evaluate(() => {
+        const l = document.querySelector('input[name="seg-slide"][value="b"] + .segmented__label'); const g = l.closest('.segmented')
+        return { ink: SG.colorToHex(getComputedStyle(l).color), track: SG.colorToHex(getComputedStyle(g).backgroundColor), fill: Number(getComputedStyle(l).getPropertyValue('--fill')), frame: getComputedStyle(l).borderTopColor }
+      })
+      await page.mouse.up()
+      const lum = (h) => { const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] }
+      const ratio = (a, b2) => { const x = lum(a), y = lum(b2); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+      expect.ok(ratio(r.ink, r.track) >= 7, 'while pressed the label is ' + r.ink + ' on ' + r.track + ' = ' + ratio(r.ink, r.track).toFixed(1) + ':1 (a filled label with no thumb under it was white on pale grey)')
+      expect.equal(r.fill, 0, 'the press does not fill the label in the sliding variant'); expect.ok(r.frame !== 'rgba(0, 0, 0, 0)', 'it draws the cell\'s frame instead')
+      const d = await page.evaluate(() => { const g = document.querySelector('fieldset[data-indicator="slide"]'); return { label: getComputedStyle(g.querySelector('.segmented__label')).transitionDuration, thumb: getComputedStyle(g, '::before').transitionDuration } })
+      expect.equal(d.label, d.thumb, 'the label colour changes over the same time as the thumb glides (was 200ms against 520ms, so text flipped before the thumb arrived)')
+    },
+  },
 ]

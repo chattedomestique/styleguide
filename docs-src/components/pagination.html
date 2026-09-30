@@ -192,7 +192,8 @@
     <tr><td><kbd>Enter</kbd></td><td>Follows the link.</td></tr>
     <tr><td>Screen reader</td><td>"Decks pages, navigation; list, 9 items; Previous, link; Page 4, link; Page 5, current page, link; &hellip;; Next, link". In the short form: "Previous, link; Page 5 of 12; Next, link". An unavailable control reads "Previous, button, unavailable. You are on the first page".</td></tr>
     <tr><td>Touch</td><td>44&times;44px circles with 8px between them. In the short form, three large targets.</td></tr>
-    <tr><td>Zoom / text size</td><td>The row wraps; at 200% text and 320px the short form takes over, so nothing scrolls sideways.</td></tr>
+    <tr><td>Zoom / text size</td><td>The row wraps; at 200% text and 320px the short form takes over, so nothing scrolls sideways. There the status line may wrap onto two lines, and under 16rem of the nav's own width it takes a row above the two circles, so it never prints under a button.</td></tr>
+    <tr><td>Right-to-left</td><td>The order mirrors and the Previous / Next arrows flip to point the right way.</td></tr>
     <tr><td>Reduced motion</td><td>Buttons raise without travel.</td></tr>
     <tr><td>Forced colours</td><td>The buttons keep their borders; the current page gets a 4px frame.</td></tr>
   </tbody>
@@ -202,6 +203,8 @@
   <li>Name the nav for what it pages ("Decks pages"), so two pagers on one page are distinguishable.</li>
   <li>Number formatting follows the locale (<code>Intl.NumberFormat</code>); page numbers are tabular so the row does not jitter.</li>
 </ul>
+
+<p><strong>Icons.</strong> <code>arrow-left</code> and <code>arrow-right</code> come from <code>dist/icons.css</code>; the main bundle ships only <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code> and <code>arrow</code>. Link <code>icons.css</code> in your app, or define the masks yourself: an <code>.ic</code> with no mask paints a solid square.</p>
 
 <h2 id="tokens">Tokens used</h2>
 <p>Everything is a <a href="@/components/button.html">button</a>, so it reads the button's tokens; Pagination adds <code>--fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--line</code>, <code>--type-ctl</code>, <code>--ctl</code>, <code>--space-2</code>, <code>--space-4</code> and the size container <code>pagination</code> (38rem).</p>

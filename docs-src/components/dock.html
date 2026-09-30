@@ -221,7 +221,8 @@
     <tr><td><kbd>Enter</kbd> (link), <kbd>Enter</kbd> / <kbd>Space</kbd> (button)</td><td>Go to the destination; run the action.</td></tr>
     <tr><td>Screen reader</td><td>A "Main" navigation landmark; "Study, link, current page". The count reads as part of the name: "Inbox, 3 unread". The centre action reads "Add transaction, button".</td></tr>
     <tr><td>Touch</td><td>Every item is at least 44&times;44px (56px tall) with 4px between cells. No gesture is needed.</td></tr>
-    <tr><td>Zoom / text size</td><td>In rem. At 200% text the words wrap instead of clipping, the dock grows, and <code>--dock-h</code> follows. On very short viewports it stops floating.</td></tr>
+    <tr><td>Zoom / text size</td><td>In rem. Every cell keeps at least its longest word and a 44px target, so labels never print over each other. At 200% text the cells that no longer fit on one row wrap onto a second row, the dock grows, and <code>--dock-h</code> follows. On very short viewports it stops floating.</td></tr>
+    <tr><td>Right-to-left</td><td>The order mirrors. Any <code>ic--arrow-left</code> / <code>ic--arrow-right</code> inside the dock flips.</td></tr>
     <tr><td>Reduced motion</td><td>Nothing slides. In compact mode the current word fades in with no travel; the fill is a colour change.</td></tr>
     <tr><td>Forced colours</td><td>The dock and each item keep a border; the current item becomes <code>Highlight</code> with a 4px frame; the focus ring is a 4px <code>Highlight</code> outline.</td></tr>
   </tbody>
@@ -232,6 +233,8 @@
   <li>Words are 13px, the smallest text the guide permits, so keep them short: they are uppercase with positive tracking.</li>
   <li>The dock's contrast (its ink on its fill, and the current fill against the dock) comes from the tone roles that <code>npm run test:contrast</code> covers for every palette, theme and contrast mode.</li>
 </ul>
+
+<p><strong>Icons.</strong> <code>book-open</code>, <code>layers</code>, <code>chart-column</code>, <code>user</code>, <code>house</code>, <code>wallet</code>, <code>settings</code>, <code>mail</code>, <code>credit-card</code> and <code>lock</code> come from <code>dist/icons.css</code>; the main bundle ships only <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code> and <code>arrow</code>. Link <code>icons.css</code> in your app, or define the masks yourself: an <code>.ic</code> with no mask paints a solid square.</p>
 
 <h2 id="tokens">Tokens used</h2>
 <p><code>--paper</code>, <code>--ink</code>, <code>--canvas</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--line</code>, <code>--ink-faint</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--ctl-lg</code>, <code>--hit</code>, <code>--type-label</code>, <code>--ls-label</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--move</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--safe-right</code>, <code>--gutter</code>, <code>--z-dock</code>, <code>--container-sm</code>, <code>--dock-h</code>.</p>

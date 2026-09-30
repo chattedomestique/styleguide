@@ -37,12 +37,14 @@ export const tests = [
       const r = await page.evaluate(() => {
         const d = document.querySelector('nav.dock[aria-label="Main"]')
         const cur = d.querySelector('[aria-current="page"]'); const other = d.querySelector('.dock__item:not([aria-current])')
-        const s = (e) => { const c = getComputedStyle(e); return { bg: c.backgroundColor, w: Number(c.fontWeight), fill: Number(c.getPropertyValue('--fill')), bd: c.borderTopColor, bw: parseFloat(c.borderTopWidth) } }
+        // the fill is a layer (::before) under the text; the item itself paints nothing, so a wrapped dock's frame is never covered
+        const s = (e) => { const c = getComputedStyle(e); const f = getComputedStyle(e, '::before'); return { own: c.backgroundColor, bg: f.backgroundColor, op: Number(f.opacity), w: Number(c.fontWeight), fill: Number(c.getPropertyValue('--fill')), bd: c.borderTopColor, bw: parseFloat(c.borderTopWidth) } }
         return { cur: s(cur), other: s(other), dockBg: getComputedStyle(d).backgroundColor }
       })
       expect.equal(r.cur.fill, 1, 'current: --fill 1'); expect.equal(r.other.fill, 0, 'others: --fill 0')
+      expect.equal(r.cur.op, 1, 'the current item\'s fill layer is fully shown'); expect.equal(r.other.op, 0, 'and the others\' is not')
       expect.ok((await hex(page, r.cur.bg)) !== (await hex(page, r.dockBg)), 'the current item has its own fill that differs from the dock')
-      expect.equal(await hex(page, r.other.bg), await hex(page, r.dockBg), 'the others sit on the dock\'s own fill')
+      expect.equal(r.cur.own, 'rgba(0, 0, 0, 0)', 'an item paints no background of its own (it would cover the dock\'s frame)'); expect.equal(r.other.own, 'rgba(0, 0, 0, 0)', 'nor do the others')
       expect.equal(r.cur.bw, 2, 'a 2px edge'); expect.ok(r.cur.bd !== 'rgba(0, 0, 0, 0)', 'drawn on the current item'); expect.equal(r.other.bd, 'rgba(0, 0, 0, 0)', 'and transparent on the others')
       expect.equal(r.cur.w, r.other.w, 'same weight, so choosing one never moves its neighbours')
     },
@@ -55,7 +57,7 @@ export const tests = [
       const r = await page.evaluate(() => {
         const d = document.querySelector('nav.dock[data-tone="ink"]')
         const cur = d.querySelector('[aria-current="page"]'); const act = d.querySelector('.dock__action')
-        return { dock: getComputedStyle(d).backgroundColor, dockInk: getComputedStyle(d).color, cur: getComputedStyle(cur).backgroundColor, curInk: getComputedStyle(cur).color, act: getComputedStyle(act).backgroundColor, actInk: getComputedStyle(act).color }
+        return { dock: getComputedStyle(d).backgroundColor, dockInk: getComputedStyle(d).color, cur: getComputedStyle(cur, '::before').backgroundColor, curInk: getComputedStyle(cur).color, act: getComputedStyle(act).backgroundColor, actInk: getComputedStyle(act).color }
       })
       expect.equal(await hex(page, r.cur), await hex(page, r.dockInk), 'the current pill is the dock\'s text colour')
       expect.equal(await hex(page, r.curInk), await hex(page, r.dock), 'with the dock\'s fill as its text')
@@ -242,6 +244,57 @@ export const tests = [
       await goto('components/dock.html')
       const r = await page.evaluate(() => { const l = document.querySelector('nav.dock[data-compact] [aria-current] .dock__label'); return { name: getComputedStyle(l).animationName, move: getComputedStyle(document.documentElement).getPropertyValue('--move').trim() } })
       expect.equal(r.move, '0', '--move is 0'); expect.equal(r.name, 'dock-label-in', 'still a fade')
+    },
+  },
+  {
+    name: 'Large text (200% at 390px): cells keep their whole words and never print over each other; the row wraps instead',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/dock.html')
+      const r = await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%'
+        const host = document.createElement('div')
+        host.style.cssText = 'position:absolute;inset-inline-start:32px;inset-block-start:0;inline-size:326px'
+        const item = (i, w, cur) => '<li><a class="dock__item" href="#fx"' + (cur ? ' aria-current="page"' : '') + '><span class="ic ic--' + i + '" aria-hidden="true"></span><span class="dock__label">' + w + '</span></a></li>'
+        host.innerHTML = '<nav class="dock" data-position="static" aria-label="fx"><ul class="dock__list" role="list">' + item('book-open', 'Study', true) + item('layers', 'Decks') + item('chart-column', 'Stats') + item('user', 'Profile') + '</ul></nav>'
+        document.body.appendChild(host)
+        const items = [...host.querySelectorAll('.dock__item')]
+        const rects = items.map((i) => i.getBoundingClientRect())
+        const overlaps = []
+        for (let a = 0; a < rects.length; a++) for (let b = a + 1; b < rects.length; b++) {
+          const ox = Math.min(rects[a].right, rects[b].right) - Math.max(rects[a].left, rects[b].left)
+          const oy = Math.min(rects[a].bottom, rects[b].bottom) - Math.max(rects[a].top, rects[b].top)
+          if (ox > 1 && oy > 1) overlaps.push([a, b])
+        }
+        const labels = items.map((i) => { const l = i.querySelector('.dock__label'); const lr = l.getBoundingClientRect(); const ir = i.getBoundingClientRect(); return { text: l.textContent, lines: Math.round(lr.height / parseFloat(getComputedStyle(l).lineHeight)), inside: lr.left >= ir.left - 1 && lr.right <= ir.right + 1, fits: l.scrollWidth <= l.clientWidth + 1 } })
+        const dock = host.querySelector('.dock').getBoundingClientRect()
+        const out = { overlaps, labels, inDock: rects.every((x) => x.left >= dock.left - 1 && x.right <= dock.right + 1), hostOverflow: host.scrollWidth > 326, rows: new Set(rects.map((x) => Math.round(x.top))).size }
+        host.remove(); document.documentElement.style.fontSize = ''
+        return out
+      })
+      expect.equal(r.overlaps.length, 0, 'no two cells overlap: ' + JSON.stringify(r.overlaps))
+      expect.ok(r.labels.every((l) => l.lines <= 1 && l.inside && l.fits), 'every word sits whole on one line inside its own cell: ' + JSON.stringify(r.labels))
+      expect.ok(r.inDock && !r.hostOverflow, 'all cells stay inside the dock and the column')
+      expect.ok(r.rows >= 2, 'four 88px-minimum cells cannot share a 326px row, so the dock wraps (rows: ' + r.rows + ')')
+    },
+  },
+  {
+    name: 'Normal text: four destinations (and five with the centre action) stay on ONE row at 390px and at 320px',
+    async run({ page, goto, expect }) {
+      await goto('components/dock.html')
+      const rowsAt = (w, withAction) => page.evaluate(([w, withAction]) => {
+        const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:' + w + 'px'
+        const item = (i, t) => '<li><a class="dock__item" href="#fx"><span class="ic ic--' + i + '" aria-hidden="true"></span><span class="dock__label">' + t + '</span></a></li>'
+        host.innerHTML = '<nav class="dock" data-position="static" aria-label="fx"><ul class="dock__list" role="list">' + item('house', 'Home') + item('chart-column', 'Stats') + (withAction ? '<li><button class="btn dock__action" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-label="Add"><span class="ic ic--plus" aria-hidden="true"></span></button></li>' : '') + item('wallet', 'Pots') + item('user', 'You') + '</ul></nav>'
+        document.body.appendChild(host)
+        const tops = new Set([...host.querySelectorAll('.dock__list > li')].map((l) => Math.round(l.getBoundingClientRect().top)))
+        const h = host.querySelector('.dock').getBoundingClientRect().height
+        host.remove(); return { rows: tops.size, h: Math.round(h) }
+      }, [w, withAction])
+      for (const [w, a] of [[358, false], [358, true], [288, true]]) {
+        const r = await rowsAt(w, a)
+        expect.equal(r.rows, 1, w + 'px' + (a ? ' with the centre action' : '') + ': one row (height ' + r.h + ')')
+      }
     },
   },
 ]

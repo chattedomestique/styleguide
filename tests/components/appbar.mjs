@@ -162,4 +162,63 @@ export const tests = [
       expect.equal(r.tt, 'uppercase'); expect.ok(r.raw !== r.raw.toUpperCase(), 'typed in natural case: ' + r.raw)
     },
   },
+  {
+    name: 'Large text (200% at 390px): the bar wraps instead of squeezing, so a title keeps its whole words and a sticky bar stays about two rows',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/appbar.html')
+      const r = await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%'
+        const host = document.createElement('div')
+        host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:326px;background:var(--canvas)'
+        const btn = (l, i) => '<button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="' + l + '"><span class="ic ic--' + i + '" aria-hidden="true"></span></button>'
+        host.innerHTML = [
+          '<header class="appbar">' + btn('Back', 'arrow-left') + '<h2 class="appbar__title">Spanish verbs deck</h2><div class="appbar__end">' + btn('Search', 'search') + btn('More', 'ellipsis') + '</div></header>',
+          '<header class="appbar" data-variant="greeting"><div class="appbar__heading"><p class="appbar__eyebrow">Good morning</p><h2 class="appbar__title">Alexandria</h2></div>' + btn('Notifications', 'bell') + '</header>',
+          '<header class="appbar" data-variant="editor">' + btn('Cancel', 'close') + '<div class="appbar__heading"><h2 class="appbar__title">Edit card</h2>' + btn('Help', 'circle-help') + '</div>' + btn('Apply', 'check') + '</header>',
+          '<header class="appbar" data-variant="search">' + btn('Back', 'arrow-left') + '<form class="appbar__search" role="search"><label class="sr-only" for="fx-q">Search</label><span class="ic ic--search" aria-hidden="true"></span><input class="appbar__input" id="fx-q" type="search"></form>' + btn('New', 'plus') + '</header>',
+        ].join('')
+        document.body.appendChild(host)
+        // width of the longest WORD of a title, measured on a clone that cannot wrap
+        const longest = (t) => Math.max(...t.textContent.trim().split(/\s+/).map((w) => { const p = t.cloneNode(false); p.textContent = w; p.style.cssText += ';position:absolute;visibility:hidden;white-space:nowrap;flex:none;inline-size:auto;min-inline-size:0'; t.parentElement.appendChild(p); const x = p.getBoundingClientRect().width; p.remove(); return x }))
+        const bars = [...host.children].map((b) => {
+          const t = b.querySelector('.appbar__title')
+          const f = b.querySelector('.appbar__input')
+          return { kind: b.getAttribute('data-variant') || 'standard', h: Math.round(b.getBoundingClientRect().height), title: t ? Math.round(t.getBoundingClientRect().width) : 0, word: t ? Math.round(longest(t)) : 0, field: f ? Math.round(f.getBoundingClientRect().width) : null, sw: b.scrollWidth, cw: b.clientWidth }
+        })
+        const out = { bars, hostOverflow: host.scrollWidth > 326 }
+        host.remove(); document.documentElement.style.fontSize = ''
+        return out
+      })
+      expect.ok(!r.hostOverflow, 'nothing pokes out of a 326px column')
+      for (const b of r.bars) {
+        if (b.kind !== 'search') expect.ok(b.title >= b.word - 1, b.kind + ': the title (' + b.title + 'px) is at least as wide as its longest word (' + b.word + 'px), so no word is broken into letters')
+        expect.ok(b.h <= 260, b.kind + ': the bar is ' + b.h + 'px tall at 200% text (wrapped, not crushed: a letter-per-line title made it 346px)')
+        expect.ok(b.sw <= b.cw + 1, b.kind + ': no sideways overflow')
+      }
+      expect.ok(r.bars.find((b) => b.kind === 'search').field >= 6 * 32 - 2, 'the search field keeps at least 6rem')
+    },
+  },
+  {
+    name: 'A toned or ink bar pads its sides, so its buttons never touch the edge of the fill (and the ring has room)',
+    async run({ page, goto, expect }) {
+      await goto('components/appbar.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('.appbar[data-tone]:not([data-sticky])')].map((b) => {
+        const bb = b.getBoundingClientRect(); const first = b.querySelector('.btn').getBoundingClientRect(); const last = [...b.querySelectorAll('.btn')].pop().getBoundingClientRect()
+        return { tone: b.getAttribute('data-tone'), start: Math.round(first.left - bb.left), end: Math.round(bb.right - last.right) }
+      }))
+      expect.ok(r.length >= 2, 'found the ink and tonal demo bars')
+      expect.ok(r.every((b) => b.start >= 8 && b.end >= 8), 'at least 8px between the fill\'s edge and the first / last button: ' + JSON.stringify(r))
+    },
+  },
+  {
+    name: 'Right-to-left: the Back arrow mirrors so it points the way Back goes; left-to-right is untouched',
+    async run({ page, goto, expect }) {
+      await goto('components/appbar.html')
+      const t = () => page.evaluate(() => getComputedStyle(document.querySelector('.appbar .ic--arrow-left')).transform)
+      expect.equal(await t(), 'none', 'LTR: not flipped')
+      await page.evaluate(() => document.documentElement.setAttribute('dir', 'rtl'))
+      expect.equal(await t(), 'matrix(-1, 0, 0, 1, 0, 0)', 'RTL: mirrored')
+    },
+  },
 ]

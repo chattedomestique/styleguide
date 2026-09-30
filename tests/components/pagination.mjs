@@ -146,4 +146,39 @@ export const tests = [
       expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', 'no travel: ' + r.t); expect.equal(r.fill, 1, 'fill still changes')
     },
   },
+  {
+    name: 'Large text: the status line never prints under a button; under 16rem of the nav\'s own width it takes a row above the two circles',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/pagination.html')
+      const measure = (w) => page.evaluate((w) => {
+        document.documentElement.style.fontSize = '200%'
+        const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:' + w + 'px;background:var(--canvas)'
+        host.innerHTML = '<nav class="pagination" aria-label="fx"><ul class="pagination__list" role="list"><li class="pagination__prev"><a class="btn" href="#fx"><span class="ic ic--arrow-left" aria-hidden="true"></span><span class="pagination__label">Previous</span></a></li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 1">1</a></li><li class="pagination__status">Page 12 of 12</li><li class="pagination__next"><a class="btn" href="#fx"><span class="pagination__label">Next</span><span class="ic ic--arrow-right" aria-hidden="true"></span></a></li></ul></nav>'
+        document.body.appendChild(host)
+        const st = host.querySelector('.pagination__status'); const sr = st.getBoundingClientRect()
+        const btns = [...host.querySelectorAll('.btn')].map((b) => b.getBoundingClientRect()).filter((b) => b.width > 0)
+        const hit = btns.some((b) => Math.min(sr.right, b.right) - Math.max(sr.left, b.left) > 1 && Math.min(sr.bottom, b.bottom) - Math.max(sr.top, b.top) > 1)
+        const out = { hit, above: btns.every((b) => sr.bottom <= b.top + 1), overflow: host.scrollWidth > w, clipped: st.scrollWidth > st.clientWidth + 1, textLines: Math.round(sr.height / parseFloat(getComputedStyle(st).lineHeight)) }
+        host.remove(); document.documentElement.style.fontSize = ''
+        return out
+      }, w)
+      const narrow = await measure(326)   // 10.2rem at 200%: stacked
+      expect.ok(!narrow.hit && !narrow.overflow && !narrow.clipped, 'stacked: the status is not under a button and nothing overflows: ' + JSON.stringify(narrow))
+      expect.ok(narrow.above, 'stacked: the status sits above the two circles')
+      const mid = await measure(640)      // 20rem at 200%: one row
+      expect.ok(!mid.hit && !mid.overflow && !mid.clipped, 'one row: the status is between the circles, not under them: ' + JSON.stringify(mid))
+    },
+  },
+  {
+    name: 'Right-to-left: Previous / Next arrows mirror; left-to-right is untouched',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/pagination.html')
+      const t = () => page.evaluate(() => ({ l: getComputedStyle(document.querySelector('.pagination .ic--arrow-left')).transform, r: getComputedStyle(document.querySelector('.pagination .ic--arrow-right')).transform }))
+      const a = await t(); expect.ok(a.l === 'none' && a.r === 'none', 'LTR: not flipped')
+      await page.evaluate(() => document.documentElement.setAttribute('dir', 'rtl'))
+      const b = await t(); expect.ok(b.l === 'matrix(-1, 0, 0, 1, 0, 0)' && b.r === 'matrix(-1, 0, 0, 1, 0, 0)', 'RTL: mirrored ' + JSON.stringify(b))
+    },
+  },
 ]

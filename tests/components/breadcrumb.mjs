@@ -123,4 +123,20 @@ export const tests = [
       expect.equal(await toHex(r.sep), await toHex(r.cardInk), 'chevron colour = the card\'s ink')
     },
   },
+  {
+    name: 'Hover and press move the underline away from the word; the line stays 2px (4px is the forced-colours weight, never a hover cue)',
+    async run({ page, goto, expect }) {
+      await goto('components/breadcrumb.html')
+      const a = page.locator('nav[aria-label="Breadcrumb"] a').nth(1)
+      await a.evaluate((e) => e.scrollIntoView({ block: 'center' }))
+      await page.mouse.move(0, 0)
+      const read = () => a.evaluate((e) => { const c = getComputedStyle(e); return { thick: c.textDecorationThickness, offset: c.textUnderlineOffset } })
+      const rest = await read()
+      const b = await a.boundingBox()
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+      const over = await read()
+      expect.equal(over.thick, rest.thick, 'the line keeps its weight on hover'); expect.equal(rest.thick, '2px', 'and that weight is the 2px frame weight')
+      expect.ok(parseFloat(over.offset) > parseFloat(rest.offset) + 1, 'the underline steps away from the word on hover: ' + rest.offset + ' -> ' + over.offset)
+    },
+  },
 ]
