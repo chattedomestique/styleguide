@@ -20,6 +20,7 @@
  */
 import { readFileSync, mkdirSync, writeFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
+import { createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
 import { start, ROOT } from './lib/browser.mjs'
 
@@ -67,13 +68,29 @@ function probeFocus(maxTabs) {
       // A transparent outline is the forced-colours fallback (it becomes a real ring only there); it is not an
       // indicator in normal colours. The ring may also be drawn on ::before / ::after (a styled checkbox).
       let shown = false
-      for (let n = el, k = 0; n && k < 6 && !shown; n = n.parentElement, k++) {
-        const cs = getComputedStyle(n)
-        const shadow = cs.boxShadow && cs.boxShadow !== 'none'
-        shown = !!ringHolder(n) || !!shadow
+      let pixelsOnly = false
+      if (el.matches('input[type=range]')) {
+        // Ring contrast for a thumb is asserted by tests/components/slider.mjs and tests/contrast.mjs (--focus on --paper);
+        // here we only prove that focusing changes what is drawn round the control.
+        pixelsOnly = true
+        const r = el.getBoundingClientRect()
+        const pad = 16
+        const x = Math.max(0, r.left - pad), y = Math.max(0, r.top - pad)
+        const box = { x, y, width: Math.min(innerWidth - x, r.width + 2 * pad), height: Math.min(innerHeight - y, r.height + 2 * pad) }
+        const focusedShot = await window.__snap(box)
+        el.blur()
+        await Promise.race([Promise.all(document.getAnimations().filter((a) => a instanceof CSSTransition).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 600))])
+        const plainShot = await window.__snap(box)
+        shown = !!focusedShot && !!plainShot && focusedShot !== plainShot
+      } else {
+        for (let n = el, k = 0; n && k < 6 && !shown; n = n.parentElement, k++) {
+          const cs = getComputedStyle(n)
+          const shadow = cs.boxShadow && cs.boxShadow !== 'none'
+          shown = !!ringHolder(n) || !!shadow
+        }
       }
       if (!shown) res.push({ kind: 'no-indicator', el: desc(el) })
-      else {
+      else if (!pixelsOnly) {
         // Is the ring actually visible? Compare it with what it is drawn against (WCAG 1.4.11 / 2.4.11):
         // outside the box -> the nearest opaque ancestor background (or the paper halo between box and ring);
         // inside the box (negative offset) -> the element's own background.
@@ -232,6 +249,9 @@ async function audit(pg, app) {
   page.on('response', (r) => { if (r.status() >= 400) consoleErrors.push(`HTTP ${r.status()} ${r.url()}`) })
   await page.addInitScript((p) => { try { localStorage.setItem('sg:prefs', JSON.stringify(p)) } catch (e) {} }, app.prefs)
   await page.exposeFunction('__key', async (k) => { await page.keyboard.press(k) })
+  // A hash of the pixels in a viewport rectangle: a slider's ring is drawn on the browser's own thumb pseudo-element, which
+  // getComputedStyle cannot read, so "is a ring drawn?" is answered by comparing the control focused and not focused.
+  await page.exposeFunction('__snap', async (r) => { try { return createHash('sha1').update(await page.screenshot({ clip: r, animations: 'disabled' })).digest('hex') } catch (e) { return null } })
   await page.addInitScript(() => { window.__tab = async () => { await window.__key('Tab'); await new Promise((r) => setTimeout(r, 20)) } })
   try {
     await page.goto(`${url}/docs/${pg}`, { waitUntil: 'networkidle' })
