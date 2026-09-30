@@ -17,6 +17,7 @@
  * Source of truth is always src/ and docs-src/. dist/ and docs/ are generated and committed so
  * that consumers can copy one file, and so GitHub Pages can serve docs/ with no CI.
  */
+import { mdToHtml } from './lib/md.mjs'
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSync, copyFileSync, rmSync } from 'node:fs'
 import { join, dirname, relative, sep, posix, extname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -189,6 +190,10 @@ function buildIcons() {
 const GROUP_ORDER = ['Start', 'Foundations', 'Components', 'Patterns', 'Accessibility', 'Project']
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
+const MARKDOWN_PAGES = [
+  { file: 'AUDIT.md', path: 'project/audit', lede: 'What was wrong with the Flashcards style sheet v0.1, how it was found, and what was done about each finding. The same text is in <code>AUDIT.md</code>; the four full reviews are in <code>references/audit/</code>.', meta: { title: 'Audit', group: 'Project', order: 20, summary: 'What was wrong with the Flashcards style sheet v0.1, how it was found, and what was done about each finding.' } },
+]
+
 function parsePage(file) {
   let src = readFileSync(file, 'utf8')
   const m = src.match(/^\s*<!--\s*(\{[\s\S]*?\})\s*-->/)
@@ -207,6 +212,13 @@ function buildDocs() {
   if (!existsSync(layoutFile)) return
   const layout = readFileSync(layoutFile, 'utf8')
   const pages = walk(join(ROOT, 'docs-src'), (p) => p.endsWith('.html') && !posix.basename(rel(p)).startsWith('_')).map(parsePage).filter(Boolean)
+
+  // Pages generated from the repo's own markdown, so the page and the file can never drift apart.
+  for (const v of MARKDOWN_PAGES) {
+    const f = join(ROOT, v.file)
+    if (!existsSync(f)) continue
+    pages.push({ meta: v.meta, path: v.path, out: v.path + '.html', body: `<h1>${esc(v.meta.title)}</h1>\n<p class="lede">${v.lede}</p>\n${mdToHtml(readFileSync(f, 'utf8'))}\n` })
+  }
 
   // Stable order: group order, then `order`, then title.
   pages.sort((a, b) => GROUP_ORDER.indexOf(a.meta.group) - GROUP_ORDER.indexOf(b.meta.group) || (a.meta.order ?? 999) - (b.meta.order ?? 999) || a.meta.title.localeCompare(b.meta.title))

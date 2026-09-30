@@ -13,7 +13,7 @@
  * To cover a NEW role pair: add a line in PAIRS / TONE_PAIRS below. A role that is used as text
  * or as a control boundary and is not listed here is unverified.
  */
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { start, ROOT } from './lib/browser.mjs'
 
@@ -22,7 +22,9 @@ const SHOW_ALL = process.argv.includes('--all')
 const THEMES = ['light', 'dark']
 const CONTRASTS = ['off', 'more']
 const PALETTES = ['default', 'mint', 'periwinkle', 'sand', 'cream', 'wire']
-const TONES = ['1', '2', '3', '4', '5', '6', 'ink', 'ok', 'warn', 'bad', 'info']
+// Tones are discovered from the CSS, not listed here: add a [data-tone="x"] rule and it is tested.
+const TONES = [...new Set([...readFileSync(join(ROOT, 'dist', 'styleguide.css'), 'utf8').matchAll(/\[data-tone="([^"]+)"\]/g)].map((m) => m[1]))]
+if (TONES.length < 11) throw new Error(`expected at least 11 tones in dist/styleguide.css (run npm run build); found ${TONES.join(', ')}`)
 
 const TEXT_SURFACES = ['--canvas', '--paper', '--paper-2']
 const ALL_SURFACES = [...TEXT_SURFACES, '--paper-3']

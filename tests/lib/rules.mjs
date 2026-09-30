@@ -329,6 +329,17 @@ export function checkHtml({ name, html, page = false }) {
 
 /* ---------------------------------------------------------------------------- cross-file checks */
 
+/** Custom properties a stylesheet defines: real declarations and @property names, never selector fragments
+ *  (the original checker counted `.card--link:is(` as defining `--link`). */
+export function declaredIn(css) {
+  const out = new Set()
+  for (const d of tokenize(css)) {
+    if (d.prop.startsWith('--')) out.add(d.prop)
+    for (const p of d.stack) { const m = p.match(/^@property\s+(--[\w-]+)/); if (m) out.add(m[1]) }
+  }
+  return out
+}
+
 /** var(--x) with no definition and no fallback. `declared` is every custom property the project defines. */
 export function undefinedTokens({ css, declared }) {
   const out = []

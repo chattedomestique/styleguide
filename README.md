@@ -70,7 +70,7 @@ npm run new:component -- name --order 45
 
 ## Status and honest limits
 
-Version 0.2.0. Verified in **Chromium** only. **Not verified:** Safari / iOS (standalone safe areas, Dynamic Type), Firefox, real screen readers (VoiceOver, TalkBack, NVDA) and Android font scaling. Elements so far: Card and Button; more arrive through the gated pipeline described in [STYLE.md](STYLE.md) §6.
+Version 0.2.0. Verified in **Chromium** only. **Not verified:** Safari / iOS (standalone safe areas, Dynamic Type), Firefox, real screen readers (VoiceOver, TalkBack, NVDA) and Android font scaling. Elements so far: Card and Button; more arrive through the gated pipeline described in [STYLE.md](STYLE.md) §6. What was wrong with the original sheet, and what was done about each finding, is in [AUDIT.md](AUDIT.md); the evidence and the notes behind the design are in [references/](references/).
 
 ## Credits and licences
 

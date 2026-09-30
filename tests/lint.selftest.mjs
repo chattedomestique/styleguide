@@ -12,7 +12,7 @@
 import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { checkCss, checkHtml, undefinedTokens, unknownClasses } from './lib/rules.mjs'
+import { checkCss, checkHtml, undefinedTokens, unknownClasses, declaredIn } from './lib/rules.mjs'
 import { collectProject } from './lib/project.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -54,6 +54,13 @@ for (const c of data.cases) {
     else bad.push(`FALSE POSITIVE ${c.id} [${k}] ${c.what}\n      ${[...res.errors, ...res.warnings].map((r) => r.msg).join(' | ').slice(0, 200)}`)
     if (verbose) console.log(`${flagged ? 'FLAGGED' : 'clean  '} ${c.id} ${c.what}`)
   }
+}
+
+// unit: the definition scan must not treat selector fragments as tokens (the original's DEF-3)
+{
+  const d = declaredIn('.card--link:is(.a){color:red} .card--ghost:hover{x:1} a{--real: 1} @property --num { syntax: "<number>"; inherits: true; initial-value: 0 } .y{--last:2}')
+  for (const t of ['--link', '--ghost']) if (d.has(t)) bad.push(`PHANTOM TOKEN ${t}: a selector fragment was counted as a definition`)
+  for (const t of ['--real', '--num', '--last']) if (!d.has(t)) bad.push(`MISSING TOKEN ${t}: a real definition was not found (last declaration without ';' or @property)`)
 }
 
 console.log(`violations caught: ${caught}/${total} (${Math.round((100 * caught) / total)}%) · legitimate snippets passed: ${clean}/${legit} · not static CSS/HTML (skipped): ${skipped.length} · known misses: ${Object.keys(known).length}`)

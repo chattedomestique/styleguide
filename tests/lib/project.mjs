@@ -2,7 +2,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { stripComments } from './rules.mjs'
+import { stripComments, declaredIn } from './rules.mjs'
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
@@ -20,14 +20,20 @@ export function collectProject(root = ROOT) {
   const declared = new Set()
   const classes = new Set()
   for (const f of [...cssFiles, ...(existsSync(icons) ? [icons] : [])]) {
-    const css = stripUrls(stripComments(readFileSync(f, 'utf8')))
-    for (const m of css.matchAll(/(--[a-zA-Z0-9_-]+)\s*:/g)) declared.add(m[1])
+    const raw = readFileSync(f, 'utf8')
+    for (const t of declaredIn(raw)) declared.add(t)
+    const css = stripUrls(stripComments(raw))
     for (const m of css.matchAll(/\.([a-zA-Z][\w-]*)/g)) classes.add(m[1])
   }
   // custom properties set inline in docs markup (--grid-min: …) and by JS (style.setProperty)
   for (const f of [...walk(join(root, 'docs-src'), (p) => /\.(html|js)$/.test(p)), ...walk(join(root, 'src', 'js'), (p) => p.endsWith('.js'))]) {
     const t = readFileSync(f, 'utf8')
-    for (const m of t.matchAll(/(--[a-zA-Z0-9_-]+)\s*:/g)) declared.add(m[1])
+    if (f.endsWith('.html')) {
+      // custom properties set inline (style="--grid-min: 14rem") or in a page-local <style>
+      for (const m of t.matchAll(/style\s*=\s*"([^"]*)"/g)) for (const d of m[1].split(';')) { const c = d.indexOf(':'); if (c > 0 && /^\s*--[\w-]+\s*$/.test(d.slice(0, c))) declared.add(d.slice(0, c).trim()) }
+      for (const m of t.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)) for (const x of declaredIn(m[1])) declared.add(x)
+    }
+    if (f.endsWith('.js')) for (const m of t.matchAll(/(--[a-zA-Z0-9_-]+)\s*:/g)) declared.add(m[1])
     for (const m of t.matchAll(/setProperty\(\s*['"](--[\w-]+)/g)) declared.add(m[1])
     if (f.endsWith('.js')) for (const m of t.matchAll(/['"`]\.?([a-z][\w-]*)['"`]/g)) classes.add(m[1])
   }
