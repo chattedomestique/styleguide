@@ -82,35 +82,37 @@
 <h3 id="panel">Panel</h3>
 <p>A card with a title bar. Lists, settings, anything that folds away.</p>
 <p><code>.card__bar</code> <code>.card__label</code> <code>.card__ctl</code> <code>.card__list</code></p>
-<p class="t-meta">The bar is the frame made thicker, not a separate header. On the inverted tone it flips to paper, or it would vanish into the card.</p>
+<p class="t-meta">The bar is the frame made thicker, not a separate header. On the inverted tone it flips to paper, or it would vanish into the card. The control is a disclosure: it keeps one name (the panel's title) and <code>aria-expanded</code> carries the state, so a screen reader hears "Decks, button, expanded". <code>data-sg-toggle</code> (from <code>styleguide.js</code>) shows and hides what <code>aria-controls</code> points to. Each list row is one target: the link is stretched over the whole row, and the row inverts on hover, focus and press.</p>
 <div class="demo">
 <div class="demo__stage">
 <div class="grid" style="--grid-min: 15rem">
 <section class="card">
   <header class="card__bar">
-    <h4 class="card__label">01 — Shapes</h4>
-    <button class="card__ctl" type="button" aria-label="Collapse">
-      <span class="ic ic--minus"></span>
+    <h4 class="card__label" id="pn1-t">01 — Shapes</h4>
+    <button class="card__ctl" type="button" aria-labelledby="pn1-t" aria-expanded="true" aria-controls="pn1-body" data-sg-toggle>
+      <span class="ic ic--minus" aria-hidden="true"></span>
     </button>
   </header>
-  <div class="card__body">
+  <div class="card__body" id="pn1-body">
     <p class="card__text">Twelve cards. Five known, seven to go.</p>
     <p class="card__meta">Last opened yesterday.</p>
   </div>
 </section>
 <section class="card" data-tone="ink">
   <header class="card__bar">
-    <h4 class="card__label">Decks</h4>
-    <button class="card__ctl" type="button" aria-label="Collapse">
-      <span class="ic ic--minus"></span>
+    <h4 class="card__label" id="pn2-t">Decks</h4>
+    <button class="card__ctl" type="button" aria-labelledby="pn2-t" aria-expanded="true" aria-controls="pn2-body" data-sg-toggle>
+      <span class="ic ic--minus" aria-hidden="true"></span>
     </button>
   </header>
-  <ul class="card__list" role="list">
-    <li><a href="#">Shapes</a><span>12</span></li>
-    <li><a href="#">Colours</a><span>8</span></li>
-    <li><a href="#">Numbers to twenty</a><span>20</span></li>
-    <li><a href="#">Farm animals</a><span>15</span></li>
-  </ul>
+  <div id="pn2-body">
+    <ul class="card__list" role="list">
+      <li><a href="#">Shapes</a><span>12</span></li>
+      <li><a href="#">Colours</a><span>8</span></li>
+      <li><a href="#">Numbers to twenty</a><span>20</span></li>
+      <li><a href="#">Farm animals</a><span>15</span></li>
+    </ul>
+  </div>
 </section>
 </div>
 </div>
@@ -158,7 +160,7 @@
 <h3 id="stat">Stat</h3>
 <p>One number, big, with just enough around it to mean something.</p>
 <p><code>.card__figure</code> <code>.card--square</code> <code>.wf-meter</code></p>
-<p class="t-meta">A recipe, not a class: eyebrow, figure, optional meter, one line of meta. The figure scales with the card's own width, from 48 to 104px.</p>
+<p class="t-meta">A recipe, not a class: eyebrow, figure, optional meter, one line of meta. The figure scales with the card's own width, from 28 to 104px.</p>
 <div class="demo">
 <div class="demo__stage">
 <div class="grid" style="--grid-min: 14rem">
@@ -245,7 +247,7 @@
   <div class="card__body">
     <div class="card__row">
       <p class="card__eyebrow">Deck · 12 cards</p>
-      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
       <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
@@ -257,7 +259,7 @@
   <div class="card__body">
     <div class="card__row">
       <p class="card__eyebrow">Deck · 8 cards</p>
-      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
       <h4 class="card__title"><a class="card__link" href="#">Colours</a></h4>
@@ -269,7 +271,7 @@
   <div class="card__body">
     <div class="card__row">
       <p class="card__eyebrow">Deck · 20 cards</p>
-      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
       <h4 class="card__title"><a class="card__link" href="#">Numbers to twenty</a></h4>
@@ -297,7 +299,7 @@
     <p class="card__meta">cards are ready to review</p>
   </div>
   <button class="card__action" type="button" aria-label="Start review">
-    <span class="ic ic--arrow"></span>
+    <span class="ic ic--arrow" aria-hidden="true"></span>
   </button>
 </article>
 </div>
@@ -330,7 +332,7 @@
 <div class="demo__stage">
 <div class="grid" style="--grid-min: 17rem">
 <a class="card card--ghost" href="#">
-  <span class="card__action" aria-hidden="true"><span class="ic ic--plus"></span></span>
+  <span class="card__action" aria-hidden="true"><span class="ic ic--plus" aria-hidden="true"></span></span>
   <span class="card__title">Add a shape</span>
 </a>
 </div>
@@ -340,36 +342,39 @@
 <h3 id="portrait">Portrait</h3>
 <p>The flashcard itself. 5:7, one subject, one hint.</p>
 <p><code>.card--portrait</code> <code>.card__stage</code> <code>.card__hero</code></p>
-<p class="t-meta">Static faces only. The flip is motion, so it's designed at gate 4; the rules in the app's README (perspective on the parent, backfaces hidden, <code>cubic-bezier(.83, 0, .17, 1)</code>) carry over unchanged.</p>
+<p class="t-meta">Reveal pattern: the subject is an image with a real name that does not give the answer away; one <code>button</code> with a constant name and <code>aria-expanded</code> reveals the answer, and <code>data-sg-announce</code> reads it politely, so the flip never depends on seeing it. The animated flip is gate 4; the rules in the app's README (perspective on the parent, backfaces hidden, <code>cubic-bezier(.83, 0, .17, 1)</code>) carry over, and under reduced motion the answer simply appears.</p>
 <div class="demo">
 <div class="demo__stage">
 <div class="grid" style="--grid-min: 14rem">
 <div>
-  <article class="card card--portrait" data-face="front">
-    <div class="card__head"><span class="card__label">03 / 12</span></div>
+  <article class="card card--portrait" aria-labelledby="pc1-t">
+    <div class="card__head"><span class="card__label" id="pc1-t">Shape 3 of 12</span></div>
     <div class="card__stage">
-      <svg class="wf-shape" viewBox="-8 -8 116 116" aria-hidden="true" focusable="false" data-tone="3">
+      <svg class="wf-shape" viewBox="-8 -8 116 116" role="img" aria-label="Outline of a shape. What is it called?" focusable="false" data-tone="3">
         <path
           d="M50 6L88.11 72L11.89 72Z"
           transform="translate(0 11) translate(50 50) scale(1.16) translate(-50 -50)"
         />
       </svg>
-    </div>
-    <footer class="card__foot"><span class="card__meta">Tap to flip</span></footer>
-  </article>
-  <p class="t-meta"><b>Front.</b> Shape only.</p>
-</div>
-<div>
-  <article class="card card--portrait" data-face="back">
-    <div class="card__head"><span class="card__label">03 / 12</span></div>
-    <div class="card__stage">
-      <p class="card__hero">Triangle</p>
+      <p class="card__hero" id="pc1-a" hidden>Triangle</p>
     </div>
     <footer class="card__foot">
-      <span class="card__meta">Three sides, three corners</span>
+      <button class="btn" type="button" data-size="sm" aria-expanded="false" aria-controls="pc1-a" data-sg-toggle data-sg-announce>Show answer</button>
     </footer>
   </article>
-  <p class="t-meta"><b>Back.</b> The name, and one fact.</p>
+  <p class="t-meta"><b>Front.</b> Press the button: the answer appears and is read aloud.</p>
+</div>
+<div>
+  <article class="card card--portrait" aria-labelledby="pc2-t">
+    <div class="card__head"><span class="card__label" id="pc2-t">Shape 4 of 12</span></div>
+    <div class="card__stage">
+      <p class="card__hero" id="pc2-a">Quadrilateral</p>
+    </div>
+    <footer class="card__foot">
+      <span class="card__meta">Four sides, four corners</span>
+    </footer>
+  </article>
+  <p class="t-meta"><b>Back.</b> The name, and one fact. A long word wraps rather than clips.</p>
 </div>
 </div>
 </div>
@@ -389,15 +394,42 @@
 <tr><td>Disabled</td><td><code>[aria-disabled="true"]</code></td><td></td><td></td><td>Dashed border, <code>--ink-faint</code>, hatch (from <code>wire.css</code>), <code>pointer-events: none</code>. Not an anchor.</td></tr>
 <tr><td>Forced colours</td><td><code>(forced-colors: active)</code></td><td></td><td></td><td>Shadows and fills vanish there, so hover/focus get a 4px <code>Highlight</code> outline and selected gets a 4px border.</td></tr>
 </tbody></table></div>
+<h3 id="selecting">Selecting a card</h3>
+<p>"Selected" is not one attribute. Use the one that is valid for what the card <em>is</em>; <code>aria-selected</code> is not allowed on an <code>article</code> or a link.</p>
+<div class="table-wrap"><table class="docs-table">
+<caption class="sr-only">How to mark a card as selected</caption>
+<thead><tr><th>The card is…</th><th>Markup</th><th>Announced as</th></tr></thead>
+<tbody>
+<tr><td>a link to the current page or step</td><td><code>aria-current="page"</code> (or <code>"step"</code>)</td><td>"current page"</td></tr>
+<tr><td>a toggle button</td><td><code>&lt;button class="card" aria-pressed="true"&gt;</code></td><td>"toggle button, pressed"</td></tr>
+<tr><td>an option in a listbox or a tab</td><td><code>role="option"</code> or <code>"tab"</code> with <code>aria-selected="true"</code></td><td>"selected"</td></tr>
+<tr><td>a choice in a radio or checkbox group</td><td>a real <code>&lt;input&gt;</code> inside; the card reads the input's state</td><td>"radio button, checked"</td></tr>
+</tbody></table></div>
+<p>The look is the same for all of them: a ring that doubles the frame, so nothing shifts. On the inverted tone the ring gets a gap of canvas, or it would be ink on ink.</p>
+
+<h3 id="parts">Parts and their states</h3>
+<p>Every part you can press answers to the same two numbers. Keyboard and pointer get the same result.</p>
+<div class="table-wrap"><table class="docs-table">
+<caption class="sr-only">State of each pressable part</caption>
+<thead><tr><th>Part</th><th>Hover (pointer only)</th><th>Focus</th><th>Pressed</th></tr></thead>
+<tbody>
+<tr><td>Link card</td><td>lifts 2px, hard shadow, action fills, title underlines</td><td>the same, plus a 3px ring on the card</td><td>back onto the surface, fill stays</td></tr>
+<tr><td>Ghost card</td><td>frame turns solid, fills</td><td>the same, plus the ring</td><td>fill stays</td></tr>
+<tr><td>Bar control</td><td>the 20px box fills, glyph inverts</td><td>the same, ring inside the bar</td><td>fill stays</td></tr>
+<tr><td>List row</td><td>the whole row inverts, link underlines</td><td>the same, ring inside the row</td><td>fill stays</td></tr>
+<tr><td>Action circle</td><td>fills with the accent</td><td>the same, plus the ring</td><td>fill stays</td></tr>
+<tr><td>Foot link</td><td>underline thickens</td><td>the ring</td><td>none (a link)</td></tr>
+</tbody></table></div>
+
 <div class="demo" data-nocode>
 <div class="demo__stage">
 <div class="grid" style="--grid-min: 14rem">
-<div>
+<div inert>
 <article class="card card--link" data-tone="1">
   <div class="card__body">
     <div class="card__row">
       <p class="card__eyebrow">Deck · 12 cards</p>
-      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
       <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
@@ -406,12 +438,12 @@
 </article>
 <p class="t-meta"><b>Rest.</b> Flat. No shadow.</p>
 </div>
-<div>
+<div inert>
 <article class="card card--link is-hover" data-tone="1">
   <div class="card__body">
     <div class="card__row">
       <p class="card__eyebrow">Deck · 12 cards</p>
-      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
       <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
@@ -420,12 +452,12 @@
 </article>
 <p class="t-meta"><b>Hover.</b> Lifts 2px, 4px hard shadow, action fills, title underlines.</p>
 </div>
-<div>
+<div inert>
 <article class="card card--link is-focus" data-tone="1">
   <div class="card__body">
     <div class="card__row">
       <p class="card__eyebrow">Deck · 12 cards</p>
-      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
       <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
@@ -434,12 +466,12 @@
 </article>
 <p class="t-meta"><b>Focus.</b> A 3px ring outside the frame, on top of the hover lift.</p>
 </div>
-<div>
+<div inert>
 <article class="card card--link is-active" data-tone="1">
   <div class="card__body">
     <div class="card__row">
       <p class="card__eyebrow">Deck · 12 cards</p>
-      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
       <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
@@ -448,12 +480,12 @@
 </article>
 <p class="t-meta"><b>Pressed.</b> Back onto the surface. The fill stays.</p>
 </div>
-<div>
+<div inert>
 <article class="card card--link" data-tone="1" aria-current="true">
   <div class="card__body">
     <div class="card__row">
       <p class="card__eyebrow">Deck · 12 cards</p>
-      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
       <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
@@ -462,7 +494,7 @@
 </article>
 <p class="t-meta"><b>Selected.</b> A ring doubles the frame. Nothing shifts.</p>
 </div>
-<div>
+<div inert>
 <article class="card is-disabled" data-tone="1" aria-disabled="true">
   <div class="card__body" style="min-block-size: 11rem; justify-content: space-between">
     <div class="card__row">
@@ -478,7 +510,41 @@
 </div>
 </div>
 </div>
-<p class="t-meta">The <code>.is-*</code> classes force a state for this page and for tests. They are not API: real states come from <code>:hover</code>, <code>:focus-visible</code>, <code>:active</code> and <code>aria-current</code>, <code>aria-selected</code>, <code>aria-disabled</code>.</p>
+<p class="t-meta">The specimens are <code>inert</code> on purpose: a forced state must not become a tab stop or a second focus ring on the page. The <code>.is-*</code> classes force a state for this page and for tests. They are not API: real states come from <code>:hover</code>, <code>:focus-visible</code>, <code>:active</code> and <code>aria-current</code>, <code>aria-selected</code>, <code>aria-disabled</code>.</p>
+
+<h2 id="real-copy">Real copy</h2>
+<p>A card is a frame that clips, so anything that cannot wrap is cut off silently. Every text slot wraps (<code>overflow-wrap: anywhere</code>), rows and feet wrap, the figure shrinks to fit, and the accessibility gate renders these specimens at 200% text to prove it. Test a new variant with the longest real value each slot will ever hold.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="cluster">
+  <div style="inline-size: 10rem">
+    <article class="card card--portrait">
+      <div class="card__head"><span class="card__label">Shape 9 of 12</span></div>
+      <div class="card__stage"><p class="card__hero">Parallelogram</p></div>
+      <footer class="card__foot"><span class="card__meta">Two pairs of parallel sides</span></footer>
+    </article>
+  </div>
+  <div style="inline-size: 10rem">
+    <article class="card card--square" data-tone="1">
+      <div class="card__body">
+        <p class="card__eyebrow">Cards studied</p>
+        <p class="card__figure">12,480</p>
+      </div>
+    </article>
+  </div>
+  <div style="inline-size: 10rem">
+    <article class="card" data-tone="4">
+      <div class="card__body">
+        <p class="card__eyebrow">Sent to jayemarie.vanyo.review@example.com</p>
+        <h3 class="card__title">Quadrilaterals and other polygons</h3>
+        <p class="card__meta">Reviewed 2,345 times</p>
+      </div>
+      <footer class="card__foot"><span>New</span><a href="#">Start deck</a></footer>
+    </article>
+  </div>
+</div>
+</div>
+</div>
 
 <h2 id="layout">Layout</h2>
 <p>How cards sit together. The grid only places them; it never styles them.</p>
@@ -609,13 +675,15 @@
 <ul>
   <li>One tab stop per link card; its accessible name is the title text.</li>
   <li>Every target is at least 44px: the action circle, the bar control, list rows, the foot. Inline links in the foot are at least 24px tall.</li>
-  <li>The focus ring is always visible: outside the frame on the card itself; inset on the bar and on list rows; in <code>--card-ink</code> on an inverted card.</li>
+  <li>The focus ring is always visible, and always against a colour it contrasts with: outside the frame on the card itself; inset on the bar and on list rows, in the bar's colours; and on any toned card in that tone's ink over a halo in its fill. The accessibility gate measures this for every focusable in every appearance.</li>
   <li>Meters use <code>role="meter"</code> with <code>aria-valuemin</code>, <code>aria-valuemax</code> and <code>aria-valuenow</code>.</li>
   <li>Decorative icons are <code>aria-hidden="true"</code>; a control whose only content is an icon gets an <code>aria-label</code>.</li>
   <li>Reset lists keep <code>role="list"</code> so Safari keeps the semantics that <code>list-style: none</code> would drop.</li>
   <li>A card title is not always an <code>h3</code>: use the heading level that fits the page.</li>
   <li>A disabled card is not an anchor: <code>aria-disabled="true"</code> plus the class, and remove the <code>href</code>.</li>
-  <li>Forced-colours mode is handled: shadows and fills vanish there, so hover and focus get a 4px <code>Highlight</code> outline and selected gets a 4px border.</li>
+  <li>Forced-colours mode is handled: shadows and fills vanish there, so hover is a 2px <code>Highlight</code> outline, focus a 4px one with a gap, and selected an inner frame line. The three look different and none of them moves the layout.</li>
+  <li>Selection uses the attribute that is valid for the role (see Selecting a card). A card with no heading gets <code>aria-labelledby</code>.</li>
+  <li>Right-to-left text is supported: the notch moves to the top-left and the stack's sheets fall to the other side.</li>
 </ul>
 
 <h2 id="dont">Do and don't</h2>
@@ -631,5 +699,9 @@
   <li>The notch is square only. The upgrade path is <code>corner-shape: scoop</code> as progressive enhancement once it is supported everywhere that matters.</li>
   <li>The stretched link's border band needs <code>overflow-clip-margin</code>. Safari ignores it, leaving a 2px band at the very edge of a link card where a click does nothing.</li>
   <li>Text inside a link card cannot be selected by dragging, because the stretched link sits on top.</li>
-  <li>The portrait card has static faces only; the flip is a motion design decision.</li>
+  <li>The portrait card reveals its answer; the animated flip itself is a motion design decision not made yet.</li>
+  <li>A link card moves 2px up and left on hover, and the pointer can sit in the 2px band it just left. Parked exactly on the bottom or right edge, the hover can flicker. Interior positions are stable.</li>
+  <li>In soft corners the inset focus ring on the bar control is partly clipped by the card's radius at the corner. It stays visible.</li>
+  <li>The stack's sheets are a shape, not an elevation: the one place a hard shadow appears on something you cannot press.</li>
+  <li>In forced-colours mode the notch becomes a plain rectangle.</li>
 </ul>

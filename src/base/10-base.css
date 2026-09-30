@@ -94,6 +94,21 @@
     font: var(--type-display);
     letter-spacing: var(--ls-display);
     text-transform: uppercase;
+    /* Poster type is wide. On a phone the width axis narrows (expanded -> condensed) so an
+       eight-letter title such as "Settings" still fits one line; a longer word wraps instead of
+       running off the screen. */
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+  @media (max-width: 48em) {
+    :where(.t-display) {
+      font-stretch: 100%;
+    }
+  }
+  @media (max-width: 30em) {
+    :where(.t-display) {
+      font-stretch: 75%;
+    }
   }
   :where(.t-title) {
     font: var(--type-title);
@@ -135,7 +150,8 @@
   /* --- focus ------------------------------------------------------------------------
      The owner's ring: 3px solid --focus, offset 3px. Added: a --paper HALO fills the
      offset gap, so the ring is still visible on surfaces where --focus vanishes (an ink
-     bar, a dock, a dark photo): the halo IS the ring there. Components that clip or draw
+     bar, a dock, a dark photo): the halo IS the ring there. Inside a [data-tone] element
+     both follow the tone (see 20-tones.css): --focus = its ink, --focus-halo = its fill. Components that clip or draw
      their own box-shadow set --ring-gap / keep var(--focus-shadow). Never write
      `outline: none` without a replacement (WCAG 2.4.7). */
   :where(:focus-visible) {
@@ -143,7 +159,7 @@
     outline-offset: var(--ring-gap, var(--ring-offset));
   }
   :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"]):focus-visible {
-    --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper);
+    --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
     box-shadow: var(--focus-shadow);
   }
   :where([tabindex="-1"]):focus:not(:focus-visible) {

@@ -28,6 +28,20 @@ const warn = (file, line, msg) => warnings.push(`${file}${line ? ':' + line : ''
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
 const lineOf = (text, idx) => text.slice(0, idx).split('\n').length
 
+
+/** Preludes of the at-rules/blocks that enclose an index (brace-tracked, comments already stripped). */
+function enclosing(css, idx) {
+  const stack = []
+  let start = 0
+  for (let i = 0; i < idx; i++) {
+    const c = css[i]
+    if (c === '{') { stack.push(css.slice(start, i).trim()); start = i + 1 }
+    else if (c === '}') { stack.pop(); start = i + 1 }
+    else if (c === ';') start = i + 1
+  }
+  return stack
+}
+
 const cssFiles = walk(join(ROOT, 'src'), (p) => p.endsWith('.css'))
 const componentCss = cssFiles.filter((f) => rel(f).startsWith('src/components/'))
 const layoutCss = cssFiles.filter((f) => /^src\/(components|layout|base)\//.test(rel(f)))
@@ -93,12 +107,9 @@ for (const f of layoutCss) {
     }
     // breakpoints should be em so they follow the user's font size
     for (const m of css.matchAll(/@media[^{]*\((?:min|max)-width\s*:\s*\d+px\)/g)) warn(name, lineOf(css, m.index), 'px media query: use em so breakpoints follow text size')
-    // hover must be gated so touch screens never get a stuck hover
+    // hover must be gated so touch screens never get a stuck hover (forced-colors has no sticky-hover problem either)
     for (const m of css.matchAll(/:hover\b/g)) {
-      const before = css.slice(Math.max(0, m.index - 400), m.index)
-      const lastMedia = before.lastIndexOf('@media')
-      const gated = lastMedia >= 0 && /hover:\s*hover|forced-colors/.test(before.slice(lastMedia)) && !/\}\s*\}/.test(before.slice(lastMedia).replace(/\{[^{}]*\}/g, ''))
-      if (!gated) warn(name, lineOf(css, m.index), ':hover outside @media (hover: hover)')
+      if (!enclosing(css, m.index).some((pre) => /hover:\s*hover|forced-colors/.test(pre))) warn(name, lineOf(css, m.index), ':hover outside @media (hover: hover)')
     }
     if (!basename(f).startsWith('00-') && !/forced-colors/.test(css) && !/border/.test(css)) warn(name, '', 'no border and no forced-colors rule: will the edge survive Windows High Contrast?')
   }
@@ -141,6 +152,7 @@ for (const f of walk(join(ROOT, 'docs-src'), (p) => p.endsWith('.html') && !base
   for (const m of html.matchAll(/tabindex="([1-9]\d*)"/g)) err(name, lineOf(html, m.index), 'positive tabindex breaks natural order')
   for (const m of html.matchAll(/<(div|span)[^>]*role="button"/g)) err(name, lineOf(html, m.index), 'use a real <button>, not role="button" on a div/span')
   for (const m of html.matchAll(/<img\b(?![^>]*\balt=)[^>]*>/g)) err(name, lineOf(html, m.index), '<img> without alt')
+  for (const m of html.matchAll(/<span class="ic [^"]*"(?![^>]*aria-hidden)[^>]*>/g)) err(name, lineOf(html, m.index), 'icon <span class="ic"> without aria-hidden="true" (the control gets the aria-label)')
   for (const m of html.matchAll(/<svg\b[^>]*class="[^"]*\bicon\b[^"]*"(?![^>]*aria-hidden)[^>]*>/g)) err(name, lineOf(html, m.index), 'icon <svg> without aria-hidden="true"')
   for (const m of html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)) {
     const text = m[2].replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '').trim()

@@ -58,11 +58,14 @@ function buildPairs() {
 /** Pairs read inside a [data-tone] scope. `bold` = threshold under data-emphasis="bold". */
 const TONE_PAIRS = [
   { fg: '--tone-ink', bg: '--tone-bg', min: 7, bold: 6.5, what: 'tone text' },
-  { fg: '--tone-ink-soft', bg: '--tone-bg', min: 4.5, bold: 4.5, what: 'tone secondary text' },
+  { fg: '--tone-ink-soft', bg: '--tone-bg', min: 7, bold: 6.5, what: 'tone secondary text' },
   { fg: '--tone-on-fill', bg: '--tone-fill', min: 4.5, bold: 4.5, what: 'text on tone pill' },
   { fg: '--tone-fill', bg: '--tone-bg', min: 3, bold: 3, what: 'tone pill vs its card' },
   { fg: '--line', bg: '--tone-bg', min: 3, bold: 3, what: 'frame and icons on a tone', skipBold: true, skipInk: true },
-  { fg: '--focus', bg: '--tone-bg', min: 3, bold: 3, what: 'focus ring on a tone', skipBold: true, skipInk: true }  // ink: the ring is drawn outside the card, or recoloured inside it (card.css),
+  // A focusable thing INSIDE a toned element draws its ring in the tone's ink over a halo in the tone's fill.
+  // Read on a child, because --tone-* do not inherit (the _tone-* copies do).
+  { fg: '--focus', bg: '--_tone-bg', min: 3, bold: 3, what: 'focus ring on a tone (child)', child: true },
+  { fg: '--focus', bg: '--focus-halo', min: 3, bold: 3, what: 'focus ring against its own halo (child)', child: true },
 ]
 
 /** Runs in the browser. Returns [{key, fgHex, bgHex, ratio, min, ...}] */
@@ -106,9 +109,12 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, use
 
   const out = []
   const scopeKey = `${theme}/${contrast}/${palette}`
-  const check = (scope, p, extra, minKey = 'min') => {
+  const check = (scope0, p, extra, minKey = 'min') => {
+    let scope = scope0
+    if (p.child) { scope = document.createElement('i'); scope0.appendChild(scope) }
     const fg = resolve(scope, p.fg)
     const bg = resolve(scope, p.bg)
+    if (p.child) scope.remove()
     if (bg[3] < 1) return
     const r = ratio(fg, bg)
     const min = contrast === 'more' && p.more != null ? p.more : p[minKey]

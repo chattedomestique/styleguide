@@ -8,7 +8,7 @@
    each slot at a hue. "ink" is the inverted tone: ink fill, paper text.
 
    Added on top of that API
-   · --tone-ink-soft   secondary text on the tone (≥ 4.5:1)
+   · --tone-ink-soft   secondary text on the tone (≥ 7:1; an explicit role, never a runtime mix)
    · --tone-fill / --tone-on-fill   a solid pill or bar that sits ON the tone
    · data-tone="ok|warn|bad|info"   status tones, same machinery. Status always
                                     needs an icon or words as well as the colour.
@@ -49,6 +49,8 @@
     --k-tone-d-4: var(--k-tone-d); --k-tone-d-5: var(--k-tone-d); --k-tone-d-6: var(--k-tone-d);
     --k-tone-ink-l: 0.3;
     --k-tone-ink-d: 0.95;
+    --k-tone-soft-l: 0.4; /* secondary text: still ≥ 7:1 on the pastel, a step lighter than ink */
+    --k-tone-soft-d: 0.8;
     --k-tone-surface-c: 0.42; /* chroma of the pastel = vividness × this */
     --k-tone-ink-c: 0.5;
     --k-tone-fill-l: 0.34;
@@ -57,9 +59,9 @@
     --k-tone-on-fill-d: 0.2;
     --k-tone-fill-c: 0.85;
     /* bold emphasis (same in light and dark) */
-    --k-tone-b-l: 0.44;
+    --k-tone-b-l: 0.42;
     --k-tone-b-ink: 0.985;
-    --k-tone-b-soft: 0.93;
+    --k-tone-b-soft: 0.96;
     --k-tone-b-c: 0.9;
   }
 
@@ -105,18 +107,31 @@
   [data-tone="ink"] {
     --tone-bg: var(--ink);
     --tone-ink: var(--paper);
+    --tone-ink-soft: light-dark(oklch(var(--k-soft-d) var(--k-neutral-c) var(--k-neutral-h)), oklch(var(--k-soft-l) var(--k-neutral-c) var(--k-neutral-h)));
     --tone-fill: var(--paper);
     --tone-on-fill: var(--ink);
   }
 
   /* what every hue tone also exposes: soft ink, and a solid pill/bar that sits on the tone */
   [data-tone]:not([data-tone="ink"]) {
-    --tone-ink-soft: color-mix(in srgb, var(--tone-ink) 72%, var(--tone-bg));
+    --tone-ink-soft: light-dark(oklch(var(--k-tone-soft-l) calc(var(--tc) * var(--k-tone-ink-c)) var(--th)), oklch(var(--k-tone-soft-d) calc(var(--tc) * 0.12) var(--th)));
     --tone-fill: light-dark(oklch(var(--k-tone-fill-l) calc(var(--tc) * var(--k-tone-fill-c)) var(--th)), oklch(var(--k-tone-fill-d) calc(var(--tc) * var(--k-tone-fill-c) * 0.8) var(--th)));
     --tone-on-fill: light-dark(oklch(var(--k-tone-on-fill-l) calc(var(--tc) * 0.08) var(--th)), oklch(var(--k-tone-on-fill-d) calc(var(--tc) * 0.2) var(--th)));
   }
-  [data-tone="ink"] {
-    --tone-ink-soft: color-mix(in srgb, var(--tone-ink) 72%, var(--tone-bg));
+
+  /* The focus ring follows the surface it is drawn on (an ink ring on an ink card vanishes).
+     Only DIRECT children are set; deeper descendants inherit, so a container inside the tone
+     (the card bar, a dock) can override for its own subtree.
+     --tone-* are registered inherits:false, so descendants cannot read them; these two
+     unregistered copies inherit. A focusable thing INSIDE a toned element draws its ring in
+     that tone's ink over a halo in that tone's fill: always the same ≥ 7:1 pair as its text. */
+  [data-tone] {
+    --_tone-bg: var(--tone-bg);
+    --_tone-ink: var(--tone-ink);
+  }
+  [data-tone] > * {
+    --focus: var(--_tone-ink);
+    --focus-halo: var(--_tone-bg);
   }
 
   /* bold: a saturated mid-dark fill with near-white text; same in light and dark */
@@ -135,6 +150,8 @@
       --k-tone-d: 0.2;
       --k-tone-ink-l: 0.2;
       --k-tone-ink-d: 1;
+      --k-tone-soft-l: 0.3;
+      --k-tone-soft-d: 0.92;
       --k-tone-fill-l: 0.24;
       --k-tone-fill-d: 0.9;
       --k-tone-b-l: 0.38;
@@ -146,6 +163,8 @@
     --k-tone-d: 0.2;
     --k-tone-ink-l: 0.2;
     --k-tone-ink-d: 1;
+    --k-tone-soft-l: 0.3;
+    --k-tone-soft-d: 0.92;
     --k-tone-fill-l: 0.24;
     --k-tone-fill-d: 0.9;
     --k-tone-b-l: 0.38;
