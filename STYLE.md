@@ -210,22 +210,27 @@ How to read a wireframe: a box with an X is an image; flat grey is a tone slot; 
 
 ## 5. The gate
 
-`npm run lint` is the owner's `check.mjs`, extended. It fails on what a machine can catch; the rest is the squint test in §1.
+`npm run lint` is the owner's `check.mjs`, rebuilt on a real CSS tokenizer and extended. It fails on what a machine can catch; the rest is the squint test in §1.
+
+The tooling audit of the original checker fed it 146 deliberate violations: it caught 44%, missed every accessibility-hygiene rule, and wrongly flagged legitimate CSS (a nested radius formula, a hard-stop gradient for a meter). The causes were regexes that needed a trailing `;`, ignored named colours and anything inside `url()`, and only looked at some file kinds. `tests/lint.selftest.mjs` replays those same cases (`tests/lint-cases.json`) on every run: every violation is flagged (82%; the rest are colour-contrast cases, which `npm run test:contrast` judges in a real browser) and every legitimate snippet passes.
 
 | # | Check | Fails on |
 | --- | --- | --- |
-| 1 | undefined tokens | `var(--x)` with no definition and no fallback |
-| 2 | colour literals | hex / rgb() / hsl() / oklch() / light-dark() outside `src/tokens/` |
-| 3 | the AI tells | gradients (except a flat fill of two identical stops), `backdrop-filter`, `blur()`, `text-shadow`, shadows with blur, a default font as the first family, a `font-family` that isn't a token |
-| 4 | line and shape | a literal border or outline width; a radius that isn't one of the roles |
-| 5 | the gate order | motion before gate 4 opens (open now) |
+| 1 | undefined tokens | `var(--x)` with no definition and no fallback; a component-private `--_x` read outside its file |
+| 2 | colour literals | hex, `rgb()`, `hsl()`, `oklch()`, `color()`, `light-dark()`, **named colours**, and colours inside a `data:` URI (a black mask is fine), outside `src/tokens/`; also in custom properties |
+| 3 | the AI tells | gradients that blend (a hard-stop gradient for a meter or hatch is fine), `backdrop-filter`, `blur()`, `text-shadow`, `drop-shadow()`, any shadow with blur (also through a token), a default font as the first family of any `--font-*`, a `font-family` or `font` that isn't a token |
+| 4 | line and shape | a literal border, outline, `text-decoration-thickness`, `stroke-width` or shadow spread; a line-weight token that isn't `--bw`, `--bw-thin`, `--bw-heavy` or `--ring`; any radius that isn't a role (`--radius-card`, `-tile`, `-ctl`, `-pill`), including `50%`, per-corner radii and `clip-path: inset(… round …)`; the `--radius-1/2/3` primitives read directly |
+| 5 | the gate order | motion before gate 4 opens (open now; `checkCss({ gates: { motion: false } })` closes it, and the self-test proves it) |
 | 6 | layering | a component using `.wf-*`; anything using a `--grey-*` primitive |
-| 7 | markup | a class used in a docs page that no CSS defines |
-| 8 | doc drift | `CLAUDE.md`, `STYLE.md`, `README.md` naming a custom property or class that does not exist |
-| 9 | accessibility hygiene *(added)* | `outline: none` with no replacement, `transition: all`, px font sizes, unlabeled icon buttons, positive `tabindex`, `role=button` on a div |
-| 10 | hygiene *(added)* | `:hover` not gated by `(hover: hover)`, physical properties (RTL), fixed px sizes, `!important`, `prefers-contrast` blocks that drifted apart |
+| 7 | markup | a class used in a docs page or in JS (`class=`, `classList.add`, `className =`) that no CSS defines; `data-tone` with a value that isn't a tone |
+| 8 | doc drift | `CLAUDE.md`, `STYLE.md`, `README.md` naming a custom property or class that does not exist; `STYLE.md` and `package.json` disagreeing on the version |
+| 9 | accessibility hygiene | `outline: none` with no replacement in the same rule, `transition: all`, px font sizes, an `html` font-size other than 100%, a viewport that blocks zoom, unlabeled icon buttons, icons without `aria-hidden`, positive `tabindex`, `role=button` on a div, `<img>` without `alt`, `overflow: hidden` (clips rings), text dimmed with `opacity`, a control drawn under 44px |
+| 10 | hygiene | `:hover` not gated by `(hover: hover)`, physical properties (RTL), fixed px sizes, px media queries, `!important`, `prefers-contrast` blocks that drifted apart, `import`/`export` in a script |
+| 11 | copy | lorem ipsum, "John Doe", "seamless", "leverage" in a docs page (rule 5) |
 
-The tests beyond lint: `npm run test:contrast` (contrast of every pair in every appearance), `npm run test:a11y` (axe, keyboard walk, target sizes, reflow at 320px and 200 % text, forced colours), `npm run test:components` (keyboard, ARIA and `--lift` / `--fill` specs).
+Which of the seven rules have a gate behind them: **2 flat** and **6 colour is a swap** fully; **1 two line weights** and **3 rectangles hold, circles act** for the values the CSS can express; **5 say something real** in the docs; **4 uppercase is structure** and **7 no decoration** only as warnings (an uppercase style outside a label selector, an inset one-edge shadow). "The gate is clean" therefore does not mean "the sheet complies": the squint test is still the last word.
+
+What lint cannot see, because it never renders, is covered by the browser tests: `npm run test:contrast` resolves every colour pair (text, frames, the focus ring, soft ink, the scrim) in every theme × contrast mode × palette × tone; `npm run test:a11y` runs axe, walks the keyboard, measures every focus ring against what it is drawn on, finds text cut off by a clipping frame at 320px and at 200% text with every disclosure open, checks target sizes and forced colours; `npm run test:components` drives each element with real keys and checks its `--lift` / `--fill` states. These three are the render gate the original did not have.
 
 ---
 
