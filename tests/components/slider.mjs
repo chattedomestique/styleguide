@@ -290,4 +290,47 @@ export const tests = [
       await ctx.close()
     },
   },
+  {
+    name: 'reduced motion: the range thumb does not travel when raised (its top edge stays put); at full motion it rises',
+    async run({ browser, url, expect }) {
+      // The thumb is a pseudo-element getComputedStyle cannot read, so measure its drawn top edge (the highest dark pixel row).
+      const edge = async (reduced) => {
+        const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: reduced ? 'reduce' : 'no-preference' })
+        const p = await ctx.newPage()
+        await p.goto(`${url}/docs/components/slider.html`, { waitUntil: 'networkidle' })
+        await p.addStyleTag({ content: 'html{scroll-behavior:auto!important}.docs-bar,.skip-link{display:none!important}' })
+        await p.locator('#sld-vol').scrollIntoViewIfNeeded()
+        const b = await p.locator('#sld-vol').boundingBox()
+        const cx = b.x + 14 + (b.width - 28) * 0.4, cy = b.y + b.height / 2
+        const clip = { x: cx - 30, y: cy - 30, width: 60, height: 60 }
+        const measure = async () => {
+          const png = (await p.screenshot({ clip })).toString('base64')
+          return p.evaluate(async (b64) => {
+            const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode()
+            const c = document.createElement('canvas'); c.width = img.width; c.height = img.height
+            const g = c.getContext('2d'); g.drawImage(img, 0, 0)
+            const d = g.getImageData(0, 0, c.width, c.height).data
+            let minx = 1e9, miny = 1e9
+            for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+              const i = (y * c.width + x) * 4
+              if (d[i] + d[i + 1] + d[i + 2] < 3 * 90 && y > 14 && y < c.height - 14) { minx = Math.min(minx, x); miny = Math.min(miny, y) }
+            }
+            return { minx, miny }
+          }, png)
+        }
+        await p.mouse.move(5, 5)
+        await p.waitForTimeout(350)
+        const rest = await measure()
+        await p.mouse.move(cx, cy)
+        await p.waitForTimeout(600)
+        const hover = await measure()
+        await ctx.close()
+        return { rest, hover }
+      }
+      const full = await edge(false)
+      const red = await edge(true)
+      expect.ok(full.hover.miny <= full.rest.miny - 1, 'full motion: the thumb rises (' + JSON.stringify(full) + ')')
+      expect.equal(red.hover.miny, red.rest.miny, 'reduced: top edge unchanged ' + JSON.stringify(red))
+    },
+  },
 ]
