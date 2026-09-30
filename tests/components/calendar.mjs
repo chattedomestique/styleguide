@@ -214,7 +214,7 @@ export const tests = [
     async run({ page, goto, expect }) {
       await goto('components/calendar.html')
       const W = '#demo-week .cal'
-      const r = await page.locator(W).evaluate((el) => ({ days: el.querySelectorAll('.cal__day').length, title: el.querySelector('.cal__title').textContent, dow: el.querySelector('.cal__day .cal__dow')?.textContent, head: getComputedStyle(el.querySelector('thead')).position, prev: el.querySelector('[data-cal="prev"]').getAttribute('aria-label') }))
+      const r = await page.locator(W).evaluate((el) => ({ days: el.querySelectorAll('.cal__day').length, title: el.querySelector('.cal__title').textContent, dow: el.querySelector('.cal__day .cal__dow .cal__dow-long')?.textContent, head: getComputedStyle(el.querySelector('thead')).position, prev: el.querySelector('[data-cal="prev"]').getAttribute('aria-label') }))
       expect.equal(r.days, 7, 'seven days')
       expect.ok(/28 Sep.*4 Oct 2026/.test(r.title), `range title: ${r.title}`)
       expect.equal(r.dow, 'Mon', 'the name is in the pill')

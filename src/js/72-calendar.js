@@ -157,7 +157,9 @@
     if (same(d, st.today)) attrs += ' aria-current="date"';
     if (disabled(st, d)) attrs += ' aria-disabled="true"';
     if (st.view === 'month' && d.getMonth() !== st.cursor.getMonth()) attrs += ' data-outside';
-    var dow = st.view === 'week' ? '<span class="cal__dow" aria-hidden="true">' + esc(fmt(st, { weekday: 'short' }).format(d)) + '</span>' : '';
+    var dow = st.view === 'week'
+      ? '<span class="cal__dow" aria-hidden="true"><span class="cal__dow-long">' + esc(fmt(st, { weekday: 'short' }).format(d)) + '</span><span class="cal__dow-narrow">' + esc(fmt(st, { weekday: 'narrow' }).format(d)) + '</span></span>'
+      : '';
     return '<td' + (same(d, st.selected) ? ' aria-selected="true"' : '') + '><button' + attrs + '>' + dow + '<span class="cal__num" aria-hidden="true">' + d.getDate() + '</span><span class="cal__pips" aria-hidden="true">' + pips + '</span></button></td>';
   }
 
