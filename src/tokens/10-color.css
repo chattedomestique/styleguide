@@ -1,69 +1,71 @@
 /* ==========================================================================
-   10 · Colour roles
+   10 · Colour roles  (gate 3: colour)
    --------------------------------------------------------------------------
-   HOW THIS IS BUILT (read before editing)
+   The role NAMES are the owner's (Flashcards style sheet v0.1): --canvas,
+   --paper, --ink, --ink-soft, --ink-faint, --line, --line-soft, --focus,
+   --accent, --on-accent, and (in 20-tones.css) --tone-1…6 / --on-tone-1…6.
+   Components read roles and nothing else. Only files in src/tokens contain a
+   colour literal.
 
-   1. KNOBS  (--k-*)  are plain numbers: OKLCH lightness, chroma and hue.
-      Palettes, contrast modes and themes change knobs, nothing else.
-   2. ROLES  (--color-*)  are derived from knobs with light-dark(oklch(...)).
-      Components only ever read roles. Never hard-code a colour in a component.
-   3. Roles are re-declared on every "scope" element (:root, [data-theme],
-      [data-palette]) because custom properties containing var() are resolved
-      where they are declared. A nested <section data-palette="mint"> therefore
-      gets its own mint roles, while knobs it does not set still inherit.
+   HOW THE VALUES ARE BUILT
+   1. KNOBS (--k-*) are plain numbers: OKLCH lightness, chroma, hue. Palettes,
+      the contrast mode and the theme change knobs and nothing else.
+   2. ROLES are derived from knobs with light-dark(oklch(...)).
+   3. Roles are re-declared on every scope element (:root, [data-theme],
+      [data-palette], [data-contrast]) because a custom property holding var()
+      is resolved where it is declared. A <section data-palette="mint"> therefore
+      gets its own roles, while knobs it does not set still inherit.
 
-   CONTRAST BY CONSTRUCTION (WCAG 2.2). Lightness is what decides contrast, so
-   each role pair keeps a fixed lightness gap; hue and chroma only add
-   personality. Numbers are checked for every palette, theme and contrast mode
-   by `npm run test:contrast` using colours resolved by a real browser.
+   CONTRAST BY CONSTRUCTION (WCAG 2.2). Lightness decides contrast, so each pair
+   keeps a fixed lightness gap; hue and chroma add personality only. Checked for
+   every palette × theme × contrast mode by `npm run test:contrast`, with colours
+   resolved by a real browser:
 
-     text on canvas / surface / surface-2     ink ≥ 7:1, ink-2 ≥ 7:1, ink-3 ≥ 4.5:1
-     control boundaries and meaningful icons   line ≥ 3:1           (WCAG 1.4.11)
-     decorative hairlines                      line-soft, no requirement
-     anything on an accent / tone / status fill uses its paired on-* role
+     --ink        ≥ 7:1  on canvas, paper, paper-2            text and frames
+     --ink-soft   ≥ 7:1  on canvas, paper, paper-2            secondary text
+     --ink-mute   ≥ 4.5:1 on canvas, paper, paper-2           placeholder, tertiary text
+     --ink-faint  ≥ 3:1  on canvas, paper                     disabled, quiet decoration (never text that matters)
+     --line-soft  = --ink-faint                                quiet dividers
 
-   Never draw text with opacity; use a solid role. Never use hue alone to carry
-   meaning (WCAG 1.4.1): pair colour with an icon, text or shape.
+   Never draw text with opacity; use a solid role. Colour never carries meaning
+   alone (WCAG 1.4.1): pair it with an icon, text or shape.
    ========================================================================== */
 
 @layer sg.tokens {
-  /* ---- Knobs: defaults = "ink" palette, warm neutrals --------------------- */
+  /* ---- Knobs: defaults = the "default" palette (neutral greys, ink accent) ---- */
   :root {
     color-scheme: light dark;
 
-    /* neutral hue & chroma */
     --k-neutral-h: 95;
-    --k-neutral-c: 0.008;
-    --k-canvas-c-l: 0.007; /* extra tint on the canvas, light */
-    --k-canvas-c-d: 0.006; /* ... and dark */
+    --k-neutral-c: 0; /* chroma of paper-2/3, ink… */
+    --k-canvas-c-l: 0; /* extra tint on the canvas, light */
+    --k-canvas-c-d: 0; /* … and dark */
+    --k-paper-c-l: 0;
 
     /* light lightness (OKLCH L) */
-    --k-canvas-l: 0.965;
-    --k-surface-l: 1;
-    --k-surface-2-l: 0.945;
-    --k-surface-3-l: 0.915;
+    --k-canvas-l: 0.97;
+    --k-paper-l: 1;
+    --k-paper-2-l: 0.94;
+    --k-paper-3-l: 0.905;
     --k-ink-l: 0.2;
-    --k-ink-2-l: 0.4;
-    --k-ink-3-l: 0.47;
-    --k-line-l: 0.58;
-    --k-line-soft-l: 0.88;
+    --k-soft-l: 0.4;
+    --k-mute-l: 0.47;
+    --k-faint-l: 0.62;
 
     /* dark lightness */
     --k-canvas-d: 0.165;
-    --k-surface-d: 0.22;
-    --k-surface-2-d: 0.27;
-    --k-surface-3-d: 0.32;
+    --k-paper-d: 0.22;
+    --k-paper-2-d: 0.27;
+    --k-paper-3-d: 0.32;
     --k-ink-d: 0.96;
-    --k-ink-2-d: 0.8;
-    --k-ink-3-d: 0.7;
-    --k-line-d: 0.62;
-    --k-line-soft-d: 0.33;
+    --k-soft-d: 0.8;
+    --k-mute-d: 0.7;
+    --k-faint-d: 0.62;
 
-    /* accent: default palette is "ink" (black pills on light, white on dark).
-       Most of the reference designs take their primary from ink and get their
-       colour from tones. Hue palettes in 40-palettes.css replace these. */
+    /* accent: the one "press this" colour. The default palette keeps it ink
+       (black on light, white on dark), as in the wireframe stage. */
     --k-accent-h: 95;
-    --k-accent-c: 0.008;
+    --k-accent-c: 0;
     --k-accent-fill-l: 0.2;
     --k-accent-fill-d: 0.94;
     --k-on-accent-l: 0.98;
@@ -75,156 +77,93 @@
     --k-on-accent-soft-l: 0.2;
     --k-on-accent-soft-d: 0.94;
 
-    /* status lightness (hue comes from --hue-*), shared by all four statuses */
+    /* status text lightness (hue comes from the tone hues in 20-tones.css) */
     --k-status-ink-l: 0.44;
     --k-status-ink-d: 0.8;
-    --k-status-soft-l: 0.94;
-    --k-status-soft-d: 0.28;
-    --k-status-fill-l: 0.5;
-    --k-status-fill-d: 0.72;
-    --k-on-status-fill-l: 0.99;
-    --k-on-status-fill-d: 0.16;
     --k-status-c: 0.16;
-
-    /* Hard shadow under CONTROLS in the "pop" style. A black button with a black
-       shadow merges into one blob, so the ink palette uses mid-grey; palettes with
-       a coloured accent set these to ink (0.2) for the full bold look. */
-    --k-shadow-control-l: 0.5;
-    --k-shadow-control-d: 0.55;
   }
 
-  /* ---- Roles --------------------------------------------------------------
-     Declared on every scope so palette / theme islands recompute them. */
+  /* ---- Roles ---------------------------------------------------------------- */
   :root,
   [data-theme],
   [data-palette],
   [data-contrast] {
-    /* Surfaces */
-    --color-canvas: light-dark(
+    --canvas: light-dark(
       oklch(var(--k-canvas-l) var(--k-canvas-c-l) var(--k-neutral-h)),
       oklch(var(--k-canvas-d) var(--k-canvas-c-d) var(--k-neutral-h))
+    ); /* the page behind everything */
+    --paper: light-dark(
+      oklch(var(--k-paper-l) var(--k-paper-c-l) var(--k-neutral-h)),
+      oklch(var(--k-paper-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* a card's default fill */
+    /* added: a recessed or secondary fill (track, input, segmented well) and its pressed shade */
+    --paper-2: light-dark(
+      oklch(var(--k-paper-2-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-paper-2-d) var(--k-neutral-c) var(--k-neutral-h))
     );
-    --color-surface: light-dark(
-      oklch(var(--k-surface-l) 0 var(--k-neutral-h)),
-      oklch(var(--k-surface-d) var(--k-neutral-c) var(--k-neutral-h))
+    --paper-3: light-dark(
+      oklch(var(--k-paper-3-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-paper-3-d) var(--k-neutral-c) var(--k-neutral-h))
     );
-    --color-surface-2: light-dark(
-      oklch(var(--k-surface-2-l) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-surface-2-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
-    --color-surface-3: light-dark(
-      oklch(var(--k-surface-3-l) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-surface-3-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
-    /* Inverse: the dark pill dock on a light screen, the light pill on a dark one. */
-    --color-surface-inverse: light-dark(
+
+    --ink: light-dark(
       oklch(var(--k-ink-l) var(--k-neutral-c) var(--k-neutral-h)),
       oklch(var(--k-ink-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
+    ); /* text and frames */
+    --ink-soft: light-dark(
+      oklch(var(--k-soft-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-soft-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* secondary text on canvas or paper */
+    --ink-mute: light-dark(
+      oklch(var(--k-mute-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-mute-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* added: placeholder and tertiary text, the 4.5:1 floor */
+    --ink-faint: light-dark(
+      oklch(var(--k-faint-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-faint-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* disabled, quiet decoration */
 
-    /* Text and icons */
-    --color-ink: light-dark(
-      oklch(var(--k-ink-l) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-ink-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
-    --color-ink-2: light-dark(
-      oklch(var(--k-ink-2-l) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-ink-2-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
-    --color-ink-3: light-dark(
-      oklch(var(--k-ink-3-l) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-ink-3-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
-    /* Text on --color-surface-inverse */
-    --color-ink-inverse: light-dark(
-      oklch(var(--k-ink-d) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-ink-l) var(--k-neutral-c) var(--k-neutral-h))
-    );
-    --color-ink-inverse-2: light-dark(
-      oklch(var(--k-ink-2-d) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-ink-2-l) var(--k-neutral-c) var(--k-neutral-h))
-    );
+    --line: var(--ink); /* frames */
+    --line-soft: var(--ink-faint); /* decoration that must stay quiet */
+    --focus: var(--ink); /* focus ring */
 
-    /* Lines */
-    --color-line: light-dark(
-      oklch(var(--k-line-l) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-line-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
-    --color-line-soft: light-dark(
-      oklch(var(--k-line-soft-l) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-line-soft-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
-
-    /* Accent: primary actions, selected state, links */
-    --color-accent: light-dark(
+    --accent: light-dark(
       oklch(var(--k-accent-fill-l) var(--k-accent-c) var(--k-accent-h)),
       oklch(var(--k-accent-fill-d) var(--k-accent-c) var(--k-accent-h))
     );
-    --color-on-accent: light-dark(
+    --on-accent: light-dark(
       oklch(var(--k-on-accent-l) calc(var(--k-accent-c) * 0.15) var(--k-accent-h)),
       oklch(var(--k-on-accent-d) calc(var(--k-accent-c) * 0.15) var(--k-accent-h))
     );
-    /* Accent used AS text or icon colour on canvas / surface (links, active tab label) */
-    --color-accent-ink: light-dark(
+    /* added: the accent used AS text or an icon on canvas/paper (links, active label) */
+    --accent-ink: light-dark(
       oklch(var(--k-accent-ink-l) var(--k-accent-c) var(--k-accent-h)),
       oklch(var(--k-accent-ink-d) var(--k-accent-c) var(--k-accent-h))
     );
-    /* Soft accent: selected row, highlighted chip background, with its own text colour */
-    --color-accent-soft: light-dark(
+    /* added: a soft accent wash (selected row) and the text that sits on it */
+    --accent-soft: light-dark(
       oklch(var(--k-accent-soft-l) calc(var(--k-accent-c) * 0.3) var(--k-accent-h)),
       oklch(var(--k-accent-soft-d) calc(var(--k-accent-c) * 0.45) var(--k-accent-h))
     );
-    --color-on-accent-soft: light-dark(
+    --on-accent-soft: light-dark(
       oklch(var(--k-on-accent-soft-l) calc(var(--k-accent-c) * 0.5) var(--k-accent-h)),
       oklch(var(--k-on-accent-soft-d) calc(var(--k-accent-c) * 0.3) var(--k-accent-h))
     );
 
-    /* Focus ring: two tones so it works on ANY background (see 20-focus in base).
-       Whichever of near-black / white contrasts least with the surface is still
-       at least 4.1:1, and the pair is 17:1 against each other. */
-    --color-focus-inner: oklch(0.15 0 0);
-    --color-focus-outer: oklch(1 0 0);
+    /* added: status text on canvas/paper. Always shown with an icon or words. */
+    --ok-ink: light-dark(oklch(var(--k-status-ink-l) calc(var(--k-status-c) * 0.75) var(--hue-ok)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.75) var(--hue-ok)));
+    --warn-ink: light-dark(oklch(calc(var(--k-status-ink-l) - 0.02) calc(var(--k-status-c) * 0.7) var(--hue-warn)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-warn)));
+    --bad-ink: light-dark(oklch(var(--k-status-ink-l) var(--k-status-c) var(--hue-bad)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-bad)));
+    --info-ink: light-dark(oklch(var(--k-status-ink-l) var(--k-status-c) var(--hue-info)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-info)));
 
-    /* Status: always shown with an icon or words, never colour alone. */
-    --color-success-ink: light-dark(oklch(var(--k-status-ink-l) calc(var(--k-status-c) * 0.75) var(--hue-green)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.75) var(--hue-green)));
-    --color-success-soft: light-dark(oklch(var(--k-status-soft-l) calc(var(--k-status-c) * 0.3) var(--hue-green)), oklch(var(--k-status-soft-d) calc(var(--k-status-c) * 0.4) var(--hue-green)));
-    --color-success-fill: light-dark(oklch(var(--k-status-fill-l) calc(var(--k-status-c) * 0.85) var(--hue-green)), oklch(var(--k-status-fill-d) calc(var(--k-status-c) * 0.85) var(--hue-green)));
-    --color-warning-ink: light-dark(oklch(calc(var(--k-status-ink-l) - 0.02) calc(var(--k-status-c) * 0.7) var(--hue-amber)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-amber)));
-    --color-warning-soft: light-dark(oklch(var(--k-status-soft-l) calc(var(--k-status-c) * 0.4) var(--hue-amber)), oklch(var(--k-status-soft-d) calc(var(--k-status-c) * 0.4) var(--hue-amber)));
-    --color-warning-fill: light-dark(oklch(0.86 calc(var(--k-status-c) * 0.95) var(--hue-amber)), oklch(0.82 calc(var(--k-status-c) * 0.95) var(--hue-amber)));
-    --color-danger-ink: light-dark(oklch(var(--k-status-ink-l) var(--k-status-c) var(--hue-rose)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-rose)));
-    --color-danger-soft: light-dark(oklch(var(--k-status-soft-l) calc(var(--k-status-c) * 0.3) var(--hue-rose)), oklch(var(--k-status-soft-d) calc(var(--k-status-c) * 0.4) var(--hue-rose)));
-    --color-danger-fill: light-dark(oklch(var(--k-status-fill-l) var(--k-status-c) var(--hue-rose)), oklch(var(--k-status-fill-d) var(--k-status-c) var(--hue-rose)));
-    --color-info-ink: light-dark(oklch(var(--k-status-ink-l) var(--k-status-c) var(--hue-sky)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-sky)));
-    --color-info-soft: light-dark(oklch(var(--k-status-soft-l) calc(var(--k-status-c) * 0.3) var(--hue-sky)), oklch(var(--k-status-soft-d) calc(var(--k-status-c) * 0.4) var(--hue-sky)));
-    --color-info-fill: light-dark(oklch(var(--k-status-fill-l) var(--k-status-c) var(--hue-sky)), oklch(var(--k-status-fill-d) var(--k-status-c) var(--hue-sky)));
-    /* Text on any --color-*-fill. warning-fill is light in both themes, so its
-       partner is dark in both; the others flip. */
-    --color-on-success-fill: light-dark(oklch(var(--k-on-status-fill-l) 0 0), oklch(var(--k-on-status-fill-d) 0 0));
-    --color-on-danger-fill: light-dark(oklch(var(--k-on-status-fill-l) 0 0), oklch(var(--k-on-status-fill-d) 0 0));
-    --color-on-info-fill: light-dark(oklch(var(--k-on-status-fill-l) 0 0), oklch(var(--k-on-status-fill-d) 0 0));
-    --color-on-warning-fill: oklch(0.2 0.02 var(--hue-amber));
-
-    /* Overlays. Scrim ≥ 0.55 keeps white text ≥ 4.5:1 over even a pure-white photo. */
-    --color-scrim: oklch(0 0 0 / 0.55);
-    --color-scrim-strong: oklch(0 0 0 / 0.72);
-    --color-scrim-light: oklch(1 0 0 / 0.72);
-    /* Fill for small controls floating over media (photo editors, players) */
-    --color-on-media: oklch(1 0 0);
-    --color-media-control: oklch(0 0 0 / 0.6);
-
-    /* Hard shadow colour for the "pop" surface style (see 30-surfaces). In dark
-       mode a black shadow on a near-black canvas is invisible, so it lightens. */
-    --color-shadow-hard: light-dark(oklch(var(--k-ink-l) var(--k-neutral-c) var(--k-neutral-h)), oklch(0.55 var(--k-neutral-c) var(--k-neutral-h)));
-    --color-shadow-control: light-dark(
-      oklch(var(--k-shadow-control-l) var(--k-neutral-c) var(--k-neutral-h)),
-      oklch(var(--k-shadow-control-d) var(--k-neutral-c) var(--k-neutral-h))
-    );
-    --color-shadow-soft: light-dark(oklch(0 0 0 / 0.1), oklch(0 0 0 / 0.5));
+    /* added: overlays. The one sanctioned translucency: a modal backdrop and the plate that
+       keeps white text/icons ≥ 4.5:1 over ANY photo (black at ≥ 0.55 over pure white). */
+    --scrim: oklch(0 0 0 / 0.6);
+    --scrim-strong: oklch(0 0 0 / 0.75);
+    --on-media: oklch(1 0 0);
   }
 
-  /* ---- Theme switching -----------------------------------------------------
-     Absent attribute = follow the operating system. */
+  /* ---- Theme switching. Absent attribute = follow the operating system. ------- */
   :root[data-theme="light"],
   [data-theme="light"] {
     color-scheme: light;
@@ -235,34 +174,29 @@
   }
   /* A nested theme island must paint itself, or it would show the parent's canvas. */
   [data-theme]:not(:root) {
-    background-color: var(--color-canvas);
-    color: var(--color-ink);
+    background-color: var(--canvas);
+    color: var(--ink);
   }
 
-  /* ---- Higher contrast -------------------------------------------------------
-     Follows the OS setting (prefers-contrast: more) or data-contrast="more".
-     It only changes KNOBS, so every palette, tone and status gets the boost.
-     Targets: text ≥ 7:1 everywhere, lines ≥ 4.5:1, hairlines become real lines.
-     Keep the two blocks below identical; tests/lint.mjs asserts it. */
+  /* ---- Higher contrast ---------------------------------------------------------
+     Follows the OS (prefers-contrast: more) or data-contrast="more". Only knobs
+     change, so every palette and tone gets the boost. Text ≥ 7:1 everywhere, and
+     the accent collapses to ink whatever the palette. Keep the two blocks below
+     identical; tests/lint.mjs asserts it. */
   @media (prefers-contrast: more) {
     :root:not([data-contrast="off"]) {
       --k-ink-l: 0.1;
-      --k-ink-2-l: 0.2;
-      --k-ink-3-l: 0.3;
-      --k-line-l: 0.4;
-      --k-line-soft-l: 0.4;
+      --k-soft-l: 0.22;
+      --k-mute-l: 0.32;
+      --k-faint-l: 0.44;
       --k-ink-d: 1;
-      --k-ink-2-d: 0.95;
-      --k-ink-3-d: 0.9;
-      --k-line-d: 0.78;
-      --k-line-soft-d: 0.78;
-      --k-surface-2-l: 0.93;
-      --k-surface-3-l: 0.88;
+      --k-soft-d: 0.95;
+      --k-mute-d: 0.9;
+      --k-faint-d: 0.78;
+      --k-paper-2-l: 0.93;
+      --k-paper-3-l: 0.88;
       --k-status-ink-l: 0.32;
       --k-status-ink-d: 0.88;
-      --k-status-fill-l: 0.42;
-      --k-status-fill-d: 0.8;
-      /* Accent collapses to ink in high contrast, whatever the palette. */
       --k-accent-fill-l: 0.12;
       --k-accent-fill-d: 1;
       --k-on-accent-l: 0.99;
@@ -273,27 +207,21 @@
       --k-accent-soft-d: 0.25;
       --k-on-accent-soft-l: 0.1;
       --k-on-accent-soft-d: 1;
-      --border-w-boost: 1px;
     }
   }
   :root[data-contrast="more"] {
     --k-ink-l: 0.1;
-    --k-ink-2-l: 0.2;
-    --k-ink-3-l: 0.3;
-    --k-line-l: 0.4;
-    --k-line-soft-l: 0.4;
+    --k-soft-l: 0.22;
+    --k-mute-l: 0.32;
+    --k-faint-l: 0.44;
     --k-ink-d: 1;
-    --k-ink-2-d: 0.95;
-    --k-ink-3-d: 0.9;
-    --k-line-d: 0.78;
-    --k-line-soft-d: 0.78;
-    --k-surface-2-l: 0.93;
-    --k-surface-3-l: 0.88;
+    --k-soft-d: 0.95;
+    --k-mute-d: 0.9;
+    --k-faint-d: 0.78;
+    --k-paper-2-l: 0.93;
+    --k-paper-3-l: 0.88;
     --k-status-ink-l: 0.32;
     --k-status-ink-d: 0.88;
-    --k-status-fill-l: 0.42;
-    --k-status-fill-d: 0.8;
-    /* Accent collapses to ink in high contrast, whatever the palette. */
     --k-accent-fill-l: 0.12;
     --k-accent-fill-d: 1;
     --k-on-accent-l: 0.99;
@@ -304,6 +232,5 @@
     --k-accent-soft-d: 0.25;
     --k-on-accent-soft-l: 0.1;
     --k-on-accent-soft-d: 1;
-    --border-w-boost: 1px;
   }
 }

@@ -1,0 +1,31 @@
+/* ==========================================================================
+   30 · Corners  (the owner's open decision: square or soft)
+   --------------------------------------------------------------------------
+   Everything that is not a circle or a pill reads exactly three radius roles,
+   --radius-card, --radius-tile, --radius-ctl. This file is the only place they
+   are set. The owner's committed CSS is square; soft is one attribute away:
+
+     <html data-corners="soft">          whole app
+     <section data-corners="soft">       one region (islands work)
+
+   Nothing in components/ changes between the two. To commit to one, set the
+   three roles in 00-foundation.css and delete the other block.
+
+   One shape gesture per card: round it OR notch it, never both (the notch card
+   stays square in both modes; its cut is the gesture).
+   ========================================================================== */
+
+@layer sg.tokens {
+  :root,
+  [data-corners="square"] {
+    --radius-card: 0;
+    --radius-tile: 0;
+    --radius-ctl: 0;
+  }
+
+  [data-corners="soft"] {
+    --radius-card: var(--radius-3); /* 24 */
+    --radius-tile: var(--radius-2); /* 12 */
+    --radius-ctl: var(--radius-1); /* 6  */
+  }
+}

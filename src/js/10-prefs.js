@@ -3,8 +3,8 @@
    --------------------------------------------------------------------------
      SG.prefs.set('theme', 'dark')      light | dark | system
      SG.prefs.set('contrast', 'more')   more | system
-     SG.prefs.set('palette', 'mint')    ink (default) | periwinkle | mint | sand | cream | mono | ...
-     SG.prefs.set('surface', 'pop')     soft (default) | pop | hard
+     SG.prefs.set('palette', 'mint')    default | mint | periwinkle | sand | cream | wire | ...
+     SG.prefs.set('corners', 'soft')    square (default) | soft
      SG.prefs.set('motion', 'reduced')  reduced | full | system
      SG.prefs.get('theme')              -> 'system' when unset
      SG.prefs.onChange(fn)              fn(name, value)
@@ -22,8 +22,8 @@
   'use strict';
 
   var STORE = 'sg:prefs';
-  var NAMES = ['theme', 'contrast', 'palette', 'surface', 'motion'];
-  var DEFAULT_VALUE = { palette: 'ink', surface: 'soft' }; // the values that mean "no attribute"
+  var NAMES = ['theme', 'contrast', 'palette', 'corners', 'motion'];
+  var DEFAULT_VALUE = { palette: 'default', corners: 'square' }; // the values that mean "no attribute"
   var root = document.documentElement;
   var listeners = [];
 
@@ -48,7 +48,7 @@
       metas.forEach(function (m) { if (m.dataset.sgOriginal) { m.content = m.dataset.sgOriginal; } });
       return;
     }
-    var hex = SG.tokenToHex('--color-canvas');
+    var hex = SG.tokenToHex('--canvas');
     metas.forEach(function (m) {
       if (!m.dataset.sgOriginal) m.dataset.sgOriginal = m.content;
       m.content = hex;

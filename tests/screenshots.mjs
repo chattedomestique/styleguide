@@ -3,11 +3,11 @@
  * Screenshot any docs page under any appearance, for visual review.
  *
  *   node tests/screenshots.mjs components/button.html
- *   node tests/screenshots.mjs components/button.html --theme dark --palette mint --surface pop --width 390
- *   node tests/screenshots.mjs components/button.html --matrix          light/dark x ink/mint/mono x soft/pop/hard at 390px
+ *   node tests/screenshots.mjs components/button.html --theme dark --palette mint --corners soft --width 390
+ *   node tests/screenshots.mjs components/button.html --matrix          light/dark x default/mint/wire x square/soft at 390px
  *   node tests/screenshots.mjs index.html --selector '#examples' --width 1280
  *
- * Flags: --theme light|dark  --palette <name>  --surface soft|pop|hard  --contrast more
+ * Flags: --theme light|dark  --palette <name>  --corners square|soft  --contrast more
  *        --motion reduced|full  --forced-colors  --width N (default 390)  --height N
  *        --scale N (device pixel ratio, default 1)  --selector CSS (crop to an element)
  *        --fullPage (default on)  --out DIR (default test-results/shots)
@@ -23,9 +23,9 @@ const flag = (n, d) => { const i = args.indexOf('--' + n); return i < 0 ? d : (a
 const out = flag('out', join(ROOT, 'test-results', 'shots'))
 mkdirSync(out, { recursive: true })
 
-const base = { theme: flag('theme'), palette: flag('palette'), surface: flag('surface'), contrast: flag('contrast'), motion: flag('motion') }
+const base = { theme: flag('theme'), palette: flag('palette'), corners: flag('corners'), contrast: flag('contrast'), motion: flag('motion') }
 const combos = flag('matrix', false)
-  ? ['light', 'dark'].flatMap((theme) => ['ink', 'mint', 'mono'].flatMap((palette) => ['soft', 'pop', 'hard'].map((surface) => ({ theme, palette, surface }))))
+  ? ['light', 'dark'].flatMap((theme) => ['default', 'mint', 'wire'].flatMap((palette) => ['square', 'soft'].map((corners) => ({ theme, palette, corners }))))
   : [base]
 
 const { browser, url, close } = await start()
@@ -45,12 +45,12 @@ try {
       // Same path real users take: saved prefs are applied by the inline <head> snippet before first paint.
       await page.addInitScript((p) => {
         const saved = {}
-        for (const k of ['theme', 'palette', 'surface', 'contrast', 'motion']) if (p[k] && p[k] !== 'ink' && p[k] !== 'soft') saved[k] = p[k]
+        for (const k of ['theme', 'palette', 'corners', 'contrast', 'motion']) if (p[k] && p[k] !== 'default' && p[k] !== 'square') saved[k] = p[k]
         try { localStorage.setItem('sg:prefs', JSON.stringify(saved)) } catch (e) {}
       }, c)
       await page.goto(`${url}/docs/${pg}`, { waitUntil: 'networkidle' })
       await page.evaluate(() => document.fonts.ready)
-      const name = [pg.replace(/[/.]/g, '_'), c.theme, c.palette, c.surface, c.contrast && 'hc', flag('forced-colors', false) && 'forced', 'w' + flag('width', 390)].filter(Boolean).join('-') + '.png'
+      const name = [pg.replace(/[/.]/g, '_'), c.theme, c.palette, c.corners, c.contrast && 'hc', flag('forced-colors', false) && 'forced', 'w' + flag('width', 390)].filter(Boolean).join('-') + '.png'
       const file = join(out, name)
       const sel = flag('selector', null)
       if (sel) await page.locator(sel).first().screenshot({ path: file })

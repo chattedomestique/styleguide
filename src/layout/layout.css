@@ -28,14 +28,7 @@
   :where(.app__main) {
     flex: 1 1 auto;
     min-inline-size: 0;
-    padding-block: var(--space-4) calc(var(--dock-h) + var(--safe-bottom) + var(--space-6));
-  }
-
-  /* Wider screens get more breathing room, not more columns by default. */
-  @media (min-width: 48em) {
-    :where(:root) {
-      --gutter: var(--space-6);
-    }
+    padding-block: var(--space-4) calc(var(--dock-h) + var(--safe-bottom) + var(--space-5));
   }
 
   /* ---- Flow primitives ------------------------------------------------------------ */
@@ -45,12 +38,15 @@
     flex-direction: column;
     gap: var(--stack-gap, var(--space-4));
   }
+
+  :where(.stack[data-gap]) { --stack-gap: var(--space-4); }
   :where(.stack[data-gap="1"]) { --stack-gap: var(--space-1); }
   :where(.stack[data-gap="2"]) { --stack-gap: var(--space-2); }
   :where(.stack[data-gap="3"]) { --stack-gap: var(--space-3); }
   :where(.stack[data-gap="4"]) { --stack-gap: var(--space-4); }
+  :where(.stack[data-gap="5"]) { --stack-gap: var(--space-5); }
   :where(.stack[data-gap="6"]) { --stack-gap: var(--space-6); }
-  :where(.stack[data-gap="8"]) { --stack-gap: var(--space-8); }
+  :where(.stack[data-gap="7"]) { --stack-gap: var(--space-7); }
 
   /* Horizontal run that wraps: chips, buttons, avatar stacks. */
   :where(.cluster) {
@@ -63,6 +59,7 @@
   :where(.cluster[data-gap="1"]) { --cluster-gap: var(--space-1); }
   :where(.cluster[data-gap="3"]) { --cluster-gap: var(--space-3); }
   :where(.cluster[data-gap="4"]) { --cluster-gap: var(--space-4); }
+  :where(.cluster[data-gap="5"]) { --cluster-gap: var(--space-5); }
   :where(.cluster[data-justify="between"]) { --cluster-justify: space-between; }
   :where(.cluster[data-justify="end"]) { --cluster-justify: flex-end; }
   :where(.cluster[data-justify="center"]) { --cluster-justify: center; }

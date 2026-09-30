@@ -32,7 +32,7 @@ const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))
  * Folders are concatenated in SOURCE_DIRS order (files alphabetically inside a folder).
  */
 const SOURCE_DIRS = ['tokens', 'base', 'layout', 'components', 'utilities']
-const LAYER_ORDER = 'sg.reset, sg.tokens, sg.base, sg.layout, sg.components, sg.utilities'
+const LAYER_ORDER = 'sg.reset, sg.tokens, sg.base, sg.layout, sg.components, sg.wire, sg.utilities'
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -117,6 +117,15 @@ function buildCss() {
   put('dist/styleguide.min.css', minifyCss(css) + '\n')
 }
 
+/* ------------------------------------------------------------------- wire kit */
+
+/** The owner's wireframe kit (.wf-* placeholders): dev-only, never in the main bundle. */
+function buildWire() {
+  const files = walk(join(ROOT, 'src', 'wire'), (p) => p.endsWith('.css'))
+  if (!files.length) return
+  put('dist/wire.css', `/*! ${pkg.name} v${pkg.version} - wireframe kit (.wf-*), dev-only. Generated from src/wire. */\n` + files.map((f) => readFileSync(f, 'utf8')).join('\n'))
+}
+
 /* ---------------------------------------------------------------------- JS */
 
 function buildJs() {
@@ -139,8 +148,14 @@ function copyFonts() {
 
 /* ------------------------------------------------------------------- icons */
 
-/** id -> inner SVG markup (paths only). Source files are plain 24x24 stroke icons in src/icons/<id>.svg. */
-const ICONS = new Map()
+/**
+ * Icons are CSS masks (the owner's system): `<span class="ic ic--name" aria-hidden="true"></span>`.
+ * The five the owner drew (arrow, plus, minus, close, check) live in src/base/20-icons.css and ship in the
+ * main bundle. Every other src/icons/<id>.svg (24x24 Lucide glyphs, ISC) is re-stroked to the same 2px
+ * square-cap weight and emitted into dist/icons.css as .ic--<id>. No sprite, nothing to inline, works from file://.
+ */
+const CORE_ICONS = new Set(['arrow', 'plus', 'minus', 'close', 'check'])
+const ICONS = new Map() // id -> inner svg markup
 function loadIcons() {
   for (const file of walk(join(ROOT, 'src', 'icons'), (p) => p.endsWith('.svg'))) {
     const id = posix.basename(rel(file), '.svg')
@@ -148,17 +163,25 @@ function loadIcons() {
     const m = svg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/)
     if (!m) { fail(`${rel(file)}: no <svg> element`); continue }
     if (!/viewBox="0 0 24 24"/.test(svg)) fail(`${rel(file)}: icons must use viewBox="0 0 24 24"`)
-    ICONS.set(id, m[1].replace(/\s+/g, ' ').replace(/> </g, '><').trim())
+    ICONS.set(id, m[1].replace(/\s+/g, ' ').replace(/> </g, '><').replace(/"/g, "'").trim())
   }
 }
-const symbol = (id) => `<symbol id="i-${id}" viewBox="0 0 24 24">${ICONS.get(id)}</symbol>`
-/** Sprite with the given icon ids (default: all). `hidden` so it never takes layout space. */
-const sprite = (ids = [...ICONS.keys()]) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">${ids.map(symbol).join('')}</svg>`
+const maskUrl = (inner) =>
+  'url("data:image/svg+xml,' +
+  encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'>${inner}</svg>`).replace(/'/g, '%27').replace(/%20/g, ' ') +
+  '")'
+/** Every icon class that exists: the owner's five, their aliases, and the generated set. */
+const iconClasses = () => new Set([...CORE_ICONS, 'x', ...ICONS.keys()])
 
 function buildIcons() {
   loadIcons()
-  if (ICONS.size) put('dist/icons.svg', sprite().replace(' style="position:absolute" aria-hidden="true" focusable="false"', '') + '\n')
+  const rules = []
+  for (const [id, inner] of [...ICONS].sort(([a], [b]) => a.localeCompare(b))) {
+    if (CORE_ICONS.has(id)) continue // the owner's drawings win
+    rules.push(`.ic--${id}{--ic:${maskUrl(inner)}}`)
+  }
+  const css = `/*! ${pkg.name} v${pkg.version} - generated from src/icons by scripts/build.mjs. Do not edit. Lucide (ISC), re-stroked to 2px square caps. */\n@layer sg.base{\n.ic--x{--ic:var(--icon-close)}\n${rules.join('\n')}\n}\n`
+  put('dist/icons.css', css)
 }
 
 /* -------------------------------------------------------------------- docs */
@@ -211,7 +234,7 @@ function buildDocs() {
 
     // {{icon-grid}} in a page becomes a grid of every icon in src/icons, generated so it never goes stale.
     if (page.body.includes('{{icon-grid}}')) {
-      const grid = `<ul class="icon-grid" role="list">${[...ICONS.keys()].sort().map((id) => `<li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-${id}"></use></svg><code>${id}</code></li>`).join('')}</ul>`
+      const grid = `<ul class="icon-grid" role="list">${[...iconClasses()].sort().map((id) => `<li><span class="ic ic--${id}" aria-hidden="true"></span><code>${id}</code></li>`).join('')}</ul>`
       page.body = page.body.replace('{{icon-grid}}', grid)
     }
 
@@ -224,12 +247,8 @@ function buildDocs() {
       .replace('{{nav}}', navGroups)
       .replace('{{toc}}', toc ? `<nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__heading">On this page</h2><ul role="list">${toc}</ul></nav>` : '')
       .replace('{{content}}', page.body)
-    // Inline only the icons this page references (plus the ones docs.js creates), so pages stay small
-    // and work from file://, where an external sprite cannot be <use>d.
-    const refs = new Set(['x', 'check', 'copy', 'menu', 'chevron-down', 'chevron-right', 'sun', 'moon', 'sliders-horizontal', 'external-link', 'info'])
-    for (const m of html.matchAll(/#i-([a-z0-9-]+)/g)) refs.add(m[1])
-    for (const id of refs) if (!ICONS.has(id)) fail(`${page.out}: references icon "${id}" but src/icons/${id}.svg does not exist`)
-    html = html.replace('{{icons}}', sprite([...refs].filter((id) => ICONS.has(id)).sort()))
+    // Every icon class a page uses must exist (the typo check the owner's gate calls "every class is defined").
+    for (const m of html.matchAll(/\bic--([a-z0-9-]+)/g)) if (!iconClasses().has(m[1])) fail(`${page.out}: uses icon "ic--${m[1]}" but there is no such icon (src/icons/${m[1]}.svg)`)
     if (/\{\{[a-z]+\}\}/.test(html)) fail(`${page.out}: unreplaced template placeholder ${html.match(/\{\{[a-z]+\}\}/)[0]}`)
 
     // Relative link hygiene: pages may write href="@/components/button" to mean "docs root".
@@ -265,7 +284,7 @@ function buildDocs() {
   }
 
   // Docs assets: the library itself (dogfooding) plus docs-only css/js.
-  for (const f of ['styleguide.css', 'styleguide.min.css', 'styleguide.js', 'icons.svg']) if (out.has('dist/' + f)) put('docs/assets/' + f, out.get('dist/' + f))
+  for (const f of ['styleguide.css', 'styleguide.min.css', 'styleguide.js', 'icons.css', 'wire.css']) if (out.has('dist/' + f)) put('docs/assets/' + f, out.get('dist/' + f))
   for (const [k, v] of [...out]) if (k.startsWith('dist/fonts/')) put('docs/assets/' + k.slice('dist/'.length), v)
   for (const f of walk(join(ROOT, 'docs-src', 'assets'))) put('docs/assets/' + rel(f).slice('docs-src/assets/'.length), readFileSync(f))
   // Raw-file marker so GitHub Pages does not run Jekyll over underscores.
@@ -276,6 +295,7 @@ function buildDocs() {
 
 console.log(CHECK ? 'Checking generated files are up to date...' : 'Building...')
 buildCss()
+buildWire()
 buildJs()
 copyFonts()
 buildIcons()

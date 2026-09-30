@@ -1,38 +1,35 @@
-<!--{"title":"Overview","group":"Start","order":0,"summary":"A reusable, accessible, brand-agnostic style guide for progressive web apps and mobile apps."}-->
-<h1>Style Guide</h1>
-<p class="lede">One small, accessible design system for every app you build: clean, friendly and clear about what to do next. Copy one CSS file, pick a palette, and get consistent screens.</p>
+<!--{"title":"Overview","group":"Start","order":0,"summary":"A reusable, accessible, brand-agnostic style guide for progressive web apps and mobile apps, built on the Flashcards style sheet."}-->
+<h1>Style guide</h1>
+<p class="lede">One system for every app you build: minimal, brutalist, friendly, and clear about what to do next. It grows one element at a time; this is where they live.</p>
 
-<h2 id="use">Use it in an app</h2>
+<h2 id="origin">Where it comes from</h2>
+<p>This guide <strong>is</strong> the owner's Flashcards style sheet v0.1, generalised. The type, space, line, shape, hit-target and focus tokens, the role names (<code>--paper</code>, <code>--ink</code>, <code>--tone-1…6</code>), the <code>.card</code> element and its ten variants, the gates and the checker rules are theirs. Added on top: real colour (dark mode, high contrast, six palettes) with contrast verified in a browser, an accessibility test gate, and the elements that came from the reference screens.</p>
+
+<h2 id="rules">The seven rules</h2>
 <ol>
-  <li>Copy <code>dist/styleguide.css</code>, <code>dist/fonts/</code> and (optionally) <code>dist/styleguide.js</code> and <code>dist/icons.svg</code> into your app. No build step.</li>
-  <li>Link the stylesheet and set the viewport and colour-scheme meta tags. The <a href="@/start/pwa-starter.html">PWA starter</a> has a correct, minimal <code>&lt;head&gt;</code>.</li>
-  <li>Write HTML with the component classes. Choose a look with three attributes on <code>&lt;html&gt;</code>: <code>data-palette</code>, <code>data-surface</code> and (optionally) <code>data-theme</code>.</li>
+  <li><strong>Two line weights.</strong> 2px frames what you press or what contains. 1px only divides. 4px exists for forced colours and nothing else.</li>
+  <li><strong>Flat.</strong> No gradients, no blur, no glass. A shadow is hard-edged and means "you can press this".</li>
+  <li><strong>Rectangles hold, circles act.</strong> Containers are rectangles (square or soft). Buttons, handles and action slots are circles or pills.</li>
+  <li><strong>Uppercase is structure.</strong> Bar labels, index numbers, the display line. Everything you read is sentence case.</li>
+  <li><strong>Say something real.</strong> No lorem ipsum, no "John Doe", no "seamless". Copy comes from the app.</li>
+  <li><strong>Colour is a swap.</strong> Components read roles. Only <code>src/tokens</code> contains a colour literal.</li>
+  <li><strong>No decoration.</strong> If it carries no information and offers no action, it goes.</li>
 </ol>
 
+<h2 id="use">Use it in an app</h2>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <pre class="t-mono" style="margin:0;background:none;padding:0">&lt;html lang="en" data-palette="mint" data-surface="soft"&gt;
+<pre class="t-mono" style="margin:0"><code>&lt;html lang="en" data-palette="mint" data-corners="soft"&gt;
   &lt;link rel="stylesheet" href="styleguide.css"&gt;
-  &lt;button class="btn"&gt;Add funds&lt;/button&gt;</pre>
+  &lt;button class="btn" data-variant="primary"&gt;Add funds&lt;/button&gt;</code></pre>
   </div>
 </div>
 
-<h2 id="principles">Principles</h2>
-<ul>
-  <li><strong>Guide the user.</strong> One primary action per screen. Big, clear targets. Labels say what happens. Colour supports meaning but never carries it alone.</li>
-  <li><strong>Accessible by construction.</strong> Colour pairs are built from fixed lightness gaps, then verified in a browser for every theme, palette and contrast mode. WCAG 2.2 AA is the floor; 7:1 text and 44&nbsp;px targets are the default.</li>
-  <li><strong>One system, many looks.</strong> Palettes change colour, surface styles change shape (soft, pop, hard), themes change light and dark. Components never know which is active.</li>
-  <li><strong>Gentler, not instant.</strong> Reduced motion replaces travel with fades; it never turns the app into jump cuts.</li>
-  <li><strong>Growable.</strong> Adding a component is a documented, checklisted routine. See <a href="@/project/contributing.html">Adding to the guide</a>.</li>
-</ul>
-
 <h2 id="try">Try it</h2>
-<p>Open <strong>Appearance</strong> at the top right and change the theme, palette, surface style, contrast or motion. Every page on this site, including this one, updates live.</p>
+<p>Open <strong>Appearance</strong> at the top right and change the theme, palette, corners, contrast or motion. Every page on this site, including this one, updates live.</p>
 
 <h2 id="map">What is here</h2>
 <ul class="cards-index">
-  <li><a href="@/foundations/color.html"><strong>Foundations</strong><span>Colour, tones, type, space, shape, motion.</span></a></li>
-  <li><a href="@/components/button.html"><strong>Components</strong><span>Buttons, cards, lists, navigation, forms, feedback.</span></a></li>
-  <li><a href="@/patterns/wallet.html"><strong>Patterns</strong><span>Whole screens assembled from the parts.</span></a></li>
-  <li><a href="@/accessibility/checklist.html"><strong>Accessibility</strong><span>The checklist every component must pass.</span></a></li>
+  <li><a href="@/components/card.html"><strong>Card</strong><span>The original element: ten variants, six states, two grids.</span></a></li>
+  <li><a href="@/components/button.html"><strong>Button</strong><span>Pills and circles you press.</span></a></li>
 </ul>

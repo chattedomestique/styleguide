@@ -2,7 +2,7 @@
    Docs behaviour (docs only, never shipped to apps).
    1. Appearance panel       theme / contrast / palette / surface / motion via SG.prefs
    2. Mobile navigation      slide-over drawer with focus management
-   3. Demo code              every .demo gets a "Code" disclosure generated from its live markup
+   3. Demo code              every .demo gets a "Markup" disclosure generated from its live markup
    4. Token swatches         [data-swatches] lists live colours with contrast ratios
    ========================================================================== */
 (function () {
@@ -11,15 +11,15 @@
   var $ = SG.qs, $$ = SG.qsa;
 
   function icon(id) {
-    return '<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-' + id + '"></use></svg>';
+    return '<span class="ic ic--' + id + '" aria-hidden="true"></span>';
   }
 
   /* ---- 1 · Appearance panel --------------------------------------------------------- */
   var OPTIONS = {
     theme: { label: 'Theme', opts: [['system', 'System'], ['light', 'Light'], ['dark', 'Dark']] },
     contrast: { label: 'Contrast', opts: [['system', 'System'], ['more', 'More']] },
-    palette: { label: 'Palette', opts: [['ink', 'Ink'], ['periwinkle', 'Periwinkle'], ['mint', 'Mint'], ['sand', 'Sand'], ['cream', 'Cream'], ['mono', 'Mono']] },
-    surface: { label: 'Surface style', opts: [['soft', 'Soft'], ['pop', 'Pop'], ['hard', 'Hard']] },
+    palette: { label: 'Palette', opts: [['default', 'Default'], ['mint', 'Mint'], ['periwinkle', 'Periwinkle'], ['sand', 'Sand'], ['cream', 'Cream'], ['wire', 'Wire']] },
+    corners: { label: 'Corners', opts: [['square', 'Square'], ['soft', 'Soft']] },
     motion: { label: 'Motion', opts: [['system', 'System'], ['reduced', 'Reduced'], ['full', 'Full']] },
   };
 
@@ -36,7 +36,7 @@
       html += '</div></fieldset>';
     });
     html += '<p class="hint">Every page, component and colour on this site updates live. "System" follows your device. Saved in this browser only.</p>';
-    html += '<button class="btn" type="button" data-variant="outline" data-size="sm" data-reset style="margin-block-start:var(--space-3)">Reset to system</button></form>';
+    html += '<button class="btn" type="button" data-size="sm" data-reset>Reset to system</button></form>';
     panel.innerHTML = html;
 
     function sync() {
@@ -100,8 +100,8 @@
       var id = SG.uid('code');
       var det = document.createElement('details');
       det.className = 'demo__code';
-      det.innerHTML = '<summary>' + icon('chevron-right') + 'Code</summary><pre><code id="' + id + '">' + escapeHtml(code) + '</code>' +
-        '<button class="btn demo__copy" type="button" data-variant="secondary" data-size="sm" aria-label="Copy code">' + icon('copy') + '<span>Copy</span></button></pre>';
+      det.innerHTML = '<summary>' + icon('plus') + 'Markup</summary><pre><code id="' + id + '">' + escapeHtml(code) + '</code>' +
+        '<button class="btn demo__copy" type="button" data-size="sm" aria-label="Copy markup">' + icon('copy') + '<span>Copy</span></button></pre>';
       demo.appendChild(det);
       $('.demo__copy', det).addEventListener('click', function (e) {
         var b = e.currentTarget;

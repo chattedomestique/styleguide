@@ -1,139 +1,95 @@
-<!--{"title":"Button","group":"Components","order":10,"summary":"Text buttons and the circular icon-button family for actions."}-->
+<!--{"title":"Button","group":"Components","order":10,"summary":"Pills and circles you press: secondary, primary, tone, icon-only."}-->
 <h1>Button</h1>
-<p class="lede">A button does something on this screen: save, add, send, confirm. If it goes somewhere else, it is a link.</p>
+<p class="lede">A button does something on this screen: save, add, send, confirm. If it goes somewhere else, it is a link. Buttons are pills and circles because, in this system, circles and pills act and rectangles hold.</p>
 
 <h2 id="when">When to use</h2>
 <div class="dodont">
   <div class="note" data-kind="do">
-    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-check" /></svg>
-    <div>
-      <strong>Do</strong>
-      <p>One primary button per screen or card. Label it with the verb and the thing: <em>Save task</em>, not <em>OK</em>.</p>
-    </div>
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>One primary button per screen or card. Name it with the verb and the thing: <em>Save task</em>, not <em>OK</em>.</p></div>
   </div>
   <div class="note" data-kind="dont">
-    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x" /></svg>
-    <div>
-      <strong>Don't</strong>
-      <p>Use a button for navigation (use <code>&lt;a href&gt;</code>), or put two primary buttons side by side.</p>
-    </div>
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use a button to navigate (use an <code>&lt;a href&gt;</code>), or put two primary buttons side by side.</p></div>
   </div>
 </div>
 
-<h2 id="examples">Examples</h2>
-
-<h3 id="variants">Variants</h3>
-<p>Primary is the single most important action. The others step down in emphasis.</p>
+<h2 id="variants">Variants</h2>
+<p>The default is an outline that fills on hover. Primary is filled with the accent at rest. Tone borrows the colours of the tone it sits in; with <code>data-tone="bad"</code> it is a danger button.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
-    <button class="btn" type="button">Primary</button>
-    <button class="btn" data-variant="secondary" type="button">Secondary</button>
-    <button class="btn" data-variant="outline" type="button">Outline</button>
-    <button class="btn" data-variant="ghost" type="button">Ghost</button>
-    <button class="btn" data-variant="danger" type="button">Delete</button>
+    <button class="btn" type="button">Secondary</button>
+    <button class="btn" data-variant="primary" type="button">Primary</button>
+    <button class="btn" data-variant="tone" data-tone="3" type="button">Tone 3</button>
+    <button class="btn" data-variant="tone" data-tone="bad" type="button">Delete deck</button>
+    <button class="btn" data-variant="tone" data-tone="ink" type="button">Ink tone</button>
   </div>
 </div>
 
-<h3 id="tone">Tone</h3>
-<p>Inside a tonal card the button takes the card's hue and stays readable by construction. See <a href="@/foundations/tones.html">Tones</a>.</p>
-<div class="demo" data-layout="row">
-  <div class="demo__stage">
-    <div class="cluster" data-tone="amber" style="padding:var(--space-4);border-radius:var(--radius-card);background:var(--tone-surface);color:var(--tone-ink)">
-      <button class="btn" data-variant="tone" type="button">Start</button>
-    </div>
-    <div class="cluster" data-tone="periwinkle" style="padding:var(--space-4);border-radius:var(--radius-card);background:var(--tone-surface);color:var(--tone-ink)">
-      <button class="btn" data-variant="tone" type="button">Start</button>
-    </div>
-    <div class="cluster" data-tone="rose" style="padding:var(--space-4);border-radius:var(--radius-card);background:var(--tone-surface);color:var(--tone-ink)">
-      <button class="btn" data-variant="tone" type="button">Start</button>
-    </div>
-    <div class="cluster" data-tone="green" data-emphasis="bold" style="padding:var(--space-4);border-radius:var(--radius-card);background:var(--tone-surface);color:var(--tone-ink)">
-      <button class="btn" data-variant="tone" type="button">Start</button>
-    </div>
-  </div>
-</div>
-
-<h3 id="sizes">Sizes</h3>
-<p>Every size has a 44&nbsp;px hit area, even the 40&nbsp;px small one, which extends its tappable area invisibly.</p>
+<h2 id="sizes">Sizes</h2>
+<p>Every size has a 44px hit area. The small one is drawn at 36px and extends its tappable area invisibly.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" data-size="sm" type="button">Small</button>
     <button class="btn" type="button">Medium</button>
-    <button class="btn" data-size="lg" type="button">Large</button>
+    <button class="btn" data-size="lg" data-variant="primary" type="button">Large</button>
   </div>
 </div>
 <div class="demo">
   <div class="demo__stage">
-    <button class="btn" data-block type="button">Full width</button>
+    <button class="btn" data-variant="primary" data-block type="button">Full width</button>
   </div>
 </div>
 
-<h3 id="icons">With an icon</h3>
+<h2 id="icons">With an icon, and as a circle</h2>
+<p>Icons are masks: <code>&lt;span class="ic ic--plus" aria-hidden="true"&gt;</code>. A circle holds one icon and <strong>must</strong> have an <code>aria-label</code>: a tooltip is not a name.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
-    <button class="btn" type="button">
-      <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus" /></svg>
-      Add funds
-    </button>
-    <button class="btn" data-variant="outline" type="button">
-      Continue
-      <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right" /></svg>
-    </button>
+    <button class="btn" data-variant="primary" type="button"><span class="ic ic--plus" aria-hidden="true"></span>Add funds</button>
+    <button class="btn" type="button">Continue<span class="ic ic--arrow" aria-hidden="true"></span></button>
+    <button class="btn" data-shape="circle" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
+    <button class="btn" data-shape="circle" data-variant="primary" type="button" aria-label="Refresh"><span class="ic ic--refresh-cw" aria-hidden="true"></span></button>
+    <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button>
+    <button class="btn" data-shape="circle" data-size="lg" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
   </div>
 </div>
 
-<h3 id="icon-buttons">Icon buttons: the circle family</h3>
-<p>Three treatments, each with one meaning: <strong>solid</strong> is the primary action, <strong>surface</strong> is secondary, <strong>outline</strong> is tertiary. <strong>Scrim</strong> is for controls that float over photos and video. An icon button <em>always</em> needs an <code>aria-label</code>.</p>
+<h2 id="states">States</h2>
+<p>States come from ARIA and native attributes, so the look cannot disagree with what a screen reader is told. The <code>is-*</code> classes below only force a state for this page.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
-    <button class="icon-btn" aria-label="Add task" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus" /></svg></button>
-    <button class="icon-btn" data-variant="surface" aria-label="Open layers" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-layers" /></svg></button>
-    <button class="icon-btn" data-variant="outline" aria-label="Refresh" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-refresh-cw" /></svg></button>
-    <button class="icon-btn" data-variant="ghost" aria-label="More options" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-ellipsis" /></svg></button>
-    <button class="icon-btn" data-size="sm" aria-label="Add task (small)" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus" /></svg></button>
-    <button class="icon-btn" data-size="lg" aria-label="Add task (large)" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus" /></svg></button>
-  </div>
-</div>
-<div class="demo" data-bg="media" data-layout="row">
-  <div class="demo__stage">
-    <button class="icon-btn" data-variant="scrim" aria-label="Back" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left" /></svg></button>
-    <button class="icon-btn" data-variant="scrim" aria-label="Download" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download" /></svg></button>
-    <button class="icon-btn" data-variant="scrim" aria-label="Favourite" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-heart" /></svg></button>
-  </div>
-</div>
-
-<h3 id="states">States</h3>
-<p>States come from ARIA and native attributes, so the look cannot disagree with what a screen reader is told. Tab to each one and press it.</p>
-<div class="demo" data-layout="row">
-  <div class="demo__stage">
-    <button class="btn" type="button">Default</button>
-    <button class="btn" data-variant="outline" type="button" aria-pressed="false">Pressed: off</button>
-    <button class="btn" data-variant="outline" type="button" aria-pressed="true">Pressed: on</button>
-    <button class="btn" type="button" aria-busy="true">Saving</button>
+    <button class="btn" type="button">Rest</button>
+    <button class="btn is-hover" type="button">Hover</button>
+    <button class="btn is-focus" type="button">Focus</button>
+    <button class="btn is-active" type="button">Pressed</button>
+    <button class="btn" type="button" aria-pressed="false">Toggle: off</button>
+    <button class="btn" type="button" aria-pressed="true">Toggle: on</button>
+    <button class="btn" data-variant="primary" type="button" aria-busy="true">Saving</button>
     <button class="btn" type="button" disabled>Disabled</button>
     <button class="btn" type="button" aria-disabled="true" aria-describedby="why-off">Unavailable</button>
-    <span id="why-off" class="t-secondary">Fill in the amount first.</span>
+    <span id="why-off" class="t-meta">Fill in the amount first.</span>
   </div>
 </div>
 
-<h3 id="styles">In each surface style</h3>
-<p>The same markup in the three surface styles. Nothing in the button knows which one is active.</p>
+<h2 id="corners">Square and soft corners</h2>
+<p>Buttons are pills in both. What changes is the frame around them: <code>data-corners</code> sets the three radius roles for cards, tiles and square controls. See <a href="@/components/card.html">Card</a>.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="grid" style="--grid-min:14rem">
-      <div data-surface="soft" class="stack" data-gap="3"><p class="t-overline">Soft</p><div class="cluster"><button class="btn" type="button">Save</button><button class="btn" data-variant="outline" type="button">Cancel</button><button class="icon-btn" aria-label="Add" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus" /></svg></button></div></div>
-      <div data-surface="pop" class="stack" data-gap="3"><p class="t-overline">Pop</p><div class="cluster"><button class="btn" type="button">Save</button><button class="btn" data-variant="outline" type="button">Cancel</button><button class="icon-btn" aria-label="Add" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus" /></svg></button></div></div>
-      <div data-surface="hard" class="stack" data-gap="3"><p class="t-overline">Hard</p><div class="cluster"><button class="btn" type="button">Save</button><button class="btn" data-variant="outline" type="button">Cancel</button><button class="icon-btn" aria-label="Add" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus" /></svg></button></div></div>
+    <div class="grid" style="--grid-min: 14rem">
+      <div data-corners="square" class="card"><div class="card__body"><p class="card__eyebrow">Square</p><h4 class="card__title">Save changes</h4><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Save</button><button class="btn" data-size="sm" type="button">Cancel</button></div></div></div>
+      <div data-corners="soft" class="card"><div class="card__body"><p class="card__eyebrow">Soft</p><h4 class="card__title">Save changes</h4><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Save</button><button class="btn" data-size="sm" type="button">Cancel</button></div></div></div>
     </div>
   </div>
 </div>
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Container</strong>: fill, border, radius, hard shadow (pop only). Always has a border, transparent on filled variants, so forced-colours mode still shows an edge.</li>
-  <li><strong>Label</strong>: verb first, 1&ndash;3 words. Semibold, never below 14&nbsp;px. Case comes from the surface style, never from the HTML.</li>
-  <li><strong>Icon</strong> (optional): 20&nbsp;px, decorative (<code>aria-hidden</code>) when a label is present.</li>
-  <li><strong>Hit area</strong>: an invisible extension that guarantees 44&times;44&nbsp;px.</li>
+  <li><strong>Frame</strong>: <code>--bw</code> (2px) in <code>--line</code>. A real border always exists, so forced-colours mode (which deletes fills and shadows) still shows the control.</li>
+  <li><strong>Fill</strong>: <code>--fill</code> mixes the resting colours toward the accent. Rest 0 (outline), hover/pressed 1.</li>
+  <li><strong>Hard shadow</strong>: appears with <code>--lift</code> (4px, zero blur) when the button can be pressed; pressing sinks it back. A shadow means "you can press this".</li>
+  <li><strong>Label</strong>: sentence case, semibold, verb first, 1&ndash;3 words.</li>
+  <li><strong>Icon</strong> (optional): 20px mask, decorative when a label is present.</li>
+  <li><strong>Hit area</strong>: an invisible <code>::after</code> that guarantees 44&times;44px.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -141,13 +97,14 @@
   <caption class="sr-only">Button attributes</caption>
   <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
-    <tr><td><code>class="btn"</code></td><td>:</td><td>Text button. <code>icon-btn</code> for the circle family.</td></tr>
-    <tr><td><code>data-variant</code></td><td><code>primary</code> (default), <code>secondary</code>, <code>outline</code>, <code>ghost</code>, <code>tone</code>, <code>danger</code><br />icon-btn: <code>solid</code> (default), <code>surface</code>, <code>outline</code>, <code>ghost</code>, <code>scrim</code>, <code>tone</code></td><td>Emphasis and colour.</td></tr>
-    <tr><td><code>data-size</code></td><td><code>sm</code> (40), <code>md</code> (48, default), <code>lg</code> (56)</td><td>Visual height. Hit area is always &ge;&nbsp;44.</td></tr>
-    <tr><td><code>data-block</code></td><td>:</td><td>Full width.</td></tr>
-    <tr><td><code>aria-pressed</code></td><td><code>true</code> | <code>false</code></td><td>Toggle button. On = solid accent and heavier border in forced-colours.</td></tr>
-    <tr><td><code>aria-busy="true"</code></td><td>:</td><td>Shows a spinner (a pulse under reduced motion), ignores taps. Announce the result with <code>SG.announce()</code>.</td></tr>
-    <tr><td><code>disabled</code> / <code>aria-disabled="true"</code></td><td>:</td><td>Unavailable. Prefer <code>aria-disabled</code> plus a reason in <code>aria-describedby</code>: it stays focusable so people can find out <em>why</em>. <code>SG</code> makes it inert for keyboard activation too.</td></tr>
+    <tr><td><code>class="btn"</code></td><td></td><td>The button. Works on <code>&lt;button&gt;</code> and <code>&lt;a&gt;</code>.</td></tr>
+    <tr><td><code>data-variant</code></td><td><code>primary</code>, <code>tone</code> (default: secondary)</td><td>Emphasis. Tone reads <code>--tone-bg/ink/fill/on-fill</code> from <code>data-tone</code> on the button.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code> (36), <code>lg</code> (56) (default 44)</td><td>Drawn height. The hit area is always at least 44.</td></tr>
+    <tr><td><code>data-shape</code></td><td><code>circle</code></td><td>Square box for one icon. Needs <code>aria-label</code>.</td></tr>
+    <tr><td><code>data-block</code></td><td></td><td>Full width.</td></tr>
+    <tr><td><code>aria-pressed</code></td><td><code>true</code> | <code>false</code></td><td>Toggle. On = filled AND a doubled frame, so it never depends on the accent being dark.</td></tr>
+    <tr><td><code>aria-busy="true"</code></td><td></td><td>Spinner (a pulse under reduced motion); ignores taps. Announce the result with <code>SG.announce()</code>.</td></tr>
+    <tr><td><code>disabled</code> / <code>aria-disabled="true"</code></td><td></td><td>Dashed frame, faint ink, no shadow. Prefer <code>aria-disabled</code> plus a reason in <code>aria-describedby</code>: it stays focusable so people can find out why. <code>SG</code> makes it inert for keyboard too.</td></tr>
   </tbody>
 </table></div>
 
@@ -156,20 +113,15 @@
   <caption class="sr-only">Button keyboard and screen reader behaviour</caption>
   <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
   <tbody>
-    <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Moves focus to and from the button. The two-tone focus ring is visible on every background.</td></tr>
-    <tr><td><kbd>Enter</kbd> or <kbd>Space</kbd></td><td>Activates. Native <code>&lt;button&gt;</code> gives this for free; never use a <code>&lt;div&gt;</code>.</td></tr>
-    <tr><td>Screen reader</td><td>Announced as "Label, button". Toggles add "pressed"/"not pressed"; busy adds "busy"; <code>aria-disabled</code> adds "dimmed/unavailable".</td></tr>
-    <tr><td>Touch</td><td>44&times;44&nbsp;px minimum hit area, 8&nbsp;px minimum gap to neighbours. No gesture required.</td></tr>
-    <tr><td>Zoom / text size</td><td>Height and padding are in rem and grow with text; labels wrap rather than clip. Nothing is fixed in px.</td></tr>
-    <tr><td>Reduced motion</td><td>No shrink on press, spinner becomes a pulse. The colour change stays.</td></tr>
-    <tr><td>Forced colours</td><td>Borders become system colours; toggled buttons gain a thicker border because fills are removed.</td></tr>
+    <tr><td><kbd>Tab</kbd></td><td>Moves focus to and from the button. The ring (3px, offset 3px) plus a paper halo stays visible on every background.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activates. Native <code>&lt;button&gt;</code> gives this for free; never use a <code>&lt;div&gt;</code>.</td></tr>
+    <tr><td>Screen reader</td><td>"Label, button". Toggles add pressed / not pressed; busy adds busy; <code>aria-disabled</code> adds unavailable.</td></tr>
+    <tr><td>Touch</td><td>44&times;44px minimum hit area. No gesture required.</td></tr>
+    <tr><td>Zoom / text size</td><td>Heights and padding are rem; labels wrap rather than clip at 200% text.</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the fill change stays. The spinner pulses instead of rotating.</td></tr>
+    <tr><td>Forced colours</td><td>The frame becomes <code>ButtonText</code>; raised and focus get a 4px <code>Highlight</code> outline; on gets a 4px frame.</td></tr>
   </tbody>
 </table></div>
-<ul>
-  <li>Text contrast is verified for every variant in every theme and palette by <code>npm run test:contrast</code> (&ge;&nbsp;4.5:1).</li>
-  <li>An icon-only button needs a text name. A tooltip alone is not a name.</li>
-  <li>Never signal state by colour alone: pressed changes fill <em>and</em> border weight, busy adds a spinner, disabled changes fill <em>and</em> text colour <em>and</em> the cursor.</li>
-</ul>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--color-accent</code>, <code>--color-on-accent</code>, <code>--color-surface-3</code>, <code>--color-ink</code>, <code>--color-ink-3</code>, <code>--color-danger-fill</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--control-border-c</code>, <code>--fill-border-c</code>, <code>--border-w</code>, <code>--radius-control</code>, <code>--shadow-control</code>, <code>--press-shadow</code>, <code>--press-translate</code>, <code>--press-scale-style</code>, <code>--control-sm|md|lg</code>, <code>--target</code>, <code>--dur-press</code>, <code>--dur-fast</code>, <code>--ease-out</code>, <code>--anim-spin</code>, <code>--label-case</code>, <code>--label-tracking</code>.</p>
+<p><code>--paper</code>, <code>--ink</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--ctl-sm</code>, <code>--ctl</code>, <code>--ctl-lg</code>, <code>--hit</code>, <code>--type-ctl</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>, <code>--anim-spin</code>.</p>

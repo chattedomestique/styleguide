@@ -1,0 +1,635 @@
+<!--{"title":"Card","group":"Components","order":60,"summary":"A frame with slots that holds one idea: ten variants, six states, two grids. From the owner's Flashcards style sheet v0.1."}-->
+<h1>Card</h1>
+<p class="lede">A card holds one idea. It is a frame with slots; what goes in a slot is another element's business. This is the owner's original element, ported unchanged: same class names, same anatomy, same states.</p>
+
+<h2 id="rules">House rules</h2>
+<ul>
+  <li>Reads <strong>roles only</strong> (<code>--paper</code>, <code>--ink</code>, <code>--tone-N</code>). No colour literals.</li>
+  <li>One shape gesture per card: round it <strong>or</strong> notch it, never both.</li>
+  <li>A hard shadow means "you can press this". Nothing else gets one.</li>
+  <li><strong>Never put <code>cqi</code> on <code>.card</code> itself.</strong> A container's own <code>cqi</code> resolves against its parent. Sizes that use it live on the parts.</li>
+  <li><strong>A card needs a width from its parent</strong> (a grid cell, a block). <code>container-type: inline-size</code> gives it no intrinsic width, so it collapses inside a shrink-wrapping flex row.</li>
+  <li>Do not pad <code>.card</code> itself. Padding goes on the parts.</li>
+</ul>
+
+<h2 id="anatomy">Anatomy</h2>
+<p>Nine parts, all optional except the frame. A card is whichever of them it needs.</p>
+<div class="table-wrap"><table class="docs-table">
+<caption class="sr-only">Card anatomy: nine parts</caption>
+<thead><tr><th>#</th><th>Part</th><th>Class</th><th>Spec</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Frame</td><td><code>.card</code></td><td><code>display: flex; flex-direction: column</code>; <code>border: 2px solid var(--card-line)</code>; <code>border-radius: var(--card-radius)</code>; <code>overflow: clip</code>; <code>container: card / inline-size</code>.</td></tr>
+<tr><td>2</td><td>Bar</td><td><code>.card__bar</code></td><td>The frame made thicker. <code>min-block-size: 44px</code>; ink fill, paper text; label left, control right. Flips to paper-on-ink for <code>data-tone="ink"</code>.</td></tr>
+<tr><td></td><td>Label</td><td><code>.card__label</code></td><td><code>--type-label</code>, uppercase.</td></tr>
+<tr><td></td><td>Control</td><td><code>.card__ctl</code></td><td>44×44 hit area around a 20×20 box (<code>2px currentColor</code>, <code>--radius-ctl</code>); glyph 12px.</td></tr>
+<tr><td>3</td><td>Media</td><td><code>.card__media</code></td><td><code>aspect-ratio: var(--ratio, 4 / 3)</code>; edge to edge; closed by a 2px rule; <code>img</code>/<code>video</code> are <code>object-fit: cover</code>; fill is the element's tone or <code>--tone-1</code>.</td></tr>
+<tr><td>4</td><td>Body</td><td><code>.card__body</code></td><td><code>padding: clamp(1rem, 5cqi, 1.5rem)</code>; flex column, <code>gap: 8px</code>; grows to fill.</td></tr>
+<tr><td></td><td>Head</td><td><code>.card__head</code></td><td>Same padding as the body. Used by notch and study cards for their top strip.</td></tr>
+<tr><td>5</td><td>Eyebrow</td><td><code>.card__eyebrow</code></td><td><code>--type-meta</code>, soft ink. What kind of thing this is.</td></tr>
+<tr><td>6</td><td>Title</td><td><code>.card__title</code></td><td><code>--type-title</code> at <code>clamp(1.375rem, 8cqi, 2rem)</code> (22–32px); balanced; breaks long words.</td></tr>
+<tr><td>7</td><td>Text</td><td><code>.card__text</code></td><td><code>--type-body</code>, 40ch max, pretty-wrapped.</td></tr>
+<tr><td></td><td>Meta</td><td><code>.card__meta</code></td><td><code>--type-meta</code>, tabular, soft ink.</td></tr>
+<tr><td></td><td>Figure</td><td><code>.card__figure</code></td><td><code>--type-figure</code> at <code>clamp(3rem, 27cqi, 6.5rem)</code>; tabular, lining. A <code>&lt;small&gt;</code> inside is 0.42em, weight 500, soft ink.</td></tr>
+<tr><td>8</td><td>Foot</td><td><code>.card__foot</code></td><td><code>min-block-size: 44px</code>; <code>padding: 8px var(--card-pad)</code>; 1px rule above; <code>margin-block-start: auto</code>, so cards in a row end on one line.</td></tr>
+<tr><td>9</td><td>Action</td><td><code>.card__action</code></td><td>44px circle, <code>2px var(--card-ink)</code>. Fills with <code>--accent</code> when <code>--fill</code> is 1.</td></tr>
+</tbody></table></div>
+
+<h2 id="variants">Variants</h2>
+<p>Ten cards, one idea each. Class names are the API. The markup under every specimen is read from the live element, so it cannot drift from what you are looking at.</p>
+<div class="table-wrap"><table class="docs-table">
+<caption class="sr-only">Card variants</caption>
+<thead><tr><th>Variant</th><th>Modifier / recipe</th><th>Use</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>Plain</td><td><code>.card</code> + <code>.card__body</code> (+ <code>.card__foot</code>)</td><td>The default.</td><td></td></tr>
+<tr><td>Panel</td><td><code>.card__bar</code> (+ <code>.card__list</code>)</td><td>A titled card that folds away: lists, settings.</td><td><code>data-tone="ink"</code> flips the bar to paper.</td></tr>
+<tr><td>Media</td><td><code>.card__media</code></td><td>Picture first.</td><td><code>--ratio</code> overrides 4 / 3.</td></tr>
+<tr><td>Stat</td><td>recipe: eyebrow, <code>.card__figure</code>, optional meter, meta</td><td>One number.</td><td>Add <code>.card--square</code> for a grid of stats.</td></tr>
+<tr><td>Row</td><td><code>.card--row</code> + <code>.card__tile</code>, <code>.card__main</code>, <code>.card__trail</code></td><td>A thing in a list.</td><td>Below 18rem the trail drops under the title (children move between grid cells; the card can't re-template itself).</td></tr>
+<tr><td>Link</td><td><code>.card--link</code> + <code>.card__link</code> in the title</td><td>The whole card goes somewhere.</td><td>See below.</td></tr>
+<tr><td>Notch</td><td><code>.card--notch</code> + <code>.card__head</code>, <code>.card__action</code> (a <code>&lt;button&gt;</code>)</td><td>One action that matters.</td><td>Square only. Not a link card.</td></tr>
+<tr><td>Stack</td><td><code>.card--stack</code></td><td>A deck, not a card.</td><td>Two sheets via <code>box-shadow</code>; the margin reserves their room.</td></tr>
+<tr><td>Ghost</td><td><code>.card--ghost</code> (the card is the <code>&lt;a&gt;</code> or <code>&lt;button&gt;</code>)</td><td>An empty slot that asks to be filled.</td><td>Dashed; firms up on hover and focus.</td></tr>
+<tr><td>Study</td><td><code>.card--study</code> + <code>.card__stage</code>, <code>.card__answer</code></td><td>The flashcard. 5 / 7.</td><td>Static faces; the flip is gate 4.</td></tr>
+<tr><td>Square</td><td><code>.card--square</code></td><td>A modifier for any card.</td><td><code>aspect-ratio: 1 / 1</code>; body spaces its first and last children apart.</td></tr>
+</tbody></table></div>
+<h3 id="plain">Plain</h3>
+<p>The default. A title, a line of support, somewhere to go.</p>
+<p><code>.card</code> <code>.card__body</code> <code>.card__foot</code></p>
+<p class="t-meta">The foot sticks to the bottom, so cards of different heights in one row still end on the same line. Any tone works: <code>data-tone="4"</code>.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 15rem">
+<article class="card">
+  <div class="card__body">
+    <p class="card__eyebrow">Deck · 12 cards</p>
+    <h4 class="card__title">Shapes</h4>
+    <p class="card__text">Circle to crescent. Swipe through them and tap to see the name.</p>
+  </div>
+  <footer class="card__foot"><span>5 of 12 known</span><a href="#">Start</a></footer>
+</article>
+<article class="card" data-tone="4">
+  <div class="card__body">
+    <p class="card__eyebrow">Deck · 8 cards</p>
+    <h4 class="card__title">Colours</h4>
+    <p class="card__text">Eight colours, named out loud. Good for the car.</p>
+  </div>
+  <footer class="card__foot"><span>New</span><a href="#">Start</a></footer>
+</article>
+</div>
+</div>
+</div>
+
+<h3 id="panel">Panel</h3>
+<p>A card with a title bar. Lists, settings, anything that folds away.</p>
+<p><code>.card__bar</code> <code>.card__label</code> <code>.card__ctl</code> <code>.card__list</code></p>
+<p class="t-meta">The bar is the frame made thicker, not a separate header. On the inverted tone it flips to paper, or it would vanish into the card.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 15rem">
+<section class="card">
+  <header class="card__bar">
+    <h4 class="card__label">01 — Shapes</h4>
+    <button class="card__ctl" type="button" aria-label="Collapse">
+      <span class="ic ic--minus"></span>
+    </button>
+  </header>
+  <div class="card__body">
+    <p class="card__text">Twelve cards. Five known, seven to go.</p>
+    <p class="card__meta">Last opened yesterday.</p>
+  </div>
+</section>
+<section class="card" data-tone="ink">
+  <header class="card__bar">
+    <h4 class="card__label">Decks</h4>
+    <button class="card__ctl" type="button" aria-label="Collapse">
+      <span class="ic ic--minus"></span>
+    </button>
+  </header>
+  <ul class="card__list" role="list">
+    <li><a href="#">Shapes</a><span>12</span></li>
+    <li><a href="#">Colours</a><span>8</span></li>
+    <li><a href="#">Numbers to twenty</a><span>20</span></li>
+    <li><a href="#">Farm animals</a><span>15</span></li>
+  </ul>
+</section>
+</div>
+</div>
+</div>
+
+<h3 id="media">Media</h3>
+<p>The picture first, the words second.</p>
+<p><code>.card__media</code> <code>--ratio</code></p>
+<p class="t-meta">4:3 by default. Override per card with <code>--ratio</code>. Real images use <code>object-fit: cover</code> inside the same box.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 15rem">
+<article class="card">
+  <div class="card__media wf-media" data-tone="3" role="img" aria-label="Drawing of a diamond">
+    <span class="wf-tag">Image 4:3</span>
+  </div>
+  <div class="card__body">
+    <p class="card__eyebrow">Shape 07</p>
+    <h4 class="card__title">Diamond</h4>
+    <p class="card__text">
+      Taller than it is wide, on purpose. Equal diagonals is just a square on its corner.
+    </p>
+  </div>
+</article>
+<article class="card">
+  <div
+    class="card__media wf-media"
+    data-tone="5"
+    style="--ratio: 16 / 9"
+    role="img"
+    aria-label="Drawing of a crescent"
+  >
+    <span class="wf-tag">Image 16:9</span>
+  </div>
+  <div class="card__body">
+    <p class="card__eyebrow">Shape 12</p>
+    <h4 class="card__title">Crescent</h4>
+    <p class="card__text">The last card. Swipe once more and you're back at the circle.</p>
+  </div>
+</article>
+</div>
+</div>
+</div>
+
+<h3 id="stat">Stat</h3>
+<p>One number, big, with just enough around it to mean something.</p>
+<p><code>.card__figure</code> <code>.card--square</code> <code>.wf-meter</code></p>
+<p class="t-meta">A recipe, not a class: eyebrow, figure, optional meter, one line of meta. The figure scales with the card's own width, from 48 to 104px.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 14rem">
+<article class="card card--square" data-tone="1">
+  <div class="card__body">
+    <p class="card__eyebrow">Learned so far</p>
+    <p class="card__figure">5<small>/12</small></p>
+    <div
+      class="wf-meter"
+      role="meter"
+      aria-label="Shapes learned"
+      aria-valuemin="0"
+      aria-valuemax="12"
+      aria-valuenow="5"
+      style="--value: 41.6%"
+    ></div>
+    <p class="card__meta">Seven to go.</p>
+  </div>
+</article>
+<article class="card card--square">
+  <div class="card__body">
+    <p class="card__eyebrow">Streak</p>
+    <p class="card__figure">4</p>
+    <p class="card__meta">Days running. Best is nine.</p>
+  </div>
+</article>
+</div>
+</div>
+</div>
+
+<h3 id="row">Row</h3>
+<p>A thing in a list: a card in a deck, a recent session.</p>
+<p><code>.card--row</code> <code>.card__tile</code> <code>.card__main</code> <code>.card__trail</code></p>
+<p class="t-meta">Below 18rem the value on the right drops under the title. A card can't re-template itself from its own width, but its children can move between grid cells.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="sg-stack">
+  <article class="card card--row">
+    <span class="card__tile wf-media" data-tone="1" aria-hidden="true"></span>
+    <div class="card__main">
+      <h4 class="card__title">Circle</h4>
+      <p class="card__meta">Card 01 · round</p>
+    </div>
+    <div class="card__trail">
+      <p>Known</p>
+      <p class="card__meta">3 days ago</p>
+    </div>
+  </article>
+  <article class="card card--row">
+    <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+    <div class="card__main">
+      <h4 class="card__title">Triangle</h4>
+      <p class="card__meta">Card 03 · three sides</p>
+    </div>
+    <div class="card__trail">
+      <p>New</p>
+    </div>
+  </article>
+  <div style="max-inline-size: 16rem">
+    <article class="card card--row">
+      <span class="card__tile wf-media" data-tone="3" aria-hidden="true"></span>
+      <div class="card__main">
+        <h4 class="card__title">Star</h4>
+        <p class="card__meta">Card 05</p>
+      </div>
+      <div class="card__trail">
+        <p>Known</p>
+      </div>
+    </article>
+  </div>
+</div>
+<p class="sg-caption">The last one sits in a 16rem box: same markup, value dropped under.</p>
+</div>
+</div>
+
+<h3 id="link">Link</h3>
+<p>The whole card goes somewhere.</p>
+<p><code>.card--link</code> <code>.card__link</code> <code>.card__action</code></p>
+<p class="t-meta">One anchor, in the title, stretched over the card with <code>::after</code>. One tab stop, one accessible name, and the whole card is the target. The card wears the focus ring, not the anchor. Anything else clickable inside must sit above it.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 13rem">
+<article class="card card--link" data-tone="1">
+  <div class="card__body">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 12 cards</p>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+      <p class="card__meta">5 known</p>
+    </div>
+  </div>
+</article>
+<article class="card card--link" data-tone="3">
+  <div class="card__body">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 8 cards</p>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title"><a class="card__link" href="#">Colours</a></h4>
+      <p class="card__meta">New</p>
+    </div>
+  </div>
+</article>
+<article class="card card--link" data-tone="5">
+  <div class="card__body">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 20 cards</p>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title"><a class="card__link" href="#">Numbers to twenty</a></h4>
+      <p class="card__meta">11 known</p>
+    </div>
+  </div>
+</article>
+</div>
+</div>
+</div>
+
+<h3 id="notch">Notch</h3>
+<p>One action that matters, tucked into the corner.</p>
+<p><code>.card--notch</code> <code>.card__head</code> <code>.card__action</code></p>
+<p class="t-meta">The silhouette is painted, not clipped: four flat layers, so the line turns the corner at exactly 2px and no wrapper is needed. It stays square in both corner modes, because the cut is this card's shape gesture. Not a link card: the button in the notch is the control.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 17rem">
+<article class="card card--notch">
+  <div class="card__head">
+    <p class="card__eyebrow">Due today</p>
+  </div>
+  <div class="card__body">
+    <p class="card__figure">24</p>
+    <p class="card__meta">cards are ready to review</p>
+  </div>
+  <button class="card__action" type="button" aria-label="Start review">
+    <span class="ic ic--arrow"></span>
+  </button>
+</article>
+</div>
+</div>
+</div>
+
+<h3 id="stack">Stack</h3>
+<p>A deck, not a single card.</p>
+<p><code>.card--stack</code></p>
+<p class="t-meta">Two sheets behind the card, drawn with <code>box-shadow</code>, so there's no wrapper and it follows the corner mode for free. The sheets spill outside the box; the margin reserves their room.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 17rem">
+<article class="card card--stack" data-tone="1">
+  <div class="card__body">
+    <p class="card__eyebrow">Deck</p>
+    <h4 class="card__title">Shapes</h4>
+    <p class="card__meta">12 cards</p>
+  </div>
+</article>
+</div>
+</div>
+</div>
+
+<h3 id="ghost">Ghost</h3>
+<p>The empty slot that asks to be filled.</p>
+<p><code>.card--ghost</code></p>
+<p class="t-meta">Dashed means nothing here yet. The card is the anchor or the button itself, and it firms up on hover and focus.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 17rem">
+<a class="card card--ghost" href="#">
+  <span class="card__action" aria-hidden="true"><span class="ic ic--plus"></span></span>
+  <span class="card__title">Add a shape</span>
+</a>
+</div>
+</div>
+</div>
+
+<h3 id="study">Study</h3>
+<p>The flashcard itself. 5:7, one subject, one hint.</p>
+<p><code>.card--study</code> <code>.card__stage</code> <code>.card__answer</code></p>
+<p class="t-meta">Static faces only. The flip is motion, so it's designed at gate 4; the rules in the app's README (perspective on the parent, backfaces hidden, <code>cubic-bezier(.83, 0, .17, 1)</code>) carry over unchanged.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 14rem">
+<div>
+  <article class="card card--study" data-face="front">
+    <div class="card__head"><span class="card__label">03 / 12</span></div>
+    <div class="card__stage">
+      <svg class="wf-shape" viewBox="-8 -8 116 116" aria-hidden="true" focusable="false" data-tone="3">
+        <path
+          d="M50 6L88.11 72L11.89 72Z"
+          transform="translate(0 11) translate(50 50) scale(1.16) translate(-50 -50)"
+        />
+      </svg>
+    </div>
+    <footer class="card__foot"><span class="card__meta">Tap to flip</span></footer>
+  </article>
+  <p class="sg-caption"><b>Front.</b> Shape only.</p>
+</div>
+<div>
+  <article class="card card--study" data-face="back">
+    <div class="card__head"><span class="card__label">03 / 12</span></div>
+    <div class="card__stage">
+      <p class="card__answer">Triangle</p>
+    </div>
+    <footer class="card__foot">
+      <span class="card__meta">Three sides, three corners</span>
+    </footer>
+  </article>
+  <p class="sg-caption"><b>Back.</b> The name, and one fact.</p>
+</div>
+</div>
+</div>
+</div>
+
+<h2 id="states">States</h2>
+<p>Two registered numbers drive the interaction: <code>--lift</code> (0 flat, 1 raised) and <code>--fill</code> (0 outline, 1 filled). Every state just sets them, so hover, focus and pressed share one definition and a single transition animates both. Keyboard and pointer get the same lift.</p>
+<div class="table-wrap"><table class="docs-table">
+<caption class="sr-only">Card states</caption>
+<thead><tr><th>State</th><th>Trigger</th><th><code>--lift</code></th><th><code>--fill</code></th><th>Also</th></tr></thead>
+<tbody>
+<tr><td>Rest</td><td>none</td><td>0</td><td>0</td><td>Flat. No shadow.</td></tr>
+<tr><td>Hover</td><td><code>:hover</code>, only where <code>(hover: hover)</code></td><td>1</td><td>1</td><td>Card moves −2px, −2px; <code>4px 4px 0</code> hard shadow in <code>--card-line</code>; <code>z-index: 1</code>; action fills; title underlines.</td></tr>
+<tr><td>Focus</td><td><code>.card--link:has(.card__link:focus-visible)</code>, or <code>:focus-visible</code> on a ghost</td><td>1</td><td>1</td><td><code>3px solid var(--focus)</code>, offset 3px. Same lift as hover, so keyboard and pointer match.</td></tr>
+<tr><td>Pressed</td><td><code>:active</code></td><td>0</td><td>1</td><td>Back onto the surface; the fill stays.</td></tr>
+<tr><td>Selected</td><td><code>[aria-selected="true"]</code>, <code>[aria-current="true"]</code></td><td></td><td></td><td><code>--shadow-select: 0 0 0 2px var(--card-line)</code>: a ring that doubles the frame, so nothing shifts.</td></tr>
+<tr><td>Disabled</td><td><code>[aria-disabled="true"]</code></td><td></td><td></td><td>Dashed border, <code>--ink-faint</code>, hatch (from <code>wire.css</code>), <code>pointer-events: none</code>. Not an anchor.</td></tr>
+<tr><td>Forced colours</td><td><code>(forced-colors: active)</code></td><td></td><td></td><td>Shadows and fills vanish there, so hover/focus get a 4px <code>Highlight</code> outline and selected gets a 4px border.</td></tr>
+</tbody></table></div>
+<div class="demo" data-nocode>
+<div class="demo__stage">
+<div class="grid" style="--grid-min: 14rem">
+<div>
+<article class="card card--link" data-tone="1">
+  <div class="card__body">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 12 cards</p>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+    </div>
+  </div>
+</article>
+<p class="t-meta"><b>Rest.</b> Flat. No shadow.</p>
+</div>
+<div>
+<article class="card card--link is-hover" data-tone="1">
+  <div class="card__body">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 12 cards</p>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+    </div>
+  </div>
+</article>
+<p class="t-meta"><b>Hover.</b> Lifts 2px, 4px hard shadow, action fills, title underlines.</p>
+</div>
+<div>
+<article class="card card--link is-focus" data-tone="1">
+  <div class="card__body">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 12 cards</p>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+    </div>
+  </div>
+</article>
+<p class="t-meta"><b>Focus.</b> A 3px ring outside the frame, on top of the hover lift.</p>
+</div>
+<div>
+<article class="card card--link is-active" data-tone="1">
+  <div class="card__body">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 12 cards</p>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+    </div>
+  </div>
+</article>
+<p class="t-meta"><b>Pressed.</b> Back onto the surface. The fill stays.</p>
+</div>
+<div>
+<article class="card card--link" data-tone="1" aria-current="true">
+  <div class="card__body">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 12 cards</p>
+      <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+    </div>
+  </div>
+</article>
+<p class="t-meta"><b>Selected.</b> A ring doubles the frame. Nothing shifts.</p>
+</div>
+<div>
+<article class="card is-disabled" data-tone="1" aria-disabled="true">
+  <div class="card__body" style="min-block-size: 11rem; justify-content: space-between">
+    <div class="card__row">
+      <p class="card__eyebrow">Deck · 12 cards</p>
+    </div>
+    <div class="card__group">
+      <h4 class="card__title">Shapes</h4>
+    </div>
+  </div>
+</article>
+<p class="t-meta"><b>Disabled.</b> Dashed, hatched, inert. Not an anchor.</p>
+</div>
+</div>
+</div>
+</div>
+<p class="t-meta">The <code>.is-*</code> classes force a state for this page and for tests. They are not API: real states come from <code>:hover</code>, <code>:focus-visible</code>, <code>:active</code> and <code>aria-current</code>, <code>aria-selected</code>, <code>aria-disabled</code>.</p>
+
+<h2 id="layout">Layout</h2>
+<p>How cards sit together. The grid only places them; it never styles them.</p>
+<h3 id="grid-loose">Loose grid</h3>
+<p>Gaps between cards.</p>
+<p><code>.card-grid</code> <code>--card-min</code></p>
+<p class="t-meta">As many columns as fit at <code>--card-min</code> (16rem by default), sharing the space. The gap is <code>--gutter</code>.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="card-grid" style="--card-min: 13rem">
+  <article class="card" data-tone="1">
+    <div class="card__body">
+      <p class="card__eyebrow">Deck</p>
+      <h4 class="card__title">Shapes</h4>
+      <p class="card__meta">12 cards</p>
+    </div>
+  </article>
+  <article class="card" data-tone="3">
+    <div class="card__body">
+      <p class="card__eyebrow">Deck</p>
+      <h4 class="card__title">Colours</h4>
+      <p class="card__meta">8 cards</p>
+    </div>
+  </article>
+  <article class="card">
+    <div class="card__body">
+      <p class="card__eyebrow">Deck</p>
+      <h4 class="card__title">Numbers to twenty</h4>
+      <p class="card__meta">20 cards</p>
+    </div>
+  </article>
+  <article class="card" data-tone="5">
+    <div class="card__body">
+      <p class="card__eyebrow">Deck</p>
+      <h4 class="card__title">Farm animals</h4>
+      <p class="card__meta">15 cards</p>
+    </div>
+  </article>
+</div>
+</div>
+</div>
+
+<h3 id="grid-tiled">Tiled grid</h3>
+<p>No gaps. The frames are shared.</p>
+<p><code>.card-grid--tiled</code></p>
+<p class="t-meta">Negative start margins overlap each frame onto its neighbour's, so two frames read as one 2px line, and a short last row still closes cleanly. Corners go square here in either mode.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="card-grid card-grid--tiled" style="--card-min: 11rem">
+  <article class="card">
+    <div class="card__body">
+      <p class="card__eyebrow">01</p>
+      <h4 class="card__title">Circle</h4>
+    </div>
+  </article>
+  <article class="card" data-tone="1">
+    <div class="card__body">
+      <p class="card__eyebrow">02</p>
+      <h4 class="card__title">Square</h4>
+    </div>
+  </article>
+  <article class="card">
+    <div class="card__body">
+      <p class="card__eyebrow">03</p>
+      <h4 class="card__title">Triangle</h4>
+    </div>
+  </article>
+  <article class="card" data-tone="ink">
+    <div class="card__body">
+      <p class="card__eyebrow">04</p>
+      <h4 class="card__title">Rectangle</h4>
+    </div>
+  </article>
+  <article class="card">
+    <div class="card__body">
+      <p class="card__eyebrow">05</p>
+      <h4 class="card__title">Star</h4>
+    </div>
+  </article>
+  <article class="card" data-tone="3">
+    <div class="card__body">
+      <p class="card__eyebrow">06</p>
+      <h4 class="card__title">Heart</h4>
+    </div>
+  </article>
+  <article class="card">
+    <div class="card__body">
+      <p class="card__eyebrow">07</p>
+      <h4 class="card__title">Diamond</h4>
+    </div>
+  </article>
+</div>
+</div>
+</div>
+
+<h3 id="container">Container sizing</h3>
+<p>A card answers to its own width, not the window.</p>
+<p><code>cqi</code> <code>@container card</code></p>
+<p class="t-meta">Drag the corner of the dashed box. Padding, titles and the big figure scale with the card; the row's value drops under its title below 18rem. Nothing here looks at the viewport.</p>
+<div class="demo">
+<div class="demo__stage">
+<div class="sg-resize">
+  <div class="sg-stack">
+    <article class="card card--row">
+      <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+      <div class="card__main">
+        <h4 class="card__title">Hexagon</h4>
+        <p class="card__meta">Card 10 · six sides</p>
+      </div>
+      <div class="card__trail">
+        <p>Known</p>
+        <p class="card__meta">Today</p>
+      </div>
+    </article>
+    <article class="card" data-tone="1">
+      <div class="card__body">
+        <p class="card__eyebrow">Learned so far</p>
+        <p class="card__figure">5<small>/12</small></p>
+        <p class="card__meta">Seven to go.</p>
+      </div>
+    </article>
+  </div>
+</div>
+</div>
+</div>
+
+<h2 id="a11y">Accessibility</h2>
+<ul>
+  <li>One tab stop per link card; its accessible name is the title text.</li>
+  <li>Every target is at least 44px: the action circle, the bar control, list rows, the foot. Inline links in the foot are at least 24px tall.</li>
+  <li>The focus ring is always visible: outside the frame on the card itself; inset on the bar and on list rows; in <code>--card-ink</code> on an inverted card.</li>
+  <li>Meters use <code>role="meter"</code> with <code>aria-valuemin</code>, <code>aria-valuemax</code> and <code>aria-valuenow</code>.</li>
+  <li>Decorative icons are <code>aria-hidden="true"</code>; a control whose only content is an icon gets an <code>aria-label</code>.</li>
+  <li>Reset lists keep <code>role="list"</code> so Safari keeps the semantics that <code>list-style: none</code> would drop.</li>
+  <li>A card title is not always an <code>h3</code>: use the heading level that fits the page.</li>
+  <li>A disabled card is not an anchor: <code>aria-disabled="true"</code> plus the class, and remove the <code>href</code>.</li>
+  <li>Forced-colours mode is handled: shadows and fills vanish there, so hover and focus get a 4px <code>Highlight</code> outline and selected gets a 4px border.</li>
+</ul>
+
+<h2 id="dont">Do and don't</h2>
+<div class="dodont">
+  <div class="note" data-kind="do"><span class="ic ic--check" aria-hidden="true"></span><div><strong>Do</strong>
+    <ul><li>Give each card one idea and one place to go.</li><li>Use tones for rhythm across a grid, never to carry meaning.</li><li>Let the grid place cards and the card style itself.</li></ul></div></div>
+  <div class="note" data-kind="dont"><span class="ic ic--close" aria-hidden="true"></span><div><strong>Don't</strong>
+    <ul><li>Nest cards, or put two competing actions in one link card.</li><li>Add a shadow at rest, a stripe down one edge, or a gradient.</li><li>Fake "disabled" with opacity. Use the state.</li><li>Centre-align body text.</li></ul></div></div>
+</div>
+
+<h2 id="limits">Known limits</h2>
+<ul>
+  <li>The notch is square only. The upgrade path is <code>corner-shape: scoop</code> as progressive enhancement once it is supported everywhere that matters.</li>
+  <li>The stretched link's border band needs <code>overflow-clip-margin</code>. Safari ignores it, leaving a 2px band at the very edge of a link card where a click does nothing.</li>
+  <li>Text inside a link card cannot be selected by dragging, because the stretched link sits on top.</li>
+  <li>The study card has static faces only; the flip is a motion design decision.</li>
+</ul>
