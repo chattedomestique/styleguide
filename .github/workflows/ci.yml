@@ -1,0 +1,56 @@
+# The gate, on every push and pull request. It is the same set of commands as `npm test`, split so the
+# fast checks fail first. The browser jobs install Playwright's Chromium; nothing else is downloaded.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: lint and generated files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:lint
+      # dist/ and docs/ are committed (apps copy dist/, GitHub Pages serves docs/): fail if they are stale
+      - run: npm run build:check
+
+  browser:
+    name: contrast, components, accessibility
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:contrast
+      - run: npm run test:components
+      # A pull request runs two appearances per page; a push to main runs all five.
+      - name: accessibility gate
+        run: npm run test:a11y -- ${{ github.event_name == 'pull_request' && '--quick' || '' }}
+        env:
+          A11Y_JOBS: 2
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test-results
+          if-no-files-found: ignore
