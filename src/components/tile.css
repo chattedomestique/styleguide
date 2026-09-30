@@ -137,14 +137,12 @@
       border-color: var(--ink-faint);
       border-style: dashed;
       cursor: not-allowed;
+      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
     }
     &[aria-disabled="true"] .tile__badge {
       color: var(--ink-faint);
       border-color: var(--ink-faint);
       border-style: dashed;
-    }
-    &[aria-disabled="true"] {
-      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
     }
   }
 
@@ -219,6 +217,12 @@
       background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
       border-block-start: var(--bw) solid var(--line);
     }
+  }
+
+  .tile[data-variant="caption"][aria-disabled="true"] .tile__bar {
+    color: var(--ink-faint);
+    background: transparent;
+    border-block-start: var(--bw) dashed var(--ink-faint);
   }
 
   /* ---- forced colours: shadows and fills vanish, so raised / on get a heavier line instead ---- */

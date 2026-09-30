@@ -13,7 +13,7 @@
          <span class="list__main"><span class="list__title">Language</span></span>
          <span class="list__trail">
            <span class="list__value">English</span>
-           <span class="ic ic--chevron-right list__chevron" aria-hidden="true"></span>
+           <span class="list__chevron" aria-hidden="true"></span>
          </span>
        </a>
      </li>
@@ -164,12 +164,22 @@
     overflow-wrap: anywhere;
   }
 
+  /* the standard "goes somewhere" mark, drawn here so it needs no icon file (Lucide chevron-right, 2px square caps) */
   .list__chevron {
-    --ic-size: 1.25rem;
+    flex: none;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
     color: var(--_row-soft);
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") center / contain no-repeat;
   }
   .list__chevron:dir(rtl) {
     transform: scaleX(-1); /* the arrow points the way the page reads */
+  }
+  /* any other icon in the trail (download, external link, plus) is quiet and the same size */
+  .list__trail > .ic {
+    --ic-size: 1.25rem;
+    color: var(--_row-soft);
   }
 
   /* ---- a row you can press: a link, a button or a label ---- */
@@ -335,7 +345,8 @@
     .list__row[aria-disabled="true"] {
       color: GrayText;
     }
-    .list__row::after {
+    .list__row::after,
+    .list__chevron {
       forced-color-adjust: none;
       background-color: CanvasText;
     }
