@@ -242,6 +242,30 @@ for (const f of [...shipped, ...tokenCss]) {
   }
 }
 
+
+/* ---- Doc drift: the .md files may only name tokens and classes that exist ------------------------- */
+{
+  const classes = new Set()
+  const allCss = [...cssFiles, ...walk(join(ROOT, 'docs-src'), (p) => p.endsWith('.css')), ...walk(join(ROOT, 'dist'), (p) => p.endsWith('icons.css'))]
+  for (const f of allCss) for (const m of stripUrls(stripComments(readFileSync(f, 'utf8'))).matchAll(/\.([a-zA-Z][\w-]*)/g)) classes.add(m[1])
+  // classes the docs JS or the scripts create at runtime
+  for (const f of walk(join(ROOT, 'src', 'js'), (p) => p.endsWith('.js'))) for (const m of readFileSync(f, 'utf8').matchAll(/['"`]\.?([a-z][\w-]*)['"`]/g)) classes.add(m[1])
+  const CLI_FLAGS = new Set(['--allow-broken-links', '--quick', '--matrix', '--check', '--pages', '--theme', '--palette', '--corners', '--contrast', '--motion', '--width', '--selector', '--order', '--title', '--group', '--all'])
+  for (const name of ['CLAUDE.md', 'STYLE.md', 'README.md']) {
+    const file = join(ROOT, name)
+    if (!existsSync(file)) continue
+    const md = readFileSync(file, 'utf8')
+    const seen = new Set()
+    for (const m of md.matchAll(/`([^`\n]+)`/g)) {
+      const c = m[1]
+      const ln = lineOf(md, m.index)
+      if (/^--[a-z0-9-]+$/.test(c) && !CLI_FLAGS.has(c) && !c.startsWith('--_') && !declared.has(c) && !seen.has(c)) { seen.add(c); err(name, ln, `token \`${c}\` is not in the CSS`) }
+      const cls = c.match(/^\.([a-z][\w-]*)$/i)
+      if (cls && !classes.has(cls[1]) && !seen.has(c)) { seen.add(c); err(name, ln, `class \`${c}\` is not in the CSS`) }
+    }
+  }
+}
+
 /* ---- Report ------------------------------------------------------------------------------------------ */
 const unusedTokens = [...declared].filter((t) => t.startsWith('--color-') || t.startsWith('--space-') || t.startsWith('--radius-')).filter((t) => {
   const all = cssFiles.concat(walk(join(ROOT, 'docs-src'), (p) => /\.(css|html|js)$/.test(p))).map((f) => readFileSync(f, 'utf8')).join('\n')

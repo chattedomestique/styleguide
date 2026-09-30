@@ -1,0 +1,254 @@
+# Style guide
+
+v0.2 · colour and motion open · elements: **Card**, **Button** (more on the way) · 2026-09-30
+
+The same guide, two ways. **`docs/index.html`** (built from `docs-src/`) is the one to look at: live specimens, every state, the markup read straight off the page. **This file** is the one to build from: exact values, class names, and the reasons. If the two ever disagree, the CSS in `src/` wins and the disagreement is a bug in whichever one is wrong. `npm run lint` catches the mechanical kind.
+
+> **For a coding agent.** Read this before touching UI. Use the classes and tokens named here; don't invent new ones. Components read *roles* (`--paper`, `--ink`, `--tone-bg`), never a colour literal. Run `npm run lint` before you finish. If something you need isn't here, it belongs to an element that hasn't been through the pipeline yet: say so instead of improvising it. `CLAUDE.md` is the working procedure; this file is the spec.
+
+**Provenance.** This guide is the owner's *Flashcards style sheet v0.1*, generalised. Their type, space, line, shape, hit-target and focus tokens, the role names, the tone API, the `.card` element and the checker rules are kept as they wrote them. Added on top: dark mode, higher contrast, six palettes and a verified colour engine (gate 3); motion (gate 4) for the two elements that have it; the `.btn` element; an accessibility test gate; and everything below marked *added*.
+
+---
+
+## 1. What this is
+
+Minimal, brutalist, friendly, and not AI-looking. Each word is a constraint you can check, not a mood:
+
+| Word | What it means here | How it's enforced |
+| --- | --- | --- |
+| Minimal | One type family. Two line weights. Nothing decorative. | Rules 1, 4, 7 |
+| Brutalist | Visible structure. Hard 2px frames, hard shadows, big flat type, no softening effects. | Rules 1, 2 |
+| Friendly | Circles and pills for everything you can act on. Large, relaxed type. Copy that talks like a person. | Rules 3, 5 |
+| Not AI-looking | No gradients, blur, glass, tinted-circle icons, accent stripes, one-radius-for-everything, or copy that fits any product. | `npm run lint` bans the mechanical ones; rule 5 covers the rest |
+
+### The seven rules
+
+1. **Two line weights.** `--bw` 2px frames what you press or what contains. `--bw-thin` 1px only divides. `--bw-heavy` 4px exists for forced-colours mode and nothing else.
+2. **Flat.** No gradients, no blur, no translucency. A shadow is hard-edged (zero blur) and means "you can press this". Nothing else gets one. One exception: the `--scrim` behind a modal or under text on a photo.
+3. **Rectangles hold, circles act.** Containers are rectangles, square or soft. Buttons, handles and action slots are circles or pills.
+4. **Uppercase is structure.** Bar labels, index numbers, the display line. Everything you read is sentence case.
+5. **Say something real.** No lorem ipsum, no "John Doe", no "seamless". Copy comes from the app: shapes, decks, wallets, streaks.
+6. **Colour is a swap.** Components read roles. Only `src/tokens/` contains a colour literal.
+7. **No decoration.** If it carries no information and offers no action, it goes. No dotted backgrounds, no icons in tinted circles.
+
+### The test
+
+Run it on any screen before calling it done.
+
+- **Squint.** Blur your eyes or the screenshot. Does the structure survive with colour removed (`data-palette="wire"`)? If it only works in colour, colour is hiding a layout problem.
+- **Cover the logo.** Could this be any product's card? Then the copy or the shape isn't doing its job.
+- **Count.** Line weights: two. Type families: one. Gradients: zero. Blurred shadows: zero. Shadows on things you can't press: zero.
+- **Read it out loud.** If it sounds like a landing page, rewrite it.
+
+---
+
+## 2. Foundations
+
+Everything is a custom property. Sizes are `rem` so they follow the reader's text size; line weights are `px` so a 2px rule stays 2px.
+
+### Files and layers
+
+```
+dist/styleguide.css       the one file an app links. Declares the layer order.
+  src/tokens/00-foundation.css   type, space, line, shape, hit, focus, @property   (layer: sg.tokens)
+  src/tokens/10-color.css        knobs → colour roles, dark, higher contrast       (layer: sg.tokens)
+  src/tokens/20-tones.css        six tone slots, ink, four status tones, bold       (layer: sg.tokens)
+  src/tokens/30-corners.css      square | soft                                      (layer: sg.tokens)
+  src/tokens/40-palettes.css     mint, periwinkle, sand, cream, wire                (layer: sg.tokens)
+  src/tokens/50-fonts.css        @font-face for Archivo (variable: wght 100–900, wdth 62–125%)
+  src/tokens/60-motion.css       durations, easings, --move, reduced motion         (layer: sg.tokens)
+  src/base/                      reset, element defaults, .t-* styles, icons        (layer: sg.reset, sg.base)
+  src/layout/layout.css          app shell and layout primitives                    (layer: sg.layout)
+  src/components/*.css           the elements                                       (layer: sg.components)
+dist/icons.css            about 140 more masked icons (optional)
+dist/wire.css             wireframe placeholders, .wf-* (development only)            (layer: sg.wire)
+```
+
+Layer order is `sg.reset, sg.tokens, sg.base, sg.layout, sg.components, sg.wire, sg.utilities`. Later wins, so nothing needs a specificity fight. An app's unlayered CSS wins over all of it.
+
+### Type
+
+One family, three widths. Archivo's width axis does the job a second typeface normally does: expanded for posters, normal for reading, condensed for labels. Fallback stack: `"Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif`. Self-hosted, latin subset, SIL OFL 1.1 (`src/fonts/OFL-Archivo.txt`). Each style is a whole `font` shorthand, so weight, width, size, line-height and family travel together.
+
+| Token | Weight · width | Size | Line | Tracking | Use |
+| --- | --- | --- | --- | --- | --- |
+| `--type-display` | 900 · 125% | `--text-4xl` 68–240px | 0.85 | −0.035em | `.t-display`. Uppercase. One per page. |
+| `--type-title` | 500 · 100% | `--text-xl` 24–32px | 1.1 | −0.015em | `.t-title`. Card and section titles. Balanced. |
+| `--type-body` | 400 · 100% | `--text-md` 16px | 1.5 | 0 | `.t-body`. Pretty-wrapped. |
+| `--type-meta` | 400 · 100% | `--text-sm` 14px | 1.3 | 0 | `.t-meta`. Tabular figures. Soft ink. |
+| `--type-label` | 700 · 75% | `--text-xs` 13px | 1 | +0.08em | `.t-label`. Uppercase. Structure only. |
+| `--type-figure` | 600 · 112.5% | `--text-3xl` 48–104px | 0.85 | −0.03em | `.t-figure`. Tabular, lining. |
+| `--type-ctl` | 600 · 100% | `--text-md` 16px | 1 | 0 | What you read on a button or control. *added* |
+
+Size scale: `--text-xs` 0.8125rem · `--text-sm` 0.875rem · `--text-md` 1rem · `--text-lg` 1.25rem · `--text-xl` `clamp(1.5rem, 1.3rem + 0.9vw, 2rem)` · `--text-2xl` `clamp(2rem, 1.5rem + 2.2vw, 3.25rem)` · `--text-3xl` `clamp(3rem, 1.6rem + 5.6vw, 6.5rem)` · `--text-4xl` `clamp(4.25rem, 1rem + 15vw, 15rem)`. `.t-mono` and `.num` exist for code and tabular numbers. Line heights: `--lh-none` 0.85, `--lh-tight` 1.1, `--lh-snug` 1.3, `--lh-body` 1.5.
+
+Inside a card, title and figure sizes come from the card's own width (`cqi`), not the viewport. See §3.
+
+### Space
+
+A 4px grid. `--space-N`: 1 = 4px · 2 = 8 · 3 = 12 · 4 = 16 · 5 = 24 · 6 = 32 · 7 = 48 · 8 = 64 · 9 = 96 (`--space-0` is 0). `--gutter` `clamp(1rem, 0.6rem + 1.6vw, 1.75rem)` is the gap between cards. `--measure` 62ch is the widest a paragraph gets.
+
+### Line
+
+`--bw-thin` 1px (divides: foot rules, list rows) · `--bw` 2px (frames: cards, controls, tiles) · `--bw-heavy` 4px (forced-colours only).
+
+### Shape
+
+Circles and pills are always `--radius-pill` (999px). Everything else reads exactly three roles, which are the only radii a component may use:
+
+| Role | `data-corners="square"` (default) | `"soft"` | Used by |
+| --- | --- | --- | --- |
+| `--radius-card` | 0 | `--radius-3` 24px | the card frame |
+| `--radius-tile` | 0 | `--radius-2` 12px | icon tiles, media inset |
+| `--radius-ctl` | 0 | `--radius-1` 6px | the square bar control |
+
+**Open decision: square or soft.** Both are implemented and the appearance panel flips them. The default is square, because that is what the owner's committed CSS does. To commit to soft, change the default block in `src/tokens/30-corners.css`; nothing in `src/components/` changes. One shape gesture per card: round it **or** notch it, never both.
+
+### Hit targets and focus
+
+`--hit` 2.75rem (44px). The drawn thing may be smaller; the target is not. A 20px box is fine inside a 44px control. Control heights *(added)*: `--ctl-sm` 36px (hit area still 44), `--ctl` 44px, `--ctl-lg` 56px. `--ring` 3px, `--ring-offset` 3px, colour `--focus`, plus a paper halo so it shows on any background. Inside a card the offset drops to `--ring-offset-in` (2px) because the card clips its contents; set `--ring-gap` to pick one.
+
+### Colour
+
+Colour is built in three steps, and only the first contains numbers:
+
+1. **Knobs** (`--k-*`) are plain numbers: OKLCH lightness, chroma, hue. A palette, the theme and the contrast mode change knobs and nothing else.
+2. **Roles** are derived from knobs with `light-dark(oklch(...))`. They are what components read.
+3. **Components** read roles. They never know which palette, theme or corner style is active.
+
+Contrast is **by construction**: lightness decides contrast, so each pair keeps a fixed lightness gap and hue and chroma add personality only. `npm run test:contrast` checks every pair in every theme × contrast × palette combination with colours resolved by a real browser.
+
+| Role | Means | Contrast floor |
+| --- | --- | --- |
+| `--canvas` | the page behind everything | |
+| `--paper` | a card's default fill | |
+| `--paper-2`, `--paper-3` | a recessed fill (track, input, well) and its pressed shade *(added)* | |
+| `--ink` | text and frames | 7 : 1 on canvas, paper, paper-2, paper-3 |
+| `--ink-soft` | secondary text | 7 : 1 (4.5 : 1 on paper-3) |
+| `--ink-mute` | placeholder, tertiary text *(added)* | 4.5 : 1 |
+| `--ink-faint` | disabled, quiet decoration | 3 : 1; never text that matters |
+| `--line`, `--line-soft` | frames (= `--ink`); decoration that must stay quiet (= `--ink-faint`) | 3 : 1 |
+| `--focus` | focus ring (= `--ink`) | 3 : 1 |
+| `--accent`, `--on-accent` | the one "press this" colour and the text on it | 4.5 : 1 |
+| `--accent-ink` | the accent used *as* text or an icon *(added)* | 4.5 : 1 |
+| `--accent-soft`, `--on-accent-soft` | a soft accent wash (selected row) and its text *(added)* | 4.5 : 1 |
+| `--ok-ink`, `--warn-ink`, `--bad-ink`, `--info-ink` | status text; always with an icon or words *(added)* | 4.5 : 1 |
+| `--scrim`, `--scrim-strong`, `--on-media` | the modal backdrop and the plate that keeps white text ≥ 4.5 : 1 over any photo *(added)* | 4.5 : 1 |
+
+In higher contrast (`prefers-contrast: more` or `data-contrast="more"`) text goes to ≥ 7 : 1 everywhere and the accent collapses to ink. The media-query block and the attribute block are identical and the lint asserts it. Never draw text with `opacity`. Colour never carries meaning alone (WCAG 1.4.1).
+
+**Palettes.** `default` is neutral greys with an ink accent (black on light, white on dark). `mint`, `periwinkle`, `sand` and `cream` tint the canvas and move the accent and tone hues. `wire` is greys only, with six climbing greys for the tone slots: the squint test.
+
+### Tones
+
+Put `data-tone="1"` … `"6"` or `"ink"` on any element. That exposes `--tone-bg` and `--tone-ink` *for that element only* (both are registered with `inherits: false`, so a toned card never paints its toned-less children). A component decides what to do with them. `ink` is the inverted tone: ink fill, paper text. Direct tokens `--tone-1` … `--tone-6` and `--on-tone-1` … `--on-tone-6` are also available.
+
+Added on the same machinery: `--tone-ink-soft` (secondary text on a tone, ≥ 4.5 : 1), `--tone-fill` and `--tone-on-fill` (a solid pill or bar that sits on the tone), `data-tone="ok" | "warn" | "bad" | "info"` for status, and `data-emphasis="bold"` (a saturated mid-dark fill with near-white text instead of a pastel; put it on the same element as `data-tone`). Pastel fills are at OKLCH L ≥ 0.92 with ink at L ≤ 0.39, which is ≥ 7 : 1 for every hue. **Tones carry rhythm, never meaning**: a tone alone must not say "error".
+
+### Motion
+
+Gate 4 is open. Two registered numbers drive interaction: `--lift` (0 flat, 1 raised: a 2px move and a 4px hard shadow) and `--fill` (0 outline, 1 filled). Every state only sets them, so hover, focus and pressed share one definition and a single `transition` animates both. Tokens: `--dur-press` 130ms · `--dur-hover` 200ms · `--dur-move` 520ms · `--dur-enter` 320ms *(added)* · `--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)` · `--ease-flip` `cubic-bezier(0.83, 0, 0.17, 1)` · `--ease-in` *(added)*.
+
+Only `transform`, `opacity` and the two numbers animate. **Reduced motion means gentler, not instant**: `--move` goes to 0 (every component multiplies its travel by it), durations shorten, a spinner becomes a pulse, and colour changes stay. `perspective` belongs on the flip's direct parent. `prefers-reduced-motion` and `data-motion="reduced"` set identical blocks.
+
+### Icons
+
+Five glyphs ship in the main bundle, the owner's own drawings on a 24 grid with a 2px square-cap stroke (the frame's weight, so an icon reads as line work and not as a sticker). About 140 more, re-stroked to the same weight from Lucide (ISC), are in `dist/icons.css`. They are CSS masks, so they take `currentColor`:
+
+```html
+<span class="ic ic--arrow" aria-hidden="true"></span>
+```
+
+`ic--arrow` (↗) · `ic--plus` · `ic--minus` · `ic--close` · `ic--check`. Size with `--ic-size` (default 1.25rem). Decorative by default: when an icon is a control's only content, the *control* gets the `aria-label`.
+
+### Layout primitives *(added)*
+
+Intrinsic, no media queries: `.app` (shell), `.stack`, `.cluster`, `.split`, `.grid` (`--grid-min`), `.center`, `.bleed`, `.scroller`, `.cq` (make a container), `.sticky-top`, `.safe-top`, `.safe-bottom`, `.safe-x`, `.break`, `.truncate`. Safe-area insets need `viewport-fit=cover` and cover all four sides (landscape phones have side insets). Sticky chrome sets `--appbar-h` / `--dock-h` so focus is never hidden behind it.
+
+### Appearance switches
+
+| Attribute | Values | Changes |
+| --- | --- | --- |
+| `data-theme` | light · dark (absent = OS) | colours |
+| `data-contrast` | more (absent = OS) | lightness gaps |
+| `data-palette` | default · mint · periwinkle · sand · cream · wire | hue, tint, accent, tone hues |
+| `data-corners` | square · soft | the three radius roles |
+| `data-motion` | reduced · full (absent = OS) | `--move`, durations |
+
+All work on `<html>` or on any element (an island). `window.SG.prefs` persists the choices and applies them before first paint.
+
+---
+
+## 3. Elements
+
+Each element has a page in the docs with live specimens, every state, anatomy, an API table, a keyboard and screen-reader table, and the tokens it reads. The two below are frozen enough to build on; the rest arrive one at a time through the pipeline in §6.
+
+### Card
+
+The owner's original element, ported without changes to its class names, anatomy or states. A card holds one idea. It is a frame with slots; what goes in a slot is another element's business. Variants: plain, panel, media, stat, row, link, notch, stack, ghost, portrait (`.card--study` kept as an alias), and the `.card--square` modifier. Layouts: `.card-grid` and `.card-grid--tiled`. Full spec: `docs/components/card.html`. House rules that matter most: never put `cqi` on `.card` itself (a container's own `cqi` resolves against its parent), a card needs a width from its parent, and do not pad `.card` itself.
+
+### Button
+
+A pill or circle you press. One primary per screen or card. Secondary is an outline that fills on hover; primary is filled with the accent; tone borrows the colours of the tone it sits in (`data-tone="bad"` is a danger button). Sizes `sm` / md / `lg` all keep a 44px hit area. Toggles use `aria-pressed` (filled *and* a doubled frame); busy uses `aria-busy` (a spinner, or a pulse under reduced motion); unavailable uses `aria-disabled` plus a reason in `aria-describedby`. Full spec: `docs/components/button.html`. `src/components/button.css` is the **reference component**: every other element copies its structure.
+
+---
+
+## 4. Wireframe kit
+
+`src/wire/wire.css` holds placeholders for things that don't exist yet. Each `.wf-*` class is deleted the day its real element ships, and nothing in `src/components/` may depend on it.
+
+| Class | Stands in for | Replaced by |
+| --- | --- | --- |
+| `.wf-media` (+ `.wf-tag`) | an image or illustration: a box with an X | real media |
+| `.wf-shape` | a drawing | the app's SVG |
+| `.wf-meter` | progress | the Meter element |
+| `.wf-pill` | a status tag | the Tag element |
+
+How to read a wireframe: a box with an X is an image; flat grey is a tone slot; black is the inverted tone; dashed is empty or unavailable; hatch is disabled.
+
+---
+
+## 5. The gate
+
+`npm run lint` is the owner's `check.mjs`, extended. It fails on what a machine can catch; the rest is the squint test in §1.
+
+| # | Check | Fails on |
+| --- | --- | --- |
+| 1 | undefined tokens | `var(--x)` with no definition and no fallback |
+| 2 | colour literals | hex / rgb() / hsl() / oklch() / light-dark() outside `src/tokens/` |
+| 3 | the AI tells | gradients (except a flat fill of two identical stops), `backdrop-filter`, `blur()`, `text-shadow`, shadows with blur, a default font as the first family, a `font-family` that isn't a token |
+| 4 | line and shape | a literal border or outline width; a radius that isn't one of the roles |
+| 5 | the gate order | motion before gate 4 opens (open now) |
+| 6 | layering | a component using `.wf-*`; anything using a `--grey-*` primitive |
+| 7 | markup | a class used in a docs page that no CSS defines |
+| 8 | doc drift | `CLAUDE.md`, `STYLE.md`, `README.md` naming a custom property or class that does not exist |
+| 9 | accessibility hygiene *(added)* | `outline: none` with no replacement, `transition: all`, px font sizes, unlabeled icon buttons, positive `tabindex`, `role=button` on a div |
+| 10 | hygiene *(added)* | `:hover` not gated by `(hover: hover)`, physical properties (RTL), fixed px sizes, `!important`, `prefers-contrast` blocks that drifted apart |
+
+The tests beyond lint: `npm run test:contrast` (contrast of every pair in every appearance), `npm run test:a11y` (axe, keyboard walk, target sizes, reflow at 320px and 200 % text, forced colours), `npm run test:components` (keyboard, ARIA and `--lift` / `--fill` specs).
+
+---
+
+## 6. Status
+
+| Element | 0 Brief | 1 Wireframe | 2 States | 3 Colour | 4 Motion | 5 Freeze |
+| --- | --- | --- | --- | --- | --- | --- |
+| Card | done | done | done | done | done | awaiting sign-off |
+| Button | done | done | done | done | done | awaiting sign-off |
+
+---
+
+## 7. Known limits
+
+- Tests run in Chromium only. Safari / WebKit, Firefox and screen readers (VoiceOver, TalkBack, NVDA) are **not** verified; the docs list the manual pass for a real iPhone.
+- iOS Dynamic Type via `-apple-system-body` is included behind `@supports` but unverified on a device.
+- The card notch is square only. The stretched link's 2px border band needs `overflow-clip-margin`, which Safari ignores. Text inside a link card can't be selected by dragging.
+- `light-dark()` is Baseline Newly available (Widely in late 2026); a 2024-era browser is needed: container queries, `:has()`, `@property`, `color-mix()`, cascade layers, `light-dark()`.
+- Contrast numbers come from 8-bit sRGB renderings and ignore display profiles.
+
+---
+
+## 8. Changelog
+
+- **0.2.0** · 2026-09-30 · Re-founded on the Flashcards style sheet v0.1. Colour engine (dark, higher contrast, six palettes, status tones, bold), motion on, Button, accessibility gate, extended checker. Card: `study` renamed `portrait` (alias kept); hover rules gated for touch; long words no longer clip at large text.
+- **0.1.0** · 2026-09-30 · The owner's sheet: foundations (type, space, line, shape, hit, motion). Wireframe colour layer with six tone slots. Card: ten variants, six states, two grids. Gates 0–2 closed for Cards.

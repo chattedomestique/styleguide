@@ -9,7 +9,7 @@
  *   docs-src/components/<name>.html     page in the standard format (live demos, API, a11y, tokens)
  *   tests/components/<name>.mjs         keyboard / ARIA interaction test stub
  * Then: `npm run build`, open the page, fill in every TODO, run `npm run lint && npm run test:a11y`.
- * Refuses to overwrite anything. Read CLAUDE.md "Adding a component" first.
+ * Refuses to overwrite anything. Read CLAUDE.md "Adding an element" first.
  */
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -39,28 +39,29 @@ const files = {
    data-size      TODO
    States come from ARIA / native attributes (aria-selected, aria-pressed,
    aria-current, aria-expanded, aria-busy, :disabled, aria-disabled), never classes.
+   The .is-hover / .is-focus / .is-active classes only force a state for docs and tests.
 
-   Follow src/components/button.css. Checklist (also in CLAUDE.md):
-   [ ] only colour ROLES, radius/border/shadow ROLES and space/type tokens; no literals
-   [ ] works in soft / pop / hard with no style-specific branches
-   [ ] hit area >= 44px (use the ::after pattern), gaps >= 8px
-   [ ] focus ring visible; if you draw box-shadow, keep var(--focus-shadow)
-   [ ] state is never colour-only; selected/on has a shape, weight or icon cue
-   [ ] a transparent border exists so forced-colors keeps the edge
-   [ ] travel/scale multiplied by --move / --press-scale-style; opacity fades otherwise
-   [ ] rem units, wraps at 200% text, fine at 320px wide (container queries, not media)
-   [ ] hover gated by @media (hover: hover)
+   Copy the structure of src/components/button.css. Checklist (also in CLAUDE.md):
+   [ ] colour ROLES only (--paper --ink --accent --tone-bg …); radius ROLES (--radius-card,
+       -tile, -ctl, -pill); lines --bw / --bw-thin; no literals (npm run lint enforces)
+   [ ] pressable = 2px frame + circle/pill + hard shadow via --lift; containers = rectangles
+   [ ] --lift / --fill drive hover, focus, pressed; ONE transition; travel x --move
+   [ ] works in square AND soft corners with no branches
+   [ ] hit area >= 44px (the ::after pattern), gaps >= 8px
+   [ ] focus ring visible (base ring + halo); a component that draws its own shadow keeps it
+   [ ] state never colour-only; selected/on has a shape, weight or icon cue
+   [ ] a real border exists so forced-colors keeps the edge; hover gated by (hover: hover)
+   [ ] rem units, wraps at 200% text, fine at 320px wide (container queries inside, media at the shell)
    ========================================================================== */
 
 @layer sg.components {
   .${name} {
-    /* private properties: what variants change */
-    --_bg: var(--color-surface);
-    --_fg: var(--color-ink);
+    --_bg: var(--paper);
+    --_ink: var(--ink);
 
+    color: var(--_ink);
     background: var(--_bg);
-    color: var(--_fg);
-    border: var(--card-border-w) solid var(--card-border-c);
+    border: var(--bw) solid var(--line);
     border-radius: var(--radius-card);
   }
 }
@@ -72,11 +73,11 @@ const files = {
 <h2 id="when">When to use</h2>
 <div class="dodont">
   <div class="note" data-kind="do">
-    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-check" /></svg>
+    <span class="ic ic--check" aria-hidden="true"></span>
     <div><strong>Do</strong><p>TODO</p></div>
   </div>
   <div class="note" data-kind="dont">
-    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x" /></svg>
+    <span class="ic ic--close" aria-hidden="true"></span>
     <div><strong>Don't</strong><p>TODO</p></div>
   </div>
 </div>
@@ -96,7 +97,7 @@ const files = {
 <div class="table-wrap"><table class="docs-table">
   <caption class="sr-only">${title} attributes</caption>
   <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
-  <tbody><tr><td><code>class="${name}"</code></td><td>:</td><td>TODO</td></tr></tbody>
+  <tbody><tr><td><code>class="${name}"</code></td><td></td><td>TODO</td></tr></tbody>
 </table></div>
 
 <h2 id="a11y">Accessibility</h2>
