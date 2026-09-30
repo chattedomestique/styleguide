@@ -1,0 +1,223 @@
+/* ==========================================================================
+   Select  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A styled NATIVE <select>. The closed control is ours; the picker that opens is the
+   browser's own, which is the best touch, keyboard, type-ahead and screen-reader
+   experience there is (the wheel on iOS, the sheet on Android, the list on desktop). We
+   do not replace it.
+
+   <div class="select">
+     <select id="country" name="country" autocomplete="country-name">
+       <option value="" disabled selected>Choose a country</option>
+       <option>Canada</option>
+       …
+     </select>
+     <span class="ic ic--chevron-down" aria-hidden="true"></span>
+   </div>
+
+   data-size   md (44, default) | lg (56)      on .select
+   States      :disabled, :user-invalid, [aria-invalid="true"], :focus-visible: the same
+               frame as the text input (input.css is the one source).
+
+   A select is something you PRESS to open, so unlike a text field it is raised like a
+   button: the frame holds the choice (a rectangle), the end slot is the action. The slot
+   is its own 2px block joined to the frame, and FILLS with the accent when the select can
+   be pressed (hover, focus), with the same hard lift as a button. Pressing sinks it.
+   Pressing opens the native picker, so the lift is the only thing that animates.
+
+   WHY THE WRAPPER
+   A <select> cannot contain an icon, and a text glyph for the chevron is not in the bundled
+   font (and a CSS background image cannot take a colour from a role). So the chevron is a
+   real mask icon laid over the end slot. It ignores pointer events, so a tap anywhere on
+   the box opens the native picker. The wrapper is the frame, so the ring, the error and the
+   disabled look are drawn once (:has()), exactly as in .input-group.
+
+   Use a select for 5 to about 15 options that are known in advance. Fewer than 5: use
+   radio buttons (see choice). Many more, or searchable: a combobox, not this.
+   ========================================================================== */
+
+@layer sg.components {
+  .select {
+    --lift: 0;
+    --fill: 0;
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+
+    position: relative;
+    display: block;
+    isolation: isolate;
+    min-block-size: var(--_h);
+    box-shadow: var(--_inset), var(--_shadow);
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* The end slot: a 44 px block that overlays the frame's end so its corners match the
+       frame's outer radius. It is the part that fills. */
+    &::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      inset-block: calc(var(--_bw) * -1);
+      inset-inline-end: calc(var(--_bw) * -1);
+      inline-size: calc(var(--hit) + var(--_bw));
+      background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--_bg));
+      border: var(--_bw) solid var(--_line);
+      border-start-end-radius: var(--radius-ctl);
+      border-end-end-radius: var(--radius-ctl);
+      pointer-events: none;
+    }
+
+    > select {
+      position: relative;
+      z-index: 1;
+      display: block;
+      inline-size: 100%;
+      min-block-size: calc(var(--_h) - 2 * var(--_bw));
+      margin: 0;
+      padding-block: 0;
+      padding-inline: calc(var(--_px) - 2 * var(--_bw)) calc(var(--hit) + var(--space-2) - var(--_bw));
+      color: inherit;
+      background: transparent;
+      /* a real border in no colour: see input.css (.input-group > .input) for why */
+      border: var(--_bw) solid transparent;
+      border-radius: inherit;
+      font: inherit;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+
+      &:disabled {
+        opacity: 1;
+        -webkit-text-fill-color: var(--_ink);
+        cursor: not-allowed;
+      }
+
+      /* An unchosen placeholder option reads like a placeholder (--ink-mute is >= 4.5:1). */
+      &:has(> option[value=""]:checked) {
+        color: var(--ink-mute);
+      }
+
+      /* The popup list: solid role colours, or some platforms paint their own grey. */
+      option,
+      optgroup {
+        background-color: var(--paper);
+        color: var(--ink);
+      }
+      option:disabled {
+        color: var(--ink-mute);
+      }
+      optgroup {
+        font-weight: 700;
+      }
+    }
+
+    > .ic {
+      position: absolute;
+      z-index: 2;
+      inset-block: 0;
+      inset-inline-end: calc((var(--hit) - var(--ic-size)) / 2);
+      margin-block: auto;
+      color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--_ink));
+      pointer-events: none;
+    }
+
+    /* raised where a pointer can hover, and always on keyboard focus (same lift, so both match) */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:has(> select:disabled)) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:is(.is-focus, :has(> select:focus-visible)) {
+      --lift: 1;
+      --fill: 1;
+    }
+    /* pressed: back onto the surface, the fill stays. After hover so it wins. */
+    &:is(.is-active, :has(> select:active)):not(:has(> select:disabled)) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* unavailable: dashed, faint, flat, no slot fill */
+    &:has(> select:disabled) {
+      --lift: 0;
+      --fill: 0;
+      --_shadow: 0 0 0 0 transparent;
+    }
+
+    /* Multiple / listbox: a tall box, no chevron, no lift, padding around the options. */
+    &:has(> select[multiple]),
+    &:has(> select[size]:not([size="1"])) {
+      --lift: 0;
+      --fill: 0;
+      --_shadow: 0 0 0 0 transparent;
+      transform: none;
+
+      &::before,
+      > .ic {
+        display: none;
+      }
+      > select {
+        padding-block: var(--space-2);
+        padding-inline: calc(var(--_px) - 2 * var(--_bw));
+        cursor: default;
+        option {
+          min-block-size: var(--hit);
+          padding-inline: var(--space-2);
+        }
+      }
+    }
+  }
+
+  /* the wrapper wears the ring; the select inside would draw a second, inner one */
+  @supports selector(:has(*)) {
+    .select > select:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+    .select:has(> select:focus-visible) {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper), var(--_inset), var(--_shadow);
+    }
+  }
+
+  /* ---- Forced colours: fills and shadows go, so the lifted select gets a heavier outline and
+     the slot keeps its own frame (the divider) and the chevron stays ButtonText. ----------- */
+  @media (forced-colors: active) {
+    .select > select {
+      border-color: Canvas;
+    }
+    .select {
+      &::before {
+        border-color: ButtonText;
+      }
+      &:is(:hover, .is-hover, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      > .ic {
+        forced-color-adjust: none;
+        background-color: ButtonText;
+      }
+    }
+    .select:has(> select:focus-visible) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    .select:has(> select:disabled) {
+      &::before {
+        border-color: GrayText;
+      }
+      > .ic {
+        background-color: GrayText;
+      }
+    }
+  }
+}

@@ -1,0 +1,310 @@
+/* ==========================================================================
+   Switch  (layer: sg.components)
+   --------------------------------------------------------------------------
+   An on/off setting that takes effect immediately: <input type="checkbox" role="switch">.
+   Native checkbox underneath, so Space toggles it, it submits with a form and it is announced
+   as "switch, on / off". (For a choice that is only applied when the form is submitted, use a
+   checkbox from choice.)
+
+   <label class="switch">
+     <input type="checkbox" role="switch" name="push" checked>
+     <span class="switch__label">Streak reminders</span>
+     <span class="switch__state" aria-hidden="true"><span data-on>On</span><span data-off>Off</span></span>
+   </label>
+
+   data-layout   row (default: label at the start, switch at the end, full width)
+                 start (switch first, then the label; shrinks to content)
+   data-state    hidden: the words On / Off are visually hidden but stay in the DOM
+
+   SHAPES. A track is a pill and a thumb is a circle: both ACT, so both raise on hover and focus
+   with the hard shadow (--lift), and sink when pressed. Hover never fills: a hovered "off" must
+   not look "on". The state is --fill (0 off, 1 on), so the track colour AND the thumb's travel
+   are one animated number.
+
+   THE WORDS "On" / "Off" are aria-hidden on purpose. The role already tells a screen reader the
+   state; if the words were part of the label the NAME would change each time ("Off On",
+   "Notifications off"), which is the defect APG warns about. They exist for sighted people who
+   cannot rely on a thumb position or a colour (WCAG 1.4.1).
+
+   THE THREE CUES for on: the track fills with --accent, the thumb moves to the far end AND shows
+   a tick (cut out of the thumb, so the track shows through it), and the word says "On".
+   Contrast: the frame is --line (3:1 on the canvas and the paper); the off thumb is --ink on --paper
+   (7:1); the on thumb is --on-accent on --accent (4.5:1).
+
+   HIT AREA. The input is a 56 x 44 transparent box; the 48 x 28 track is its ::before and the
+   thumb its ::after, the same technique as choice.
+
+   MOTION. Travel is the thumb sliding with --fill. Under reduced motion (--move 0) the thumb
+   lands at the midpoint of the colour change instead of travelling (round()), so what you see is
+   a cross-fade of the track and the word, never a slide and never an instant jump.
+   ========================================================================== */
+
+@layer sg.components {
+  .switch {
+    --lift: 0;
+    --_tw: 3rem; /* track width  (48) */
+    --_th: 1.75rem; /* track height (28) */
+    --_g: 0.125rem; /* gap between thumb and the frame */
+    /* a flat square: XOR-ed with the tick to cut the tick out of the thumb */
+    --_solid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24'/%3E%3C/svg%3E");
+
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: start;
+    column-gap: var(--space-3);
+    min-block-size: var(--hit);
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: --lift var(--dur-hover) var(--ease-out);
+
+    &[data-layout="start"] {
+      display: inline-grid;
+      grid-template-columns: auto auto auto;
+      column-gap: var(--space-2);
+      inline-size: fit-content; /* a flex or grid parent would otherwise stretch it */
+      max-inline-size: 100%;
+    }
+
+    > input {
+      --fill: 0;
+      --_line: var(--line);
+      --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+      /* thumb size leaves a gap all round inside the frame */
+      --_ts: calc(var(--_th) - 2 * var(--bw) - 2 * var(--_g));
+      --_travel: calc(var(--_tw) - 2 * var(--bw) - var(--_ts) - 2 * var(--_g));
+      --_x: calc(var(--fill) * var(--_travel));
+      --_cut: none;
+
+      position: relative;
+      grid-column: 3;
+      grid-row: 1;
+      inline-size: calc(var(--_tw) + var(--space-2));
+      block-size: var(--hit);
+      margin: 0;
+      margin-inline-end: calc(var(--space-1) * -1); /* the track, not the hit area, meets the edge */
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none; /* the ring moves to the track (::before) */
+      outline-color: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: inherit;
+      transition: --fill var(--dur-hover) var(--ease-out);
+
+      /* Track */
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        inline-size: var(--_tw);
+        block-size: var(--_th);
+        background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+        border: var(--bw) solid var(--_line);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--_shadow);
+        transform: translate(
+          calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+          calc(var(--lift) * var(--space-1) / -2 * var(--move))
+        );
+      }
+      /* Thumb. The tick is cut out of it with a mask (two layers, XOR), so the track shows through
+         the tick: no text glyph and no extra element. */
+      &::after {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: calc((100% - var(--_tw)) / 2 + var(--bw) + var(--_g));
+        margin-block: auto;
+        inline-size: var(--_ts);
+        block-size: var(--_ts);
+        background: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--ink));
+        border-radius: var(--radius-pill);
+        translate: var(--_x) 0;
+        transform: translate(
+          calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+          calc(var(--lift) * var(--space-1) / -2 * var(--move))
+        );
+        -webkit-mask-image: var(--_cut), var(--_solid);
+        mask-image: var(--_cut), var(--_solid);
+        -webkit-mask-size: 70% 70%, 100% 100%;
+        mask-size: 70% 70%, 100% 100%;
+        -webkit-mask-position: center, center;
+        mask-position: center, center;
+        -webkit-mask-repeat: no-repeat, no-repeat;
+        mask-repeat: no-repeat, no-repeat;
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+      &:dir(rtl)::after {
+        translate: calc(var(--_x) * -1) 0;
+      }
+
+      &:checked {
+        --fill: 1;
+        --_cut: var(--icon-check);
+      }
+
+      &:focus-visible::before {
+        outline: var(--ring) solid var(--focus);
+        outline-offset: var(--ring-offset);
+        box-shadow: 0 0 0 var(--ring-offset) var(--paper), var(--_shadow);
+      }
+
+      /* Unavailable: dashed = not here. Faint, flat. */
+      &:disabled {
+        --fill: 0;
+        --_line: var(--ink-faint);
+        --_shadow: 0 0 0 0 transparent;
+        cursor: not-allowed;
+      }
+      &:disabled::before {
+        background: transparent;
+        border-style: dashed;
+      }
+      &:disabled::after {
+        background: var(--ink-faint);
+      }
+      &:disabled:checked {
+        --fill: 1;
+      }
+      &:disabled:checked::after {
+        background: var(--ink-faint);
+      }
+    }
+
+    /* Reduced motion: the thumb does not travel, it lands at the middle of the colour change. */
+    @supports (width: round(1px, 1px)) {
+      > input {
+        --_x: calc((var(--move) * var(--fill) + (1 - var(--move)) * round(var(--fill), 1)) * var(--_travel));
+      }
+    }
+
+    /* ---- Label and words ------------------------------------------------------------- */
+    .switch__label {
+      grid-column: 1;
+      grid-row: 1;
+      min-inline-size: 0;
+      padding-block: calc((var(--hit) - 1lh) / 2);
+      font: var(--type-body);
+      overflow-wrap: anywhere;
+    }
+    .switch__hint {
+      display: block;
+      font: var(--type-meta);
+      color: var(--ink-soft);
+    }
+    .switch__state {
+      grid-column: 2;
+      grid-row: 1;
+      display: grid;
+      align-items: center;
+      min-block-size: var(--hit);
+      font: var(--type-ctl);
+      color: var(--ink-soft);
+
+      /* Both words share one cell, so the row never changes width when the state flips. */
+      > span {
+        grid-area: 1 / 1;
+        text-align: end;
+        transition: opacity var(--dur-hover) var(--ease-out);
+      }
+    }
+    > input:checked ~ .switch__state > [data-off],
+    > input:not(:checked) ~ .switch__state > [data-on] {
+      opacity: 0;
+    }
+    > input:checked ~ .switch__state {
+      color: var(--ink);
+    }
+
+    &[data-layout="start"] {
+      > input {
+        grid-column: 1;
+        margin-inline: calc(var(--space-1) * -1) 0;
+      }
+      .switch__label {
+        grid-column: 2;
+      }
+      .switch__state {
+        grid-column: 3;
+      }
+    }
+
+    /* Words hidden on request: still in the DOM, not on screen. */
+    &[data-state="hidden"] .switch__state {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      min-block-size: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* Raised where a pointer can hover, and always on keyboard focus. */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:has(> input:disabled)) {
+        --lift: 1;
+      }
+    }
+    &:is(.is-focus, :has(> input:focus-visible)) {
+      --lift: 1;
+    }
+    &:is(:active, .is-active):not(:has(> input:disabled)) {
+      --lift: 0;
+      transition-duration: var(--dur-press);
+    }
+    &:has(> input:disabled) {
+      --lift: 0;
+      color: var(--ink-faint);
+      cursor: not-allowed;
+      .switch__state,
+      .switch__hint {
+        color: inherit;
+      }
+    }
+  }
+
+  /* ---- Forced colours ---------------------------------------------------------------------
+     Fills and masks are replaced, so draw the states with system colours: an outlined track with
+     a dark thumb at the start (off), a Highlight track with a light thumb and tick at the end (on).
+     The words On / Off stay as text. */
+  @media (forced-colors: active) {
+    .switch > input {
+      &::before {
+        border-color: CanvasText;
+        background-color: Canvas;
+        forced-color-adjust: none;
+      }
+      &::after {
+        background-color: CanvasText;
+        forced-color-adjust: none;
+      }
+      &:focus-visible::before {
+        outline: var(--bw-heavy) solid Highlight;
+      }
+      &:checked::before {
+        border-color: Highlight;
+        background-color: Highlight;
+      }
+      &:checked::after {
+        background-color: HighlightText;
+      }
+      &:disabled::before {
+        border-color: GrayText;
+      }
+      &:disabled::after {
+        background-color: GrayText;
+      }
+    }
+    .switch:has(> input:disabled) {
+      color: GrayText;
+    }
+  }
+}

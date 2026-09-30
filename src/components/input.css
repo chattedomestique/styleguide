@@ -1,0 +1,455 @@
+/* ==========================================================================
+   Input  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Text-like native controls: <input> of any text type, dates, numbers and
+   <textarea>. The native element carries the class, so the platform keeps its
+   keyboard, autofill, password-manager and mobile-keyboard behaviour.
+   This file's frame is ALSO the frame of .select (select.css).
+
+   A field holds what you type, so by the house rules it is a RECTANGLE with a 2px
+   frame, flat, no shadow. The action slots inside it (clear, show password) are
+   CIRCLES that fill when you can press them. Focus is the ring, nothing else.
+
+   <input class="input" type="text" id="name" autocomplete="name">
+   <textarea class="input" rows="4"></textarea>
+
+   <div class="input-group">                     adornments INSIDE the frame
+     <span class="input-group__start"><span class="ic ic--search" aria-hidden="true"></span></span>
+     <input class="input" type="search" …>
+     <span class="input-group__end">
+       <button class="input-group__btn" type="button" data-sg-clear aria-label="Clear search" hidden>
+         <span class="ic ic--close" aria-hidden="true"></span></button>
+     </span>
+   </div>
+
+   data-size      md (44, default) | lg (56)             on .input or .input-group
+   data-width     xs | sm | md   cap the width for short answers (postcode, year, code)
+   data-variant   amount   (group) big tabular figures + a currency prefix
+   .input-bar     search app bar: back button + search group + action button
+
+   STATES come from native attributes and ARIA, never classes:
+     :focus-visible          the ring (on the group when the input sits in one)
+     :user-invalid           the browser's verdict, AFTER the person touched the field
+     [aria-invalid="true"]   you (or SG.field) say it is wrong
+                             both: --bad-ink frame AND an inner second frame (inset shadow),
+                             so the error does not depend on colour, and nothing moves
+     :disabled               dashed, --ink-faint, not-allowed (the house rule)
+     [readonly]              a value, not a blank: solid faint frame on --paper-2, text stays ink
+
+   WHY THE GROUP IS THE FRAME
+   The bordered thing is the wrapper, and the <input> inside draws its border in no colour. A prefix such as
+   "CHF" or a suffix such as "kg" can be any width and still sit inside the box, and the ring,
+   the error and the disabled look are drawn once, round the whole box (:has()).
+
+   WHY
+   - Text is always >= 1rem: iOS Safari zooms the page on focus below 16 px.
+   - The frame is --line (ink): 3:1 for the boundary (WCAG 1.4.11) in every palette.
+   - Placeholder colour comes from base (--ink-mute, >= 4.5:1) and is a HINT only.
+   - Private properties (--_*) are what states change; the base rule reads them once.
+   - The clear and reveal buttons fill (never lift): the frame is right there, and a hard
+     shadow would spill across it.
+   ========================================================================== */
+
+@layer sg.components {
+  /* 1 · the shared frame: bare input, group, select wrapper */
+  .input,
+  .input-group,
+  .select {
+    --_bg: var(--paper);
+    --_ink: var(--ink);
+    --_line: var(--line);
+    --_bw: var(--bw);
+    --_inset: 0 0 0 0 transparent; /* the error's inner frame */
+    --_h: var(--ctl);
+    --_px: var(--space-3);
+    --_fs: var(--text-md);
+
+    min-inline-size: 0;
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--_bw) solid var(--_line);
+    border-radius: var(--radius-ctl);
+    box-shadow: var(--_inset);
+    font: var(--type-body);
+    font-size: var(--_fs);
+
+    &[data-size="lg"] {
+      --_h: var(--ctl-lg);
+      --_px: var(--space-4);
+      --_fs: var(--text-lg);
+    }
+    &[data-width="xs"] {
+      max-inline-size: 6rem;
+    }
+    &[data-width="sm"] {
+      max-inline-size: 10rem;
+    }
+    &[data-width="md"] {
+      max-inline-size: 20rem;
+    }
+  }
+
+  /* wrong: bad-ink frame + an inner second frame. Second cue = the doubled line. */
+  .input:is(:user-invalid, [aria-invalid="true"]),
+  .input-group:has(> .input:is(:user-invalid, [aria-invalid="true"])),
+  .select:has(> select:is(:user-invalid, [aria-invalid="true"])) {
+    --_line: var(--bad-ink);
+    --_inset: inset 0 0 0 var(--bw) var(--bad-ink);
+  }
+
+  /* unavailable: dashed = not here. Faint ink, no fill. */
+  .input:disabled,
+  .input-group:has(> .input:disabled),
+  .select:has(> select:disabled) {
+    --_bg: transparent;
+    --_ink: var(--ink-faint);
+    --_line: var(--ink-faint);
+    --_inset: 0 0 0 0 transparent;
+    border-style: dashed;
+    cursor: not-allowed;
+  }
+
+  /* read-only is still focusable and copyable: a recessed value, solid, faint frame */
+  .input[readonly],
+  .input-group:has(> .input[readonly]) {
+    --_bg: var(--paper-2);
+    --_line: var(--ink-mute);
+  }
+
+  /* ---- 2 · the bare input ------------------------------------------------------------ */
+  .input {
+    display: block;
+    inline-size: 100%;
+    min-block-size: var(--_h);
+    margin: 0;
+    /* the frame can get heavier in forced colours; padding gives the same amount back */
+    padding-block: 0;
+    padding-inline: calc(var(--_px) - var(--_bw));
+    text-overflow: ellipsis;
+    -webkit-appearance: none;
+    appearance: none;
+
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), var(--_inset);
+    }
+
+    /* Disabled text stays put on iOS, which would otherwise dim it a second time. */
+    &:disabled {
+      opacity: 1;
+      -webkit-text-fill-color: var(--_ink);
+    }
+
+    /* Browser autofill paints its own pale fill with dark text, unreadable in dark mode.
+       Paint over it with the field's own fill and keep the ring. */
+    &:-webkit-autofill {
+      -webkit-text-fill-color: var(--_ink);
+      box-shadow: inset 0 0 0 100rem var(--_bg), var(--_inset);
+      caret-color: var(--_ink);
+    }
+    &:-webkit-autofill:focus-visible {
+      box-shadow: var(--focus-shadow), inset 0 0 0 100rem var(--_bg);
+    }
+  }
+
+  /* ---- 3 · numbers ---------------------------------------------------------------------
+     Tabular figures so digits line up. The browser's spinner arrows are ~10 px targets and
+     the mouse wheel changes the value by accident: hide them and use the Stepper instead. */
+  .input:is([type="number"], [inputmode="numeric"], [inputmode="decimal"], [type="tel"]) {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .input[type="number"]::-webkit-outer-spin-button,
+  .input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* ---- 4 · date and time ----------------------------------------------------------------
+     Native pickers give the best mobile UI, so they stay; only the box is made consistent
+     (height, frame, text size). The calendar / clock button becomes a 44 px target. */
+  .input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"], [type="week"]) {
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: start;
+
+    /* iOS centres the value and ignores the box height unless told otherwise */
+    &::-webkit-date-and-time-value {
+      min-block-size: 1.5em;
+      margin: 0;
+      text-align: start;
+    }
+    &::-webkit-calendar-picker-indicator {
+      box-sizing: content-box;
+      inline-size: 1.25rem;
+      block-size: 1.25rem;
+      margin-inline: 0 calc(var(--space-3) * -1);
+      padding: var(--space-3);
+      border-radius: var(--radius-ctl);
+      cursor: pointer;
+    }
+  }
+
+  /* ---- 5 · textarea ---------------------------------------------------------------------
+     Grows with its content where field-sizing is supported; everywhere else it is a normal
+     box of `rows` lines that the person can drag taller. */
+  textarea.input {
+    --_h: 7rem;
+    padding-block: calc(var(--space-3) - var(--_bw));
+    resize: vertical;
+    text-overflow: clip;
+
+    @supports (field-sizing: content) {
+      field-sizing: content;
+      max-block-size: 24rem;
+    }
+  }
+
+  /* ---- 6 · search: the native clear button is ~13 px; in a group we draw our own ------- */
+  .input[type="search"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .input-group .input[type="search"]::-webkit-search-cancel-button,
+  .input-group .input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    display: none;
+  }
+
+  /* ==========================================================================
+     Input group: adornments drawn INSIDE the frame
+     The group is the frame; the <input> in it is borderless and stretches. Anything in
+     __start / __end takes its natural width, so "kg" and "CHF" just work.
+     ========================================================================== */
+  .input-group {
+    display: flex;
+    align-items: stretch;
+    min-block-size: var(--_h);
+    font-size: var(--_fs);
+
+    > .input {
+      flex: 1 1 auto;
+      min-inline-size: 0;
+      min-block-size: 0;
+      inline-size: auto;
+      /* A real border, drawn in no colour: the frame is the group's, but a control with no border of its
+         own is invisible to anything that audits controls one by one, and Windows High Contrast then has
+         nothing to hold on to (WCAG 1.4.11). Forced colours paints it in the canvas colour, see the end. */
+      padding-inline: calc(var(--_px) - 2 * var(--_bw));
+      color: inherit;
+      background: transparent;
+      border: var(--_bw) solid transparent;
+      border-radius: inherit;
+      box-shadow: none;
+      font: inherit;
+
+      /* the group wears the ring (next block); the input would draw a second, inner one */
+      &:-webkit-autofill {
+        box-shadow: inset 0 0 0 100rem var(--_bg);
+      }
+    }
+
+    > .input-group__start + .input {
+      padding-inline-start: calc(var(--space-2) - var(--_bw));
+    }
+    > .input:has(+ .input-group__end) {
+      padding-inline-end: calc(var(--space-2) - var(--_bw));
+    }
+  }
+
+  @supports selector(:has(*)) {
+    .input-group > .input:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+    .input-group:has(> .input:focus-visible) {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper), var(--_inset);
+    }
+  }
+
+  .input-group__start,
+  .input-group__end {
+    display: flex;
+    flex: none;
+    align-items: center;
+    color: var(--ink-soft);
+    font: var(--type-ctl);
+  }
+  .input-group__start {
+    padding-inline: var(--space-3) 0;
+  }
+  .input-group__end {
+    gap: var(--space-2); /* hit areas are 44 px wide and must not overlap */
+    padding-inline: 0 var(--space-3);
+  }
+  /* buttons are 36 px circles in a 40 px inner height: a little air from the frame */
+  .input-group__end:has(> .input-group__btn) {
+    padding-inline-end: var(--space-1);
+  }
+  .input-group:has(> .input:disabled) > :is(.input-group__start, .input-group__end) {
+    color: var(--ink-faint);
+  }
+
+  /* The action slot: a circle that FILLS when you can press it (clear, show password).
+     Same two numbers as the button; no lift, see the header. */
+  .input-group__btn {
+    --lift: 0;
+    --fill: 0;
+
+    position: relative;
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: var(--ctl-sm);
+    block-size: var(--ctl-sm);
+    margin: 0;
+    padding: 0;
+    color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--ink));
+    background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--_bg));
+    border: var(--bw) solid color-mix(in srgb, var(--line) calc(var(--fill) * 100%), var(--_bg));
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition:
+      --fill var(--dur-hover) var(--ease-out),
+      --lift var(--dur-hover) var(--ease-out);
+
+    /* 44 x 44 hit area around the 36 px circle */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --fill: 1;
+      box-shadow: var(--focus-shadow);
+    }
+    &:is(:active, .is-active) {
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+    /* on: filled, and a paper ring inside the frame makes it read as doubled. The icon also
+       changes shape (eye / eye-off), which is the cue that survives any palette. */
+    &[aria-pressed="true"] {
+      --fill: 1;
+      box-shadow: inset 0 0 0 var(--bw) var(--_bg);
+    }
+    &[aria-pressed="true"]:focus-visible {
+      box-shadow: var(--focus-shadow), inset 0 0 0 var(--bw) var(--_bg);
+    }
+    &:disabled,
+    &[aria-disabled="true"] {
+      --fill: 0;
+      color: var(--ink-faint);
+      cursor: not-allowed;
+    }
+  }
+  /* one icon pair, two states: which one shows is aria-pressed's job */
+  .input-group__btn[aria-pressed="false"] > .ic[data-icon="on"],
+  .input-group__btn[aria-pressed="true"] > .ic[data-icon="off"] {
+    display: none;
+  }
+
+  /* No JavaScript: clear and reveal would do nothing, so they are not offered.
+     (Native type=search still clears on Esc, and type=password still works.) */
+  @media (scripting: none) {
+    .input-group__btn[data-sg-clear],
+    .input-group__btn[data-sg-reveal] {
+      display: none;
+    }
+  }
+
+  /* ---- Search app bar: [back] [search field] [action] (calendar references) ------------- */
+  .input-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-inline-size: 0;
+
+    > .input-group,
+    > .input {
+      flex: 1 1 auto;
+    }
+    > .btn {
+      flex: none;
+    }
+  }
+
+  /* ---- Amount: one big, tabular, unmistakable number -----------------------------------
+     A plain text input with inputmode="decimal" (NOT type=number: the spinner and the wheel
+     corrupt amounts, and type=number strips formatting). Formatting while typing is the
+     app's job; this only makes the number the hero of the screen. */
+  .input-group[data-variant="amount"] {
+    --_h: 4.5rem;
+    --_px: var(--space-4);
+
+    > .input {
+      font: var(--type-figure);
+      font-size: var(--text-2xl);
+      line-height: var(--lh-tight);
+      letter-spacing: var(--ls-figure);
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+    > .input-group__start {
+      padding-inline-start: var(--space-4);
+      color: var(--ink);
+      font: var(--type-figure);
+      font-size: var(--text-xl);
+      line-height: var(--lh-tight);
+      letter-spacing: var(--ls-figure);
+    }
+  }
+
+  /* ---- Forced colours: the frame is the control. Disabled uses the system grey. ---------
+     Shadows vanish, so the error's inner frame becomes a heavier border (padding gives the
+     width back), and the group's ring needs its system outline. */
+  @media (forced-colors: active) {
+    .input,
+    .input-group,
+    .select {
+      border-color: CanvasText;
+    }
+    .input:is(:user-invalid, [aria-invalid="true"]),
+    .input-group:has(> .input:is(:user-invalid, [aria-invalid="true"])),
+    .select:has(> select:is(:user-invalid, [aria-invalid="true"])) {
+      --_bw: var(--bw-heavy);
+    }
+    .input:disabled,
+    .input-group:has(> .input:disabled),
+    .select:has(> select:disabled) {
+      color: GrayText;
+      border-color: GrayText;
+    }
+    .input-group:has(> .input:focus-visible) {
+      outline: var(--bw-heavy) solid Highlight;
+    }
+    .input-group > .input {
+      border-color: Canvas;
+    }
+    .input-group__btn {
+      border-color: ButtonText;
+      &:is(.is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &[aria-pressed="true"] {
+        border-width: var(--bw-heavy);
+      }
+    }
+  }
+  @media (forced-colors: active) and (hover: hover) {
+    .input-group__btn:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+}

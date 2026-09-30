@@ -1,0 +1,327 @@
+/* ==========================================================================
+   Slider  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A styled NATIVE <input type="range">: arrows, PageUp / PageDown, Home / End, touch drag and the
+   accessibility tree all come from the browser. Around it: a visible label, a live readout with
+   units, min / max captions, optional tick marks and optional - / + nudge buttons.
+
+   <div class="slider" data-sg-slider data-format="percent">
+     <div class="slider__head">
+       <label class="slider__label" for="vol">Volume</label>
+       <output class="slider__value" for="vol" aria-live="off">40%</output>
+     </div>
+     <div class="slider__row">
+       <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="-1"
+               aria-label="Decrease volume" aria-controls="vol"><span class="ic ic--minus" aria-hidden="true"></span></button>
+       <div class="slider__track">
+         <input class="slider__input" id="vol" type="range" min="0" max="100" step="5" value="40">
+         <div class="slider__scale" aria-hidden="true"><span>0%</span><span>100%</span></div>
+       </div>
+       <button class="btn" … data-sg-nudge="1" aria-label="Increase volume" aria-controls="vol">…plus…</button>
+     </div>
+   </div>
+
+   data-sg-slider   turns on 31-slider.js: fill, readout, aria-valuetext, nudge buttons, ticks
+   data-format      percent | currency (data-currency="EUR") | minutes | unit (data-unit="kilometer") | plain
+   data-ticks="5"   tick marks, including both ends (decoration: the slider exposes min / max itself)
+
+   SHAPES. The track is a rectangle that HOLDS (2px frame, --radius-ctl, filled with --accent up to
+   the thumb); the thumb is a circle that ACTS, so it behaves like a button: an outline at rest, FILLED
+   and raised (hard shadow) on hover and keyboard focus, sunk back while you drag.
+
+   THE FILL. A native range has no "filled part" in WebKit / Blink, and gradients are off the menu, so the
+   wrapper draws the rail (::before) and the filled part (::after) behind a transparent native track.
+   JS sets --p (0 to 1) on the .slider. Without JS the rail is unfilled; the thumb and the value are
+   fully usable.
+
+   WHY NUDGE BUTTONS. WCAG 2.5.7 (Dragging Movements): dragging needs a single-pointer alternative.
+   Tapping the track jumps the thumb, which helps, but the - / + buttons are the reliable one and double
+   as a precise control. Arrow keys do NOT satisfy 2.5.7 (keyboard is a different requirement). The
+   buttons become aria-disabled (not removed) at the ends.
+
+   DISABLED. The rail, fill and thumb go dashed and faint and the cursor says no; the label and the readout
+   keep their ink, because they are text people still read (an <output> is not a disabled control, so the
+   exemption for disabled controls does not cover it).
+
+   SIZES. The thumb is 28 px (>= the 24 px target floor); the input is 44 px tall, so the hit area is 44
+   (pointer-down anywhere along the row moves the thumb). The ring wraps the thumb, not the whole row.
+   ========================================================================== */
+
+@layer sg.components {
+  .slider {
+    --_thumb: 1.75rem; /* 28 */
+    --_tr: 0.75rem; /* rail thickness incl. frame (12) */
+    --_line: var(--line);
+    --_fillc: var(--accent);
+    --_rail: var(--paper-2);
+    --_rail-top: calc((var(--hit) - var(--_tr)) / 2);
+
+    display: grid;
+    gap: var(--space-1);
+    min-inline-size: 0;
+
+    &:has(.slider__input:disabled) {
+      --_line: var(--ink-faint);
+      --_fillc: var(--ink-faint);
+      --_rail: transparent;
+    }
+  }
+
+  .slider__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .slider__label {
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    overflow-wrap: anywhere;
+  }
+  .slider__value {
+    font: var(--type-ctl);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  .slider__row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3); /* the 44 px hit areas of the buttons stay 8 px clear of the slider's */
+
+    /* 36 px nudge buttons line up with the centre of the 44 px input, not with the captions */
+    > .btn {
+      flex: none;
+      margin-block-start: calc((var(--hit) - var(--ctl-sm)) / 2);
+    }
+  }
+
+  .slider__track {
+    position: relative;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+
+    /* rail: a rectangle that holds */
+    &::before {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block-start: var(--_rail-top);
+      block-size: var(--_tr);
+      background: var(--_rail);
+      border: var(--bw) solid var(--_line);
+      border-radius: var(--radius-ctl);
+    }
+    /* fill: from the start of the rail to the centre of the thumb */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-inline-start: var(--bw);
+      inset-block-start: calc(var(--_rail-top) + var(--bw));
+      block-size: calc(var(--_tr) - 2 * var(--bw));
+      inline-size: calc((100% - var(--_thumb)) * var(--p, 0) + var(--_thumb) / 2 - var(--bw));
+      background: var(--_fillc);
+      border-radius: var(--radius-ctl);
+    }
+  }
+
+  /* ---- Tick marks: the ends of each step, under the rail (made by 31-slider.js) ----------- */
+  .slider__ticks {
+    position: absolute;
+    inset-inline: calc(var(--_thumb) / 2 - var(--bw) / 2);
+    inset-block-start: calc(var(--hit) / 2 + var(--_tr) / 2 + var(--space-1));
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+
+    > i {
+      inline-size: var(--bw);
+      block-size: 0.375rem;
+      background: var(--_line);
+    }
+  }
+
+  .slider__scale {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-block-start: calc(var(--space-1) * -1);
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--ink-soft);
+  }
+  .slider[data-ticks] .slider__scale {
+    margin-block-start: var(--space-1); /* clear the tick marks */
+  }
+
+  /* ---- The range input ------------------------------------------------------------------------
+     Transparent: the rail and fill are the wrapper's. Only the thumb is the browser's. */
+  .slider__input {
+    --lift: 0;
+    --fill: 0;
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--_line);
+
+    position: relative;
+    z-index: 1;
+    display: block;
+    /* A border in no colour, pulled back out by the margin so the content box is exactly the track:
+       the rail and the thumb are the drawn control, but a range input with no border of its own is
+       invisible to anything that audits controls one by one, and to Windows High Contrast. */
+    inline-size: calc(100% + 2 * var(--bw));
+    block-size: calc(var(--hit) + 2 * var(--bw));
+    margin: calc(var(--bw) * -1);
+    padding: 0;
+    border: var(--bw) solid transparent;
+    background: transparent;
+    box-shadow: none; /* the ring is drawn on the thumb */
+    outline-color: transparent;
+    border-radius: var(--radius-ctl);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+
+    /* raised where a pointer can hover, and always on keyboard focus; sunk while dragging */
+    @media (hover: hover) {
+      &:hover:not(:disabled) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:focus-visible:not(:disabled) {
+      --lift: 1;
+      --fill: 1;
+    }
+    &:active:not(:disabled) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* Blink / WebKit: a transparent native track as tall as the hit area, then the thumb. */
+    &::-webkit-slider-runnable-track {
+      block-size: var(--hit);
+      background: transparent;
+      border: 0;
+    }
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      box-sizing: border-box;
+      inline-size: var(--_thumb);
+      block-size: var(--_thumb);
+      /* centre the thumb on the 44 px track */
+      margin-block-start: calc((var(--hit) - var(--_thumb)) / 2);
+      background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+      border: var(--bw) solid var(--_line);
+      border-radius: 50%;
+      box-shadow: var(--_shadow);
+      transform: translate(
+        calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+        calc(var(--lift) * var(--space-1) / -2 * var(--move))
+      );
+      cursor: grab;
+    }
+    &:active::-webkit-slider-thumb {
+      cursor: grabbing;
+    }
+    &:focus-visible::-webkit-slider-thumb {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-offset);
+      box-shadow: 0 0 0 var(--ring-offset) var(--paper), var(--_shadow);
+    }
+    &:disabled::-webkit-slider-thumb {
+      background: var(--paper);
+      border-style: dashed;
+      box-shadow: none;
+      transform: none;
+      cursor: not-allowed;
+    }
+
+    /* Firefox: same thumb, transparent track (our rail and fill are behind it). */
+    &::-moz-range-track {
+      block-size: var(--hit);
+      background: transparent;
+      border: 0;
+    }
+    &::-moz-range-progress {
+      background: transparent;
+    }
+    &::-moz-range-thumb {
+      box-sizing: border-box;
+      inline-size: var(--_thumb);
+      block-size: var(--_thumb);
+      background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+      border: var(--bw) solid var(--_line);
+      border-radius: 50%;
+      box-shadow: var(--_shadow);
+      transform: translate(
+        calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+        calc(var(--lift) * var(--space-1) / -2 * var(--move))
+      );
+      cursor: grab;
+    }
+    &:focus-visible::-moz-range-thumb {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-offset);
+      box-shadow: 0 0 0 var(--ring-offset) var(--paper), var(--_shadow);
+    }
+    &:disabled::-moz-range-thumb {
+      background: var(--paper);
+      border-style: dashed;
+      box-shadow: none;
+      transform: none;
+      cursor: not-allowed;
+    }
+  }
+
+  /* ---- Forced colours: system colours for the rail, the fill and the thumb -------------------
+     Backgrounds and shadows are replaced. The fill opts out so it stays Highlight; the thumb keeps
+     its real border and a heavier Highlight outline when raised or focused. */
+  @media (forced-colors: active) {
+    .slider {
+      --_line: CanvasText;
+      --_rail: Canvas;
+    }
+    .slider__track::after {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+    .slider:has(.slider__input:disabled) {
+      --_line: GrayText;
+    }
+    .slider:has(.slider__input:disabled) .slider__track::after {
+      background: GrayText;
+    }
+    .slider__input {
+      border-color: Canvas;
+      &::-webkit-slider-thumb {
+        forced-color-adjust: none;
+        background: ButtonFace;
+        border-color: ButtonText;
+      }
+      &::-moz-range-thumb {
+        forced-color-adjust: none;
+        background: ButtonFace;
+        border-color: ButtonText;
+      }
+      &:focus-visible::-webkit-slider-thumb {
+        outline: var(--bw-heavy) solid Highlight;
+      }
+      &:focus-visible::-moz-range-thumb {
+        outline: var(--bw-heavy) solid Highlight;
+      }
+    }
+    .slider__ticks > i {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+  }
+}

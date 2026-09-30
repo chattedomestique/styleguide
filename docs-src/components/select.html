@@ -1,0 +1,174 @@
+<!--{"title":"Select","group":"Components","order":24,"summary":"A styled native select: our closed control, the browser's own picker."}-->
+<h1>Select</h1>
+<p class="lede">Pick one from a short list. The closed box is ours, with a chevron slot that fills when you can press it; the list that opens is the browser's, which is the best touch, keyboard and screen reader experience there is.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use a select for roughly 5 to 15 options that are known in advance: country, time zone, category. Keep the native picker on phones.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it for two to four options (show <a href="@/components/choice.html">radio buttons</a>, so everything is visible), for long searchable lists (use a combobox), or for yes / no (use a <a href="@/components/switch.html">switch</a> or a checkbox).</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="basic">Basic, with a placeholder option</h3>
+<p>A required select starts on a disabled "Choose&hellip;" option so nothing is picked by accident. It reads like placeholder text (<code>--ink-mute</code>, still 4.5:1) until a real value is chosen. Hover or tab in: the end slot fills with the accent and the box lifts, like a button.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="field">
+      <label class="field__label" for="sel-country">Country <span class="field__req">(required)</span></label>
+      <div class="select">
+        <select id="sel-country" name="country" autocomplete="country-name" required>
+          <option value="" disabled selected>Choose a country</option>
+          <option>Canada</option>
+          <option>Ireland</option>
+          <option>New Zealand</option>
+          <option>Norway</option>
+          <option>Portugal</option>
+        </select>
+        <span class="ic ic--chevron-down" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="sizes">Sizes</h3>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack">
+      <div class="field"><label class="field__label" for="sel-md">Medium (44, default)</label>
+        <div class="select"><select id="sel-md"><option>Weekly</option><option>Monthly</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div></div>
+      <div class="field"><label class="field__label" for="sel-lg">Large (56)</label>
+        <div class="select" data-size="lg"><select id="sel-lg"><option>Weekly</option><option>Monthly</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div></div>
+    </div>
+  </div>
+</div>
+
+<h3 id="groups">Grouped options</h3>
+<p><code>&lt;optgroup label&gt;</code> gives screen readers and the picker a heading for each cluster.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="field">
+      <label class="field__label" for="sel-tz">Time zone</label>
+      <div class="select">
+        <select id="sel-tz" name="tz" autocomplete="off">
+          <optgroup label="Europe">
+            <option>Dublin (GMT)</option>
+            <option>Oslo (CET)</option>
+          </optgroup>
+          <optgroup label="Americas">
+            <option>Toronto (EST)</option>
+            <option>Vancouver (PST)</option>
+          </optgroup>
+          <optgroup label="Pacific">
+            <option>Auckland (NZST)</option>
+          </optgroup>
+        </select>
+        <span class="ic ic--chevron-down" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="listbox">Listbox</h3>
+<p><code>multiple</code> or <code>size</code> above 1 turns it into a visible list: no chevron, no lift, options at least 44&nbsp;px tall. Avoid it on phones; a group of <a href="@/components/choice.html">checkboxes</a> is easier to use.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="field">
+      <label class="field__label" for="sel-list">Decks to revise</label>
+      <div class="select">
+        <select id="sel-list" name="decks" multiple size="3">
+          <option>Shapes</option>
+          <option selected>Colours</option>
+          <option>Farm animals</option>
+          <option>Numbers to twenty</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="states">States</h3>
+<p>Rest, hover, focus and pressed come from the same two numbers as a <a href="@/components/button.html">button</a>. Invalid gets a bad-ink frame with an inner second frame; disabled is dashed and faint, with no lift and no fill.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack">
+      <div class="field"><label class="field__label" for="sel-st-0">Hover (forced)</label>
+        <div class="select is-hover"><select id="sel-st-0"><option>Plus</option><option>Free</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div></div>
+      <div class="field"><label class="field__label" for="sel-st-1">Invalid</label>
+        <div class="select"><select id="sel-st-1" aria-invalid="true" aria-describedby="sel-st-1-msg"><option value="">Choose a plan</option><option>Free</option><option>Plus</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
+        <div class="field__foot"><p class="field__error" id="sel-st-1-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Choose a plan to continue</span></p></div></div>
+      <div class="field"><label class="field__label" for="sel-st-2">Disabled</label>
+        <div class="select"><select id="sel-st-2" disabled><option>Plus (current plan)</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div></div>
+    </div>
+  </div>
+</div>
+
+<h3 id="in-context">In context: recurring transfer</h3>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="4">
+        <p class="t-title">Recurring transfer</p>
+        <div class="field">
+          <label class="field__label" for="selc-cur">Currency</label>
+          <div class="select"><select id="selc-cur"><option>US dollar (USD)</option><option>Euro (EUR)</option><option>Canadian dollar (CAD)</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="selc-freq">How often</label>
+          <div class="select"><select id="selc-freq"><option>Every week</option><option selected>Every month</option><option>Every year</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
+        </div>
+        <button class="btn" data-variant="primary" data-block type="button">Schedule</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Wrapper</strong> (<code>.select</code>): the frame. <code>data-size</code> goes here. Raised on hover and focus (<code>--lift</code>).</li>
+  <li><strong>Native select</strong>: borderless inside the wrapper, same frame as a text <a href="@/components/input.html">input</a> (one shared skin). The platform opens its own picker.</li>
+  <li><strong>End slot</strong>: a 44&nbsp;px block joined to the frame with its own 2px edge. It fills with <code>--accent</code> when the select can be pressed (<code>--fill</code>).</li>
+  <li><strong>Chevron</strong>: a mask icon, not a text glyph, over the slot. It ignores taps, so the whole box is one target.</li>
+  <li><strong>Option list</strong>: native. Options and groups get solid role colours so no platform paints its own grey.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Select classes and attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="select"</code></td><td>wrapper around <code>&lt;select&gt;</code> + <code>&lt;span class="ic ic--chevron-down"&gt;</code></td><td>Styles the closed control and draws the chevron slot.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>lg</code> (56); default 44</td><td>Height, on the wrapper.</td></tr>
+    <tr><td><code>required</code> + a <code>value=""</code> first option</td><td>none</td><td>Placeholder look until a value is chosen.</td></tr>
+    <tr><td><code>multiple</code> / <code>size="n"</code></td><td>none</td><td>A listbox: taller box, no chevron, no lift.</td></tr>
+    <tr><td><code>aria-invalid="true"</code> / <code>:user-invalid</code> / <code>disabled</code></td><td>none</td><td>Same states as the text input.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Select keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Focuses the select; one tab stop. The wrapper wears the ring.</td></tr>
+    <tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Change the value (closed) or move through the list (open). <kbd>Alt</kbd>+<kbd>&darr;</kbd>, <kbd>Space</kbd> or <kbd>Enter</kbd> opens the list; <kbd>Esc</kbd> closes it.</td></tr>
+    <tr><td>Typing</td><td>Type-ahead jumps to the matching option. Native.</td></tr>
+    <tr><td>Screen reader</td><td>"Country, combo box, collapsed, Choose a country". Required and invalid are announced. The chevron is <code>aria-hidden</code>.</td></tr>
+    <tr><td>Touch</td><td>The whole box is one 44&nbsp;px-plus target and opens the OS picker (wheel on iOS, sheet on Android).</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the slot still fills.</td></tr>
+    <tr><td>Forced colours</td><td>The frame is the control; hover and focus get a 4px <code>Highlight</code> outline; the chevron takes <code>ButtonText</code>.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>Why not a custom listbox? It would need the full APG combobox or listbox pattern, type-ahead and a mobile sheet, and it would still be worse than the native picker on a phone.</li>
+  <li>Customizable selects (<code>appearance: base-select</code>) are not in Firefox yet. Revisit when they are Baseline.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p>Everything from <a href="@/components/input.html">Input</a>, plus <code>--accent</code>, <code>--on-accent</code> (slot and chevron), <code>--paper</code> (options), <code>--ic-size</code>, <code>--hit</code>, <code>--lift</code>, <code>--fill</code>, <code>--move</code>.</p>

@@ -1,0 +1,155 @@
+<!--{"title":"Stepper","group":"Components","order":32,"summary":"A quantity control: a number field between two circle buttons, with limits, long-press repeat and announcements."}-->
+<h1>Stepper</h1>
+<p class="lede">A stepper is for a small whole number that people nudge up and down: cards per session, guests, reps. Two circle buttons change it by one; a rectangle between them holds the number and can also be typed into. The value is a real <code>&lt;input type="number"&gt;</code>, so the arrow keys, forms and validation are the browser's.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use a stepper for a bounded whole number, usually under twenty, where each step is meaningful. Set <code>min</code>, <code>max</code> and <code>step</code>, and name the control in the buttons ("Fewer cards"), not "Decrease".</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use a stepper for money or large numbers (use a plain <a href="@/components/input.html">input</a> or the <a href="@/components/keypad.html">keypad</a>), or for a value picked by position (a <a href="@/components/slider.html">slider</a>).</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="basic">Basic</h3>
+<p>Click, tap or press <kbd>Enter</kbd> / <kbd>Space</kbd> on a button, or focus the number and use <kbd>&uarr;</kbd> <kbd>&darr;</kbd>. The buttons are ordinary <a href="@/components/button.html">circle buttons</a>: they fill and lift on hover and focus and sink when pressed. Hold one to repeat (a tap always works, nothing needs holding). The new value is announced politely, once, after a short pause.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="field">
+      <label class="field__label" id="qty-label" for="stp-qty">Cards per session</label>
+      <div class="stepper" role="group" aria-labelledby="qty-label" data-sg-stepper>
+        <button class="btn" type="button" data-shape="circle" data-sg-step="-1" aria-label="Fewer cards" aria-controls="stp-qty"><span class="ic ic--minus" aria-hidden="true"></span></button>
+        <input class="input stepper__input" id="stp-qty" name="cards" type="number" inputmode="numeric" min="5" max="50" step="5" value="20">
+        <button class="btn" type="button" data-shape="circle" data-sg-step="1" aria-label="More cards" aria-controls="stp-qty"><span class="ic ic--plus" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="limits">At the limits</h3>
+<p>At a limit the button becomes <code>aria-disabled</code>: dashed, faint, still focusable. It is not removed and focus is not thrown away, so a keyboard user who presses "More" at the top hears that it is unavailable. A typed value outside the range is pulled back in when the field is left.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack">
+      <div class="field">
+        <label class="field__label" id="stp-min-label" for="stp-min">Streak freezes (at the minimum)</label>
+        <div class="stepper" role="group" aria-labelledby="stp-min-label" data-sg-stepper>
+          <button class="btn" type="button" data-shape="circle" data-sg-step="-1" aria-label="Fewer freezes" aria-controls="stp-min"><span class="ic ic--minus" aria-hidden="true"></span></button>
+          <input class="input stepper__input" id="stp-min" type="number" inputmode="numeric" min="0" max="3" step="1" value="0">
+          <button class="btn" type="button" data-shape="circle" data-sg-step="1" aria-label="More freezes" aria-controls="stp-min"><span class="ic ic--plus" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label" id="stp-max-label" for="stp-max">Devices (at the maximum)</label>
+        <div class="stepper" role="group" aria-labelledby="stp-max-label" data-sg-stepper>
+          <button class="btn" type="button" data-shape="circle" data-sg-step="-1" aria-label="Fewer devices" aria-controls="stp-max"><span class="ic ic--minus" aria-hidden="true"></span></button>
+          <input class="input stepper__input" id="stp-max" type="number" inputmode="numeric" min="1" max="5" step="1" value="5">
+          <button class="btn" type="button" data-shape="circle" data-sg-step="1" aria-label="More devices" aria-controls="stp-max"><span class="ic ic--plus" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="large">Large, and disabled</h3>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack">
+      <div class="field">
+        <label class="field__label" id="stp-lg-label" for="stp-lg">Guests</label>
+        <div class="stepper" data-size="lg" role="group" aria-labelledby="stp-lg-label" data-sg-stepper>
+          <button class="btn" type="button" data-shape="circle" data-size="lg" data-sg-step="-1" aria-label="Fewer guests" aria-controls="stp-lg"><span class="ic ic--minus" aria-hidden="true"></span></button>
+          <input class="input stepper__input" id="stp-lg" type="number" inputmode="numeric" min="1" max="12" step="1" value="4">
+          <button class="btn" type="button" data-shape="circle" data-size="lg" data-sg-step="1" aria-label="More guests" aria-controls="stp-lg"><span class="ic ic--plus" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label" id="stp-dis-label" for="stp-dis">Seats (sold out)</label>
+        <div class="stepper" role="group" aria-labelledby="stp-dis-label" data-sg-stepper>
+          <button class="btn" type="button" data-shape="circle" aria-label="Fewer seats" aria-controls="stp-dis" disabled><span class="ic ic--minus" aria-hidden="true"></span></button>
+          <input class="input stepper__input" id="stp-dis" type="number" inputmode="numeric" min="0" max="0" step="1" value="0" disabled>
+          <button class="btn" type="button" data-shape="circle" aria-label="More seats" aria-controls="stp-dis" disabled><span class="ic ic--plus" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="in-context">In context: a practice plan</h3>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="5">
+        <p class="t-title">Practice plan</p>
+        <section class="card" aria-labelledby="ctx-stp-h">
+          <header class="card__bar"><h4 class="card__label" id="ctx-stp-h">Spanish verbs</h4></header>
+          <div class="card__body">
+            <div class="field">
+              <label class="field__label" id="ctx-cards-l" for="ctx-cards">Cards per session</label>
+              <div class="stepper" role="group" aria-labelledby="ctx-cards-l" data-sg-stepper>
+                <button class="btn" type="button" data-shape="circle" data-sg-step="-1" aria-label="Fewer cards" aria-controls="ctx-cards"><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="input stepper__input" id="ctx-cards" type="number" inputmode="numeric" min="5" max="50" step="5" value="15">
+                <button class="btn" type="button" data-shape="circle" data-sg-step="1" aria-label="More cards" aria-controls="ctx-cards"><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label" id="ctx-days-l" for="ctx-days">Days a week</label>
+              <div class="stepper" role="group" aria-labelledby="ctx-days-l" data-sg-stepper>
+                <button class="btn" type="button" data-shape="circle" data-sg-step="-1" aria-label="Fewer days" aria-controls="ctx-days"><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="input stepper__input" id="ctx-days" type="number" inputmode="numeric" min="1" max="7" step="1" value="5">
+                <button class="btn" type="button" data-shape="circle" data-sg-step="1" aria-label="More days" aria-controls="ctx-days"><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <button class="btn" data-variant="primary" data-block type="button">Save plan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Group</strong> (<code>.stepper</code>, <code>role="group"</code>, <code>aria-labelledby</code> the label): so the two buttons are read with the name of what they change.</li>
+  <li><strong>Minus and plus</strong>: 44&nbsp;px circle <a href="@/components/button.html">buttons</a> with <code>data-sg-step</code> and a specific <code>aria-label</code>. They point at the input with <code>aria-controls</code>.</li>
+  <li><strong>Value</strong> (<code>.input.stepper__input</code>): an <a href="@/components/input.html">input</a> frame, centred, tabular figures, 18&nbsp;px. The native spinner arrows and the mouse-wheel step are removed (they are 10&nbsp;px targets and change the number by accident).</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Stepper classes and attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="stepper"</code> + <code>data-sg-stepper</code></td><td>wrapper, <code>role="group"</code></td><td>Layout; <code>data-sg-stepper</code> turns on <code>32-stepper.js</code>.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>lg</code></td><td>A 56&nbsp;px field; give the buttons <code>data-size="lg"</code> too.</td></tr>
+    <tr><td><code>data-sg-step</code></td><td><code>-1</code> | <code>1</code> (multiples of <code>step</code>)</td><td>On a button: steps the input by its own <code>step</code>, <code>min</code> and <code>max</code>, then fires <code>input</code> and <code>change</code>.</td></tr>
+    <tr><td><code>data-announce</code></td><td>template, default <code>{label}: {value}</code></td><td>What is announced after a pause; ", maximum" / ", minimum" are added at a limit.</td></tr>
+    <tr><td><code>min</code>, <code>max</code>, <code>step</code></td><td>on the input</td><td>The limits. A limit makes that button <code>aria-disabled</code>.</td></tr>
+    <tr><td>JavaScript</td><td><code>SG.stepper.step(el, dir)</code>, <code>SG.stepper.init(root)</code></td><td>Step from code; re-sync after changing the value.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Stepper keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Minus, then the number, then plus. Each is a stop.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>On a button: one step. The new value is announced politely (debounced), because focus stays on the button.</td></tr>
+    <tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>On the number: native spinbutton stepping.</td></tr>
+    <tr><td>Hold</td><td>After 450&nbsp;ms the step repeats and speeds up; release or leave to stop. An enhancement only; tapping always works (WCAG 2.5.1, 2.5.7).</td></tr>
+    <tr><td>Screen reader</td><td>"Cards per session, group. Fewer cards, button. Cards per session, spin button, 20. More cards, button." At a limit: "More cards, button, dimmed".</td></tr>
+    <tr><td>Touch</td><td>44&nbsp;px buttons and field, 8&nbsp;px apart. No gesture is needed.</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the button fill still fades.</td></tr>
+    <tr><td>Forced colours</td><td>Buttons and the field keep their real borders; raised and focused buttons get a 4px <code>Highlight</code> outline; limits use <code>GrayText</code>.</td></tr>
+    <tr><td>No JavaScript</td><td>The buttons are hidden (<code>@media (scripting: none)</code>) and the browser's own spinner arrows return: a plain number field.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p>Everything from <a href="@/components/input.html">Input</a> and <a href="@/components/button.html">Button</a>, plus <code>--type-ctl</code>, <code>--text-lg</code>, <code>--text-xl</code>, <code>--ctl-lg</code>, <code>--space-1</code>, <code>--space-2</code>.</p>

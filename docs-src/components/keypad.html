@@ -1,0 +1,224 @@
+<!--{"title":"Keypad","group":"Components","order":34,"summary":"A numeric keypad for entering an amount: round 3 x 4 keys, a live amount display, hardware keys and a confirm button."}-->
+<h1>Keypad</h1>
+<p class="lede">A keypad is for entering one amount with one thumb: send money, top up, set a goal. Twelve round keys in the order every phone uses, a big live number above them, and a confirm button that stays off until there is something to confirm. Every key is a real button, and a hardware keyboard works too.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it where the amount is the whole screen and people enter it once, on a phone. Put the limit where they can see it ("Available: $2,568.00") and let the keypad refuse a number above it, out loud.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it for a PIN, a password or a one-time code. A custom pad blocks paste and password managers, which fails WCAG 3.3.8: use a native <code>&lt;input type="password" inputmode="numeric" autocomplete="one-time-code"&gt;</code>. For a number inside a longer form, a plain <a href="@/components/input.html#amount">amount input</a> is better.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="basic">Amount in dollars</h3>
+<p>Press the keys, or type on a hardware keyboard: digits, <kbd>.</kbd> or <kbd>,</kbd>, <kbd>Backspace</kbd>. The number is grouped and given its currency symbol by <code>Intl</code>. It stops at two decimals and at the <code>data-max</code> of $5,000, and says so. Hold the delete key to keep deleting.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="keypad" data-sg-keypad data-currency="USD" data-decimals="2" data-max="5000">
+      <div class="keypad__screen">
+        <label class="keypad__label" for="kp-amt">Amount to send</label>
+        <output class="keypad__display" id="kp-amt" aria-live="polite" aria-atomic="true">$0</output>
+        <p class="t-meta" id="kp-amt-hint">Available: $2,568.00. Up to $5,000.00 a day.</p>
+      </div>
+      <div class="keypad__keys" role="group" aria-label="Number pad">
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="1">1</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="2">2</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="3">3</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="4">4</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="5">5</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="6">6</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="7">7</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="8">8</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="9">9</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="." aria-label="Decimal point">.</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit"><span class="ic ic--delete" aria-hidden="true"></span></button>
+      </div>
+      <button class="btn" type="button" data-variant="primary" data-size="lg" data-block data-sg-keypad-confirm data-demo-send aria-describedby="kp-amt-hint">Send money</button>
+      <p class="t-meta" role="status" data-demo-status></p>
+    </div>
+  </div>
+</div>
+<script>
+  /* docs demo only: a real app would start the transfer here */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-demo-send]') : null;
+    if (!b || b.getAttribute('aria-disabled') === 'true') return;
+    var pad = b.closest('[data-sg-keypad]');
+    var out = pad.querySelector('[data-demo-status]');
+    out.textContent = '';
+    window.requestAnimationFrame(function () { out.textContent = 'Sending ' + SG.keypad.get(pad).formatted + '. This is a demo: nothing was sent.'; });
+  });
+</script>
+
+<h3 id="whole">Whole numbers</h3>
+<p><code>data-decimals="0"</code> switches the point key off (it stays in place, dashed, so the layout never changes). Here there is no currency, three digits at most, and a minimum of 5 before the button works.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="keypad" data-sg-keypad data-decimals="0" data-max-digits="3" data-min="5" data-value="20">
+      <div class="keypad__screen">
+        <label class="keypad__label" for="kp-cards">Cards to add to the deck</label>
+        <output class="keypad__display" id="kp-cards" aria-live="polite" aria-atomic="true">20</output>
+        <p class="t-meta" id="kp-cards-hint">At least 5, at most 999.</p>
+      </div>
+      <div class="keypad__keys" role="group" aria-label="Number pad">
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="1">1</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="2">2</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="3">3</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="4">4</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="5">5</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="6">6</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="7">7</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="8">8</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="9">9</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="." aria-label="Decimal point">.</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
+        <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit"><span class="ic ic--delete" aria-hidden="true"></span></button>
+      </div>
+      <button class="btn" type="button" data-variant="primary" data-block data-sg-keypad-confirm data-demo-send aria-describedby="kp-cards-hint">Add cards</button>
+      <p class="t-meta" role="status" data-demo-status></p>
+    </div>
+  </div>
+</div>
+
+<h3 id="in-context">In context: send money</h3>
+<p>The wallet screen the keypad came from. Note the order: 1 2 3, 4 5 6, 7 8 9, then the point, 0 and delete. The reference design laid its keys out 1&ndash;8 and then 9, 0, which breaks the muscle memory of everyone who has ever used a phone, and left the keys touching; here the order is the standard one and there are 12&nbsp;px between keys.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="4">
+        <div class="cluster" data-gap="3">
+          <button class="btn" data-shape="circle" type="button" aria-label="Back"><span class="ic ic--arrow-left" aria-hidden="true"></span></button>
+          <p class="t-title">Send money</p>
+        </div>
+        <article class="card card--row" aria-label="Sending to Sam Rivera">
+          <span class="card__tile" data-tone="5" aria-hidden="true"></span>
+          <div class="card__main">
+            <p class="card__title">Sam Rivera</p>
+            <p class="card__meta">Debit card ending 4417</p>
+          </div>
+          <p class="card__trail">Free</p>
+        </article>
+        <div class="keypad" data-sg-keypad data-currency="USD" data-decimals="2" data-max="2568" data-value="389">
+          <div class="keypad__screen">
+            <label class="keypad__label" for="ctx-kp">Amount</label>
+            <output class="keypad__display" id="ctx-kp" aria-live="polite" aria-atomic="true">$389</output>
+            <p class="t-meta" id="ctx-kp-hint">Available: $2,568.00</p>
+          </div>
+          <div class="keypad__keys" role="group" aria-label="Number pad">
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="1">1</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="2">2</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="3">3</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="4">4</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="5">5</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="6">6</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="7">7</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="8">8</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="9">9</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="." aria-label="Decimal point">.</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
+            <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit"><span class="ic ic--delete" aria-hidden="true"></span></button>
+          </div>
+          <button class="btn" type="button" data-variant="primary" data-size="lg" data-block data-sg-keypad-confirm data-demo-send aria-describedby="ctx-kp-hint">Review transfer</button>
+          <p class="t-meta" role="status" data-demo-status></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="states">States</h3>
+<p>The display is a readout, not a field: it has no focus and no caret. Empty shows a muted zero; a refused key press doubles the display's frame for a moment and is announced in words. The confirm button is <code>aria-disabled</code> until there is an amount, so it stays focusable and its reason (<code>aria-describedby</code>) can be read.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack">
+      <div class="keypad" data-sg-keypad data-currency="USD" data-decimals="2">
+        <div class="keypad__screen">
+          <p class="keypad__label" id="kp-st-empty-l">Empty</p>
+          <output class="keypad__display" aria-labelledby="kp-st-empty-l" aria-live="polite" aria-atomic="true">$0</output>
+        </div>
+      </div>
+      <div class="keypad" data-sg-keypad data-currency="USD" data-decimals="2" data-state="limit" data-value="5000">
+        <div class="keypad__screen">
+          <p class="keypad__label" id="kp-st-limit-l">Limit reached</p>
+          <output class="keypad__display" aria-labelledby="kp-st-limit-l" aria-live="polite" aria-atomic="true">$5,000</output>
+          <p class="field__error"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Maximum is $5,000.00</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="standards">What the standards ask of a keypad</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">WCAG criteria that apply to a custom numeric keypad</caption>
+  <thead><tr><th>Criterion</th><th>How the keypad meets it</th></tr></thead>
+  <tbody>
+    <tr><td>1.3.2 Meaningful sequence, 2.4.3 Focus order</td><td>The DOM order is the phone-standard visual order: 1 2 3 / 4 5 6 / 7 8 9 / point 0 delete. Nothing is reordered with CSS.</td></tr>
+    <tr><td>2.1.1 Keyboard</td><td>Every key is a native <code>&lt;button&gt;</code>: <kbd>Tab</kbd> and <kbd>Enter</kbd> / <kbd>Space</kbd>. Typing digits, the point and <kbd>Backspace</kbd> also works.</td></tr>
+    <tr><td>2.5.1, 2.5.7 Gestures, dragging</td><td>A tap is the only gesture. Hold-to-repeat on delete is an enhancement, and every delete also works by tapping.</td></tr>
+    <tr><td>2.5.2 Pointer cancellation</td><td>Keys act on <code>click</code> (the up event), so sliding a finger off a key cancels it.</td></tr>
+    <tr><td>2.5.3 Label in name</td><td>The visible text of a digit key <em>is</em> its name. The point is punctuation, so its name is spoken ("Decimal point"); the delete key is an icon with an action name.</td></tr>
+    <tr><td>2.5.8 Target size, and the house 8&nbsp;px gap</td><td>Keys are 72&nbsp;px circles (never under 44) with 12&nbsp;px between them.</td></tr>
+    <tr><td>3.3.1 Error identification</td><td>A refused press is announced in words and the display shows a second frame; nothing is lost and nothing changes silently.</td></tr>
+    <tr><td>3.3.4 Error prevention</td><td>The keypad only fills the amount. Follow it with a review step before money moves (see <a href="@/components/field.html#prevention">forms</a>).</td></tr>
+    <tr><td>3.3.8 Accessible authentication</td><td>Not for PINs or passwords. A keypad that cannot be pasted into or filled by a password manager is a cognitive-function test.</td></tr>
+    <tr><td>4.1.3 Status messages</td><td>The display is an <code>&lt;output&gt;</code>: a polite, atomic live region that reads the whole amount after each key.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Label</strong> (<code>.keypad__label</code>): what the number is. The display is labelled by it.</li>
+  <li><strong>Display</strong> (<code>&lt;output class="keypad__display"&gt;</code>): a 2px rectangle, figure type sized from the keypad's own width (<code>cqi</code>), tabular, right-aligned. <code>aria-live="polite"</code> and <code>aria-atomic="true"</code>.</li>
+  <li><strong>Hint</strong>: the limit or the balance, in <code>.t-meta</code>; the confirm button points at it with <code>aria-describedby</code>.</li>
+  <li><strong>Keys</strong> (<code>.keypad__keys[role="group"]</code> of <code>.btn.keypad__key</code>): a 3-column grid of circle buttons, 12&nbsp;px apart, each at most 72&nbsp;px. They fill, lift and sink like every button.</li>
+  <li><strong>Confirm</strong> (optional, <code>data-sg-keypad-confirm</code>): an ordinary primary button that the keypad keeps <code>aria-disabled</code> until the amount passes <code>data-min</code> (default: above zero).</li>
+  <li><strong>Hidden input</strong> (optional): receives the plain value (<code>12.5</code>) for a form post.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Keypad attributes and events</caption>
+  <thead><tr><th>Attribute or API</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="keypad"</code> + <code>data-sg-keypad</code></td><td>wrapper</td><td>A size container and a grid; <code>data-sg-keypad</code> turns on <code>34-keypad.js</code>.</td></tr>
+    <tr><td><code>data-key</code></td><td><code>0</code>&ndash;<code>9</code>, <code>.</code>, <code>back</code>, <code>clear</code></td><td>On a button: which key it is.</td></tr>
+    <tr><td><code>data-currency</code></td><td>ISO 4217 code</td><td>Symbol and its side, grouping and the decimal separator, all from <code>Intl</code> in the page language. The point key shows the language's separator.</td></tr>
+    <tr><td><code>data-decimals</code></td><td>integer, default <code>2</code></td><td>Digits after the point. <code>0</code> makes the point key <code>aria-disabled</code>.</td></tr>
+    <tr><td><code>data-max</code> / <code>data-min</code></td><td>number</td><td>A press that would pass the maximum is refused and announced. The minimum enables the confirm button (default: above zero).</td></tr>
+    <tr><td><code>data-max-digits</code></td><td>integer, default <code>9</code></td><td>Most digits in all.</td></tr>
+    <tr><td><code>data-value</code></td><td>plain number, <code>389</code></td><td>The starting amount.</td></tr>
+    <tr><td><code>data-msg-max</code>, <code>-digits</code>, <code>-decimals</code>, <code>-point</code></td><td>text</td><td>Translate the refusal messages. <code>{max}</code> and <code>{n}</code> are replaced.</td></tr>
+    <tr><td><code>data-sg-keypad-confirm</code></td><td>on a button</td><td>Gets <code>aria-disabled="true"</code> until the amount is valid.</td></tr>
+    <tr><td><code>sg:keypad</code> event</td><td><code>detail: { raw, value, formatted }</code></td><td>Fires on the keypad after every accepted key.</td></tr>
+    <tr><td>JavaScript</td><td><code>SG.keypad.get(pad)</code>, <code>.set(pad, raw)</code>, <code>.press(pad, key)</code>, <code>.init(root)</code></td><td>Read or set the amount from code.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Keypad keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Through the keys in reading order, then the confirm button.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Presses the focused button. That is how keyboard-only people use the keys, so Enter is not a global "confirm"; the confirm button is its own stop.</td></tr>
+    <tr><td><kbd>0</kbd>&ndash;<kbd>9</kbd>, <kbd>.</kbd> <kbd>,</kbd>, <kbd>Backspace</kbd>, <kbd>Delete</kbd></td><td>Enter and delete the same way the keys do, while focus is anywhere inside the keypad.</td></tr>
+    <tr><td>Screen reader</td><td>"Number pad, group. 1, button. 2, button&hellip; Decimal point, button. Delete last digit, button." After each key the whole amount is read: "$12.50".</td></tr>
+    <tr><td>Refusals</td><td>A press that is not allowed leaves the amount alone and is announced ("Maximum is $5,000.00", "Only 2 decimal places").</td></tr>
+    <tr><td>Touch</td><td>72&nbsp;px keys, 12&nbsp;px apart; press feedback within 100&nbsp;ms (fill and sink). No gesture.</td></tr>
+    <tr><td>Zoom / text size</td><td>The display and the keys are sized from the keypad's width and rem; at 200% text they shrink rather than clip, and the display wraps.</td></tr>
+    <tr><td>Reduced motion</td><td>Keys do not travel; the fill change stays.</td></tr>
+    <tr><td>Forced colours</td><td>Keys are circle buttons with real borders; raised and focused keys get a 4px <code>Highlight</code> outline; the display keeps its frame.</td></tr>
+    <tr><td>No JavaScript</td><td>The keys do nothing without the script. Offer a native <code>inputmode="decimal"</code> field as the baseline and enhance.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--ink-mute</code>, <code>--line</code>, <code>--bad-ink</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--type-figure</code>, <code>--type-ctl</code>, <code>--ls-figure</code>, <code>--lh-tight</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-4</code>, <code>--space-5</code>, and everything a <a href="@/components/button.html">button</a> uses.</p>

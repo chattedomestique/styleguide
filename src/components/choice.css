@@ -1,0 +1,559 @@
+/* ==========================================================================
+   Choice: checkbox, radio, choice card, segmented  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Native <input type=checkbox|radio> with appearance:none and a box drawn in CSS, so the
+   platform keeps grouping, arrow-key movement between radios, form submission, autofill
+   and the accessibility tree. Nothing is hidden or faked.
+
+   <label class="choice">
+     <input type="checkbox" name="news" value="yes">
+     <span class="choice__label">Remind me about streaks</span>
+   </label>
+
+   <fieldset class="field">
+     <legend class="field__label">Session length</legend>
+     <div class="choice-group">                      data-layout="inline" | "grid" (for cards)
+       <label class="choice"><input type="radio" name="len" value="5" checked>
+         <span class="choice__label">Quick<span class="choice__hint">5 cards, about 2 minutes</span></span></label>
+       …
+     </div>
+   </fieldset>
+
+   <label class="card choice-card" data-tone="4">           a selectable CARD (built on .card)
+     <input type="radio" name="plan" value="pro">
+     <span class="card__body"><span class="card__title">Pro</span> …</span>
+   </label>
+
+   <div class="choice-group" data-variant="segmented">      native radios drawn as one pill track
+     <label class="choice"><input type="radio" name="view" value="a" checked><span class="choice__label">Decks</span></label> …
+
+   The house shapes: a checkbox is a square box (a rectangle holds; --radius-ctl), a radio is a
+   circle (circles act). Both are pressable, so both RAISE on hover and focus with the hard
+   shadow (--lift). Checked is a FILL (--fill) plus a mark (tick, dash or dot) in --on-accent,
+   so "on" never depends on the accent's hue. Hover does NOT fill: a hovered, unchecked box
+   must not look checked.
+
+   STATES
+     :checked / :indeterminate   --fill 1 and the mark
+     :focus-visible              raised + the ring round the drawn box
+     :user-invalid / [aria-invalid="true"]   --bad-ink frame and an inner second frame
+     :disabled                   dashed, --ink-faint, flat, not-allowed
+
+   HIT AREA. The <input> itself is 44 x 44 (--hit) and transparent; the 24 px box is drawn on its
+   ::before and the mark on its ::after. So the target is measurable, clicking the label works too,
+   and the text never wraps under the box. A negative inline margin lines the drawn box up with
+   the edge of the content beside it.
+   THE MARK is a mask of the icon set's own tick / dash (--icon-check, --icon-minus): a shape, not a
+   text glyph (the bundled font has none). Forced colours drop masks and fills, so there the box
+   and the mark are drawn with system colours (see the end of the file).
+   A CHOICE CARD's input stretches over the whole card: the card is the target and wears the
+   ring. Do not put links or buttons inside one.
+   ========================================================================== */
+
+@layer sg.components {
+  .choice {
+    --lift: 0;
+    --_box: 1.5rem; /* the drawn box */
+
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--hit) minmax(0, 1fr);
+    align-items: start;
+    min-block-size: var(--hit);
+    /* The drawn box, not the 44 px hit area, lines up with neighbouring content. */
+    margin-inline-start: calc((var(--_box) - var(--hit)) / 2);
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: --lift var(--dur-hover) var(--ease-out);
+
+    /* ---- The native input: a transparent 44 px hit area ---------------------------- */
+    > input {
+      --fill: 0;
+      --_line: var(--line);
+      --_inset: 0 0 0 0 transparent;
+      --_mark: var(--on-accent);
+      --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+
+      position: relative;
+      inline-size: var(--hit);
+      block-size: var(--hit);
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none; /* the ring moves to the drawn box (::before) */
+      outline-color: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: inherit;
+      transition: --fill var(--dur-hover) var(--ease-out);
+
+      /* The box */
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        inline-size: var(--_box);
+        block-size: var(--_box);
+        background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+        border: var(--bw) solid var(--_line);
+        border-radius: var(--radius-ctl);
+        box-shadow: var(--_inset), var(--_shadow);
+        transform: translate(
+          calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+          calc(var(--lift) * var(--space-1) / -2 * var(--move))
+        );
+      }
+      /* The mark (tick, dash or dot) sits on top of the box. It is hidden by opacity, not removed,
+         so it fades with the fill and under reduced motion that fade is all that moves. */
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        inline-size: var(--_box);
+        block-size: var(--_box);
+        background: var(--_mark);
+        opacity: 0;
+        transform: translate(
+          calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+          calc(var(--lift) * var(--space-1) / -2 * var(--move))
+        );
+        transition: opacity var(--dur-hover) var(--ease-out);
+        -webkit-mask: var(--icon-check) center / 100% no-repeat;
+        mask: var(--icon-check) center / 100% no-repeat;
+      }
+
+      &[type="radio"]::before {
+        border-radius: 50%;
+      }
+      /* Radio mark: a dot, not a tick */
+      &[type="radio"]::after {
+        inline-size: calc(var(--_box) / 2);
+        block-size: calc(var(--_box) / 2);
+        border-radius: 50%;
+        -webkit-mask: none;
+        mask: none;
+      }
+
+      /* On. A radio with no choice made is ALSO :indeterminate, so only checkboxes count. */
+      &:checked,
+      &[type="checkbox"]:indeterminate {
+        --fill: 1;
+      }
+      &:checked::after {
+        opacity: 1;
+      }
+      &[type="checkbox"]:indeterminate::after {
+        opacity: 1;
+        -webkit-mask-image: var(--icon-minus);
+        mask-image: var(--icon-minus);
+      }
+
+      /* Focus: the same ring as everywhere, drawn round the visible box. */
+      &:focus-visible::before {
+        outline: var(--ring) solid var(--focus);
+        outline-offset: var(--ring-offset);
+        box-shadow: 0 0 0 var(--ring-offset) var(--paper), var(--_inset), var(--_shadow);
+      }
+
+      /* Wrong: bad-ink frame and an inner second frame (the box is border-box, so nothing moves). */
+      &:is(:user-invalid, [aria-invalid="true"]) {
+        --_line: var(--bad-ink);
+        --_inset: inset 0 0 0 var(--bw) var(--bad-ink);
+      }
+
+      /* Unavailable: dashed = not here. Faint, flat, no fill. */
+      &:disabled {
+        --fill: 0;
+        --_line: var(--ink-faint);
+        --_inset: 0 0 0 0 transparent;
+        --_mark: var(--ink-faint);
+        --_shadow: 0 0 0 0 transparent;
+        cursor: not-allowed;
+      }
+      &:disabled::before {
+        background: transparent;
+        border-style: dashed;
+      }
+    }
+
+    /* ---- Label text -------------------------------------------------------------- */
+    .choice__label {
+      min-inline-size: 0;
+      /* Centre the first line on the 44 px row, whatever the text size. */
+      padding-block: calc((var(--hit) - 1lh) / 2);
+      font: var(--type-body);
+      overflow-wrap: anywhere;
+    }
+    .choice__hint {
+      display: block;
+      font: var(--type-meta);
+      color: var(--ink-soft);
+    }
+
+    /* Raised: where a pointer can hover, and always on keyboard focus (same lift, so both match). */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:has(> input:disabled)) {
+        --lift: 1;
+      }
+    }
+    &:is(.is-focus, :has(> input:focus-visible)) {
+      --lift: 1;
+    }
+    /* Press: back onto the surface, visible inside 100 ms. After hover so it wins. */
+    &:is(:active, .is-active):not(:has(> input:disabled)) {
+      --lift: 0;
+      transition-duration: var(--dur-press);
+    }
+    &:has(> input:disabled) {
+      --lift: 0;
+      color: var(--ink-faint);
+      cursor: not-allowed;
+      .choice__hint {
+        color: inherit;
+      }
+    }
+  }
+
+  /* ---- Groups ---------------------------------------------------------------------------
+     Options are 44 px rows with 8 px between them. "inline" puts short options side by side
+     and wraps; "grid" is for cards. */
+  .choice-group {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+
+    &[data-layout="inline"] {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: var(--space-5);
+    }
+    &[data-layout="grid"] {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+      gap: var(--space-4);
+    }
+  }
+
+  /* ==========================================================================
+     Choice card: a .card you can select
+     The card supplies the frame, bar, body and tones; this adds the native input stretched over
+     it, the mark in the corner, and the selected / raised / focus / disabled states. Selected =
+     the frame doubles (the card's own --shadow-select) AND the corner mark fills with a tick:
+     two cues, neither of them the accent colour alone. The mark is a square for checkboxes and a
+     circle for radios, exactly like the small controls.
+     ========================================================================== */
+  .choice-card {
+    --lift: 0;
+    --_mark: 1.5rem;
+    /* the input reaches over the 2px frame, so the marks measure from the frame's outer edge */
+    --_mark-inset: calc(var(--card-pad) + var(--bw));
+
+    cursor: pointer;
+    /* let the input's hit area reach over the frame (Safari ignores this: a 2px band where the
+       label still takes the click) */
+    overflow-clip-margin: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition: --lift var(--dur-hover) var(--ease-out);
+
+    > input {
+      --fill: 0;
+      --_line: var(--card-ink);
+      --_inset: 0 0 0 0 transparent;
+      --_mk: var(--on-accent);
+
+      position: absolute;
+      inset: calc(var(--bw) * -1);
+      inline-size: auto;
+      block-size: auto;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      outline-color: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: inherit;
+      transition: --fill var(--dur-hover) var(--ease-out);
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset-block-start: var(--_mark-inset);
+        inset-inline-end: var(--_mark-inset);
+        inline-size: var(--_mark);
+        block-size: var(--_mark);
+        background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--card-bg));
+        border: var(--bw) solid var(--_line);
+        border-radius: var(--radius-ctl);
+        box-shadow: var(--_inset);
+      }
+      &::after {
+        content: "";
+        position: absolute;
+        inset-block-start: var(--_mark-inset);
+        inset-inline-end: var(--_mark-inset);
+        inline-size: var(--_mark);
+        block-size: var(--_mark);
+        background: var(--_mk);
+        opacity: 0;
+        transition: opacity var(--dur-hover) var(--ease-out);
+        -webkit-mask: var(--icon-check) center / 100% no-repeat;
+        mask: var(--icon-check) center / 100% no-repeat;
+      }
+      &[type="radio"]::before {
+        border-radius: 50%;
+      }
+      &:checked,
+      &[type="checkbox"]:indeterminate {
+        --fill: 1;
+      }
+      &:checked::after {
+        opacity: 1;
+      }
+      &[type="checkbox"]:indeterminate::after {
+        opacity: 1;
+        -webkit-mask-image: var(--icon-minus);
+        mask-image: var(--icon-minus);
+      }
+      &:is(:user-invalid, [aria-invalid="true"]) {
+        --_line: var(--bad-ink);
+        --_inset: inset 0 0 0 var(--bw) var(--bad-ink);
+      }
+      &:disabled {
+        --fill: 0;
+        --_line: var(--ink-faint);
+        --_mk: var(--ink-faint);
+      }
+      &:disabled::before {
+        background: transparent;
+        border-style: dashed;
+      }
+    }
+
+    /* the first line of the body keeps clear of the mark; later lines may run under it */
+    .card__body > :first-child {
+      padding-inline-end: calc(var(--_mark) + var(--space-3));
+    }
+
+    /* raised where a pointer can hover, and on keyboard focus */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:has(> input:disabled)) {
+        --lift: 1;
+        z-index: 1;
+      }
+    }
+    &:is(.is-focus, :has(> input:focus-visible)) {
+      --lift: 1;
+      z-index: 1;
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-offset);
+      box-shadow: 0 0 0 var(--ring-offset) var(--paper), var(--shadow-select), var(--shadow-lift);
+    }
+    &:is(:active, .is-active):not(:has(> input:disabled)) {
+      --lift: 0;
+      transition-duration: var(--dur-press);
+    }
+
+    /* selected: the frame doubles, like every other selected card */
+    &:has(> input:is(:checked, :indeterminate)),
+    &.is-selected {
+      --shadow-select: 0 0 0 var(--bw) var(--card-line);
+      z-index: 1;
+    }
+    &:has(> input:is(:user-invalid, [aria-invalid="true"])) {
+      --card-line: var(--bad-ink);
+    }
+
+    /* unavailable: dashed, muted, inert: the card's own disabled look */
+    &:has(> input:disabled) {
+      --lift: 0;
+      --card-line: var(--ink-faint);
+      color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+      :is(.card__eyebrow, .card__meta, .card__text, .card__title) {
+        color: inherit;
+      }
+    }
+  }
+
+  /* the card wears the ring; the input would draw a second one round the whole card */
+  @supports selector(:has(*)) {
+    .choice-card > input:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+  }
+
+  /* ==========================================================================
+     Segmented: native radios drawn as one pill track
+     Picks a VALUE or a filter (a view switcher that swaps panels is a tablist instead). The
+     track is a 2px pill; the selected segment is a filled pill with its own frame, so two
+     outlines sit inside one another (the doubled frame), and its text flips to --on-accent.
+     Unselected segments show their frame on hover. The track wears the ring, because arrow keys
+     move focus AND the selection, so the focused segment is always the selected one.
+     ========================================================================== */
+  .choice-group[data-variant="segmented"] {
+    display: flex;
+    gap: var(--space-1);
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    padding: var(--space-1);
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+
+    > .choice {
+      --_seg-bg: var(--paper);
+      --_seg-ink: var(--ink);
+      --_seg-line: transparent;
+
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      flex: 1 1 auto;
+      place-items: center;
+      min-inline-size: var(--hit);
+      min-block-size: var(--ctl-sm);
+      margin: 0;
+      padding-inline: var(--space-4);
+      color: var(--_seg-ink);
+      background: var(--_seg-bg);
+      border: var(--bw) solid var(--_seg-line);
+      border-radius: var(--radius-pill);
+      text-align: center;
+
+      /* the input covers the segment and reaches 44 px tall */
+      > input {
+        position: absolute;
+        inset: calc((var(--ctl-sm) - var(--hit)) / 2) 0;
+        inline-size: auto;
+        block-size: auto;
+        border-radius: var(--radius-pill);
+        &::before,
+        &::after {
+          content: none;
+        }
+      }
+      .choice__label {
+        padding-block: 0;
+        font: var(--type-ctl);
+        line-height: var(--lh-snug);
+        overflow-wrap: anywhere;
+      }
+
+      @media (hover: hover) {
+        &:hover:not(:has(> input:checked, > input:disabled)) {
+          --_seg-line: var(--line);
+        }
+      }
+      &:has(> input:checked) {
+        --_seg-bg: var(--accent);
+        --_seg-ink: var(--on-accent);
+        --_seg-line: var(--line);
+      }
+      &:has(> input:disabled) {
+        --_seg-ink: var(--ink-faint);
+      }
+    }
+
+    &:has(> .choice > input:focus-visible) {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-offset);
+      box-shadow: 0 0 0 var(--ring-offset) var(--paper);
+    }
+  }
+
+  /* ---- Forced colours -------------------------------------------------------------------
+     Masks, backgrounds and shadows are replaced. Draw the box and the mark with system colours
+     so "checked" is still a filled box with a tick, not an empty outline. */
+  @media (forced-colors: active) {
+    .choice > input {
+      &::before {
+        border-color: CanvasText;
+        background-color: Canvas;
+        forced-color-adjust: none;
+      }
+      &::after {
+        background-color: HighlightText;
+        forced-color-adjust: none;
+      }
+      &:focus-visible::before {
+        outline: var(--bw-heavy) solid Highlight;
+      }
+      &:checked::before,
+      &[type="checkbox"]:indeterminate::before {
+        border-color: Highlight;
+        background-color: Highlight;
+      }
+      &:disabled::before {
+        border-color: GrayText;
+      }
+      &:disabled::after {
+        background-color: GrayText;
+      }
+    }
+    .choice:has(> input:disabled) {
+      color: GrayText;
+    }
+    .choice-card > input {
+      &::before {
+        border-color: CanvasText;
+        background-color: Canvas;
+        forced-color-adjust: none;
+      }
+      &::after {
+        background-color: HighlightText;
+        forced-color-adjust: none;
+      }
+      &:checked::before {
+        border-color: Highlight;
+        background-color: Highlight;
+      }
+    }
+    .choice-card:has(> input:is(:checked, :indeterminate)) {
+      border-width: var(--bw-heavy);
+    }
+    .choice-card:is(.is-focus, :has(> input:focus-visible)) {
+      outline: var(--bw-heavy) solid Highlight;
+    }
+    .choice-card:has(> input:disabled) {
+      color: GrayText;
+      border-color: GrayText;
+    }
+    .choice-group[data-variant="segmented"] {
+      border-color: CanvasText;
+      > .choice {
+        border-color: Canvas;
+        &:has(> input:checked) {
+          border-width: var(--bw-heavy);
+          border-color: Highlight;
+        }
+        &:has(> input:disabled) {
+          color: GrayText;
+        }
+      }
+      &:has(> .choice > input:focus-visible) {
+        outline: var(--bw-heavy) solid Highlight;
+      }
+    }
+  }
+  @media (forced-colors: active) and (hover: hover) {
+    .choice-card:hover:not(:has(> input:disabled)) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+}

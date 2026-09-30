@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Keypad  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A numeric keypad for entering an amount with one thumb: twelve round keys in the phone-standard
+   3 x 4 order (1 2 3 / 4 5 6 / 7 8 9 / . 0 delete), an amount display, and (optionally) a confirm
+   button that the keypad keeps switched off until there is an amount.
+
+   <div class="keypad" data-sg-keypad data-currency="USD" data-decimals="2" data-max="5000">
+     <div class="keypad__screen">
+       <label class="keypad__label" for="amt">Amount to send</label>
+       <output class="keypad__display" id="amt" aria-live="polite" aria-atomic="true">$0</output>
+       <p class="t-meta" id="amt-hint">Available: $2,568.00</p>
+     </div>
+     <div class="keypad__keys" role="group" aria-label="Number pad">
+       <button class="btn keypad__key" type="button" data-shape="circle" data-key="1">1</button> …
+       <button class="btn keypad__key" type="button" data-shape="circle" data-key="." aria-label="Decimal point">.</button>
+       <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
+       <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit">
+         <span class="ic ic--delete" aria-hidden="true"></span></button>
+     </div>
+     <button class="btn" data-variant="primary" data-block type="button" data-sg-keypad-confirm aria-describedby="amt-hint">Send money</button>
+   </div>
+
+   data-currency    ISO 4217 code: prefix / suffix and grouping come from Intl in the page language
+   data-decimals    digits after the point: 2 (default), 0 hides the point key (aria-disabled)
+   data-max         largest value; a key press that would pass it is refused and announced
+   data-max-digits  most digits in all (default 9)
+   data-min         smallest value that enables the confirm button (default: anything above 0)
+   name="…" on a hidden <input> inside .keypad receives the plain value ("12.50") for a form
+
+   THE KEYS ARE BUTTONS. Circles act, so each key is an ordinary circle .btn (outline at rest, fills and
+   lifts on hover and focus, sinks when pressed); this file only sizes them and sets their figures. Keys
+   are at least 44 px, usually 72, with a 12 px gap: a big key whose neighbours touch is how people
+   mis-tap a payment. The DOM order IS the visual order, and the visible text of a key is its name
+   (WCAG 2.5.3). The decimal key is punctuation, so it gets a spoken name ("Decimal point").
+
+   THE DISPLAY is an <output>: a live region (polite, atomic) that reads the whole amount after each key.
+   It is not editable and not focusable; it is a readout. A hardware keyboard works too: digits,
+   the point or comma, Backspace and Delete, while focus is anywhere in the keypad. Enter still
+   presses the focused button (that is how keyboard-only people use the keys); the confirm button is
+   its own stop.
+
+   NOT FOR PINs OR PASSWORDS. A custom pad blocks paste and password managers, which fails WCAG 3.3.8.
+   Use a native <input type="password" inputmode="numeric" autocomplete="one-time-code"> for those.
+   ========================================================================== */
+
+@layer sg.components {
+  .keypad {
+    container: keypad / inline-size;
+    display: grid;
+    gap: var(--space-5);
+    inline-size: 100%;
+    max-inline-size: 22rem;
+    min-inline-size: 0;
+  }
+
+  .keypad__screen {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+
+  .keypad__label {
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    overflow-wrap: anywhere;
+  }
+
+  /* The amount. A rectangle that holds, flat, figure type, sized from the keypad's own width. */
+  .keypad__display {
+    --_inset: 0 0 0 0 transparent;
+
+    display: block;
+    min-inline-size: 0;
+    padding: var(--space-3) var(--space-4);
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+    box-shadow: var(--_inset);
+    font: var(--type-figure);
+    font-size: clamp(2.25rem, 13cqi, 3.5rem);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--ls-figure);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+  /* nothing typed yet: the zero is a placeholder (--ink-mute is still 4.5:1) */
+  .keypad[data-empty] .keypad__display {
+    color: var(--ink-mute);
+  }
+  /* a key press was refused (limit reached): the frame doubles in bad-ink for a moment, and the
+     message is announced. The words are the cue; the frame only points at them. */
+  .keypad[data-state="limit"] .keypad__display {
+    --_inset: inset 0 0 0 var(--bw) var(--bad-ink);
+    border-color: var(--bad-ink);
+  }
+
+  /* The 3 x 4 grid. */
+  .keypad__keys {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    justify-items: center;
+  }
+
+  /* Keys are .btn circles; this sizes and sets them. (Three classes beat .btn[data-shape]'s two
+     without relying on file order.) */
+  .keypad__keys > .btn.keypad__key {
+    inline-size: min(100%, 4.5rem);
+    block-size: auto;
+    aspect-ratio: 1;
+    font-size: clamp(1.25rem, 7cqi, 1.75rem);
+    font-variant-numeric: tabular-nums lining-nums;
+    --ic-size: 1.5rem;
+  }
+
+  @media (forced-colors: active) {
+    .keypad__display {
+      border-color: CanvasText;
+    }
+    .keypad[data-state="limit"] .keypad__display {
+      border-width: var(--bw-heavy);
+    }
+  }
+}

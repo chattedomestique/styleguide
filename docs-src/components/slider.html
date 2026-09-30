@@ -1,0 +1,212 @@
+<!--{"title":"Slider","group":"Components","order":30,"summary":"A native range input with a filled track, a live readout in units, tick marks and - / + nudge buttons."}-->
+<h1>Slider</h1>
+<p class="lede">Choose a value on a range by position: volume, a study goal, a budget. It is the browser's own <code>&lt;input type="range"&gt;</code>, so every key works, plus a readout people can read and buttons people can tap. The track is a rectangle that holds; the thumb is a circle that acts.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use a slider when the <em>relative</em> position matters more than the exact number and the range is bounded. Always show the value with its unit, and add the &minus; / + buttons when precision matters or dragging is hard.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use a slider for an exact amount, a wide range (0 to 10,000) or a small count. Drag is never the only way to change a value (WCAG 2.5.7).</p></div>
+  </div>
+</div>
+
+<h3 id="choose">Slider, stepper or number field?</h3>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Choosing between a slider, a stepper and a number input</caption>
+  <thead><tr><th>Use</th><th>When</th><th>Examples</th></tr></thead>
+  <tbody>
+    <tr><td>Slider</td><td>A bounded range where "about here" is fine, or the feedback is live.</td><td>Volume, brightness, filter strength, budget level</td></tr>
+    <tr><td><a href="@/components/stepper.html">Stepper</a></td><td>A small whole number changed by one at a time.</td><td>Cards per session, guests, servings, reps</td></tr>
+    <tr><td><a href="@/components/input.html">Number input</a></td><td>An exact or large number the person knows. Pair it with a slider if they also want to explore.</td><td>Amount, age, weight, year</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="basic">With nudge buttons</h3>
+<p>The readout and the spoken value update as you drag or press keys. The &minus; / + buttons step by one <code>step</code>; at the ends they become <code>aria-disabled</code> (they keep focus) and every press is announced ("Volume: 45%"). Try <kbd>&larr;</kbd> <kbd>&rarr;</kbd>, <kbd>PageUp</kbd>, <kbd>PageDown</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>. The thumb is an outline until you hover or focus it, then it fills and lifts; dragging sinks it.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="slider" data-sg-slider data-format="percent">
+      <div class="slider__head">
+        <label class="slider__label" for="sld-vol">Volume</label>
+        <output class="slider__value" for="sld-vol" aria-live="off">40%</output>
+      </div>
+      <div class="slider__row">
+        <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="-1" aria-label="Decrease volume" aria-controls="sld-vol"><span class="ic ic--minus" aria-hidden="true"></span></button>
+        <div class="slider__track">
+          <input class="slider__input" id="sld-vol" name="volume" type="range" min="0" max="100" step="5" value="40">
+          <div class="slider__scale" aria-hidden="true"><span>0%</span><span>100%</span></div>
+        </div>
+        <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="1" aria-label="Increase volume" aria-controls="sld-vol"><span class="ic ic--plus" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="ticks">Tick marks and currency</h3>
+<p><code>data-ticks="5"</code> draws five marks, both ends included. They are decoration: the slider already exposes its minimum and maximum. <code>data-format="currency"</code> uses <code>Intl.NumberFormat</code>, so the symbol and grouping follow the page language; set <code>data-currency</code> for other currencies.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="slider" data-sg-slider data-format="currency" data-ticks="5">
+      <div class="slider__head">
+        <label class="slider__label" for="sld-bud">Monthly budget</label>
+        <output class="slider__value" for="sld-bud" aria-live="off">$600</output>
+      </div>
+      <div class="slider__row">
+        <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="-1" aria-label="Decrease monthly budget" aria-controls="sld-bud"><span class="ic ic--minus" aria-hidden="true"></span></button>
+        <div class="slider__track">
+          <input class="slider__input" id="sld-bud" name="budget" type="range" min="200" max="1000" step="200" value="600">
+          <div class="slider__scale" aria-hidden="true"><span>$200</span><span>$1,000</span></div>
+        </div>
+        <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="1" aria-label="Increase monthly budget" aria-controls="sld-bud"><span class="ic ic--plus" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="minimal">Minutes, without buttons</h3>
+<p>The smallest form: label, readout, slider. Units come from <code>data-format="minutes"</code>: "25 min" on screen, "25 minutes" to a screen reader. Leave the buttons out only when the slider is a convenience and the exact value does not matter, since they are what meets WCAG 2.5.7 without a drag.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="slider" data-sg-slider data-format="minutes">
+      <div class="slider__head">
+        <label class="slider__label" for="sld-min">Focus session</label>
+        <output class="slider__value" for="sld-min" aria-live="off">25 min</output>
+      </div>
+      <div class="slider__track">
+        <input class="slider__input" id="sld-min" name="minutes" type="range" min="5" max="60" step="5" value="25">
+        <div class="slider__scale" aria-hidden="true"><span>5 min</span><span>60 min</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="signed">Signed values</h3>
+<p>Negative numbers use the true minus sign (U+2212) on screen. <code>data-format="plain"</code> is a bare number; <code>data-format="unit"</code> with <code>data-unit="celsius"</code> (or <code>kilometer</code>, <code>percent</code>&hellip;) uses any Intl unit.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="slider" data-sg-slider data-format="unit" data-unit="celsius" data-ticks="3">
+      <div class="slider__head">
+        <label class="slider__label" for="sld-temp">Freezer offset</label>
+        <output class="slider__value" for="sld-temp" aria-live="off">0°C</output>
+      </div>
+      <div class="slider__row">
+        <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="-1" aria-label="Decrease freezer offset" aria-controls="sld-temp"><span class="ic ic--minus" aria-hidden="true"></span></button>
+        <div class="slider__track">
+          <input class="slider__input" id="sld-temp" name="offset" type="range" min="-10" max="10" step="1" value="0">
+          <div class="slider__scale" aria-hidden="true"><span>&minus;10°C</span><span>10°C</span></div>
+        </div>
+        <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="1" aria-label="Increase freezer offset" aria-controls="sld-temp"><span class="ic ic--plus" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="states">Disabled</h3>
+<p>Dashed and faint, with no lift: the house look for "not available". The thumb keeps a real border, so it is still there in forced colours.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="slider" data-sg-slider data-format="percent">
+      <div class="slider__head">
+        <label class="slider__label" for="sld-dis">Brightness (locked)</label>
+        <output class="slider__value" for="sld-dis" aria-live="off">70%</output>
+      </div>
+      <div class="slider__track">
+        <input class="slider__input" id="sld-dis" type="range" min="0" max="100" step="10" value="70" disabled>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="in-context">In context: a savings goal</h3>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="5">
+        <p class="t-title">New goal</p>
+        <div class="stack" data-gap="1">
+          <p class="t-meta">You will save</p>
+          <p class="t-figure num" data-demo-amount>$60</p>
+          <p class="t-meta">a month</p>
+        </div>
+        <div class="slider" data-sg-slider data-format="currency" data-ticks="5">
+          <div class="slider__head">
+            <label class="slider__label" for="ctx-sav">Monthly saving</label>
+            <output class="slider__value" for="ctx-sav" aria-live="off">$60</output>
+          </div>
+          <div class="slider__row">
+            <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="-1" aria-label="Decrease monthly saving" aria-controls="ctx-sav"><span class="ic ic--minus" aria-hidden="true"></span></button>
+            <div class="slider__track">
+              <input class="slider__input" id="ctx-sav" type="range" min="20" max="100" step="20" value="60">
+              <div class="slider__scale" aria-hidden="true"><span>$20</span><span>$100</span></div>
+            </div>
+            <button class="btn" type="button" data-shape="circle" data-size="sm" data-sg-nudge="1" aria-label="Increase monthly saving" aria-controls="ctx-sav"><span class="ic ic--plus" aria-hidden="true"></span></button>
+          </div>
+        </div>
+        <button class="btn" data-variant="primary" data-block type="button">Start saving</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* docs demo only: the big number follows the slider */
+  (function () {
+    var input = document.getElementById('ctx-sav');
+    var out = document.querySelector('[data-demo-amount]');
+    if (!input || !out) return;
+    input.addEventListener('input', function () { out.textContent = '\u0024' + input.value; /* a unicode escape: a literal dollar followed by a quote would be read by the docs build as a replacement pattern */ });
+  })();
+</script>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Label</strong> (<code>.slider__label</code>): a real <code>&lt;label for&gt;</code>, always visible.</li>
+  <li><strong>Readout</strong> (<code>&lt;output class="slider__value"&gt;</code>): the value with its unit, tabular numerals. <code>aria-live="off"</code> so it does not repeat what the slider already says.</li>
+  <li><strong>Nudge buttons</strong> (optional, <code>data-sg-nudge</code>): ordinary 36&nbsp;px circle <a href="@/components/button.html">buttons</a> with 44&nbsp;px hit areas and 12&nbsp;px gaps.</li>
+  <li><strong>Rail</strong>: 12&nbsp;px, a <code>--bw</code> frame in <code>--line</code>, <code>--radius-ctl</code>. The filled part is <code>--accent</code>, painted to the thumb's centre from <code>--p</code> (0 to 1) that <code>31-slider.js</code> sets.</li>
+  <li><strong>Thumb</strong>: a 28&nbsp;px circle, an outline at rest that fills and lifts on hover and focus and sinks while dragging. The input is 44&nbsp;px tall, so the touch target is 44.</li>
+  <li><strong>Ticks</strong> (optional, <code>data-ticks</code>) and <strong>scale</strong> (<code>.slider__scale</code>): marks and minimum / maximum captions, <code>aria-hidden</code>.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Slider classes and attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="slider"</code> + <code>data-sg-slider</code></td><td>wrapper</td><td>Layout and colours; <code>data-sg-slider</code> turns on fill, readout, <code>aria-valuetext</code>, ticks and nudges.</td></tr>
+    <tr><td><code>data-format</code></td><td><code>percent</code>, <code>currency</code>, <code>minutes</code>, <code>unit</code>, <code>plain</code></td><td>How the value is written. On screen: "25 min". Spoken (<code>aria-valuetext</code>): "25 minutes".</td></tr>
+    <tr><td><code>data-currency</code> / <code>data-unit</code></td><td>ISO code / Intl unit</td><td>For <code>currency</code> (default USD) and <code>unit</code>.</td></tr>
+    <tr><td><code>data-ticks</code></td><td>integer &ge; 2</td><td>Tick marks, ends included.</td></tr>
+    <tr><td><code>data-sg-nudge</code></td><td><code>-1</code> | <code>1</code> (multiples of <code>step</code>)</td><td>On a button: steps the value, announces it, and is <code>aria-disabled</code> at the ends.</td></tr>
+    <tr><td><code>.slider__input</code></td><td><code>min</code>, <code>max</code>, <code>step</code>, <code>value</code>, <code>disabled</code></td><td>Plain native attributes.</td></tr>
+    <tr><td><code>--p</code></td><td>number 0..1</td><td>Set by script. If you render server-side, set it inline to show the fill before script runs.</td></tr>
+    <tr><td>JavaScript</td><td><code>SG.slider.update(el)</code>, <code>SG.slider.init(root)</code></td><td>Re-sync after you change the value from code. Nudges fire <code>input</code> then <code>change</code> on the range.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Slider keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>&larr;</kbd> <kbd>&darr;</kbd> / <kbd>&rarr;</kbd> <kbd>&uarr;</kbd></td><td>Decrease / increase by one step. Native. In right-to-left pages the direction flips.</td></tr>
+    <tr><td><kbd>PageDown</kbd> / <kbd>PageUp</kbd></td><td>Larger step (a tenth of the range, at least one step). Native.</td></tr>
+    <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>Minimum / maximum. Native.</td></tr>
+    <tr><td>Nudge buttons</td><td>The single-pointer alternative to dragging (WCAG 2.5.7). <kbd>Enter</kbd> or <kbd>Space</kbd> steps; the new value is announced politely because focus stays on the button.</td></tr>
+    <tr><td>Screen reader</td><td>"Volume, slider, 40 percent". <code>aria-valuetext</code> carries the unit; the readout is not announced twice.</td></tr>
+    <tr><td>Touch</td><td>Drag the thumb or tap the track. The input is 44&nbsp;px tall; the thumb is 28&nbsp;px.</td></tr>
+    <tr><td>Focus</td><td>The ring wraps the thumb (with its paper halo).</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the thumb's fill still fades.</td></tr>
+    <tr><td>Forced colours</td><td>Rail frame, fill (<code>Highlight</code>) and thumb (<code>ButtonFace</code> / <code>ButtonText</code>) use system colours; a focused thumb gets a 4px <code>Highlight</code> outline.</td></tr>
+    <tr><td>No JavaScript</td><td>The slider, its keys and its value all work; you lose the fill, the formatted readout, the ticks and the nudge buttons.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--accent</code>, <code>--paper</code>, <code>--paper-2</code>, <code>--line</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--hit</code>, <code>--ctl-sm</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--lift</code>, <code>--fill</code>, <code>--move</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--type-ctl</code>, <code>--type-meta</code>.</p>
