@@ -47,7 +47,7 @@ Never edit `dist/` or `docs/` by hand. Edit `src/` and `docs-src/`, then `npm ru
 | `npm run test:lint` | replays the tooling audit's 146 violations and 34 legitimate snippets against the lint (`tests/lint-cases.json`); add a case whenever you add a rule |
 | `npm run test:contrast` | every colour role pair × 2 themes × 2 contrast modes × 6 palettes (× 6 tone slots + ink + 4 status, pastel and bold), resolved by a real browser |
 | `npm run test:components` | keyboard / ARIA / focus / state specs in `tests/components/` |
-| `npm run test:a11y -- --pages a.html,b.html` | axe + focus walk + target sizes + reflow at 320 and 200 % text + forced colours on those docs pages (`--quick` for 2 appearances) |
+| `npm run test:a11y -- --pages a.html,b.html` | axe + focus walk + target sizes + reflow at 320 and 200 % text + forced colours on those docs pages (`--quick` for 2 appearances); `data-allow-clip` on a demo marks text that is cut on purpose (truncation, a failure shown as a warning) |
 | `node tests/screenshots.mjs components/x.html --theme dark --palette mint --corners soft --width 390` | look at it. `--matrix` for the grid, `--selector '#examples'` to crop |
 | `npm run new:component -- name --order 45` | scaffold CSS + docs page + test spec |
 | `npm test` | everything above, in order |
