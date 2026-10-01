@@ -28,7 +28,8 @@
 
    STATES come from data-state on the figure (an image has no native "loading" or "failed" attribute):
      data-state="loading"   skeleton + spinner (a pulse under reduced motion); aria-busy on the figure
-     data-state="failed"    dashed frame, an icon, words and a "Try again" button. Status = icon + words.
+     data-state="failed"    dashed frame, an icon, words ("Picture didn’t load") and a "Try again" button.
+                            Status = icon + words; a tile under 192px keeps the words and the button only.
    src/js/70-media.js sets both for you from the img's load / error events. Without it the picture simply
    shows; nothing here depends on it.
 
@@ -40,9 +41,9 @@
    three lines at 200% text), the frame row takes the extra height and the picture is cropped to it. The
    frame never stops short of the caption with a band of empty paper above the rule.
 
-   LARGE TEXT. Captions, titles and badge words grow with the reader's text size; the insets around them
-   (caption padding, the badge's padding and its distance from the corner, the status padding) and the
-   status icon are chrome and stop at their 100% size (--chrome-*).
+   LARGE TEXT. Captions and titles grow with the reader's text size; the insets around them (caption
+   padding, the status padding), the status icon and the whole badge (its word too: it sits on the
+   picture, and a growing plate would cover it) are chrome and stop at their 100% size (--chrome-*).
 
    THE FIGURE'S OWN BACKGROUND IS THE LINE COLOUR. With soft corners the 2px frame and a clipped child (an ink
    caption bar, a dark picture) both anti-alias along the same inner curve, and the figure's background shows
@@ -54,6 +55,7 @@
      --_bg / --_bg-ink            what the frame shows before the picture (tone, else --paper-2) and its text
      --_cap-bg / -ink / -soft     caption strip colours (tone, else paper); the bar and over variants swap them
      --_pad                       caption padding, from the figure's width (cqi lives on parts, never on .media)
+     --_badge-text / --_badge-ic  the badge's word and icon, capped at their 100% size (a badge is chrome)
    They are read on the figure because --tone-* are registered inherits:false: a child cannot see them.
 
    FOUNDATION REQUEST  a role for "always-dark ink" would let a filled control sit on a photo in both themes;
@@ -96,6 +98,8 @@
     --_cap-ink: var(--tone-ink, var(--ink));
     --_cap-soft: var(--tone-ink-soft, var(--ink-soft));
     --_pad: clamp(var(--chrome-3), 4cqi, var(--chrome-4));
+    --_badge-text: min(var(--text-xs), 13px); /* the badge is chrome: see the badge */
+    --_badge-ic: min(0.875rem, 14px);
     /* the hard shadow and the lift are chrome (4px at every text size): a doubled 8px shadow at 200% text stood
        out past the focus ring's halo and stepped its corner */
     --_shadow: calc(var(--lift) * var(--chrome-1)) calc(var(--lift) * var(--chrome-1)) 0 0 var(--line);
@@ -186,23 +190,27 @@
     aspect-ratio: auto;
   }
 
-  /* ---- badge: a label on the picture, on a plate (never bare text on a photo) ----- */
+  /* ---- badge: a label on the picture, on a plate (never bare text on a photo) -----
+     A badge is chrome, like a badge on an icon (and like the badges a phone's photo library puts on a picture):
+     all of it, its word too, stops at its 100% size. With the word in rem, 200% text made "Favourite" a plate
+     across most of a narrow picture, and the picture is what the person came to see. Its words are short and
+     are read out with the figure; the caption is where text grows. */
   .media__badge {
     position: absolute;
     z-index: 1;
-    /* the words grow with the text; the corner it sits in and its insets are chrome */
     inset-block-start: var(--chrome-2);
     inset-inline-start: var(--chrome-2);
     display: inline-flex;
     align-items: center;
     gap: var(--chrome-1);
-    min-block-size: 1.5rem;
+    min-block-size: var(--chrome-ic);
     padding-inline: var(--chrome-2);
     color: var(--on-media);
     background: var(--scrim-strong);
     border: var(--bw-thin) solid var(--on-media);
     border-radius: var(--radius-pill);
     font: var(--type-label);
+    font-size: var(--_badge-text);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
     font-variant-numeric: tabular-nums;
@@ -210,7 +218,7 @@
   }
 
   .media__badge > .ic {
-    --ic-size: 0.875rem;
+    --ic-size: var(--_badge-ic);
   }
 
   /* ---- caption ---------------------------------------------------------------------- */
@@ -327,8 +335,10 @@
     --ic-size: calc(var(--chrome-ic) + var(--chrome-1)); /* 28px, stands alone above the words: chrome */
   }
 
-  /* small tiles: a tighter caption; keep the sentence and the button, drop the icon */
-  @container media (max-width: 12rem) {
+  /* Small tiles: a tighter caption; keep the sentence and the button, drop the icon. In px, not rem: "small" is
+     the tile's size on the screen. At 12rem, 200% text made every figure narrower than 384px "small", so a
+     full-width failed figure lost its icon, and status is always an icon AND words. */
+  @container media (max-width: 192px) {
     .media__caption {
       padding: var(--chrome-2);
     }

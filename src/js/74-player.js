@@ -28,10 +28,14 @@
      · failure: data-state="error", a plain sentence with an icon in .player__status, the controls
        become aria-disabled, and a "Try again" button ([data-player="retry"], made here if the markup
        has none) appears under the sentence. Try again reloads the media and gives the controls back;
-       if it had focus, focus moves to Play (the button goes away). It never autoplays.
+       if it had focus, focus moves to Play (the button goes away). It never autoplays. A recording
+       given as <source> children fails without an error on the media element (the error fires on each
+       <source>, and media.error stays null), so the last <source> failing counts as the failure too.
+     · the time: the markup's length stays until the media reports its own (a recording that never
+       loads would otherwise say it is 0:00 long).
      · one row: SG.fit (05-fit.js) writes the richest layout that fits one line to data-fit on
-       .player__row (full, compact, tight, bare: see player.css), and re-checks when the player's
-       width or the reader's text size changes.
+       .player__row (full, compact, tight, small, bare: see player.css), and re-checks when the
+       player's width or the reader's text size changes.
    API: SG.player.init(el)
    ========================================================================== */
 (function (SG) {
@@ -76,7 +80,7 @@
       if (SG.scrubber) SG.scrubber.sync(p.scrub);
     }
     if (p.cur) p.cur.textContent = clock(m.currentTime || 0);
-    if (p.dur) p.dur.textContent = clock(d);
+    if (p.dur && (d || m.readyState >= 1)) p.dur.textContent = clock(d); // until the metadata is in, the markup's length stands
     setPressed(p.play, !m.paused && !m.ended);
     setPressed(p.mute, m.muted || m.volume === 0);
   }
@@ -169,7 +173,14 @@
       });
     });
     m.addEventListener('ended', function () { SG.announce(title(root) + ' finished'); });
-    m.addEventListener('error', function () { fail(root); });
+    // Failure. Captured, because a <source> that fails fires error on itself (it does not bubble) and the media
+    // element never fires one: when the LAST <source> fails, nothing will play. A <track> that fails is not a
+    // failure of the recording.
+    m.addEventListener('error', function (e) {
+      var t = e.target;
+      var sources = m.querySelectorAll('source');
+      if (t === m || (t.tagName === 'SOURCE' && t === sources[sources.length - 1])) fail(root);
+    }, true);
 
     // the seek bar
     if (p.seek) {
@@ -238,7 +249,7 @@
   }
 
   /* the row is one line at every size (see player.css, ONE ROW): the richest layout that fits */
-  if (SG.fit) SG.fit.register('.player__row', { steps: ['full', 'compact', 'tight', 'bare'] });
+  if (SG.fit) SG.fit.register('.player__row', { steps: ['full', 'compact', 'tight', 'small', 'bare'] });
 
   SG.player = { init: init };
 

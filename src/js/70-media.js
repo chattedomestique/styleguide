@@ -25,7 +25,8 @@
 (function (SG) {
   'use strict';
 
-  var TEXT = { loading: 'Loading image', failed: 'Image didn’t load', retry: 'Try again' };
+  // one sentence everywhere (the static examples in the docs say the same): change it per figure with data-*-text
+  var TEXT = { loading: 'Loading picture', failed: 'Picture didn’t load', retry: 'Try again' };
 
   function figureOf(el) { return el && el.closest ? el.closest('.media') : null; }
   function frameOf(fig) { return fig.querySelector('.media__frame'); }

@@ -9,7 +9,7 @@
 
    <div class="player" role="group" aria-labelledby="memo-title" data-skip="5">
      <div class="player__stage">                                  video only
-       <video class="player__media" controls playsinline preload="metadata" poster="…">
+       <video class="player__media" controls playsinline preload="none" poster="…">   nothing loads until Play
          <source src="…" type="video/webm">
        </video>
      </div>
@@ -47,14 +47,16 @@
    and never covers it.
 
    ONE ROW, ONE HEIGHT. Play is the primary circle (56px); every other control in the row (Back,
-   Forward, Mute, Captions) is 44px tall, all centred on one line. The row is chrome: the circles,
-   the skip pills (their arrow AND their digit, which read as one glyph), the gaps and the player's
-   insets keep their 100% size at 200% text, so the title, the description, the time and the status
-   take the room instead (--chrome-*). The row never wraps: src/js/74-player.js measures it (SG.fit)
-   and writes the richest layout that fits one line to data-fit on .player__row:
+   Forward, Mute, Captions) shares one height, 44px (36px in the small layout), all centred on one line. The
+   row is chrome: the circles, the skip pills (their arrow AND their digit, which read as one glyph), their
+   44px targets, the gaps and the player's insets keep their 100% size at 200% text, so the title, the
+   description, the time and the status take the room instead (--chrome-*). A player under 240px wide
+   tightens its insets from 16 to 12px. The row never wraps: src/js/74-player.js measures it (SG.fit) and
+   writes the richest layout that fits one line to data-fit on .player__row:
      full      Play 56, the skip pills (arrow and number side by side), Mute or Captions
      compact   Play 56, the skips become 44px circles with the number inside the arrow
      tight     the same with Play at 44px too
+     small     Play 44, every other control a 36px circle, 8px apart (a small row: a phone mock, a sidebar)
      bare      Play (56) and Mute only: Back and Forward go, because the seek bar does their job (tap to
                jump, arrow keys to step) and two rows of transport buttons read as a broken player
    Without the script there is no row at all (the native controls are the player).
@@ -66,14 +68,19 @@
    THE PATTERN (same as button.css): every button is a Button. The seek bar is a Scrubber, so the
    keys, the click-to-jump and the readout are the Scrubber's. The frame is a 2px rectangle.
 
-   PRIVATE  --_digit (the skip pills' number: chrome, it stops at its 100% size)
+   PRIVATE  --_pad    the player's side insets (16px, 12px in a narrow player)
+            --_ctl    the height of every control but Play (44px, 36px in the small layout)
+            --_digit  the skip pills' number (chrome: it stops at its 100% size)
+            --_glyph  the number inside a skip circle's arrow (10px: it sits inside the arc, clear of the arrowhead)
    ========================================================================== */
 
 @layer sg.components {
   .player {
     --_bg: var(--tone-bg, var(--paper));
     --_ink: var(--tone-ink, var(--ink));
+    --_pad: var(--chrome-4);
     --_digit: min(var(--text-md), 16px);
+    --_glyph: min(0.625rem, 10px);
 
     display: flex;
     flex-direction: column;
@@ -122,7 +129,7 @@
   .player__head {
     display: grid;
     gap: var(--chrome-1);
-    padding: var(--chrome-4) var(--chrome-4) 0;
+    padding: var(--chrome-4) var(--_pad) 0;
   }
   .player__title {
     margin: 0;
@@ -147,18 +154,34 @@
        overflows itself (which the script measures) instead of widening the player under its clip */
     grid-template-columns: minmax(0, 1fr);
     gap: var(--chrome-2);
-    padding: var(--chrome-3) var(--chrome-4) var(--chrome-4);
+    padding: var(--chrome-3) var(--_pad) var(--chrome-4);
+  }
+
+  /* A narrow player (in a phone mock, a sidebar, a card) gives its row the 8px it would spend on insets, so it
+     keeps all its controls longer. Under 240px wide, frame included (the container is measured inside the 2px
+     frame). In px: the insets and the row are chrome, they do not grow with the text. */
+  @container player (inline-size < 236px) {
+    .player__head,
+    .player__controls {
+      --_pad: var(--chrome-3);
+    }
   }
 
   /* ---- the row ------------------------------------------------------------------------------------- */
   .player__row {
+    --_ctl: var(--chrome-ctl); /* every control but Play */
+    --_apart: var(--chrome-3); /* between the transport group and the end group */
     display: flex;
     flex-wrap: wrap; /* until the script has measured it; from then on (data-fit) it is one line */
     align-items: center;
-    gap: var(--chrome-2) var(--chrome-3);
+    gap: var(--chrome-2) var(--_apart);
   }
   .player__row[data-fit] {
     flex-wrap: nowrap;
+  }
+  .player__row[data-fit="small"] {
+    --_ctl: var(--chrome-ctl-sm);
+    --_apart: var(--chrome-2);
   }
   /* Play, Back and Forward are one group */
   .player__transport {
@@ -166,7 +189,10 @@
     align-items: center;
     gap: var(--chrome-2);
   }
+  /* The targets are chrome too. The Button's --hit is rem: at 200% text a skip pill's 88px target reached
+     22px past its 44px frame, over its neighbour and the time above it. */
   .player__row .btn {
+    --_hit: var(--chrome-hit);
     flex: none;
   }
   .player__end {
@@ -177,12 +203,12 @@
     margin-inline-start: auto;
   }
 
-  /* every control but Play: 44px tall at every text size (a circle stays a 44px circle, a pill a 44px pill) */
+  /* every control but Play: one height at every text size (a circle stays a circle, a pill a pill) */
   .player__row .btn:not(.player__play) {
-    --_h: var(--chrome-ctl);
-    --_cap: var(--chrome-ctl);
+    --_h: var(--_ctl);
+    --_cap: var(--_ctl);
     --_px: var(--chrome-3);
-    min-inline-size: var(--chrome-ctl); /* the Button's minimum is --hit, which doubles at 200% text */
+    min-inline-size: var(--_ctl); /* the Button's minimum is --hit, which doubles at 200% text */
   }
   /* the skip pills: the arrow and the number are one glyph, chrome like an icon (the number is also in the name) */
   .player__row :is([data-player="back"], [data-player="forward"]) {
@@ -212,15 +238,18 @@
     }
   }
 
-  /* compact: the skips are circles too, the number inside the arrow (Lucide's arrows circle the centre) */
-  .player__row:is([data-fit="compact"], [data-fit="tight"]) :is([data-player="back"], [data-player="forward"]) {
+  /* compact, tight, small: the skips are circles too, the number inside the arrow. Lucide's arrows circle the
+     centre, but the arrowhead ends 3px from the middle at the top (top left for Back, top right for Forward):
+     a 12px digit ran into it and read as a 5 with a line through its top. A 10px digit, nudged down and away
+     from the arrowhead, sits inside the arc with a clear gap all round. */
+  .player__row:is([data-fit="compact"], [data-fit="tight"], [data-fit="small"]) :is([data-player="back"], [data-player="forward"]) {
     --_r: var(--radius-pill);
     display: inline-grid;
     place-items: center;
-    inline-size: var(--chrome-ctl);
-    min-inline-size: var(--chrome-ctl);
+    inline-size: var(--_ctl);
+    min-inline-size: var(--_ctl);
     padding: 0;
-    font-size: var(--chrome-ic-xs); /* a glyph inside a drawn shape: 12px, like the card bar control's */
+    font-size: var(--_glyph);
     font-weight: 700;
     line-height: 1;
 
@@ -230,9 +259,23 @@
     & > .ic {
       --ic-size: var(--chrome-ic);
     }
+    & > .num {
+      translate: 0.08em 0.16em;
+    }
   }
-  /* tight: Play joins the others at 44px (bare has the room for the 56px primary again) */
-  .player__row[data-fit="tight"] .player__play {
+  .player__row:is([data-fit="compact"], [data-fit="tight"], [data-fit="small"]) [data-player="forward"] > .num {
+    translate: -0.08em 0.16em;
+  }
+  /* A 36px circle's 44px target hangs 4px past it on each side. At the end of the row that was 4px past the row,
+     which SG.fit measures as overflow (the small layout was refused in a row it fits). The row takes those 4px as
+     padding and gives them back as a negative margin: the circles stay where they were (the last one flush with
+     the time's end above it), and the target hangs inside the row's own box. */
+  .player__row[data-fit="small"] {
+    padding-inline-end: calc(var(--chrome-hit) / 2 - var(--_ctl) / 2);
+    margin-inline-end: calc(var(--_ctl) / 2 - var(--chrome-hit) / 2);
+  }
+  /* tight and small: Play steps down to 44px too (bare has the room for the 56px primary again) */
+  .player__row:is([data-fit="tight"], [data-fit="small"]) .player__play {
     --_h: var(--chrome-ctl);
     --_cap: var(--chrome-ctl);
   }

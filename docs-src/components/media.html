@@ -24,9 +24,26 @@
   .demo [data-role="ratios"] [data-ratio="21:9"] { --r: 2.3333; }
   .demo [data-role="ratios"] [data-ratio="3:4"] { --r: 0.75; }
   .demo [data-role="ratios"] [data-ratio="4:5"] { --r: 0.8; }
+  /* one inset for every caption in the specimen: the component's inset follows each figure's width (and tightens
+     under 192px), which made the captions of one row end at three different heights */
+  .demo [data-role="ratios"] .media__caption { padding: var(--chrome-2) var(--chrome-3); }
   @container (max-width: 15rem) {
     .demo [data-role="ratios"] > div { display: grid; }
   }
+  /* the crop specimen: two columns at most (four squares read as a 2 x 2 comparison), one when a caption chip
+     (about 7.25rem of mono type in a 28px inset) would not fit its half */
+  .demo [data-role="crop"] { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, max(calc(7.25rem + 28px), calc(50% - var(--space-3) / 2))), 1fr)); }
+  /* state specimens: the state is named under each figure, clear of the lift, the shadow and the ring; three
+     across when they fit, one per line when they do not (never two and one) */
+  .demo :is([data-role="link-states"], [data-role="states"]) { display: grid; gap: var(--space-5) var(--space-4); grid-template-columns: minmax(0, 1fr); }
+  .demo :is([data-role="link-states"], [data-role="states"]) > div { display: grid; grid-template-rows: 1fr auto; gap: var(--space-4); }
+  .demo :is([data-role="link-states"], [data-role="states"]) > div > .t-meta { text-align: center; }
+  @container (min-width: 36rem) { .demo [data-role="link-states"] { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @container (min-width: 28rem) { .demo [data-role="states"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* Stopgap until docs.css narrows the h2 itself (requested from the lead): the h2 is an expanded face, and at
+     200% text in a phone column "Accessibility" was wider than the column and broke inside the word. */
+  @container article (max-width: 11.5rem) { .docs-article h2 { font-stretch: 100%; } }
+  @container article (max-width: 9rem) { .docs-article h2 { font-stretch: 75%; } }
 </style>
 <h1>Media</h1>
 <p class="lede">A picture, in a frame, with a caption if it needs one. The picture is content, so the frame holds it in a rectangle; the only text that ever touches a photo sits on a solid plate, so contrast never depends on what the photo looks like.</p>
@@ -51,33 +68,33 @@
   <div class="demo__stage">
     <div data-role="ratios">
       <div>
-        <figure class="media" data-ratio="4:3"><div class="media__frame"><img src="@/assets/media/market.svg" alt="A market stall with crates of tomatoes under a red and cream awning" width="1200" height="900"><span class="media__badge">4:3</span></div></figure>
-        <figure class="media" data-ratio="3:2"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street, hills behind" width="1200" height="900"><span class="media__badge">3:2</span></div></figure>
-        <figure class="media" data-ratio="free"><div class="media__frame"><img src="@/assets/media/snow.svg" alt="A single red tent below a snowy mountain pass" width="1200" height="900"><span class="media__badge">Free</span></div></figure>
+        <figure class="media" data-ratio="4:3"><div class="media__frame"><img src="@/assets/media/market.svg" alt="A market stall with crates of tomatoes under a red and cream awning" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>4:3</code></span></figcaption></figure>
+        <figure class="media" data-ratio="3:2"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street, hills behind" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>3:2</code></span></figcaption></figure>
+        <figure class="media" data-ratio="free"><div class="media__frame"><img src="@/assets/media/snow.svg" alt="A single red tent below a snowy mountain pass" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>free</code></span></figcaption></figure>
       </div>
       <div>
-        <figure class="media" data-ratio="16:9"><div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"><span class="media__badge">16:9</span></div></figure>
-        <figure class="media" data-ratio="21:9"><div class="media__frame"><img src="@/assets/media/rooftops.svg" alt="City rooftops at dusk with lit windows and a crescent moon" width="1200" height="900"><span class="media__badge">21:9</span></div></figure>
+        <figure class="media" data-ratio="16:9"><div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>16:9</code></span></figcaption></figure>
+        <figure class="media" data-ratio="21:9"><div class="media__frame"><img src="@/assets/media/rooftops.svg" alt="City rooftops at dusk with lit windows and a crescent moon" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>21:9</code></span></figcaption></figure>
       </div>
       <div>
-        <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"><span class="media__badge">1:1</span></div></figure>
-        <figure class="media" data-ratio="4:5"><div class="media__frame"><img src="@/assets/media/bread.svg" alt="Three round loaves and two baguettes on a wooden counter" width="1200" height="900"><span class="media__badge">4:5</span></div></figure>
-        <figure class="media" data-ratio="3:4"><div class="media__frame"><img src="@/assets/media/greenhouse.svg" alt="Rows of seedlings in terracotta pots inside a greenhouse" width="1200" height="900"><span class="media__badge">3:4</span></div></figure>
+        <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>1:1</code></span></figcaption></figure>
+        <figure class="media" data-ratio="4:5"><div class="media__frame"><img src="@/assets/media/bread.svg" alt="Three round loaves and two baguettes on a wooden counter" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>4:5</code></span></figcaption></figure>
+        <figure class="media" data-ratio="3:4"><div class="media__frame"><img src="@/assets/media/greenhouse.svg" alt="Rows of seedlings in terracotta pots inside a greenhouse" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>3:4</code></span></figcaption></figure>
       </div>
     </div>
   </div>
 </div>
-<p class="t-meta">Landscape, wide, then square and portrait: in each row the pictures share one height, so their widths compare the ratios. <code>free</code> here is the file’s own 4:3. The label in the corner is a <code>.media__badge</code>: text on a <code>--scrim-strong</code> plate with a thin <code>--on-media</code> line, so it reads on the bright snow and the dark rooftops alike.</p>
+<p class="t-meta">Landscape, wide, then square and portrait: in each row the pictures share one height, so their widths compare the ratios. Each caption is the figure’s <code>data-ratio</code>; <code>free</code> here is the file’s own 4:3.</p>
 
 <h4 id="crop">Crop and fit</h4>
-<p><code>--pos</code> moves the crop; <code>data-fit=<wbr>"contain"</code> shows the whole picture on a <code>--paper-2</code> mat, for logos and product shots where cropping would cut something off.</p>
+<p><code>--pos</code> moves the crop: here <code>10% 50%</code>, the default <code>50% 50%</code>, and <code>92% 50%</code>. <code>data-fit=<wbr>"contain"</code>, the last, shows the whole picture on a <code>--paper-2</code> mat, for logos and product shots where cropping would cut something off.</p>
 <div class="demo">
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 8rem">
+    <div data-role="crop">
       <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Left of the harbour: a pier and one boat" width="1200" height="900" style="--pos: 10% 50%"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">--pos: 10% 50%</code></span></figcaption></figure>
-      <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Centre of the harbour: the sun and two boats" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta">Centred (default)</span></figcaption></figure>
+      <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Centre of the harbour: the sun and two boats" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">--pos: 50% 50%</code></span></figcaption></figure>
       <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Right of the harbour: a small boat and open water" width="1200" height="900" style="--pos: 92% 50%"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">--pos: 92% 50%</code></span></figcaption></figure>
-      <figure class="media" data-ratio="1:1" data-fit="contain"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="The whole harbour, letterboxed" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">data-fit="contain"</code></span></figcaption></figure>
+      <figure class="media" data-ratio="1:1" data-fit="contain"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="The whole harbour, letterboxed" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">contain</code></span></figcaption></figure>
     </div>
   </div>
 </div>
@@ -86,7 +103,7 @@
 <p>A caption is a <code>&lt;figcaption&gt;</code>, so the figure is named by it. Three kinds, chosen with <code>data-caption</code>; a <code>data-tone</code> on the figure tints the plain strip and the space behind the picture while it loads.</p>
 <div class="demo">
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 15rem; align-items: start">
+    <div class="grid" style="--grid-min: 15rem">
       <figure class="media">
         <div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"></div>
         <figcaption class="media__caption">
@@ -139,23 +156,29 @@
 <p>An image has no attribute that says "still loading" or "gave up", so the state is <code>data-state</code> on the figure. <code>src/js/<wbr>70-media.js</code> sets it from the image’s own <code>load</code> and <code>error</code> events; without the script the picture just appears. The frame keeps its ratio the whole time, so nothing around it moves; only when the words need more room than the ratio gives (large text, a narrow tile) does it grow, because the words are never cut off.</p>
 <div class="demo">
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 14rem; align-items: start">
-      <figure class="media" data-ratio="3:2" data-state="loading" aria-busy="true">
-        <div class="media__frame">
-          <div class="media__status"><p class="media__note">Loading photo</p></div>
-        </div>
-        <figcaption class="media__caption"><span class="media__title">Tram on line 28</span><span class="media__meta">Loading</span></figcaption>
-      </figure>
-      <figure class="media" data-ratio="3:2" data-state="failed">
-        <div class="media__frame">
-          <div class="media__status">
-            <span class="ic ic--image" aria-hidden="true"></span>
-            <p class="media__note">Photo didn’t load</p>
-            <button class="btn" data-size="sm" type="button">Try again</button>
+    <div data-role="states">
+      <div>
+        <figure class="media" data-ratio="3:2" data-state="loading" aria-busy="true">
+          <div class="media__frame">
+            <div class="media__status"><p class="media__note">Loading picture</p></div>
           </div>
-        </div>
-        <figcaption class="media__caption"><span class="media__title">Tram on line 28</span><span class="media__meta">Failed</span></figcaption>
-      </figure>
+          <figcaption class="media__caption"><span class="media__title">Tram on line 28</span><span class="media__meta">Every eleven minutes.</span></figcaption>
+        </figure>
+        <span class="t-meta">Loading</span>
+      </div>
+      <div>
+        <figure class="media" data-ratio="3:2" data-state="failed">
+          <div class="media__frame">
+            <div class="media__status">
+              <span class="ic ic--image" aria-hidden="true"></span>
+              <p class="media__note">Picture didn’t load</p>
+              <button class="btn" data-size="sm" type="button">Try again</button>
+            </div>
+          </div>
+          <figcaption class="media__caption"><span class="media__title">Kites on the ridge</span><span class="media__meta">A bright day, nearly white sky.</span></figcaption>
+        </figure>
+        <span class="t-meta">Failed</span>
+      </div>
     </div>
   </div>
 </div>
@@ -175,31 +198,40 @@
 </div>
 
 <h3 id="link">A figure that is one link</h3>
-<p>When the whole figure goes somewhere, put <code>data-link</code> on it and <code>class=<wbr>"media__link"</code> on the anchor in the title. The anchor’s <code>::after</code> stretches over the figure: one tab stop, one name, and the hit area is the whole thing. It lifts like a pressable thing, because it is one; the focus ring goes around the figure, not the text.</p>
+<p>When the whole figure goes somewhere, put <code>data-link</code> on it and <code>class=<wbr>"media__link"</code> on the anchor in the title. The anchor’s <code>::after</code> stretches over the figure: one tab stop, one name, and the hit area is the whole thing. It lifts like a pressable thing, because it is one; the focus ring goes around the figure, not the text. Below, the same figure at rest, hovered and focused (the last two are forced with <code>is-*</code> classes).</p>
 <div class="demo">
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 14rem; align-items: start">
-      <figure class="media" data-link data-caption="bar">
-        <div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street, hills behind" width="1200" height="900"></div>
-        <figcaption class="media__caption">
-          <span class="media__label">Line 28</span>
-          <a class="media__title media__link" href="#link">Tram, every eleven minutes</a>
-        </figcaption>
-      </figure>
-      <figure class="media is-hover" data-link>
-        <div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div>
-        <figcaption class="media__caption">
-          <span class="media__label">Hover (forced)</span>
-          <a class="media__title media__link" href="#link">Kites on the ridge</a>
-        </figcaption>
-      </figure>
-      <figure class="media is-focus" data-link>
-        <div class="media__frame"><img src="@/assets/media/bread.svg" alt="Three round loaves and two baguettes on a wooden counter" width="1200" height="900"></div>
-        <figcaption class="media__caption">
-          <span class="media__label">Focus (forced)</span>
-          <a class="media__title media__link" href="#link">Morning bread</a>
-        </figcaption>
-      </figure>
+    <div data-role="link-states">
+      <div>
+        <figure class="media" data-link data-caption="bar">
+          <div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street, hills behind" width="1200" height="900"></div>
+          <figcaption class="media__caption">
+            <span class="media__label">Line 28</span>
+            <a class="media__title media__link" href="#link">Tram to the hills</a>
+          </figcaption>
+        </figure>
+        <span class="t-meta">Rest</span>
+      </div>
+      <div>
+        <figure class="media is-hover" data-link>
+          <div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div>
+          <figcaption class="media__caption">
+            <span class="media__label">Ridge walk</span>
+            <a class="media__title media__link" href="#link">Kites on the ridge</a>
+          </figcaption>
+        </figure>
+        <span class="t-meta">Hover</span>
+      </div>
+      <div>
+        <figure class="media is-focus" data-link>
+          <div class="media__frame"><img src="@/assets/media/bread.svg" alt="Three round loaves and two baguettes on a wooden counter" width="1200" height="900"></div>
+          <figcaption class="media__caption">
+            <span class="media__label">Corner bakery</span>
+            <a class="media__title media__link" href="#link">Morning bread</a>
+          </figcaption>
+        </figure>
+        <span class="t-meta">Focus</span>
+      </div>
     </div>
   </div>
 </div>
@@ -224,7 +256,7 @@
 </div>
 
 <h3 id="context">In context</h3>
-<p>An entry in a photo journal: the date as a label, the picture with its caption, the settings as label-over-value pairs, and the two things you can do with it.</p>
+<p>An entry in a photo journal: the date as a label, the picture with its caption, the settings as label-over-value pairs, and the two things you can do with it. The picture is a favourite, which a <code>.media__badge</code> says in its corner: an icon and a word on a <code>--scrim-strong</code> plate with a thin <code>--on-media</code> line, so it reads on any picture, bright snow or dark rooftops.</p>
 <div class="phone">
   <div class="phone__screen stack" data-gap="4">
     <div class="stack" data-gap="1">
@@ -232,14 +264,14 @@
       <h3 class="t-title">Tomato stall, number 14</h3>
     </div>
     <figure class="media" data-ratio="3:2" data-caption="bar">
-      <div class="media__frame"><img src="@/assets/media/market.svg" alt="A market stall with crates of tomatoes under a red and cream awning" width="1200" height="900"></div>
+      <div class="media__frame"><img src="@/assets/media/market.svg" alt="A market stall with crates of tomatoes under a red and cream awning" width="1200" height="900"><span class="media__badge"><span class="ic ic--star" aria-hidden="true"></span>Favourite</span></div>
       <figcaption class="media__caption">
         <span class="media__label">Saturday market</span>
         <span class="media__meta">Shot a little before nine, before the crowd.</span>
       </figcaption>
     </figure>
     <dl>
-      <div><dt>Film</dt><dd>Portra 400</dd></div>
+      <div><dt>Film</dt><dd>Colour 400</dd></div>
       <div><dt>Exposure</dt><dd>1/250 at f/4</dd></div>
       <div><dt>Light</dt><dd>Open shade</dd></div>
       <div><dt>Frame</dt><dd class="num">14 of 36</dd></div>
@@ -255,9 +287,15 @@
 <p>The figure reads <code>--radius-tile</code>, so <code>data-corners</code> changes it with no code in the component. The picture is clipped by the frame, the caption strip by the same frame, and the figure’s own background is the frame’s colour, so no light hairline shows inside a soft corner between the frame and an ink caption bar.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 13rem">
-      <div data-corners="square"><figure class="media" data-ratio="3:2" data-caption="bar"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__title">Square</span></figcaption></figure></div>
-      <div data-corners="soft"><figure class="media" data-ratio="3:2" data-caption="bar"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__title">Soft</span></figcaption></figure></div>
+    <div data-role="states">
+      <div data-corners="square">
+        <figure class="media" data-ratio="3:2" data-caption="bar"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__label">Line 28</span><span class="media__title">Tram to the hills</span></figcaption></figure>
+        <span class="t-meta">Square corners</span>
+      </div>
+      <div data-corners="soft">
+        <figure class="media" data-ratio="3:2" data-caption="bar"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__label">Line 28</span><span class="media__title">Tram to the hills</span></figcaption></figure>
+        <span class="t-meta">Soft corners</span>
+      </div>
     </div>
   </div>
 </div>
@@ -300,7 +338,7 @@
     <tr><td>Screen reader</td><td>"Figure, [caption]". The image is read with its <code>alt</code>. Loading is <code>aria-busy</code>; a failure is announced politely once.</td></tr>
     <tr><td>Contrast</td><td>Caption text is <code>--ink</code> / <code>--ink-soft</code> on paper (7:1 and up), paper on ink in a bar (its softer second line measured at 8.4:1 in the worst theme and palette), <code>--on-media</code> on <code>--scrim-strong</code> over a photo (8.5:1 at worst). On a tone the tone’s own <code>--tone-ink</code> / <code>--tone-ink-soft</code> apply (the soft one is guaranteed 4.5:1, nearer 5 in the palest palettes). No text is ever placed on a bare photo.</td></tr>
     <tr><td>Touch</td><td>A linked figure’s hit area is the whole figure. "Try again" is 36px drawn, 44px hit area.</td></tr>
-    <tr><td>Zoom / text size</td><td>Captions are rem and wrap between words (<code>overflow-wrap: break-word</code>). The insets around them and the status icon are chrome and stop at their 100% size, so at 200% text the words keep the room. Small figures get a tighter caption through a container query; nothing clips at 200% text.</td></tr>
+    <tr><td>Zoom / text size</td><td>Captions are rem and wrap between words (<code>overflow-wrap: break-word</code>). The insets around them and the status icon are chrome and stop at their 100% size, so at 200% text the words keep the room. A badge is chrome as a whole, its word included: it sits on the picture, and a plate that grew with the text would cover what the person came to see. Figures under 192px get a tighter caption through a container query; nothing clips at 200% text.</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the fill still changes. The picture fades in (opacity is safe). The loading ring pulses instead of spinning.</td></tr>
     <tr><td>Forced colours</td><td>The frame becomes <code>CanvasText</code>. Scrims and fills are replaced by the system palette, so the over caption gets a 2px rule above it. A hovered or focused link figure gets a 4px <code>Highlight</code> outline.</td></tr>
   </tbody>

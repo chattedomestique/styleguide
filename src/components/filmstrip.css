@@ -32,7 +32,11 @@
            Pressing puts it back on the strip and tints it (--fill 0.15: 15% ink over the picture, drawn on the
            radio that covers it), so a tap on a touch screen, where nothing hovers, shows at once.
    FOCUS   the ring is drawn on the label, outside the doubled frame, inside the track's padding.
-   PRIVATE --_thumb (size)   --_select (the doubled frame)
+   SCROLLING  a strip with more thumbnails than room scrolls sideways; the first one past the edge is cut about in
+           half at rest (the gap, and if need be the size, is measured), and the chosen one is brought into view
+           with a neighbour cut on each side that has more (src/js/72-filmstrip.js).
+   PRIVATE --_thumb (size)   --_select (the doubled frame)   --_strip-gap, --_thumb-k (on the track; the script
+           overrides them inline)
    ========================================================================== */
 
 @layer sg.components {
@@ -60,14 +64,19 @@
     border-block-start: var(--bw) solid var(--line);
   }
 
-  /* the track scrolls; its padding is the room the ring and the doubled frame need (they must not clip) */
+  /* The track scrolls; its padding is the room the ring and the doubled frame need (they must not clip).
+     --_strip-gap and --_thumb-k are measured by src/js/72-filmstrip.js (and written inline on the track) so that,
+     at rest, the first thumbnail past the edge is cut part way: the only sign that the strip scrolls (a strip
+     ending on a whole thumbnail looks finished). No snap points: the script scrolls to positions that cut a
+     neighbour on each side, and a snap would pull them back to a thumbnail's edge. */
   .filmstrip__track {
+    --_strip-gap: var(--chrome-3);
+    --_thumb-k: 1;
     display: flex;
-    gap: var(--chrome-3);
+    gap: var(--_strip-gap);
     padding: var(--chrome-3);
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-snap-type: x proximity;
     scroll-padding-inline: var(--chrome-3);
     scrollbar-width: thin;
     scrollbar-color: var(--line) var(--paper-2);
@@ -83,15 +92,16 @@
     position: relative;
     display: block;
     flex: none;
-    inline-size: var(--_thumb);
-    block-size: var(--_thumb);
+    /* --_thumb-k (from the track: the script sets 0.88 to 1.12) nudges the size so a scrolling strip cuts its
+       last thumbnail part way; 1 everywhere else, and outside a track */
+    inline-size: calc(var(--_thumb) * var(--_thumb-k, 1));
+    block-size: calc(var(--_thumb) * var(--_thumb-k, 1));
     margin: 0;
     color: var(--tone-ink, var(--ink));
     background: var(--tone-bg, var(--paper-2));
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-tile);
     box-shadow: var(--_select), var(--_shadow);
-    scroll-snap-align: start;
     cursor: pointer;
     transform: translate(
       calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),

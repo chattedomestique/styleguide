@@ -9,6 +9,11 @@
      · [data-step="down|up"] buttons: input.stepDown() / stepUp(), announced, aria-disabled
        (not disabled) at the ends so focus is never thrown away by the last step
      · an optional [data-reset] button that returns to the input's default value
+     · a ruler that thins out: under 4px between ticks (a narrow dial at 200% text) the minor ticks
+       go (data-dense on .scrubber__ticks) and the major ones and the origin stay
+     · one decision per panel: the scrubbers that share a parent keep every readout beside its label
+       or put every one under it (SG.fit writes data-fit="beside|under" on the parent), so a tool's
+       panel never mixes the two
 
    Markup it reads is documented in src/components/scrubber.css. Hooks are classes
    and data-* attributes, bound by delegation on document, so scrubbers added later
@@ -138,17 +143,30 @@
     var n = Number(root.getAttribute('data-ticks'));
     if (!n) { var steps = Math.round((max - min) / step); n = steps >= 4 && steps <= 40 ? steps : 20; }
     var major = Number(root.getAttribute('data-major')) || 5;
+    // the origin (where the fill starts) is a tick that always stays, like the major ones
+    var zero = root.hasAttribute('data-origin') ? Math.round(((Number(root.getAttribute('data-origin')) - min) / (max - min || 1)) * n) : -1;
     var ticks = document.createElement('span');
     ticks.className = 'scrubber__ticks';
     ticks.setAttribute('aria-hidden', 'true');
+    ticks.setAttribute('data-count', String(n));
     for (var i = 0; i <= n; i++) {
       var t = document.createElement('i');
       t.style.setProperty('--p', String(Math.round((i / n) * 10000) / 10000));
-      if (i % major === 0 || i === n) t.setAttribute('data-major', '');
+      if (i % major === 0 || i === n || i === zero) t.setAttribute('data-major', '');
       ticks.appendChild(t);
     }
     track.insertBefore(ticks, p.input);
+    density(ticks);
+    if (ro) ro.observe(ticks);
   }
+
+  /** Under 4px apart, 2px ticks run into one grey bar: keep the major ones (and the origin) only. */
+  function density(ticks) {
+    var n = Number(ticks.getAttribute('data-count')) || 1;
+    var dense = ticks.getBoundingClientRect().width / n < 4;
+    if (dense) ticks.setAttribute('data-dense', ''); else ticks.removeAttribute('data-dense');
+  }
+  var ro = 'ResizeObserver' in window ? new ResizeObserver(function (entries) { entries.forEach(function (e) { density(e.target); }); }) : null;
 
   /* ---- Events (delegated) --------------------------------------------------------------- */
   document.addEventListener('input', function (e) {
@@ -180,4 +198,7 @@
   SG.scrubber = { init: init, sync: sync, formatters: formatters, clock: clock };
 
   SG.afterParse(function () { SG.qsa('.scrubber').forEach(init); });
+
+  /* every readout of a panel beside its label, or every one under it (see scrubber.css) */
+  if (SG.fit) SG.fit.register(':has(> .scrubber)', { steps: ['beside', 'under'], parts: '.scrubber > .scrubber__head' });
 })((window.SG = window.SG || {}));

@@ -6,6 +6,10 @@
   .docs-article .gallery { padding-inline-start: 0; }
   .docs-article .gallery > li { max-inline-size: none; margin-block-start: 0; }
   .docs-article .gallery.card-grid--tiled > li { margin-block-start: calc(var(--bw) * -1); }
+  /* Stopgap until docs.css narrows the h2 itself (requested from the lead): the h2 is an expanded face, and at
+     200% text in a phone column "Accessibility" was wider than the column and broke inside the word. */
+  @container article (max-width: 11.5rem) { .docs-article h2 { font-stretch: 100%; } }
+  @container article (max-width: 9rem) { .docs-article h2 { font-stretch: 75%; } }
 </style>
 <h1>Gallery</h1>
 <p class="lede">Many pictures at once, none more important than the rest by default. They sit on one grid of square cells; a few are allowed to be bigger. There is no masonry to measure and nothing to lay out in script: the browser packs it, and the DOM order is the reading order.</p>
@@ -26,6 +30,7 @@
 
 <h3 id="basic">Basic</h3>
 <p>A gallery is a <code>.card-grid</code> with the <code>.gallery</code> class. Each cell is an <code>&lt;li&gt;</code>; its <code>data-size</code> says how many cells it takes. Every tile fills its cell, and the picture is cropped to it: set the focal point with <code>--pos</code> on the <code>img</code> when the subject is not in the middle. Tap a tile, and it goes where the app sends it (there is no lightbox here).</p>
+<p>The columns are planned, not “as many as fit”: two on a phone, four from 32rem, one under 16rem (a phone at large text). A mosaic only looks finished when its last row is full, so the tiles are planned for two and four columns: one big (4 cells), two wide and two tall (2 each) and four singles make 16 cells, four full rows of four or eight of two. The two tall tiles stand side by side, so neither leaves a hole beside it.</p>
 <div class="demo">
   <div class="demo__stage">
     <ul class="card-grid gallery" role="list" aria-label="This week, eight photos and a count">
@@ -61,16 +66,10 @@
           <figcaption class="media__caption"><a class="media__title media__link" href="#basic">Seedlings</a></figcaption>
         </figure>
       </li>
-      <li>
+      <li data-size="tall">
         <figure class="media" data-caption="over" data-link>
           <div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div>
           <figcaption class="media__caption"><a class="media__title media__link" href="#basic">Kites</a></figcaption>
-        </figure>
-      </li>
-      <li>
-        <figure class="media" data-caption="over" data-link>
-          <div class="media__frame"><img src="@/assets/media/rooftops.svg" alt="City rooftops at dusk with lit windows and a crescent moon" width="1200" height="900"></div>
-          <figcaption class="media__caption"><a class="media__title media__link" href="#basic">Rooftops</a></figcaption>
         </figure>
       </li>
       <li>
@@ -85,6 +84,12 @@
           <figcaption class="media__caption"><a class="media__title media__link" href="#basic">Morning bread</a></figcaption>
         </figure>
       </li>
+      <li data-size="wide">
+        <figure class="media" data-caption="over" data-link>
+          <div class="media__frame"><img src="@/assets/media/rooftops.svg" alt="City rooftops at dusk with lit windows and a crescent moon" width="1200" height="900"></div>
+          <figcaption class="media__caption"><a class="media__title media__link" href="#basic">Rooftops</a></figcaption>
+        </figure>
+      </li>
     </ul>
   </div>
 </div>
@@ -93,12 +98,12 @@
   <thead><tr><th>data-size (on the li)</th><th>Takes</th><th>Notes</th></tr></thead>
   <tbody>
     <tr><td>(none)</td><td>1 × 1 cell</td><td>A square.</td></tr>
-    <tr><td><code>wide</code></td><td>2 × 1</td><td>A banner: a stat, a panorama, a quote. Only spans two columns when the gallery is at least 18rem wide.</td></tr>
-    <tr><td><code>tall</code></td><td>1 × 2</td><td>A portrait.</td></tr>
-    <tr><td><code>big</code></td><td>2 × 2</td><td>The feature. Only spans two columns when the gallery is at least 18rem wide; below that it is a single square, so a span can never invent a column that does not fit.</td></tr>
+    <tr><td><code>wide</code></td><td>2 × 1</td><td>A banner: a stat, a panorama, a quote. In one column it is a 2:1 banner across the whole gallery.</td></tr>
+    <tr><td><code>tall</code></td><td>1 × 2</td><td>A portrait. Put it beside another tall tile, or beside two singles. In one column it is a square.</td></tr>
+    <tr><td><code>big</code></td><td>2 × 2</td><td>The feature. In two columns it is the whole width; in one, a single square, so a span can never invent a column that does not fit.</td></tr>
   </tbody>
 </table></div>
-<p class="t-meta">The columns are as many 8rem cells as fit (<code>--card-min</code> on the card grid, set to 8rem). At 390px that is two; on a desktop it is five or six.</p>
+<p class="t-meta">Count the cells: big 4, wide and tall 2, a single 1. A total that is a multiple of four closes every row in two and in four columns.</p>
 
 <h3 id="tiled">Tiled</h3>
 <p>The card grid’s tiled variant drops the gap and lets neighbouring tiles share their 2px frames, so the gallery reads as one ruled sheet. Corners go square inside it, as they do for cards.</p>
@@ -125,13 +130,13 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>A tile that is still loading or has failed keeps its cell, so the gallery never reflows under you (the cell grows only when large text needs more room than it gives, because words are never cut off). In a small tile the failed message drops the icon and keeps the sentence and the button. See <a href="@/components/media.html#states">Media</a> for what sets them.</p>
+<p>A tile that is still loading or has failed keeps its cell, so the gallery never reflows under you (the cell grows only when large text needs more room than it gives, because words are never cut off). In a tile under 192px the failed message drops the icon and keeps the sentence and the button; a bigger tile keeps all three, at any text size. See <a href="@/components/media.html#states">Media</a> for what sets them.</p>
 <div class="demo">
   <div class="demo__stage">
-    <ul class="card-grid gallery" role="list" aria-label="Photos, two still arriving">
+    <ul class="card-grid gallery" role="list" aria-label="Field notes, four photos, one still loading and one that failed">
       <li>
         <figure class="media" data-state="loading" aria-busy="true">
-          <div class="media__frame"><div class="media__status"><p class="media__note">Loading</p></div></div>
+          <div class="media__frame"><div class="media__status"><p class="media__note">Loading picture</p></div></div>
         </figure>
       </li>
       <li>
@@ -139,11 +144,17 @@
           <div class="media__frame">
             <div class="media__status">
               <span class="ic ic--image" aria-hidden="true"></span>
-              <p class="media__note">Didn’t load</p>
+              <p class="media__note">Picture didn’t load</p>
               <button class="btn" data-size="sm" type="button">Try again</button>
             </div>
           </div>
         </figure>
+      </li>
+      <li>
+        <figure class="media"><div class="media__frame"><img src="@/assets/media/market.svg" alt="A market stall with crates of tomatoes under a red and cream awning" width="1200" height="900"></div></figure>
+      </li>
+      <li>
+        <figure class="media"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street, hills behind" width="1200" height="900"></div></figure>
       </li>
     </ul>
   </div>
@@ -199,7 +210,7 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Grid</strong> <code>ul.card-grid<wbr>.gallery</code> with <code>role="list"</code> and an <code>aria-label</code> that says what and how many. A size container, so spans respond to the gallery’s width and not the screen’s.</li>
-  <li><strong>Cell</strong> <code>li</code>: a square (<code>aspect-ratio: 1</code>). <code>data-size</code> widens or lengthens it. <code>grid-auto-flow: dense</code> fills the holes.</li>
+  <li><strong>Cell</strong> <code>li</code>: a square (<code>aspect-ratio: 1</code>) on four tracks, spanning four, two or one of them (one, two or four columns). <code>data-size</code> widens or lengthens it. <code>grid-auto-flow: dense</code> fills the holes.</li>
   <li><strong>Tile</strong>: a filled <a href="@/components/media.html">Media</a> figure (the ratio is ignored, the cell sets the size), or a <a href="@/components/card.html">Card</a> that fills the cell.</li>
   <li><strong>Caption</strong>: best as <code>data-caption=<wbr>"over"</code> in a small tile, so it does not eat the picture; <code>bar</code> in a tiled big tile.</li>
   <li><strong>Gap</strong>: <code>--space-3</code> (12px). Or none, with <code>.card-grid<wbr>--tiled</code>.</li>
@@ -211,7 +222,7 @@
   <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
     <tr><td><code>class="card-grid gallery"</code></td><td></td><td>On a <code>ul role="list"</code>. Add <code>card-grid--tiled</code> for shared frames.</td></tr>
-    <tr><td><code>--card-min</code></td><td><code>8rem</code></td><td>Smallest cell. The grid fits as many as it can.</td></tr>
+    <tr><td>columns</td><td>1, 2, 4</td><td>Set by the gallery’s own width: one under 16rem, two under 32rem, four from there on. Plan the tiles so the cells add up to a multiple of four.</td></tr>
     <tr><td><code>data-size</code></td><td><code>wide</code>, <code>tall</code>, <code>big</code></td><td>On the <code>li</code>: how many cells it takes.</td></tr>
     <tr><td><code>--pos</code></td><td><code>50% 50%</code></td><td>On the <code>img</code>: the focal point of the crop.</td></tr>
     <tr><td><code>data-link</code></td><td></td><td>On the figure: the whole tile is one link. See <a href="@/components/media.html#link">Media</a>.</td></tr>
@@ -226,8 +237,8 @@
     <tr><td><kbd>Tab</kbd></td><td>One stop per linked tile, in DOM order. The focus ring goes around the whole tile, and a neighbour’s frame never covers it.</td></tr>
     <tr><td>Screen reader</td><td>"This week, eight photos and a count, list, 9 items." Each tile: the link’s text, and the picture’s alt. Give a picture that is the only content of a link an alt that says where it goes ("Open photo: morning bread").</td></tr>
     <tr><td>Reading order</td><td>The DOM order. <code>dense</code> packing can place a later small tile beside an earlier big one, so do not use a gallery for a sequence (WCAG 1.3.2).</td></tr>
-    <tr><td>Touch</td><td>A linked tile’s hit area is the whole tile; the smallest is about 128px.</td></tr>
-    <tr><td>Zoom / text size</td><td>Cells are fractions of the container, captions are rem and wrap. At 320px wide a gallery is two columns (one, if narrower than the smallest cell).</td></tr>
+    <tr><td>Touch</td><td>A linked tile’s hit area is the whole tile; the smallest is about 116px.</td></tr>
+    <tr><td>Zoom / text size</td><td>Cells are fractions of the container, captions are rem and wrap. The column breakpoints are rem, so large text gives fewer, bigger cells: at 320px wide a gallery is two columns, and one at 200% text.</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the fill still changes.</td></tr>
     <tr><td>Forced colours</td><td>Every tile keeps its real frame; a hovered or focused tile gets a 4px <code>Highlight</code> outline.</td></tr>
   </tbody>

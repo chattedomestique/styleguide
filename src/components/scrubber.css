@@ -32,7 +32,12 @@
    buttons and the gaps between them. So at 200% text minus, bar and plus still share one line on a phone
    (only a container under 200px regroups them: the bar on its own line, the buttons under it at either
    end). When the label and the readout cannot share a line, the readout drops under the label and starts
-   where it starts (it is as wide as its digits, so it is never indented).
+   where it starts (it is as wide as its digits, so it is never indented). Scrubbers that share a parent (a
+   tool's panel) decide together, measured by src/js/70-scrubber.js with SG.fit: data-fit="beside" on the
+   parent keeps every readout beside its label, "under" puts every one under it, so one panel never mixes
+   the two. Without the script each head wraps on its own.
+   The ruler drops its minor ticks when they would stand closer than 4px (they ran into a grey bar on a
+   narrow dial at 200% text); the major ticks and the origin stay.
 
    WHY NATIVE. A dragged custom slider needs every key, every pointer path and every
    assistive-tech convention rebuilt by hand; a native range has them all (WCAG 4.1.2,
@@ -84,6 +89,18 @@
     font-size: var(--text-lg);
     font-variant-numeric: tabular-nums lining-nums;
     white-space: nowrap;
+  }
+  /* A panel decides as one (SG.fit on the scrubbers' parent): beside = one line each (measured: a head that
+     overflows sends the whole panel to "under"); under = every readout under its label, at the start. */
+  :where([data-fit="beside"]) > .scrubber > .scrubber__head {
+    flex-wrap: nowrap;
+  }
+  :where([data-fit="beside"]) > .scrubber > .scrubber__head > .scrubber__label {
+    white-space: nowrap;
+  }
+  :where([data-fit="under"]) > .scrubber > .scrubber__head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .scrubber__row {
@@ -167,6 +184,10 @@
   }
   .scrubber__ticks > i[data-major] {
     --_h: min(1.25rem, 20px);
+  }
+  /* too dense to read as ticks (set by the script under 4px apart): only the major ones and the origin stay */
+  .scrubber__ticks[data-dense] > i:not([data-major]) {
+    display: none;
   }
 
   /* ---- the input: transparent, 44px tall, on top of everything ---- */
@@ -285,14 +306,15 @@
     background: var(--ink-faint);
   }
 
-  /* the hint and the Reset button under a dial. The sentence takes what is left and wraps; Reset keeps its one
-     word whole and, when the two cannot share a line (a 250px column, or big text), drops under the sentence at
-     the end instead of squeezing its label into "Res / et" or one letter a line (a pill is for one line). */
+  /* The hint (a <p>, balanced: one sentence never ends on a lone word like "highlights.") and the Reset button
+     under a dial. The sentence takes what is left and wraps; Reset keeps its one word whole and, when the two
+     cannot share a line (a 250px column, or big text), drops under the sentence instead of squeezing its label
+     into "Res / et" (a pill is for one line). On one line the sentence grows and pushes Reset to the end; alone
+     on its own line, nothing pushes it, so it starts under the sentence instead of hanging at the far edge. */
   .scrubber__foot {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
     gap: var(--chrome-2) var(--chrome-3);
     font: var(--type-meta);
     color: var(--ink-soft);
@@ -300,11 +322,12 @@
   .scrubber__foot > :not(.btn) {
     flex: 1 1 9rem;
     min-inline-size: 0;
+    margin: 0;
     overflow-wrap: break-word;
+    text-wrap: balance;
   }
   .scrubber__foot > .btn {
     flex: none;
-    margin-inline-start: auto;
     white-space: nowrap;
     overflow-wrap: normal; /* .btn breaks anywhere; here a short label is never split */
   }

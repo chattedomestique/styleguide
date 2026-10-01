@@ -11,6 +11,10 @@
   /* the sizes demo: strips with no stage above them, so they have no rule to sit under; the label is their heading */
   #demo-sizes .filmstrip__strip { border-block-start: 0; }
   #demo-sizes .t-label { margin: 0; }
+  /* Stopgap until docs.css narrows the h2 itself (requested from the lead): the h2 is an expanded face, and at
+     200% text in a phone column "Accessibility" was wider than the column and broke inside the word. */
+  @container article (max-width: 11.5rem) { .docs-article h2 { font-stretch: 100%; } }
+  @container article (max-width: 9rem) { .docs-article h2 { font-stretch: 75%; } }
 </style>
 <h1>Filmstrip</h1>
 <p class="lede">A row of small pictures that chooses what the big picture shows. One choice at a time, so the thumbnails are radio buttons: the browser gives you one tab stop, arrow keys that move and choose, and a value for a form. It is the photo editor’s tray: look at the big picture, pick from the small ones.</p>
@@ -153,7 +157,8 @@
 </table></div>
 
 <h3 id="sizes">Sizes</h3>
-<p><code>data-size</code> is <code>sm</code> (56px), the default 72px, or <code>lg</code> (96px). They keep that size at 200% text (a thumbnail is the frame of a picture, not a word), so the strip shows as many choices as before. The hit area is the whole thumbnail, so even the small one is over 44px. The strip scrolls sideways when there are more thumbnails than room; the last one is left partly in view as a cue, and the arrow keys bring the chosen one into view.</p>
+<p><code>data-size</code> is <code>sm</code> (56px), the default 72px, or <code>lg</code> (96px). They keep that size at 200% text (a thumbnail is the frame of a picture, not a word), so the strip shows as many choices as before. The hit area is the whole thumbnail, so even the small one is over 44px.</p>
+<p>When there are more thumbnails than room, the strip scrolls sideways and says so: the first thumbnail past the edge is always cut part way (40 to 70% of it shows), never a whole one ending neatly at the edge, which would look like the end of the strip. The script gets there by setting the gap (from 8px), and only when no gap can do it by changing the thumbnails’ size, by an eighth at most. After every choice, and on load, the strip brings the chosen thumbnail into view with a neighbour cut on each side that has more to show.</p>
 <div class="demo" id="demo-sizes">
   <div class="demo__stage">
     <div class="stack" data-gap="4">
@@ -282,9 +287,10 @@
 </div>
 
 <h3 id="context">In context</h3>
-<p>The photo editor’s backdrop tool: the stage on top, the choices under it, and cancel / apply in the same two corners they are in every tool. The circles act; the stage holds.</p>
+<p>The photo editor’s backdrop tool: its name, the stage, the choices under it, and cancel / apply in the same two corners they are in every tool. The circles act; the stage holds. The name sits above the stage, not between the two circles, so at any text size the circles keep their corners.</p>
 <div class="phone">
   <div class="phone__screen stack" data-gap="4">
+    <p class="t-label">Backdrop</p>
     <div class="filmstrip" data-shape="circle" data-size="sm">
       <figure class="media" id="tool-stage" data-ratio="1:1" data-fit="contain" data-tone="4">
         <div class="media__frame"><img src="@/assets/media/seedling.svg" alt="A seedling in a terracotta pot" width="1200" height="900"></div>
@@ -304,7 +310,6 @@
     </div>
     <div class="cluster" data-justify="between">
       <button class="btn" data-shape="circle" type="button" aria-label="Cancel backdrop"><span class="ic ic--close" aria-hidden="true"></span></button>
-      <p class="t-label">Backdrop</p>
       <button class="btn" data-shape="circle" data-variant="primary" type="button" aria-label="Apply backdrop"><span class="ic ic--check" aria-hidden="true"></span></button>
     </div>
   </div>
@@ -352,7 +357,7 @@
     <tr><td><kbd>Space</kbd></td><td>Chooses the focused thumbnail, if it is not already.</td></tr>
     <tr><td>Screen reader</td><td>"Choose a photo, group. Harbour at dawn, radio button, checked, 1 of 6." After a change: "Showing Tomato stall, number 14, 2 of 6", because the picture that changed is not where focus is.</td></tr>
     <tr><td>Touch</td><td>Tap to choose; swipe the strip to see more. No drag is required. The hit area is the whole thumbnail (56px at the smallest).</td></tr>
-    <tr><td>Reduced motion</td><td>No lift travel; the hard shadow and the press tint still show. The new picture fades in; nothing slides.</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the hard shadow and the press tint still show. The new picture fades in, and the strip moves to the choice at once instead of gliding.</td></tr>
     <tr><td>Forced colours</td><td>The frame is <code>CanvasText</code>, the chosen one gets a 4px frame and the badge keeps its check; hover and focus get a <code>Highlight</code> outline.</td></tr>
   </tbody>
 </table></div>

@@ -16,8 +16,15 @@
 
    data-size   (on the <li>)  wide = 2 x 1 · tall = 1 x 2 · big = 2 x 2 · absent = 1 x 1
    .card-grid--tiled          tiles share their 2px frames instead of leaving a gap (the owner's tiled grid)
-   The wide and big spans only apply when the gallery is wide enough for two columns (container query);
-   below that every tile is one column, so a span can never invent a second, overflowing column.
+
+   PLANNED COLUMNS. A mosaic only looks finished when its last row is full, and a row closes only when the
+   cells add up to the number of columns. With "as many cells as fit" the count was 2, 4, 5 or 6 depending on
+   the screen, so no set of tiles closed at every width (14 cells in 5 columns left a hole under the last tall
+   tile). So the gallery has three column counts, set by its own width: one column under 16rem, two under
+   32rem, four from there on (four tracks, which a tile spans 4, 2 or 1 of). Plan the tiles for two and four
+   columns: a big tile is 4 cells, wide and tall are 2, a single 1; make the total a multiple of four, and
+   put a tall tile beside another tall one or beside two singles. In one column every tile is one cell wide
+   (wide stays a 2:1 banner, the rest are squares), so a span can never invent a column that does not fit.
 
    Tiles in a gallery are "filled" .media: the cell sets the size, the picture is cropped to it (set the
    focal point with --pos), and the caption rides on the bottom. Use data-caption="over" for small tiles.
@@ -29,11 +36,15 @@
 
 @layer sg.components {
   .gallery {
-    --card-min: 8rem;
     --_gap: var(--space-3);
 
     container: gallery / inline-size;
     grid-auto-flow: dense;
+  }
+  /* four tracks, always; a tile spans 4, 2 or 1 of them (one, two or four columns). .card-grid.gallery beats the
+     card grid's own auto-fill columns whatever order the files are in. */
+  .card-grid.gallery {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   /* The gap is padding INSIDE each cell, taken back by a negative margin on the grid, not a grid gap.
@@ -47,9 +58,10 @@
     padding: calc(var(--_gap) / 2);
   }
 
-  /* min-block-size stays `auto` on purpose: at 200% text a caption taller than its cell makes the cell grow
-     instead of clipping the words (WCAG 1.4.4). At normal size the caption is shorter and nothing changes. */
+  /* One column (a gallery under 16rem: a phone at large text). min-block-size stays `auto` on purpose: at 200%
+     text a caption taller than its cell makes the cell grow instead of clipping the words (WCAG 1.4.4). */
   .gallery > li {
+    grid-column: span 4;
     min-inline-size: 0;
     /* an item with an aspect-ratio would otherwise sit at the start of its cell and size itself from the other axis */
     place-self: stretch;
@@ -58,18 +70,30 @@
   .gallery > li[data-size="wide"] {
     aspect-ratio: 2 / 1;
   }
-  .gallery > li[data-size="tall"] {
-    grid-row: span 2;
-    aspect-ratio: 1 / 2;
-  }
 
-  @container gallery (min-width: 18rem) {
-    .gallery > li[data-size="wide"] {
+  /* two columns */
+  @container gallery (min-width: 16rem) {
+    .gallery > li {
       grid-column: span 2;
     }
-    .gallery > li[data-size="big"] {
-      grid-column: span 2;
+    .gallery > li:is([data-size="wide"], [data-size="big"]) {
+      grid-column: span 4;
+    }
+    .gallery > li:is([data-size="tall"], [data-size="big"]) {
       grid-row: span 2;
+    }
+    .gallery > li[data-size="tall"] {
+      aspect-ratio: 1 / 2;
+    }
+  }
+
+  /* four columns */
+  @container gallery (min-width: 32rem) {
+    .gallery > li {
+      grid-column: span 1;
+    }
+    .gallery > li:is([data-size="wide"], [data-size="big"]) {
+      grid-column: span 2;
     }
   }
 
@@ -81,6 +105,18 @@
   .gallery > li > .card {
     min-block-size: 100%;
     --card-radius: var(--radius-tile); /* a card among pictures takes the pictures' corners */
+  }
+  /* A card's narrow rule (card.css: inline-size <= 12rem) is in rem, so at 200% text it fires on any card under
+     384px: a full-width wide tile's figure shrank from about 90px to 54px and its unit fell below the eyebrow.
+     Until the card answers in px (the shared change is requested), a gallery card is narrow only when it is
+     under 192px, and its unit is never smaller than its eyebrow. */
+  @container card (inline-size > 192px) {
+    .gallery .card__figure {
+      font-size: clamp(1.75rem, 27cqi, 6.5rem);
+    }
+  }
+  .gallery .card__figure > small {
+    font-size: max(0.42em, var(--text-sm));
   }
   .gallery .media {
     min-block-size: 100%;

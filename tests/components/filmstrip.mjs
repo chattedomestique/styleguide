@@ -207,19 +207,44 @@ export const tests = [
     },
   },
   {
-    name: 'on load every strip shows its chosen thumbnail whole: the track scrolls (to a snap point) when it starts past the edge',
+    name: 'on load every strip shows its chosen thumbnail whole, and each side with more to show cuts a neighbour part way (never at a gap)',
     async run({ page, goto, expect }) {
       await goto('components/filmstrip.html')
       await page.waitForTimeout(300)
       const r = await page.evaluate(() => [...document.querySelectorAll('.filmstrip__track')].map((t) => {
         const on = t.querySelector('input:checked')
         if (!on) return null
-        const a = on.parentElement.getBoundingClientRect(), b = t.getBoundingClientRect()
-        return { inView: a.left >= b.left - 0.5 && a.right <= b.right + 0.5, scrolled: t.scrollLeft, name: t.closest('fieldset').querySelector('legend').textContent }
+        const b = t.getBoundingClientRect(), a = on.parentElement.getBoundingClientRect()
+        const thumbs = [...t.querySelectorAll('.filmstrip__thumb')].map((el) => el.getBoundingClientRect())
+        // how far the edge at x cuts into a thumbnail: 0 in a gap or on an edge, 0.5 at the middle
+        const cut = (x) => { for (const r of thumbs) if (x > r.left && x < r.right) { const f = (x - r.left) / r.width; return Math.min(f, 1 - f) } return 0 }
+        const max = t.scrollWidth - t.clientWidth
+        return { inView: a.left >= b.left - 0.5 && a.right <= b.right + 0.5, scrolled: t.scrollLeft, max, left: t.scrollLeft > 0.5 ? cut(b.left) : null, right: t.scrollLeft < max - 0.5 ? cut(b.right) : null, name: t.closest('fieldset').querySelector('legend').textContent }
       }).filter(Boolean))
       expect.ok(r.length >= 5, 'the demo strips')
-      for (const x of r) expect.ok(x.inView, `${x.name}: the chosen thumbnail is fully in view (scrollLeft ${x.scrolled})`)
+      for (const x of r) {
+        expect.ok(x.inView, `${x.name}: the chosen thumbnail is fully in view (scrollLeft ${x.scrolled})`)
+        if (x.left !== null) expect.ok(x.left >= 0.15, `${x.name}: the start edge cuts a neighbour part way (${x.left.toFixed(2)})`)
+        if (x.right !== null) expect.ok(x.right >= 0.15, `${x.name}: the end edge cuts a neighbour part way (${x.right.toFixed(2)})`)
+      }
       expect.ok(r.some((x) => x.scrolled > 0), 'at least one strip had to scroll to show it (the in-context tool, where the fifth swatch is chosen)')
+    },
+  },
+  {
+    name: 'a strip that scrolls says so at rest: the first thumbnail past the edge is cut by 30 to 60% (40 to 70% shows), at 320, 390 and 1024px',
+    async run({ page, goto, expect }) {
+      for (const w of [320, 390, 1024]) {
+        await page.setViewportSize({ width: w, height: 900 })
+        await goto('components/filmstrip.html')
+        await page.waitForTimeout(300)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.filmstrip__track')].filter((t) => t.scrollWidth > t.clientWidth + 1 && t.scrollLeft < 0.5).map((t) => {
+          const b = t.getBoundingClientRect()
+          const hit = [...t.querySelectorAll('.filmstrip__thumb')].map((el) => el.getBoundingClientRect()).find((r) => r.left < b.right && r.right > b.right)
+          return { name: t.closest('fieldset').querySelector('legend').textContent, shown: hit ? (b.right - hit.left) / hit.width : null }
+        }))
+        expect.ok(r.length >= 3, `${w}px: strips that scroll`)
+        for (const x of r) expect.ok(x.shown !== null && x.shown >= 0.38 && x.shown <= 0.72, `${w}px ${x.name}: the edge cuts a thumbnail (${x.shown === null ? 'it falls in a gap' : Math.round(x.shown * 100) + '% shown'})`)
+      }
     },
   },
 ]

@@ -153,7 +153,7 @@ export const tests = [
     name: 'finishing resets the button and is announced; starting one player pauses the others',
     async run({ page, goto, expect }) {
       await open({ page, goto })
-      await ready(page); await ready(page, V)
+      await ready(page) // the video loads nothing until Play (preload="none")
       await page.evaluate((s) => { document.querySelector(s + ' .player__media').currentTime = 11.2 }, A)
       const play = page.locator(`${A} .player__play`)
       await play.scrollIntoViewIfNeeded()
@@ -197,7 +197,8 @@ export const tests = [
     name: 'captions: the switch comes back when the media has a caption track, and toggles it',
     async run({ page, goto, expect }) {
       await open({ page, goto })
-      await ready(page, V)
+      // the video loads nothing until Play (preload="none"); its caption track is there all the same
+      await page.waitForFunction((s) => document.querySelector(s).hasAttribute('data-sg-ready'), V)
       const cc = page.locator(`${V} [data-player="captions"]`)
       await cc.scrollIntoViewIfNeeded()
       expect.equal(await cc.isVisible(), true, 'shown, because the clip has a <track kind="captions">')
@@ -254,7 +255,7 @@ export const tests = [
     },
   },
   {
-    name: 'the control row is ONE line at 390 and 320px, at 100% and 200% text: nothing drops under anything, every visible control on one centre line, the secondary ones 44px',
+    name: 'the control row is ONE line at 390 and 320px, at 100% and 200% text: nothing drops under anything, every visible control on one centre line, the secondary ones one height (44px, 36 in the small layout), and every row of 176px or more keeps Back and Forward',
     async run({ page, goto, expect }) {
       await rangeMedia(page)
       for (const [w, pct] of [[390, 100], [390, 200], [320, 100], [320, 200]]) {
@@ -278,8 +279,9 @@ export const tests = [
           expect.ok(r.fit, `${w}px ${pct}%: the row was measured (data-fit)`)
           expect.ok(r.oneLine, `${w}px ${pct}%: one line in a ${r.w}px row (${r.fit}: ${r.names})`)
           expect.ok(r.inside, `${w}px ${pct}%: every control inside its ${r.w}px row (${r.fit})`)
-          expect.ok(r.secondary.every((h) => h === 44), `${w}px ${pct}%: the secondary controls are 44px (${r.secondary})`)
-          if (r.w >= 200) expect.ok(/Back 5 seconds/.test(r.names) && /Forward 5 seconds/.test(r.names), `${w}px ${pct}%: a ${r.w}px row keeps Back and Forward (${r.fit})`)
+          const want = r.fit === 'small' ? 36 : 44
+          expect.ok(r.secondary.every((h) => h === want), `${w}px ${pct}%: the secondary controls share one height, ${want}px in the ${r.fit} layout (${r.secondary})`)
+          if (r.w >= 176) expect.ok(/Back 5 seconds/.test(r.names) && /Forward 5 seconds/.test(r.names), `${w}px ${pct}%: a ${r.w}px row keeps Back and Forward (${r.fit})`)
         }
       }
     },
@@ -314,6 +316,64 @@ export const tests = [
       expect.equal(r.play, null, 'Play is available again')
       expect.equal(r.seek, false, 'and so is the seek bar')
       expect.equal(r.retry, 'none', 'Try again hides with the failure')
+    },
+  },
+  {
+    name: 'the "Could not load" specimen is live: its recording fails for real, Try again reloads it and moves focus to Play, and the failure comes back with its sentence and button',
+    async run({ page, goto, expect }) {
+      await open({ page, goto })
+      const S = '#states + p + p + .demo .player:has(#p5-title)'
+      await page.waitForFunction((s) => { const r = document.querySelector(s); return r && r.hasAttribute('data-sg-ready') && r.getAttribute('data-state') === 'error' && !!r.querySelector('.player__status .ic') }, S, { timeout: 6000 })
+      const before = await page.evaluate((s) => document.querySelector(s + ' [data-player="duration"]').textContent, S)
+      expect.equal(before, '0:12', 'the markup\'s length stands while the media has none of its own')
+      const retry = page.locator(`${S} [data-player="retry"]`)
+      await retry.focus()
+      await page.keyboard.press('Enter')
+      await expect.focused(page, `${S} .player__play`, 'focus moves to Play')
+      await page.waitForFunction((s) => { const r = document.querySelector(s); return r.getAttribute('data-state') === 'error' && getComputedStyle(r.querySelector('[data-player="retry"]')).display !== 'none' }, S, { timeout: 6000 })
+      const r = await page.evaluate((s) => { const root = document.querySelector(s); return { status: root.querySelector('.player__status').textContent.trim(), play: root.querySelector('.player__play').getAttribute('aria-disabled') } }, S)
+      expect.ok(/could not be played/.test(r.status), `it fails again and says so (${r.status})`)
+      expect.equal(r.play, 'true', 'the controls are unavailable again')
+    },
+  },
+  {
+    name: 'the targets in the row are chrome: at 200% text a skip pill is hit within its own 44px, not 22px above it over the time',
+    async run({ page, goto, expect }) {
+      await rangeMedia(page)
+      await page.setViewportSize({ width: 390, height: 800 })
+      await goto('components/player.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(300)
+      const r = await page.evaluate((s) => {
+        const b = document.querySelector(s + ' [data-player="back"]')
+        b.scrollIntoView({ block: 'center' })
+        const q = b.getBoundingClientRect(), cx = q.left + q.width / 2
+        const at = (y) => { const t = document.elementFromPoint(cx, y); return !!(t && t.closest('[data-player="back"]')) }
+        return { h: q.height, inside: at(q.top + 4), above: at(q.top - 12) }
+      }, A)
+      expect.equal(Math.round(r.h), 44, 'the pill is 44px tall at 200% text')
+      expect.ok(r.inside, 'a tap on the pill hits it')
+      expect.ok(!r.above, 'a tap 12px above it does not (its target is 44px, not 88)')
+    },
+  },
+  {
+    name: 'a video with a poster loads nothing until Play: the poster shows, the written length stands, and Play loads and plays it',
+    async run({ page, goto, expect }) {
+      await rangeMedia(page)
+      const asked = []
+      page.on('request', (r) => { if (/\.webm$/.test(r.url())) asked.push(r.url()) })
+      await goto('components/player.html')
+      await page.waitForTimeout(500)
+      const r = await page.evaluate((s) => { const root = document.querySelector(s), m = root.querySelector('video'); return { preload: m.getAttribute('preload'), poster: !!m.poster, ready: m.readyState, len: root.querySelector('[data-player="duration"]').textContent } }, V)
+      expect.equal(r.preload, 'none', 'preload="none"')
+      expect.ok(r.poster && r.ready === 0, 'the poster stands in and nothing is loaded')
+      expect.equal(r.len, '0:08', 'the length written in the markup stands')
+      expect.equal(asked.length, 0, 'no request for the recording on load')
+      const vplay = page.locator(`${V} .player__play`)
+      await vplay.scrollIntoViewIfNeeded()
+      await vplay.click()
+      await page.waitForFunction((s) => !document.querySelector(s + ' video').paused, V, { timeout: 6000 })
+      expect.ok(asked.length > 0, 'Play asks for it')
     },
   },
 ]
