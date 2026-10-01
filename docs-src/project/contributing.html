@@ -160,7 +160,7 @@ STEP 5. REPORT, plainly.
 <h3 id="add-tone">A tone</h3>
 <p>The six numbered slots are the API and stay six: a palette decides each slot's hue, which is the first bullet here.</p>
 <ul>
-  <li><strong>A slot's hue.</strong> Set <code>--tone-h-N</code> (hue) and <code>--tone-c-N</code> (vividness, 0 is grey) inside a palette block. The pastel fill, its text, its soft text and its solid pill are derived, and each clears 7:1.</li>
+  <li><strong>A slot's hue.</strong> Set <code>--tone-h-N</code> (hue) and <code>--tone-c-N</code> (vividness, 0 is grey) inside a palette block. The pastel fill, its text and its soft text are derived, and each pair clears 7:1; the text on the solid pill clears 4.5:1.</li>
   <li><strong>A new status tone</strong> (beyond <code>ok</code>, <code>warn</code>, <code>bad</code> and <code>info</code>). In <code>src/tokens/20-tones.css</code> add a <code>--hue-name</code> beside <code>--hue-ok</code>, add a <code>[data-tone]</code> rule for your name that sets <code>--th</code> and <code>--tc</code>, copying the four beside it, and add the selector to the <code>:is(…)</code> list that computes <code>--tone-bg</code> and <code>--tone-ink</code>. Add the name to <code>TONES</code> in <code>tests/lib/rules.mjs</code>, or the lint will call your new value a typo. <code>tests/contrast.mjs</code> reads tones from the built CSS, so run <code>npm run build</code> first and it is tested. Status always carries an icon or words as well as the colour, so <a href="@/components/tag.html">Tag</a> needs a symbol for it.</li>
   <li><strong>Tones carry rhythm, never meaning.</strong> A tone alone must not say "error".</li>
 </ul>
@@ -168,8 +168,8 @@ STEP 5. REPORT, plainly.
 
 <h3 id="add-icon">An icon</h3>
 <ol>
-  <li>Drop a 24 by 24 stroke SVG in <code>src/icons/bell.svg</code>, for example. The file name is the id. The <code>viewBox</code> must be <code>0 0 24 24</code> (the build refuses anything else), and the drawing is stroke-only: the build re-strokes every icon at 2px with square caps, so the file's own stroke settings do not matter. Lucide icons (ISC) are welcome; keep <code>src/icons/LICENSE-lucide.txt</code> beside them.</li>
-  <li>Use it as <code>&lt;span class="ic ic--bell" aria-hidden="true"&gt;&lt;/span&gt;</code>, with your id after <code>ic--</code>. The build fails on any page that uses an icon class with no file behind it, which is the typo check. Size it with <code>--ic-size</code>.</li>
+  <li>Drop a 24 by 24 stroke SVG in <code>src/icons/</code>. The file name is the id: <code>bell.svg</code> becomes <code>ic--bell</code>. The <code>viewBox</code> must be <code>0 0 24 24</code> (the build refuses anything else), and the drawing is stroke-only: the build re-strokes every icon at 2px with square caps, so the file's own stroke settings do not matter. Lucide icons (ISC) are welcome; keep <code>src/icons/LICENSE-lucide.txt</code> beside them.</li>
+  <li>Use it as <code>&lt;span class="ic ic--bell" aria-hidden="true"&gt;&lt;/span&gt;</code>. The build fails on any page that uses an icon class with no file behind it, which is the typo check. Size it with <code>--ic-size</code>.</li>
   <li><code>npm run build</code> writes it into <code>dist/icons.css</code>. The owner's five drawings (arrow, plus, minus, close, check) are in the main bundle; every other icon needs <code>icons.css</code>.</li>
   <li>An icon never replaces a word. A control whose only content is an icon gets an <code>aria-label</code> on the control, not on the icon. See <a href="@/foundations/icons.html">Icons</a>.</li>
 </ol>
