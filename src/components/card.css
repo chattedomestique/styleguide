@@ -195,6 +195,11 @@
     overflow: clip;
   }
 
+  /* media that ends the card has nothing to be closed off from: its line would double the card's own frame */
+  .card__media:last-child {
+    border-block-end: 0;
+  }
+
   .card__media > :is(img, video) {
     inline-size: 100%;
     block-size: 100%;
@@ -769,10 +774,12 @@
 
   /* The notch is painted in four background layers, so it takes the faint line and no hatch. */
   .card:not(.card--notch):is([aria-disabled="true"], .is-disabled) {
-    /* The hatch is lighter than the text on purpose: the words must stay readable through it.
+    /* The hatch is drawn in the card's own faint line, so it reads as one muted thing on any tone and palette (it was
+       --tone-4, which laid mint stripes over a yellow card).
+       The hatch is lighter than the text on purpose: the words must stay readable through it.
        Hard stops only, so it is a pattern and not a gradient. (It used to live in wire.css, a
        later layer, where it erased the notch's painted silhouette.) */
-    background-image: repeating-linear-gradient(135deg, transparent 0 0.4375rem, var(--tone-4) 0.4375rem 0.5rem);
+    background-image: repeating-linear-gradient(135deg, transparent 0 0.4375rem, var(--card-line) 0.4375rem 0.5rem);
   }
 
   .card:is([aria-disabled="true"], .is-disabled) :is(.card__eyebrow, .card__meta, .card__text, .card__title) {

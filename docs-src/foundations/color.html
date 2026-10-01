@@ -411,7 +411,6 @@
 
 <h2 id="palettes">The six palettes</h2>
 <p>A palette is a handful of knobs: the neutral hue and tint, the accent hue and chroma (and for a pale accent, a dark label), and a hue and vividness for each of the six tone slots. Nothing else. Each pair below is a real island, <code>&lt;div data-palette="mint" data-theme="light"&gt;</code> and its dark twin, built from the same markup. Tab through them: every button keeps its focus ring on every canvas.</p>
-<p class="t-meta" id="pal-inherit" hidden></p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div data-f="pals">
@@ -494,7 +493,7 @@
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
   <div>
     <strong>Islands layer on the page; they do not reset it</strong>
-    <p>A palette block sets only the knobs it lists, so an island keeps every other knob from the nearest ancestor. A <code>mint</code> island inside a <code>wire</code> page keeps wire's stepped tone lightness and grey status chroma, because mint does not set them; a <code>data-palette="default"</code> island inside a mint page is still mint, because the default has no block to reset to. Corner style layers the same way: an island on a soft page has soft corners unless it sets <code>data-corners="square"</code>, which the islands here do. Use island palettes for a region that differs from a default page, not to undo another palette.</p>
+    <p>A palette block starts from the default knobs and changes only what it lists, so an island looks the same as a page with that palette, whatever palette the page has: a <code>mint</code> island inside a <code>wire</code> page is mint, and a <code>data-palette="default"</code> island inside a mint page is the default. <code>npm run test:contrast</code> compares every island with a page of the same palette. Corner style layers the other way: an island on a soft page has soft corners unless it sets <code>data-corners="square"</code>, which the islands here do. Use island palettes for a region that differs from the page.</p>
   </div>
 </div>
 <div class="table-wrap"><table class="docs-table" id="pal-table">
@@ -671,21 +670,7 @@ window.addEventListener('DOMContentLoaded', function () {
   SG.prefs.onChange(measureOpacity);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', measureOpacity);
 
-  /* ---- 4 · The palettes note ---------------------------------------------------------------- */
-  function paletteNote() {
-    var note = document.getElementById('pal-inherit');
-    if (!note) return;
-    var p = document.documentElement.getAttribute('data-palette');
-    var c = document.documentElement.getAttribute('data-contrast');
-    if (p || c === 'more') {
-      note.hidden = false;
-      note.textContent = 'You are previewing this page with ' + (p ? 'the ' + p + ' palette' : '') + (p && c === 'more' ? ' and ' : '') + (c === 'more' ? 'higher contrast' : '') + '. Islands below keep the knobs their palette does not set, so some will not look like their shipped selves. Reset Appearance to see the palettes as designed.';
-    } else note.hidden = true;
-  }
-  paletteNote();
-  SG.prefs.onChange(paletteNote);
-
-  /* ---- 5 · Palette lab ---------------------------------------------------------------------- */
+  /* ---- 4 · Palette lab ---------------------------------------------------------------------- */
   (function () {
     var lab = document.getElementById('lab');
     if (!lab) return;

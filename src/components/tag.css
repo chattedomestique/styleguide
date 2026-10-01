@@ -49,6 +49,7 @@
     --_bw: var(--bw-thin);
     --_h: 1.5rem;
     --_px: var(--space-2);
+    --_py: calc(var(--space-1) / 2);
     --_fs: var(--text-sm);
     --_glyph: none;
 
@@ -71,7 +72,7 @@
     gap: var(--space-1);
     max-inline-size: 100%;
     min-block-size: var(--_h);
-    padding: calc(var(--space-1) / 2) var(--_px);
+    padding: var(--_py) var(--_px);
     margin: 0;
     color: var(--_ink);
     background: var(--_bg);
@@ -82,6 +83,7 @@
     border-radius: calc(var(--_h) / 2 + var(--space-1));
     font: var(--type-meta);
     font-size: var(--_fs);
+    line-height: 1.2; /* explicit, so the size steps are 20 / 24 / 32px and not whatever the meta line-height adds */
     font-weight: 600;
     font-variant-numeric: tabular-nums lining-nums;
     text-align: center;
@@ -156,6 +158,7 @@
     /* ---- sizes: a tag is never pressed, so it may be smaller than 44px ---- */
     &[data-size="sm"] {
       --_h: 1.25rem;
+      --_py: var(--bw-thin);
       --_fs: var(--text-xs);
     }
     &[data-size="lg"] {

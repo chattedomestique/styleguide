@@ -465,6 +465,8 @@ function buildDocs() {
 
     page.body = page.body.replace(/\{\{index:([A-Za-z]+)\}\}/g, (_, g) => renderIndex(g, pages, page, root))
     page.body = stackDocsTables(page.body)
+    // a single-word <code> (a token, an attribute, a class) never breaks inside: it would strand its leading '--' on one line
+    page.body = page.body.replace(/<code>([^<\s]{1,30})<\/code>/g, '<code class="nb">$1</code>')
 
     let html = layout
       .replaceAll('{{title}}', esc(page.meta.title))
