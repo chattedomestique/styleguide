@@ -1,4 +1,10 @@
-<!--{"title":"Choice","group":"Components","order":26,"summary":"Checkboxes, radios, selectable cards and a segmented pill: native inputs with a 44 px hit area, groups and an indeterminate state."}-->
+<!--{"title":"Choice","group":"Components","order":26,"summary":"Checkboxes, radios and selectable cards: native inputs with a 44 px hit area, groups and an indeterminate state."}-->
+<style>
+  /* docs scaffolding only. The phone mock's title is sized from the phone as well as from the text size (15cqi), so
+     its longest word fits the screen at 200% text on a 320px phone ("Reminders", "Notifications" broke inside the
+     word there). At 100% text and on a 390px phone at 200% it is the ordinary title size, or within 2px of it. */
+  .docs-article .phone .t-title { font-size: min(var(--text-xl), 15cqi); }
+</style>
 <h1>Choice</h1>
 <p class="lede">Checkboxes let people pick any number of options; radios make them pick exactly one. Both are real inputs, so grouping, arrow keys and form submission come from the browser. The box is a square because a rectangle holds; the radio is a circle because circles act. Both lift on hover.</p>
 
@@ -23,7 +29,7 @@
     <div class="stack" data-gap="2">
       <label class="choice"><input type="checkbox" name="cb-news" value="yes"><span class="choice__label">Remind me about my streak</span></label>
       <label class="choice"><input type="checkbox" name="cb-terms" value="yes" checked><span class="choice__label">I accept the terms <span class="field__req">(required)</span></span></label>
-      <label class="choice"><input type="checkbox" name="cb-hint" value="yes"><span class="choice__label">Keep me signed in<span class="choice__hint">You will stay signed in on this device for 30 days.</span></span></label>
+      <label class="choice"><input type="checkbox" name="cb-hint" value="yes"><span class="choice__label">Keep me signed in<span class="choice__hint">You will stay signed in on this device for 30&nbsp;days.</span></span></label>
     </div>
   </div>
 </div>
@@ -35,8 +41,8 @@
     <fieldset class="field">
       <legend class="field__label">Session length</legend>
       <div class="choice-group">
-        <label class="choice"><input type="radio" name="rd-len" value="5" checked><span class="choice__label">Quick<span class="choice__hint">5 cards, about 2 minutes</span></span></label>
-        <label class="choice"><input type="radio" name="rd-len" value="20"><span class="choice__label">Standard<span class="choice__hint">20 cards, about 8 minutes</span></span></label>
+        <label class="choice"><input type="radio" name="rd-len" value="5" checked><span class="choice__label">Quick<span class="choice__hint">5&nbsp;cards, about 2&nbsp;minutes</span></span></label>
+        <label class="choice"><input type="radio" name="rd-len" value="20"><span class="choice__label">Standard<span class="choice__hint">20&nbsp;cards, about 8&nbsp;minutes</span></span></label>
         <label class="choice"><input type="radio" name="rd-len" value="all"><span class="choice__label">Everything due<span class="choice__hint">As long as it takes</span></span></label>
       </div>
     </fieldset>
@@ -44,7 +50,7 @@
 </div>
 
 <h3 id="inline">Inline group</h3>
-<p>Short options sit side by side and wrap.</p>
+<p>Short options sit side by side. When they cannot all share the row (a narrow column, large text), the group stacks one option per row, like the group above, instead of leaving two options on the first line and a lonely third under them. A small script measures it (<code>35-choice.js</code>); without it the row wraps.</p>
 <div class="demo">
   <div class="demo__stage">
     <fieldset class="field">
@@ -58,8 +64,8 @@
   </div>
 </div>
 
-<h3 id="indeterminate">Indeterminate: "some of them"</h3>
-<p>A parent checkbox that stands for a group of children shows a dash when only some are checked. Indeterminate is a property, set in script (<code>input.indeterminate = true</code>); CSS reads it with <code>:indeterminate</code> and assistive technology hears "mixed". Put the children in a <code>.choice-group</code> inside the parent's group: it indents them to sit under the parent's label.</p>
+<h3 id="indeterminate">Indeterminate: “some of them”</h3>
+<p>A parent checkbox that stands for a group of children shows a dash when only some are checked. Indeterminate is a property, set in script (<code>input.<wbr>indeterminate = true</code>); CSS reads it with <code>:indeterminate</code> and assistive technology hears "mixed". Put the children in a <code>.choice-group</code> inside the parent's group: it indents them to sit under the parent's label.</p>
 <div class="demo">
   <div class="demo__stage">
     <fieldset class="field" data-demo-tree>
@@ -102,7 +108,7 @@
         <label class="card choice-card" data-tone="4">
           <input type="radio" name="cc-topup" value="bank" checked>
           <span class="card__body">
-            <span class="card__eyebrow">Free</span>
+            <span class="card__eyebrow">No fee</span>
             <span class="card__title">Bank transfer</span>
             <span class="card__meta">Arrives in 1 day</span>
           </span>
@@ -120,7 +126,7 @@
           <span class="card__body">
             <span class="card__eyebrow">$2 fee</span>
             <span class="card__title">Cash at a kiosk</span>
-            <span class="card__meta">Arrives in 10 minutes</span>
+            <span class="card__meta">Arrives in 10&nbsp;minutes</span>
           </span>
         </label>
       </div>
@@ -152,29 +158,29 @@
 </div>
 
 <h3 id="segmented">Segmented</h3>
-<p>Native radios drawn as one pill track, for picking a <strong>value or a filter</strong> from two to four short options: "Bank account | Transactions", "Day | Week | Month". The selected segment is a filled pill with its own frame inside the track's frame, so it has two outlines and inverted text and never relies on the accent. The track wears the focus ring: arrow keys move focus and the selection together. If choosing swaps a whole panel of content, use tabs instead.</p>
+<p>Native radios drawn as one pill track, for picking a <strong>value or a filter</strong> from two to four short options: "Bank account | Transactions", "Day | Week | Month". It is its own element, the <a href="@/components/segmented.html">segmented control</a>, built on the same native radios: one tab stop, arrow keys move and select, the value posts with a form. If choosing swaps a whole panel of content, use tabs instead.</p>
 <div class="demo">
   <div class="demo__stage">
-    <fieldset class="field">
-      <legend class="field__label">Show</legend>
-      <div class="choice-group" data-variant="segmented">
-        <label class="choice"><input type="radio" name="sg-view" value="acct" checked><span class="choice__label">Bank account</span></label>
-        <label class="choice"><input type="radio" name="sg-view" value="tx"><span class="choice__label">Transactions</span></label>
+    <div class="field">
+      <p class="field__label" id="sg-view-label">Show</p>
+      <div class="segmented" role="radiogroup" aria-labelledby="sg-view-label">
+        <label class="segmented__opt"><input type="radio" name="sg-view" value="acct" checked><span class="segmented__label">Bank account</span></label>
+        <label class="segmented__opt"><input type="radio" name="sg-view" value="tx"><span class="segmented__label">Transactions</span></label>
       </div>
-    </fieldset>
+    </div>
   </div>
 </div>
 <div class="demo">
   <div class="demo__stage">
-    <fieldset class="field">
-      <legend class="field__label">Range</legend>
-      <div class="choice-group" data-variant="segmented">
-        <label class="choice"><input type="radio" name="sg-range" value="d"><span class="choice__label">Day</span></label>
-        <label class="choice"><input type="radio" name="sg-range" value="w" checked><span class="choice__label">Week</span></label>
-        <label class="choice"><input type="radio" name="sg-range" value="m"><span class="choice__label">Month</span></label>
-        <label class="choice"><input type="radio" name="sg-range" value="y"><span class="choice__label">Year</span></label>
+    <div class="field">
+      <p class="field__label" id="sg-range-label">Range</p>
+      <div class="segmented" role="radiogroup" aria-labelledby="sg-range-label">
+        <label class="segmented__opt"><input type="radio" name="sg-range" value="d"><span class="segmented__label">Day</span></label>
+        <label class="segmented__opt"><input type="radio" name="sg-range" value="w" checked><span class="segmented__label">Week</span></label>
+        <label class="segmented__opt"><input type="radio" name="sg-range" value="m"><span class="segmented__label">Month</span></label>
+        <label class="segmented__opt"><input type="radio" name="sg-range" value="y"><span class="segmented__label">Year</span></label>
       </div>
-    </fieldset>
+    </div>
   </div>
 </div>
 
@@ -220,7 +226,7 @@
         <fieldset class="field">
           <legend class="field__label">How early</legend>
           <div class="choice-group">
-            <label class="choice"><input type="radio" name="ctx-early" value="10"><span class="choice__label">10 minutes before</span></label>
+            <label class="choice"><input type="radio" name="ctx-early" value="10"><span class="choice__label">10&nbsp;minutes before</span></label>
             <label class="choice"><input type="radio" name="ctx-early" value="60" checked><span class="choice__label">1 hour before</span></label>
             <label class="choice"><input type="radio" name="ctx-early" value="day"><span class="choice__label">The day before</span></label>
           </div>
@@ -235,12 +241,11 @@
 <ol>
   <li><strong>Row</strong> (<code>.choice</code>, a <code>&lt;label&gt;</code>): at least 44&nbsp;px tall; clicking anywhere on it toggles the input. It carries <code>--lift</code>.</li>
   <li><strong>Input</strong>: the real <code>&lt;input&gt;</code>, 44&times;44&nbsp;px and transparent, so it is the measured target.</li>
-  <li><strong>Box</strong> (<code>input::before</code>): 24&nbsp;px, <code>--bw</code> frame in <code>--line</code>; a square at <code>--radius-ctl</code> for checkboxes, a circle for radios. Filled with <code>--accent</code> when on (<code>--fill</code>); raised by <code>--lift</code> with the hard shadow.</li>
+  <li><strong>Box</strong> (<code>input::before</code>): 24&nbsp;px, <code>--bw</code> frame in <code>--line</code>; a square at <code>--radius-ctl</code> for checkboxes, a circle for radios. Filled with <code>--accent</code> when on (<code>--fill</code>); raised by <code>--lift</code> with the hard shadow. The box, its 44&nbsp;px column and the target stay that size at any text size, centred on the label's first line; the words grow.</li>
   <li><strong>Mark</strong> (<code>input::after</code>): a tick, a dash or a dot, in <code>--on-accent</code>. It fades with the fill.</li>
   <li><strong>Label</strong> (<code>.choice__label</code>): 16&nbsp;px, optionally with a <code>.choice__hint</code>.</li>
-  <li><strong>Group</strong> (<code>fieldset</code> + <code>legend</code>, then <code>.choice-group</code>): 8&nbsp;px between rows.</li>
-  <li><strong>Card</strong> (<code>.card.choice-card</code>): the input covers the card; the mark sits in the top corner at the end side.</li>
-  <li><strong>Segmented</strong> (<code>.choice-group[data-variant="segmented"]</code>): a pill track with the ring on it; segments are the labels. If the segments do not fit on one row they wrap, and a wrapped track is a rounded rectangle, not an oval (its radius is half of ONE row).</li>
+  <li><strong>Group</strong> (<code>fieldset</code> + <code>legend</code>, then <code>.choice-group</code>): 8&nbsp;px between rows. Inline: one row, or one option per row when they do not all fit.</li>
+  <li><strong>Card</strong> (<code>.card<wbr>.choice-card</code>): the input covers the card; the mark sits in the top corner at the end side, beside the first line (above it only in a card too narrow for a word beside the mark).</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -250,7 +255,7 @@
   <tbody>
     <tr><td><code>class="choice"</code></td><td>on a <code>&lt;label&gt;</code> wrapping an <code>input[type=checkbox|radio]</code> and <code>.choice__label</code></td><td>One option.</td></tr>
     <tr><td><code>class="card choice-card"</code></td><td>on a <code>&lt;label&gt;</code> wrapping the input and a <code>.card__body</code> of <code>span</code>s</td><td>A selectable card. <code>data-tone</code> works as on any card.</td></tr>
-    <tr><td><code>class="choice-group"</code></td><td><code>data-layout="inline"</code> | <code>"grid"</code> | <code>data-variant="segmented"</code></td><td>Stacks rows with 8&nbsp;px gaps; inline wraps; grid lays cards out with no media query; segmented draws the pill track. A <code>.choice-group</code> directly inside another is indented (the children of a "some" checkbox).</td></tr>
+    <tr><td><code>class="choice-group"</code></td><td><code>data-layout="inline"</code> | <code>"grid"</code></td><td>Stacks rows with 8&nbsp;px gaps; inline is one row, or one option per row when they do not all fit (measured by <code>35-choice.js</code>, which writes <code>data-fit="row|stack"</code>; without it the row wraps); grid lays cards out with no media query. A <code>.choice-group</code> directly inside another is indented (the children of a "some" checkbox). For radios drawn as a pill track, use the <a href="@/components/segmented.html">segmented control</a>.</td></tr>
     <tr><td><code>:checked</code> / <code>:indeterminate</code></td><td></td><td>On (tick or dot) / some (dash, checkboxes only). Set <code>indeterminate</code> in script.</td></tr>
     <tr><td><code>aria-invalid="true"</code> / <code>:user-invalid</code></td><td></td><td>Bad-ink frame and an inner second frame. Put the message in a <a href="@/components/field.html">field</a>.</td></tr>
     <tr><td><code>disabled</code></td><td></td><td>Dashed, faint, flat, not-allowed cursor.</td></tr>
@@ -264,15 +269,16 @@
   <tbody>
     <tr><td><kbd>Tab</kbd></td><td>Checkboxes: one stop each. Radios: one stop for the whole group (the checked one, or the first).</td></tr>
     <tr><td><kbd>Space</kbd></td><td>Toggles a checkbox; checks a radio.</td></tr>
-    <tr><td><kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd></td><td>Radios (including cards and segments): move focus <em>and</em> select the previous / next option, wrapping. Native.</td></tr>
+    <tr><td><kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd></td><td>Radios (including cards): move focus <em>and</em> select the previous / next option, wrapping. Native.</td></tr>
     <tr><td>Screen reader</td><td>"Remind me about my streak, check box, not checked". Radios add the legend and position: "Session length, group. Standard 20 cards, about 8 minutes, radio button, 2 of 3". A hint inside the label is part of the name; for a long one, give it an <code>id</code> and point the input at it with <code>aria-describedby</code> instead. Indeterminate is "mixed".</td></tr>
-    <tr><td>Touch</td><td>44&times;44&nbsp;px input and a full-width label, 8&nbsp;px between rows. Segments reach 44&nbsp;px tall and sit 4&nbsp;px apart in their track (one control, not separate buttons).</td></tr>
-    <tr><td>Not colour alone</td><td>Checked = filled box <em>and</em> a tick / dot. Card selected = doubled frame <em>and</em> a tick. Segment selected = a second outline <em>and</em> inverted text. Invalid = inner second frame.</td></tr>
-    <tr><td>Focus</td><td>The ring wraps the drawn box, the whole card, or the whole segmented track.</td></tr>
+    <tr><td>Touch</td><td>44&times;44&nbsp;px input and a full-width label, 8&nbsp;px between rows.</td></tr>
+    <tr><td>Not colour alone</td><td>Checked = filled box <em>and</em> a tick / dot. Card selected = doubled frame <em>and</em> a tick. Invalid = inner second frame.</td></tr>
+    <tr><td>Focus</td><td>The ring wraps the drawn box, or the whole card.</td></tr>
+    <tr><td>Zoom / text size</td><td>Labels grow and wrap between words; the box, its column, the card's mark and the 44&nbsp;px target stay their size, so the words keep the room at 200% text.</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the fill and the mark still fade.</td></tr>
-    <tr><td>Forced colours</td><td>The box and mark are redrawn with system colours (<code>Canvas</code>, <code>CanvasText</code>, <code>Highlight</code>), so checked still reads as a filled box with a tick; selected cards and segments get a 4px frame.</td></tr>
+    <tr><td>Forced colours</td><td>The box and mark are redrawn with system colours (<code>Canvas</code>, <code>CanvasText</code>, <code>Highlight</code>), so checked still reads as a filled box with a tick; selected cards get a 4px frame.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--bad-ink</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--radius-pill</code>, <code>--hit</code>, <code>--ctl-sm</code>, <code>--icon-check</code>, <code>--icon-minus</code>, <code>--lift</code>, <code>--fill</code>, <code>--move</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, and the card's <code>--card-bg</code>, <code>--card-ink</code>, <code>--card-line</code>, <code>--card-pad</code>, <code>--shadow-select</code>, <code>--shadow-lift</code>.</p>
+<p><code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--bad-ink</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--radius-pill</code>, <code>--chrome-hit</code>, <code>--chrome-ic</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-5</code>, <code>--chrome-6</code>, <code>--icon-check</code>, <code>--icon-minus</code>, <code>--lift</code>, <code>--fill</code>, <code>--move</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, and the card's <code>--card-bg</code>, <code>--card-ink</code>, <code>--card-line</code>, <code>--card-pad</code>, <code>--shadow-select</code>, <code>--shadow-lift</code>.</p>

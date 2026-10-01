@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Choice: checkbox, radio, choice card, segmented  (layer: sg.components)
+   Choice: checkbox, radio, choice card  (layer: sg.components)
    --------------------------------------------------------------------------
    Native <input type=checkbox|radio> with appearance:none and a box drawn in CSS, so the
    platform keeps grouping, arrow-key movement between radios, form submission, autofill
@@ -24,8 +24,8 @@
      <span class="card__body"><span class="card__title">Pro</span> …</span>
    </label>
 
-   <div class="choice-group" data-variant="segmented">      native radios drawn as one pill track
-     <label class="choice"><input type="radio" name="view" value="a" checked><span class="choice__label">Decks</span></label> …
+   Radios drawn as one pill track are the Segmented control (segmented.css), not a variant of this file:
+   one way to draw it. (A second copy here drifted from it and wrapped into a ragged blob at large text.)
 
    The house shapes: a checkbox is a square box (a rectangle holds; --radius-ctl), a radio is a
    circle (circles act). Both are pressable, so both RAISE on hover and focus with the hard
@@ -39,10 +39,17 @@
      :user-invalid / [aria-invalid="true"]   --bad-ink frame and an inner second frame
      :disabled                   dashed, --ink-faint, flat, not-allowed
 
-   HIT AREA. The <input> itself is 44 x 44 (--hit) and transparent; the 24 px box is drawn on its
-   ::before and the mark on its ::after. So the target is measurable, clicking the label works too,
-   and the text never wraps under the box. A negative inline margin lines the drawn box up with
-   the edge of the content beside it.
+   HIT AREA. The <input> itself is 44 x 44 and transparent; the 24 px box is drawn on its ::before and
+   the mark on its ::after. So the target is measurable, clicking the label works too, and the text
+   never wraps under the box. A negative inline margin lines the drawn box up with the edge of the
+   content beside it.
+   LARGE TEXT. The label grows with the reader's text size; the box, its 44px column and the target are
+   chrome and stop at their 100% size, so at 200% text the words keep the room ("Keep me signed in" on
+   one line instead of "Keep me signed / in" beside a 48px box). The box stays centred on the label's
+   FIRST line at any size (the input is as tall as one line when a line is taller than 44px).
+   An INLINE group is one row of options or, when they cannot all share a row, one option per row:
+   never two on the first row and a lonely third under them. SG.fit measures it (src/js/35-choice.js);
+   without script it wraps.
    THE MARK is a mask of the icon set's own tick / dash (--icon-check, --icon-minus): a shape, not a
    text glyph (the bundled font has none). Forced colours drop masks and fills, so there the box
    and the mark are drawn with system colours (see the end of the file).
@@ -53,15 +60,15 @@
 @layer sg.components {
   .choice {
     --lift: 0;
-    --_box: 1.5rem; /* the drawn box */
+    --_box: var(--chrome-ic); /* the drawn box: 24px, chrome */
 
     position: relative;
     display: grid;
-    grid-template-columns: var(--hit) minmax(0, 1fr);
+    grid-template-columns: var(--chrome-hit) minmax(0, 1fr);
     align-items: start;
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     /* The drawn box, not the 44 px hit area, lines up with neighbouring content. */
-    margin-inline-start: calc((var(--_box) - var(--hit)) / 2);
+    margin-inline-start: calc((var(--_box) - var(--chrome-hit)) / 2);
     color: var(--ink);
     cursor: pointer;
     -webkit-user-select: none;
@@ -74,17 +81,20 @@
       --_line: var(--line);
       --_inset: 0 0 0 0 transparent;
       --_mark: var(--on-accent);
-      --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+      --_shadow: calc(var(--lift) * var(--chrome-1)) calc(var(--lift) * var(--chrome-1)) 0 0 var(--line);
 
       position: relative;
-      inline-size: var(--hit);
-      block-size: var(--hit);
+      inline-size: var(--chrome-hit);
+      /* one line of the label tall when that is more than 44px (200% text), so the box stays centred on
+         the first line; the label's own font, so "one line" means the same thing for both */
+      block-size: max(var(--chrome-hit), 1lh);
       margin: 0;
       padding: 0;
       border: 0;
       border-radius: 0;
       background: none;
       box-shadow: none; /* the ring moves to the drawn box (::before) */
+      font: var(--type-body);
       outline-color: transparent;
       -webkit-appearance: none;
       appearance: none;
@@ -104,8 +114,8 @@
         border-radius: var(--radius-ctl);
         box-shadow: var(--_inset), var(--_shadow);
         transform: translate(
-          calc(var(--lift) * var(--space-1) / -2 * var(--move)),
-          calc(var(--lift) * var(--space-1) / -2 * var(--move))
+          calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+          calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
         );
       }
       /* The mark (tick, dash or dot) sits on top of the box. It is hidden by opacity, not removed,
@@ -120,8 +130,8 @@
         background: var(--_mark);
         opacity: 0;
         transform: translate(
-          calc(var(--lift) * var(--space-1) / -2 * var(--move)),
-          calc(var(--lift) * var(--space-1) / -2 * var(--move))
+          calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+          calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
         );
         transition: opacity var(--dur-hover) var(--ease-out);
         -webkit-mask: var(--icon-check) center / 100% no-repeat;
@@ -186,11 +196,13 @@
     .choice__label {
       min-inline-size: 0;
       /* Centre the first line on the 44 px row, whatever the text size. */
-      padding-block: calc((var(--hit) - 1lh) / 2);
+      padding-block: calc((var(--chrome-hit) - 1lh) / 2);
       font: var(--type-body);
       /* between words first: "anywhere" also shrinks a .choice's min-content to one letter, so an inline
          group squeezed its options (and their words) instead of wrapping them onto the next row */
       overflow-wrap: break-word;
+      /* a label that wraps at large text ends on two words, not one ("Pressed, back to / flat") */
+      text-wrap: pretty;
     }
     .choice__hint {
       display: block;
@@ -229,17 +241,32 @@
   }
 
   /* ---- Groups ---------------------------------------------------------------------------
-     Options are 44 px rows with 8 px between them. "inline" puts short options side by side
-     and wraps; "grid" is for cards. */
+     Options are 44 px rows with 8 px between them. "inline" puts short options side by side;
+     "grid" is for cards. */
   .choice-group {
     display: grid;
     gap: var(--space-2);
     min-inline-size: 0;
 
+    /* Inline: one row while every option fits whole, otherwise one option per row (the plain group).
+       SG.fit tries the row (nowrap, words kept whole, so "does not fit" shows as overflow) and falls back
+       to the stack; without script the row wraps. */
     &[data-layout="inline"] {
       display: flex;
       flex-wrap: wrap;
-      column-gap: var(--space-5);
+      column-gap: var(--chrome-5);
+    }
+    &[data-layout="inline"][data-fit="row"] {
+      flex-wrap: nowrap;
+      > .choice {
+        flex: none;
+        .choice__label {
+          white-space: nowrap;
+        }
+      }
+    }
+    &[data-layout="inline"][data-fit="stack"] {
+      display: grid;
     }
     &[data-layout="grid"] {
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
@@ -247,10 +274,10 @@
     }
 
     /* A group inside a group is the children of a "some" checkbox: indent them so their boxes line up under
-       the parent's label text (box 24 + gap 8 = 32). In rem, so it grows with the text, but no wider than that,
-       or at 200 % text the children are left a sliver and their words break mid-word. */
+       the parent's label text (box 24 + gap 8 = 32). Chrome like the box and its column, so the indent
+       stays under the label at any text size and the children keep their room. */
     > .choice-group {
-      padding-inline-start: var(--space-6);
+      padding-inline-start: var(--chrome-6);
     }
   }
 
@@ -264,7 +291,7 @@
      ========================================================================== */
   .choice-card {
     --lift: 0;
-    --_mark: 1.5rem;
+    --_mark: var(--chrome-ic); /* 24px, chrome like the small box */
     /* the input reaches over the 2px frame, so the marks measure from the frame's outer edge */
     --_mark-inset: calc(var(--card-pad) + var(--bw));
 
@@ -359,15 +386,18 @@
 
     /* the first line of the body keeps clear of the mark; later lines may run under it */
     .card__body > :first-child {
-      padding-inline-end: calc(var(--_mark) + var(--space-3));
+      padding-inline-end: calc(var(--_mark) + var(--chrome-3));
     }
-    /* In a narrow card (under 12rem: a phone at 200% text, where the card is about 7rem) the title cannot share
-       its line with the mark: it was left about 5rem and shattered ("Offli / ne / dec / ks"). The mark keeps its
-       corner and the first line starts BELOW it, so the words get the whole width. */
-    @container card (inline-size <= 12rem) {
+    /* In a card too narrow for a title word beside the mark, the title cannot share its line with it: it was
+       left a sliver and shattered ("Offli / ne / dec / ks"). The mark keeps its corner and the first line starts
+       BELOW it, so the words get the whole width. "Too narrow" = less than about 5rem of words (a long title
+       word) beside the chrome, which does not grow: two paddings, the mark and its gap, about 72px. The mark
+       and the padding stop at their 100% size, so a phone at 200% text (a 350px card) keeps the mark beside the
+       first line instead of above an empty band. */
+    @container card (inline-size <= calc(5rem + 72px)) {
       .card__body > :first-child {
         padding-inline-end: 0;
-        margin-block-start: calc(var(--_mark) + var(--space-2));
+        margin-block-start: calc(var(--_mark) + var(--chrome-2));
       }
     }
 
@@ -418,100 +448,6 @@
     .choice-card > input:focus-visible {
       outline: 0;
       box-shadow: none;
-    }
-  }
-
-  /* ==========================================================================
-     Segmented: native radios drawn as one pill track
-     Picks a VALUE or a filter (a view switcher that swaps panels is a tablist instead). The
-     track is a 2px pill; the selected segment is a filled pill with its own frame, so two
-     outlines sit inside one another (the doubled frame), and its text flips to --on-accent.
-     Unselected segments show their frame on hover. The track wears the ring, because arrow keys
-     move focus AND the selection, so the focused segment is always the selected one.
-     ========================================================================== */
-  .choice-group[data-variant="segmented"] {
-    display: flex;
-    flex-wrap: wrap; /* at large text the segments take a second row rather than breaking words */
-    /* 4 px between segments in a row (one composite control); 8 px between wrapped ROWS, so the 44 px
-       tall hit areas of two rows (36 px segments, 4 px of reach above and below) touch instead of overlapping */
-    column-gap: var(--space-1);
-    row-gap: var(--space-2);
-    inline-size: fit-content;
-    max-inline-size: 100%;
-    padding: var(--space-1);
-    color: var(--ink);
-    background: var(--paper);
-    border: var(--bw) solid var(--line);
-    /* A pill is for ONE row. The radius is half the one-row height (segment + padding + frame), not 999px, so a
-       track that wraps to a second row (320 px wide, or 200% text) stays a rounded rectangle and not an oval;
-       and each segment's radius is the track's minus the padding and the frame, so a segment's corner sits
-       exactly inside the track's and never paints over its frame. */
-    --_seg-r: min(var(--radius-pill), calc(var(--ctl-sm) / 2));
-    border-radius: min(var(--radius-pill), calc(var(--ctl-sm) / 2 + var(--space-1) + var(--bw)));
-
-    > .choice {
-      /* transparent, not --paper: the track already supplies the paper, and a second paper layer is what painted
-         over the track's frame at its curved corners */
-      --_seg-bg: transparent;
-      --_seg-ink: var(--ink);
-      --_seg-line: transparent;
-
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      flex: 1 1 auto;
-      place-items: center;
-      min-inline-size: var(--hit);
-      min-block-size: var(--ctl-sm);
-      margin: 0;
-      /* 12 px, not 16: "Day  Week  Month  Year" is the canonical four-option control and has to fit one row in
-         the 306 px a phone leaves it (it did not at 16 px, and wrapped into a two-row blob). */
-      padding-inline: var(--space-3);
-      color: var(--_seg-ink);
-      background: var(--_seg-bg);
-      border: var(--bw) solid var(--_seg-line);
-      border-radius: var(--_seg-r);
-      text-align: center;
-
-      /* the input covers the segment and reaches 44 px tall */
-      > input {
-        position: absolute;
-        /* measured from the padding box, inside the segment's 2px frame */
-        inset-block: min(0px, calc((var(--ctl-sm) - var(--hit)) / 2 - var(--bw)));
-        inset-inline: calc(var(--bw) * -1);
-        inline-size: auto;
-        block-size: auto;
-        border-radius: var(--_seg-r);
-        &::before,
-        &::after {
-          content: none;
-        }
-      }
-      .choice__label {
-        padding-block: 0;
-        font: var(--type-ctl);
-        line-height: var(--lh-snug);
-        overflow-wrap: break-word;
-      }
-
-      @media (hover: hover) {
-        &:hover:not(:has(> input:checked, > input:disabled)) {
-          --_seg-line: var(--line);
-        }
-      }
-      &:has(> input:checked) {
-        --_seg-bg: var(--accent);
-        --_seg-ink: var(--on-accent);
-        --_seg-line: var(--line);
-      }
-      &:has(> input:disabled) {
-        --_seg-ink: var(--ink-faint);
-      }
-    }
-
-    &:has(> .choice > input:focus-visible) {
-      outline: var(--ring) solid var(--focus);
-      outline-offset: var(--ring-offset);
-      box-shadow: 0 0 0 var(--ring-offset) var(--paper);
     }
   }
 
@@ -584,22 +520,6 @@
     .choice-card:has(> input:disabled) {
       color: GrayText;
       border-color: GrayText;
-    }
-    .choice-group[data-variant="segmented"] {
-      border-color: CanvasText;
-      > .choice {
-        border-color: Canvas;
-        &:has(> input:checked) {
-          border-width: var(--bw-heavy);
-          border-color: Highlight;
-        }
-        &:has(> input:disabled) {
-          color: GrayText;
-        }
-      }
-      &:has(> .choice > input:focus-visible) {
-        outline: var(--bw-heavy) solid Highlight;
-      }
     }
   }
   @media (forced-colors: active) and (hover: hover) {

@@ -333,4 +333,29 @@ export const tests = [
       expect.equal(red.hover.miny, red.rest.miny, 'reduced: top edge unchanged ' + JSON.stringify(red))
     },
   },
+  {
+    name: 'large text (200%, 390 and 320 px): [-] track [+] stays ONE row; the circles stay 36px, the thumb 28px and the track keeps most of the row',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+        await settle(page)
+        const rows = await page.evaluate(() => [...document.querySelectorAll('.slider__row')].map((row) => {
+          const [m, t, p] = [...row.children].map((c) => c.getBoundingClientRect())
+          const input = row.querySelector('.slider__input')
+          const probe = document.createElement('i'); probe.style.width = getComputedStyle(row.closest('.slider')).getPropertyValue('--_thumb'); row.append(probe)
+          const thumb = Math.round(probe.getBoundingClientRect().width) + 'px'; probe.remove()
+          return { id: input.id, tops: [m.top, t.top, p.top].map(Math.round), circles: [m.width, m.height, p.width, p.height].map(Math.round), track: Math.round(t.width), row: Math.round(row.getBoundingClientRect().width), thumb, overflow: p.right > row.getBoundingClientRect().right + 0.5 /* the + circle, not its 44px hit area, must stay in the row */ }
+        }))
+        for (const r of rows) {
+          expect.ok(Math.abs(r.tops[0] - r.tops[2]) <= 1 && r.tops[1] <= r.tops[0], `${w}px: ${r.id}: one row (${r.tops})`)
+          expect.equal(r.circles.join(' '), '36 36 36 36', `${w}px: ${r.id}: the nudge circles stay 36px`)
+          expect.equal(r.thumb, '28px', `${w}px: ${r.id}: the thumb stays 28px`)
+          expect.ok(r.track >= r.row * 0.5 && !r.overflow, `${w}px: ${r.id}: the track takes the rest (${r.track} of ${r.row}px)`)
+        }
+      }
+    },
+  },
 ]

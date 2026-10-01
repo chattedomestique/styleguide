@@ -1,4 +1,10 @@
 <!--{"title":"Select","group":"Components","order":24,"summary":"A styled native select: our closed control, the browser's own picker."}-->
+<style>
+  /* docs scaffolding only. The phone mock's title is sized from the phone as well as from the text size (15cqi), so
+     its longest word fits the screen at 200% text on a 320px phone ("Reminders", "Notifications" broke inside the
+     word there). At 100% text and on a 390px phone at 200% it is the ordinary title size, or within 2px of it. */
+  .docs-article .phone .t-title { font-size: min(var(--text-xl), 15cqi); }
+</style>
 <h1>Select</h1>
 <p class="lede">Pick one from a short list. The closed box is ours, with a chevron slot that fills when you can press it; the list that opens is the browser's, which is the best touch, keyboard and screen reader experience there is.</p>
 
@@ -6,7 +12,7 @@
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
-    <div><strong>Do</strong><p>Use a select for roughly 5 to 15 options that are known in advance: country, time zone, category. Keep the native picker on phones.</p></div>
+    <div><strong>Do</strong><p>Use a select for roughly 5 to 15 options that are known in advance: country, time zone, category. Keep each option short (a word or two: "Monthly", not "Every month"), because the closed box shows one line. Keep the native picker on phones.</p></div>
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
@@ -17,14 +23,14 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="basic">Basic, with a placeholder option</h3>
-<p>A required select starts on a disabled "Choose&hellip;" option so nothing is picked by accident. It reads like placeholder text (<code>--ink-mute</code>, still 4.5:1) until a real value is chosen. Hover or tab in: the end slot fills with the accent and the box lifts, like a button.</p>
+<p>A required select starts on a disabled "Pick one" option so nothing is picked by accident. It reads like placeholder text (<code>--ink-mute</code>, still 4.5:1) until a real value is chosen. Hover or tab in: the end slot fills with the accent and the box lifts, like a button.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="field">
       <label class="field__label" for="sel-country">Country <span class="field__req">(required)</span></label>
       <div class="select">
         <select id="sel-country" name="country" autocomplete="country-name" required>
-          <option value="" disabled selected>Choose a country</option>
+          <option value="" disabled selected>Pick one</option>
           <option>Canada</option>
           <option>Ireland</option>
           <option>New Zealand</option>
@@ -50,7 +56,7 @@
 </div>
 
 <h3 id="groups">Grouped options</h3>
-<p><code>&lt;optgroup label&gt;</code> gives screen readers and the picker a heading for each cluster.</p>
+<p><code>&lt;optgroup label&gt;</code> gives screen readers and the picker a heading for each cluster, so the options themselves can stay short: the city, not the city and its zone.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="field">
@@ -58,15 +64,15 @@
       <div class="select">
         <select id="sel-tz" name="tz" autocomplete="off">
           <optgroup label="Europe">
-            <option>Dublin (GMT)</option>
-            <option>Oslo (CET)</option>
+            <option>Dublin</option>
+            <option>Oslo</option>
           </optgroup>
           <optgroup label="Americas">
-            <option>Toronto (EST)</option>
-            <option>Vancouver (PST)</option>
+            <option>Toronto</option>
+            <option>Vancouver</option>
           </optgroup>
           <optgroup label="Pacific">
-            <option>Auckland (NZST)</option>
+            <option>Auckland</option>
           </optgroup>
         </select>
         <span class="ic ic--chevron-down" aria-hidden="true"></span>
@@ -94,7 +100,7 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Rest, hover, focus and pressed come from the same two numbers as a <a href="@/components/button.html">button</a>. Invalid gets a bad-ink frame with an inner second frame; disabled is dashed and faint, with no lift and no fill.</p>
+<p>Rest, hover, focus and pressed come from the same two numbers as a <a href="@/components/button.html">button</a>. Invalid gets a bad-ink frame with an inner second frame, round the whole control, end slot included; disabled is dashed and faint, with no lift and no fill.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack">
@@ -103,10 +109,10 @@
       <div class="field"><label class="field__label" for="sel-st-f">Focus (forced)</label>
         <div class="select is-focus"><select id="sel-st-f"><option>Plus</option><option>Free</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div></div>
       <div class="field"><label class="field__label" for="sel-st-1">Invalid</label>
-        <div class="select"><select id="sel-st-1" aria-invalid="true" aria-describedby="sel-st-1-msg"><option value="">Choose a plan</option><option>Free</option><option>Plus</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
+        <div class="select"><select id="sel-st-1" aria-invalid="true" aria-describedby="sel-st-1-msg"><option value="">Choose one</option><option>Free</option><option>Plus</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
         <div class="field__foot"><p class="field__error" id="sel-st-1-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Choose a plan to continue</span></p></div></div>
       <div class="field"><label class="field__label" for="sel-st-2">Disabled</label>
-        <div class="select"><select id="sel-st-2" disabled><option>Plus (current plan)</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div></div>
+        <div class="select"><select id="sel-st-2" disabled><option>Plus</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div></div>
     </div>
   </div>
 </div>
@@ -119,11 +125,11 @@
         <p class="t-title">Recurring transfer</p>
         <div class="field">
           <label class="field__label" for="selc-cur">Currency</label>
-          <div class="select"><select id="selc-cur"><option>US dollar (USD)</option><option>Euro (EUR)</option><option>Canadian dollar (CAD)</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
+          <div class="select"><select id="selc-cur"><option>US dollar</option><option>Euro</option><option>Canadian dollar</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
         </div>
         <div class="field">
           <label class="field__label" for="selc-freq">How often</label>
-          <div class="select"><select id="selc-freq"><option>Every week</option><option selected>Every month</option><option>Every year</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
+          <div class="select"><select id="selc-freq"><option>Weekly</option><option selected>Monthly</option><option>Yearly</option></select><span class="ic ic--chevron-down" aria-hidden="true"></span></div>
         </div>
         <button class="btn" data-variant="primary" data-block type="button">Schedule</button>
       </div>
@@ -135,7 +141,7 @@
 <ol>
   <li><strong>Wrapper</strong> (<code>.select</code>): the frame. <code>data-size</code> goes here. Raised on hover and focus (<code>--lift</code>).</li>
   <li><strong>Native select</strong>: borderless inside the wrapper, same frame as a text <a href="@/components/input.html">input</a> (one shared skin). The platform opens its own picker.</li>
-  <li><strong>End slot</strong>: a 44&nbsp;px block joined to the frame with its own 2px edge. It fills with <code>--accent</code> when the select can be pressed (<code>--fill</code>).</li>
+  <li><strong>End slot</strong>: a 44&nbsp;px block joined to the frame with its own 2px edge. It fills with <code>--accent</code> when the select can be pressed (<code>--fill</code>). It, the chevron and the side padding stay their size at any text size, so the value keeps the room.</li>
   <li><strong>Chevron</strong>: a mask icon, not a text glyph, over the slot. It ignores taps, so the whole box is one target.</li>
   <li><strong>Option list</strong>: native. Options and groups get solid role colours so no platform paints its own grey.</li>
 </ol>
@@ -161,9 +167,9 @@
     <tr><td><kbd>Tab</kbd></td><td>Focuses the select; one tab stop. The wrapper wears the ring.</td></tr>
     <tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Change the value (closed) or move through the list (open). <kbd>Alt</kbd>+<kbd>&darr;</kbd>, <kbd>Space</kbd> or <kbd>Enter</kbd> opens the list; <kbd>Esc</kbd> closes it.</td></tr>
     <tr><td>Typing</td><td>Type-ahead jumps to the matching option. Native.</td></tr>
-    <tr><td>Screen reader</td><td>"Country, combo box, collapsed, Choose a country". Required and invalid are announced. The chevron is <code>aria-hidden</code>.</td></tr>
+    <tr><td>Screen reader</td><td>"Country, combo box, collapsed, Pick one". Required and invalid are announced. The chevron is <code>aria-hidden</code>.</td></tr>
     <tr><td>Touch</td><td>The whole box is one 44&nbsp;px-plus target and opens the OS picker (wheel on iOS, sheet on Android).</td></tr>
-    <tr><td>Zoom / text size</td><td>The box and its end slot are in rem and grow with the text. A closed select is one line, so a long value ends in an ellipsis at large sizes; the full list is one tap away and nothing is lost. In a listbox a name wider than the box ends in an ellipsis too.</td></tr>
+    <tr><td>Zoom / text size</td><td>The value grows with the text; the end slot, the chevron and the side padding stay their size, so the value keeps the room. A closed select is ONE line: on a 320&nbsp;px phone at 200% text it holds about 11 characters (about 9 inside a card), so a longer value ends in an ellipsis. The full list is one tap away and nothing is lost, but write options that fit: "Monthly", not "Every month"; put the shared part in the label or an <code>optgroup</code>. In a listbox a name wider than the box ends in an ellipsis too.</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the slot still fills.</td></tr>
     <tr><td>Forced colours</td><td>The frame is the control; hover and focus get a 4px <code>Highlight</code> outline; the chevron takes <code>ButtonText</code>.</td></tr>
   </tbody>
@@ -174,4 +180,4 @@
 </ul>
 
 <h2 id="tokens">Tokens used</h2>
-<p>Everything from <a href="@/components/input.html">Input</a>, plus <code>--accent</code>, <code>--on-accent</code> (slot and chevron), <code>--paper</code> (options), <code>--ic-size</code>, <code>--hit</code>, <code>--lift</code>, <code>--fill</code>, <code>--move</code>.</p>
+<p>Everything from <a href="@/components/input.html">Input</a>, plus <code>--accent</code>, <code>--on-accent</code> (slot and chevron), <code>--paper</code> (options), <code>--chrome-hit</code>, <code>--chrome-ic-sm</code>, <code>--chrome-2</code>, <code>--hit</code> (listbox rows), <code>--lift</code>, <code>--fill</code>, <code>--move</code>.</p>

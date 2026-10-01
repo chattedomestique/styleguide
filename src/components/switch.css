@@ -32,7 +32,19 @@
    (7:1); the on thumb is --on-accent on --accent (4.5:1).
 
    HIT AREA. The input is a 56 x 44 transparent box; the 48 x 28 track is its ::before and the
-   thumb its ::after, the same technique as choice.
+   thumb its ::after, the same technique as choice. All of it is CHROME: the track, the thumb, the
+   target and the gaps stop at their 100% size, while the label and the word grow with the text.
+
+   THE ROW. [label][word][switch]: the label takes the room and wraps; the word and the switch are ONE
+   unit at the end. When the row is too narrow for the label to keep about 8em beside them (200% text
+   on a phone, a narrow card), the label takes the whole first line and the unit drops TOGETHER under
+   it, aligned to the start, the word still beside its switch. (A wrapping row used to drop the switch
+   alone, leaving its word at the end of the first line: the pair was split.) The switch is a size
+   container, so every switch in a list drops the same way, and nothing breaks into a lonely word.
+   data-layout="start" is [switch][label][word]: the label wraps beside the switch, and the word follows
+   the label, or, when it does not fit after it, drops UNDER THE LABEL at its start (the switch stands
+   outside the flow of words, in the row's start padding). It used to stay on the first line, at the far
+   end of a wrapped label ("Dark / mode" with "Off" off to the side), away from its switch and its label.
 
    MOTION. Travel is the thumb sliding with --fill. Under reduced motion (--move 0) the thumb
    lands at the midpoint of the colour change instead of travelling (round()), so what you see is
@@ -42,34 +54,47 @@
 @layer sg.components {
   .switch {
     --lift: 0;
-    --_tw: 3rem; /* track width  (48) */
-    --_th: 1.75rem; /* track height (28) */
-    --_g: 0.125rem; /* gap between thumb and the frame */
+    /* chrome: the drawn switch stops at its 100% size (see the header) */
+    --_tw: min(3rem, 48px); /* track width */
+    --_th: min(1.75rem, 28px); /* track height */
+    --_g: min(0.125rem, 2px); /* gap between thumb and the frame */
+    /* one row: the 44px target, or one line of the label when that is taller (200% text), so the switch
+       and the word stay centred on the label's first line */
+    --_row: max(var(--chrome-hit), calc(var(--text-md) * var(--lh-body)));
     /* a flat square: XOR-ed with the tick to cut the tick out of the thumb */
     --_solid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24'/%3E%3C/svg%3E");
 
     position: relative;
     display: flex;
-    flex-wrap: wrap; /* at large text the switch and its word drop under the label instead of squeezing it */
+    flex-wrap: wrap; /* only ever at the label: see "the row" in the header */
     align-items: flex-start;
-    column-gap: var(--space-3);
-    min-block-size: var(--hit);
+    column-gap: var(--chrome-3);
+    min-block-size: var(--_row);
     color: var(--ink);
     cursor: pointer;
     -webkit-user-select: none;
     user-select: none;
     transition: --lift var(--dur-hover) var(--ease-out);
 
+    /* a size container, so the row can ask how wide it is (the label's room). A container has no width of
+       its own content, so it takes its parent's: the row is full width by design. */
+    &:not([data-layout="start"]) {
+      container: switch / inline-size;
+      inline-size: 100%;
+    }
     &[data-layout="start"] {
       display: inline-flex;
+      flex-wrap: wrap; /* only the word ever wraps, to a line of its own under the label (see the header) */
       inline-size: fit-content; /* a flex or grid parent would otherwise stretch it */
       max-inline-size: 100%;
+      /* the switch's column: its 56px target less the 4px it reaches past the start edge, then the gap */
+      padding-inline-start: calc(var(--_tw) + var(--chrome-2) - var(--chrome-1) + var(--chrome-3));
     }
 
     > input {
       --fill: 0;
       --_line: var(--line);
-      --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+      --_shadow: calc(var(--lift) * var(--chrome-1)) calc(var(--lift) * var(--chrome-1)) 0 0 var(--line);
       /* thumb size leaves a gap all round inside the frame */
       --_ts: calc(var(--_th) - 2 * var(--bw) - 2 * var(--_g));
       --_travel: calc(var(--_tw) - 2 * var(--bw) - var(--_ts) - 2 * var(--_g));
@@ -79,12 +104,10 @@
       position: relative;
       order: 3;
       flex: none;
-      inline-size: calc(var(--_tw) + var(--space-2));
-      block-size: var(--hit);
+      inline-size: calc(var(--_tw) + var(--chrome-2));
+      block-size: var(--_row);
       margin: 0;
-      /* Free space in a row goes to the label (it grows), so this auto margin only works when the switch
-         has wrapped onto a row of its own: it then sits at the end, under its word, not stranded at the start. */
-      margin-inline: auto calc(var(--space-1) * -1); /* the track, not the hit area, meets the edge */
+      margin-inline: 0 calc(var(--chrome-1) * -1); /* the track, not the hit area, meets the edge */
       padding: 0;
       border: 0;
       border-radius: 0;
@@ -109,8 +132,8 @@
         border-radius: var(--radius-pill);
         box-shadow: var(--_shadow);
         transform: translate(
-          calc(var(--lift) * var(--space-1) / -2 * var(--move)),
-          calc(var(--lift) * var(--space-1) / -2 * var(--move))
+          calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+          calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
         );
       }
       /* Thumb. The tick is cut out of it with a mask (two layers, XOR), so the track shows through
@@ -127,8 +150,8 @@
         border-radius: var(--radius-pill);
         translate: var(--_x) 0;
         transform: translate(
-          calc(var(--lift) * var(--space-1) / -2 * var(--move)),
-          calc(var(--lift) * var(--space-1) / -2 * var(--move))
+          calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+          calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
         );
         -webkit-mask-image: var(--_cut), var(--_solid);
         mask-image: var(--_cut), var(--_solid);
@@ -188,13 +211,21 @@
     /* ---- Label and words ------------------------------------------------------------- */
     .switch__label {
       order: 1;
-      /* Small on purpose: the label may only drop the switch under it when the row truly has no room
-         (320 px, 200 % text). A basis of 10rem wrapped every switch in a 232 px card at 390 px. */
-      flex: 1 1 6rem;
+      /* A basis of 0: the label takes the room that is left and wraps in it, and never pushes the switch
+         onto a line of its own. Whether the unit drops is the container query's call (below). */
+      flex: 1 1 0;
       min-inline-size: 0;
-      padding-block: calc((var(--hit) - 1lh) / 2);
+      padding-block: calc((var(--_row) - 1lh) / 2);
       font: var(--type-body);
       overflow-wrap: break-word;
+      text-wrap: pretty; /* a wrapped label ends on two words, not one */
+    }
+    /* Too narrow for about 8em of label beside the word (about 2em) and the switch with its gaps (80px, chrome):
+       the label takes the first line whole and the unit drops under it, at the start. */
+    @container switch (inline-size < calc(10em + 80px)) {
+      .switch__label {
+        flex-basis: 100%;
+      }
     }
     .switch__hint {
       display: block;
@@ -206,8 +237,7 @@
       flex: none;
       display: grid;
       align-items: center;
-      margin-inline-start: auto; /* wrapped under the label, the word and the switch stay at the end */
-      min-block-size: var(--hit);
+      min-block-size: var(--_row);
       font: var(--type-ctl);
       color: var(--ink-soft);
 
@@ -226,26 +256,28 @@
       color: var(--ink);
     }
 
+    /* Switch first: the switch stands in the row's start padding, out of the flow of words, so the label and
+       the word wrap in a column of their own and a dropped word lands under the label, never under the switch. */
     &[data-layout="start"] {
       > input {
-        order: 1;
-        margin-inline: calc(var(--space-1) * -1) 0;
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: calc(var(--chrome-1) * -1); /* the track, not the hit area, meets the edge */
+        margin: 0;
       }
       .switch__label {
-        order: 2;
+        order: 1;
         flex: 0 1 auto;
       }
       .switch__state {
-        order: 3;
-        margin-inline-start: 0;
+        order: 2;
+        > span {
+          text-align: start; /* the word follows the label, so it lines up with the label's start when it drops */
+        }
       }
     }
 
-    /* Words hidden on request: still in the DOM, not on screen. The switch then takes the free space
-       (it is what sits at the end). */
-    &[data-state="hidden"]:not([data-layout="start"]) > input {
-      margin-inline-start: auto;
-    }
+    /* Words hidden on request: still in the DOM, not on screen. */
     &[data-state="hidden"] .switch__state {
       position: absolute;
       inline-size: 1px;

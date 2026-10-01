@@ -49,16 +49,22 @@
 
    SIZES. The thumb is 28 px (>= the 24 px target floor); the input is 44 px tall, so the hit area is 44
    (pointer-down anywhere along the row moves the thumb). The ring wraps the thumb, not the whole row.
+   The thumb, the rail, the ticks, the 44px input and the nudge circles are CHROME: they stop at their
+   100% size, while the label, the readout and the min / max captions grow with the reader's text.
+
+   ONE ROW: [-] track [+] at every size. The circles keep 36px and the track takes the rest (at 390px and
+   200% text that is still about 260px of track). A wrapping row used to put "-" above the track and "+"
+   below it at large text, which read as three unrelated controls.
    ========================================================================== */
 
 @layer sg.components {
   .slider {
-    --_thumb: 1.75rem; /* 28 */
-    --_tr: 0.75rem; /* rail thickness incl. frame (12) */
+    --_thumb: min(1.75rem, 28px); /* chrome */
+    --_tr: min(0.75rem, 12px); /* rail thickness incl. frame, chrome */
     --_line: var(--line);
     --_fillc: var(--accent);
     --_rail: var(--paper-2);
-    --_rail-top: calc((var(--hit) - var(--_tr)) / 2);
+    --_rail-top: calc((var(--chrome-hit) - var(--_tr)) / 2);
 
     display: grid;
     grid-template-columns: minmax(0, 1fr); /* the row may not widen the column: it wraps instead */
@@ -93,16 +99,16 @@
 
   .slider__row {
     display: flex;
-    flex-wrap: wrap; /* at large text in a narrow column the track takes its own row */
+    flex-wrap: nowrap; /* one row at every size: see the header */
     align-items: flex-start;
-    gap: var(--space-3); /* the 44 px hit areas of the buttons stay 8 px clear of the slider's */
+    gap: var(--chrome-3); /* the 44 px hit areas of the buttons stay 8 px clear of the slider's */
 
     /* 36 px nudge buttons line up with the centre of the 44 px input, not with the captions.
        A .btn never gets narrower than --hit, so a small circle would be a 44 x 36 oval: take that floor
        off (the ::after hit area still reaches 44 px) and the circle is a circle. */
     > .btn {
       flex: none;
-      margin-block-start: calc((var(--hit) - var(--ctl-sm)) / 2);
+      margin-block-start: calc((var(--chrome-hit) - var(--chrome-ctl-sm)) / 2);
 
       &[data-shape="circle"] {
         min-inline-size: 0;
@@ -112,7 +118,7 @@
 
   .slider__track {
     position: relative;
-    flex: 1 1 8rem;
+    flex: 1 1 0;
     min-inline-size: 0;
 
     /* rail: a rectangle that holds */
@@ -143,14 +149,14 @@
   .slider__ticks {
     position: absolute;
     inset-inline: calc(var(--_thumb) / 2 - var(--bw) / 2);
-    inset-block-start: calc(var(--hit) / 2 + var(--_tr) / 2 + var(--space-1));
+    inset-block-start: calc(var(--chrome-hit) / 2 + var(--_tr) / 2 + var(--chrome-1));
     display: flex;
     justify-content: space-between;
     pointer-events: none;
 
     > i {
       inline-size: var(--bw);
-      block-size: 0.375rem;
+      block-size: calc(var(--chrome-3) / 2); /* 6px, chrome like the rail it marks */
       background: var(--_line);
     }
   }
@@ -163,13 +169,13 @@
     display: flex;
     justify-content: space-between;
     gap: var(--space-3);
-    margin-block-start: calc(var(--space-1) * -1);
+    margin-block-start: calc(var(--chrome-1) * -1);
     font: var(--type-meta);
     font-variant-numeric: tabular-nums lining-nums;
     color: var(--ink-soft);
   }
   .slider[data-ticks] .slider__scale {
-    margin-block-start: var(--space-1); /* clear the tick marks */
+    margin-block-start: var(--chrome-1); /* clear the tick marks */
   }
 
   /* ---- The range input ------------------------------------------------------------------------
@@ -177,7 +183,7 @@
   .slider__input {
     --lift: 0;
     --fill: 0;
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--_line);
+    --_shadow: calc(var(--lift) * var(--chrome-1)) calc(var(--lift) * var(--chrome-1)) 0 0 var(--_line);
 
     position: relative;
     z-index: 1;
@@ -186,7 +192,7 @@
        the rail and the thumb are the drawn control, but a range input with no border of its own is
        invisible to anything that audits controls one by one, and to Windows High Contrast. */
     inline-size: calc(100% + 2 * var(--bw));
-    block-size: calc(var(--hit) + 2 * var(--bw));
+    block-size: calc(var(--chrome-hit) + 2 * var(--bw));
     margin: calc(var(--bw) * -1);
     padding: 0;
     border: var(--bw) solid transparent;
@@ -224,7 +230,7 @@
 
     /* Blink / WebKit: a transparent native track as tall as the hit area, then the thumb. */
     &::-webkit-slider-runnable-track {
-      block-size: var(--hit);
+      block-size: var(--chrome-hit);
       background: transparent;
       border: 0;
     }
@@ -235,14 +241,14 @@
       inline-size: var(--_thumb);
       block-size: var(--_thumb);
       /* centre the thumb on the 44 px track */
-      margin-block-start: calc((var(--hit) - var(--_thumb)) / 2);
+      margin-block-start: calc((var(--chrome-hit) - var(--_thumb)) / 2);
       background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
       border: var(--bw) solid var(--_line);
       border-radius: var(--radius-pill);
       box-shadow: var(--_shadow);
       transform: translate(
-        calc(var(--lift) * var(--space-1) / -2 * var(--move)),
-        calc(var(--lift) * var(--space-1) / -2 * var(--move))
+        calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+        calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
       );
       cursor: grab;
     }
@@ -264,7 +270,7 @@
 
     /* Firefox: same thumb, transparent track (our rail and fill are behind it). */
     &::-moz-range-track {
-      block-size: var(--hit);
+      block-size: var(--chrome-hit);
       background: transparent;
       border: 0;
     }
@@ -280,8 +286,8 @@
       border-radius: var(--radius-pill);
       box-shadow: var(--_shadow);
       transform: translate(
-        calc(var(--lift) * var(--space-1) / -2 * var(--move)),
-        calc(var(--lift) * var(--space-1) / -2 * var(--move))
+        calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+        calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
       );
       cursor: grab;
     }

@@ -119,7 +119,7 @@ export const tests = [
       await page.keyboard.press('Tab') // leave the field -> validate (it has a value)
       expect.equal(await page.locator('#frm-email').getAttribute('aria-invalid'), 'true', 'invalid after leaving')
       const msg = await page.locator('#frm-email').evaluate((el) => el.closest('.field').querySelector('.field__error').textContent.trim())
-      expect.equal(msg, 'Enter an email like name@example.com', 'type message')
+      expect.equal(msg, 'Enter an email like you@example.com', 'type message')
       await page.locator('#frm-email').focus()
       await page.keyboard.type('x.com') // -> jay@x.com
       expect.equal(await page.locator('#frm-email').getAttribute('aria-invalid'), null, 'cleared when fixed')
@@ -189,19 +189,28 @@ export const tests = [
     },
   },
   {
-    name: 'inline layout shares a row on a wide screen and stacks on a phone (no media query)',
+    name: 'inline layout shares a row on a wide screen and stacks on a phone (no media query); the hint stays in the label column, so stacked it reads label, hint, control like every field',
     viewport: { width: 1100, height: 800 },
     async run({ page, goto, expect }) {
       await open(page, goto)
       const rect = (s) => page.locator(s).evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, b: r.bottom, r: r.right } })
       const label = await rect('label[for=fld-city]')
       const input = await rect('#fld-city')
+      const hint = await rect('#fld-city-hint')
       expect.ok(input.x > label.r - 1, 'wide: control starts to the right of the label')
+      expect.ok(Math.abs(hint.x - label.x) < 1 && hint.y >= label.b - 1, 'wide: the hint is under the label, in its column')
+      expect.ok(hint.r <= input.x + 1, 'wide: the hint does not reach into the control column')
       await page.setViewportSize({ width: 390, height: 800 })
       await settle(page)
       const l2 = await rect('label[for=fld-city]')
+      const h2 = await rect('#fld-city-hint')
       const i2 = await rect('#fld-city')
-      expect.ok(i2.y >= l2.b - 1, 'narrow: control sits below the label')
+      expect.ok(h2.y >= l2.b - 1 && i2.y >= h2.b - 1, 'narrow: label, then hint, then control (the stacked order)')
+      const gaps = await page.evaluate(() => {
+        const g = (a, b) => document.querySelector(b).getBoundingClientRect().top - document.querySelector(a).getBoundingClientRect().bottom
+        return { inline: [g('label[for=fld-city]', '#fld-city-hint'), g('#fld-city-hint', '#fld-city')], stacked: [g('label[for=fld-name]', '#fld-name-hint'), g('#fld-name-hint', '#fld-name')] }
+      })
+      expect.ok(Math.abs(gaps.inline[0] - gaps.stacked[0]) < 1 && Math.abs(gaps.inline[1] - gaps.stacked[1]) < 1, 'narrow: the same spacing as the stacked field: ' + JSON.stringify(gaps))
     },
   },
   {
@@ -234,6 +243,37 @@ export const tests = [
       await W(50)
       expect.ok(await page.locator('[data-sg-summary]').isHidden(), 'summary hidden after reset')
       expect.equal(await page.locator('#frm-name').getAttribute('aria-invalid'), null, 'errors cleared')
+    },
+  },
+  {
+    name: 'an example address in an error message moves to the next line whole when it fits there, splits only after the @ or the dot when it must, and never leaves "like" on a line of its own (320 and 390 px, 100% and 200% text)',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/field.html')
+      const read = () => page.evaluate(() => ['fld-email-bad-msg', 'ctx-email-msg'].map((id) => {
+        const s = document.getElementById(id).querySelector('span:last-child')
+        const w = document.createTreeWalker(s, NodeFilter.SHOW_TEXT), lines = new Map()
+        let n
+        while ((n = w.nextNode())) for (let i = 0; i < n.length; i++) {
+          const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 1)
+          const q = r.getClientRects()[0]; if (!q) continue
+          const k = Math.round(q.top / 4); lines.set(k, (lines.get(k) || '') + n.data[i])
+        }
+        return { id, lines: [...lines.values()].map((x) => x.trim()) }
+      }))
+      for (const [w, text] of [[320, 100], [390, 100], [320, 200], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(100)
+        for (const r of await read()) {
+          const where = `${w}px, ${text}%, ${r.id}: ${r.lines.join(' / ')}`
+          if (text === 100) expect.ok(r.lines.some((l) => l.endsWith('you@example.com')), `${where}: the address is whole`)
+          expect.ok(!r.lines.some((l) => l === 'like'), `${where}: no lone "like"`)
+          // a line that ends inside the address ends after its @ or its dot, never inside a word
+          const addr = r.lines.filter((l) => /you@|example|^com$/.test(l))
+          for (const l of addr.slice(0, -1)) expect.ok(/[@.]$/.test(l), `${where}: the address splits after the @ or the dot ("${l}")`)
+        }
+      }
     },
   },
 ]

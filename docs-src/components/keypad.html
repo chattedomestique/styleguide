@@ -1,4 +1,20 @@
 <!--{"title":"Keypad","group":"Components","order":34,"summary":"A numeric keypad for entering an amount: round 3 x 4 keys, a live amount display, hardware keys and a confirm button."}-->
+<style>
+  /* docs scaffolding only. The mock screen's top row is one row at every size: the back button, then the
+     title, which wraps beside it (a wrapping cluster put the title under the button at 200% text). The button
+     is centred on the title's FIRST line, as in an app bar: the title pads itself when its line is shorter than
+     the button, and the button moves down when the line is taller (200% text). */
+  .docs-article .mock-head { display: flex; align-items: flex-start; gap: var(--chrome-3); }
+  .docs-article .mock-head > .t-title { flex: 1 1 0; min-inline-size: 0; padding-block: max(0px, (var(--chrome-ctl) - 1lh) / 2); }
+  .docs-article .mock-head > .btn { margin-block: max(0px, (min(var(--text-xl), 15cqi) * var(--lh-tight) - var(--chrome-ctl)) / 2); }
+  /* The phone mock's title is sized from the phone as well as from the text size (15cqi), so
+     its longest word fits the screen at 200% text on a 320px phone ("Reminders", "Notifications" broke inside the
+     word there). At 100% text and on a 390px phone at 200% it is the ordinary title size, or within 2px of it. */
+  .docs-article .phone .t-title { font-size: min(var(--text-xl), 15cqi); }
+  /* The demos' status line (role="status") stays in the accessibility tree while it is empty, but takes no
+     row: its grid gap left a band of dead space under the confirm button. */
+  .docs-article .keypad > [data-demo-status]:empty { position: absolute; }
+</style>
 <h1>Keypad</h1>
 <p class="lede">A keypad is for entering one amount with one thumb: send money, top up, set a goal. Twelve round keys in the order every phone uses, a big live number above them, and a confirm button that stays off until there is something to confirm. Every key is a real button, and a hardware keyboard works too.</p>
 
@@ -10,7 +26,7 @@
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
-    <div><strong>Don't</strong><p>Use it for a PIN, a password or a one-time code. A custom pad blocks paste and password managers, which fails WCAG 3.3.8: use a native <code>&lt;input type="password" inputmode="numeric" autocomplete="one-time-code"&gt;</code>. For a number inside a longer form, a plain <a href="@/components/input.html#amount">amount input</a> is better.</p></div>
+    <div><strong>Don't</strong><p>Use it for a PIN, a password or a one-time code. A custom pad blocks paste and password managers, which fails WCAG 3.3.8: use a native <code>&lt;input type=<wbr>"password" inputmode=<wbr>"numeric" autocomplete=<wbr>"one-time-code"&gt;</code>. For a number inside a longer form, a plain <a href="@/components/input.html#amount">amount input</a> is better.</p></div>
   </div>
 </div>
 
@@ -53,12 +69,17 @@
     var pad = b.closest('[data-sg-keypad]');
     var out = pad.querySelector('[data-demo-status]');
     out.textContent = '';
-    window.requestAnimationFrame(function () { out.textContent = 'Sending ' + SG.keypad.get(pad).formatted + '. This is a demo: nothing was sent.'; });
+    var amount = SG.keypad.get(pad).formatted;
+    var say = {
+      review: 'Next, a review of the transfer: ' + amount + '. This is a demo: nothing was sent.',
+      add: 'Adding ' + amount + ' cards. This is a demo: nothing was added.',
+    }[b.getAttribute('data-demo-send')] || 'Sending ' + amount + '. This is a demo: nothing was sent.';
+    window.requestAnimationFrame(function () { out.textContent = say; });
   });
 </script>
 
 <h3 id="whole">Whole numbers</h3>
-<p><code>data-decimals="0"</code> switches the point key off (it stays in place, dashed, so the layout never changes). Here there is no currency, three digits at most, and a minimum of 5 before the button works.</p>
+<p><code>data-decimals=<wbr>"0"</code> switches the point key off (it stays in place, dashed, so the layout never changes). Here there is no currency, three digits at most, and a minimum of 5 before the button works.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="keypad" data-sg-keypad data-decimals="0" data-max-digits="3" data-min="5" data-value="20">
@@ -81,7 +102,7 @@
         <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
         <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit"><span class="ic ic--delete" aria-hidden="true"></span></button>
       </div>
-      <button class="btn" type="button" data-variant="primary" data-block data-sg-keypad-confirm data-demo-send aria-describedby="kp-cards-hint">Add cards</button>
+      <button class="btn" type="button" data-variant="primary" data-block data-sg-keypad-confirm data-demo-send="add" aria-describedby="kp-cards-hint">Add cards</button>
       <p class="t-meta" role="status" data-demo-status></p>
     </div>
   </div>
@@ -93,7 +114,7 @@
   <div class="demo__stage">
     <div class="phone">
       <div class="phone__screen stack" data-gap="4">
-        <div class="cluster" data-gap="3">
+        <div class="mock-head">
           <button class="btn" data-shape="circle" type="button" aria-label="Back"><span class="ic ic--arrow-left" aria-hidden="true"></span></button>
           <p class="t-title">Send money</p>
         </div>
@@ -103,7 +124,7 @@
             <p class="card__title">Sam Rivera</p>
             <p class="card__meta">Debit card ending 4417</p>
           </div>
-          <p class="card__trail">Free</p>
+          <p class="card__trail">No fee</p>
         </article>
         <div class="keypad" data-sg-keypad data-currency="USD" data-decimals="2" data-max="2568" data-value="389">
           <div class="keypad__screen">
@@ -125,7 +146,7 @@
             <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
             <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit"><span class="ic ic--delete" aria-hidden="true"></span></button>
           </div>
-          <button class="btn" type="button" data-variant="primary" data-size="lg" data-block data-sg-keypad-confirm data-demo-send aria-describedby="ctx-kp-hint">Review transfer</button>
+          <button class="btn" type="button" data-variant="primary" data-size="lg" data-block data-sg-keypad-confirm data-demo-send="review" aria-describedby="ctx-kp-hint">Review</button>
           <p class="t-meta" role="status" data-demo-status></p>
         </div>
       </div>
@@ -176,10 +197,10 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Label</strong> (<code>.keypad__label</code>): what the number is. The display is labelled by it.</li>
-  <li><strong>Display</strong> (<code>&lt;output class="keypad__display"&gt;</code>): a 2px rectangle, figure type sized from the keypad's own width (<code>cqi</code>), tabular, right-aligned. <code>aria-live="polite"</code> and <code>aria-atomic="true"</code>.</li>
+  <li><strong>Display</strong> (<code>&lt;output class=<wbr>"keypad__<wbr>display"&gt;</code>): a 2px rectangle, figure type sized from the keypad's own width (<code>cqi</code>), tabular, right-aligned. <code>aria-live=<wbr>"polite"</code> and <code>aria-atomic=<wbr>"true"</code>.</li>
   <li><strong>Hint</strong>: the limit or the balance, in <code>.t-meta</code>; the confirm button points at it with <code>aria-describedby</code>.</li>
-  <li><strong>Keys</strong> (<code>.keypad__keys[role="group"]</code> of <code>.btn.keypad__key</code>): a 3-column grid of circle buttons, 12&nbsp;px apart, each at most 88&nbsp;px. They fill, lift and sink like every button.</li>
-  <li><strong>Confirm</strong> (optional, <code>data-sg-keypad-confirm</code>): an ordinary primary button that the keypad keeps <code>aria-disabled</code> until the amount passes <code>data-min</code> (default: above zero).</li>
+  <li><strong>Keys</strong> (<code>.keypad__keys<wbr>[role="group"]</code> of <code>.btn.keypad__key</code>): a 3-column grid of circle buttons, 12&nbsp;px apart, each at most 88&nbsp;px. They fill, lift and sink like every button.</li>
+  <li><strong>Confirm</strong> (optional, <code>data-sg-<wbr>keypad-confirm</code>): an ordinary primary button that the keypad keeps <code>aria-disabled</code> until the amount passes <code>data-min</code> (default: above zero).</li>
   <li><strong>Hidden input</strong> (optional): receives the plain value (<code>12.5</code>) for a form post.</li>
 </ol>
 
@@ -196,7 +217,7 @@
     <tr><td><code>data-max-digits</code></td><td>integer, default <code>9</code></td><td>Most digits in all.</td></tr>
     <tr><td><code>data-value</code></td><td>plain number, <code>389</code></td><td>The starting amount.</td></tr>
     <tr><td><code>data-msg-max</code>, <code>-digits</code>, <code>-decimals</code>, <code>-point</code></td><td>text</td><td>Translate the refusal messages. <code>{max}</code> and <code>{n}</code> are replaced.</td></tr>
-    <tr><td><code>data-sg-keypad-confirm</code></td><td>on a button</td><td>Gets <code>aria-disabled="true"</code> until the amount is valid.</td></tr>
+    <tr><td><code>data-sg-<wbr>keypad-confirm</code></td><td>on a button</td><td>Gets <code>aria-disabled="true"</code> until the amount is valid.</td></tr>
     <tr><td><code>sg:keypad</code> event</td><td><code>detail: { raw, value, formatted }</code></td><td>Fires on the keypad after every accepted key.</td></tr>
     <tr><td>JavaScript</td><td><code>SG.keypad.get(pad)</code>, <code>.set(pad, raw)</code>, <code>.press(pad, key)</code>, <code>.init(root)</code></td><td>Read or set the amount from code.</td></tr>
   </tbody>

@@ -234,17 +234,58 @@ export const tests = [
     },
   },
   {
-    name: 'layout: when a switch does wrap (a narrow column, big text) it lands at the END of its row, under its word, not stranded at the start',
+    name: 'layout: the word and the switch are ONE unit: too narrow a row (a narrow column, 200% text) drops them together under the label, aligned to the start; the switch stays 48 x 28',
+    viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await open(page, goto)
-      const r = await page.evaluate(() => {
-        const l = document.querySelector('label.switch:not([data-layout="start"])')
-        const host = document.createElement('div'); host.style.cssText = 'inline-size:170px'; l.parentNode.insertBefore(host, l); host.appendChild(l)
-        const i = l.querySelector('input').getBoundingClientRect(); const t = l.querySelector('.switch__label').getBoundingClientRect(); const h = host.getBoundingClientRect()
-        return { wrapped: i.top >= t.bottom - 1, gapToEnd: Math.abs(h.right - i.right) }
-      })
-      expect.ok(r.wrapped, 'this width is too narrow for one row, so the switch wrapped')
-      expect.ok(r.gapToEnd < 8, 'and it sits at the end of the row: ' + r.gapToEnd + ' px from the right edge')
+      const read = () => page.evaluate(() => [...document.querySelectorAll('label.switch:not([data-layout="start"], [data-state="hidden"])')].map((l) => {
+        const i = l.querySelector('input').getBoundingClientRect(); const t = l.querySelector('.switch__label').getBoundingClientRect(); const w = l.querySelector('.switch__state').getBoundingClientRect()
+        const track = getComputedStyle(l.querySelector('input'), '::before')
+        return { name: l.querySelector('input').name, dropped: i.top >= t.bottom - 1, together: Math.abs((w.top + w.height / 2) - (i.top + i.height / 2)) <= 1 && w.right <= i.left + 1, start: Math.abs(w.left - t.left) <= 1, track: [track.width, track.height] }
+      }))
+      for (const r of await read()) expect.ok(!r.dropped && r.together, `${r.name} at 390 px: one row, the word beside its switch`)
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await settle(page)
+      for (const r of await read()) {
+        expect.ok(r.dropped, `${r.name} at 200% text: the unit dropped under the label`)
+        expect.ok(r.together, `${r.name}: the word and the switch stay together, on one line`)
+        expect.ok(r.start, `${r.name}: aligned to the start, under the label`)
+        expect.equal(r.track.join(' x '), '48px x 28px', `${r.name}: the switch is chrome: 48 x 28 at 200% text`)
+      }
+    },
+  },
+  {
+    name: 'switch first: the switch leads, the label wraps beside it, and the word follows the label or drops UNDER it at its start (never at the far end of a wrapped label), at 320 and 390 px, 100% and 200% text',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const read = () => page.evaluate(() => [...document.querySelectorAll('label.switch[data-layout="start"]:not([data-state="hidden"])')].map((l) => {
+        const row = l.getBoundingClientRect(), track = l.querySelector('input').getBoundingClientRect()
+        const lab = l.querySelector('.switch__label'), t = lab.getBoundingClientRect()
+        const word = [...l.querySelectorAll('.switch__state > span')].find((s) => getComputedStyle(s).opacity !== '0').getBoundingClientRect()
+        const rg = document.createRange(); rg.selectNodeContents(lab)
+        const tops = [...new Set([...rg.getClientRects()].map((q) => Math.round(q.top)))]
+        const lines = [...rg.getClientRects()]
+        const last = lines[lines.length - 1]
+        return {
+          name: l.querySelector('input').name,
+          lines: tops.length,
+          leads: track.left <= t.left && track.left <= row.left + 1,
+          beside: tops.length === 1 && Math.abs((word.top + word.height / 2) - (last.top + last.height / 2)) <= 2 && word.left >= last.right - 1 && word.left - last.right <= 16.5,
+          under: word.top >= t.bottom - 1 && Math.abs(word.left - t.left) <= 1,
+        }
+      }))
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((x) => { document.documentElement.style.fontSize = x + '%' }, text)
+        await settle(page)
+        const rows = await read()
+        expect.ok(rows.length >= 1, 'a switch-first row was found')
+        for (const r of rows) {
+          expect.ok(r.leads, `${w}px, ${text}%: ${r.name}: the switch leads the row`)
+          expect.ok(r.beside || r.under, `${w}px, ${text}%: ${r.name}: the word follows its one-line label or sits under the label at its start (label lines: ${r.lines})`)
+        }
+      }
     },
   },
   {

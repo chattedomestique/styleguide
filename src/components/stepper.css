@@ -33,6 +33,14 @@
    NO SCRIPT. The buttons would do nothing, so they are hidden (@media (scripting: none)) and the
    browser's own spinner arrows come back: a plain number input.
 
+   ONE ROW AT EVERY SIZE: [-][value][+]. The circles are chrome (44px, or 56 large, at any text size), the
+   gaps are chrome, and the value box is as wide as its digits (32-stepper.js counts the digits of min and
+   max into --_digits; two by default) and exactly as tall as the circles, so at 200% text the three still
+   share a row, at one height, in a phone card (they used to wrap: "-" and the number on one line, "+" alone
+   below, or all three stacked). The figures are a DISPLAY size bounded by that box, like the amount input's:
+   they grow with the reader's text until they would crowd the box (64% of its height: 28px, 36px large),
+   then stop, so the digits keep about 8px of air above and below them.
+
    Not a slider, not a free-form number box: for a value on a continuous range use slider; for big or
    precise numbers (amounts, IDs) use a plain input with inputmode.
    ========================================================================== */
@@ -40,15 +48,14 @@
 @layer sg.components {
   .stepper {
     display: inline-flex;
-    flex-wrap: wrap; /* at large text in a narrow column the plus button wraps instead of being cut off */
+    flex-wrap: nowrap; /* one row: see the header */
     align-items: center;
-    gap: var(--space-2); /* >= 8 px between the buttons and the field */
+    gap: var(--chrome-2); /* >= 8 px between the buttons and the field */
     inline-size: fit-content; /* a grid or flex parent would otherwise stretch the row */
     max-inline-size: 100%;
     /* The stepper is a grid item of .field, whose single column is `auto`. Without this its automatic
-       minimum width (the 4.5rem number field: 144px at 200% text) became the column's minimum, so the
-       field grew wider than the card around it and "Cards per session" was cut off by the card's frame.
-       With 0 the column can be as narrow as the card; the row then wraps (flex-wrap above). */
+       minimum width became the column's minimum, so the field grew wider than the card around it and
+       "Cards per session" was cut off by the card's frame. */
     min-inline-size: 0;
 
     > .btn {
@@ -58,11 +65,24 @@
   }
 
   .stepper > .stepper__input {
-    flex: 0 1 auto;
-    inline-size: 4.5rem;
-    padding-inline: var(--space-1);
+    --_digits: 2;
+    /* as tall as the circles beside it, at every text size: the row has one height (--_h is also what the
+       input skin reads for its minimum height) */
+    --_h: var(--chrome-ctl);
+    /* the figures: a display size bounded by the box (see the header). Grown with the text to 40px at 200%,
+       they filled the 44px box to within 5px of its frame and looked cramped beside the fields on the page. */
+    --_fs: min(var(--text-lg), calc(var(--_h) * 0.64));
+    /* a fixed height, not just a minimum: a text input never lets its line box be shorter than the font's
+       own (about 1.09em in Archivo) */
+    block-size: var(--_h);
+    flex: none;
+    /* the digits (tabular figures, so 1ch each) with a little room for the caret, the side insets (chrome)
+       and the frame */
+    inline-size: calc(var(--_digits) * 1ch + 2 * var(--chrome-3) + 2 * var(--bw));
+    min-inline-size: var(--_h); /* never narrower than it is tall */
+    padding-inline: calc(var(--chrome-3) - var(--bw));
     font: var(--type-ctl);
-    font-size: var(--text-lg);
+    font-size: var(--_fs);
     font-variant-numeric: tabular-nums lining-nums;
     text-align: center;
     -moz-appearance: textfield;
@@ -75,9 +95,8 @@
     }
   }
   .stepper[data-size="lg"] > .stepper__input {
-    --_h: var(--ctl-lg);
-    inline-size: 5.5rem;
-    font-size: var(--text-xl);
+    --_h: var(--chrome-ctl-lg);
+    --_fs: min(var(--text-xl), calc(var(--_h) * 0.64));
   }
 
   @media (scripting: none) {

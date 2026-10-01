@@ -1,4 +1,14 @@
 <!--{"title":"Button","group":"Components","order":10,"summary":"Pills and circles you press: secondary, primary, tone, icon-only."}-->
+<style>
+  /* docs scaffolding only. State specimens stand in a grid: lined up in columns, and one per row on a phone at
+     large text (a wrapping row left two on one line and a lonely one under them). They are 16px apart as DRAWN,
+     not as boxes: a raised specimen paints 4px below its box (lift and hard shadow) and a focused one 8px above
+     it (lift and ring), so the rows are 28px apart and leave 16px clear between a shadow and the next ring. */
+  .docs-article .specimens { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: calc(var(--space-4) + var(--space-3)) var(--space-4); align-items: center; justify-items: start; }
+  .docs-article .specimens__col { display: grid; gap: calc(var(--space-4) + var(--space-3)); justify-items: start; align-self: start; }
+  /* a column's caption sits on its first specimen, which is at rest (no lift, no ring): the plain 16px */
+  .docs-article .specimens__col > .t-label { margin-block-end: calc(var(--space-3) * -1); }
+</style>
 <h1>Button</h1>
 <p class="lede">A button does something on this screen: save, add, send, confirm. If it goes somewhere else, it is a link. Buttons are pills and circles because, in this system, circles and pills act and rectangles hold.</p>
 
@@ -15,24 +25,32 @@
 </div>
 
 <h2 id="variants">Variants</h2>
-<p>The default is an outline that fills on hover. Primary is filled with the accent at rest. Tone borrows the colours of the tone it sits in: a pastel tone (<em>Share deck</em>), or the ink tone (<em>Study offline</em>). A button that destroys something takes the <code>bad</code> status tone <strong>and</strong> says so in a second way, an icon and the word <em>Delete</em>, because colour never carries meaning alone: in the wire palette the pink is gone and the trash can is still there.</p>
+<p>The default is an outline that fills on hover. Primary is filled with the accent at rest. Tone borrows the colours of the tone it sits in: a pastel tone (<em>Share deck</em>), or the ink tone (<em>Study offline</em>).</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" type="button">Skip card</button>
     <button class="btn" data-variant="primary" type="button">Start review</button>
     <button class="btn" data-variant="tone" data-tone="2" type="button">Share deck</button>
-    <button class="btn" data-variant="tone" data-tone="bad" type="button"><span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck</button>
     <button class="btn" data-variant="tone" data-tone="ink" type="button">Study offline</button>
+  </div>
+</div>
+
+<h3 id="destructive">A button that destroys something</h3>
+<p>It takes the <code>bad</code> status tone <strong>and</strong> says so in a second way, an icon and the word <em>Delete</em>, because colour never carries meaning alone: in the wire palette the pink is gone and the trash can is still there. Give it a way out beside it, named just as plainly.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button">Keep deck</button>
+    <button class="btn" data-variant="tone" data-tone="bad" type="button"><span class="btn__label"><span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck</span></button>
   </div>
 </div>
 
 <h2 id="sizes">Sizes</h2>
 <p>Every size has a 44px hit area. The small one is drawn at 36px and extends its tappable area invisibly.</p>
-<div class="demo" data-layout="row">
+<div class="demo">
   <div class="demo__stage">
-    <button class="btn" data-size="sm" type="button">Small</button>
-    <button class="btn" type="button">Medium</button>
-    <button class="btn" data-size="lg" data-variant="primary" type="button">Large</button>
+    <div><button class="btn" data-size="sm" type="button">Small</button></div>
+    <div><button class="btn" type="button">Medium</button></div>
+    <div><button class="btn" data-size="lg" data-variant="primary" type="button">Large</button></div>
   </div>
 </div>
 <div class="demo">
@@ -42,32 +60,59 @@
 </div>
 
 <h2 id="icons">With an icon, and as a circle</h2>
-<p>Icons are masks: <code>&lt;span class="ic ic--plus" aria-hidden="true"&gt;</code>. A circle holds one icon and <strong>must</strong> have an <code>aria-label</code>: a tooltip is not a name.</p>
-<div class="demo" data-layout="row">
+<p>Icons are masks: <code>&lt;span class="ic ic--plus" aria-hidden="true"&gt;</code>. An icon beside a label grows with the reader's text size, because it is part of the line of words. Put an icon that comes <em>before</em> the words inside <code>.btn__label</code> with them: they are then one line of text, so if the label has to wrap at large text the icon leads its first line and the lines stay centred as one group. An icon <em>after</em> the words (<em>Continue</em>) stays outside the label, at its end. A circle holds one icon and <strong>must</strong> have an <code>aria-label</code>: a tooltip is not a name. An icon-only circle stays at its drawn size (36, 44 or 56) at any text size, so large text gives its room to the words around it; so does the gap in a row of circles (<code>--cluster-gap: var(--chrome-3)</code>, 12px), which keeps the row whole on a phone at 200% text.</p>
+<div class="demo">
   <div class="demo__stage">
-    <button class="btn" data-variant="primary" type="button"><span class="ic ic--plus" aria-hidden="true"></span>Add funds</button>
-    <button class="btn" type="button">Continue<span class="ic ic--arrow" aria-hidden="true"></span></button>
-    <button class="btn" data-shape="circle" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
-    <button class="btn" data-shape="circle" data-variant="primary" type="button" aria-label="Refresh"><span class="ic ic--refresh-cw" aria-hidden="true"></span></button>
-    <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button>
-    <button class="btn" data-shape="circle" data-size="lg" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
+    <div class="cluster" data-gap="3">
+      <button class="btn" data-variant="primary" type="button"><span class="btn__label"><span class="ic ic--plus" aria-hidden="true"></span>Add funds</span></button>
+      <button class="btn" type="button">Continue<span class="ic ic--arrow" aria-hidden="true"></span></button>
+    </div>
+    <div class="cluster" style="--cluster-gap: var(--chrome-3)">
+      <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button>
+      <button class="btn" data-shape="circle" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
+      <button class="btn" data-shape="circle" data-variant="primary" type="button" aria-label="Refresh"><span class="ic ic--refresh-cw" aria-hidden="true"></span></button>
+      <button class="btn" data-shape="circle" data-size="lg" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
+    </div>
   </div>
 </div>
 
 <h2 id="states">States</h2>
-<p>States come from ARIA and native attributes, so the look cannot disagree with what a screen reader is told. The <code>is-*</code> classes below only force a state for this page.</p>
-<div class="demo" data-layout="row">
+<p>States come from ARIA and native attributes, so the look cannot disagree with what a screen reader is told. The <code>is-*</code> classes below only force a state for this page. An action button rises and fills on hover and keyboard focus, because filling is what pressing it will do, and sinks back onto the surface while pressed.</p>
+<div class="demo">
   <div class="demo__stage">
-    <button class="btn" type="button">Rest</button>
-    <button class="btn is-hover" type="button">Hover</button>
-    <button class="btn is-focus" type="button">Focus</button>
-    <button class="btn is-active" type="button">Pressed</button>
-    <button class="btn" type="button" aria-pressed="false">Toggle: off</button>
-    <button class="btn" type="button" aria-pressed="true">Toggle: on</button>
-    <button class="btn" data-variant="primary" type="button" aria-busy="true">Saving</button>
-    <button class="btn" type="button" disabled>Disabled</button>
-    <button class="btn" type="button" aria-disabled="true" aria-describedby="why-off">Unavailable</button>
-    <span id="why-off" class="t-meta">Fill in the amount first.</span>
+    <div class="specimens">
+      <button class="btn" type="button">Rest</button>
+      <button class="btn is-hover" type="button">Hover</button>
+      <button class="btn is-focus" type="button">Focus</button>
+      <button class="btn is-active" type="button">Pressed</button>
+      <button class="btn" data-variant="primary" type="button" aria-busy="true">Saving</button>
+      <button class="btn" type="button" disabled>Disabled</button>
+      <button class="btn" type="button" aria-disabled="true" aria-describedby="why-off">Unavailable</button>
+      <p id="why-off" class="t-meta">Fill in the amount first.</p>
+    </div>
+  </div>
+</div>
+
+<h3 id="toggle">Toggle buttons</h3>
+<p>A toggle (<code>aria-pressed</code>) is a selection control, so its fill means <em>on</em> and nothing else. While it is off, hover and keyboard focus only raise it, and a press tints it; a toggle that filled on hover would look on to anyone passing over it with a mouse. On is filled <strong>and</strong> its frame doubles: a ring of paper inside the frame, which still reads when the accent is as dark as the frame (and in the wire palette, where there is no colour at all). The name never changes; <code>aria-pressed</code> carries the state.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="specimens">
+      <div class="specimens__col">
+        <p class="t-label">Off</p>
+        <button class="btn" type="button" aria-pressed="false">Rest</button>
+        <button class="btn is-hover" type="button" aria-pressed="false">Hover</button>
+        <button class="btn is-focus" type="button" aria-pressed="false">Focus</button>
+        <button class="btn is-active" type="button" aria-pressed="false">Pressed</button>
+      </div>
+      <div class="specimens__col">
+        <p class="t-label">On</p>
+        <button class="btn" type="button" aria-pressed="true">Rest</button>
+        <button class="btn is-hover" type="button" aria-pressed="true">Hover</button>
+        <button class="btn is-focus" type="button" aria-pressed="true">Focus</button>
+        <button class="btn is-active" type="button" aria-pressed="true">Pressed</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -85,10 +130,11 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Frame</strong>: <code>--bw</code> (2px) in <code>--line</code>. A real border always exists, so forced-colours mode (which deletes fills and shadows) still shows the control.</li>
-  <li><strong>Fill</strong>: <code>--fill</code> mixes the resting colours toward the accent. Rest 0 (outline), hover/pressed 1.</li>
+  <li><strong>Fill</strong>: <code>--fill</code> mixes the resting colours toward the accent. An action button: rest 0 (outline), hover, focus and pressed 1. A toggle: 0 while off (a press tints it to 0.15), 1 only when on.</li>
+  <li><strong>Doubled frame</strong> (on): a 2px ring of the resting colour inside the frame, so the frame and the edge of the fill read as two outlines whatever the accent.</li>
   <li><strong>Hard shadow</strong>: appears with <code>--lift</code> (4px, zero blur) when the button can be pressed; pressing sinks it back. A shadow means "you can press this". On a filled button a 2px gap in the surface colour separates the fill from the shadow, so the two do not fuse into one lump.</li>
-  <li><strong>Label</strong>: sentence case, semibold, verb first, 1&ndash;3 words.</li>
-  <li><strong>Icon</strong> (optional): 20px mask, decorative when a label is present.</li>
+  <li><strong>Label</strong> (<code>.btn__label</code> when there is an icon before the words): sentence case, semibold, verb first, 1&ndash;3 words. It wraps between words at large text, centred and balanced, with the icon at the start of its first line.</li>
+  <li><strong>Icon</strong> (optional): 20px mask, decorative when a label is present. It grows with the label; the icon of an icon-only circle does not.</li>
   <li><strong>Hit area</strong>: an invisible <code>::after</code> that guarantees 44&times;44px.</li>
 </ol>
 
@@ -98,11 +144,12 @@
   <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
     <tr><td><code>class="btn"</code></td><td></td><td>The button. Works on <code>&lt;button&gt;</code> and <code>&lt;a&gt;</code>.</td></tr>
+    <tr><td><code>class="btn__label"</code></td><td>a <code>&lt;span&gt;</code> holding a leading icon and the words</td><td>One line of text: a wrapped label keeps the icon at the start of its first line and stays centred. An icon after the words goes outside it.</td></tr>
     <tr><td><code>data-variant</code></td><td><code>primary</code>, <code>tone</code> (default: secondary)</td><td>Emphasis. Tone reads <code>--tone-bg/ink/fill/on-fill</code> from <code>data-tone</code> on the button.</td></tr>
     <tr><td><code>data-size</code></td><td><code>sm</code> (36), <code>lg</code> (56) (default 44)</td><td>Drawn height. The hit area is always at least 44.</td></tr>
     <tr><td><code>data-shape</code></td><td><code>circle</code></td><td>Square box for one icon. Needs <code>aria-label</code>.</td></tr>
-    <tr><td><code>data-block</code></td><td></td><td>Full width.</td></tr>
-    <tr><td><code>aria-pressed</code></td><td><code>true</code> | <code>false</code></td><td>Toggle. On = filled AND a doubled frame, so it never depends on the accent being dark.</td></tr>
+    <tr><td><code>data-block</code></td><td></td><td>Full width. The label is centred, so the side padding is 16px instead of 24.</td></tr>
+    <tr><td><code>aria-pressed</code></td><td><code>true</code> | <code>false</code></td><td>Toggle, a selection control: off rises on hover and focus without filling; on = filled AND a doubled frame, so it never depends on the accent being dark. A primary toggle (play / pause) stays filled and lets its icon say the state. <code>role="radio"</code> with <code>aria-checked</code> (one tool of a group) works the same way.</td></tr>
     <tr><td><code>aria-busy="true"</code></td><td></td><td>Spinner (a pulse under reduced motion); ignores taps. Announce the result with <code>SG.announce()</code>.</td></tr>
     <tr><td><code>disabled</code> / <code>aria-disabled="true"</code></td><td></td><td>Dashed frame, faint ink, no shadow. Prefer <code>aria-disabled</code> plus a reason in <code>aria-describedby</code>: it stays focusable so people can find out why. <code>SG</code> makes it inert for keyboard too.</td></tr>
   </tbody>
@@ -115,13 +162,13 @@
   <tbody>
     <tr><td><kbd>Tab</kbd></td><td>Moves focus to and from the button. The ring (3px, offset 3px) plus a paper halo stays visible on every background.</td></tr>
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activates. Native <code>&lt;button&gt;</code> gives this for free; never use a <code>&lt;div&gt;</code>.</td></tr>
-    <tr><td>Screen reader</td><td>"Label, button". Toggles add pressed / not pressed; busy adds busy; <code>aria-disabled</code> adds unavailable.</td></tr>
+    <tr><td>Screen reader</td><td>"Label, button". Toggles add pressed / not pressed (the name stays the same); busy adds busy; <code>aria-disabled</code> adds unavailable.</td></tr>
     <tr><td>Touch</td><td>44&times;44px minimum hit area. No gesture required.</td></tr>
-    <tr><td>Zoom / text size</td><td>Heights and padding are rem; labels wrap between words rather than clip at 200% text, a row of buttons wraps the whole button before it squeezes a label, and a tall wrapped button stays a rounded rectangle (the pill radius is half of one line, not an oval).</td></tr>
+    <tr><td>Zoom / text size</td><td>The label, and an icon beside it, grow with the text; the side padding, the icon gap and icon-only circles stop at their 100% size, so the words get the room. Labels wrap between words rather than clip at 200% text (in <code>.btn__label</code> the icon leads the first line and the lines stay centred), a row of buttons wraps the whole button before it squeezes a label, and a tall wrapped button stays a rounded rectangle (the pill radius is half of one line, not an oval).</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the fill change stays. The spinner pulses instead of rotating.</td></tr>
     <tr><td>Forced colours</td><td>The frame becomes <code>ButtonText</code>; raised and focus get a 4px <code>Highlight</code> outline; on gets a 4px frame.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--ink</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--ctl-sm</code>, <code>--ctl</code>, <code>--ctl-lg</code>, <code>--hit</code>, <code>--type-ctl</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>, <code>--anim-spin</code>.</p>
+<p><code>--paper</code>, <code>--ink</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--ctl-sm</code>, <code>--ctl</code>, <code>--ctl-lg</code>, <code>--hit</code>, <code>--chrome-2</code>, <code>--chrome-4</code>, <code>--chrome-5</code>, <code>--chrome-6</code>, <code>--chrome-ctl</code>, <code>--chrome-hit</code>, <code>--chrome-ic-sm</code>, <code>--type-ctl</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>, <code>--anim-spin</code>.</p>

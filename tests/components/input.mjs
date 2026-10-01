@@ -188,7 +188,7 @@ export const tests = [
       await open(page, goto)
       await page.locator('#inp-st-3').focus()
       await page.keyboard.type('zzz')
-      expect.equal(await page.locator('#inp-st-3').inputValue(), 'INV-2026-0042', 'read-only value unchanged')
+      expect.equal(await page.locator('#inp-st-3').inputValue(), 'INV-0042', 'read-only value unchanged')
       const ro = await page.locator('#inp-st-3').evaluate((e) => { const c = getComputedStyle(e); return { st: c.borderTopStyle, bg: c.backgroundColor } })
       const plain = await page.locator('#inp-st-1').evaluate((e) => getComputedStyle(e).backgroundColor)
       expect.equal(ro.st, 'solid', 'read-only keeps a solid frame')
@@ -285,12 +285,79 @@ export const tests = [
     },
   },
   {
-    name: 'search bar: back, field and action share one row on a 320 px phone',
+    name: 'search bar: back, field and action share ONE row and ONE height (44px) at 320 and 390 px, at 100% and 200% text; the circles are round, the field takes the rest and shows "Search" whole',
     viewport: { width: 320, height: 700 },
     async run({ page, goto, expect }) {
       await goto('components/input.html')
-      const r = await page.locator('.input-bar').first().evaluate((bar) => [...bar.children].map((c) => Math.round(c.getBoundingClientRect().top)))
-      expect.equal(new Set(r).size, 1, 'one row: tops ' + r.join(', '))
+      const row = () => page.locator('.input-bar').first().evaluate((bar) => {
+        const kids = [...bar.children].map((c) => c.getBoundingClientRect())
+        const input = bar.querySelector('input'), cs = getComputedStyle(input)
+        const t = document.createElement('span'); t.style.cssText = 'position:absolute;white-space:pre;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing
+        t.textContent = input.placeholder; document.body.appendChild(t)
+        const need = t.getBoundingClientRect().width; t.remove()
+        return {
+          mids: kids.map((r) => Math.round(r.top + r.height / 2)),
+          heights: kids.map((r) => Math.round(r.height)),
+          circles: [kids[0], kids[2]].map((r) => [Math.round(r.width), Math.round(r.height)]),
+          field: Math.round(kids[1].width),
+          overflow: bar.scrollWidth > bar.clientWidth + 1,
+          need: Math.round(need),
+          room: Math.round(input.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)),
+        }
+      })
+      for (const [w, text] of [[320, 100], [390, 100], [320, 200], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 700 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(100)
+        const r = await row()
+        expect.ok(Math.max(...r.mids) - Math.min(...r.mids) <= 1, `${w}px, ${text}%: one row, centred on one line (${r.mids.join(', ')})`)
+        expect.ok(r.heights.every((h) => h === 44), `${w}px, ${text}%: back, field and action share one height, 44px (${r.heights.join(', ')})`)
+        for (const c of r.circles) expect.ok(c[0] === c[1], `${w}px, ${text}%: a circle is round (${c})`)
+        expect.ok(r.field > 80 && !r.overflow, `${w}px, ${text}%: the field takes the rest (${r.field}px) and nothing spills`)
+        expect.ok(r.need <= r.room, `${w}px, ${text}%: the placeholder shows whole (${r.need}px in ${r.room}px)`)
+      }
+    },
+  },
+  {
+    name: 'large text (200% at 390 and 320 px): values have room: chrome-capped padding, icon slots and buttons leave every demo value whole, the amount stays a display figure, the recipient is words that wrap',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/input.html')
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+        await page.waitForTimeout(150)
+        // every one-line field in the demos that shows a value or a placeholder (the soft-limit demo on the Field page
+        // is the one place a value is meant to be too long; there is none here)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.demo__stage input.input')].filter((e) => (e.value || e.placeholder) && e.type !== 'date' && e.type !== 'time').map((e) => {
+          const cs = getComputedStyle(e)
+          const t = document.createElement('span'); t.style.cssText = 'position:absolute;white-space:pre;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing + ';font-variant-numeric:' + cs.fontVariantNumeric
+          t.textContent = e.value || e.placeholder; document.body.appendChild(t)
+          const need = t.getBoundingClientRect().width; t.remove()
+          const btn = e.closest('.input-group') && e.closest('.input-group').querySelector('.input-group__btn:not([hidden])')
+          return { id: e.id, need: Math.round(need), room: Math.round(e.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)), btn: btn ? btn.getBoundingClientRect().width : null }
+        }))
+        expect.ok(r.length >= 8, `${w}px: the demos' fields were found (${r.length})`)
+        for (const x of r) {
+          expect.ok(x.need <= x.room, `${w}px, 200%: ${x.id}: the value fits (${x.need}px of text in ${x.room}px)`)
+          if (x.btn !== null) expect.ok(Math.round(x.btn) === 36, `${w}px, 200%: ${x.id}: the clear button stays a 36px circle (${x.btn})`)
+        }
+        // the date is drawn by the browser and cannot wrap: "03/14/2026" has to fit beside the picker button (a 20px
+        // icon in 12px of padding, pulled 12px into the end padding), in the full-width field it is given
+        const date = await page.locator('#inp-date').evaluate((e) => {
+          const cs = getComputedStyle(e)
+          const t = document.createElement('span'); t.style.cssText = 'position:absolute;white-space:pre;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing + ';font-variant-numeric:' + cs.fontVariantNumeric
+          t.textContent = '03/14/2026'; document.body.appendChild(t)
+          const need = t.getBoundingClientRect().width; t.remove()
+          return { need: Math.round(need), room: Math.round(e.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 32) }
+        })
+        expect.ok(date.need <= date.room, `${w}px, 200%: 03/14/2026 fits the date field (${date.need}px in ${date.room}px)`)
+        const fs = await page.locator('#ctx-amt').evaluate((e) => parseFloat(getComputedStyle(e).fontSize))
+        expect.ok(fs >= 28, `${w}px, 200%: the amount is still a display figure (${fs}px), bounded by its box`)
+        // the chosen recipient is a row of words: it wraps, it is never cut to "Sam …"
+        const who = await page.locator('.phone .card--row .card__title').evaluate((e) => ({ clip: e.scrollWidth > e.clientWidth + 1, overflow: getComputedStyle(e).textOverflow, text: e.textContent }))
+        expect.ok(!who.clip && who.overflow !== 'ellipsis', `${w}px, 200%: the recipient "${who.text}" shows whole`)
+      }
     },
   },
 ]
