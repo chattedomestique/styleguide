@@ -298,4 +298,23 @@ export const tests = [
       expect.ok(bar, 'the bar fits its frame')
     },
   },
+  {
+    name: 'at 200% text the bar cannot widen the carousel: Previous, Next and Play stay inside its frame and the track does not outgrow it',
+    async run({ page, goto, expect }) {
+      await goto('components/carousel.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(250)
+      const r = await page.evaluate(() => [...document.querySelectorAll('.carousel')].map((c) => {
+        const f = c.getBoundingClientRect()
+        const inside = (el) => { const b = el.getBoundingClientRect(); return b.left >= f.left - 1 && b.right <= f.right + 1 }
+        return { name: c.getAttribute('aria-label'), buttons: [...c.querySelectorAll('.carousel__nav .btn')].map((b) => [b.getAttribute('aria-label'), inside(b)]), track: inside(c.querySelector('.carousel__track')), vw: f.right <= innerWidth + 1 }
+      }))
+      expect.ok(r.length >= 4, 'the demo carousels')
+      for (const c of r) {
+        expect.ok(c.track, `${c.name}: the track stays inside the frame`)
+        expect.ok(c.vw, `${c.name}: the carousel stays inside the screen`)
+        for (const [label, ok] of c.buttons) expect.ok(ok, `${c.name}: "${label}" is inside the frame`)
+      }
+    },
+  },
 ]

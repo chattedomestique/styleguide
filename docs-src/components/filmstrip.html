@@ -4,6 +4,9 @@
   .phone h3 { margin: 0; }
   .demo [data-role="states"] { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-5); padding: var(--space-2); }
   .demo [data-role="states"] > div { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+  /* the sizes demo: strips with no stage above them, so they have no rule to sit under; the label is their heading */
+  #demo-sizes .filmstrip__strip { border-block-start: 0; }
+  #demo-sizes .t-label { margin: 0; }
 </style>
 <h1>Filmstrip</h1>
 <p class="lede">A row of small pictures that chooses what the big picture shows. One choice at a time, so the thumbnails are radio buttons: the browser gives you one tab stop, arrow keys that move and choose, and a value for a form. It is the photo editor's tray: look at the big picture, pick from the small ones.</p>
@@ -20,7 +23,9 @@
   </div>
 </div>
 
-<h2 id="photos">Photos</h2>
+<h2 id="examples">Examples</h2>
+
+<h3 id="photos">Photos</h3>
 <p>Choose a thumbnail with a tap, a click, or the arrow keys. The stage is a <a href="@/components/media.html">Media</a> figure: its picture, alt text and caption follow the choice, and the new picture gets the loading state if it is slow. The thumbnail's own alt names the <em>choice</em>; <code>data-alt</code> on the radio describes the <em>picture</em> for the stage.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -66,7 +71,7 @@
   </div>
 </div>
 
-<h2 id="swatches">Swatches</h2>
+<h3 id="swatches">Swatches</h3>
 <p>A thumbnail does not have to be a photo. Here the stage is a cut-out on a <code>--paper-2</code> mat, and the strip picks the tone behind it. <code>data-shape="circle"</code> makes the thumbnails round, because choosing is acting. The first choice, <em>None</em>, is always offered. A swatch has no picture to name it, so it carries a visually hidden name.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -117,7 +122,7 @@
 </div>
 <p class="t-meta">Tones carry rhythm, never meaning. The palette decides each slot's hue, so name the choices for what they are to the person ("Backdrop 3"), not for their colour.</p>
 
-<h2 id="states">States</h2>
+<h3 id="states">States</h3>
 <p>Each thumbnail is a pressable thing, so it lifts on hover and keyboard focus and sinks when pressed, like a <a href="@/components/button.html">Button</a>. The chosen one <strong>doubles its frame and wears a check badge</strong>: two cues that survive a pale photo, the wire palette and forced colours. Unavailable is dashed, with <code>disabled</code> on the radio.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -134,8 +139,134 @@
 
 <h3 id="sizes">Sizes</h3>
 <p><code>data-size</code> is <code>sm</code> (56px), the default 72px, or <code>lg</code> (96px). The hit area is the whole thumbnail, so even the small one is over 44px. The strip scrolls sideways when there are more thumbnails than room; the last one is left partly in view as a cue, and the arrow keys bring the chosen one into view.</p>
+<div class="demo" id="demo-sizes">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+    <p class="t-label">Small, 56px</p>
+    <div class="filmstrip" data-size="sm">
+      <fieldset class="filmstrip__strip">
+        <legend class="sr-only">Small, 56px: choose a photo</legend>
+        <div class="filmstrip__track">
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="harbour" checked>
+            <img src="@/assets/media/harbour.svg" alt="Harbour at dawn" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="market">
+            <img src="@/assets/media/market.svg" alt="Tomato stall" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="tram">
+            <img src="@/assets/media/tram.svg" alt="Tram on line 28" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="kites">
+            <img src="@/assets/media/kites.svg" alt="Kites on the ridge" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="greenhouse">
+            <img src="@/assets/media/greenhouse.svg" alt="Seedlings" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="rooftops">
+            <img src="@/assets/media/rooftops.svg" alt="Rooftops at dusk" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="snow">
+            <img src="@/assets/media/snow.svg" alt="Snow on the pass" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="bread">
+            <img src="@/assets/media/bread.svg" alt="Morning bread" width="1200" height="900">
+          </label>
+        </div>
+      </fieldset>
+    </div>
+    <p class="t-label">Default, 72px</p>
+    <div class="filmstrip">
+      <fieldset class="filmstrip__strip">
+        <legend class="sr-only">Default, 72px: choose a photo</legend>
+        <div class="filmstrip__track">
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="harbour" checked>
+            <img src="@/assets/media/harbour.svg" alt="Harbour at dawn" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="market">
+            <img src="@/assets/media/market.svg" alt="Tomato stall" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="tram">
+            <img src="@/assets/media/tram.svg" alt="Tram on line 28" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="kites">
+            <img src="@/assets/media/kites.svg" alt="Kites on the ridge" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="greenhouse">
+            <img src="@/assets/media/greenhouse.svg" alt="Seedlings" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="rooftops">
+            <img src="@/assets/media/rooftops.svg" alt="Rooftops at dusk" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="snow">
+            <img src="@/assets/media/snow.svg" alt="Snow on the pass" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="bread">
+            <img src="@/assets/media/bread.svg" alt="Morning bread" width="1200" height="900">
+          </label>
+        </div>
+      </fieldset>
+    </div>
+    <p class="t-label">Large, 96px</p>
+    <div class="filmstrip" data-size="lg">
+      <fieldset class="filmstrip__strip">
+        <legend class="sr-only">Large, 96px: choose a photo</legend>
+        <div class="filmstrip__track">
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="harbour" checked>
+            <img src="@/assets/media/harbour.svg" alt="Harbour at dawn" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="market">
+            <img src="@/assets/media/market.svg" alt="Tomato stall" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="tram">
+            <img src="@/assets/media/tram.svg" alt="Tram on line 28" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="kites">
+            <img src="@/assets/media/kites.svg" alt="Kites on the ridge" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="greenhouse">
+            <img src="@/assets/media/greenhouse.svg" alt="Seedlings" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="rooftops">
+            <img src="@/assets/media/rooftops.svg" alt="Rooftops at dusk" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="snow">
+            <img src="@/assets/media/snow.svg" alt="Snow on the pass" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="bread">
+            <img src="@/assets/media/bread.svg" alt="Morning bread" width="1200" height="900">
+          </label>
+        </div>
+      </fieldset>
+    </div>
+    </div>
+  </div>
+</div>
 
-<h2 id="context">In context</h2>
+<h3 id="context">In context</h3>
 <p>The photo editor's backdrop tool: the stage on top, the choices under it, and cancel / apply in the same two corners they are in every tool. The circles act; the stage holds.</p>
 <div class="phone">
   <div class="phone__screen stack" data-gap="4">
