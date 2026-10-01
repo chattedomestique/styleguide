@@ -138,9 +138,6 @@
    longest title words, so the face narrows in steps instead of the word breaking. In rem, so it follows the text size. */
 @container article (max-width: 16rem) { .docs-article h1 { font-stretch: 100%; } }
 @container article (max-width: 11rem) { .docs-article h1 { font-stretch: 72%; } }
-/* h2 is expanded type too: at 200% text "Accessibility" is wider than a phone line and broke inside the word */
-@container article (max-width: 11rem) { .docs-article h2 { font-stretch: 100%; } }
-@container article (max-width: 9rem) { .docs-article h2 { font-stretch: 87.5%; } }
 .docs-article h2 {
   margin-block-start: var(--space-8);
   padding-block-start: var(--space-4);
@@ -149,6 +146,10 @@
   letter-spacing: var(--ls-title);
   scroll-margin-block-start: calc(var(--appbar-h) + var(--space-4));
 }
+/* h2 is expanded type too: at 200% text "Accessibility" is wider than a phone line and broke inside the word. After the
+   rule above, whose font shorthand would reset the width axis again. */
+@container article (max-width: 11rem) { .docs-article h2 { font-stretch: 100%; } }
+@container article (max-width: 9rem) { .docs-article h2 { font-stretch: 87.5%; } }
 .docs-article h3 { margin-block-start: var(--space-6); font: var(--type-title); scroll-margin-block-start: calc(var(--appbar-h) + var(--space-4)); }
 /* Prose only. Unlayered, this would beat the layered component rules inside a demo (a divider's rule stopping short of its
    buttons, a player's end time floating mid-bar). */
