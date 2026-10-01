@@ -108,7 +108,7 @@ The owner's sheet moves every element through gates, in order. Do not skip ahead
 | 4 Motion | One transition; reduced motion = gentler | spec passes with `reducedMotion` |
 | 5 Freeze | Docs complete, a11y gate green, screenshots reviewed | definition of done below |
 
-The status table lives in `STYLE.md` §6; update it when an element moves.
+The status table lives in `STYLE.md` §6 (the owner's copy); the Status docs page is generated from the gates by `npm run status`. Update §6 when an element moves.
 
 1. `npm run new:component -- <name> --order <n>`. Orders: actions 10–19 · forms 20–39 · selection & navigation 40–59 · surfaces 60–79 · overlays & feedback 80–99 · data 100–119 · media & tools 120–139.
 2. Copy the **structure** of `src/components/button.css`: `--lift` / `--fill`, private `--_*` properties, variants via `data-*`, states via ARIA, `@layer sg.components`, hit area, focus, hover gate, forced colours, reduced motion.

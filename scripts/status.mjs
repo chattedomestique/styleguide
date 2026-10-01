@@ -309,7 +309,7 @@ function render({ els, spec, a11y, lintOk, minAppearances, date }) {
   if (openNames.length) {
     P('<p>Every item is a finding from a gate, not an opinion. When one is fixed, run the checks again and only then change the cell.</p>')
     P('<ul>')
-    for (const n of openNames) P(`  <li><a href="@/components/${n}.html">${esc(els.get(n).title)}</a>: ${findings(n).join('; ')}</li>`)
+    for (const n of openNames) P(`  <li><a href="@/components/${n}.html">${esc(els.get(n).title)}</a>: ${findings(n).length ? findings(n).join('; ') : 'not run'}</li>`)
     P('</ul>')
   } else {
     P("<p>Nothing is open. Every element passes its spec, the lint and the accessibility gate. That is the mechanical half of gates 0 to 4; the looks are still a person's to review.</p>")
@@ -317,9 +317,9 @@ function render({ els, spec, a11y, lintOk, minAppearances, date }) {
   P('')
   P(`<h2 id="keep">How this table is kept</h2>
 <ul>
-  <li>It is kept by hand. <code>STYLE.md</code> section 6 is the owner's copy of the same table: when an element moves, edit this page and that section in the same pull request, and add a line to the <a href="@/project/changelog.html">Changelog</a>.</li>
-  <li>To refresh the evidence, run the three commands: <code>npm run lint</code>, <code>npm run test:components</code> and <code>npm run test:a11y</code>. A cell is only ever <em>done</em> because a check passed.</li>
-  <li>A generated table, so that nobody types a status, is still open; see <a href="@/project/decisions.html#small">Decisions</a>.</li>
+  <li>It is generated, so that nobody types a status. <code>npm run status</code> runs the build, the lint, the component specs and the accessibility gate, and rewrites this page from their output (about an hour for all five appearances; <code>npm run status -- --quick</code> runs two and is for looking, not for committing). Run <code>npm run build</code> afterwards so <code>docs/</code> matches; CI fails otherwise.</li>
+  <li><code>STYLE.md</code> section 6 is the owner's copy of the same table: when an element moves, copy the result there in the same pull request, and add a line to the <a href="@/project/changelog.html">Changelog</a>.</li>
+  <li>To refresh only the evidence, run the three commands yourself: <code>npm run lint</code>, <code>npm run test:components</code> and <code>npm run test:a11y</code>. A cell is only ever <em>done</em> because a check passed. Gate 5 is the owner's sign-off and is never filled in by the script.</li>
   <li>Everything here was measured in Chromium. Nothing has been verified in Safari, Firefox or with a screen reader; see <a href="@/project/decisions.html#devices">Decisions</a>.</li>
 </ul>`)
 
