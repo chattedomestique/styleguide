@@ -2,13 +2,14 @@
 <style>
   /* docs scaffolding only: keep the class names in the API tables whole */
   .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
-  /* docs scaffolding only: a calendar wants its width, so keep the stage padding small on phones */
-  .demo__stage:has(> .cal) { padding: var(--space-3); }
+  /* docs scaffolding only: a calendar wants its width, so keep the stage padding small on phones (chrome: it does
+     not grow with the text, so 200% text keeps the width for the days) */
+  .demo__stage:has(> .cal) { padding: var(--chrome-3); }
   .demo__stage:has(> .cal) > .cal { max-inline-size: 26rem; }
   /* the states demo: each specimen is a day with its name under it, in a wrapping grid. (Names in the same seven columns
      as the days touched at 320px and overprinted at 200% text.) Only the arrangement changes; every day is the real .cal__day. */
   .cal-specimens, .cal-specimens tbody { display: block; }
-  .cal-specimens tr { display: grid; grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr)); gap: var(--space-4) var(--space-1); padding: var(--space-3); }
+  .cal-specimens tr { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr)); gap: var(--space-4); padding: var(--chrome-3); }
   .cal-specimens tbody td { display: grid; justify-items: center; align-content: start; row-gap: var(--space-2); block-size: auto; padding: 0; }
   .cal-specimens .t-meta { text-align: center; overflow-wrap: break-word; }
   /* the docs article styles bare lists; the calendar's list is its own layout */
@@ -33,7 +34,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="month">Month</h3>
-<p>Today (30 September here, pinned with <code>data-today</code> so this page does not change with the date) has a ring and an underlined numeral. The chosen day, the 2nd, is filled and its frame doubles. The squares under a numeral count events up to three; the day's name says the count in words and the list below says what they are. Days of the neighbouring months are quieter, not faint, because they are real buttons. Try the arrow keys, <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>PageUp</kbd> and <kbd>PageDown</kbd>.</p>
+<p>Today (30 September here, pinned with <code>data-today</code> so this page does not change with the date) has a ring and an underlined numeral. The chosen day, the 2nd, is filled and its frame doubles inward (its frame, a paper gap, then the fill), so it is exactly as big as today's ring and every marker in a row has one size. The squares under a numeral count events up to three; the day's name says the count in words and the list below says what they are. Days of the neighbouring months are quieter, not faint, because they are real buttons. Try the arrow keys, <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>PageUp</kbd> and <kbd>PageDown</kbd>.</p>
 <div class="demo" id="demo-month">
   <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-value=&quot;2026-10-02&quot; data-today=&quot;2026-09-30&quot; data-first-day=&quot;1&quot; data-locale=&quot;en-GB&quot;&gt;
   &lt;script type=&quot;application/json&quot; data-sg-events&gt;
@@ -357,7 +358,7 @@
 </div>
 
 <h3 id="week">Week strip</h3>
-<p>One row of seven tall days, for a screen that shares space with a list. Same buttons, same keys; <kbd>PageUp</kbd> and <kbd>PageDown</kbd> move a week, and the two round buttons page by week. The weekday names are part of each day's button.</p>
+<p>One row of seven tall days, for a screen that shares space with a list. Same buttons, same keys; <kbd>PageUp</kbd> and <kbd>PageDown</kbd> move a week, and the two round buttons page by week. The weekday names are part of each day's button. Every day keeps at least 44px: when seven do not fit (a small phone, or 200% text), the strip scrolls sideways and snaps to a day, the chosen day is scrolled into view, and the day cut at the frame's edge says there is more. It never squeezes the days until their dates collide.</p>
 <div class="demo" id="demo-week">
   <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-view=&quot;week&quot; data-value=&quot;2026-10-02&quot; data-today=&quot;2026-09-30&quot; data-first-day=&quot;1&quot; data-locale=&quot;en-GB&quot;&gt;
   &lt;script type=&quot;application/json&quot; data-sg-events&gt;
@@ -519,7 +520,7 @@
 </div>
 
 <h3 id="range">A range</h3>
-<p><code>data-min</code> and <code>data-max</code> make the days outside them unavailable: dashed, faint, not choosable, but still reachable by keyboard so nobody is left guessing why.</p>
+<p><code>data-min</code> and <code>data-max</code> make the days outside them unavailable: a faint numeral struck through, no frame, not choosable, but still reachable by keyboard and named "not available", so nobody is left guessing why. They are quiet on purpose: the days you can choose are the point of the grid.</p>
 <div class="demo" id="demo-range">
   <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-value=&quot;2026-09-30&quot; data-today=&quot;2026-09-30&quot; data-min=&quot;2026-09-14&quot; data-max=&quot;2026-10-10&quot; data-first-day=&quot;1&quot; data-locale=&quot;en-GB&quot;&gt;
   &lt;script type=&quot;application/json&quot; data-sg-events&gt;
@@ -843,7 +844,19 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Each state has a cue that is not colour: hover and focus lift the day and draw its ring; pressing sinks it; today is ringed and underlined; the chosen day is filled and framed twice; "Other" is a day of a neighbouring month (quieter, not faint); "Off" is unavailable (dashed and faint). Under the numeral, one, two or three-plus event markers. The <code>is-*</code> classes only force a state for this page.</p>
+<p>A day is chosen, like a chip or a tab, so it follows the selection-control recipe: the solid fill belongs to the chosen day alone. Each state has a cue that is not colour: hover and focus lift the day and draw its ring, without filling it; pressing puts it back with a light tint, at once; today is ringed, heavy and underlined; the chosen day is filled and framed twice, and stays filled when pressed; "Other" is a day of a neighbouring month (quieter, not faint); "Off" is unavailable (a faint numeral struck through, no frame). Under the numeral, one, two or three-plus event markers. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Day states and the two numbers behind them</caption>
+  <thead><tr><th>State</th><th><code>--lift</code></th><th><code>--fill</code></th><th>What you see</th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td>0</td><td>0</td><td>The numeral, no frame.</td></tr>
+    <tr><td>Hover</td><td>1</td><td>0</td><td>A ring appears and the day lifts 2px with its hard shadow.</td></tr>
+    <tr><td>Focus</td><td>1</td><td>0</td><td>The same, and the focus ring.</td></tr>
+    <tr><td>Pressed</td><td>0</td><td>0.15</td><td>Back on the surface, tinted with 15% of the accent.</td></tr>
+    <tr><td>Chosen</td><td>0 (1 on hover)</td><td>1</td><td>Filled, frame doubled inward, paper numeral. In a narrow grid (200% text on a phone) the circle is barely bigger than its numeral, so a heavier numeral replaces the inner frame.</td></tr>
+    <tr><td>Off</td><td>0</td><td>0</td><td>Faint numeral struck through, no frame, no lift.</td></tr>
+  </tbody>
+</table></div>
 <div class="demo" id="demo-states" data-nocode>
   <div class="demo__stage">
     <div class="cal" style="max-inline-size: 26rem">
@@ -872,13 +885,13 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Frame</strong> (<code>.cal</code>): 2px, paper, the card radius. A size container.</li>
-  <li><strong>Head</strong> (<code>.cal__head</code>): previous and next as round Buttons, and the month (<code>.cal__title</code>), a polite live region so paging is announced.</li>
+  <li><strong>Head</strong> (<code>.cal__head</code>): previous and next as round Buttons, and the month (<code>.cal__title</code>), a polite live region so paging is announced. One row at every size: at large text the month wraps between the two buttons.</li>
   <li><strong>Weekday bar</strong> (<code>thead</code>): the ink bar with uppercase names. <code>abbr</code> carries the long name; below 15rem wide, one letter.</li>
-  <li><strong>Day</strong> (<code>.cal__day</code>): a circle of up to 2.5rem inside a 44px-tall cell; the hit area is the whole cell. Its name is the full date.</li>
+  <li><strong>Day</strong> (<code>.cal__day</code>): a circle of up to 2.5rem inside a 44px-tall cell; the hit area is the whole cell. Its name is the full date. In narrow columns (200% text on a phone) the numerals take Archivo's condensed width, so two digits stay inside their circle at full size.</li>
   <li><strong>Today</strong>: a 2px ring and an underlined, heavy numeral.</li>
-  <li><strong>Chosen day</strong> (<code>td[aria-selected="true"]</code>): filled with the accent, frame doubled, numeral in paper.</li>
-  <li><strong>Markers</strong> (<code>.cal__pips</code>): one to three squares under the numeral. Decorative.</li>
-  <li><strong>Events</strong> (<code>.cal__events</code>): the chosen day's title and a list of time + title, as text, each row in its tone.</li>
+  <li><strong>Chosen day</strong> (<code>td[aria-selected=<wbr>"true"]</code>): filled with the accent, frame doubled inward, numeral in paper. The same outer size as today's ring; neighbouring markers keep 4px between them.</li>
+  <li><strong>Markers</strong> (<code>.cal__pips</code>): one to three 4px squares under the numeral (just under the circle when the column is very narrow). Decorative.</li>
+  <li><strong>Events</strong> (<code>.cal__events</code>): the chosen day's title and a list of time + title, as text, each row in its tone. The times share one column, so the titles line up; in a narrow calendar every time sits over its title.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -912,9 +925,9 @@
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Choose the day; its events are read out.</td></tr>
     <tr><td>Screen reader</td><td>A grid with column headers (full names via <code>abbr</code>). A day reads "Wednesday 30 September 2026, today, 2 events"; the chosen cell is "selected". Paging announces the new month. The markers are hidden because the count is in the name and the list below is text.</td></tr>
     <tr><td>Touch</td><td>Every day has a full-cell hit area: 44px tall in the month, taller in the week strip, and a seventh of the calendar wide (about 47px on a 390px screen, 40 to 43px on 320px with 16px gutters). Seven columns need a 308px container to reach 44px each, so a smaller container (a phone-sized mock on this site, a narrow pane) gets narrower cells, over the 24px floor down to about 11rem. The cells touch, so there is no dead zone between two days to mis-tap into (the Carousel's dots do the same). Paging is a button, not a swipe.</td></tr>
-    <tr><td>Zoom / text size</td><td>Sizes are rem and the circle shrinks to the column, so 200% text keeps seven columns; weekday names drop to one letter below 15rem.</td></tr>
+    <tr><td>Zoom / text size</td><td>The numerals and words grow; the 44px rows, the insets and the event markers do not (they are chrome). The circle follows the column, so 200% text keeps seven columns: numerals turn condensed in narrow columns instead of shrinking, weekday names drop to one letter below 15rem, and the week strip scrolls rather than squeeze its days.</td></tr>
     <tr><td>Reduced motion</td><td>The only motion is a day's lift on hover and focus, multiplied by <code>--move</code>; it becomes a frame appearing. Paging is instant.</td></tr>
-    <tr><td>Forced colours</td><td>Every day keeps a <code>ButtonText</code> frame, the chosen day a 4px one, focus a 4px <code>Highlight</code> outline; today is still underlined; markers use <code>CanvasText</code>.</td></tr>
+    <tr><td>Forced colours</td><td>Every day keeps a <code>ButtonText</code> frame, the chosen day a 4px one, focus a 4px <code>Highlight</code> outline; today is still underlined; an unavailable day is <code>GrayText</code> and struck through, with no frame; markers use <code>CanvasText</code>.</td></tr>
   </tbody>
 </table></div>
 

@@ -3,8 +3,12 @@
   /* docs scaffolding only: keep the class names in the API tables whole */
   .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
   /* docs scaffolding only */
-  #demo-stat .card__figure { font-size: var(--text-2xl); }
-  #demo-stat .card__meta { display: flex; align-items: center; gap: var(--space-2); }
+  /* a figure never breaks inside the number: one line, and its size is bounded by the card (cqi), so it shrinks to fit
+     at 200% text instead of wrapping "$283. / 72" */
+  #demo-stat .card__figure { font-size: min(var(--text-2xl), 19cqi); white-space: nowrap; }
+  /* the trend icon sits on the FIRST line of its words when they wrap (200% text), not in the middle of two */
+  #demo-stat .card__meta { display: flex; align-items: flex-start; gap: var(--space-2); }
+  #demo-stat .card__meta .ic { margin-block: calc((1lh - 1.25rem) / 2); }
   #demo-table .spark { inline-size: 6rem; }
 </style>
 <h1>Sparkline</h1>
@@ -31,9 +35,9 @@
     <div class="grid" style="--grid-min: 14rem">
       <article class="card">
         <div class="card__body">
-          <p class="card__eyebrow">Notion</p>
+          <p class="card__eyebrow">Index fund</p>
           <p class="card__figure num">$283.72</p>
-          <svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Notion, last 12 days: up 1.7%, from $278.90 to $283.72"><polygon class="spark__area" points="0,100 0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22 100,100"/><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
+          <svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Index fund, last 12 days: up 1.7%, from $278.90 to $283.72"><polygon class="spark__area" points="0,100 0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22 100,100"/><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
           <p class="card__meta"><span class="ic ic--trending-up" aria-hidden="true"></span><span>Up 1.7% in 12 days</span></p>
         </div>
       </article>
@@ -56,7 +60,7 @@
     <div class="stack" data-gap="4" style="max-inline-size: 22rem">
       <div>
         <p class="t-meta">Small</p>
-        <svg class="spark" data-size="sm" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Notion, last 12 days: up 1.7%"><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
+        <svg class="spark" data-size="sm" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Index fund, last 12 days: up 1.7%"><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
       </div>
       <div>
         <p class="t-meta">Medium (default), shared scale</p>
@@ -64,7 +68,7 @@
       </div>
       <div>
         <p class="t-meta">Large, with the area wash</p>
-        <svg class="spark" data-size="lg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Notion, last 12 days: up 1.7%, from $278.90 to $283.72"><polygon class="spark__area" points="0,100 0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22 100,100"/><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
+        <svg class="spark" data-size="lg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Index fund, last 12 days: up 1.7%, from $278.90 to $283.72"><polygon class="spark__area" points="0,100 0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22 100,100"/><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
       </div>
     </div>
   </div>
@@ -89,20 +93,41 @@
           </tbody>
         </table>
       </div>
+      <p class="tbl__hint">Scroll sideways for more columns.</p>
     </div>
   </div>
 </div>
 
 <h3 id="data">From data</h3>
-<p><code>SG.chart.sparkline(values, { label, area, dot, min, max })</code> returns the <code>&lt;svg&gt;</code> string. The label is required; a sparkline without a sentence is refused. <code>SG.chart.points(values)</code> gives just the coordinates if you template it yourself.</p>
-<div class="demo" data-nocode>
+<p><code>SG.chart.sparkline(values, { label, area, dot, min, max })</code> returns the <code>&lt;svg&gt;</code> string. The label is required; a sparkline without a sentence is refused. <code>SG.chart<wbr>.points(values)</code> gives just the coordinates if you template it yourself. This page runs the code below, and the sparkline under it is what it returns.</p>
+<pre><code>const label = [
+  'Index fund, last 5 days:',
+  'up 1.7%, from $278.90',
+  'to $283.72',
+].join(' ')
+const values = [278.9, 279.4,
+  277.1, 280.3, 283.72]
+el.innerHTML = SG.chart
+  .sparkline(values, {
+    label,
+    area: true,
+  })</code></pre>
+<div class="demo" id="demo-data" data-nocode>
   <div class="demo__stage">
-    <pre><code>el.innerHTML = SG.chart.sparkline(
-  [278.9, 279.4, 277.1, 280.3, 283.72],
-  { label: 'Notion, last 5 days: up 1.7%, from $278.90 to $283.72', area: true }
-)</code></pre>
+    <div class="stack" data-gap="2" style="max-inline-size: 22rem">
+      <p class="t-meta">Index fund, last 5 days</p>
+      <div id="spark-built"></div>
+    </div>
   </div>
 </div>
+<script>
+  /* demo only: run the code above, so the page shows exactly what the helper returns */
+  document.addEventListener('DOMContentLoaded', function () {
+    var label = ['Index fund, last 5 days:', 'up 1.7%, from $278.90', 'to $283.72'].join(' ');
+    var values = [278.9, 279.4, 277.1, 280.3, 283.72];
+    document.getElementById('spark-built').innerHTML = SG.chart.sparkline(values, { label: label, area: true });
+  });
+</script>
 
 <h2 id="label">Writing the text alternative</h2>
 <p>Name the subject, the span, the direction, and the two endpoints. One sentence; no "chart of". A reader who cannot see the line should lose nothing the line told a sighted reader.</p>
@@ -110,10 +135,10 @@
   <caption class="sr-only">Good and poor sparkline labels</caption>
   <thead><tr><th>Label</th><th>Verdict</th></tr></thead>
   <tbody>
-    <tr><td><code>Notion, last 12 days: up 1.7%, from $278.90 to $283.72</code></td><td>Good. Subject, span, direction, endpoints.</td></tr>
+    <tr><td><code>Index fund, last 12 days: up 1.7%, from $278.90 to $283.72</code></td><td>Good. Subject, span, direction, endpoints.</td></tr>
     <tr><td><code>Steps, last 7 days: down 40%, from 8,200 to 4,900</code></td><td>Good.</td></tr>
     <tr><td><code>Sparkline</code></td><td>Says what it is, not what it shows.</td></tr>
-    <tr><td><code>Trend chart of Notion stock price</code></td><td>No direction, no numbers.</td></tr>
+    <tr><td><code>Trend chart of the index fund price</code></td><td>No direction, no numbers.</td></tr>
   </tbody>
 </table></div>
 
@@ -144,7 +169,7 @@
   <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
   <tbody>
     <tr><td><kbd>Tab</kbd></td><td>Nothing to reach. A sparkline is not a control and shows nothing on hover.</td></tr>
-    <tr><td>Screen reader</td><td>One image, named by the sentence: "Notion, last 12 days: up 1.7%, from $278.90 to $283.72". The figure and the direction line beside it are ordinary text.</td></tr>
+    <tr><td>Screen reader</td><td>One image, named by the sentence: "Index fund, last 12 days: up 1.7%, from $278.90 to $283.72". The figure and the direction line beside it are ordinary text.</td></tr>
     <tr><td>Colour</td><td>The line is the text colour: 7:1 on its surface (and 3:1 is all a graphic needs, WCAG 1.4.11). Direction is carried by words and an icon next to it, never by a green or red line (1.4.1).</td></tr>
     <tr><td>Zoom / text size</td><td>The box is rem-high and fills the width, so it never overflows; the line stays 2px.</td></tr>
     <tr><td>Reduced motion</td><td>Nothing moves. It does not draw itself in.</td></tr>

@@ -28,7 +28,7 @@
    · bars are tone + PATTERN (00-chart-marks.css), frame 2px, value printed at the cap.
    · the selected bar is FOUR things: filled with the accent, a doubled frame (a paper gap and a second
      line, so it shows on an ink fill), its value in heavy weight and its axis label inverted. Never the
-     accent alone.
+     accent alone. It is the ONLY solid bar: hover and focus raise an outline, a press tints (see STATES).
 
    data-orientation   vertical (default) | horizontal. Vertical flips to horizontal by
                       itself when the chart is narrower than 15rem (rem, so 200% text flips
@@ -40,9 +40,19 @@
    Stacked bars       .bars__stack holding .bars__seg[data-tone][style="--s: share"] in place of
                       .bars__bar. Read-only: pair it with a .legend.
 
-   STATES  :checked / [aria-current="true"] selected; :hover, :focus-visible (keyboard) lift the
-   bar (--lift) and fill it (--fill), like a Button; :active sinks it. Only the interactive
-   chart lifts: a picture you cannot press casts no shadow.
+   STATES  the selection-control recipe, because a bar is chosen, not fired: the solid fill is kept for
+   the chosen bar, so a mouse over Tuesday never makes Tuesday look chosen.
+     rest      --lift 0  --fill 0
+     hover     --lift 1  --fill 0      raised outline: the bar moves 2px and casts its hard shadow
+     focus     --lift 1  --fill 0      the same, plus the ring round the track (bar and value), never through
+                                       the day: inset on a vertical track, 3px outside a horizontal one
+     pressed   --lift 0  --fill 0.15   back on the baseline with a light tint, at once (within 100ms)
+     chosen    --fill 1 + the doubled frame, heavy value, inverted label; chosen + hover also lifts
+   A filled bar's hard shadow stands off behind a ring of the surface colour (ink beside ink would fuse);
+   an outline bar keeps the owner's flush shadow. Bars stand 12px apart, so the raised bar and its shadow
+   never reach the next one. At rest a bar's foot is the axis; a bar that rises draws its own foot (and a
+   horizontal row's axis fades under it), so a raised outline has four sides and no stray tick under its corner.
+   Only the interactive chart lifts: a picture you cannot press casts no shadow.
 
    GEOMETRY  .bars__plot is a grid with rows [track, label]. Each column is a SUBGRID, so every
    track is the same height and every label lines up. The bar's size is v of the track minus the
@@ -102,14 +112,19 @@
     --lift: 0;
     --fill: 0;
     /* A filled bar is ink wherever the accent is ink (default, wire, higher contrast), and an ink hard shadow
-       touching an ink fill reads as one lumpy blob: hover, press and "chosen" all looked alike. So the shadow
-       stands off the bar behind a paper gap (the gap grows with --lift, so a bar at rest has none), and the
-       chosen frame is gap + line. Both then show against their own fill, in every palette. */
+       touching an ink fill reads as one lumpy blob. So the chosen frame is a gap of the surface colour and a
+       second line (--_selw each), and a FILLED bar that lifts opens one more gap (--_off) before its shadow.
+       The shadow is spread by everything inside it and offset 4px, so it always shows as the same 4px band.
+       An outline bar (hover, focus) has no gaps: the owner's flush shadow. */
     --_gap: var(--bars-bg, var(--card-bg, var(--paper)));
+    --_selw: 0px;
+    --_off: calc(var(--lift) * var(--fill) * var(--bw));
+    --_select:
+      0 0 0 var(--_selw) var(--_gap),
+      0 0 0 calc(var(--_selw) * 2) var(--line);
     --_shadow:
-      0 0 0 calc(var(--lift) * var(--bw)) var(--_gap),
-      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--lift) * var(--bw)) var(--line);
-    --_select: 0 0 0 0 transparent, 0 0 0 0 transparent;
+      0 0 0 calc(var(--_selw) * 2 + var(--_off)) var(--_gap),
+      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--_selw) * 2 + var(--_off)) var(--line);
 
     position: relative;
     display: grid;
@@ -149,14 +164,16 @@
   .bars__bar,
   .bars__stack {
     flex: none;
-    inline-size: min(calc(100% - var(--space-2)), var(--bar-w));
+    inline-size: min(calc(100% - var(--space-3)), var(--bar-w)); /* 12px between bars: room for a raised bar's shadow */
     block-size: calc(var(--v, 0) * (100% - var(--_val-h)));
     min-block-size: var(--bw);
   }
 
   .bars .bars__bar {
     background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--_bg));
-    border-block-end-width: 0; /* grows out of the baseline: one line, not two */
+    /* grows out of the baseline: one line, not two. A bar that rises has left the baseline, so it draws its own
+       edge (an outline bar showed an open corner); one that stays put (reduced motion) keeps the baseline as its edge */
+    border-block-end-width: calc(var(--lift) * var(--move) * var(--bw));
     border-radius: 0;
     border-start-start-radius: var(--radius-ctl);
     border-start-end-radius: var(--radius-ctl);
@@ -203,6 +220,23 @@
     overflow-wrap: break-word;
   }
 
+  /* A label stays whole and never touches its plate ("CHOSEN" filled its 52px column on a 320px phone, edge to
+     edge on the ink). SG.fit (71-chart.js) keeps every label on one line inside a 4px inset; when one does not
+     fit, all of the chart's labels go from the label's condensed width to Archivo's extra-condensed (62.5%)
+     together; only if that fails too do they wrap as they do without the script. "safe center": a word that
+     fits is centred, one that does not overflows at the END, where the measure sees it (centred, it spilled
+     evenly into both insets and passed). */
+  .bars:is([data-fit="labels"], [data-fit="narrow"]) .bars__label {
+    display: flex;
+    justify-content: safe center;
+    min-inline-size: 0; /* as wide as its column, never wider: a long word overflows the label, where it is measured */
+    padding-inline: var(--chrome-1);
+    white-space: nowrap;
+  }
+  .bars[data-fit="narrow"] .bars__label {
+    font-stretch: 62.5%;
+  }
+
   /* ---- values: all (default) | selected | none ------------------------------------------ */
   .bars[data-values="none"] .bars__value {
     display: none;
@@ -229,11 +263,13 @@
     background: var(--bars-bg, var(--card-bg, var(--paper)));
   }
 
+  /* [key | words]: the dashed key stays beside the FIRST line of its words when they wrap (200% text). As a wrapping
+     flex row it dropped onto a line of its own, above its label. */
   .bars__note {
-    display: flex;
-    flex-wrap: wrap; /* the dashed marker drops above the words when the column is too narrow for both (200 % text) */
-    align-items: center;
-    gap: var(--space-1) var(--space-2);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2);
     font: var(--type-meta);
     color: var(--ink-soft);
     overflow-wrap: break-word;
@@ -241,9 +277,9 @@
 
   .bars__note::before {
     content: "";
-    flex: none;
     inline-size: 1.5rem;
-    border-block-start: var(--bw-thin) dashed var(--line);
+    block-size: 0.5lh; /* its dashed edge sits half a line down: on the first line's middle */
+    border-block-end: var(--bw-thin) dashed var(--line);
   }
 
   /* ---- interactive: the input IS the column ---------------------------------------------- */
@@ -262,28 +298,33 @@
     cursor: pointer;
   }
 
+  /* hover and focus raise an OUTLINE (--fill stays 0): the solid fill is the chosen bar's alone */
   @media (hover: hover) {
     label.bars__col:is(:hover, .is-hover) {
       --lift: 1;
-      --fill: 1;
     }
   }
   label.bars__col:is(:has(.bars__input:focus-visible), .is-focus) {
     --lift: 1;
-    --fill: 1;
+  }
+  /* the ring goes round the track (the bar and its value), inset so a neighbour never covers it; the axis
+     label sits under the track, outside the ring, so the ring never runs through the word */
+  label.bars__col:is(:has(.bars__input:focus-visible), .is-focus) .bars__track {
     outline: var(--ring) solid var(--focus);
     outline-offset: calc(var(--ring) * -1);
   }
+  /* pressed: back on the baseline with a light tint, straight away */
   label.bars__col:is(:active, .is-active) {
     --lift: 0;
-    --fill: 1;
+    --fill: 0.15;
     transition-duration: var(--dur-press);
   }
 
-  /* selected: fill, doubled frame, heavy value, inverted label. */
+  /* selected: fill, doubled frame, heavy value, inverted label. After the states, so it keeps its fill
+     when hovered (it also lifts), focused or pressed. */
   .bars__col:is(:has(.bars__input:checked), [aria-current="true"], .is-selected) {
     --fill: 1;
-    --_select: 0 0 0 var(--bw) var(--_gap), 0 0 0 calc(var(--bw) * 2) var(--line);
+    --_selw: var(--bw);
   }
 
   .bars__col:is(:has(.bars__input:checked), [aria-current="true"], .is-selected) .bars__value {
@@ -296,14 +337,18 @@
   }
 
   /* ---- the data table, one disclosure away ------------------------------------------------ */
+  /* the icon sits on the FIRST line of the words when they wrap (200% text), not between the two lines */
   .bars__data > summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-block-size: var(--hit);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    align-content: center;
+    gap: var(--chrome-2);
+    min-block-size: var(--chrome-hit);
     font: var(--type-label);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
+    text-wrap: balance; /* two even lines, never one word alone on the second ("SHOW THE DATA AS A / TABLE") */
     list-style: none;
     cursor: pointer;
   }
@@ -314,9 +359,9 @@
 
   .bars__data > summary::before {
     content: "";
-    flex: none;
     inline-size: 1.25rem;
     block-size: 1.25rem;
+    margin-block: calc((1lh - 1.25rem) / 2);
     background: currentColor;
     mask: var(--icon-plus) center / contain no-repeat;
   }
@@ -338,7 +383,12 @@
     grid-template-columns: minmax(2.5rem, max-content) minmax(0, 1fr);
     grid-template-rows: none;
     grid-auto-rows: minmax(var(--hit), auto);
-    column-gap: var(--space-2);
+    column-gap: var(--space-3);
+  }
+  /* a horizontal bar starts AT its track's edge, so an inset ring would run under it: the ring goes round the
+     track from outside instead (the usual 3px offset), in the 12px between the day and the axis */
+  .bars[data-orientation="horizontal"] label.bars__col:is(:has(.bars__input:focus-visible), .is-focus) .bars__track {
+    outline-offset: var(--ring-offset);
   }
   .bars[data-orientation="horizontal"] .bars__col {
     grid-row: auto;
@@ -351,6 +401,7 @@
   }
   .bars[data-orientation="horizontal"] .bars__label {
     order: -1;
+    justify-content: flex-start;
     padding: 0;
     text-align: start;
   }
@@ -360,7 +411,18 @@
     align-items: center;
     block-size: 100%;
     border-block-end: 0;
+  }
+  /* The axis is ONE line down the plot, as the vertical chart's baseline is one line across it: each row draws its
+     stretch over the row's padding too, so the stretches meet. (A stretch as tall as its track only, a little taller
+     than its bar, read as a bracket beside every bar.) At rest it is the bar's start edge; a bar that rises draws its
+     own, as a vertical bar draws its own foot. */
+  .bars[data-orientation="horizontal"] .bars__track::after {
+    content: "";
+    position: absolute;
+    inset-block: calc(var(--space-1) * -1);
+    inset-inline-start: 0;
     border-inline-start: var(--bw) solid var(--line);
+    pointer-events: none;
   }
   .bars[data-orientation="horizontal"] .bars__value {
     inline-size: var(--_val-w);
@@ -375,7 +437,7 @@
   }
   .bars[data-orientation="horizontal"] .bars__bar {
     border-block-end-width: var(--bw);
-    border-inline-start-width: 0;
+    border-inline-start-width: calc(var(--lift) * var(--move) * var(--bw)); /* the axis is its edge at rest; risen, it draws its own */
     border-radius: 0;
     border-start-end-radius: var(--radius-ctl);
     border-end-end-radius: var(--radius-ctl);
@@ -421,7 +483,10 @@
       grid-template-columns: minmax(2.5rem, max-content) minmax(0, 1fr);
       grid-template-rows: none;
       grid-auto-rows: minmax(var(--hit), auto);
-      column-gap: var(--space-2);
+      column-gap: var(--space-3);
+    }
+    .bars:not([data-orientation="vertical"]) label.bars__col:is(:has(.bars__input:focus-visible), .is-focus) .bars__track {
+      outline-offset: var(--ring-offset);
     }
     .bars:not([data-orientation="vertical"]) .bars__col {
       grid-row: auto;
@@ -434,6 +499,7 @@
     }
     .bars:not([data-orientation="vertical"]) .bars__label {
       order: -1;
+      justify-content: flex-start;
       padding: 0;
       text-align: start;
     }
@@ -443,7 +509,14 @@
       align-items: center;
       block-size: 100%;
       border-block-end: 0;
+    }
+    .bars:not([data-orientation="vertical"]) .bars__track::after {
+      content: ""; /* the one axis down the plot: see the horizontal rule above */
+      position: absolute;
+      inset-block: calc(var(--space-1) * -1);
+      inset-inline-start: 0;
       border-inline-start: var(--bw) solid var(--line);
+      pointer-events: none;
     }
     .bars:not([data-orientation="vertical"]) .bars__value {
       inline-size: var(--_val-w);
@@ -458,7 +531,7 @@
     }
     .bars:not([data-orientation="vertical"]) .bars__bar {
       border-block-end-width: var(--bw);
-      border-inline-start-width: 0;
+      border-inline-start-width: calc(var(--lift) * var(--move) * var(--bw)); /* the axis is its edge at rest; risen, it draws its own */
       border-radius: 0;
       border-start-end-radius: var(--radius-ctl);
       border-end-end-radius: var(--radius-ctl);
@@ -499,18 +572,45 @@
   }
 
   /* Last resort (200 % text in a narrow card): the label column would leave the track a few pixels wide and
-     the value would run out of the frame (WCAG 1.4.4 / 1.4.10). One column: each label sits above its bar. */
+     the value would run out of the frame (WCAG 1.4.4 / 1.4.10). One column: each label sits above its bar.
+     The labels sit where an axis would run, so there is none: every bar closes its own start edge. The reference
+     line is drawn once, down the whole plot (every track is the plot's width here, so one x fits them all), behind
+     the labels' plates: drawn per track it broke at every label into fourteen short dashes. */
   @container bars (max-width: 10rem) {
     .bars:not([data-orientation="vertical"]) .bars__plot {
+      position: relative;
       grid-template-columns: minmax(0, 1fr);
     }
     .bars:not([data-orientation="vertical"]) .bars__col {
       grid-column: 1 / -1;
       align-items: start;
-      row-gap: var(--space-1);
+      row-gap: var(--space-2); /* the day keeps clear of the focus ring round the bar under it */
     }
     .bars:not([data-orientation="vertical"]) .bars__track {
       inline-size: 100%;
+    }
+    .bars:not([data-orientation="vertical"]) .bars__track::after {
+      content: none;
+    }
+    .bars:not([data-orientation="vertical"]) .bars__bar,
+    .bars:not([data-orientation="vertical"]) .bars__seg:first-child {
+      border-inline-start-width: var(--bw);
+    }
+    .bars[data-ref]:not([data-orientation="vertical"]) .bars__track::before {
+      content: none;
+    }
+    .bars[data-ref]:not([data-orientation="vertical"]) .bars__plot::before {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: calc(var(--ref, 0) * (100% - var(--_val-w)));
+      border-inline-start: var(--bw-thin) dashed var(--line);
+      pointer-events: none;
+    }
+    .bars[data-ref]:not([data-orientation="vertical"]) .bars__label {
+      position: relative; /* above the line */
+      justify-self: start;
+      background: var(--bars-bg, var(--card-bg, var(--paper)));
     }
   }
 
@@ -530,7 +630,7 @@
     .bars__col:is(:has(.bars__input:checked), [aria-current="true"], .is-selected) .bars__label {
       border: var(--bw-heavy) solid CanvasText;
     }
-    label.bars__col:is(:has(.bars__input:focus-visible), .is-focus) {
+    label.bars__col:is(:has(.bars__input:focus-visible), .is-focus) .bars__track {
       outline: var(--bw-heavy) solid Highlight;
     }
     .bars__data > summary::before,

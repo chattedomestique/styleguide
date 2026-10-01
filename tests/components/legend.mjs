@@ -107,4 +107,25 @@ export const tests = [
       expect.equal(r.over, false, 'no horizontal overflow')
     },
   },
+  {
+    name: 'a mark in a table keeps its word whole at 200% text; the table fits a 390px phone and scrolls with its hint at 320px',
+    async run({ page, goto, expect }) {
+      await goto('components/legend.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      for (const [w, scrolls] of [[390, false], [320, true]]) {
+        await page.setViewportSize({ width: w, height: 900 })
+        await page.waitForTimeout(300)
+        const r = await page.locator('#demo-marks .tbl').evaluate((t) => {
+          const sc = t.querySelector('.tbl__scroll')
+          const rows = [...t.querySelectorAll('tbody th')].map((th) => { const m = th.querySelector('.mark').getBoundingClientRect(), word = [...th.childNodes].find((n) => n.nodeType === 3 && n.data.trim()), rg = document.createRange(); rg.selectNodeContents(word); const q = [...rg.getClientRects()]; return { lines: q.length, beside: m.right <= q[0].left && Math.abs((m.top + m.bottom) / 2 - (q[0].top + q[0].bottom) / 2) < m.height } })
+          return { rows, over: sc.scrollWidth - sc.clientWidth, hint: getComputedStyle(t.querySelector('.tbl__hint')).display !== 'none' }
+        })
+        expect.ok(r.rows.every((x) => x.lines === 1), `${w}px: each category is one line, never broken inside its word`)
+        expect.ok(r.rows.every((x) => x.beside), `${w}px: the mark sits beside its word, not above it`)
+        if (scrolls) expect.ok(r.over > 24 && r.hint, `${w}px: the table scrolls well past its edge (${r.over}px) and says so`)
+        else expect.ok(r.over <= 0 && !r.hint, `${w}px: the table fits (${r.over}px over) and shows no hint`)
+      }
+    },
+  },
+
 ]

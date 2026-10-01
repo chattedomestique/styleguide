@@ -112,4 +112,27 @@ export const tests = [
       expect.ok(r.line !== 'none' && r.ring !== 'none', `line ${r.line}, ring ${r.ring}`)
     },
   },
+  {
+    name: 'a figure never breaks inside the number: one line at 200% text on 390 and 320px',
+    async run({ page, goto, expect }) {
+      await goto('components/sparkline.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 900 })
+        await page.waitForTimeout(250)
+        const r = await page.evaluate(() => [...document.querySelectorAll('#demo-stat .card__figure')].map((f) => { const rg = document.createRange(); rg.selectNodeContents(f); const b = f.closest('.card').getBoundingClientRect(); return { lines: new Set([...rg.getClientRects()].map((q) => Math.round(q.top))).size, inside: f.getBoundingClientRect().right <= b.right && rg.getBoundingClientRect().right <= b.right } }))
+        for (const x of r) expect.ok(x.lines === 1 && x.inside, `${w}px: the figure is one line inside its card`)
+      }
+    },
+  },
+  {
+    name: 'From data: the page shows the sparkline that SG.chart.sparkline returns, with its sentence',
+    async run({ page, goto, expect }) {
+      await goto('components/sparkline.html')
+      const r = await page.locator('#spark-built').evaluate((el) => { const svg = el.querySelector('svg.spark'); return svg && { label: svg.getAttribute('aria-label'), area: !!svg.querySelector('.spark__area'), points: svg.querySelector('.spark__line').getAttribute('points').split(' ').length } })
+      expect.ok(r, 'a sparkline was built')
+      expect.equal(r.label, 'Index fund, last 5 days: up 1.7%, from $278.90 to $283.72', 'the label from the code')
+      expect.ok(r.area && r.points === 5, 'the area and five points')
+    },
+  },
 ]

@@ -16,7 +16,8 @@
      Enter / Space         select the focused clip
    POINTER: drag the head, or CLICK the ruler or empty track to put the playhead there
    (the click is the alternative to dragging, WCAG 2.5.7). Click a clip to select it.
-   BUTTONS (data-timeline="…"): back, forward, split, trim-start, trim-end, zoom-in, zoom-out.
+   BUTTONS (data-timeline="…"): back, forward, split, trim-start, trim-end, zoom-in, zoom-out. Put each tool's word
+   in a <span class="timeline__word">: the bar's layout (SG.fit, below) may show it, or keep it only as the name.
    Split and trim act on the selected clip at the playhead. They are aria-disabled, not
    disabled, when they cannot act, and the reason is in .timeline__hint (aria-describedby),
    so focus is never lost when the last useful press lands.
@@ -84,6 +85,7 @@
     p.head.setAttribute('aria-valuetext', clock(t) + ' of ' + clock(max));
     if (p.readout) p.readout.textContent = clock(t);
     refresh(root);
+    fitLabels(root); // the label the line now runs through is hidden, the one it left is shown again
     if (!opts || !opts.keepScroll) reveal(root);
     root.dispatchEvent(new CustomEvent('sg:timeline-seek', { bubbles: true, detail: { time: t } }));
   }
@@ -127,9 +129,10 @@
     } else {
       var start = getNum(clip, '--start'), end = start + getNum(clip, '--dur');
       can = t > start + 1e-6 && t < end - 1e-6;
+      // no-break spaces keep "at 0:12" and "0:22 to 0:52" whole, so a time never ends the sentence alone on a line
       msg = can
-        ? 'Split and trim act on “' + clipName(clip) + '” at ' + clock(t) + '.'
-        : 'Move the playhead inside “' + clipName(clip) + '” (' + clock(start) + ' to ' + clock(end) + ') to split or trim it.';
+        ? 'Split and trim act on “' + clipName(clip) + '” at\u00a0' + clock(t) + '.'
+        : 'Move the playhead inside “' + clipName(clip) + '” (' + clock(start) + '\u00a0to\u00a0' + clock(end) + ') to split or trim it.';
     }
     ['split', 'trim-start', 'trim-end'].forEach(function (a) { setDisabled(button(root, a), !can); });
     if (p.hint && p.hint.textContent !== msg) p.hint.textContent = msg;
@@ -246,6 +249,54 @@
       html += '<i style="--t:' + t + '"></i><span style="--t:' + t + '">' + clock(t) + '</span>';
     }
     p.ruler.innerHTML = html;
+    fitLabels(root);
+  }
+
+  /** A ruler number the scroller cuts ("0:4" of 0:40) reads as another number: hide it until it is whole. The number
+      the playhead's line runs through moves to the other side of its tick (data-flip): on its plate it broke the line
+      under the head, and sat right under the head ("0:10" while the playhead was at 0:12). Flipped, it ends at its
+      tick, before the line, so the line runs whole and the number still reads as its tick's. The ruler is aria-hidden
+      and its ticks stay, so nothing is lost. And a clip whose start is scrolled away is marked
+      data-cut with how much of it is in view (--_seen), so its pinned name shows how it starts, cut with an ellipsis
+      (pinned but wider than what was left of "Harbour at dawn", it showed only "dawn"). Runs on scroll, resize and
+      after the ruler is drawn. */
+  function fitLabels(root) {
+    var p = parts(root);
+    if (!p.scroll || !p.ruler) return;
+    var box = p.scroll.getBoundingClientRect();
+    var line = p.playhead ? p.playhead.getBoundingClientRect().left : null;
+    var gap = 0.25 * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16); // --space-1, as in the CSS
+    var bw = 2;
+    SG.qsa('span', p.ruler).forEach(function (s) {
+      var tick = s.previousElementSibling;
+      if (!tick) return;
+      // where the label sits beside its tick, measured from the tick (a translate does not move offsetWidth)
+      var at = tick.getBoundingClientRect().left, w = s.offsetWidth;
+      var left = at + gap, right = left + w;
+      var flip = line !== null && line > left - bw && line < right + bw;
+      if (flip) { right = at - gap; left = right - w; }
+      s.toggleAttribute('data-flip', flip);
+      s.style.visibility = left >= box.left - 0.5 && right <= box.right + 0.5 ? '' : 'hidden';
+    });
+    SG.qsa('.timeline__clip', p.scroll).forEach(function (c) {
+      var r = c.getBoundingClientRect();
+      var cut = r.left < box.left - 0.5 && r.right > box.left;
+      c.toggleAttribute('data-cut', cut);
+      if (cut) c.style.setProperty('--_seen', Math.round(Math.min(r.right, box.right) - box.left) + 'px');
+      else c.style.removeProperty('--_seen');
+    });
+  }
+
+  /** Keep the playhead in view when the timeline changes size (rotation, the reader's text size): the scale is in
+      rem, so 200% text doubles every length and would leave the playhead far off to one side. */
+  function keepPlayhead(root) {
+    var p = parts(root);
+    if (!p.scroll || !p.body) return;
+    var max = total(root) || 1;
+    var x = p.body.offsetLeft + (time(root) / max) * p.body.offsetWidth;
+    var left = p.scroll.scrollLeft, w = p.scroll.clientWidth;
+    if (x >= left && x <= left + w) return;
+    p.scroll.scrollLeft = Math.max(0, x - w / 2);
   }
 
   function zoom(root, dir) {
@@ -353,8 +404,14 @@
     if (!live(root)) return; // a static specimen (no playhead): the clips are listbox options, nothing more to drive
     buildRuler(root);
     SG.qsa('.timeline__wave', root).forEach(paintWave);
+    if (p.scroll) {
+      var pending = 0;
+      p.scroll.addEventListener('scroll', function () {
+        if (!pending) pending = requestAnimationFrame(function () { pending = 0; fitLabels(root); });
+      }, { passive: true });
+    }
     if (window.ResizeObserver) {
-      if (p.body) new ResizeObserver(function () { buildRuler(root); }).observe(p.body);
+      if (p.body) new ResizeObserver(function () { buildRuler(root); keepPlayhead(root); fitLabels(root); }).observe(p.body);
       // a wave is redrawn whenever its own box changes: zoom, split, trim, text size
       var waves = new ResizeObserver(function (entries) { entries.forEach(function (en) { paintWave(en.target); }); });
       SG.qsa('.timeline__wave', root).forEach(function (w) { waves.observe(w); });
@@ -374,9 +431,18 @@
         p.scroll.scrollLeft = x - sx < w - 2 * pad ? sx - pad : x - w / 2;
       }
     }
+    fitLabels(root);
   }
 
   SG.timeline = { init: init, setTime: setTime, select: select, refresh: refresh, spoken: spoken };
+
+  /* The bar takes the richest layout that fits, measured (see timeline.css): one row; time and zoom over three
+     equal tools with icon and word; words only; icons only (the word stays the name); zoom beside the tools;
+     zoom on its own line. Each tool must hold its word on one line (parts), and the bar must not spill. */
+  if (SG.fit) SG.fit.register('.timeline__bar', {
+    steps: ['row', 'labels', 'words', 'icons', 'stack', 'tall'],
+    parts: ':scope:is([data-fit="row"], [data-fit="labels"], [data-fit="words"]) .timeline__word', // a word that shows must fit its cell
+  });
 
   SG.afterParse(function () { SG.qsa('.timeline').forEach(init); });
 })((window.SG = window.SG || {}));

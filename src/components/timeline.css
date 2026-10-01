@@ -28,7 +28,7 @@
    </div>
 
    TIME IS A LENGTH. --pps (length per second) turns seconds into width: a clip starts at
-   calc(var(--start) * var(--pps)) and is calc(var(--dur) * var(--pps)) long, the body is
+   calc(var(--start) * var(--pps)) (its margin in the track's one cell) and is calc(var(--dur) * var(--pps)) long, the body is
    calc(var(--total) * var(--pps)) wide, the playhead sits at calc(var(--t) * var(--pps)). Zoom
    changes one number (--_zoom). The numbers live in inline custom properties so the markup
    is the model and the layout works before any script runs. Time runs left to right in every
@@ -45,7 +45,8 @@
    ":30"). The labels are to the right of their tick, so the head and a label can only meet vertically, never sideways.
 
    WHY THE PADDING. The scroller (overflow-x) clips y, and the focus ring (6px), the lift (2px) and the
-   hard shadow (4px) all sit outside the clips and the head, so the scroller pads them in (WCAG 2.4.7).
+   hard shadow (4px) all sit outside the clips and the head, so the scroller pads them in (WCAG 2.4.7). Under the
+   last track the padding is the 8px the tracks keep between them, so it reads as the same air, not a lane.
 
    THE PATTERN (same as button.css): --lift / --fill on the clip and the head, one transition,
    travel x --move, hover gated, forced colours get a real border and a heavier frame.
@@ -71,14 +72,26 @@
     overflow: clip;
   }
 
-  /* ---- the bar: time readout and zoom share a line, the actions take the next; on a wide timeline all in one row ---- */
+  /* ---- the bar --------------------------------------------------------------------------------------
+     Three groups: the time (back, readout, forward), the tools (Split, Trim start, Trim end) and zoom. The
+     script measures which layout fits (SG.fit writes data-fit on the bar), richest first, and every layout is
+     whole: never a tool alone on a second row, never a wrapped or rectangular button (S2, rule 3).
+       row      [time] [tools: icon and word] [zoom]                       a wide editor
+       labels   [time ··· zoom] over [three equal tools: icon and word]
+       words    the same, words only: the word says it, the icon was the second cue      a phone
+       icons    the same, icons only (36px circles): the word stays in the button's name  200% text
+       stack    [time] over [three tool circles] [zoom]                     a phone mock
+       tall     [time] over [tools] over [zoom], every group from the start the narrowest
+     The tools are three EQUAL cells, so the row reads as one toolbar: pills with words, circles with icons
+     only. Without the script there is no data-fit: the groups wrap as whole groups and each tool stays a
+     whole pill. */
   .timeline__bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-3) var(--space-4);
-    padding: var(--space-3);
+    gap: var(--chrome-3) var(--chrome-4);
+    padding: var(--chrome-3);
     border-block-end: var(--bw-thin) solid var(--line);
   }
   .timeline__time {
@@ -91,24 +104,54 @@
     order: 3;
     flex: 1 0 100%;
   }
-  @container timeline (inline-size >= 40rem) {
-    .timeline__time,
-    .timeline__actions,
-    .timeline__zoom {
-      order: 0;
-    }
-    .timeline__actions {
-      flex: 0 1 auto;
-    }
+
+  .timeline__bar[data-fit] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "time . zoom"
+      "tools tools tools";
+  }
+  .timeline__bar[data-fit="row"] {
+    grid-template-areas: "time tools zoom";
+  }
+  .timeline__bar[data-fit="stack"] {
+    grid-template-columns: minmax(min-content, 1fr) auto; /* tools that cannot fit beside zoom spill measurably, so "tall" takes over */
+    grid-template-areas:
+      "time time"
+      "tools zoom";
+  }
+  .timeline__bar[data-fit="tall"] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "time time"
+      "tools tools"
+      "zoom zoom"; /* each group on its own line, all from the start: zoom alone at the end of a third line read as a stray pair */
+  }
+  .timeline__bar[data-fit] > .timeline__time {
+    grid-area: time;
+  }
+  .timeline__bar[data-fit] > .timeline__zoom {
+    grid-area: zoom;
+  }
+  .timeline__bar[data-fit] > .timeline__actions {
+    grid-area: tools;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 10rem); /* equal cells, none wider than 10rem on a wide editor */
+    justify-content: start;
+    gap: var(--chrome-2);
+  }
+  .timeline__bar[data-fit="row"] > .timeline__actions {
+    justify-content: center;
   }
 
-  /* [back] 0:30 / 1:24 [forward]: one cluster that never splits (the pair belongs around the readout), so it does
-     not wrap. When the bar is too narrow for it on one line it regroups (the two queries below) instead. */
+  /* [back] 0:30 / 1:24 [forward]: one cluster that never splits (the pair belongs around the readout) */
   .timeline__time {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
     font: var(--type-ctl);
     font-size: var(--text-lg);
     font-variant-numeric: tabular-nums lining-nums;
@@ -119,30 +162,77 @@
     font-weight: 400;
     color: var(--ink-soft);
   }
-  .timeline__actions,
   .timeline__zoom {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--chrome-3); /* 12px: two 36px circles each keep a whole 44px target (theirs would overlap at 8px) */
+  }
+  .timeline__actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
   }
-  /* A label stays whole: "Trim start" is one line in a pill, and when the group cannot fit three on a line the
-     group wraps one button at a time. (A .btn breaks anywhere, which turned "Split" into "Spli / t".) */
+  /* A tool's word stays whole on one line: the layout above changes before a word would have to wrap. In a
+     measured cell the word may shrink and clips at its own edge, so "does not fit" is overflow that the
+     script can see (a centred word only pushed into the button's padding, which scrollWidth ignores). */
   .timeline__actions .btn {
     flex: none;
+    min-inline-size: 0;
+    padding-inline: var(--chrome-3);
     white-space: nowrap;
-    overflow-wrap: normal;
+  }
+  .timeline__bar[data-fit] .timeline__word {
+    min-inline-size: 0;
+    overflow-x: clip;
+  }
+  /* words: the icon goes, the word stays */
+  .timeline__bar[data-fit="words"] .timeline__actions .ic {
+    display: none;
+  }
+  /* icons: the word leaves the screen, not the name (it is still the button's text). An icon-only tool is
+     chrome, like an icon-only circle: 36px tall, a 20px glyph and a 44px target at every text size.
+     Hidden the way the dock hides its words: the word is the button's own box and clip-path paints none of it.
+     The usual 1px nowrap box laid "Trim end" out to the right of the last button, past the timeline's frame. */
+  .timeline__bar:is([data-fit="icons"], [data-fit="stack"], [data-fit="tall"]) .timeline__word {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    clip-path: inset(50%);
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  /* an icon-only tool is a CIRCLE, like the zoom and nudge circles beside it (circles act): a wide pill holding
+     only an icon read as a button that had lost its word */
+  .timeline__bar:is([data-fit="icons"], [data-fit="stack"], [data-fit="tall"]) > .timeline__actions {
+    grid-auto-columns: var(--chrome-ctl-sm);
+    gap: var(--chrome-3); /* as between the zoom circles: whole 44px targets */
+  }
+  .timeline__bar:is([data-fit="icons"], [data-fit="stack"], [data-fit="tall"]) .timeline__actions .btn {
+    --_h: var(--chrome-ctl-sm);
+    --_hit: var(--chrome-hit);
+    inline-size: var(--chrome-ctl-sm);
+    min-inline-size: var(--chrome-ctl-sm);
+    padding: 0; /* 36px, the size of the zoom and nudge circles in the same bar */
+    & > .ic {
+      --ic-size: var(--chrome-ic-sm);
+    }
   }
 
-  /* Too narrow for the cluster on a line (a phone mock, or large text): the readout stacks between the two
-     buttons ("0:52" over "/ 1:24"), which keeps all three together at about 9rem. */
+  /* Too narrow for the cluster on a line (200% text on a phone): the readout stacks between the two buttons
+     ("0:52" over "/ 1:24") and takes Archivo's condensed width, so [back] [readout] [forward] stays one row
+     with zoom beside it on a 390px phone. */
   @container timeline (inline-size < 14rem) {
     .timeline__time {
       display: grid;
       grid-template-columns: auto auto auto;
       justify-content: start;
-      column-gap: var(--space-2);
+      column-gap: var(--chrome-2);
       row-gap: 0;
+      font-stretch: 75%;
     }
     .timeline__time > [data-timeline="back"] {
       grid-area: 1 / 1 / span 2 / 2;
@@ -160,10 +250,8 @@
     }
   }
 
-  /* Narrower still (200 % text on a phone: two 72px buttons are most of the bar): the readout takes a line and
-     the pair sits under it, and the actions become a column of full-width buttons whose words may wrap at a space.
-     A wrapped pill turns into an oval, so these take the tile radius: a rectangle (soft or square per data-corners). */
-  @container timeline (inline-size < 10.5rem) {
+  /* Narrower still (200% text in a phone-sized frame): the readout takes a line and the pair sits under it. */
+  @container timeline (inline-size < 5.75rem) {
     .timeline__time > output {
       grid-area: 1 / 1;
       justify-self: start;
@@ -179,48 +267,7 @@
       grid-area: 2 / 2;
     }
   }
-  @container timeline (inline-size < 11rem) {
-    .timeline__actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    .timeline__actions .btn {
-      justify-content: flex-start;
-      min-inline-size: 0;
-      padding-block: var(--space-2);
-      padding-inline: var(--space-3);
-      white-space: normal;
-      overflow-wrap: break-word;
-      text-align: start;
-      border-radius: var(--radius-tile);
-    }
-  }
-
-  /* A timeline panel under 6.5rem (200 % text inside a phone-sized frame: 4.8rem): the glyph and the word no longer
-     fit side by side, and neither do the readout's number and total, nor two 72px buttons (they need 6.4rem). The
-     word says what the button does (the glyph is aria-hidden), so the glyph goes; the readout and the pair become
-     one column. At 7rem (200 % text on a 390px screen) everything above still fits as laid out. */
-  @container timeline (inline-size < 6.5rem) {
-    .timeline__actions .btn .ic {
-      display: none;
-    }
-    .timeline__time {
-      grid-template-columns: auto;
-    }
-    .timeline__time > output {
-      grid-area: 1 / 1;
-    }
-    .timeline__time > small {
-      grid-area: 2 / 1;
-    }
-    .timeline__time > [data-timeline="back"] {
-      grid-area: 3 / 1;
-    }
-    .timeline__time > [data-timeline="forward"] {
-      grid-area: 4 / 1;
-    }
-  }
-  /* small circles: 36px wide, not the 44px minimum that would stretch them into pills (hit area is 44 anyway) */
+  /* small circles: 36px, round (their 44px target is the ::after) */
   .timeline__bar .btn[data-shape="circle"] {
     flex: none;
     min-inline-size: 0;
@@ -234,7 +281,8 @@
     max-inline-size: none;
     min-inline-size: 0;
     overflow-wrap: break-word;
-    padding: var(--space-2) var(--space-3);
+    text-wrap: pretty; /* the script keeps "at 0:12" together (no-break space); this keeps a last line from being one word */
+    padding: var(--chrome-2) var(--chrome-3);
     font: var(--type-meta);
     border-block-end: var(--bw-thin) solid var(--line);
   }
@@ -243,22 +291,23 @@
   .timeline__scroll {
     position: relative; /* the offsetParent of the body, so the script's x positions are measured from here */
     display: flex; /* a flex container includes its end padding in the scrollable area */
-    padding: var(--space-3);
+    padding: var(--chrome-3);
+    padding-block-end: var(--chrome-2); /* the same 8px as between the tracks: 12px under the last track read as an empty lane */
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-padding-inline: var(--space-4);
+    scroll-padding-inline: var(--chrome-4);
   }
   .timeline__body {
-    --_track-h: 4rem;
-    --_ruler-h: 3.5rem; /* the head (1.75rem) sits in the top of it and the labels in the bottom, so neither covers the other */
+    --_head: calc(var(--chrome-ctl-sm) - var(--chrome-2)); /* the playhead's head is a handle: 28px at every text size */
+    --_ruler-h: calc(var(--_head) + 1.75rem); /* the head sits in the top of it and the labels in the bottom, so neither covers the other */
 
     position: relative;
     display: grid;
     flex: none;
     inline-size: calc(var(--total) * var(--pps));
-    gap: var(--space-2);
+    gap: var(--chrome-2); /* ruler, tracks and the frame below are spaced alike, so the last gap reads as air, not a lane */
     align-content: start;
-    padding-block-start: var(--space-1);
+    padding-block-start: var(--chrome-1); /* room above the head for its ring */
   }
 
   /* ---- ruler: a tick and a label every few seconds (the script picks how many) ---- */
@@ -278,48 +327,65 @@
     inset-block-end: 0;
     inset-inline-start: calc(var(--t, 0) * var(--pps));
     inline-size: var(--bw-thin);
-    block-size: 0.5rem;
+    block-size: var(--chrome-2);
     background: var(--line-soft);
   }
-  /* a label sits on a plate above the playhead's line (z 3), so the line breaks behind a number instead of
-     striking through it ("0:5|2") - the same move as the value plates in a bar chart with a reference line */
+  /* A label sits on a plate above the playhead's line (z 3), so the line never strikes through a number ("0:5|2").
+     The one label the line would run through moves to the other side of its tick (the script sets data-flip): left
+     there, its plate broke the line under the head, and the label right under the head ("0:10") read as the time
+     while the playhead was at 0:12. Flipped, it ends at its tick, the line runs whole from the head to the last
+     track, and the number still belongs to its tick. */
   .timeline__ruler > span {
     position: absolute;
     z-index: 4;
-    inset-block-end: 0.5rem;
+    inset-block-end: var(--chrome-2);
     inset-inline-start: calc(var(--t, 0) * var(--pps) + var(--space-1));
     padding-inline: 0.125rem;
     background: var(--_bg);
     white-space: nowrap;
   }
+  .timeline__ruler > span[data-flip] {
+    translate: calc(-100% - var(--space-1) * 2) 0; /* from just after its tick to just before it */
+  }
 
-  /* ---- tracks and clips ---- */
+  /* ---- tracks and clips ----
+     Every clip of a track sits in the track's one grid cell, placed in time by its start (margin) and as long as it
+     lasts: the track is as tall as its tallest clip's words. A fixed 4rem track doubled at 200% text while the words
+     inside did not need it, and a clip read as a hollow box with its name and length 50px apart. */
   .timeline__track {
     position: relative;
-    block-size: var(--_track-h);
-  }
-  .timeline__track[data-kind="audio"] {
-    --_track-h: 4.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-block-size: var(--chrome-hit);
   }
 
   .timeline__clip {
     --lift: 0;
     --fill: 0;
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
-    --_select: 0 0 0 0 transparent;
+    --_seen: 100%; /* how much of the clip is in view; SG.timeline writes it in px as the body scrolls (see data-cut) */
+    /* the selected clip's second frame (--_selw), and the gap of the surface colour a FILLED clip opens before
+       its hard shadow when it lifts (--_off): ink beside ink would fuse. The shadow is spread by both, so it
+       is always the same 4px band. An outline clip (hover, focus) has neither: the owner's flush shadow. */
+    --_selw: 0px;
+    --_off: calc(var(--lift) * var(--fill) * var(--bw));
+    --_select: 0 0 0 var(--_selw) var(--line);
+    --_shadow:
+      0 0 0 calc(var(--_selw) + var(--_off)) var(--_bg),
+      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--_selw) + var(--_off)) var(--line);
     --_ink-now: color-mix(in srgb, var(--tone-on-fill, var(--paper)) calc(var(--fill) * 100%), var(--tone-ink, var(--ink)));
     --_wave: var(--_ink-now);
 
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: calc(var(--start) * var(--pps));
+    position: relative;
+    grid-area: 1 / 1;
+    justify-self: start;
+    margin-inline-start: calc(var(--start) * var(--pps));
     inline-size: calc(var(--dur) * var(--pps) - var(--space-1));
-    min-inline-size: var(--hit);
+    min-inline-size: var(--chrome-hit);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: var(--space-1);
-    padding: var(--space-2);
+    justify-content: flex-start;
+    gap: var(--chrome-1);
+    padding: var(--chrome-2);
     color: var(--_ink-now);
     background: color-mix(in srgb, var(--tone-fill, var(--ink)) calc(var(--fill) * 100%), var(--tone-bg, var(--paper-2)));
     border: var(--bw) solid var(--line);
@@ -348,28 +414,49 @@
       box-shadow: var(--_select), var(--focus-shadow), var(--_shadow);
     }
 
+    /* the selection-control recipe: hover and focus raise an OUTLINE, a press tints, and the solid fill is
+       the selected clip's alone, so a pointer over a clip never makes it look selected */
     @media (hover: hover) {
       &:is(:hover, .is-hover) {
         --lift: 1;
-        --fill: 1;
       }
     }
     &:is(:focus-visible, .is-focus) {
       --lift: 1;
-      --fill: 1;
     }
     &:is(:active, .is-active) {
       --lift: 0;
-      --fill: 1;
+      --fill: 0.15;
       transition-duration: var(--dur-press);
     }
 
-    /* selected: filled AND the frame doubles, so it never depends on the tone being dark */
+    /* selected: filled AND the frame doubles, so it never depends on the tone being dark. After the states, and
+       written with [aria-selected] so it outranks the press tint: a selected clip stays filled when pressed. */
     &[aria-selected="true"] {
       --fill: 1;
-      --_select: 0 0 0 var(--bw) var(--line);
+      --_selw: var(--bw);
       z-index: 1;
     }
+  }
+
+  /* A clip's name and length stay in view while the clip runs off the start of the scroller (sticky inside the
+     clip, which clips without scrolling): a half-scrolled clip is never a blank block or a stub of a word. */
+  .timeline__name,
+  .timeline__dur {
+    position: sticky;
+    inset-inline-start: var(--chrome-2);
+    align-self: flex-start;
+    max-inline-size: 100%;
+  }
+  /* A clip whose start is scrolled away (SG.timeline marks it data-cut and writes how much of it is in view, --_seen):
+     its pinned name is ONE line inside the part in view, cut with an ellipsis, so it shows how the name starts
+     ("Harbour a…"). Wider than that part, a sticky name is pushed back and showed only how it ends ("dawn"). */
+  .timeline__clip[data-cut] > .timeline__name {
+    display: block;
+    max-inline-size: max(0px, calc(var(--_seen) - var(--chrome-2) * 2 - var(--bw))); /* in view, less its inset, the clip's padding and frame */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .timeline__name {
@@ -389,9 +476,15 @@
   .timeline__clip[data-kind="audio"] {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
     align-items: start;
-    gap: var(--space-1) var(--space-3);
+    gap: var(--chrome-1) var(--chrome-3);
+  }
+  .timeline__clip[data-kind="audio"] > .timeline__name {
+    justify-self: start;
+  }
+  .timeline__clip[data-kind="audio"] > .timeline__dur {
+    position: static; /* it sits at the clip's end, beside the name; only the name has to stay in view */
   }
   .timeline__clip[data-kind="audio"] > .timeline__wave {
     grid-column: 1 / -1;
@@ -402,8 +495,7 @@
   .timeline__wave {
     display: block;
     inline-size: 100%;
-    block-size: 100%;
-    min-block-size: 0;
+    block-size: var(--chrome-6); /* a picture of the sound, not words: 32px at every text size */
     fill: var(--_wave);
   }
 
@@ -434,10 +526,10 @@
       calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--lift) * var(--bw)) var(--line);
 
     position: absolute;
-    inset-block-start: var(--space-1); /* the top of the ruler row; the labels are in its bottom half */
-    inset-inline-start: -0.875rem;
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
+    inset-block-start: var(--chrome-1); /* the top of the ruler row; the labels are in its bottom half */
+    inset-inline-start: calc(var(--_head) / -2);
+    inline-size: var(--_head);
+    block-size: var(--_head);
     background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-pill);
@@ -454,7 +546,7 @@
     &::after {
       content: "";
       position: absolute;
-      inset: calc((100% - var(--hit)) / 2);
+      inset: calc((100% - var(--chrome-hit)) / 2);
     }
     &:focus-visible {
       box-shadow: var(--focus-shadow), var(--_shadow);
