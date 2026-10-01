@@ -82,6 +82,7 @@
     min-block-size: 1.5em; /* the row never jumps when the text changes */
     font: var(--type-body);
     font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere; /* a day name wider than a narrow card at 200 % text breaks instead of being cut off */
   }
 
   /* ---- the plot: [track][label] rows, one subgrid column per category ------------------- */
@@ -222,10 +223,12 @@
 
   .bars__note {
     display: flex;
+    flex-wrap: wrap; /* the dashed marker drops above the words when the column is too narrow for both (200 % text) */
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-1) var(--space-2);
     font: var(--type-meta);
     color: var(--ink-soft);
+    overflow-wrap: anywhere;
   }
 
   .bars__note::before {

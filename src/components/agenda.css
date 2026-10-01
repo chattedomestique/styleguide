@@ -59,7 +59,8 @@
    re-implemented; only its size is decided here (grid rows), and its body is tightened.
    WHY OVERLAPS STACK BELOW A WIDTH  Two lanes at 10rem each read fine; three at 6rem do not. Rather
    than shrink the text, the lanes give up the time scale and stack in time order: every event still
-   shows its own start and end.
+   shows its own start and end. Under 12rem (200 % text on a phone) that holds for any lane count, since
+   even one lane cannot fit a title and two times inside a 15-minute row.
    WHY THE HOUR LABELS ARE aria-hidden  Every event states its own times as text, so the ruler on
    the side is a visual aid; reading it aloud would add 6 meaningless "9:00, 10:00" stops.
 
@@ -263,10 +264,7 @@
   .agenda-day__grid {
     display: grid;
     grid-template-columns: 3rem minmax(0, 1fr);
-    /* The time scale is a MINIMUM: at large text an event's title and times need more room than 15 minutes
-       x its length, and a fixed row would cut them off (WCAG 1.4.4). Auto rows stretch instead; the ruler
-       shares these rows (subgrid), so the hours stay aligned with the events. */
-    grid-template-rows: repeat(var(--steps, 24), minmax(var(--step), auto));
+    grid-template-rows: repeat(var(--steps, 24), var(--step));
   }
 
   /* the ruler: one row per hour, each spanning four 15-minute rows, across the whole width */
@@ -345,6 +343,37 @@
     white-space: nowrap;
   }
 
+  /* A column too narrow for the text size, whatever the lane count (200 % text on a phone): an event's title and
+     times need more room than its length on a fixed time scale, and the card would cut them off (WCAG 1.4.4 / 1.4.10).
+     Give up the scale, keep the order. 12rem is in rem, so bigger text stacks sooner. */
+  @container agenda-day (max-width: 12rem) {
+    .agenda-day .agenda-day__grid {
+      display: block;
+    }
+    .agenda-day .agenda-day__hours {
+      display: none;
+    }
+    .agenda-day .agenda-day__events {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none; /* the parent is a block now: a subgrid of it has no rows, and every card would collapse to its borders */
+      gap: var(--space-2);
+      padding: 0;
+    }
+    .agenda-day .agenda-day__event {
+      grid-row: auto;
+      grid-column: auto;
+      min-block-size: var(--hit);
+    }
+    .agenda-day .agenda-day__event .card__title {
+      display: block; /* stacked cards grow with their words, so the two-line clamp that protects the time scale goes */
+      overflow: visible;
+    }
+    .agenda-day .agenda-day__event .card__meta {
+      white-space: normal;
+    }
+  }
+
   /* the lanes do not fit: give up the time scale, keep the order. Every event says its own times.
      Two lanes need about 16rem, three about 26rem (rem, so bigger text stacks sooner). */
   @container agenda-day (max-width: 16rem) {
@@ -357,6 +386,7 @@
     .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__events {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none; /* the parent is a block now: a subgrid of it has no rows, and every card would collapse to its borders */
       gap: var(--space-2);
       padding: 0;
     }
@@ -364,6 +394,10 @@
       grid-row: auto;
       grid-column: auto;
       min-block-size: var(--hit);
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__event .card__title {
+      display: block; /* stacked cards grow with their words, so the two-line clamp that protects the time scale goes */
+      overflow: visible;
     }
     .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__event .card__meta {
       white-space: normal;
@@ -380,6 +414,7 @@
     .agenda-day[data-lanes="3"] .agenda-day__events {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none; /* the parent is a block now: a subgrid of it has no rows, and every card would collapse to its borders */
       gap: var(--space-2);
       padding: 0;
     }
@@ -387,6 +422,10 @@
       grid-row: auto;
       grid-column: auto;
       min-block-size: var(--hit);
+    }
+    .agenda-day[data-lanes="3"] .agenda-day__event .card__title {
+      display: block; /* stacked cards grow with their words, so the two-line clamp that protects the time scale goes */
+      overflow: visible;
     }
   }
 
