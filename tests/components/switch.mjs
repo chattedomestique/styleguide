@@ -247,4 +247,18 @@ export const tests = [
       expect.ok(r.gapToEnd < 8, 'and it sits at the end of the row: ' + r.gapToEnd + ' px from the right edge')
     },
   },
+  {
+    name: 'a forced .is-focus specimen draws the same ring round the track as real keyboard focus',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const forced = await pseudo(page, '#states ~ .demo .switch.is-focus > input', '::before', ['outlineStyle', 'outlineWidth', 'outlineOffset'])
+      expect.equal(forced.outlineStyle, 'solid', 'the forced focus specimen has a ring')
+      await page.keyboard.press('Tab')
+      await page.locator('#states ~ .demo input[name=st-off]').focus()
+      const real = await pseudo(page, '#states ~ .demo input[name=st-off]', '::before', ['outlineStyle', 'outlineWidth', 'outlineOffset'])
+      expect.equal(forced.outlineStyle, real.outlineStyle, 'same style as real focus')
+      expect.equal(forced.outlineWidth, real.outlineWidth, 'same width as real focus')
+      expect.equal(forced.outlineOffset, real.outlineOffset, 'same offset as real focus')
+    },
+  },
 ]
