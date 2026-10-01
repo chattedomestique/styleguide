@@ -41,7 +41,7 @@
     --card-bar-bg: var(--ink);
     --card-bar-ink: var(--paper);
     --card-radius: var(--radius-card);
-    --card-pad: clamp(1rem, 5cqi, 1.5rem);
+    --card-pad: clamp(var(--chrome-4), 5cqi, var(--chrome-5)); /* chrome: stops at its 100% size, so 200% text keeps the width */
     --card-gap: var(--space-2);
 
     /* interaction, as two numbers. --lift is geometry (0 flat, 1 raised);
@@ -123,7 +123,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     padding-inline-start: var(--card-pad);
     color: var(--card-bar-ink);
     background: var(--card-bar-bg);
@@ -141,8 +141,8 @@
     display: grid;
     place-items: center;
     flex: none;
-    inline-size: var(--hit);
-    block-size: var(--hit);
+    inline-size: var(--chrome-hit);
+    block-size: var(--chrome-hit);
     margin: 0;
     padding: 0;
     color: inherit;
@@ -158,15 +158,15 @@
 
   .card__ctl::before {
     content: "";
-    inline-size: 1.25rem;
-    block-size: 1.25rem;
+    inline-size: var(--chrome-box);
+    block-size: var(--chrome-box);
     background: color-mix(in srgb, var(--card-bar-ink) calc(var(--fill) * 100%), var(--card-bar-bg));
     border: var(--bw) solid currentColor;
     border-radius: var(--radius-ctl);
   }
 
   .card__ctl > .ic {
-    --ic-size: 0.75rem;
+    --ic-size: var(--chrome-ic-xs);
     color: color-mix(in srgb, var(--card-bar-bg) calc(var(--fill) * 100%), var(--card-bar-ink));
   }
 
@@ -228,7 +228,7 @@
      wrap is cut off silently at large text sizes, in narrow cards and with real copy. */
   :is(.card__eyebrow, .card__title, .card__text, .card__meta, .card__label, .card__trail, .card__list li) {
     min-inline-size: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     hyphens: auto;
   }
 
@@ -278,7 +278,7 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: var(--space-1) var(--space-3);
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     padding: var(--space-2) var(--card-pad);
     margin-block-start: auto;
     font: var(--type-meta);
@@ -289,7 +289,7 @@
   .card__foot :is(a, button):not(.btn) {
     display: inline-flex;
     align-items: center;
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     margin-block: calc(var(--space-2) * -1);
     text-decoration-thickness: var(--bw-thin);
     text-underline-offset: 0.2em;
@@ -327,7 +327,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 0 var(--space-3);
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     padding-inline: var(--card-pad);
     font: var(--type-body);
     font-variant-numeric: tabular-nums;
@@ -345,7 +345,7 @@
     align-items: center;
     flex: 1 1 auto;
     min-inline-size: 0;
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     color: inherit;
     text-decoration: none;
   }
@@ -406,8 +406,8 @@
     display: inline-grid;
     place-items: center;
     flex: none;
-    inline-size: var(--hit);
-    block-size: var(--hit);
+    inline-size: var(--chrome-hit);
+    block-size: var(--chrome-hit);
     padding: 0;
     color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--card-ink));
     background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--card-bg));
@@ -415,6 +415,10 @@
     border-radius: var(--radius-pill);
     text-decoration: none;
     cursor: pointer;
+  }
+
+  .card__action > .ic {
+    --ic-size: var(--chrome-ic-sm); /* chrome, like the circle around it */
   }
 
   .card__action:is(.is-hover, .is-focus, :focus-visible, :active) {
@@ -429,8 +433,8 @@
 
   /* tile: the square slot at the head of a row. */
   .card__tile {
-    inline-size: var(--hit);
-    block-size: var(--hit);
+    inline-size: var(--chrome-hit);
+    block-size: var(--chrome-hit);
     flex: none;
     border: var(--bw) solid var(--card-ink);
     border-radius: var(--radius-tile);
@@ -584,8 +588,8 @@
      Not a whole-card link: the control in the notch is the interactive part. */
 
   .card--notch {
-    --notch-w: 4.5rem;
-    --notch-h: 4.5rem;
+    --notch-w: min(4.5rem, 72px); /* chrome: the cut holds a 44px control, which does not grow with text */
+    --notch-h: min(4.5rem, 72px);
     border-color: transparent;
     border-radius: 0;
     background-color: transparent;
@@ -620,8 +624,8 @@
     --card-bg: var(--paper);
     --card-ink: var(--ink);
     position: absolute;
-    inset-block-start: calc(var(--notch-h) / 2 - var(--hit) / 2 - var(--bw));
-    inset-inline-end: calc(var(--notch-w) / 2 - var(--hit) / 2 - var(--bw));
+    inset-block-start: calc(var(--notch-h) / 2 - var(--chrome-hit) / 2 - var(--bw));
+    inset-inline-end: calc(var(--notch-w) / 2 - var(--chrome-hit) / 2 - var(--bw));
   }
 
   /* right-to-left: the sheets fall to the other side, and the notch moves to the top-left */
@@ -674,7 +678,12 @@
     letter-spacing: var(--ls-title);
     text-align: center;
     text-wrap: balance;
-    overflow-wrap: anywhere; /* at big text sizes a long word breaks rather than clipping */
+    /* centred in a grid (place-items), so its track would take the longest word's width and the frame
+       would clip it: with no automatic minimum the track is the card's width, and a word wider than the
+       card breaks (hyphenated where the browser can) */
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: break-word;
     hyphens: auto;
   }
 

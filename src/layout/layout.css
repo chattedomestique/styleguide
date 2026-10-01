@@ -153,7 +153,8 @@
 
   /* Text stays readable at any zoom: long words break instead of overflowing. */
   :where(.break) {
-    overflow-wrap: anywhere;
+    min-inline-size: 0; /* a flex or grid item may shrink below its content... */
+    overflow-wrap: break-word; /* ...and then breaks a word only when the word alone cannot fit a line */
     hyphens: auto;
   }
   :where(.truncate) {

@@ -181,7 +181,7 @@ All work on `<html>` or on any element (an island). `window.SG.prefs` persists t
 
 ## 3. Elements
 
-Each element has a page in the docs with live specimens, every state, anatomy, an API table, a keyboard and screen-reader table, and the tokens it reads. The two below are frozen enough to build on; the rest arrive one at a time through the pipeline in §6.
+Each element has a page in the docs with live specimens, every state, anatomy, an API table, a keyboard and screen-reader table, and the tokens it reads. Card and Button below are the owner's and frozen enough to build on. Fifty more arrived through the pipeline in §6, in the owner's vocabulary (forms, selection and navigation, surfaces, overlays and feedback, data, media and tools); the docs overview lists them all, and the Status page says how far each has got.
 
 ### Card
 
@@ -236,6 +236,8 @@ What lint cannot see, because it never renders, is covered by the browser tests:
 
 ## 6. Status
 
+This table is the owner's record for Card and Button. The other fifty elements are on the Status page of the docs, which `npm run status` generates from the gates (the spec, the lint and the accessibility gate), so nobody types a status. When Card or Button moves, edit the row here.
+
 | Element | 0 Brief | 1 Wireframe | 2 States | 3 Colour | 4 Motion | 5 Freeze |
 | --- | --- | --- | --- | --- | --- | --- |
 | Card | done | done | done | done | done | awaiting sign-off |
@@ -255,5 +257,6 @@ What lint cannot see, because it never renders, is covered by the browser tests:
 
 ## 8. Changelog
 
+- **Unreleased** · Fifty elements, nine foundations pages, Start, Accessibility and Project pages, per-element builds, CI. Palettes are self-contained and higher contrast reaches islands; `SG.prefs` keeps an app's authored look and takes a storage key per app. Docs tables stack on phones; the Status page is generated. A design review of every page was worked through: nothing breaks mid-word or is cut off at 200% text in the elements. The full list is in `docs/project/changelog.html`.
 - **0.2.0** · 2026-09-30 · Re-founded on the Flashcards style sheet v0.1. Colour engine (dark, higher contrast, six palettes, status tones, bold), motion on, Button, accessibility gate, extended checker. Card: `study` renamed `portrait` (alias kept); hover rules gated for touch; long words no longer clip at large text.
 - **0.1.0** · 2026-09-30 · The owner's sheet: foundations (type, space, line, shape, hit, motion). Wireframe colour layer with six tone slots. Card: ten variants, six states, two grids. Gates 0–2 closed for Cards.

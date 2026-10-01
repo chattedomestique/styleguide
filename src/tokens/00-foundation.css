@@ -60,7 +60,7 @@
     --space-7: 3rem; /* 48 */
     --space-8: 4rem; /* 64 */
     --space-9: 6rem; /* 96 */
-    --gutter: clamp(1rem, 0.6rem + 1.6vw, 1.75rem); /* the gap between cards */
+    --gutter: clamp(min(1rem, 16px), 0.6rem + 1.6vw, min(1.75rem, 28px)); /* the gap between cards, and the app column's side inset; chrome: it stops at its 100% size, so 200% text keeps the width */
     --measure: 62ch; /* the widest a paragraph gets */
 
     /* --- line: two weights and one emphasis ---------------------------------
@@ -99,7 +99,10 @@
        dock circles cannot fit a phone, a button's 48px side padding squeezes its own label onto two
        lines. These stop at their 100% size (iOS and Android tab bars do the same: Dynamic Type grows
        the words, not the icons or the insets). Browser zoom still scales them, because it scales px.
-       Use them for padding and icon-only chrome inside controls; layout spacing stays --space-*. */
+       Use them for the insets of controls and containers (padding, gaps inside a control), for icon-only
+       controls and for the slots that hold them (a card's bar control, a row's chevron, a leading
+       picture). Words, and an icon that sits INSIDE a line of words, keep growing; spacing BETWEEN
+       blocks of a layout stays --space-*. */
     --chrome-1: min(var(--space-1), 4px);
     --chrome-2: min(var(--space-2), 8px);
     --chrome-3: min(var(--space-3), 12px);
@@ -107,7 +110,12 @@
     --chrome-5: min(var(--space-5), 24px);
     --chrome-6: min(var(--space-6), 32px);
     --chrome-ic: min(1.5rem, 24px); /* an icon that stands alone in a bar */
-    --chrome-ctl-lg: min(var(--ctl-lg), 56px); /* a cell in a bar of icons (dock, tool rail) */
+    --chrome-ic-sm: min(1.25rem, 20px); /* the icon of an icon-only control */
+    --chrome-ic-xs: min(0.75rem, 12px); /* a glyph inside a drawn box (the card bar control) */
+    --chrome-box: min(1.25rem, 20px); /* a box drawn inside a 44px target (the card bar control) */
+    --chrome-ctl-sm: min(var(--ctl-sm), 36px); /* an icon-only circle, small */
+    --chrome-ctl: min(var(--ctl), 44px); /* an icon-only circle */
+    --chrome-ctl-lg: min(var(--ctl-lg), 56px); /* an icon-only circle, large; a cell in a bar of icons (dock) */
     --chrome-hit: min(var(--hit), 44px); /* the 44px target is a size for a finger, not for text (WCAG 2.5.5 counts CSS px) */
 
     /* --- ratios ---------------------------------------------------------------- */

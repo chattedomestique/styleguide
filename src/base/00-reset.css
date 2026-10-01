@@ -76,8 +76,15 @@
   :where(small) {
     font-size: inherit;
   }
+  /* Words wrap between words; a word breaks only when it cannot fit a line of its own. Never
+     overflow-wrap: anywhere on text in a layout: it makes an element's min-content ONE LETTER, so a
+     flex or grid item shrinks below its longest word and the word shatters ("Shopp / ing"). */
   :where(h1, h2, h3, h4, h5, h6, p, li, dd, figcaption) {
     overflow-wrap: break-word;
+  }
+  /* Running text avoids a last line of one short word ("Seven to / go.") where the browser can. */
+  :where(p, li, dd, figcaption, blockquote) {
+    text-wrap: pretty;
   }
   :where(hr) {
     margin: 0;

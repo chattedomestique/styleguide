@@ -35,7 +35,7 @@
   min-block-size: var(--hit);
   color: inherit;
   text-decoration: none;
-  overflow-wrap: anywhere; /* at 200% text the title wraps instead of running under the Appearance button */
+  overflow-wrap: break-word; /* at 200% text the title wraps instead of running under the Appearance button */
   line-height: 1.1;
 }
 .docs-bar__version { color: color-mix(in srgb, var(--paper) 70%, var(--ink)); }
@@ -163,9 +163,10 @@
 
 /* ---- Demo: a framed specimen with its markup underneath (like the owner's MARKUP bar) ---- */
 .demo { border: var(--bw) solid var(--line); background: var(--canvas); overflow: clip; }
-.demo__stage { padding: var(--space-5); background: var(--demo-bg, var(--canvas)); container-type: inline-size; }
-/* Padding is in rem, so at 200% text it ate more than half of a phone's width and left a 150px mock. Tighter below 40em. */
-@media (max-width: 40em) { .demo__stage { padding: var(--space-3); } .phone__screen { padding: var(--space-3); } }
+.demo__stage { padding: var(--chrome-5); background: var(--demo-bg, var(--canvas)); container-type: inline-size; }
+/* Chrome caps (00-foundation.css): the stage and the phone mock are insets, so they stop at their 100% size;
+   in rem they doubled at 200% text and left a nested demo a few letters a line. Tighter on a phone. */
+@media (max-width: 40em) { .demo__stage { padding: var(--chrome-3); } .phone__screen { padding: var(--chrome-3); } }
 .demo[data-bg="paper"] .demo__stage { --demo-bg: var(--paper); }
 .demo[data-bg="ink"] .demo__stage { --demo-bg: var(--ink); color: var(--paper); }
 .demo[data-bg="media"] .demo__stage { --demo-bg: var(--tone-2); }
@@ -181,7 +182,7 @@
 
 /* A phone-sized frame for screens and patterns. */
 .phone { inline-size: min(100%, 24.375rem); margin-inline: auto; border: var(--bw) solid var(--line); border-radius: var(--radius-card); background: var(--canvas); color: var(--ink); overflow: clip; container-type: inline-size; }
-.phone__screen { padding: var(--space-4); }
+.phone__screen { padding: var(--chrome-4); }
 .phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-5); justify-items: center; }
 
 /* ---- Callouts: a frame, a label word and an icon (never colour alone) ---------------------- */
@@ -218,7 +219,7 @@ html { --appbar-h: calc(2.75rem + var(--safe-top)); }
 }
 
 .note > div > :first-child { margin-block-start: 0; }
-.note > div > strong:first-child { display: block; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; overflow-wrap: anywhere; } /* the note's title only, not a bold word at the start of a paragraph */
+.note > div > strong:first-child { display: block; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; overflow-wrap: break-word; } /* the note's title only, not a bold word at the start of a paragraph */
 .note[data-kind="dont"] { border-style: dashed; }
 .dodont { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--space-4); }
 

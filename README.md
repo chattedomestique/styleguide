@@ -8,14 +8,14 @@ It is the owner's *Flashcards style sheet v0.1*, generalised: their type, space,
 
 ## Use it in an app (2 minutes)
 
-1. Copy these from `dist/` into your app: `styleguide.css` (or `styleguide.min.css`), `fonts/`, and optionally `styleguide.js` and `icons.css` (about 140 more icons than the five built in).
+1. Copy these from `dist/` into your app: `styleguide.min.css`, `fonts/`, and optionally `styleguide.min.js` and `icons.css` (about 145 more icons than the few built in). That is everything: about 40 KB of CSS and 41 KB of JavaScript gzipped. To ship less, use `core.min.css` (6 KB gzipped: tokens, base, layout, utilities) plus only the files you need from `dist/elements/` and `dist/js/`; `dist/elements/manifest.json` says what each element builds on and which scripts it has.
 2. Put this in your `<head>`:
 
    ```html
    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
    <meta name="color-scheme" content="light dark">
-   <link rel="stylesheet" href="styleguide.css">
-   <script src="styleguide.js" defer></script>
+   <link rel="stylesheet" href="styleguide.min.css">
+   <script src="styleguide.min.js" defer></script>
    ```
 3. Write HTML with the classes and pick a look with attributes on `<html>`:
 
@@ -23,6 +23,8 @@ It is the owner's *Flashcards style sheet v0.1*, generalised: their type, space,
    <html lang="en" data-palette="mint" data-corners="soft">
    <button class="btn" data-variant="primary">Add funds</button>
    ```
+
+The Install page of the docs has the whole setup, including the PWA parts.
 
 | attribute | values | changes |
 |---|---|---|
@@ -37,11 +39,24 @@ Any element can carry these to make a themed island. Components never know which
 
 ## What makes it different
 
-- **Accessible by construction.** Colour pairs are built from fixed lightness gaps (OKLCH), then *verified in a real browser* for every theme × contrast mode × palette × tone (3,500+ checks). Text is ≥ 7:1, frames ≥ 3:1, targets ≥ 44 px, and nothing relies on colour alone.
+- **Accessible by construction.** Colour pairs are built from fixed lightness gaps (OKLCH), then *verified in a real browser* for every theme × contrast mode × palette × tone, and for palettes on islands (10,000+ checks). Text is ≥ 7:1, frames ≥ 3:1, targets ≥ 44 px, and nothing relies on colour alone.
 - **Flat and legible.** Two line weights, hard shadows only on things you can press, circles and pills for everything you act on, one typeface with a width axis. No gradients, blur or glass; the checker fails the build on them.
 - **Tones you cannot get wrong.** `data-tone="3"` gives an element a fill, text, soft text, a pill and its text that always pass.
 - **Reduced motion means gentler, not instant.** Travel drops out; colour changes stay; spinners pulse.
 - **Growable.** Adding an element is a gated routine with a scaffold, a lint, an accessibility gate and interaction specs. See [CLAUDE.md](CLAUDE.md).
+
+## What is in it
+
+Fifty-two elements, each with a docs page (live demo, every state, anatomy, API, keyboard and screen-reader behaviour, tokens) and an interaction spec:
+
+- **Actions and forms:** Button, Field, Input, Select, Choice (checkbox, radio, cards, segmented), Switch, Slider, Stepper, Keypad
+- **Selection and navigation:** Tabs, Chip, Segmented control, App bar, Dock, Breadcrumb, Pagination, Menu, Toolbar
+- **Surfaces:** Card, Tag, Avatar, Divider, Accordion, Tile, List, Stat, Swatch
+- **Overlays and feedback:** Dialog, Sheet, Popover, Tooltip, Alert, Toast, Progress, Spinner, Skeleton, Empty state, Marquee
+- **Data:** Table, Bar chart, Sparkline, Donut chart, Legend, Calendar, Agenda, Timeline
+- **Media and tools:** Media, Carousel, Filmstrip, Gallery, Player, Scrubber
+
+Nine foundations pages (colour, tones, type, space, shape, interaction, motion, icons, layout), the Start pages (install, customize, upgrade, PWA), the Accessibility pages (checklist, testing, manual, patterns) and the Project pages (status, decisions, references, contributing, changelog, audit) are in the same site.
 
 ## Repo map
 
@@ -62,15 +77,16 @@ npm run build            generate dist/ and docs/
 npm run serve            preview docs at http://127.0.0.1:4173
 npm run lint             the gate: undefined tokens, colour literals, gradients / blur, line and radius roles, …
 npm run test:contrast    every colour role pair, every theme / contrast / palette / tone
-npm run test:components  keyboard, ARIA and --lift / --fill state specs
+npm run test:components  keyboard, ARIA and --lift / --fill state specs (SG_JS=min runs them on the minified bundle)
 npm run test:a11y        axe + focus walk + target sizes + reflow + forced colours on every docs page
+npm run status           regenerate the Status page from the gates (about an hour; -- --quick for two appearances)
 npm test                 all of it
 npm run new:component -- name --order 45
 ```
 
 ## Status and honest limits
 
-Version 0.2.0. Verified in **Chromium** only. **Not verified:** Safari / iOS (standalone safe areas, Dynamic Type), Firefox, real screen readers (VoiceOver, TalkBack, NVDA) and Android font scaling. Elements so far: Card and Button; more arrive through the gated pipeline described in [STYLE.md](STYLE.md) §6. What was wrong with the original sheet, and what was done about each finding, is in [AUDIT.md](AUDIT.md); the evidence and the notes behind the design are in [references/](references/).
+Version 0.2.0 plus the unreleased work listed in the [changelog](docs/project/changelog.html). Verified in **Chromium** only. **Not verified:** Safari / iOS (standalone safe areas, Dynamic Type), Firefox, real screen readers (VoiceOver, TalkBack, NVDA) and Android font scaling; the Manual page of the docs has the passes to run on real devices. Every element passes its spec and the accessibility gate in five appearances (light, dark + mint + soft, wire, higher contrast + periwinkle + dark, forced colours), including text at 200% and a 320px screen; gate 5 (sign-off) is the owner's. What was wrong with the original sheet, and what was done about each finding, is in [AUDIT.md](AUDIT.md); the evidence and the notes behind the design are in [references/](references/). Open decisions the owner can reverse are on the Decisions page.
 
 ## Credits and licences
 

@@ -18,14 +18,16 @@
    data-shape     pill (default) | circle (square box, one icon, aria-label required)
    data-block     full width
 
-   LARGE TEXT. The label grows with the reader's text size; the chrome does not grow past its 100% size
-   (--chrome-* tokens: side padding and the icon gap), so at 200% text the words keep the room. When an icon
-   and its label still cannot share a line, the icon moves ABOVE the label, both centred (flex-wrap), instead
-   of being pushed to one edge with the words squeezed beside it. A label wraps at word boundaries
-   (overflow-wrap: break-word) and a word breaks only if it alone is wider than the row. The button is never
-   wider than its row (max-inline-size), so a row of buttons moves a BUTTON to the next line before it
-   squeezes a label. The radius is HALF THE NOMINAL HEIGHT, not 999px: a button that grows taller is a
-   rounded rectangle, not an oval (rectangles hold, circles act). A circle is a square box at every size.
+   LARGE TEXT. The label grows with the reader's text size, and so does an icon that sits in the label (it
+   is part of the line of words). The chrome does not grow past its 100% size (--chrome-* tokens: side
+   padding, the icon gap, and the whole of an ICON-ONLY circle with its target), so at 200% text the words
+   keep the room. The icon always stays beside its label: when the label must wrap, it wraps beside the
+   icon (flex-wrap: nowrap), never under it. A label wraps at word boundaries (overflow-wrap: break-word)
+   and a word breaks only if it alone is wider than the row. The button is never wider than its row
+   (max-inline-size), so a row of buttons moves a BUTTON to the next line before it squeezes a label. The
+   radius is HALF THE NOMINAL HEIGHT, not 999px: a button that grows taller keeps the pill's end curve
+   instead of turning into an oval. A circle is a square box at every size; a circle that holds a number
+   or a letter (a keypad key, a page number) grows with the text, a circle that holds an icon does not.
 
    STATES come from ARIA and native attributes, never classes:
      :disabled / aria-disabled="true"   dashed frame, faint ink, no shadow, no hover
@@ -55,6 +57,8 @@
     --_on-bg: var(--accent);
     --_on-ink: var(--on-accent);
     --_h: var(--ctl);
+    --_cap: var(--chrome-ctl); /* the most an ICON-ONLY circle of this size may measure (see shape) */
+    --_hit: var(--hit);
     --_px: var(--chrome-5);
     --_r: min(var(--radius-pill), calc(var(--_h) / 2));
     /* A FILLED button that is raised would fuse with its own hard shadow (an ink fill beside an ink shadow
@@ -70,9 +74,8 @@
 
     position: relative;
     display: inline-flex;
-    flex-wrap: wrap; /* an icon that cannot share a line with its label goes above it, centred */
+    flex-wrap: nowrap; /* the icon stays beside the label; the label wraps beside it */
     align-items: center;
-    align-content: center;
     justify-content: center;
     gap: var(--chrome-1) var(--chrome-2);
     min-block-size: var(--_h);
@@ -107,8 +110,8 @@
     &::after {
       content: "";
       position: absolute;
-      inset-block: min(0px, calc((100% - var(--hit)) / 2));
-      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+      inset-block: min(0px, calc((100% - var(--_hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--_hit)) / 2));
     }
 
     /* .is-focus (docs and tests) draws the very same ring: the base layer gives it the outline and
@@ -190,11 +193,13 @@
     /* ---- sizes ---- */
     &[data-size="sm"] {
       --_h: var(--ctl-sm);
+      --_cap: var(--chrome-ctl-sm);
       --_px: var(--chrome-4);
       font-size: var(--text-sm);
     }
     &[data-size="lg"] {
       --_h: var(--ctl-lg);
+      --_cap: var(--chrome-ctl-lg);
       --_px: var(--chrome-6);
       font-size: var(--text-lg);
     }
@@ -203,12 +208,25 @@
       inline-size: 100%;
     }
 
-    /* ---- shape: a circle is a square box holding one icon ---- */
+    /* ---- shape: a circle is a square box holding one icon (or one short number, like a keypad key) ---- */
     &[data-shape="circle"] {
       --_r: var(--radius-pill);
-      inline-size: var(--_h);
-      min-inline-size: var(--_h); /* a small (36px) circle is round: its 44px target is the ::after, not its width */
+      inline-size: var(--_box, var(--_h));
+      min-inline-size: var(--_box, var(--_h)); /* a small (36px) circle is round: its 44px target is the ::after, not its width */
+      min-block-size: var(--_box, var(--_h));
       padding: 0;
+    }
+    /* An ICON-ONLY circle is chrome: an icon does not get easier to read at 200% text, it only takes the
+       room the words need (two 88px circles leave a phone's title a few letters a line). It stops at its
+       100% size, and so does its target, which would otherwise overlap its neighbour's. :where() keeps this
+       at the specificity of .btn, so a component that sizes its own circles still wins; one that sets --_h
+       for a circle sets --_cap to the same cell (the dock does). */
+    &:where([data-shape="circle"]:has(> .ic)) {
+      --_box: min(var(--_h), var(--_cap));
+      --_hit: var(--chrome-hit);
+      & > .ic {
+        --ic-size: var(--chrome-ic-sm);
+      }
     }
   }
 

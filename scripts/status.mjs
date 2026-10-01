@@ -318,7 +318,7 @@ function render({ els, spec, a11y, lintOk, minAppearances, date }) {
   P(`<h2 id="keep">How this table is kept</h2>
 <ul>
   <li>It is generated, so that nobody types a status. <code>npm run status</code> runs the build, the lint, the component specs and the accessibility gate, and rewrites this page from their output (about an hour for all five appearances; <code>npm run status -- --quick</code> runs two and is for looking, not for committing). Run <code>npm run build</code> afterwards so <code>docs/</code> matches; CI fails otherwise.</li>
-  <li><code>STYLE.md</code> section 6 is the owner's copy of the same table: when an element moves, copy the result there in the same pull request, and add a line to the <a href="@/project/changelog.html">Changelog</a>.</li>
+  <li><code>STYLE.md</code> section 6 keeps the owner's own two rows, Card and Button: when either moves, copy its row there in the same pull request, and add a line to the <a href="@/project/changelog.html">Changelog</a>.</li>
   <li>To refresh only the evidence, run the three commands yourself: <code>npm run lint</code>, <code>npm run test:components</code> and <code>npm run test:a11y</code>. A cell is only ever <em>done</em> because a check passed. Gate 5 is the owner's sign-off and is never filled in by the script.</li>
   <li>Everything here was measured in Chromium. Nothing has been verified in Safari, Firefox or with a screen reader; see <a href="@/project/decisions.html#devices">Decisions</a>.</li>
 </ul>`)

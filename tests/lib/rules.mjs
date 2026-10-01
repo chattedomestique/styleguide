@@ -284,6 +284,10 @@ export function checkCss({ name, css, kind, gates = { motion: true }, privateEls
         else warn(line, 'a11y', 'outline removed on a class: make sure a :focus-visible rule draws the ring (WCAG 2.4.7), or waive it with lint-allow if this is a decorative outline')
       }
     }
+    // overflow-wrap: anywhere makes an element's min-content ONE LETTER, so a flex or grid item shrinks below its
+    // longest word and the word shatters ("Shopp / ing", "Accou / nt" at 200% text). break-word breaks a word only
+    // when the word alone cannot fit a line. A token that may split anywhere (code, a URL) waives it with lint-allow.
+    if (!isDocs && !isToken && prop === 'overflow-wrap' && v === 'anywhere') err(line, 'wrap', 'overflow-wrap: anywhere lets a flex or grid item shrink below its longest word, which then breaks mid-word: use break-word (waive with lint-allow for code or URLs)')
     if (/^transition(?:-property)?$/.test(prop) && /(?:^|[\s,])all\b/.test(v)) err(line, 'a11y', 'transition: all. List the properties')
     if (/!\s*important/i.test(value) && !/\[hidden\]|sr-only|display:\s*none/.test(sel + value)) warn(line, 'hygiene', '!important: avoid; layers already let apps override')
     // overflow: hidden is not flagged here: whether a ring is clipped is MEASURED (tests/a11y.mjs checks ring contrast and cut-off text)
