@@ -117,6 +117,29 @@ export const tests = [
     },
   },
   {
+    // Regression: at 14% the shapes were ~1.3:1 on the stage (1.1:1 at the pulse's lowest step): a skeleton nobody could see.
+    // They stay quiet (a placeholder is not a control, so well under 3:1) but have to be seen.
+    name: 'shapes read against the surface in light and dark (at least 1.5:1 at rest) and stay quiet (under 3:1)',
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      const out = await page.evaluate(async () => {
+        const lum = (c) => { const [r, g, b] = c.map((v) => v / 255).map((v) => (v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))); return 0.2126 * r + 0.7152 * g + 0.0722 * b }
+        const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05) }
+        const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+        const rgb = (css) => { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = '#000'; ctx.fillStyle = css; ctx.fillRect(0, 0, 1, 1); const d = ctx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]] }
+        const line = document.querySelector('#text ~ .demo .skeleton__line'), stage = line.closest('.demo__stage')
+        const rows = []
+        for (const theme of ['light', 'dark']) for (const palette of ['default', 'mint', 'wire']) {
+          document.documentElement.setAttribute('data-theme', theme); document.documentElement.setAttribute('data-palette', palette)
+          await new Promise((r) => setTimeout(r, 60))
+          rows.push({ k: `${theme}/${palette}`, r: ratio(rgb(getComputedStyle(line).backgroundColor), rgb(getComputedStyle(stage).backgroundColor)) })
+        }
+        return rows
+      })
+      for (const x of out) expect.ok(x.r >= 1.5 && x.r < 3, `${x.k}: ${x.r.toFixed(2)}:1`)
+    },
+  },
+  {
     name: 'forced colours: shapes are painted GrayText (backgrounds would be deleted)',
     async run({ page, goto, expect }) {
       await goto(PAGE)

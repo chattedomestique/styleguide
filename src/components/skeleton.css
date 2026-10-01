@@ -28,10 +28,13 @@
    data-size      avatar: sm (32) | md (48, default) | lg (72)
    data-layout    list: rows the height of a .card--row, so they swap for real rows in place
 
-   FLAT, NOT SHIMMER. A shape is a solid fill: the ink mixed 14% into whatever it
-   sits on (the card's own paper or tone, else the canvas). No gradient sweeps
+   FLAT, NOT SHIMMER. A shape is a solid fill: the ink mixed 26% into whatever it
+   sits on (the card's own paper or tone, else the canvas). 14% was ~1.3:1 on the
+   stage and ~1.1:1 at the bottom of the pulse: in dark and in the wire palette the
+   rows read as an empty page. 26% rests near 1.9:1 (still quiet, well under the 3:1
+   a control needs) and its lowest step stays clearly there. No gradient sweeps
    across it. The only motion is a STEPPED opacity pulse: four held levels over
-   1.6 s (1, .7, .45, .7), the same for every piece, so the screen breathes
+   1.6 s (1, .75, .55, .75), the same for every piece, so the screen breathes
    together and nothing ever flashes (WCAG 2.3.1: 2.5 steps a second, each a
    small change). Under reduced motion the pulse is OFF and the shapes are still.
 
@@ -62,19 +65,19 @@
       opacity: 1;
     }
     25% {
-      opacity: 0.7;
+      opacity: 0.75;
     }
     50% {
-      opacity: 0.45;
+      opacity: 0.55;
     }
     75% {
-      opacity: 0.7;
+      opacity: 0.75;
     }
   }
 
   .skeleton {
     /* the surface it sits on: a card's own paper or tone, else the page */
-    --_fill: color-mix(in srgb, var(--card-ink, var(--ink)) 14%, var(--card-bg, var(--canvas)));
+    --_fill: color-mix(in srgb, var(--card-ink, var(--ink)) 26%, var(--card-bg, var(--canvas)));
     --_gap: var(--space-4);
 
     display: grid;

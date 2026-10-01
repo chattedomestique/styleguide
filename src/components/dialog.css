@@ -179,7 +179,12 @@
       --ring-gap: calc(var(--ring) * -1);
     }
   }
+  /* The card caps a paragraph at 40ch. In a 40rem (data-size="lg") dialog that left the right half of
+     the body empty beside a column of text, so a dialog reads the system's own measure instead: the
+     widest a paragraph gets, still short enough to read. The smaller dialogs are narrower than this
+     anyway, so they simply fill their width. */
   dialog.dialog .card__text {
+    max-inline-size: var(--measure);
     text-wrap: pretty;
   }
 
