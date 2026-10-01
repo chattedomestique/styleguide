@@ -140,7 +140,7 @@
   <span class="ic ic--info" aria-hidden="true"></span>
   <div>
     <strong>The open decision</strong>
-    <p>Both are implemented and the default is square, because that is what the owner's committed CSS does. To commit to soft, change the default block (<code>:root, [data-corners="square"]</code>) in <code>src/tokens/30-corners.css</code>; nothing in <code>src/components</code> changes. Keep the <code>data-corners</code> attribute working so an app can still pick.</p>
+    <p>Both are implemented and the default is square, because that is what the owner's committed CSS does. To commit to soft in an app, write <code>&lt;html data-corners="soft"&gt;</code>: no source changes, and choosing Square in a settings screen still works because <code>SG.prefs</code> then writes <code>square</code> down explicitly. To change the guide's own default instead, change the default block (<code>:root, [data-corners="square"]</code>) in <code>src/tokens/30-corners.css</code> <em>and</em> <code>DEFAULT_VALUE.corners</code> in <code>src/js/10-prefs.js</code>; without the second edit, choosing Square removes the attribute and leaves soft switched on. Nothing in <code>src/components</code> changes either way.</p>
   </div>
 </div>
 

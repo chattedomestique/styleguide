@@ -209,14 +209,10 @@ SG.prefs.get('theme')                 // &quot;system&quot; | &quot;light&quot; 
 SG.prefs.all()                        // { theme: &quot;system&quot;, contrast: &quot;system&quot;, palette: &quot;default&quot;, corners: &quot;square&quot;, motion: &quot;system&quot; }
 SG.prefs.onChange(function (name, value) { /* keep your settings screen in step */ })
 SG.prefs.reset()                      // forget everything, follow the device</pre>
-<div class="note" data-kind="warn">
-  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
-  <div><strong>Known limit: a chosen default is not saved</strong><p>"No attribute" is the default, so <code>default</code> and <code>square</code> are stored as nothing. If your HTML says <code>data-palette="mint"</code> and a person picks <em>default</em>, the attribute is removed and nothing is stored, so the next page load is mint again. <code>SG.prefs.reset()</code> also removes the attributes you wrote until the next load. Checked in Chromium.</p>
-<p>Until <code>SG.prefs</code> can store an explicit default, pick one:</p>
-<ul>
-  <li>Leave your look in the HTML alone, and do not offer <em>default</em> and <em>square</em> as choices when your app's own look differs.</li>
-  <li>Treat "never saved" as your app's default in the head snippet (<code>localStorage.getItem('sg:prefs') === null</code>), so a saved <code>{}</code> means "they chose the guide's default". It works, with one wart: choosing the default palette also drops your default corners on the next load.</li>
-</ul></div>
+<div class="note" data-kind="do">
+  <span class="ic ic--circle-check" aria-hidden="true"></span>
+  <div><strong>Write your app's look on the html element</strong><p>Author it as attributes: <code>&lt;html data-palette="mint" data-corners="soft"&gt;</code>. If a person then picks <em>default</em> or <em>square</em>, <code>SG.prefs</code> writes that choice down explicitly so it wins over what you wrote, and <code>SG.prefs.reset()</code> puts your attributes back instead of stripping them. A choice that only means "what the app wrote" is not stored. Checked in Chromium by <code>tests/components/prefs.mjs</code>.</p>
+<p>Two apps on one origin share <code>localStorage</code>. Give each its own key, <code>&lt;html data-sg-prefs-key="flashcards:prefs"&gt;</code>, and use the same string in the head snippet in place of <code>sg:prefs</code>. (The snippet shown above, with the guide's key, is the one whose CSP hash is printed below.)</p></div>
 </div>
 
 <h2 id="icons">Icons</h2>
@@ -277,47 +273,3 @@ SG.prefs.all()   // { theme: &quot;system&quot;, contrast: &quot;system&quot;, p
   <li><a href="@/start/upgrade.html">Upgrade</a>: coming from the original sheet, versions and what can break.</li>
   <li><a href="@/accessibility/checklist.html">Accessibility checklist</a>: what every screen you build on this must pass.</li>
 </ul>
-<style>
-/* Docs-only: tables of words become stacked rows on a phone. Each cell carries its column name
-   (data-label) and the table keeps its ARIA roles, because display: block would otherwise strip
-   the table semantics in some browsers. */
-@media (max-width: 40em) {
-  .docs-table[data-stack] { min-inline-size: 0; }
-  .docs-table[data-stack],
-  .docs-table[data-stack] tbody,
-  .docs-table[data-stack] tr,
-  .docs-table[data-stack] td { display: block; }
-  .docs-table[data-stack] thead {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: clip;
-    white-space: nowrap;
-  }
-  .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
-  .docs-table[data-stack] tr:last-child { border-block-end: 0; }
-  .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
-  /* the first cell names the row, so it needs no label of its own */
-  .docs-table[data-stack] td:first-child { font-weight: 700; }
-  .docs-table[data-stack] td:first-child::before { display: none; }
-  .docs-table[data-stack] td::before {
-    content: attr(data-label);
-    display: block;
-    color: var(--ink-soft);
-    font: var(--type-label);
-    letter-spacing: var(--ls-label);
-    text-transform: uppercase;
-  }
-}
-
-/* In a wide table a file name or token is a word: keep it whole and let the column take the width,
-   because the docs' "anywhere" wrapping lets a column shrink until "styleguide.css" reads "styleg / uide.c / ss".
-   The table scrolls inside its own focusable wrapper when a row is wider than the column (1.4.10 exempts data tables). */
-@media (min-width: 40em) {
-  .docs-article .docs-table td code { overflow-wrap: break-word; }
-}
-
-/* a long unbreakable word in a note's title (a host name) must wrap at 200% text, not push the note wider */
-.docs-article .note > div { min-inline-size: 0; }
-.docs-article .note strong:first-child { overflow-wrap: anywhere; }
-</style>

@@ -141,7 +141,7 @@ Plain scripts, no modules (they must work from `file://`). One IIFE per file att
 ## Adding things
 
 - **Palette**: a block in `src/tokens/40-palettes.css` setting knobs; add the name to `PALETTES` in `tests/contrast.mjs` and the docs switcher. Run `npm run test:contrast`.
-- **Tone slot hue**: `--tone-h-N` / `--tone-c-N` in a palette. **Status tone**: a `--hue-*` and a selector in `20-tones.css`; add it to `TONES` in `tests/contrast.mjs`.
+- **Tone slot hue**: `--tone-h-N` / `--tone-c-N` in a palette. **Status tone**: a `--hue-*` and a selector in `20-tones.css`; the contrast matrix finds tones in the built CSS by itself, but the lint's list of valid `data-tone` values is `TONES` in `tests/lib/rules.mjs`.
 - **Icon**: drop a 24×24 stroke SVG in `src/icons/<id>.svg` (Lucide is ISC; keep `LICENSE-lucide.txt`). Use as `ic--<id>`.
 - **Token / role**: declare it in `src/tokens`, document it in `STYLE.md` §2, cover it in `tests/contrast.mjs` if it is a colour pair.
 - **Corner style**: a block in `30-corners.css` setting the three radius roles. Components must not change.

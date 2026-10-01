@@ -8,7 +8,8 @@
   <div class="demo__stage">
     <style>
       .btn.cta { min-inline-size: 11rem; font-weight: 800; }
-    </style>
+    
+</style>
     <button class="btn" type="button">Guide default</button>
     <button class="btn cta" type="button">Overridden</button>
   </div>
@@ -316,48 +317,6 @@
   <li><a href="@/accessibility/testing.html">Testing</a>: the contrast matrix, the gate and how to extend them.</li>
 </ul>
 <style>
-/* Docs-only: tables of words become stacked rows on a phone. Each cell carries its column name
-   (data-label) and the table keeps its ARIA roles, because display: block would otherwise strip
-   the table semantics in some browsers. */
-@media (max-width: 40em) {
-  .docs-table[data-stack] { min-inline-size: 0; }
-  .docs-table[data-stack],
-  .docs-table[data-stack] tbody,
-  .docs-table[data-stack] tr,
-  .docs-table[data-stack] td { display: block; }
-  .docs-table[data-stack] thead {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: clip;
-    white-space: nowrap;
-  }
-  .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
-  .docs-table[data-stack] tr:last-child { border-block-end: 0; }
-  .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
-  /* the first cell names the row, so it needs no label of its own */
-  .docs-table[data-stack] td:first-child { font-weight: 700; }
-  .docs-table[data-stack] td:first-child::before { display: none; }
-  .docs-table[data-stack] td::before {
-    content: attr(data-label);
-    display: block;
-    color: var(--ink-soft);
-    font: var(--type-label);
-    letter-spacing: var(--ls-label);
-    text-transform: uppercase;
-  }
-}
-
-/* In a wide table a file name or token is a word: keep it whole and let the column take the width,
-   because the docs' "anywhere" wrapping lets a column shrink until "styleguide.css" reads "styleg / uide.c / ss".
-   The table scrolls inside its own focusable wrapper when a row is wider than the column (1.4.10 exempts data tables). */
-@media (min-width: 40em) {
-  .docs-article .docs-table td code { overflow-wrap: break-word; }
-}
-
-/* a long unbreakable word in a note's title (a host name) must wrap at 200% text, not push the note wider */
-.docs-article .note > div { min-inline-size: 0; }
-.docs-article .note strong:first-child { overflow-wrap: anywhere; }
 .island { padding: var(--space-4); border: var(--bw) solid var(--line); }
 /* my-app.css, linked AFTER styleguide.css.
    Inside the guide's own token layer, so the higher-contrast knobs (which are more specific)

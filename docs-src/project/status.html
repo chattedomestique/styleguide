@@ -1,29 +1,9 @@
 <!--{"title":"Status","group":"Project","order":1,"summary":"Where every element stands in the six gates of the pipeline, what is still open, and how the table is kept."}-->
 <style>
-  /* The sticky docs bar must not cover a focused link (WCAG 2.4.11). The foundation keeps focus clear of sticky chrome with
-     scroll-padding on <html> that reads --appbar-h, but the docs set --appbar-h on <body>, where <html> cannot see it. */
-  html { --appbar-h: calc(2.75rem + var(--safe-top)); }
   /* A long title in the expanded 900 face does not fit the docs h1 size ("Contributing" is twelve letters):
      size it to the column so it stays on one line at normal text size (at 200% text it wraps rather than clips).
      The Project pages share one size so they read as a group. */
   .docs-article h1 { font-size: clamp(1.5rem, calc((100vw - 2.5rem) / 10.4), 4rem); }
-  /* Docs-only: a table of words becomes stacked rows on a phone. Each cell carries its column name (data-label)
-     and the table keeps its ARIA roles, because display: block would otherwise strip the table semantics in
-     some browsers. The same pattern as the Start and Accessibility pages. */
-  @media (max-width: 40em) {
-    .docs-table[data-stack] { min-inline-size: 0; }
-    .docs-table[data-stack],
-    .docs-table[data-stack] tbody,
-    .docs-table[data-stack] tr,
-    .docs-table[data-stack] td { display: block; }
-    .docs-table[data-stack] thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: clip; white-space: nowrap; }
-    .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
-    .docs-table[data-stack] tr:last-child { border-block-end: 0; }
-    .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
-    .docs-table[data-stack] td:first-child { font-weight: 700; }
-    .docs-table[data-stack] td:first-child::before { display: none; }
-    .docs-table[data-stack] td::before { content: attr(data-label); display: block; color: var(--ink-soft); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
-  }
   @media (min-width: 40em) { .docs-table[data-stack] td[data-label="5 Freeze"] { white-space: nowrap; } }
 </style>
 <h1>Status</h1>

@@ -190,9 +190,18 @@
      Follows the OS (prefers-contrast: more) or data-contrast="more". Only knobs
      change, so every palette and tone gets the boost. Text ≥ 7:1 everywhere, and
      the accent collapses to ink whatever the palette. Keep the two blocks below
-     identical; tests/lint.mjs asserts it. */
+     identical; tests/lint.mjs asserts it.
+
+     ISLANDS. A palette block and these knobs have the same specificity, so an island
+     that sets its own [data-palette] inside a higher-contrast page would undo the
+     inherited knobs (its accent kept 6.6:1 where 7:1 is promised). The second selector
+     of each block re-asserts them on any palette inside a higher-contrast page. The
+     doubled attribute in the middle one lets any element ask for more contrast on a
+     normal page, and still beat a palette on the same element. tests/contrast.mjs
+     checks both island cases. */
   @media (prefers-contrast: more) {
-    :root:not([data-contrast="off"]) {
+    :root:not([data-contrast="off"]),
+    :root:not([data-contrast="off"]) [data-palette] {
       --k-ink-l: 0.1;
       --k-soft-l: 0.22;
       --k-mute-l: 0.32;
@@ -217,7 +226,9 @@
       --k-on-accent-soft-d: 1;
     }
   }
-  :root[data-contrast="more"] {
+  :root[data-contrast="more"],
+  [data-contrast="more"][data-contrast="more"],
+  :root[data-contrast="more"] [data-palette] {
     --k-ink-l: 0.1;
     --k-soft-l: 0.22;
     --k-mute-l: 0.32;

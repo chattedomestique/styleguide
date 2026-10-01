@@ -100,7 +100,7 @@ Status: **Fixed** = changed here and covered by a test that fails without the ch
 | T19 | README, STYLE and the CSS disagree | **Fixed for names** (drift lint) and the version (one source). Prose numbers are **not** machine-checked |
 | T23 | Version and status typed by hand in several places | **Partly.** The version has one source; the status table is still hand-kept in STYLE.md §6 |
 | T15 / T24 / T25 | One global motion flag; STYLE.md does not scale with 40 elements; element dependencies and "freeze" are not modelled | **Partly.** `checkCss({ gates })` makes the flag a parameter; per-element detail lives in docs pages, not STYLE.md. **Open**: per-element gate headers, a generated status table, freeze as a content hash |
-| T28 | Enforcement is voluntary | **Open** until CI is added (it is the next step) |
+| T28 | Enforcement is voluntary | **Fixed.** `.github/workflows/ci.yml` runs the lint, the generated-files check, contrast, component specs and the accessibility gate on every pull request |
 
 ## What held up
 
@@ -117,7 +117,7 @@ Recorded so nobody re-litigates it: one font family with a real width axis (keyw
 3. **The scrim is the one translucency.** A modal backdrop and text over a photo cannot be flat. It is allowed, named, and contrast-tested.
 4. **Names.** Your short names are canonical. No class prefix was added; `@layer` makes an app's own CSS win, and the Start page has the recipe for adopting the guide in an app that already has a `.card`.
 5. **Not verified anywhere**: Safari / WebKit, Firefox, VoiceOver, TalkBack, NVDA, Windows High Contrast on a real machine, Android font scale, iOS Dynamic Type. Everything here is Chromium. The Accessibility, Manual testing page lists the pass to do on a real phone.
-6. **Still open** (small): a lint for a pressable that forgets to reset `--lift` / `--fill`; per-element gate headers with a generated status table; prose numbers in docs are not checked against the CSS; magic numbers such as the 4.5rem notch are not tokenised; CI is not wired yet.
+6. **Still open** (small): a lint for a pressable that forgets to reset `--lift` / `--fill`; per-element gate headers with a generated status table; prose numbers in docs are not checked against the CSS; magic numbers such as the 4.5rem notch are not tokenised; CI runs the quick accessibility pass on pull requests and the full one on main.
 
 ## An earlier draft
 

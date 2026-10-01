@@ -75,12 +75,14 @@ const TONE_PAIRS = [
 ]
 
 /** Runs in the browser. Returns [{key, fgHex, bgHex, ratio, min, ...}] */
-async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, useAttrContrast }) {
+async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, useAttrContrast, island }) {
+  // island: 'palette-in-contrast' = the page is higher contrast and a child sets the palette;
+  //         'contrast-island'     = the page is normal and a child asks for higher contrast (with the palette on the same element).
   const root = document.documentElement
   root.setAttribute('data-theme', theme)
-  if (contrast === 'more' && useAttrContrast) root.setAttribute('data-contrast', 'more')
+  if (island === 'palette-in-contrast' || (!island && contrast === 'more' && useAttrContrast)) root.setAttribute('data-contrast', 'more')
   else root.removeAttribute('data-contrast')
-  if (palette === 'default') root.removeAttribute('data-palette')
+  if (island || palette === 'default') root.removeAttribute('data-palette')
   else root.setAttribute('data-palette', palette)
 
   const canvas = document.createElement('canvas')
@@ -113,8 +115,16 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, use
     return toRGBA(css)
   }
 
+  let target = root
+  if (island) {
+    target = document.createElement('div')
+    if (palette !== 'default') target.setAttribute('data-palette', palette)
+    if (island === 'contrast-island') target.setAttribute('data-contrast', 'more')
+    root.appendChild(target)
+  }
+
   const out = []
-  const scopeKey = `${theme}/${contrast}/${palette}`
+  const scopeKey = `${theme}/${contrast}/${palette}${island ? '/' + island : ''}`
   const check = (scope0, p, extra, minKey = 'min') => {
     let scope = scope0
     if (p.child) { scope = document.createElement('i'); scope0.appendChild(scope) }
@@ -127,19 +137,19 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, use
     out.push({ key: scopeKey + extra, fg: p.fg, bg: p.bg, what: p.what, fgHex: hex(fg), bgHex: hex(bg), ratio: r, min })
   }
 
-  for (const p of pairs) check(root, p, '')
+  for (const p of pairs) check(target, p, '')
 
   // Scrim: white text over the worst possible photo (pure white) must stay readable.
   const white = [255, 255, 255]
   for (const s of ['--scrim', '--scrim-strong']) {
-    const a = resolve(root, s)
+    const a = resolve(target, s)
     const comp = [a[0] * a[3] + 255 * (1 - a[3]), a[1] * a[3] + 255 * (1 - a[3]), a[2] * a[3] + 255 * (1 - a[3])]
     out.push({ key: scopeKey, fg: '--on-media', bg: s + ' over white photo', what: 'white text/icon on scrim over worst-case photo', fgHex: '#ffffff', bgHex: hex(comp), ratio: ratio(white, comp), min: 4.5 })
   }
 
   // Tones: every slot, the inverted tone and the four status tones, pastel and bold.
   const holder = document.createElement('div')
-  root.appendChild(holder)
+  target.appendChild(holder)
   const scopes = tones.flatMap((t) => (t === 'ink' ? [[t, false]] : [[t, false], [t, true]]))
   for (const [val, bold] of scopes) {
     const el = document.createElement('div')
@@ -153,6 +163,7 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, use
     el.remove()
   }
   holder.remove()
+  if (island) target.remove()
   return out
 }
 
@@ -202,6 +213,19 @@ try {
     }
   }
 
+  // Islands. A palette on an element inside a higher-contrast page, and a higher-contrast request on an element of a normal page,
+  // must give the same guarantees as the page itself (the palette block and the contrast block have the same specificity,
+  // so without care the island's own palette undoes the inherited contrast knobs).
+  for (const island of ['palette-in-contrast', 'contrast-island']) for (const theme of THEMES) for (const palette of island === 'palette-in-contrast' ? PALETTES.filter((p) => p !== 'default') : PALETTES) {
+    const res = await page.evaluate(runCombo, { theme, contrast: 'more', palette, island, pairs, tonePairs: TONE_PAIRS, tones: TONES, useAttrContrast: true })
+    for (const r of res) {
+      checked++
+      const ok = r.ratio >= r.min
+      if (!ok || SHOW_ALL) (ok ? console.log : () => {})(`  ok   ${r.ratio.toFixed(2).padStart(6)}  ${r.key}  ${r.fg} on ${r.bg}`)
+      if (!ok) failures.push(r)
+    }
+  }
+
   // The OS preference (prefers-contrast: more) must produce exactly what data-contrast="more" produces.
   const mismatches = []
   for (const theme of THEMES) for (const palette of PALETTES) {
@@ -236,7 +260,7 @@ try {
     for (const [k, g] of [...groups].sort((a, b) => b[1].n - a[1].n))
       console.log(`  x ${k}\n      worst ${g.worst.ratio.toFixed(2)}:1 in ${g.worst.key} (${g.worst.fgHex} on ${g.worst.bgHex}); ${g.n} combos, e.g. ${g.combos.join(', ')}`)
   } else {
-    console.log(`\nAll ${checked} contrast checks passed across ${THEMES.length * CONTRASTS.length * PALETTES.length} theme/contrast/palette combinations.`)
+    console.log(`\nAll ${checked} contrast checks passed across ${THEMES.length * CONTRASTS.length * PALETTES.length} theme/contrast/palette combinations, plus ${THEMES.length * (PALETTES.length - 1 + PALETTES.length)} island combinations.`)
   }
   process.exitCode = failures.length || mismatches.length ? 1 : 0
 } finally {
