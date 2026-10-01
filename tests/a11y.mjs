@@ -157,8 +157,10 @@ function probeTargets() {
     let w = r.width, h = r.height
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2
     const hits = (x, y) => { if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return true; const t = document.elementFromPoint(x, y); return !!t && (t === el || el.contains(t)) }
-    if (w < 44 && hits(cx - 21.5, cy) && hits(cx + 21.5, cy)) w = 44
-    if (h < 44 && hits(cx, cy - 21.5) && hits(cx, cy + 21.5)) h = 44
+    // 21px out from the centre, not 21.5: two 36px circles 8px apart (the minimum gap) have 44px targets that touch
+    // exactly, and at 21.5 a sub-pixel position could land on the neighbour's edge and report a 36px target
+    if (w < 44 && hits(cx - 21, cy) && hits(cx + 21, cy)) w = 44
+    if (h < 44 && hits(cx, cy - 21) && hits(cx, cy + 21)) h = 44
     if (w < 24 || h < 24) out.push({ kind: 'target-lt-24', el: desc(el), size: `${Math.round(r.width)}x${Math.round(r.height)}` })
     else if (w < 43.5 || h < 43.5) out.push({ kind: 'target-lt-44', el: desc(el), size: `${Math.round(r.width)}x${Math.round(r.height)}` })
   }

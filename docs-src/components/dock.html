@@ -1,22 +1,7 @@
 <!--{"title":"Dock","group":"Components","order":45,"summary":"Bottom navigation: a floating pill or a full-width bar, icon and word per destination, a current-page fill, an optional round centre action."}-->
 <style>
-  /* Docs-only, until the shared rule in docs.css changes (proposed in the nav report): a single-token code is an
-     inline box, so it still never breaks after its leading hyphens while it fits a line, and only a token wider
-     than the whole line (data-placement="bottom-end" at 200% text on a phone) wraps inside its box instead of
-     running off the page (WCAG 1.4.10). */
-  .docs-article code.nb { display: inline-block; max-inline-size: 100%; white-space: normal; overflow-wrap: break-word; }
-  /* Docs-only: the docs style every list as prose, unlayered, which beats the component layers. */
-  .docs-article :is(.dock__list, .card__list) { padding-inline-start: 0; }
-  .docs-article :is(.dock__list, .card__list) > li { margin: 0; max-inline-size: none; }
   /* an amount stays on one line: it drops under its label as a whole when the row is narrow */
   .docs-article .card__list .num { white-space: nowrap; }
-  /* Docs-only: the rows of one list switch AS A WHOLE (SG.fit, registered at the end of this page): every value
-     beside its label while every row has room, otherwise every value under its label, starting where the label
-     starts. Row by row, short rows kept their value inline while the rest stacked, and the list looked ragged. */
-  .docs-article .card__list[data-rows][data-fit="inline"] > li { flex-wrap: nowrap; white-space: nowrap; }
-  .docs-article .card__list[data-rows][data-fit="inline"] > li > a { overflow: hidden; } /* a label squeezed by its value overflows the link, where the measure sees it */
-  .docs-article .card__list[data-rows][data-fit="stack"] > li { flex-direction: column; align-items: flex-start; justify-content: center; padding-block: var(--chrome-2); }
-  .docs-article .card__list[data-rows][data-fit="stack"] > li > a { min-block-size: 0; }
 </style>
 
 <h1>Dock</h1>
@@ -178,7 +163,7 @@
           <div class="stack" data-gap="3">
           <p class="t-title">Activity</p>
           <article class="card">
-            <ul class="card__list" role="list" data-rows>
+            <ul class="card__list" role="list">
               <li><a href="#space">Coffee</a><span class="num">−$4.20</span></li>
               <li><a href="#space">Groceries</a><span class="num">−$62.80</span></li>
               <li><a href="#space">Salary</a><span class="num">+$2,400.00</span></li>
@@ -290,10 +275,4 @@
       link.setAttribute('aria-current', 'page');
     });
   })();
-</script>
-<script>
-  // Docs-only: the rows of a demo list switch together (see the style block at the top of this page).
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.SG && SG.fit) SG.fit.register('.docs-article .card__list[data-rows]', { steps: ['inline', 'stack'], parts: ':scope > li, :scope > li > a' });
-  });
 </script>

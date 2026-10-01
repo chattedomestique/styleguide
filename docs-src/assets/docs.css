@@ -150,12 +150,14 @@
    rule above, whose font shorthand would reset the width axis again. */
 @container article (max-width: 11rem) { .docs-article h2 { font-stretch: 100%; } }
 @container article (max-width: 9rem) { .docs-article h2 { font-stretch: 87.5%; } }
-.docs-article h3 { margin-block-start: var(--space-6); font: var(--type-title); scroll-margin-block-start: calc(var(--appbar-h) + var(--space-4)); }
-/* Prose only. Unlayered, this would beat the layered component rules inside a demo (a divider's rule stopping short of its
-   buttons, a player's end time floating mid-bar). */
+/* Prose only. These are unlayered, so inside a demo they would beat the layered component rules: a card title in an
+   h3 took the docs title font and a 32px top margin, a panel list was indented and spaced like prose, a divider's
+   rule stopped short of its buttons, a player's end time floated mid-bar. The scope is in :where(), so each rule keeps
+   the specificity it had and the docs' own lists (.docs-steps, .docs-index) still override it. */
+.docs-article h3:where(:not(:is(.demo, .phone) *)) { margin-block-start: var(--space-6); font: var(--type-title); scroll-margin-block-start: calc(var(--appbar-h) + var(--space-4)); }
 .docs-article :is(p, li):not(:is(.demo, .phone) *) { max-inline-size: var(--measure); }
-.docs-article ul, .docs-article ol { padding-inline-start: var(--space-5); }
-.docs-article li + li { margin-block-start: var(--space-1); }
+.docs-article :is(ul, ol):where(:not(:is(.demo, .phone) *)) { padding-inline-start: var(--space-5); }
+.docs-article li + li:where(:not(:is(.demo, .phone) *)) { margin-block-start: var(--space-1); }
 .docs-article .lede { max-inline-size: 38rem; color: var(--ink-soft); font: 400 var(--text-lg) / 1.4 var(--font-sans); }
 
 .docs-toc { position: sticky; inset-block-start: calc(var(--appbar-h) + var(--safe-top) + var(--space-5)); align-self: start; display: none; }
@@ -248,9 +250,9 @@ html { --appbar-h: calc(2.75rem + var(--safe-top)); }
 .swatch__pass { font-weight: 700; }
 
 /* ---- Misc -------------------------------------------------------------------------------------- */
-.docs-article code.nb { white-space: nowrap; } /* a token or attribute name is one word: it must not break after its leading hyphens */
+.docs-article code.nb { display: inline-block; max-inline-size: 100%; overflow-wrap: break-word; } /* a token or attribute name is one word: as an inline box it never breaks after its leading hyphens while it fits a line, and only a token wider than the whole line (200% text on a phone) wraps inside its box instead of pushing the page sideways (WCAG 1.4.10) */
 .docs-article code:not(pre code) { padding: 0.05em 0.35em; background: var(--paper-2); border: var(--bw-thin) solid var(--line-soft); font-size: 0.88em; overflow-wrap: anywhere; }
-.docs-article hr:not([class]) { margin-block: var(--space-6); } /* only the prose rule: a component's own <hr> (a menu separator) keeps its spacing */
+.docs-article hr:not([class]):where(:not(:is(.demo, .phone) *)) { margin-block: var(--space-6); } /* prose only: a component's own <hr> (a menu separator, a divider) keeps its spacing */
 .cards-index { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--gutter); list-style: none; padding: 0; }
 .cards-index a { display: block; padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink); text-decoration: none; }
 .cards-index a:hover { box-shadow: var(--space-1) var(--space-1) 0 var(--line); }

@@ -465,11 +465,9 @@ function buildDocs() {
 
     page.body = page.body.replace(/\{\{index:([A-Za-z]+)\}\}/g, (_, g) => renderIndex(g, pages, page, root))
     page.body = stackDocsTables(page.body)
-    // a short single-word <code> (a token, an attribute, a class) never breaks inside: it would strand its leading
-    // '--' on one line. Only up to 16 characters: at 200% text a code chip is about 18px a character and a phone
-    // line about 290px, so a longer nowrap token pushed the page sideways (WCAG 1.4.10). Longer ones may break
-    // (docs.css lets code break anywhere), and only where the token alone is wider than the line.
-    page.body = page.body.replace(/<code>([^<\s]{1,16})<\/code>/g, '<code class="nb">$1</code>')
+    // a single-word <code> (a token, an attribute, a class) is one inline box (code.nb in docs.css): it never breaks
+    // inside while it fits a line, so it cannot strand its leading '--'; one wider than the whole line wraps in its box
+    page.body = page.body.replace(/<code>([^<\s]{1,30})<\/code>/g, '<code class="nb">$1</code>')
 
     let html = layout
       .replaceAll('{{title}}', esc(page.meta.title))

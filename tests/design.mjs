@@ -81,10 +81,14 @@ function probe() {
   }
   const radius = (el) => Math.min(px(getComputedStyle(el).borderTopLeftRadius), px(getComputedStyle(el).borderBottomRightRadius))
   const CONTROL = 'button, a.btn, .btn, [role="tab"], [role="option"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"], .chip, .tag, .dock__item, .seg__option, .segmented label, [role="radio"]'
+  // two lines by structure, not a wrapped label: a week day (weekday over date), a timeline clip (name over length)
+  const STRUCTURED = '.cal[data-view="week"] .cal__day, .timeline__clip'
 
   // not-round / oval
   for (const el of scope.querySelectorAll('button, a, span, div, label, li')) {
     if (hidden(el)) continue
+    if (el.matches('[role="meter"], [role="progressbar"], meter, progress, .meter')) continue // a track, not a control
+    if (el.matches(STRUCTURED)) continue
     const b = box(el); if (b.width < 16 || b.height < 16) continue
     const r = radius(el); if (r < Math.min(b.width, b.height) / 2 - 1) continue
     const cs = getComputedStyle(el)
@@ -99,7 +103,7 @@ function probe() {
     if (hidden(el)) continue
     const txt = visibleText(el); if (!txt) continue
     const n = lines(el)
-    if (n > 1) add('label-wraps', el, `${n} lines`)
+    if (n > 1 && !el.matches(STRUCTURED)) add('label-wraps', el, `${n} lines`)
     const ic = el.querySelector(':scope > .ic, :scope > span > .ic')
     if (ic && !hidden(ic)) {
       const ib = box(ic)
@@ -127,10 +131,15 @@ function probe() {
       const r = document.createRange(); r.setStart(t, m.index); r.setEnd(t, m.index + m[0].length)
       const tops = []; for (const q of r.getClientRects()) if (q.width > 1 && !tops.some((s) => Math.abs(s - q.top) < 4)) tops.push(q.top)
       if (tops.length > 1) {
-        // a break right after a hyphen is a normal line break, not a broken word
-        const parts = [...r.getClientRects()].filter((q) => q.width > 1)
-        const firstLine = m[0].slice(0, Math.max(1, Math.round(m[0].length * parts[0].width / parts.reduce((s, q) => s + q.width, 0))))
-        if (!/[-/]$/.test(firstLine)) { add('word-broken', host, `"${m[0]}"`); broke++ }
+        // a break right after a hyphen or a slash is a normal line break, not a broken word: find the exact
+        // character that starts the second line
+        let cut = 1
+        for (; cut < m[0].length; cut++) {
+          const c = document.createRange(); c.setStart(t, m.index + cut); c.setEnd(t, m.index + cut + 1)
+          const q = c.getClientRects()[0]
+          if (q && Math.abs(q.top - tops[0]) >= 4) break
+        }
+        if (!/[-/]$/.test(m[0].slice(0, cut))) { add('word-broken', host, `"${m[0]}"`); broke++ }
       }
     }
     const hb = box(host)

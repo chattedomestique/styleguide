@@ -1,17 +1,4 @@
 <!--{"title":"App bar","group":"Components","order":44,"summary":"The top bar of a screen: a heading, a named back control, one or two actions. Standard, greeting, editor and search; ink or tonal; sticky and safe-area aware."}-->
-<style>
-  /* Docs-only: the docs style every list as prose, unlayered, which beats the component layers. */
-  .docs-article .card__list { padding-inline-start: 0; }
-  .docs-article .card__list > li { margin: 0; max-inline-size: none; }
-  /* Docs-only: the rows of one list switch AS A WHOLE (SG.fit, registered at the end of this page): every value
-     beside its label while every row has room, otherwise every value under its label, starting where the label
-     starts. Row by row, short rows kept their value inline while the rest stacked, and the list looked ragged. */
-  .docs-article .card__list[data-rows][data-fit="inline"] > li { flex-wrap: nowrap; white-space: nowrap; }
-  .docs-article .card__list[data-rows][data-fit="inline"] > li > a { overflow: hidden; } /* a label squeezed by its value overflows the link, where the measure sees it */
-  .docs-article .card__list[data-rows][data-fit="stack"] > li { flex-direction: column; align-items: flex-start; justify-content: center; padding-block: var(--chrome-2); }
-  .docs-article .card__list[data-rows][data-fit="stack"] > li > a { min-block-size: 0; }
-</style>
-
 <h1>App bar</h1>
 <p class="lede">The app bar sits at the top of a screen and answers three questions: where am I, how do I go back, and what can I do here. Its title is the page heading.</p>
 
@@ -128,7 +115,7 @@
         </header>
         <div class="app__main">
           <article class="card">
-            <ul class="card__list" role="list" data-rows>
+            <ul class="card__list" role="list">
               <li><a href="#sticky">Shapes</a><span class="t-meta num">12 cards</span></li>
               <li><a href="#sticky">Colours</a><span class="t-meta num">8 cards</span></li>
               <li><a href="#sticky">Capitals</a><span class="t-meta num">40 cards</span></li>
@@ -218,9 +205,3 @@
   <li><a href="@/components/breadcrumb.html">Breadcrumb</a>: where you are in a wider site.</li>
   <li><a href="@/components/button.html">Button</a>: every control in the bar.</li>
 </ul>
-<script>
-  // Docs-only: the rows of a demo list switch together (see the style block at the top of this page).
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.SG && SG.fit) SG.fit.register('.docs-article .card__list[data-rows]', { steps: ['inline', 'stack'], parts: ':scope > li, :scope > li > a' });
-  });
-</script>
