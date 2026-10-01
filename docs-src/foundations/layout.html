@@ -40,6 +40,12 @@
   @media (max-width: 40em) { .docs-article [data-f="screen"] { margin-inline: calc(var(--chrome-3) * -1); } }
   .docs-article [data-f="screen"] p { margin: 0; max-inline-size: none; }
   /* the width buttons: one row when they fit, one per line when they do not (never two and a lonely third) */
+  /* The squeeze demo's four stat cards ask the dashed box, not the page: one column, two by two, or four in a row,
+     never three and a lonely fourth (an auto-fit grid gave 3 + 1 at a desk width). */
+  .docs-article #cq-box { container: cqbox / inline-size; }
+  .docs-article [data-f="four"] { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 1fr); }
+  @container cqbox (min-width: 15rem) { .docs-article [data-f="four"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container cqbox (min-width: 30rem) { .docs-article [data-f="four"] { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .docs-article [data-f="widths"] { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   @container (max-width: 15rem) { .docs-article [data-f="widths"] { flex-direction: column; align-items: stretch; } }
   /* a tile holds a real icon (the card's tile is chrome: 44px at any text size) */
@@ -191,7 +197,7 @@
           <div class="card__main"><p class="card__title">Square</p><p class="card__meta">Card 02 · four sides</p></div>
           <div class="card__trail"><p>Known</p><p class="card__meta">3 days ago</p></div>
         </article>
-        <div class="grid" style="--grid-min: 7rem">
+        <div data-f="four">
           <article class="card" data-tone="4"><div class="card__body"><p class="card__eyebrow">Streak</p><p class="card__figure num">12</p></div></article>
           <article class="card" data-tone="5"><div class="card__body"><p class="card__eyebrow">Due</p><p class="card__figure num">7</p></div></article>
           <article class="card" data-tone="6"><div class="card__body"><p class="card__eyebrow">Known</p><p class="card__figure num">5</p></div></article>

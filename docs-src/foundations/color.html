@@ -31,7 +31,7 @@
     .docs-table td:first-child code { white-space: nowrap; }
     #lines-table td:nth-child(2) code { white-space: nowrap; }
     #pal-table td:nth-child(2), #pal-table td:nth-child(3) { min-inline-size: 11rem; }
-    #pal-table td:nth-child(4) { min-inline-size: 16rem; }
+    #pal-table td:nth-child(4) { min-inline-size: 14.5rem; }
   }
   /* these tables do not stack (a table of numbers scrolls sideways on a phone), so their columns keep their widths */
   .docs-table:not([data-stack]) td:first-child code { white-space: nowrap; }
@@ -40,7 +40,13 @@
   #lightness-table td:last-child { min-inline-size: 14rem; }
   .docs-article [data-f="island"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--chrome-4); border: var(--bw) solid var(--page-line); }
   .docs-article [data-f="island"] > p { margin: 0; max-inline-size: none; color: var(--ink-soft); }
-  .docs-article [data-f="sw"] { align-items: start; }
+  /* Swatch groups lay out evenly: four as two by two, five as three and two, three in a row, one column on a phone.
+     The shared .swatches grid fills as many 14rem columns as fit, which left a lonely fourth or fifth swatch on a
+     desk. Grouped swatches (each container has its own contrast floor) join one grid; a row shares one height. */
+  .docs-article [data-f^="sw"] > [data-swatches] { display: contents; }
+  .docs-article :is([data-f="sw3"], [data-f="sw4"], [data-f="sw5"]) { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 1fr); }
+  @container article (min-width: 30rem) { .docs-article [data-f="sw4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container article (min-width: 42rem) { .docs-article :is([data-f="sw3"], [data-f="sw5"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   .docs-article [data-f="pals"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: var(--space-4); }
   /* a sample card's two buttons: one row, or one per line at the card's full width when the card is narrower than
      both labels (about 14rem at 100% text); never a ragged wrap with two pills of different widths */
@@ -225,7 +231,7 @@
 
 <h3 id="surfaces">Surfaces</h3>
 <p>Depth comes from lightness steps and a 2px frame, not from saturated colour or shadow. Ratios below are <code>--ink</code> against each surface.</p>
-<div data-swatches="--canvas --paper --paper-2 --paper-3" data-on="--ink" data-min="7"></div>
+<div data-swatches="--canvas --paper --paper-2 --paper-3" data-on="--ink" data-min="7" data-f="sw4"></div>
 <div class="table-wrap"><table class="docs-table">
   <caption class="sr-only">Surface roles and what they are for</caption>
   <thead><tr><th>Role</th><th>Use it for</th><th>Do not use it for</th></tr></thead>
@@ -238,7 +244,7 @@
 </table></div>
 
 <h3 id="text-roles">Text and icons</h3>
-<div class="grid" data-f="sw" style="--grid-min: 15rem">
+<div data-f="sw4">
   <div data-swatches="--ink --ink-soft" data-on="--canvas" data-min="7"></div>
   <div data-swatches="--ink-mute" data-on="--canvas" data-min="4.5"></div>
   <div data-swatches="--ink-faint" data-on="--canvas" data-min="3"></div>
@@ -255,7 +261,7 @@
 </table></div>
 
 <h3 id="lines">Lines and focus</h3>
-<div data-swatches="--line --line-soft --focus" data-on="--canvas" data-min="3"></div>
+<div data-swatches="--line --line-soft --focus" data-on="--canvas" data-min="3" data-f="sw3"></div>
 <div class="table-wrap"><table class="docs-table" id="lines-table">
   <caption class="sr-only">Line and focus roles and what they are for</caption>
   <thead><tr><th>Role</th><th>Is</th><th>Use it for</th></tr></thead>
@@ -269,7 +275,7 @@
 
 <h3 id="accent">Accent</h3>
 <p>The accent is the one "press this" colour: the primary button, the thing you are pointing at. In the default palette it is ink (black on light, white on dark); the other palettes give it a hue.</p>
-<div class="grid" data-f="sw" style="--grid-min: 15rem">
+<div data-f="sw5">
   <div data-swatches="--accent"></div>
   <div data-swatches="--on-accent" data-on="--accent" data-min="4.5"></div>
   <div data-swatches="--accent-ink" data-on="--canvas" data-min="4.5"></div>
@@ -298,7 +304,7 @@
     </div>
   </div>
 </div>
-<div data-swatches="--ok-ink --warn-ink --bad-ink --info-ink" data-on="--paper" data-min="4.5"></div>
+<div data-swatches="--ok-ink --warn-ink --bad-ink --info-ink" data-on="--paper" data-min="4.5" data-f="sw4"></div>
 
 <h3 id="overlays">Overlays and media</h3>
 <p>Text or an icon over a photo, video or map never goes straight on the image. A scrim gives it a known background. <code>--scrim</code> is black at 60% and <code>--scrim-strong</code> at 75%; <code>--on-media</code> is white. The scrim is the one translucency the guide allows, and it is also the modal backdrop.</p>
