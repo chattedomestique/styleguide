@@ -80,6 +80,62 @@ export const tests = [
     },
   },
   {
+    name: 'a forced .is-focus specimen draws the same ring as real keyboard focus (the docs show it)',
+    async run({ page, goto, expect }) {
+      await goto('components/button.html')
+      const ring = (loc) => loc.evaluate((e) => { const c = getComputedStyle(e); return { style: c.outlineStyle, width: c.outlineWidth, offset: c.outlineOffset, halo: c.boxShadow.includes('0px 0px 0px 3px') } })
+      const forced = await ring(page.locator('#states ~ .demo .btn.is-focus').first())
+      expect.equal(forced.style, 'solid', 'the forced focus specimen has an outline')
+      expect.ok(parseFloat(forced.width) >= 3, `the ring is at least 3px (got ${forced.width})`)
+      expect.ok(forced.halo, 'and the paper halo beside it')
+      await page.keyboard.press('Tab')
+      const real = page.locator('#states ~ .demo .btn[aria-pressed="false"]').first()
+      await real.focus()
+      const live = await ring(real)
+      expect.equal(forced.style, live.style, 'same outline style as real focus')
+      expect.equal(forced.width, live.width, 'same ring width as real focus')
+      expect.equal(forced.offset, live.offset, 'same ring offset as real focus')
+    },
+  },
+  {
+    name: 'at 200% text in a narrow row a label wraps between words, the row wraps the button, and a tall pill is not an oval',
+    async run({ page, goto, expect }) {
+      await goto('components/button.html')
+      const r = await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%'
+        const host = document.createElement('div')
+        // a container 226px wide: 7rem at 200% text, the narrowest row the docs stage leaves on a 390px phone
+        host.style.cssText = 'container-type:inline-size;inline-size:226px;display:flex;flex-wrap:wrap;gap:0.5rem'
+        host.innerHTML = '<button class="btn" type="button">Secondary</button><button class="btn" type="button">Cancel</button><button class="btn" type="button" data-variant="primary" data-block>Review the transfer before sending</button>'
+        document.body.append(host)
+        const hostBox = host.getBoundingClientRect()
+        const brokenWords = (el) => {
+          const node = el.firstChild, text = node.textContent, bad = []
+          let i = 0
+          for (const w of text.split(' ')) {
+            const rg = document.createRange(); rg.setStart(node, i); rg.setEnd(node, i + w.length)
+            if (new Set([...rg.getClientRects()].map((q) => Math.round(q.top))).size > 1) bad.push(w)
+            i += w.length + 1
+          }
+          return bad
+        }
+        return [...host.children].map((b) => {
+          const q = b.getBoundingClientRect(), cs = getComputedStyle(b)
+          return { text: b.textContent, broken: brokenWords(b), inside: q.left >= hostBox.left - 0.5 && q.right <= hostBox.right + 0.5, h: q.height, minH: parseFloat(cs.minHeight), radius: parseFloat(cs.borderTopLeftRadius), top: Math.round(q.top) }
+        })
+      })
+      for (const b of r) {
+        expect.equal(b.broken.length, 0, `"${b.text}" breaks inside a word (${b.broken.join(', ')})`)
+        expect.ok(b.inside, `"${b.text}" stays inside its row`)
+        expect.ok(b.radius <= b.h / 2 + 0.5, `"${b.text}": the radius never exceeds half the height`)
+      }
+      expect.ok(r[1].top > r[0].top, 'the second button wraps to its own row instead of squeezing the first')
+      const tall = r[2]
+      expect.ok(tall.h > tall.minH * 1.4, `the long label made a tall button (${tall.h}px)`)
+      expect.ok(tall.radius < tall.h / 2 - 4, `a tall button is a rounded rectangle, not an oval (radius ${tall.radius}px, height ${tall.h}px)`)
+    },
+  },
+  {
     name: 'aria-busy shows a spinner and ignores taps',
     async run({ page, goto, expect }) {
       await goto('components/button.html')

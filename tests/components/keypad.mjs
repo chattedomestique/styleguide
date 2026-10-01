@@ -301,4 +301,43 @@ export const tests = [
       expect.ok(next.replace(/\D/g, '').length === after.replace(/\D/g, '').length - 1 || (after === '$0' && next === '$0'), 'Enter deleted one more digit: ' + after + ' -> ' + next)
     },
   },
+  {
+    name: 'the confirm button in a narrow frame at 200% text wraps between words (no word is broken) and stays inside the frame',
+    async run({ page, goto, expect }) {
+      await goto('components/keypad.html')
+      const r = await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%'
+        const pad = document.querySelector('#in-context ~ .demo .keypad')
+        const b = pad.querySelector(':scope > .btn[data-block]')
+        b.scrollIntoView()
+        const node = b.firstChild, text = node.textContent, bad = []
+        let i = 0
+        for (const w of text.split(' ')) {
+          const rg = document.createRange(); rg.setStart(node, i); rg.setEnd(node, i + w.length)
+          if (new Set([...rg.getClientRects()].map((q) => Math.round(q.top))).size > 1) bad.push(w)
+          i += w.length + 1
+        }
+        const rg = document.createRange(); rg.selectNodeContents(b)
+        const textRight = Math.max(...[...rg.getClientRects()].map((q) => q.right)), textLeft = Math.min(...[...rg.getClientRects()].map((q) => q.left))
+        const bb = b.getBoundingClientRect()
+        return { bad, text, w: bb.width, insideL: textLeft - bb.left, insideR: bb.right - textRight }
+      })
+      expect.equal(r.bad.length, 0, `"${r.text}" breaks inside a word: ${r.bad.join(', ')}`)
+      expect.ok(r.insideL >= 2 && r.insideR >= 2, `the words sit inside the button (${Math.round(r.insideL)}px and ${Math.round(r.insideR)}px from its edges)`)
+    },
+  },
+  {
+    name: 'a capped keypad sits in the middle of a wide stage, not against its left edge',
+    viewport: { width: 1024, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto('components/keypad.html')
+      const r = await page.evaluate(() => {
+        const k = document.querySelector('#basic ~ .demo .keypad'), s = k.closest('.demo__stage')
+        const kb = k.getBoundingClientRect(), sb = s.getBoundingClientRect(), pad = parseFloat(getComputedStyle(s).paddingLeft)
+        return { left: kb.left - sb.left - pad, right: sb.right - pad - kb.right, w: kb.width }
+      })
+      expect.ok(r.w <= 352 + 1, 'the keypad is capped at 22rem')
+      expect.ok(Math.abs(r.left - r.right) <= 2, `equal space either side (${Math.round(r.left)}px / ${Math.round(r.right)}px)`)
+    },
+  },
 ]

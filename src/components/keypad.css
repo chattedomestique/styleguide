@@ -54,6 +54,9 @@
     inline-size: 100%;
     max-inline-size: 22rem;
     min-inline-size: 0;
+    /* a capped pad sits in the middle of a wider screen (a tablet, a docs stage), not against its left edge;
+       on a phone it is already full width, so nothing moves */
+    margin-inline: auto;
   }
 
   .keypad__screen {
@@ -65,7 +68,7 @@
   .keypad__label {
     font: var(--type-ctl);
     line-height: var(--lh-snug);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word; /* a caption wraps between words; only the amount below may break anywhere */
   }
 
   /* The amount. A rectangle that holds, flat, figure type, sized from the keypad's own width. */
@@ -150,6 +153,12 @@
     }
     .keypad__keys > .btn.keypad__key[data-key="."] {
       font-size: clamp(1.25rem, 11cqi, 2.75rem);
+    }
+    /* the confirm button: its longest word ("transfer") has to fit between the frame and itself, so it
+       drops from the large size to the body size and keeps 8 px of side padding. Wrapped, never broken. */
+    .keypad > .btn[data-block] {
+      padding-inline: var(--space-2);
+      font-size: var(--text-md);
     }
   }
 
