@@ -3,6 +3,8 @@
   /* Docs-only: the docs style every list as prose, unlayered, which beats the component layers. */
   .docs-article :is(.dock__list, .card__list) { padding-inline-start: 0; }
   .docs-article :is(.dock__list, .card__list) > li { margin: 0; max-inline-size: none; }
+  /* an amount stays on one line: it drops under its label as a whole when the row is narrow */
+  .docs-article .card__list .num { white-space: nowrap; }
 </style>
 
 <h1>Dock</h1>
@@ -24,7 +26,7 @@
 <p>The docks on this page are either in flow (<code>data-position="static"</code>) or inside a preview frame, so none of them covers the page you are reading. In an app the default <code>position: fixed</code> floats the dock above the safe area. Click an item to move the lit one.</p>
 
 <h3 id="basic">Floating pill</h3>
-<p>The default: a paper pill with a 2px frame. The current destination is a filled pill with a 2px frame in the dock's ink (an edge when the fill is toned or pale; on an ink fill the fill itself is the cue), and <code>aria-current="page"</code> tells assistive technology the same. A hover draws the item's own frame; a press fills it at once.</p>
+<p>The default: a paper pill with a 2px frame. The current destination is a filled pill with a 2px frame in the dock's ink (an edge when the fill is toned or pale; on an ink fill the fill itself is the cue), and <code>aria-current="page"</code> tells assistive technology the same. The fill is kept for where you are: a hover draws the item's own frame, a press tints it at once.</p>
 <div class="demo">
   <div class="demo__stage" style="padding-inline: var(--chrome-2)">
     <nav class="dock" data-position="static" aria-label="Main" data-dock-demo>
@@ -122,7 +124,7 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Rest is any item in the docks above. Hover draws the item's frame, a press fills it at once, the current item is filled and ringed, and an unavailable one is dashed and explains itself. The <code>is-*</code> classes only force a state for this page.</p>
+<p>Rest is any item in the docks above. Hover draws the item's frame, a press tints it at once (the full fill would say "you are here" before the page has changed), the current item is filled and ringed, and an unavailable one is dashed and explains itself. The <code>is-*</code> classes only force a state for this page.</p>
 <div class="demo">
   <div class="demo__stage" style="padding-inline: var(--chrome-2)">
     <nav class="dock" data-position="static" aria-label="Main, states" data-dock-demo>
@@ -136,6 +138,18 @@
     <p class="t-meta" id="dock-why">Locked until you finish your first deck.</p>
   </div>
 </div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">How each dock item state is drawn</caption>
+  <thead><tr><th>State</th><th>Looks like</th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td>icon and word in the dock's ink, no frame</td></tr>
+    <tr><td>Hover (pointer only)</td><td>the item's own 2px frame</td></tr>
+    <tr><td>Keyboard focus</td><td>the 3px ring in the dock's ink</td></tr>
+    <tr><td>Pressed</td><td>a light tint (<code>--fill</code> 0.15), within 100ms</td></tr>
+    <tr><td>Current</td><td>filled (<code>--fill</code> 1) with a frame of its own, and <code>aria-current="page"</code></td></tr>
+    <tr><td>Unavailable</td><td>dashed frame, faint ink, a reason in <code>aria-describedby</code></td></tr>
+  </tbody>
+</table></div>
 
 <h2 id="space">Keeping content clear of the dock</h2>
 <p>A floating dock covers the bottom of the page, and WCAG 2.4.11 says a focused control must never be entirely hidden behind it. The dock solves this by <em>telling the page how tall it is</em>: <code>src/js/41-bars.js</code> measures it with a <code>ResizeObserver</code> and publishes <code>--dock-h</code>, and the foundation uses it in two places:</p>
@@ -149,6 +163,7 @@
     <div class="phone" data-chrome-scope style="contain: layout">
       <div class="app" style="block-size: 28rem; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: var(--space-3) calc(var(--dock-h) + var(--space-3))">
         <div class="app__main">
+          <div class="stack" data-gap="3">
           <p class="t-title">Activity</p>
           <article class="card">
             <ul class="card__list" role="list">
@@ -159,9 +174,10 @@
               <li><a href="#space">Books</a><span class="num">−$23.50</span></li>
               <li><a href="#space">Refund</a><span class="num">+$19.99</span></li>
               <li><a href="#space">Gym</a><span class="num">−$35.00</span></li>
-              <li><a href="#space">Last row</a><span class="num">−$1.00</span></li>
+              <li><a href="#space">Parking</a><span class="num">−$3.50</span></li>
             </ul>
           </article>
+          </div>
         </div>
       </div>
       <nav class="dock" aria-label="Main, in a scrolling frame" data-dock-demo>
@@ -189,7 +205,7 @@
   <li><strong>Destination</strong> (<code>.dock__item</code>): a link or button, 56px tall, at least 44px wide. A 24px icon over a 13px uppercase word.</li>
   <li><strong>Current cell</strong>: a filled pill with a 2px frame in the dock's ink (it reads as an edge on a toned or pale fill, and merges with an ink one), plus <code>aria-current="page"</code>. The weight does not change, so the row never shuffles.</li>
   <li><strong>Centre action</strong> (optional): a large circular button with an <code>aria-label</code>.</li>
-  <li><strong>Count badge</strong> (optional): a visible number, its meaning in screen-reader text.</li>
+  <li><strong>Count badge</strong> (optional): a visible number on a 22px disc, its meaning in screen-reader text. It does not grow with the text, like the icon it sits on.</li>
   <li><strong>Safe area</strong>: <code>--safe-bottom</code> under the row, and at the sides.</li>
 </ol>
 
@@ -221,7 +237,7 @@
     <tr><td><kbd>Enter</kbd> (link), <kbd>Enter</kbd> / <kbd>Space</kbd> (button)</td><td>Go to the destination; run the action.</td></tr>
     <tr><td>Screen reader</td><td>A "Main" navigation landmark; "Study, link, current page". The count reads as part of the name: "Inbox, 3 unread". The centre action reads "Add transaction, button".</td></tr>
     <tr><td>Touch</td><td>Every item is at least 44&times;44px (56px tall) with 4px between cells. No gesture is needed.</td></tr>
-    <tr><td>Zoom / text size</td><td>In rem. Every cell keeps at least its longest word and a 44px target, so labels never print over each other. At 200% text the cells that no longer fit on one row wrap onto a second row, the dock grows, and <code>--dock-h</code> follows. The corner stays the radius of one row (half the height of a single row), so a wrapped dock is a rectangle with round corners and not an egg, and every cell and word stays inside the curve. On very short viewports it stops floating.</td></tr>
+    <tr><td>Zoom / text size</td><td>One row at every size. The cells, the icons, the centre action and a count badge are chrome: they stop at their 100% size (56px cells, 24px icons, a 22px badge), so five of them still fit a phone at 200% text. The words grow; when they no longer fit one row the dock shows the word only for the current item, then icons only, and the words stay in each item's name (<code>src/js/41-dock.js</code>, measured, so it re-checks when the text size changes). A word is never broken. <code>--dock-h</code> follows the dock's height. Without JavaScript the words stay and the row wraps. On very short viewports it stops floating.</td></tr>
     <tr><td>Right-to-left</td><td>The order mirrors. Any <code>ic--arrow-left</code> / <code>ic--arrow-right</code> inside the dock flips.</td></tr>
     <tr><td>Reduced motion</td><td>Nothing slides. In compact mode the current word fades in with no travel; the fill is a colour change.</td></tr>
     <tr><td>Forced colours</td><td>The dock and each item keep a border; the current item becomes <code>Highlight</code> with a 4px frame; the focus ring is a 4px <code>Highlight</code> outline.</td></tr>

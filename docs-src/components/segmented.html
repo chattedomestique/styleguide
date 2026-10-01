@@ -29,7 +29,7 @@
 </div>
 
 <h3 id="count">Three and four options, with icons</h3>
-<p>Options share the width equally while their labels fit, and choosing one never reflows the row (the weight does not change). Past four options, use a menu or chips. An icon goes before the word, never instead of it, and is left out at four options, where there is no room for both.</p>
+<p>Options share the width equally while their labels fit, and choosing one never reflows the row (the weight does not change). When the whole labels cannot share one row (large text, a narrow column) the control does not wrap raggedly: it puts every option on a line of its own, or, with four options, two rows of two. Past four options, use a menu or chips. An icon goes before the word, never instead of it, and is left out at four options, where there is no room for both.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="4">
@@ -83,7 +83,7 @@
 </div>
 
 <h3 id="slide">Sliding thumb</h3>
-<p><code>data-indicator="slide"</code> replaces the per-option fill with one thumb that glides to the chosen option. Under reduced motion the thumb stays out of the way and each option fades its own fill in: a fade, never a jump cut.</p>
+<p><code>data-indicator="slide"</code> replaces the per-option fill with one thumb that glides to the chosen option. Under reduced motion the thumb stays out of the way and each option fades its own fill in: a fade, never a jump cut. The thumb glides along one row of equal columns, so keep the labels short; when large text leaves a label no room in its column, the control stacks and each option fills itself, as under reduced motion.</p>
 <div class="demo">
   <div class="demo__stage">
     <fieldset class="segmented" data-indicator="slide" data-block>
@@ -114,26 +114,40 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Hover draws the option's own frame (an outline, because a tint would move the text's contrast); the chosen one is filled and ringed a second time; an unavailable one is dashed and skipped by the arrow keys. The <code>is-*</code> classes on the label only force a state for this page.</p>
+<p>The solid fill is kept for the chosen option. Hover draws the option's own frame (an outline, because a tint would move the text's contrast); a press tints it at once, before the radio has flipped; the chosen one is filled and ringed a second time; keyboard focus rings the chosen option, which is where a radio group's focus always lands; an unavailable one is dashed and skipped by the arrow keys. The <code>is-*</code> classes on the label only force a state for this page.</p>
 <div class="demo">
   <div class="demo__stage">
-    <div class="stack" data-gap="4">
+    <div class="stack" data-gap="5">
       <fieldset class="segmented" data-block>
         <legend class="sr-only">Forced states</legend>
         <label class="segmented__opt"><input type="radio" name="seg-state-x" value="hover"><span class="segmented__label is-hover">Hover</span></label>
-        <label class="segmented__opt"><input type="radio" name="seg-state-x" value="focus"><span class="segmented__label is-focus">Focus</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-state-x" value="pressed"><span class="segmented__label is-active">Pressed</span></label>
         <label class="segmented__opt"><input type="radio" name="seg-state-x" value="on" checked><span class="segmented__label">On</span></label>
       </fieldset>
-      <fieldset class="segmented" data-block aria-describedby="seg-why">
-        <legend class="sr-only">Remind me by</legend>
-        <label class="segmented__opt"><input type="radio" name="seg-state-a" value="a" checked><span class="segmented__label">Email</span></label>
-        <label class="segmented__opt"><input type="radio" name="seg-state-a" value="b"><span class="segmented__label">Push</span></label>
-        <label class="segmented__opt"><input type="radio" name="seg-state-a" value="c" disabled><span class="segmented__label">SMS</span></label>
-      </fieldset>
-      <p class="t-meta" id="seg-why">Text messages need a phone number in your account.</p>
+      <div class="stack" data-gap="3">
+        <fieldset class="segmented" data-block aria-describedby="seg-why">
+          <legend class="sr-only">Remind me by</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-state-a" value="a" checked><span class="segmented__label is-focus">Email</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-a" value="b"><span class="segmented__label">Push</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-a" value="c" disabled><span class="segmented__label">SMS</span></label>
+        </fieldset>
+        <p class="t-meta" id="seg-why">Text messages need a phone number in your account.</p>
+      </div>
     </div>
   </div>
 </div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">How each option state is drawn</caption>
+  <thead><tr><th>State</th><th>Looks like</th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td>the word on the track, no frame</td></tr>
+    <tr><td>Hover (pointer only)</td><td>the option's own 2px frame</td></tr>
+    <tr><td>Pressed</td><td>a light tint (<code>--fill</code> 0.15), within 100ms</td></tr>
+    <tr><td>Chosen</td><td>filled, with a frame of its own (<code>--fill</code> 1)</td></tr>
+    <tr><td>Keyboard focus</td><td>the 3px ring around the chosen option, inside the track</td></tr>
+    <tr><td>Unavailable</td><td>dashed frame, faint ink</td></tr>
+  </tbody>
+</table></div>
 
 <h3 id="form">In a form</h3>
 <p>It is a real radio group, so it works with <code>FormData</code>, <code>required</code>, <code>form.reset()</code> and the <code>change</code> event.</p>
@@ -181,7 +195,7 @@
   <li><strong>Track</strong> (<code>.segmented</code>): a pill with a 2px <code>--line</code> frame, filled with <code>--paper-2</code>, 4px of padding. A <code>&lt;fieldset&gt;</code> with a <code>&lt;legend&gt;</code>, or a <code>role="radiogroup"</code> with a visible label.</li>
   <li><strong>Option</strong> (<code>.segmented__opt</code>): a <code>&lt;label&gt;</code> holding a native radio. Equal width.</li>
   <li><strong>Radio</strong>: invisible, covering the option and stretching to 44px tall. All keyboard and form behaviour is the browser's.</li>
-  <li><strong>Label</strong> (<code>.segmented__label</code>): the visible cell. Its fill follows <code>--fill</code> (0 empty, 1 chosen). Optional icon, then the word.</li>
+  <li><strong>Label</strong> (<code>.segmented__label</code>): the visible cell. Its fill follows <code>--fill</code> (0 empty, 0.15 pressed, 1 chosen). Optional icon, then the word, side by side.</li>
   <li><strong>Chosen cue</strong>: a filled pill with a second 2px ring inside the track. The ring is the line colour, so it shows as an edge on a tone or a pale accent and merges with an ink fill. The weight does not change, so the row cannot reflow. Never colour alone.</li>
   <li><strong>Thumb</strong> (optional, <code>data-indicator="slide"</code>): one pill that glides between options.</li>
 </ol>
@@ -196,7 +210,8 @@
     <tr><td><code>data-size</code></td><td><code>sm</code>, <code>lg</code> (default 48)</td><td>Track height 40 / 56. The hit area is always 44.</td></tr>
     <tr><td><code>data-block</code></td><td></td><td>Full width.</td></tr>
     <tr><td><code>data-variant="tone"</code></td><td></td><td>Track and thumb from <code>data-tone</code> on the control.</td></tr>
-    <tr><td><code>data-indicator="slide"</code></td><td></td><td>One gliding thumb. Reduced motion: a fade.</td></tr>
+    <tr><td><code>data-indicator="slide"</code></td><td></td><td>One gliding thumb. Reduced motion, or a stacked layout: each option fades its own fill.</td></tr>
+    <tr><td><code>data-fit</code></td><td><code>row</code>, <code>grid</code>, <code>stack</code> (set by script)</td><td>The layout that fits: one row, two rows of two (four options), one option per line. Read it, do not write it.</td></tr>
     <tr><td><code>disabled</code> on a radio (or on the fieldset)</td><td></td><td>Dashed and faint, skipped by the arrow keys. A reason in <code>aria-describedby</code> on the group helps.</td></tr>
   </tbody>
 </table></div>
@@ -212,7 +227,7 @@
     <tr><td><kbd>Space</kbd></td><td>Chooses the focused option (when none is chosen).</td></tr>
     <tr><td>Screen reader</td><td>"Show, group. Bank account, radio button, 1 of 2, selected." The legend names the group.</td></tr>
     <tr><td>Touch</td><td>Each option is at least 44&times;44px, even in the small size, and the whole cell taps, not only the word.</td></tr>
-    <tr><td>Zoom / text size</td><td>The options stay in one row of equal cells while their whole labels fit; the side padding eases from its nominal size down to 8px on a narrow screen, so two or three whole labels still share a 288px column. At 200% text, or in a column too narrow for whole labels, the options wrap onto more rows (whole labels first); a word is never broken unless it is wider than the whole control, and nothing clips or scrolls sideways. The track keeps the corner of one row, so a wrapped control is a soft rectangle, never an oval. The sliding thumb stays on one row of equal columns, so give it short labels (a label wider than its cell breaks as a last resort).</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the text; the track's padding, the side padding and the icon stop at their 100% size. The options stay in one row of equal cells while their whole labels fit (the side padding also eases down to 8px on a narrow screen). When they cannot, the control changes as a whole, measured by <code>src/js/44-segmented.js</code>: every option on a line of its own, or two rows of two for four options. Never a ragged 2 + 1, and a word is never broken unless it is wider than the whole control. The track keeps the corner of one row, so a stacked control is a soft rectangle, never an oval. Without JavaScript the cells wrap onto more rows instead.</td></tr>
     <tr><td>Reduced motion</td><td>The colour change stays; the sliding thumb becomes a fade.</td></tr>
     <tr><td>Forced colours</td><td>The track and every option keep a border; the chosen option is <code>Highlight</code> with a 4px frame; the ring is a 4px <code>Highlight</code> outline.</td></tr>
   </tbody>
@@ -224,7 +239,7 @@
 </ul>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper-2</code>, <code>--paper-3</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--ctl</code>, <code>--ctl-sm</code>, <code>--hit</code>, <code>--type-ctl</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-move</code>, <code>--ease-out</code>, <code>--move</code>, <code>--ring</code>, <code>--ring-offset-in</code>.</p>
+<p><code>--paper-2</code>, <code>--paper-3</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--ctl</code>, <code>--ctl-sm</code>, <code>--chrome-hit</code>, <code>--chrome-ic-sm</code>, <code>--chrome-1</code> to <code>--chrome-5</code>, <code>--type-ctl</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-move</code>, <code>--ease-out</code>, <code>--move</code>, <code>--ring</code>, <code>--ring-offset-in</code>.</p>
 
 <h2 id="related">Related</h2>
 <ul>

@@ -37,13 +37,13 @@
 </div>
 
 <h3 id="collapsed">A long trail</h3>
-<p>When the trail is deeper than fits, keep the first level, the last two, and fold the middle into one <strong>…</strong> button. It is a disclosure (<code>aria-expanded</code>, <code>aria-controls</code> naming the hidden items): one press shows every level in place, and the button keeps its name, <em>Earlier levels</em>, so nothing is announced twice.</p>
+<p>When the trail is deeper than fits, keep the first level, the last two, and fold the middle into one <strong>…</strong> button. It is drawn at the scale of the words around it (its target is still 44px), and it is a disclosure (<code>aria-expanded</code>, <code>aria-controls</code> naming the hidden items): one press shows every level in place, and the button keeps its name, <em>Earlier levels</em>, so nothing is announced twice. While open it keeps a light tint.</p>
 <div class="demo">
   <div class="demo__stage">
     <nav class="breadcrumb" aria-label="Breadcrumb, long">
       <ol class="breadcrumb__list" role="list">
         <li><a href="#collapsed">Library</a></li>
-        <li><button class="btn" data-shape="circle" data-size="sm" type="button" data-sg-disclose aria-expanded="false" aria-controls="crumb-a crumb-b" aria-label="Earlier levels"><span class="ic ic--ellipsis" aria-hidden="true"></span></button></li>
+        <li><button class="breadcrumb__more" type="button" data-sg-disclose aria-expanded="false" aria-controls="crumb-a crumb-b" aria-label="Earlier levels"><span class="ic ic--ellipsis" aria-hidden="true"></span></button></li>
         <li id="crumb-a" hidden><a href="#collapsed">Languages</a></li>
         <li id="crumb-b" hidden><a href="#collapsed">Spanish</a></li>
         <li><a href="#collapsed">Verbs</a></li>
@@ -133,7 +133,7 @@
   <li><strong>Ancestor</strong>: a link, underlined, 44px tall with a hit area 44px wide even for a short word.</li>
   <li><strong>Separator</strong>: a chevron in front of every item after the first, drawn by CSS, flipped in right-to-left layouts, invisible to assistive technology.</li>
   <li><strong>Current page</strong>: the last item, bold, not underlined, with <code>aria-current="page"</code>. It may be plain text or a link to itself.</li>
-  <li><strong>Earlier levels</strong> (optional): a circular disclosure button in place of the middle of a long trail.</li>
+  <li><strong>Earlier levels</strong> (optional, <code>breadcrumb__more</code>): a small circle with an ellipsis, at the scale of the words, in place of the middle of a long trail. A disclosure button with a 44px target.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -144,6 +144,7 @@
     <tr><td><code>class="breadcrumb"</code></td><td>on a <code>&lt;nav aria-label&gt;</code></td><td>The landmark; sets the type (14px).</td></tr>
     <tr><td><code>breadcrumb__list</code></td><td>an <code>&lt;ol role="list"&gt;</code></td><td>The wrapping row of items and separators.</td></tr>
     <tr><td><code>aria-current="page"</code></td><td>on the last item</td><td>Bold, no underline. Exactly one.</td></tr>
+    <tr><td><code>breadcrumb__more</code></td><td>a <code>&lt;button&gt;</code> holding an <code>ic--ellipsis</code>, with an <code>aria-label</code></td><td>The collapsed middle: a small circle drawn at text scale, a 44px target.</td></tr>
     <tr><td><code>data-sg-disclose</code></td><td>on a button with <code>aria-expanded</code> and <code>aria-controls</code></td><td>Shows or hides the listed items (<code>43-disclose.js</code>).</td></tr>
     <tr><td><code>sg:disclose</code></td><td><code>{ button, open }</code></td><td>Fired after the disclosure flips.</td></tr>
   </tbody>
@@ -159,7 +160,7 @@
     <tr><td><kbd>Enter</kbd></td><td>Follows a link. <kbd>Enter</kbd> or <kbd>Space</kbd> on the "Earlier levels" button shows the hidden levels; focus stays on the button.</td></tr>
     <tr><td>Screen reader</td><td>"Breadcrumb, navigation; list, 3 items; Library, link; Decks, link; Shapes, current page, link". The separators are never read.</td></tr>
     <tr><td>Touch</td><td>44px tall links, each with a 44px-wide hit area and more than 8px between them.</td></tr>
-    <tr><td>Zoom / text size</td><td>The trail wraps. At 200% text and at 320px nothing is clipped or truncated.</td></tr>
+    <tr><td>Zoom / text size</td><td>The trail wraps between items, never inside a word. At 200% text and at 320px nothing is clipped or truncated; the 44px targets do not grow with the text, so a wrapped trail keeps its lines close.</td></tr>
     <tr><td>Reduced motion</td><td>Nothing moves. On hover and press the underline steps away from the word.</td></tr>
     <tr><td>Forced colours</td><td>Links use the system link colour; the chevrons use <code>CanvasText</code>; the current page keeps a rule under it as well as its weight.</td></tr>
   </tbody>
@@ -170,10 +171,10 @@
   <li>Keep the trail the same on every page that shares a level (WCAG 3.2.3).</li>
 </ul>
 
-<p><strong>Icons.</strong> The <code>ellipsis</code> of the &ldquo;Earlier levels&rdquo; button come from <code>dist/icons.css</code>; the main bundle ships only <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code> and <code>arrow</code>. Link <code>icons.css</code> in your app, or define the masks yourself: an <code>.ic</code> with no mask paints a solid square.</p>
+<p><strong>Icons.</strong> The <code>ellipsis</code> of the &ldquo;Earlier levels&rdquo; button comes from <code>dist/icons.css</code>; the main bundle ships only <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code> and <code>arrow</code>. Link <code>icons.css</code> in your app, or define the masks yourself: an <code>.ic</code> with no mask paints a solid square.</p>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--type-meta</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--hit</code>, <code>--space-1</code>, and whatever colour the surroundings set (<code>currentColor</code>). The disclosure button is a <a href="@/components/button.html">button</a> and reads its tokens.</p>
+<p><code>--type-meta</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--chrome-hit</code>, <code>--space-1</code>, and whatever colour the surroundings set (<code>currentColor</code>), the "…" included.</p>
 
 <h2 id="related">Related</h2>
 <ul>

@@ -1,10 +1,8 @@
 <!--{"title":"Pagination","group":"Components","order":47,"summary":"Move through a long list: Previous, a few numbered pages, Next. Real links, a filled current page, and a short form that fits a 320px phone."}-->
 <style>
-  /* Docs-only: the demos that show the numbered form sit in a stage that is always at least 42rem wide, so they
-     are the same on every screen; on a phone the stage scrolls sideways (the links inside are focusable, so the
-     keyboard reaches it). The pager measures its own width, which is what the narrow demo further down shows. */
-  .demo__stage.pg-full { position: relative; overflow-x: auto; } /* relative: so the sr-only hints inside it are clipped by the frame too */
-  .pg-full .pagination { inline-size: max(42rem, 100%); }
+  /* In context: the icon in a row's tile (the card's icon slot) sits in its middle */
+  .docs-article .card__tile:has(> .ic) { display: grid; place-items: center; }
+  .docs-article .card__tile > .ic { --ic-size: var(--chrome-ic-sm); }
 </style>
 <style>
   /* Docs-only: the docs style every list as prose, unlayered, which beats the component layers. */
@@ -30,9 +28,9 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="live">A working pager</h3>
-<p>Previous, the first page, a window of pages around the current one, the last page, Next (this frame is always at least 42rem wide, so it is the full form on every screen, and it scrolls sideways on a phone). Gaps are written <em>…</em> and are not controls. The page you are on is filled <strong>and</strong> ringed a second time (2px, in the line colour: a double edge on a tone fill, a circle 2px larger on ink), and it is marked <code>aria-current="page"</code>. This one re-renders on click so you can walk through all 12; in an app each number is a link to a URL and the browser does the work.</p>
+<p>Previous, the first page, a window of pages around the current one, the last page, Next. Gaps are written <em>…</em> and are not controls. The page you are on is filled <strong>and</strong> ringed a second time (2px, in the line colour: a double edge on a tone fill, a circle 2px larger on ink), and it is marked <code>aria-current="page"</code>; another number only lifts when you point at it. The row is always one row: on a wide screen you see all of it, on a phone the pager drops the words of Previous and Next, then keeps only the first, current and last page (see <a href="#narrow">the short form</a> below). This one re-renders on click so you can walk through all 12; in an app each number is a link to a URL and the browser does the work.</p>
 <div class="demo" data-nocode>
-  <div class="demo__stage pg-full">
+  <div class="demo__stage">
     <div class="stack" data-gap="3">
       <div>
         <p class="t-label" id="pg-results" tabindex="-1">Decks 41&ndash;50 of 120</p>
@@ -46,9 +44,9 @@
 </div>
 
 <h3 id="middle">Markup</h3>
-<p>This is what the live pager renders, and what you write for a page in the middle. Each number names its page, because "5" alone says nothing out of context, and the name still contains the visible number (WCAG 2.5.3).</p>
+<p>This is what the live pager renders, and what you write for a page in the middle: every part of every form. The script decides which of them show. Each number names its page, because "5" alone says nothing out of context, and the name still contains the visible number (WCAG 2.5.3).</p>
 <div class="demo">
-  <div class="demo__stage pg-full">
+  <div class="demo__stage">
     <nav class="pagination" aria-label="Decks pages, middle">
       <ul class="pagination__list" role="list">
         <li class="pagination__prev"><a class="btn" href="#middle" rel="prev"><span class="ic ic--arrow-left" aria-hidden="true"></span><span class="pagination__label">Previous</span></a></li>
@@ -69,7 +67,7 @@
 <h3 id="ends">First and last page</h3>
 <p>On the first page there is nothing before, so Previous is <code>aria-disabled</code>: dashed, faint, still in the tab order so a keyboard user can find out why, and explained in screen-reader text. It is a button, because there is no page for a link to go to.</p>
 <div class="demo">
-  <div class="demo__stage pg-full">
+  <div class="demo__stage">
     <div class="stack" data-gap="4">
       <nav class="pagination" aria-label="Decks pages, first">
         <ul class="pagination__list" role="list">
@@ -100,7 +98,7 @@
 </div>
 
 <h3 id="narrow">Narrow: the short form</h3>
-<p>The pager measures <em>its own</em> width, not the screen's. Under 38rem there is no room for a row of numbers, so they give way to one line, <em>Page 5 of 12</em>, and Previous and Next become 44px circles that keep their words for assistive technology. The result is three big targets on a 320px phone. The box below starts at 16rem on every screen; where there is room, drag its corner wider than 38rem to watch the numbers come back.</p>
+<p>The pager measures <em>its own</em> width, not the screen's, and shows the richest form that fits on one row: the full row; then Previous and Next as 44px circles that keep their words for assistive technology; then only the first, current and last page; then one line, <em>Page 5 of 12</em>, between the two circles: three big targets on any phone. The short form stays one row at every text size: the line wraps between the circles, it never drops under them. The box below starts at 16rem on every screen; where there is room, drag its corner wider to watch the numbers come back, a step at a time.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="resize-box" style="inline-size: min(100%, 16rem)">
@@ -123,13 +121,13 @@
 </div>
 
 <h3 id="switcher">As a month switcher</h3>
-<p><code>data-variant="switcher"</code> keeps the short form at any width, for a previous / next pair around <em>one value that is not a page number</em>: a month, a week, a deck. The value is the biggest thing in the row. It changes the view in place, so the controls are buttons, and the value is a polite live region: a screen reader hears <em>"February 2024"</em> when you press Next. The buttons keep their names current ("Previous month, January").</p>
+<p><code>data-variant="switcher"</code> keeps the short form at any width, for a previous / next pair around <em>one value that is not a page number</em>: a month, a week, a deck. The value is the biggest thing in the row, and at large text it wraps between the two circles. It changes the view in place, so the controls are buttons, and the value is a polite live region: a screen reader hears <em>"February 2026"</em> when you press Next. The buttons keep their names current ("Previous month, January").</p>
 <div class="demo">
   <div class="demo__stage">
     <nav class="pagination" data-variant="switcher" aria-label="Month" id="pg-month">
       <ul class="pagination__list" role="list">
         <li class="pagination__prev"><button class="btn" type="button" aria-label="Previous month, December"><span class="ic ic--arrow-left" aria-hidden="true"></span></button></li>
-        <li class="pagination__status" aria-live="polite">January 2024</li>
+        <li class="pagination__status" aria-live="polite">January 2026</li>
         <li class="pagination__next"><button class="btn" type="button" aria-label="Next month, February"><span class="ic ic--arrow-right" aria-hidden="true"></span></button></li>
       </ul>
     </nav>
@@ -144,9 +142,9 @@
         <div class="stack" data-gap="3">
           <p class="t-title">Decks</p>
           <div class="stack" data-gap="2">
-            <article class="card card--row" data-tone="1"><span class="card__tile" aria-hidden="true"></span><div class="card__main"><p class="card__title">Shapes</p><p class="card__meta">12 cards</p></div><p class="card__trail num">5 known</p></article>
-            <article class="card card--row" data-tone="2"><span class="card__tile" aria-hidden="true"></span><div class="card__main"><p class="card__title">Colours</p><p class="card__meta">8 cards</p></div><p class="card__trail num">8 known</p></article>
-            <article class="card card--row" data-tone="3"><span class="card__tile" aria-hidden="true"></span><div class="card__main"><p class="card__title">Capitals</p><p class="card__meta">40 cards</p></div><p class="card__trail num">11 known</p></article>
+            <article class="card card--row"><span class="card__tile" data-tone="1" aria-hidden="true"><span class="ic ic--square" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Shapes</p><p class="card__meta">12 cards</p></div><p class="card__trail num">5 known</p></article>
+            <article class="card card--row"><span class="card__tile" data-tone="2" aria-hidden="true"><span class="ic ic--palette" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Colours</p><p class="card__meta">8 cards</p></div><p class="card__trail num">8 known</p></article>
+            <article class="card card--row"><span class="card__tile" data-tone="3" aria-hidden="true"><span class="ic ic--globe" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Capitals</p><p class="card__meta">40 cards</p></div><p class="card__trail num">11 known</p></article>
           </div>
           <nav class="pagination" aria-label="Decks pages, in a screen">
             <ul class="pagination__list" role="list">
@@ -166,10 +164,10 @@
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Landmark</strong> (<code>&lt;nav class="pagination" aria-label="&hellip; pages"&gt;</code>): a labelled navigation region, and the size container for the two layouts.</li>
-  <li><strong>Previous / Next</strong> (<code>pagination__prev</code>, <code>pagination__next</code>): <a href="@/components/button.html">buttons</a> as pills with an arrow, <code>rel="prev"</code> / <code>rel="next"</code>. Their words are in <code>pagination__label</code>.</li>
-  <li><strong>Page</strong> (<code>pagination__page</code>): a circle button with a tabular number. Its <code>aria-label</code> is "Page N".</li>
-  <li><strong>Current page</strong>: <code>aria-current="page"</code>; filled, with a second 2px ring.</li>
+  <li><strong>Landmark</strong> (<code>&lt;nav class="pagination" aria-label="&hellip; pages"&gt;</code>): a labelled navigation region; its own width decides the form.</li>
+  <li><strong>Previous / Next</strong> (<code>pagination__prev</code>, <code>pagination__next</code>): <a href="@/components/button.html">buttons</a> as pills with an arrow, <code>rel="prev"</code> / <code>rel="next"</code>; 44px circles when the row is short of room. Their words are in <code>pagination__label</code>.</li>
+  <li><strong>Page</strong> (<code>pagination__page</code>): a circle button with a tabular number, which grows with the text. Its <code>aria-label</code> is "Page N".</li>
+  <li><strong>Current page</strong>: <code>aria-current="page"</code>; filled, with a second 2px ring. The only filled number.</li>
   <li><strong>Gap</strong> (<code>pagination__gap</code>): <em>&hellip;</em>, <code>aria-hidden</code>, not a control.</li>
   <li><strong>Status</strong> (<code>pagination__status</code>): "Page 5 of 12", shown only in the short form. In the switcher it is the value itself.</li>
 </ol>
@@ -179,9 +177,10 @@
   <caption class="sr-only">Pagination classes and attributes</caption>
   <thead><tr><th>Name</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
-    <tr><td><code>class="pagination"</code></td><td>on a <code>&lt;nav aria-label&gt;</code></td><td>The landmark and a size container. Under 38rem of its own width the numbers give way to the status line.</td></tr>
-    <tr><td><code>pagination__list</code></td><td>a <code>&lt;ul role="list"&gt;</code></td><td>The wrapping, centred row.</td></tr>
-    <tr><td><code>pagination__prev</code>, <code>__next</code>, <code>__page</code></td><td>list items holding a <code>.btn</code></td><td>The parts. Prev / Next become circles in the short form.</td></tr>
+    <tr><td><code>class="pagination"</code></td><td>on a <code>&lt;nav aria-label&gt;</code></td><td>The landmark. <code>src/js/47-pagination.js</code> measures it and writes the form that fits to <code>data-fit</code>.</td></tr>
+    <tr><td><code>data-fit</code></td><td><code>full</code>, <code>compact</code>, <code>fewer</code>, <code>short</code> (set by script)</td><td>Words on Previous / Next and every number; circles for Previous / Next; only the first, current and last page; the status line. Read it, do not write it. Without JS, under 38rem of its own width, the short form.</td></tr>
+    <tr><td><code>pagination__list</code></td><td>a <code>&lt;ul role="list"&gt;</code></td><td>The centred row, one line in every form.</td></tr>
+    <tr><td><code>pagination__prev</code>, <code>__next</code>, <code>__page</code></td><td>list items holding a <code>.btn</code></td><td>The parts. Prev / Next become circles when room is short.</td></tr>
     <tr><td><code>pagination__label</code></td><td>a <code>span</code> inside Previous / Next</td><td>The word; visually hidden but kept in the name in the short form.</td></tr>
     <tr><td><code>pagination__gap</code>, <code>pagination__status</code></td><td>list items</td><td>The gap between page numbers; the "Page N of M" line.</td></tr>
     <tr><td><code>data-variant="switcher"</code></td><td></td><td>Always the short form, with the status as a large value between the two buttons. For months, weeks, decks.</td></tr>
@@ -199,7 +198,7 @@
     <tr><td><kbd>Enter</kbd></td><td>Follows the link.</td></tr>
     <tr><td>Screen reader</td><td>"Decks pages, navigation; list, 9 items; Previous, link; Page 4, link; Page 5, current page, link; &hellip;; Next, link". In the short form: "Previous, link; Page 5 of 12; Next, link". An unavailable control reads "Previous, button, unavailable. You are on the first page".</td></tr>
     <tr><td>Touch</td><td>44&times;44px circles with 8px between them. In the short form, three large targets.</td></tr>
-    <tr><td>Zoom / text size</td><td>The row wraps; at 200% text and 320px the short form takes over, so nothing scrolls sideways. There the status line may wrap onto two lines, and under 13rem of the nav's own width (the rem doubles with the text: that is 200% text on a phone, not a 320px phone at normal size) it takes a row above the two circles, which sit together below it, so it never prints under a button.</td></tr>
+    <tr><td>Zoom / text size</td><td>One row at every size; nothing wraps, nothing runs out of its frame or scrolls sideways. The page numbers grow with the text; Previous and Next as circles do not. As the room shrinks (a phone, 200% text) the pager steps down: circles for Previous and Next, then fewer numbers, then the short form, where the status line may wrap onto two lines between the circles.</td></tr>
     <tr><td>Right-to-left</td><td>The order mirrors and the Previous / Next arrows flip to point the right way.</td></tr>
     <tr><td>Reduced motion</td><td>Buttons raise without travel.</td></tr>
     <tr><td>Forced colours</td><td>The buttons keep their borders; the current page gets a 4px frame.</td></tr>
@@ -214,7 +213,7 @@
 <p><strong>Icons.</strong> <code>arrow-left</code> and <code>arrow-right</code> come from <code>dist/icons.css</code>; the main bundle ships only <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code> and <code>arrow</code>. Link <code>icons.css</code> in your app, or define the masks yourself: an <code>.ic</code> with no mask paints a solid square.</p>
 
 <h2 id="tokens">Tokens used</h2>
-<p>Everything is a <a href="@/components/button.html">button</a>, so it reads the button's tokens; Pagination adds <code>--fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--line</code>, <code>--type-ctl</code>, <code>--ctl</code>, <code>--space-2</code>, <code>--space-4</code> and the size container <code>pagination</code> (38rem for the short form, 13rem for the stacked status).</p>
+<p>Everything is a <a href="@/components/button.html">button</a>, so it reads the button's tokens; Pagination adds <code>--fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--line</code>, <code>--type-ctl</code>, <code>--type-title</code>, <code>--chrome-ctl</code>, <code>--chrome-ic-sm</code>, <code>--chrome-2</code> to <code>--chrome-4</code>, <code>--space-4</code> and the size container <code>pagination</code> (38rem for the short form without JS).</p>
 
 <h2 id="related">Related</h2>
 <ul>
@@ -283,11 +282,11 @@
   (function () {
     var nav = document.getElementById('pg-month');
     if (!nav) return;
-    var at = 0; // months from January 2024
+    var at = 0; // months from January 2026
     var status = nav.querySelector('.pagination__status');
     var prev = nav.querySelector('.pagination__prev .btn');
     var next = nav.querySelector('.pagination__next .btn');
-    function date(offset) { return new Date(2024, offset, 1); }
+    function date(offset) { return new Date(2026, offset, 1); }
     function fmt(d, o) { return new Intl.DateTimeFormat('en', o).format(d); }
     function render() {
       status.textContent = fmt(date(at), { month: 'long', year: 'numeric' });

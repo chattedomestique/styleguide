@@ -201,7 +201,7 @@ export const tests = [
     },
   },
   {
-    name: 'Pill tab: hover and keyboard focus raise it (--lift 1, --fill 1), pressing sinks it, rest is flat',
+    name: 'Pill tab: hover and keyboard focus raise it (--lift 1) without the fill, pressing sinks it with a light tint, rest is flat',
     async run({ page, goto, expect }) {
       await goto('components/tabs.html')
       const t = page.locator(tab('pill-t3'))
@@ -214,14 +214,18 @@ export const tests = [
       await page.waitForTimeout(400)
       const hover = await nums()
       expect.equal(hover.lift, 1, 'hover: --lift 1')
-      expect.equal(hover.fill, 1, 'hover: --fill 1')
+      expect.equal(hover.fill, 0, 'hover: --fill 0 (the solid fill means chosen; a hovered tab is not chosen)')
       expect.ok(/4px 4px 0px 0px/.test(hover.shadow), 'the hard shadow is 4px with zero blur: ' + hover.shadow)
       await page.mouse.down()
       await page.waitForTimeout(400)
       const down = await nums()
       expect.equal(down.lift, 0, 'pressed: back onto the surface')
-      expect.equal(down.fill, 1, 'pressed: fill stays')
+      expect.ok(down.fill > 0.1 && down.fill < 0.2, 'pressed: a light tint, not the chosen fill: ' + down.fill)
       await page.mouse.up() // a click: it also chooses tab 3
+      await page.waitForTimeout(400)
+      const chosen = await nums()
+      expect.equal(chosen.fill, 1, 'chosen: filled'); expect.equal(chosen.lift, 1, 'and, still hovered, raised')
+      expect.ok(/6px 6px 0px 0px/.test(chosen.shadow) && /0px 0px 0px 4px/.test(chosen.shadow), 'a raised chosen tab opens a surface-coloured gap before its shadow, so the ink pill does not fuse with it: ' + chosen.shadow)
       await page.mouse.move(0, 0)
       await goto('components/tabs.html')
       await page.locator(tab('pill-t1')).focus()
@@ -271,16 +275,21 @@ export const tests = [
     },
   },
   {
-    name: 'Reduced motion: no lift travel on a tab, no panel travel, the fill still changes',
+    name: 'Reduced motion: no lift travel on a tab, no panel travel; the shadow and the press tint still show',
     reducedMotion: true,
     async run({ page, goto, expect }) {
       await goto('components/tabs.html')
       const t = page.locator(tab('pill-t3'))
       await t.hover()
       await page.waitForTimeout(500)
-      const r = await t.evaluate((el) => ({ t: getComputedStyle(el).transform, fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      const r = await t.evaluate((el) => ({ t: getComputedStyle(el).transform, lift: Number(getComputedStyle(el).getPropertyValue('--lift')), shadow: getComputedStyle(el).boxShadow }))
       expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', `no movement under reduced motion (got ${r.t})`)
-      expect.equal(r.fill, 1, 'the fill still changes')
+      expect.equal(r.lift, 1, 'still raised'); expect.ok(/4px 4px 0px 0px/.test(r.shadow), 'the hard shadow still shows: ' + r.shadow)
+      await page.mouse.down()
+      await page.waitForTimeout(300)
+      const f = await t.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
+      expect.ok(f > 0.1 && f < 0.2, 'the press tint still shows: ' + f)
+      await page.mouse.up()
       const kf = await page.evaluate(() => { const p = document.querySelector('#tabs-pill-p1'); p.setAttribute('data-enter', ''); return getComputedStyle(p).animationName })
       expect.equal(kf, 'tabs-enter', 'the panel still fades in')
     },
@@ -315,34 +324,99 @@ export const tests = [
     },
   },
   {
-    name: 'Overflow cue: a tablist that hides tabs says so (data-more), whatever the cut, and the cue follows the scroll',
+    name: 'Overflow: no fence line; the scroll buttons show while the list overflows, dim at the end they cannot pass, scroll it, and are not tab stops',
     viewport: { width: 320, height: 700 },
+    reducedMotion: true,
     async run({ page, goto, expect }) {
       await goto('components/tabs.html')
-      const LIST = '#overflow + p + .demo .tabs__list'
-      const read = () => page.locator(LIST).evaluate((el) => ({ more: el.getAttribute('data-more'), shadow: getComputedStyle(el).boxShadow, over: el.scrollWidth > el.clientWidth + 1 }))
-      await page.locator(LIST).scrollIntoViewIfNeeded()
+      const BAR = '#overflow + p + .demo .tabs__bar'
+      const read = () => page.locator(BAR).evaluate((bar) => {
+        const el = bar.querySelector('.tabs__list'); const [back, fwd] = [...bar.querySelectorAll('.tabs__scroll')]
+        return { more: el.getAttribute('data-more'), shadow: getComputedStyle(el).boxShadow, over: el.scrollWidth > el.clientWidth + 1, pos: el.scrollLeft,
+          back: { hidden: back.hidden, dis: back.getAttribute('aria-disabled'), ti: back.tabIndex }, fwd: { hidden: fwd.hidden, dis: fwd.getAttribute('aria-disabled'), ti: fwd.tabIndex } }
+      })
+      await page.locator(BAR).scrollIntoViewIfNeeded()
       const a = await read()
       expect.ok(a.over, 'seven tabs overflow a 320px phone')
-      expect.equal(a.more, 'end', 'at the start only the end hides tabs')
-      expect.ok(/inset/.test(a.shadow) && a.shadow.includes('-1px'), 'and the end edge draws its 1px rule: ' + a.shadow)
-      await page.locator(LIST).evaluate((el) => { el.scrollLeft = 120 })
-      await page.waitForTimeout(100)
-      expect.equal((await read()).more, 'start end', 'in the middle both edges hide tabs')
-      await page.locator(LIST).evaluate((el) => { el.scrollLeft = el.scrollWidth })
-      await page.waitForTimeout(100)
-      expect.equal((await read()).more, 'start', 'at the end only the start does')
-      const fits = await page.evaluate(() => [...document.querySelectorAll('.tabs__list[role="tablist"]:not([aria-orientation="vertical"])')].filter((l) => l.scrollWidth <= l.clientWidth + 1).every((l) => !l.hasAttribute('data-more')))
-      expect.ok(fits, 'a list that fits shows no cue')
+      expect.equal(a.more, 'end', 'at the start only the end hides tabs (data-more is still kept)')
+      expect.ok(!/inset/.test(a.shadow), 'no 1px rule on the edge (it read as a fence beside a cut tab): ' + a.shadow)
+      expect.ok(!a.back.hidden && !a.fwd.hidden, 'both scroll buttons show while the list overflows')
+      expect.equal(a.back.dis, 'true', 'back is dimmed at the start (it keeps its place, so the row does not jump)'); expect.equal(a.fwd.dis, null, 'forward is live')
+      expect.ok(a.back.ti === -1 && a.fwd.ti === -1, 'not tab stops: the tablist stays one tab stop')
+      await page.locator(BAR + ' .tabs__scroll[data-dir="forward"]').click()
+      await page.waitForTimeout(150)
+      const b = await read()
+      expect.ok(b.pos > 100, 'forward scrolls most of a width: ' + b.pos)
+      expect.equal(b.more, 'start end', 'in the middle both edges hide tabs'); expect.equal(b.back.dis, null, 'back is live now')
+      await page.locator(BAR + ' .tabs__list').evaluate((el) => { el.scrollLeft = el.scrollWidth })
+      await page.waitForTimeout(150)
+      const c = await read()
+      expect.equal(c.more, 'start', 'at the end only the start does'); expect.equal(c.fwd.dis, 'true', 'forward is dimmed at the end')
+      await page.locator(BAR + ' .tabs__scroll[data-dir="back"]').click()
+      await page.waitForTimeout(150)
+      expect.ok((await read()).pos < c.pos, 'back scrolls back')
+      const fits = await page.evaluate(() => [...document.querySelectorAll('.tabs__list[role="tablist"]:not([aria-orientation="vertical"])')].filter((l) => l.scrollWidth <= l.clientWidth + 1).every((l) => !l.hasAttribute('data-more') && [...l.parentElement.querySelectorAll(':scope > .tabs__scroll')].every((x) => x.hidden)))
+      expect.ok(fits, 'a list that fits has no cue and no scroll buttons')
     },
   },
   {
-    name: 'A tablist with an action beside it keeps a gap before the action, so the clipped tab never touches it',
-    viewport: { width: 320, height: 700 },
+    name: 'At 200% text the tabs beside an action stay one row: they scroll, the scroll buttons show there are more, and the tabs in view are whole (no sliver beside the forward button)',
+    viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await goto('components/tabs.html')
-      const r = await page.evaluate(() => { const bar = document.querySelector('#action + p + .demo .tabs__bar'); const l = bar.querySelector('.tabs__list').getBoundingClientRect(); const a = bar.querySelector('.btn').getBoundingClientRect(); return { gap: Math.round(a.left - l.right), cs: getComputedStyle(bar.querySelector('.tabs__list')).marginInlineEnd } })
-      expect.ok(r.gap >= 12, 'the list ends at least 12px before the action (it was 4px: the list\'s negative margin ate the gap): ' + JSON.stringify(r))
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(300)
+      const r = await page.evaluate(() => {
+        const bar = document.querySelector('#action + p + .demo .tabs__bar'); const list = bar.querySelector('.tabs__list'); const lr = list.getBoundingClientRect()
+        const cs = getComputedStyle(list); const inner = lr.right - parseFloat(cs.paddingRight)
+        const kids = [...bar.children].filter((k) => !k.hidden).map((k) => k.getBoundingClientRect())
+        const tabs = [...list.querySelectorAll('.tabs__tab')].map((t) => t.getBoundingClientRect())
+        const cut = tabs.filter((b) => b.left < lr.right - 0.5 && b.right > lr.right + 0.5).length
+        const whole = tabs.filter((b) => b.left >= lr.left - 0.5 && b.right <= lr.right + 0.5)
+        return { rows: new Set(kids.map((k) => Math.round(k.top + k.height / 2))).size, over: list.scrollWidth > list.clientWidth + 1, fwd: !bar.querySelector('.tabs__scroll[data-dir="forward"]').hidden, cut, whole: whole.length, slack: whole.length ? Math.round(inner - whole[whole.length - 1].right) : null }
+      })
+      expect.ok(r.over, 'three tabs and an action do not fit at 200% text')
+      expect.equal(r.rows, 1, 'every visible part of the bar is centred on one row: ' + JSON.stringify(r))
+      expect.ok(r.fwd, 'the forward scroll button shows there are more')
+      expect.equal(r.cut, 0, 'no tab is sliced beside the forward button: ' + JSON.stringify(r))
+      expect.ok(r.whole >= 1 && Math.abs(r.slack) <= 1, 'the whole tabs in view fill the list (they grow evenly): ' + JSON.stringify(r))
+    },
+  },
+  {
+    name: 'Beside scroll buttons the tabs in view are whole at 100% and 200% text; forward brings the next tab to the list\'s start; a row without buttons runs to the stage edge',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/tabs.html')
+      const look = () => page.evaluate(() => {
+        const list = document.querySelector('#overflow + p + .demo .tabs__list'); const lr = list.getBoundingClientRect(); const cs = getComputedStyle(list)
+        const inS = lr.left + parseFloat(cs.paddingLeft), inE = lr.right - parseFloat(cs.paddingRight)
+        const tabs = [...list.querySelectorAll('.tabs__tab')].map((t) => t.getBoundingClientRect())
+        const cut = tabs.filter((b) => (b.left < lr.right - 0.5 && b.right > lr.right + 0.5) || (b.left < lr.left - 0.5 && b.right > lr.left + 0.5)).length
+        const whole = tabs.filter((b) => b.left >= lr.left - 0.5 && b.right <= lr.right + 0.5)
+        return { cut, whole: whole.length, startGap: whole.length ? Math.round(whole[0].left - inS) : null, slack: whole.length ? Math.round(inE - whole[whole.length - 1].right) : null, grow: list.style.getPropertyValue('--_grow') }
+      })
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(300)
+        const r = await look()
+        expect.ok(r.cut === 0 && r.whole >= 1 && Math.abs(r.slack) <= 1, text + '%: whole tabs fill the list beside the buttons: ' + JSON.stringify(r))
+      }
+      await page.evaluate(() => { document.documentElement.style.fontSize = '' })
+      await page.waitForTimeout(300)
+      const fwd = page.locator('#overflow + p + .demo .tabs__scroll[data-dir="forward"]')
+      await fwd.scrollIntoViewIfNeeded()
+      await fwd.click()
+      await page.waitForTimeout(800)
+      const after = await look()
+      expect.ok(Math.abs(after.startGap) <= 1, 'forward: the next tab starts where the list starts: ' + JSON.stringify(after))
+      // a row with nothing beside it (the default pill row) scrolls at 200% text and runs to the stage's edge: its cut tab is at the frame edge
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(300)
+      const edge = await page.evaluate(() => {
+        const list = document.querySelector('#pill + p + .demo .tabs__list'); const st = list.closest('.demo__stage').getBoundingClientRect(); const lr = list.getBoundingClientRect()
+        return { over: list.scrollWidth > list.clientWidth + 1, gapEnd: Math.round(st.right - lr.right) }
+      })
+      expect.ok(edge.over && edge.gapEnd === 0, 'the plain row scrolls and runs to the stage edge: ' + JSON.stringify(edge))
     },
   },
   {

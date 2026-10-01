@@ -8,12 +8,15 @@
 
    <div class="tabs">
      <div class="tabs__bar">
+       <button class="btn tabs__scroll" data-shape="circle" type="button" data-dir="back"
+               aria-label="Scroll tabs back" hidden>…chevron-left…</button>          optional, see OVERFLOW
        <div class="tabs__list" role="tablist" aria-label="Schedule">
          <button class="tabs__tab" role="tab" id="t-today" type="button"
                  aria-selected="true" aria-controls="p-today">Today</button>
          <button class="tabs__tab" role="tab" id="t-cal" type="button"
                  aria-selected="false" aria-controls="p-cal" tabindex="-1">Calendar</button>
        </div>
+       <button class="btn tabs__scroll" … data-dir="forward" aria-label="Scroll tabs forward" hidden>…</button>
        <button class="btn" data-shape="circle" aria-label="Add task">…</button>   optional action, NOT a tab
      </div>
      <div class="tabs__panel" role="tabpanel" id="p-today" aria-labelledby="t-today" tabindex="0">…</div>
@@ -28,27 +31,40 @@
    aria-orientation  vertical on the tablist: tabs stack, Up / Down move between them
 
    PRESSABLE, SO IT FOLLOWS BUTTON. The pill variant is a .btn by another name: 2px frame,
-   pill, --lift / --fill, hard shadow when it can be pressed. SELECTED comes from
-   aria-selected and is never colour alone: filled AND ringed a second time (as a pressed
-   toggle button). The second ring is 2px in the line colour: a double edge on a tone fill, and on
-   an ink fill a pill 2px larger all round. The weight stays 600 for every tab on purpose: a heavier
-   selected tab is wider, and the whole row would shuffle sideways each time you choose.
+   pill, --lift / --fill, hard shadow when it can be pressed. THE FILL MEANS SELECTED:
+     rest      --lift 0, --fill 0
+     hover     --lift 1 (raised, with its hard shadow), no fill: a pointer over a tab must not look chosen
+     focus     --lift 1 and the ring
+     pressed   --lift 0 and a light tint (--fill 0.15), within 100ms
+     selected  --fill 1 AND ringed a second time (as a pressed toggle button); hovered, it lifts too, with a
+               gap in the surface colour so the ink pill does not fuse with its own shadow (as Button)
+   The second ring is 2px in the line colour: a double edge on a tone fill, and on an ink fill a pill 2px
+   larger all round. The weight stays 600 for every tab on purpose: a heavier selected tab is wider, and the
+   whole row would shuffle sideways each time you choose.
    The underline variant is flat by design (a bar is not a thing you lift): the selected
-   tab has a 2px bar and full ink, a hovered one a 1px bar. Forced colours: the bar
+   tab has a 2px bar and full ink, a hovered or pressed one a 1px bar. Forced colours: the bar
    becomes a Highlight border, pills get a 4px frame.
 
    OVERFLOW. The tablist scrolls sideways when the tabs do not fit, scrolling is native, and the
-   script keeps the chosen tab in view. Where the cut falls is luck (a tab can end exactly at the edge
-   and nothing peeks in), so the script also marks the list data-more="start end" while tabs are hidden
-   on that side and the list draws a 1px rule on that edge: a tab that peeks in covers it, a clean cut
-   shows it, either way "there is more" is on screen. overflow clips outlines and shadows, so the list
-   pads 8px on every side (the 3px ring + 3px offset + the lifted shadow) and a matching negative
-   margin keeps the tabs aligned with the content around them (WCAG 2.4.7). That margin stops at the
-   side where an action follows, so the clipped tab never touches the action's ring.
+   script keeps the chosen tab in view. Without scroll buttons the tab cut off at the edge says there is more
+   (let the list run to the edge of the screen or panel, so the cut reads as "more", not as a pill sliced
+   short of a frame). Two optional scroll buttons (.tabs__scroll, written in the markup, hidden) say it for
+   certain: the script shows them, one each side of the list, while it overflows, marks the one at an end
+   aria-disabled, and scrolls the list by one list's width when one is pressed. Beside them the tabs in view
+   are whole: every tab grows by the same amount (--_grow) until they fill the list, so no sliver of a pill
+   sits beside the forward button (it read as a stray bracket). They are for a pointer that cannot swipe;
+   they are tabindex -1, because the arrow keys already scroll the focused tab into view and the tablist stays
+   one tab stop. (A 1px rule on the edge used to be the cue; beside a cut tab it read as a fence.) overflow clips
+   outlines and shadows, so the list pads 8px on every side (the 3px ring + 3px offset + the lifted shadow)
+   and a matching negative margin keeps the tabs aligned with the content around them (WCAG 2.4.7). That
+   margin stops at a side where a button follows or comes first, so a clipped tab never touches its ring.
 
-   Private properties (--_*): --_rest-bg --_rest-ink --_on-bg --_on-ink --_h --_px
-   --_reach (how far the hard shadow reaches; 0 for the flat underline) --_select --_shadow
-   --_more-start / --_more-end (the overflow cue) --_dir
+   LARGE TEXT. The words grow; the chrome does not (--chrome-* caps): the side padding, the gaps, the 44px
+   target. At 200% text a row of tabs that no longer fits scrolls, with the scroll buttons beside it.
+
+   Private properties (--_*): --_rest-bg --_rest-ink --_on-bg --_on-ink --_h --_px --_grow (set by the script)
+   --_reach (how far the hard shadow reaches; 0 for the flat underline) --_selw --_gap --_halo --_select
+   --_shadow --_bar --_bar-o (the underline's bar width and opacity)
    ========================================================================== */
 
 @layer sg.components {
@@ -60,49 +76,43 @@
   .tabs__bar {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    /* 8px: with the list's own 8px padding a tab sits 16px from a scroll button; two 44px circles side by side
+       (forward and an action) keep the 8px between targets */
+    gap: var(--chrome-2);
     min-inline-size: 0;
   }
 
   .tabs__list {
-    --_more-start: 0 0 0 0 transparent;
-    --_more-end: 0 0 0 0 transparent;
-    --_dir: 1;
+    --_grow: 0px; /* the script sets it (inline) while the list scrolls beside its scroll buttons */
 
     display: flex;
     flex: 1 1 auto;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
     min-inline-size: 0;
-    margin-inline: calc(var(--space-2) * -1);
-    padding: var(--space-2);
+    margin-inline: calc(var(--chrome-2) * -1);
+    padding: var(--chrome-2);
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-padding-inline: var(--space-4);
+    scroll-padding-inline: var(--chrome-4);
     scrollbar-width: none;
-    box-shadow: var(--_more-start), var(--_more-end);
 
     &::-webkit-scrollbar {
       display: none;
     }
-    &:dir(rtl) {
-      --_dir: -1;
-    }
 
-    /* A trailing action: the list's negative margin would eat the gap, so the clipped tab would touch the
-       action's ring. Keep the gap on the side the action is on. */
-    &:not(:last-child) {
+    /* A button beside the list (a scroll button, a trailing action): the list's negative margin would eat the
+       gap, so the clipped tab would touch that button's ring. Keep the gap on that side. A hidden scroll
+       button does not count. */
+    &:has(~ :not([hidden])) {
       margin-inline-end: 0;
     }
-
-    /* The overflow cue (see OVERFLOW above): 40-tabs.js writes data-more="start", "end" or "start end" while
-       tabs are scrolled out of view on that side. A 1px inset rule on the list's own edge does not scroll with
-       the tabs; a tab that peeks in is painted over it. Physical offsets, flipped for right-to-left. */
-    &[data-more~="start"] {
-      --_more-start: inset calc(var(--bw-thin) * var(--_dir)) 0 0 0 var(--line);
-    }
-    &[data-more~="end"] {
-      --_more-end: inset calc(var(--bw-thin) * var(--_dir) * -1) 0 0 0 var(--line);
-    }
+  }
+  .tabs__scroll:not([hidden]) + .tabs__list {
+    margin-inline-start: 0;
+  }
+  /* the scroll buttons keep their size; the list takes what is left */
+  .tabs__bar > .tabs__scroll {
+    flex: none;
   }
 
   /* ---- Tab --------------------------------------------------------------------------- */
@@ -114,26 +124,33 @@
     --_on-bg: var(--accent);
     --_on-ink: var(--on-accent);
     --_h: var(--ctl);
-    --_px: var(--space-5);
+    --_px: var(--chrome-4); /* chrome; 16px, so three short tabs share a phone's row */
     --_reach: var(--space-1);
-    --_shadow: calc(var(--lift) * var(--_reach)) calc(var(--lift) * var(--_reach)) 0 0 var(--line);
-    --_select: 0 0 0 0 transparent;
+    /* as Button: a raised tab that is also filled (selected + hover) opens a gap in the surface colour outside
+       its second ring, so the ink pill does not fuse with its own hard shadow */
+    --_selw: 0px;
+    --_gap: calc(var(--lift) * var(--fill) * var(--bw));
+    --_halo: 0 0 0 calc(var(--_selw) + var(--_gap)) var(--focus-halo, var(--paper));
+    --_shadow: calc(var(--lift) * var(--_reach) + var(--_gap)) calc(var(--lift) * var(--_reach) + var(--_gap)) 0 0 var(--line);
+    --_select: 0 0 0 var(--_selw) var(--line);
 
     position: relative;
     flex: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
     min-block-size: var(--_h);
-    min-inline-size: var(--hit);
+    /* --_grow: set on the list by the script while it scrolls beside its scroll buttons; every tab adds the same
+       amount, so the tabs in view fill the list and none is sliced at its edge (see OVERFLOW) */
+    min-inline-size: calc(var(--chrome-hit) + var(--_grow));
     margin: 0;
-    padding: 0 var(--_px);
+    padding: 0 calc(var(--_px) + var(--_grow) / 2);
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
     background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-pill);
-    box-shadow: var(--_select), var(--_shadow);
+    box-shadow: var(--_select), var(--_halo), var(--_shadow);
     font: var(--type-ctl);
     white-space: nowrap;
     text-align: center;
@@ -148,12 +165,12 @@
       --lift var(--dur-hover) var(--ease-out),
       --fill var(--dur-hover) var(--ease-out);
 
-    /* hit area: a 36px tab still gets a 44px target */
+    /* hit area: a 36px tab still gets a 44px target (a size for a finger: it does not grow with text) */
     &::after {
       content: "";
       position: absolute;
-      inset-block: min(0px, calc((100% - var(--hit)) / 2));
-      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+      inset-block: min(0px, calc((100% - var(--chrome-hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
     }
 
     /* The ring. :focus-visible gets its outline and --focus-shadow from the base layer, which only knows the
@@ -164,32 +181,32 @@
       outline-offset: var(--ring-gap, var(--ring-offset));
     }
     &:is(:focus-visible, .is-focus) {
-      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+      box-shadow: var(--focus-shadow), var(--_select), var(--_halo), var(--_shadow);
     }
 
-    /* raised where a pointer can hover, and always on keyboard focus (same lift, so both match) */
+    /* raised where a pointer can hover, and always on keyboard focus (same lift, so both match). Raised, NOT
+       filled: the fill is what "selected" looks like. */
     @media (hover: hover) {
       &:is(:hover, .is-hover):not(:disabled, [aria-disabled="true"]) {
         --lift: 1;
-        --fill: 1;
       }
     }
     &:is(:focus-visible, .is-focus):not(:disabled, [aria-disabled="true"]) {
       --lift: 1;
-      --fill: 1;
     }
 
-    /* pressed: back onto the surface, the fill stays. After hover so it wins. */
+    /* pressed: back onto the surface with a light tint, so a tap shows at once without looking chosen. */
     &:is(:active, .is-active):not(:disabled, [aria-disabled="true"]) {
       --lift: 0;
-      --fill: 1;
+      --fill: 0.15;
       transition-duration: var(--dur-press);
     }
 
-    /* chosen: filled and ringed a second time, so it does not depend on the accent being dark */
+    /* chosen: filled and ringed a second time, so it does not depend on the accent being dark. Pressing it
+       again keeps it chosen: no tint. */
     &[aria-selected="true"] {
       --fill: 1;
-      --_select: 0 0 0 var(--bw) var(--line);
+      --_selw: var(--bw);
     }
 
     /* unavailable: dashed = not here. Faint, not opacity. */
@@ -200,6 +217,7 @@
       --_rest-bg: transparent;
       --_rest-ink: var(--ink-faint);
       --_shadow: 0 0 0 0 transparent;
+      --_halo: 0 0 0 0 transparent;
       color: var(--ink-faint);
       background: transparent;
       border-color: var(--ink-faint);
@@ -213,7 +231,7 @@
 
   .tabs[data-size="sm"] .tabs__tab {
     --_h: var(--ctl-sm);
-    --_px: var(--space-4);
+    --_px: var(--chrome-3);
     font-size: var(--text-sm);
   }
 
@@ -230,16 +248,17 @@
   }
 
   /* ---- Underline variant ------------------------------------------------------------------
-     A flat row over a 1px divider. The bar is a pseudo-element whose opacity follows --fill,
-     so the same registered number animates it. It sits ON the divider: the list is pulled down
-     by its own padding so a tab's bottom edge and the divider coincide. */
+     A flat row over a 1px divider. The bar is a pseudo-element whose opacity is --_bar-o: --fill for the chosen
+     tab (so the same registered number animates it), 1 for a hovered or pressed one (a 1px bar: hover draws a
+     line, it never chooses). It sits ON the divider: the list is pulled down by its own padding so a tab's
+     bottom edge and the divider coincide. */
   .tabs[data-variant="underline"] {
     & .tabs__bar {
       border-block-end: var(--bw-thin) solid var(--line-soft);
     }
     & .tabs__list {
-      gap: var(--space-5);
-      margin-block-end: calc(var(--space-2) * -1);
+      gap: var(--chrome-5);
+      margin-block-end: calc(var(--chrome-2) * -1);
     }
     & .tabs__tab {
       --_rest-bg: transparent;
@@ -247,7 +266,10 @@
       --_rest-ink: var(--ink-soft);
       --_on-ink: var(--ink);
       --_reach: 0px;
+      --_gap: 0px; /* flat: no shadow, so no gap before it */
+      --_halo: 0 0 0 0 transparent;
       --_bar: var(--bw-thin);
+      --_bar-o: var(--fill);
       --_px: 0px; /* the label lines up with the content; the 44px hit area comes from ::after */
 
       border-color: transparent;
@@ -262,13 +284,22 @@
         inset-block-end: calc((var(--bw) + var(--bw-thin)) * -1);
         block-size: var(--_bar);
         background: var(--line);
-        opacity: var(--fill);
+        opacity: var(--_bar-o);
         pointer-events: none;
+      }
+      @media (hover: hover) {
+        &:is(:hover, .is-hover):not(:disabled, [aria-disabled="true"]) {
+          --_bar-o: 1;
+        }
+      }
+      &:is(:active, .is-active):not(:disabled, [aria-disabled="true"]) {
+        --_bar-o: 1;
       }
 
       &[aria-selected="true"] {
         --_bar: var(--bw);
-        --_select: 0 0 0 0 transparent;
+        --_selw: 0px;
+        --_bar-o: var(--fill);
       }
       &:disabled,
       &[aria-disabled="true"] {
@@ -308,11 +339,10 @@
      capped at half a one-line tab, so a wrapped tab is a soft rectangle, not an oval. */
   .tabs__list[aria-orientation="vertical"] {
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
     margin: 0;
     padding: 0;
     overflow: visible;
-    box-shadow: none;
 
     & > .tabs__tab {
       justify-content: flex-start;
@@ -345,13 +375,13 @@
     }
   }
   .tabs[data-variant="underline"] .tabs__list[aria-orientation="vertical"] {
-    gap: var(--space-1);
+    gap: var(--chrome-1);
     margin-block-end: 0;
 
     /* the label keeps 16px from the divider, and the bar sits ON the divider: flush with its outer edge
        (the tab's own 2px transparent border is added back to the offset, as in the horizontal bar) */
     & > .tabs__tab {
-      padding-inline-end: var(--space-4);
+      padding-inline-end: var(--chrome-4);
       border-radius: var(--radius-ctl);
     }
     & > .tabs__tab::before {
@@ -365,13 +395,6 @@
   /* ---- Forced colours --------------------------------------------------------------------------
      Fills, shadows and pseudo-element backgrounds vanish, so chosen / raised get a heavier line. */
   @media (forced-colors: active) {
-    /* shadows are removed, so the overflow cue becomes a real 1px border on the edge that hides tabs */
-    .tabs__list[data-more~="start"] {
-      border-inline-start: var(--bw-thin) solid CanvasText;
-    }
-    .tabs__list[data-more~="end"] {
-      border-inline-end: var(--bw-thin) solid CanvasText;
-    }
     .tabs__tab {
       border-color: ButtonText;
 

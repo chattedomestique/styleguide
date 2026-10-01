@@ -156,25 +156,31 @@ export const tests = [
     },
   },
   {
-    name: 'a narrow tray (320px; 200% text on a 390px phone) keeps the scroll buttons: they drop to a row under the list, at either end, and still scroll it',
+    name: 'a narrow tray (320px; 200% text on a 390px phone) is still ONE row: the scroll buttons stay beside the list, level with the tools, and scroll it; the circles stay 44px and no label word is broken',
     async run({ page, goto, expect }) {
       await goto('components/toolbar.html')
       // the two required conditions: 320px wide, and 200% text on a 390px phone
       for (const [vw, text] of [[320, 100], [390, 200]]) {
         await page.setViewportSize({ width: vw, height: 700 })
         await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
-        await page.waitForTimeout(250)
+        await page.waitForTimeout(300)
         const r = await page.evaluate((s) => {
           const bar = document.querySelector(s), list = bar.querySelector('.toolbar__list')
           const back = bar.querySelector('[data-dir="back"]'), fwd = bar.querySelector('[data-dir="forward"]')
-          const l = list.getBoundingClientRect(), b = back.getBoundingClientRect(), f = fwd.getBoundingClientRect(), t = bar.getBoundingClientRect()
-          return { over: list.scrollWidth > list.clientWidth, shown: getComputedStyle(back).display !== 'none' && getComputedStyle(fwd).display !== 'none' && !back.hidden && !fwd.hidden,
-            below: b.top >= l.bottom - 0.5 && f.top >= l.bottom - 0.5, ends: Math.round(b.left - t.left) < Math.round(t.right - b.right) && Math.round(t.right - f.right) < Math.round(f.left - t.left), inside: b.bottom <= t.bottom && f.bottom <= t.bottom && b.left >= t.left && f.right <= t.right,
-            rem: Math.round(t.width / parseFloat(getComputedStyle(document.documentElement).fontSize) * 10) / 10 }
+          const l = list.getBoundingClientRect(), b = back.getBoundingClientRect(), f = fwd.getBoundingClientRect()
+          const crop = document.getElementById('t1-crop').getBoundingClientRect()
+          const whole = [...list.querySelectorAll('.toolbar__item')].filter((i) => { const ir = i.getBoundingClientRect(); return ir.left >= l.left - 1 && ir.right <= l.right + 1 }).length
+          const broken = [...list.querySelectorAll('.toolbar__label')].filter((x) => x.scrollWidth > x.clientWidth + 1).length
+          return { over: list.scrollWidth > list.clientWidth, shown: !back.hidden && !fwd.hidden, beside: b.right <= l.left + 0.5 && f.left >= l.right - 0.5,
+            level: Math.abs((b.top + b.bottom) / 2 - (crop.top + crop.bottom) / 2) <= 1 && Math.abs((f.top + f.bottom) / 2 - (crop.top + crop.bottom) / 2) <= 1, circle: Math.round(crop.width), whole, broken }
         }, TOOLS)
         expect.ok(r.over, vw + 'px, ' + text + '%: the tools overflow the tray')
-        expect.ok(r.shown, vw + 'px, ' + text + '%: both scroll buttons are shown (tray ' + r.rem + 'rem wide)')
-        expect.ok(r.below && r.ends && r.inside, vw + 'px, ' + text + '%: on a row under the list, back at the start, forward at the end, inside the tray: ' + JSON.stringify(r))
+        expect.ok(r.shown && r.beside && r.level, vw + 'px, ' + text + '%: both scroll buttons on the same row, beside the list, level with the tools\' circles: ' + JSON.stringify(r))
+        expect.equal(r.circle, 44, vw + 'px, ' + text + '%: the tool circles keep their 100% size')
+        // 44px circles in 60px cells, 36px scroll buttons and 8px gaps: two whole tools on a 320px phone, and two at 200% text
+        // on a 390px phone (the labels are words, so they grow: "Colour" is 84px wide there)
+        expect.ok(r.whole >= 2, vw + 'px, ' + text + '%: at least two whole tools beside the buttons: ' + JSON.stringify(r))
+        expect.equal(r.broken, 0, vw + 'px, ' + text + '%: no label spills (a word is never broken)')
         const before = await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => el.scrollLeft)
         const fwd = page.locator(`${TOOLS} [data-dir="forward"]`)
         await fwd.scrollIntoViewIfNeeded()
@@ -186,6 +192,77 @@ export const tests = [
         await page.waitForTimeout(700)
         await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => { el.scrollLeft = 0 })
       }
+    },
+  },
+  {
+    name: 'whole tools: at rest no tray shows a tool cut at the list\'s edge (no sliver of a circle); the visible tools fill the list; forward brings the next whole tools',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      for (const [vw, text] of [[390, 100], [320, 100], [390, 200], [320, 200]]) {
+        await page.setViewportSize({ width: vw, height: 700 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(300)
+        const trays = await page.evaluate(() => [...document.querySelectorAll('.docs-article .toolbar')].map((bar) => {
+          const list = bar.querySelector('.toolbar__list'), l = list.getBoundingClientRect()
+          const items = [...list.querySelectorAll('.toolbar__item')].map((i) => i.getBoundingClientRect())
+          const inside = items.filter((r) => r.left >= l.left - 0.5 && r.right <= l.right + 0.5)
+          const cut = items.filter((r) => r.left < l.right - 0.5 && r.right > l.right + 0.5).length
+          const over = list.scrollWidth > list.clientWidth + 1
+          return { label: list.getAttribute('aria-label'), over, whole: inside.length, cut, slack: over && inside.length ? Math.round(l.right - inside[inside.length - 1].right) : 0 }
+        }))
+        const tag = vw + 'px, ' + text + '%: '
+        expect.ok(trays.length >= 5, tag + 'found the trays')
+        for (const t of trays) {
+          expect.equal(t.cut, 0, tag + t.label + ': no tool is cut at the end of the list: ' + JSON.stringify(t))
+          expect.ok(!t.over || t.whole >= 1, tag + t.label + ': at least one whole tool shows: ' + JSON.stringify(t))
+          expect.ok(Math.abs(t.slack) <= 1, tag + t.label + ': the whole tools fill the list (no gap where a tool was cut off): ' + JSON.stringify(t))
+        }
+        if (vw === 390 && text === 100) {
+          const main = trays.find((t) => t.label === 'Photo tools')
+          expect.ok(main && main.whole >= 3, tag + 'a 390px phone shows three whole tools: ' + JSON.stringify(main))
+        }
+      }
+      // paging: at 100% every cell has the same width, so forward lands exactly on the next whole tools
+      await page.setViewportSize({ width: 390, height: 700 })
+      await page.evaluate(() => { document.documentElement.style.fontSize = '' })
+      await page.waitForTimeout(300)
+      const fwd = page.locator(`${TOOLS} [data-dir="forward"]`)
+      await fwd.scrollIntoViewIfNeeded()
+      await fwd.click()
+      await page.waitForTimeout(800)
+      const p = await page.evaluate((s) => {
+        const list = document.querySelector(s + ' .toolbar__list'), l = list.getBoundingClientRect()
+        const items = [...list.querySelectorAll('.toolbar__item')].map((i) => i.getBoundingClientRect())
+        const first = items.find((r) => r.right > l.left + 1)
+        return { scrolled: list.scrollLeft, startGap: Math.round(first.left - l.left), cut: items.filter((r) => (r.left < l.left - 0.5 && r.right > l.left + 0.5) || (r.left < l.right - 0.5 && r.right > l.right + 0.5)).length }
+      }, TOOLS)
+      expect.ok(p.scrolled > 100, 'forward scrolled: ' + JSON.stringify(p))
+      expect.ok(Math.abs(p.startGap) <= 1 && p.cut === 0, 'forward shows the next whole tools, the first one at the list\'s start: ' + JSON.stringify(p))
+    },
+  },
+  {
+    name: 'S1: a radio or toggle tool only lifts on hover and tints when pressed; the fill is kept for on; an action tool keeps Button\'s fill on hover',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const nums = (sel) => page.locator(sel).evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      await page.locator('#t1-crop').scrollIntoViewIfNeeded()
+      await page.locator('#t1-crop').hover()
+      await page.waitForTimeout(350)
+      const h = await nums('#t1-crop')
+      expect.equal(h.lift, 1, 'an off radio tool raises'); expect.equal(h.fill, 0, 'but is not filled')
+      await page.mouse.down(); await page.waitForTimeout(300)
+      const p = await nums('#t1-crop')
+      expect.ok(p.lift === 0 && p.fill > 0.1 && p.fill < 0.2, 'pressed: sunk with a light tint: ' + JSON.stringify(p))
+      await page.mouse.move(0, 0); await page.mouse.up()
+      await page.locator('#t1-light').hover(); await page.waitForTimeout(350)
+      const on = await nums('#t1-light')
+      expect.ok(on.lift === 1 && on.fill === 1, 'the on tool stays filled while raised: ' + JSON.stringify(on))
+      await page.locator('#t2-undo').scrollIntoViewIfNeeded()
+      await page.locator('#t2-undo').hover(); await page.waitForTimeout(350)
+      expect.equal((await nums('#t2-undo')).fill, 1, 'an action tool (Undo) fills on hover, as a Button does')
+      await page.locator('#t2-grid').scrollIntoViewIfNeeded()
+      await page.locator('#t2-grid').hover(); await page.waitForTimeout(350)
+      expect.equal((await nums('#t2-grid')).fill, 0, 'an off toggle (Grid) does not fill on hover')
     },
   },
   {
@@ -230,6 +307,8 @@ export const tests = [
       })
       expect.ok(r.w >= 43.5 && r.h >= 43.5, `44px circle (${r.w}x${r.h})`)
       expect.ok(r.padTop >= 6, `room above the circle for the 6px focus ring (${r.padTop}px)`)
+      // raised (2px up and back) and ringed (3px offset + 3px ring): the ring reaches 8px before the circle's resting edge
+      expect.ok(r.padStart >= 7.5, `room before the first circle for its raised focus ring (${r.padStart}px)`)
     },
   },
   {

@@ -75,16 +75,16 @@
 </div>
 
 <h3 id="editor">Editor</h3>
-<p>Cancel on one side, apply on the other, the title between them (with a help button if the tool needs explaining). It is the same in every editing screen, so it is learned once. <kbd>Esc</kbd> should do what Cancel does, and unsaved changes deserve a confirmation.</p>
+<p>Cancel on one side, apply on the other, the title centred between them. It is the same in every editing screen, so it is learned once. A help button, if the tool needs explaining, goes in the end group beside Apply: the two sides are kept the same width, so the title stays centred on the bar and never sits glued to a circle. <kbd>Esc</kbd> should do what Cancel does, and unsaved changes deserve a confirmation.</p>
 <div class="demo">
   <div class="demo__stage">
     <header class="appbar" data-variant="editor">
       <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Cancel"><span class="ic ic--close" aria-hidden="true"></span></button>
-      <div class="appbar__heading">
-        <h4 class="appbar__title">Edit card</h4>
+      <h4 class="appbar__title">Edit card</h4>
+      <div class="appbar__end">
         <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Help: editing a card"><span class="ic ic--circle-help" aria-hidden="true"></span></button>
+        <button class="btn" data-variant="primary" data-shape="circle" data-size="sm" type="button" aria-label="Apply"><span class="ic ic--check" aria-hidden="true"></span></button>
       </div>
-      <button class="btn" data-variant="primary" data-shape="circle" data-size="sm" type="button" aria-label="Apply"><span class="ic ic--check" aria-hidden="true"></span></button>
     </header>
   </div>
 </div>
@@ -151,9 +151,9 @@
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Bar</strong> (<code>.appbar</code>, a <code>&lt;header&gt;</code>): 54px with the small buttons (36px, 8px above and below), a 2px rule under it. Paper-coloured, or the colours of <code>data-tone</code>.</li>
+  <li><strong>Bar</strong> (<code>.appbar</code>, a <code>&lt;header&gt;</code>): one row, 54px with the small buttons (36px, 8px above and below), a 2px rule under it; taller only when the title wraps. Paper-coloured, or the colours of <code>data-tone</code>.</li>
   <li><strong>Start</strong>: Back or Menu, a circle button with an <code>aria-label</code> that says where it goes.</li>
-  <li><strong>Title</strong> (<code>.appbar__title</code>): the page heading. Uppercase bar label; the greeting uses a sentence. Wraps, never truncates.</li>
+  <li><strong>Title</strong> (<code>.appbar__title</code>): the page heading. Uppercase bar label; the greeting uses a sentence. Wraps onto a second or third line, never truncates; the buttons stay level with its first line.</li>
   <li><strong>Eyebrow</strong> (greeting only): a soft-ink line above the title.</li>
   <li><strong>End</strong> (<code>.appbar__end</code>): one or two circle buttons.</li>
   <li><strong>Search field</strong> (search only): a labelled <code>type="search"</code> input with a leading icon, 44px tall.</li>
@@ -167,10 +167,10 @@
   <tbody>
     <tr><td><code>class="appbar"</code></td><td>on a <code>&lt;header&gt;</code></td><td>The bar.</td></tr>
     <tr><td><code>appbar__title</code></td><td>an <code>&lt;h1&gt;</code> (page) or <code>&lt;h2&gt;</code> (sheet, dialog)</td><td>The heading. Fills the middle.</td></tr>
-    <tr><td><code>appbar__heading</code>, <code>appbar__eyebrow</code></td><td></td><td>A title with company: eyebrow above, help button beside.</td></tr>
+    <tr><td><code>appbar__heading</code>, <code>appbar__eyebrow</code></td><td></td><td>A title with an eyebrow above it (the greeting).</td></tr>
     <tr><td><code>appbar__start</code>, <code>appbar__end</code></td><td></td><td>Groups of buttons that do not shrink.</td></tr>
     <tr><td><code>appbar__search</code>, <code>appbar__input</code></td><td>a <code>form[role=search]</code>, an <code>input[type=search]</code></td><td>The search variant's field.</td></tr>
-    <tr><td><code>data-variant</code></td><td><code>greeting</code>, <code>editor</code>, <code>search</code></td><td>The layout.</td></tr>
+    <tr><td><code>data-variant</code></td><td><code>greeting</code>, <code>editor</code>, <code>search</code></td><td>The layout. The editor centres its title on the bar between two sides of equal width; put help and apply together in an <code>appbar__end</code>.</td></tr>
     <tr><td><code>data-tone</code></td><td><code>ink</code>, <code>1</code>&ndash;<code>6</code>, <code>ok</code>, <code>warn</code>, <code>bad</code>, <code>info</code></td><td>Colours; buttons and ring follow.</td></tr>
     <tr><td><code>data-sticky</code></td><td></td><td>Sticks to the top; bleeds to the edges of <code>.app</code>; publishes <code>--appbar-h</code>.</td></tr>
     <tr><td><code>data-chrome-scope</code> on an ancestor</td><td></td><td>Publish <code>--appbar-h</code> there instead of on <code>&lt;html&gt;</code> (preview frames).</td></tr>
@@ -183,11 +183,11 @@
   <caption class="sr-only">App bar keyboard and screen reader behaviour</caption>
   <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
   <tbody>
-    <tr><td><kbd>Tab</kbd></td><td>Visual order is DOM order: Back, (title), actions. The editor bar is Cancel, title, Help, Apply. The ring is 3px and follows the bar's colours.</td></tr>
+    <tr><td><kbd>Tab</kbd></td><td>Visual order is DOM order: Back, (title), actions. The editor bar is Cancel, (title), Help, Apply. The ring is 3px and follows the bar's colours.</td></tr>
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activate the button; <kbd>Enter</kbd> follows a link; <kbd>Enter</kbd> in the search field submits.</td></tr>
     <tr><td>Screen reader</td><td>A <code>banner</code> landmark when the header is a child of <code>body</code>; the page heading "Account, heading level 1"; "Back to Inbox, link"; "Notifications, 2 new, button"; the search form is a <code>search</code> landmark with a labelled field.</td></tr>
     <tr><td>Touch</td><td>44&times;44px targets (the small buttons are drawn at 36 with an invisible extension), 8px apart.</td></tr>
-    <tr><td>Zoom / text size</td><td>The bar wraps instead of squeezing: the title and the search field keep at least 6rem, and what does not fit drops to a second row with the actions at the end. At 200% text the title wraps by whole words; nothing is truncated or clipped, and a sticky bar stays about two rows tall, not half the screen.</td></tr>
+    <tr><td>Zoom / text size</td><td>One row at every size. The circle buttons, the gaps and the padding are chrome (they stop at their 100% size, with 44px targets), so at 200% text the words keep the room: the title wraps onto two or three lines by whole words, the buttons stay level with its first line, and a sticky bar grows only by those lines. Nothing is truncated or clipped, and no button drops to a row of its own.</td></tr>
     <tr><td>Right-to-left</td><td>The bar mirrors, and Back arrows (<code>ic--arrow-left</code>, <code>ic--arrow-right</code>) flip to point the right way.</td></tr>
     <tr><td>Reduced motion</td><td>Buttons raise without travel.</td></tr>
     <tr><td>Forced colours</td><td>The bar gets a <code>CanvasText</code> rule, buttons keep their borders, the field is <code>Field</code>.</td></tr>
@@ -203,7 +203,7 @@
 <p><strong>Icons.</strong> <code>arrow-left</code>, <code>pencil</code>, <code>menu</code>, <code>search</code>, <code>ellipsis</code>, <code>bell</code> and <code>circle-help</code> come from <code>dist/icons.css</code>; the main bundle ships only <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code> and <code>arrow</code>. Link <code>icons.css</code> in your app, or define the masks yourself: an <code>.ic</code> with no mask paints a solid square.</p>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--canvas</code>, <code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--line</code>, <code>--focus</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-ink-soft</code>, <code>--bw</code>, <code>--radius-ctl</code>, <code>--ctl</code>, <code>--ctl-sm</code>, <code>--type-label</code>, <code>--type-title</code>, <code>--type-meta</code>, <code>--type-body</code>, <code>--ls-label</code>, <code>--ls-title</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--gutter</code>, <code>--safe-top</code>, <code>--safe-left</code>, <code>--safe-right</code>, <code>--z-sticky</code>, <code>--appbar-h</code>.</p>
+<p><code>--canvas</code>, <code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--line</code>, <code>--focus</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-ink-soft</code>, <code>--bw</code>, <code>--radius-ctl</code>, <code>--chrome-ctl-sm</code>, <code>--chrome-ctl</code>, <code>--chrome-ic-sm</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--type-label</code>, <code>--type-title</code>, <code>--type-meta</code>, <code>--type-body</code>, <code>--ls-label</code>, <code>--ls-title</code>, <code>--gutter</code>, <code>--safe-top</code>, <code>--safe-left</code>, <code>--safe-right</code>, <code>--z-sticky</code>, <code>--appbar-h</code>.</p>
 
 <h2 id="related">Related</h2>
 <ul>

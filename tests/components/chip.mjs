@@ -39,7 +39,7 @@ export const tests = [
     },
   },
   {
-    name: 'Filter chip: hover and keyboard focus raise it (--lift 1), pressing sinks it; toggling does not change its width',
+    name: 'Filter chip: hover and keyboard focus raise it (--lift 1) WITHOUT the fill, pressing sinks it with a light tint; toggling does not change its width',
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       const chip = page.locator(`${FILTERS} .chip`, { hasText: 'Travel' }).first()
@@ -50,15 +50,41 @@ export const tests = [
       await chip.hover()
       await page.waitForTimeout(400)
       const hover = await nums()
-      expect.equal(hover.lift, 1, 'hover: --lift 1'); expect.equal(hover.fill, 1, 'hover: --fill 1')
+      expect.equal(hover.lift, 1, 'hover: --lift 1'); expect.equal(hover.fill, 0, 'hover: --fill 0 (the solid fill is kept for on)')
       expect.ok(/4px 4px 0px 0px/.test(hover.shadow), 'hard 4px shadow, zero blur: ' + hover.shadow)
       await page.mouse.down()
       await page.waitForTimeout(400)
       const down = await nums()
-      expect.equal(down.lift, 0, 'pressed: sunk'); expect.equal(down.fill, 1, 'pressed: filled')
+      expect.equal(down.lift, 0, 'pressed: sunk'); expect.ok(down.fill > 0.1 && down.fill < 0.2, 'pressed: a light tint, not the on fill: ' + down.fill)
       await page.mouse.up() // a click: it toggles the chip on
+      await page.waitForTimeout(400)
+      const on = await nums()
+      expect.equal(on.fill, 1, 'on: filled'); expect.equal(on.lift, 1, 'on and still hovered: raised as well')
+      expect.ok(/6px 6px 0px 0px/.test(on.shadow) && /0px 0px 0px 4px/.test(on.shadow), 'a raised on chip keeps a surface-coloured gap before its shadow (it does not fuse with it): ' + on.shadow)
       const w1 = await chip.evaluate((el) => el.getBoundingClientRect().width)
       expect.ok(Math.abs(w1 - w0) < 1.5, `toggling does not reflow the row: ${w0} -> ${w1}`)
+    },
+  },
+  {
+    name: 'S1: the fill is kept for on. An action chip and a "more" chip only lift on hover; an on chip lightens a little while pressed',
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      const read = (loc) => loc.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      for (const loc of [page.locator('#action + p + .demo .chip').first(), page.locator('.chip[data-kind="more"]')]) {
+        await loc.scrollIntoViewIfNeeded()
+        await loc.hover()
+        await page.waitForTimeout(350)
+        const r = await read(loc)
+        expect.equal(r.lift, 1, 'hover raises'); expect.equal(r.fill, 0, 'hover does not fill a chip that is not on')
+      }
+      const on = page.locator(`${FILTERS} .chip[aria-pressed="true"]`).first()
+      await on.scrollIntoViewIfNeeded()
+      await on.hover()
+      await page.mouse.down()
+      await page.waitForTimeout(350)
+      const r = await read(on)
+      expect.equal(r.lift, 0, 'pressed: sunk'); expect.ok(r.fill > 0.8 && r.fill < 0.9, 'an on chip pressed lightens a little: ' + r.fill)
+      await page.mouse.up()
     },
   },
   {
@@ -166,8 +192,15 @@ export const tests = [
       expect.equal(await page.locator('#chip-rcpt .chip').count(), 0, 'all removed')
       await expect.focused(page, '#chip-add-person', 'focus lands on the named fallback')
       expect.ok((await status(page)).includes('Sofia Rossi removed. None left.'))
-      await page.locator('#chip-reset').click()
-      expect.equal(await page.locator('#chip-rcpt .chip').count(), 3, 'the docs reset button restores the demo')
+      // the demo's Undo: shown only once someone is removed, puts the last one back in place with focus on them, hides when empty
+      expect.equal(await page.locator('#chip-undo').isVisible(), true, 'Undo appears after a removal')
+      for (const [n, count] of [['Sofia Rossi', 1], ['Ravi Patel', 2], ['Anna Kim', 3]]) {
+        await page.locator('#chip-undo').click()
+        expect.equal(await page.locator('#chip-rcpt .chip').count(), count, n + ' is back')
+        await expect.focused(page, `#chip-rcpt .chip__remove[aria-label="Remove ${n}"]`, 'focus goes to the person who came back')
+      }
+      expect.equal(await page.locator('#chip-rcpt .chip__label').allTextContents().then((a) => a.join(', ')), 'Anna Kim, Ravi Patel, Sofia Rossi', 'in their old order')
+      expect.equal(await page.locator('#chip-undo').isVisible(), false, 'Undo hides when there is nothing left to undo')
     },
   },
   {
@@ -180,6 +213,8 @@ export const tests = [
       expect.equal(await page.locator('#chip-rcpt .chip').count(), 3, 'nothing removed')
       expect.equal(await page.evaluate(() => window.__label), 'Anna Kim', 'detail carries the label')
       await expect.focused(page, '#chip-rcpt .chip__remove[aria-label="Remove Anna Kim"]', 'focus stays put')
+      await page.waitForTimeout(50)
+      expect.equal(await page.locator('#chip-undo').isVisible(), false, 'a cancelled removal offers no Undo')
     },
   },
   {
@@ -237,16 +272,21 @@ export const tests = [
     },
   },
   {
-    name: 'Reduced motion: a chip raises with no travel, the fill still changes',
+    name: 'Reduced motion: a chip raises with no travel; the shadow and the press tint still show',
     reducedMotion: true,
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       const chip = page.locator(`${FILTERS} .chip`, { hasText: 'Health' }).first()
       await chip.hover()
       await page.waitForTimeout(500)
-      const r = await chip.evaluate((el) => ({ t: getComputedStyle(el).transform, fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      const r = await chip.evaluate((el) => ({ t: getComputedStyle(el).transform, lift: Number(getComputedStyle(el).getPropertyValue('--lift')), shadow: getComputedStyle(el).boxShadow }))
       expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', `no movement (got ${r.t})`)
-      expect.equal(r.fill, 1, 'the fill still changes')
+      expect.equal(r.lift, 1, 'still raised'); expect.ok(/4px 4px 0px 0px/.test(r.shadow), 'the hard shadow still says "you can press this": ' + r.shadow)
+      await page.mouse.down()
+      await page.waitForTimeout(300)
+      const f = await chip.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
+      expect.ok(f > 0.1 && f < 0.2, 'the press tint still shows: ' + f)
+      await page.mouse.up()
     },
   },
   {
@@ -310,20 +350,21 @@ export const tests = [
     },
   },
   {
-    name: 'Scrolling row cue: the row marks the edges that hide chips (data-more) and draws a rule there; a row that fits has none',
+    name: 'Scrolling row cue: no fence line at the edge; the row runs to the frame of the stage and the next chip is cut there',
     viewport: { width: 320, height: 700 },
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       const ROW = '#scroll + p + .demo .chips.scroller'
-      const read = () => page.locator(ROW).evaluate((el) => ({ more: el.getAttribute('data-more'), shadow: getComputedStyle(el).boxShadow }))
       await page.locator(ROW).scrollIntoViewIfNeeded()
-      const a = await read()
-      expect.equal(a.more, 'end', 'at the start only the end hides chips'); expect.ok(/inset/.test(a.shadow), 'and draws its rule: ' + a.shadow)
-      await page.locator(ROW).evaluate((el) => { el.scrollLeft = el.scrollWidth })
-      await page.waitForTimeout(100)
-      expect.equal((await read()).more, 'start', 'at the end only the start does')
-      const fits = await page.evaluate(() => [...document.querySelectorAll('.chips.scroller')].filter((l) => l.scrollWidth <= l.clientWidth + 1).every((l) => !l.hasAttribute('data-more')))
-      expect.ok(fits, 'a row that fits shows no cue')
+      const r = await page.locator(ROW).evaluate((el) => {
+        const row = el.getBoundingClientRect(); const stage = el.closest('.demo__stage').getBoundingClientRect()
+        const cut = [...el.querySelectorAll('.chip')].filter((c) => { const b = c.getBoundingClientRect(); return b.left < row.right && b.right > row.right + 1 })
+        return { shadow: getComputedStyle(el).boxShadow, more: el.hasAttribute('data-more'), toFrame: Math.abs(row.right - (stage.right - parseFloat(getComputedStyle(el.closest('.demo__stage')).borderRightWidth))), cut: cut.length }
+      })
+      expect.ok(r.shadow === 'none' || !/inset/.test(r.shadow), 'no inset rule on the edge: ' + r.shadow)
+      expect.ok(!r.more, 'the row is not marked data-more any more (nothing draws it)')
+      expect.ok(r.toFrame <= 1, 'the row runs to the frame of the stage: ' + r.toFrame)
+      expect.equal(r.cut, 1, 'one chip is cut by the frame: it peeks in, so the row reads as going on')
     },
   },
 ]

@@ -33,8 +33,9 @@
 
    CELLS IN A FRAME, like the segmented control: the pill is the frame (2px, --line) and the items are
    cells. Cells do not lift (a hard shadow would have to leave the dock); hovering draws the cell's own
-   frame, pressing fills it at once, and --fill carries the CURRENT one: a filled pill AND a frame of its
-   own in the dock's ink, never colour alone.
+   frame, pressing tints it at once (--fill 0.15, feedback within 100ms), and the full --fill is kept for the
+   CURRENT one: a filled pill AND a frame of its own in the dock's ink, never colour alone. A press is not
+   "current" until the page has changed, so it must not look like it.
    Forced colours: the current item is Highlight with a 4px frame.
 
    RESERVING SPACE (WCAG 2.4.11 Focus Not Obscured). A fixed dock covers the bottom of the page.
@@ -63,6 +64,7 @@
    RIGHT-TO-LEFT: arrows (.ic--arrow-left|right) inside a dock mirror.
 
    Private properties (--_*): --_bg --_ink --_cur-bg --_cur-ink --_gap --_pad --_item-h (the one cell size)
+   --_badge (the count's disc)
    ========================================================================== */
 
 @layer sg.components {
@@ -107,8 +109,8 @@
     }
     &[data-position="absolute"] {
       position: absolute;
-      inset-inline: var(--space-3);
-      inset-block-end: var(--space-3);
+      inset-inline: var(--chrome-3);
+      inset-block-end: var(--chrome-3);
       max-inline-size: none;
     }
     &[data-position="sticky"] {
@@ -173,7 +175,7 @@
     flex-wrap: wrap; /* only without JS: the script picks a presentation that fits one row (below) */
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-1);
+    gap: var(--chrome-1);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -200,12 +202,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--space-1);
+    gap: var(--chrome-1);
     inline-size: 100%;
     min-inline-size: var(--chrome-hit);
     min-block-size: var(--_item-h);
     margin: 0;
-    padding: var(--space-1);
+    padding: var(--chrome-1);
     color: color-mix(in srgb, var(--_cur-ink) calc(var(--fill) * 100%), var(--_ink));
     /* No background of its own: the fill is the ::before below. A cell that painted the dock's colour over
        itself at rest covered the dock's frame wherever a wrapped row reached a rounded corner. */
@@ -249,9 +251,10 @@
       border-color: var(--_ink);
     }
 
-    /* pressed: fills at once (feedback inside 100ms), before navigation has happened */
-    &:is(:active, .is-active):not([aria-disabled="true"]) {
-      --fill: 1;
+    /* pressed: a light tint at once (feedback inside 100ms), before navigation has happened. Not the full
+       fill: that means "you are here", and the press has not taken you anywhere yet. */
+    &:is(:active, .is-active):not([aria-disabled="true"], [aria-current="page"]) {
+      --fill: 0.15;
       transition-duration: var(--dur-press);
     }
 
@@ -280,24 +283,31 @@
   }
 
   /* A count on an item. The number is visible; its meaning ("unread") is sr-only text, so the item's
-     name reads "Inbox, 3 unread". Never colour alone: it has text. data-tone="bad" makes it status-coloured. */
+     name reads "Inbox, 3 unread". Never colour alone: it has text. data-tone="bad" makes it status-coloured.
+     CHROME: the badge sits on an icon that does not grow with the text (--chrome-ic), so it does not either:
+     the 22px disc, its digits (13px), its padding and its offset all stop at their 100% size. A badge that grew
+     at 200% text covered half of its icon. */
   .dock__badge {
+    --_badge: min(1.375rem, 22px); /* chrome: the disc stops at its 100% size, like the icon under it */
+
     position: absolute;
-    inset-block-start: calc(var(--space-1) * -1);
-    inset-inline-start: calc(50% + var(--space-1));
+    inset-block-start: calc(var(--chrome-1) * -1);
+    inset-inline-start: calc(50% + var(--chrome-1));
     display: grid;
     place-items: center;
-    min-inline-size: 1.375rem;
-    block-size: 1.375rem;
-    padding-inline: var(--space-1);
+    min-inline-size: var(--_badge);
+    block-size: var(--_badge);
+    padding-inline: var(--chrome-1);
     color: var(--tone-on-fill, var(--_cur-ink));
     background: var(--tone-fill, var(--_cur-bg));
     border: var(--bw) solid var(--_bg);
     border-radius: var(--radius-pill);
     font: var(--type-label);
+    font-size: min(var(--text-xs), 13px);
     letter-spacing: 0;
     font-variant-numeric: tabular-nums lining-nums;
     text-transform: none;
+    white-space: nowrap;
     pointer-events: none;
   }
 

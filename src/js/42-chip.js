@@ -29,10 +29,7 @@
      When a chip takes focus inside a horizontally scrolling row, the row scrolls so the whole
      chip shows, with a sliver of the next one. Browsers leave a partly visible chip where it
      is, which cuts its focus ring in half. Uses SG.revealInline (40-tabs.js), which honours
-     SG.motion.reduced().
-     The row is also marked data-more="start", "end" or "start end" while chips are scrolled out of view on
-     that side (SG.watchMore, 40-tabs.js), and chip.css draws a rule on that edge: where the cut falls is
-     luck, and a clean cut between two chips gave no sign that the row goes on.
+     SG.motion.reduced(). The chip that peeks in at the edge is the sign that the row goes on.
    ========================================================================== */
 (function (SG) {
   'use strict';
@@ -131,8 +128,4 @@
   });
 
   SG.chips = { toggle: toggle, disclose: disclose };
-
-  SG.ready(function () {
-    if (SG.watchMore) SG.qsa('.chips.scroller').forEach(SG.watchMore);
-  });
 })((window.SG = window.SG || {}));

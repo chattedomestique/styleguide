@@ -1,5 +1,8 @@
 // Segmented control: native radios, so the specs press real keys and read back what the
-// browser says. No JavaScript from the library is involved.
+// browser says. The library's only script here is the layout measure (44-segmented.js, SG.fit).
+
+// alpha of a computed colour in any serialisation: rgba(…, a), color(srgb r g b / a), or opaque
+const ALPHA = `globalThis.alpha = (c) => { const m = c.match(/\\/\\s*([\\d.]+)\\s*\\)$/) || c.match(/^rgba\\([^)]*,\\s*([\\d.]+)\\)$/); return m ? Number(m[1]) : (c === 'transparent' ? 0 : 1) };`
 
 export const tests = [
   {
@@ -44,15 +47,14 @@ export const tests = [
       await page.keyboard.press('ArrowRight')
       await page.waitForTimeout(350)
       expect.equal(await page.locator('input[name="seg-count"]:checked').count(), 1, 'one checked radio')
-      const rows = await page.evaluate(() => [...document.querySelectorAll('input[name="seg-count"]')].map((i) => {
-        const l = i.nextElementSibling
-        const thumb = getComputedStyle(l, '::before')
-        return { v: i.value, on: i.checked, w: Number(getComputedStyle(l).fontWeight), fill: Number(getComputedStyle(l).getPropertyValue('--fill')), thumb: Number(thumb.opacity), frame: parseFloat(thumb.borderTopWidth) }
-      }))
+      const rows = await page.evaluate((A) => { eval(A); return [...document.querySelectorAll('input[name="seg-count"]')].map((i) => {
+        const l = i.nextElementSibling; const cs = getComputedStyle(l)
+        return { v: i.value, on: i.checked, w: Number(cs.fontWeight), fill: Number(cs.getPropertyValue('--fill')), thumb: alpha(cs.backgroundColor), frame: parseFloat(cs.borderTopWidth), frameA: alpha(cs.borderTopColor) }
+      }) }, ALPHA)
       const on = rows.find((r) => r.on); const off = rows.filter((r) => !r.on)
       expect.equal(on.v, 'month', 'two presses from Day lands on Month')
-      expect.equal(on.fill, 1, 'chosen: --fill 1'); expect.equal(on.thumb, 1, 'chosen: the thumb shows'); expect.equal(on.frame, 2, 'chosen: a 2px frame of its own')
-      expect.ok(off.every((r) => r.w === on.w && r.fill === 0 && r.thumb === 0), 'unchosen: unfilled, no thumb; same weight so the row cannot reflow')
+      expect.equal(on.fill, 1, 'chosen: --fill 1'); expect.equal(on.thumb, 1, 'chosen: the thumb (the cell\'s own fill) shows'); expect.ok(on.frame === 2 && on.frameA === 1, 'chosen: a 2px frame of its own')
+      expect.ok(off.every((r) => r.w === on.w && r.fill === 0 && r.thumb === 0 && r.frameA === 0), 'unchosen: unfilled, no thumb, no frame; same weight so the row cannot reflow')
     },
   },
   {
@@ -100,7 +102,7 @@ export const tests = [
       const hex = (c) => page.evaluate((x) => SG.colorToHex(x), c)
       await page.mouse.move(0, 0)
       const rest = await s('transactions')
-      expect.equal(rest.bd, 'rgba(0, 0, 0, 0)', 'at rest the cell has a transparent frame')
+      expect.ok(/\/ 0\)$|rgba\(0, 0, 0, 0\)/.test(rest.bd), 'at rest the cell has a transparent frame: ' + rest.bd)
       await page.locator('input[name="seg-basic"][value="transactions"]').hover({ force: true })
       await page.waitForTimeout(300)
       const hov = await s('transactions')
@@ -123,7 +125,8 @@ export const tests = [
         const g = document.querySelector('fieldset[data-indicator="slide"]')
         const thumb = getComputedStyle(g, '::before')
         const checked = g.querySelector('input:checked + .segmented__label')
-        return { i: getComputedStyle(g).getPropertyValue('--_i').trim(), n: getComputedStyle(g).getPropertyValue('--_n').trim(), thumbOpacity: Number(thumb.opacity), labelThumb: Number(getComputedStyle(checked, '::before').opacity), transform: thumb.transform }
+        const bg = getComputedStyle(checked).backgroundColor
+        return { i: getComputedStyle(g).getPropertyValue('--_i').trim(), n: getComputedStyle(g).getPropertyValue('--_n').trim(), thumbOpacity: Number(thumb.opacity), labelThumb: /\/ 0\)$|rgba\(0, 0, 0, 0\)/.test(bg) ? 0 : 1, transform: thumb.transform }
       })
       await page.locator('input[name="seg-slide"][value="a"]').focus()
       await page.keyboard.press('ArrowRight')
@@ -144,10 +147,11 @@ export const tests = [
       await page.locator('input[name="seg-slide"][value="a"]').focus()
       await page.keyboard.press('ArrowRight')
       await page.waitForTimeout(450)
-      const s = await page.evaluate(() => {
+      const s = await page.evaluate((A) => {
+        eval(A)
         const g = document.querySelector('fieldset[data-indicator="slide"]')
-        return { thumb: Number(getComputedStyle(g, '::before').opacity), label: Number(getComputedStyle(g.querySelector('input:checked + .segmented__label'), '::before').opacity) }
-      })
+        return { thumb: Number(getComputedStyle(g, '::before').opacity), label: alpha(getComputedStyle(g.querySelector('input:checked + .segmented__label')).backgroundColor) }
+      }, ALPHA)
       expect.equal(s.thumb, 0, 'the gliding thumb is hidden under reduced motion')
       expect.equal(s.label, 1, 'the chosen option shows its own thumb (a fade, not a jump)')
     },
@@ -162,7 +166,7 @@ export const tests = [
     },
   },
   {
-    name: 'Sliding thumb: pressing an unchosen option keeps its text readable (no white label on the pale track), and the text follows the glide',
+    name: 'Sliding thumb: pressing an unchosen option tints it and keeps its text readable (no white label on the pale track), and the text follows the glide',
     async run({ page, goto, expect }) {
       await goto('components/segmented.html')
       const lab = page.locator('input[name="seg-slide"][value="b"] + .segmented__label')
@@ -173,13 +177,13 @@ export const tests = [
       await page.waitForTimeout(450)
       const r = await page.evaluate(() => {
         const l = document.querySelector('input[name="seg-slide"][value="b"] + .segmented__label'); const g = l.closest('.segmented')
-        return { ink: SG.colorToHex(getComputedStyle(l).color), track: SG.colorToHex(getComputedStyle(g).backgroundColor), fill: Number(getComputedStyle(l).getPropertyValue('--fill')), frame: getComputedStyle(l).borderTopColor }
+        return { ink: SG.colorToHex(getComputedStyle(l).color), track: SG.colorToHex(getComputedStyle(g).backgroundColor), fill: Number(getComputedStyle(l).getPropertyValue('--fill')), tint: getComputedStyle(l).backgroundColor }
       })
       await page.mouse.up()
       const lum = (h) => { const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] }
       const ratio = (a, b2) => { const x = lum(a), y = lum(b2); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
       expect.ok(ratio(r.ink, r.track) >= 7, 'while pressed the label is ' + r.ink + ' on ' + r.track + ' = ' + ratio(r.ink, r.track).toFixed(1) + ':1 (a filled label with no thumb under it was white on pale grey)')
-      expect.equal(r.fill, 0, 'the press does not fill the label in the sliding variant'); expect.ok(r.frame !== 'rgba(0, 0, 0, 0)', 'it draws the cell\'s frame instead')
+      expect.ok(r.fill > 0.1 && r.fill < 0.2, 'the press is a light tint, not the chosen fill: ' + r.fill); expect.ok(!/\/ 0\)$|rgba\(0, 0, 0, 0\)/.test(r.tint), 'the cell shows the tint itself (the gliding thumb only covers the chosen cell): ' + r.tint)
       const d = await page.evaluate(() => { const g = document.querySelector('fieldset[data-indicator="slide"]'); return { label: getComputedStyle(g.querySelector('.segmented__label')).transitionDuration, thumb: getComputedStyle(g, '::before').transitionDuration } })
       expect.equal(d.label, d.thumb, 'the label colour changes over the same time as the thumb glides (was 200ms against 520ms, so text flipped before the thumb arrived)')
     },
@@ -233,6 +237,56 @@ export const tests = [
       expect.ok(r.labels.every((l) => l.word <= l.room + 1), 'every word sits whole inside its cell: ' + JSON.stringify(r.labels))
       expect.ok(r.R * 2 < r.h - 20, 'two rows tall, so the corner (' + r.R + 'px) is not half the height (' + r.h + 'px): a rectangle, not an oval')
       expect.ok(!r.over, 'nothing spills sideways')
+    },
+  },
+  {
+    name: 'Pressing an unchosen option tints it at once (S1: the solid fill means chosen); the chosen one is not tinted',
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      const lab = page.locator('input[name="seg-basic"][value="transactions"] + .segmented__label')
+      await lab.evaluate((e) => e.scrollIntoView({ block: 'center' }))
+      const b = await lab.boundingBox()
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+      await page.mouse.down()
+      await page.waitForTimeout(300)
+      const f = await lab.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
+      expect.ok(f > 0.1 && f < 0.2, 'pressed: a light tint: ' + f)
+      await page.mouse.up()
+      await page.waitForTimeout(300)
+      expect.equal(await lab.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill'))), 1, 'released: chosen, filled')
+    },
+  },
+  {
+    name: 'Large text (200% on a 390px phone): every control is one row, two rows of two (four options) or one option per line; never 2 + 1, never a label spilling its cell',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(400)
+      const r = await page.evaluate(() => [...document.querySelectorAll('.docs-article .segmented')].map((g) => {
+        const opts = [...g.querySelectorAll('.segmented__opt')]
+        const rows = [...new Set(opts.map((o) => Math.round(o.getBoundingClientRect().top)))].map((t) => opts.filter((o) => Math.round(o.getBoundingClientRect().top) === t).length)
+        const spill = [...g.querySelectorAll('.segmented__label')].filter((l) => l.scrollWidth > l.clientWidth + 1).length
+        return { name: g.querySelector('input').name, fit: g.getAttribute('data-fit'), n: opts.length, rows, spill, over: g.scrollWidth > g.clientWidth + 1 }
+      }))
+      for (const g of r) {
+        const ok = g.rows.length === 1 || g.rows.every((c) => c === 1) || (g.n === 4 && g.rows.length === 2 && g.rows.every((c) => c === 2))
+        expect.ok(ok, 'one row, a stack or 2x2, never ragged: ' + JSON.stringify(g))
+        expect.equal(g.spill, 0, 'no label spills its cell: ' + JSON.stringify(g)); expect.ok(!g.over, 'nothing spills the track: ' + JSON.stringify(g))
+      }
+      const byName = Object.fromEntries(r.map((g) => [g.name, g]))
+      expect.equal(byName['seg-count'].fit, 'stack', 'Day | Week | Month cannot share a row at 200% on a phone: it stacks')
+      expect.equal(byName['seg-four'].fit, 'grid', 'four options become two rows of two')
+      expect.equal(byName['seg-basic'].fit, 'stack', 'Bank account | Transactions stacks')
+    },
+  },
+  {
+    name: 'At 100% text on a 390px phone every demo control is one row (the measure does not stack what fits)',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('.docs-article .segmented')].map((g) => ({ name: g.querySelector('input').name, fit: g.getAttribute('data-fit'), rows: new Set([...g.querySelectorAll('.segmented__opt')].map((o) => Math.round(o.getBoundingClientRect().top))).size })))
+      expect.ok(r.every((g) => g.fit === 'row' && g.rows === 1), 'all one row: ' + JSON.stringify(r.filter((g) => g.fit !== 'row' || g.rows !== 1)))
     },
   },
   {

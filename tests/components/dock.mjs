@@ -160,6 +160,36 @@ export const tests = [
     },
   },
   {
+    name: 'Pressing an item tints it (--fill 0.15) and does not give it the current fill; in the States demo press and current differ',
+    async run({ page, goto, expect }) {
+      await goto('components/dock.html')
+      const item = page.locator('nav.dock[aria-label="Main"] .dock__item').nth(1)
+      await item.scrollIntoViewIfNeeded()
+      await item.hover()
+      await page.mouse.down()
+      await page.waitForTimeout(300)
+      const f = await item.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
+      expect.ok(f > 0.1 && f < 0.2, 'pressed: a light tint, not "you are here": ' + f)
+      await page.mouse.up()
+      const st = await page.evaluate(() => { const d = document.querySelector('nav.dock[aria-label="Main, states"]'); const fill = (sel) => Number(getComputedStyle(d.querySelector(sel)).getPropertyValue('--fill')); return { press: fill('.is-active'), now: fill('[aria-current="page"]') } })
+      expect.ok(st.press < 0.2 && st.now === 1, 'the forced press specimen is a tint, the current one is filled: ' + JSON.stringify(st))
+    },
+  },
+  {
+    name: 'A count badge is chrome: at 200% text it keeps its 100% size, like the icon it sits on',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/dock.html')
+      const read = () => page.evaluate(() => { const b = document.querySelector('.dock__badge'); const ic = b.closest('.dock__item').querySelector('.ic'); const r = b.getBoundingClientRect(); const i = ic.getBoundingClientRect(); return { h: Math.round(r.height), w: Math.round(r.width), font: parseFloat(getComputedStyle(b).fontSize), icon: Math.round(i.width) } })
+      const a = await read()
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(300)
+      const b = await read()
+      expect.equal(b.icon, a.icon, 'the icon is chrome (it does not grow)')
+      expect.ok(b.h === a.h && b.w <= a.w + 1 && b.font === a.font, 'nor does its badge: ' + JSON.stringify({ a, b }))
+    },
+  },
+  {
     name: 'A count badge adds its meaning to the link\'s name ("Inbox 3 unread") and is not colour alone',
     async run({ page, goto, expect }) {
       await goto('components/dock.html')
@@ -245,7 +275,7 @@ export const tests = [
       }
       expect.ok(res.every((r) => r.inFrame), 'dock pinned inside the frame')
       expect.ok(res.every((r) => r.clear), 'each focused row sits above the dock: ' + JSON.stringify(res.filter((r) => !r.clear)))
-      expect.ok(res[7].label.startsWith('Last row'), 'the last row is reachable')
+      expect.ok(res[7].label.startsWith('Parking'), 'the last row (Parking) is reachable')
     },
   },
   {

@@ -14,8 +14,16 @@
    - hidden follows selection: inactive panels get the hidden attribute
    - the chosen tab is scrolled into view inside an overflowing tablist
    - an overflowing tablist is marked data-more="start", "end" or "start end" while tabs are scrolled out
-     of view on that side; tabs.css draws a rule on that edge, so "there is more" never depends on where
-     the cut happens to fall
+     of view on that side, and its optional scroll buttons (.tabs__scroll[data-dir="back|forward"] in the
+     same .tabs__bar, written hidden in the markup) are shown while it overflows, aria-disabled at the end
+     they cannot go past, and scroll the list by one list's width when pressed (smoothly unless
+     SG.motion.reduced()). They are tabindex -1: arrow keys already bring the focused tab into view, and the
+     tablist stays one tab stop. They stay in the accessibility tree.
+   - whole tabs beside scroll buttons: while such a list overflows, every tab grows by the same amount
+     (--_grow on the list) so the tabs that fit at the start fill it exactly. A tab sliced beside the forward
+     button read as a stray bracket; the button already says there is more. Re-measured when the list or a
+     tab changes size (rotation, text size, fonts). A list without scroll buttons keeps its cut tab: that one
+     is the cue, at the scroller's edge.
    - data-hash on .tabs keeps location.hash in step with the chosen panel
      (history.replaceState, so arrow keys do not flood the Back button) and opens the
      panel named by the hash on load and on hashchange, including a hash that points at
@@ -26,7 +34,8 @@
 
    API
      SG.tabs.select(tabElement)        choose a tab programmatically (moves no focus)
-     SG.watchMore(element)             keep data-more current on any horizontally scrolling row (the chip row uses it)
+     SG.watchMore(element)             keep data-more current on any horizontally scrolling row (no CSS draws it any more;
+                                       it is a hook for an app that wants to)
 
    Not handled here: adding or removing tabs. Re-run SG.tabs.init(root) after you do.
    ========================================================================== */
@@ -62,7 +71,14 @@
     if (delta) scroller.scrollBy({ left: delta, behavior: SG.motion.reduced() ? 'auto' : 'smooth' });
   };
   function reveal(tab, list) {
-    SG.revealInline(tab, list, 24);
+    // Beside visible scroll buttons the buttons are the cue: bring the tab in just clear of the edge (the list's
+    // own padding holds its ring) and leave no sliver of the next one. Otherwise 24px of the neighbour shows.
+    var pad = buttonsShown(list) ? parseFloat(getComputedStyle(list).paddingInlineEnd) || 0 : 24;
+    SG.revealInline(tab, list, pad);
+  }
+  function buttonsShown(list) {
+    var bar = list.parentElement;
+    return !!(bar && bar.classList.contains('tabs__bar') && bar.querySelector(':scope > .tabs__scroll:not([hidden])'));
   }
 
   /** Which edges of a scrolling horizontal row hide something: data-more="start", "end" or "start end" (absent when
@@ -76,9 +92,24 @@
     if (max > 1 && pos < max - 1) more.push('end');
     if (more.length) el.setAttribute('data-more', more.join(' '));
     else el.removeAttribute('data-more');
+    scrollButtons(el, max > 1, more);
+  }
+
+  /** The optional scroll buttons beside an overflowing tablist: shown only while it overflows, aria-disabled at
+      the end they cannot go past (a disabled button keeps its place, so the row does not jump while scrolling). */
+  function scrollButtons(list, over, more) {
+    var bar = list.parentElement;
+    if (!bar || !bar.classList.contains('tabs__bar')) return;
+    SG.qsa(':scope > .tabs__scroll', bar).forEach(function (b) {
+      if (b.hidden !== !over) b.hidden = !over;
+      b.tabIndex = -1;
+      var side = b.getAttribute('data-dir') === 'back' ? 'start' : 'end';
+      var stuck = more.indexOf(side) < 0;
+      if (stuck) b.setAttribute('aria-disabled', 'true'); else b.removeAttribute('aria-disabled');
+    });
   }
   /** Keep data-more current on a scrolling row: now, when the row or one of its children changes size (width, text
-      size, fonts), and on scroll. Shared with the chip row (42-chip.js). Safe to call twice. */
+      size, fonts), and on scroll. Exported for any scrolling row. Safe to call twice. */
   SG.watchMore = function (el) {
     if (!el || el.hasAttribute('data-sg-watch')) return;
     el.setAttribute('data-sg-watch', '');
@@ -90,7 +121,55 @@
     }
   };
   function watch(list) {
-    if (list.getAttribute('aria-orientation') !== 'vertical') SG.watchMore(list);
+    if (list.getAttribute('aria-orientation') === 'vertical') return;
+    SG.watchMore(list);
+    var bar = list.parentElement;
+    if (!bar || !bar.classList.contains('tabs__bar') || !bar.querySelector(':scope > .tabs__scroll') || list.hasAttribute('data-sg-whole')) return;
+    list.setAttribute('data-sg-whole', '');
+    fitWhole(list);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(function () { later(list); });
+      ro.observe(list);
+      tabsOf(list).forEach(function (t) { ro.observe(t); });
+    }
+  }
+
+  /** Whole tabs: with the natural widths, which tabs fit whole from the start of the list? Every tab then grows
+      by the same amount so those fill it exactly (scroll coordinates, so it holds while scrolled and in RTL). */
+  function fitWhole(list) {
+    list.style.removeProperty('--_grow');
+    measure(list);
+    if (!buttonsShown(list)) return;
+    var cs = getComputedStyle(list);
+    var rtl = cs.direction === 'rtl';
+    var padS = parseFloat(cs.paddingInlineStart) || 0;
+    var box = list.getBoundingClientRect();
+    // the box, not clientWidth: clientWidth is rounded to a whole pixel, and the 0.1px it drops showed as a hairline
+    var room = box.width - padS - (parseFloat(cs.paddingInlineEnd) || 0);
+    var pos = Math.abs(list.scrollLeft);
+    var n = 0;
+    var end = 0;
+    tabsOf(list).forEach(function (t) {
+      var r = t.getBoundingClientRect();
+      var e = (rtl ? box.right - r.left : r.right - box.left) - padS + pos;
+      if (e <= room + 0.5 && e > end) { n++; end = e; }
+    });
+    // a hair more than the exact share: the next tab then starts just past the clipped edge, never 0.2px inside it
+    // (an antialiased hairline of its frame read as a stray rule beside the forward button)
+    var grow = n ? Math.ceil(((room - end) / n + 0.05) * 100) / 100 : 0;
+    if (grow > 0) list.style.setProperty('--_grow', grow + 'px');
+    measure(list);
+  }
+  // one re-fit per list per frame, outside the ResizeObserver callback (it changes the sizes it watches)
+  var queued = [];
+  function later(list) {
+    if (queued.indexOf(list) > -1) return;
+    queued.push(list);
+    if (queued.length === 1) requestAnimationFrame(function () {
+      var lists = queued;
+      queued = [];
+      lists.forEach(fitWhole);
+    });
   }
   // scroll does not bubble, so one capturing listener on the document serves every watched row
   document.addEventListener('scroll', function (e) {
@@ -188,6 +267,15 @@
   document.addEventListener('click', function (e) {
     var tab = e.target.closest && e.target.closest('.tabs [role="tab"]');
     if (tab) select(tab);
+    var btn = e.target.closest && e.target.closest('.tabs__bar > .tabs__scroll');
+    if (!btn || btn.getAttribute('aria-disabled') === 'true') return;
+    var list = btn.parentElement.querySelector(':scope > [role="tablist"]');
+    if (!list) return;
+    var cs = getComputedStyle(list);
+    var dir = (btn.getAttribute('data-dir') === 'back' ? -1 : 1) * (cs.direction === 'rtl' ? -1 : 1);
+    // one list's width (inside its padding) and one gap: the next whole tabs start where the list starts
+    var page = list.getBoundingClientRect().width - (parseFloat(cs.paddingInlineStart) || 0) - (parseFloat(cs.paddingInlineEnd) || 0) + (parseFloat(cs.columnGap) || 0);
+    list.scrollBy({ left: dir * page, behavior: SG.motion.reduced() ? 'auto' : 'smooth' });
   });
 
   document.addEventListener('keydown', function (e) {

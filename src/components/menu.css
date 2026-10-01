@@ -21,7 +21,10 @@
    data-variant      "cancel" on the last item of an action sheet: the framed dismiss row
    .menu__check      leading icon that appears only while aria-checked="true" (the check is the
                      structural cue; bold text is the second)
-   .menu__meta       trailing secondary text: a shortcut, a value, or WHY an item is unavailable
+   .menu__meta       trailing secondary text: a shortcut, a value, or WHY an item is unavailable. On the
+                     row's line, at its end, while it fits; when it does not (large text, a narrow
+                     menu) it drops under the label, aligned with the label's start (measured by
+                     63-menu.js through SG.fit: data-fit="inline" or "stack" on the row)
    .menu__label      non-interactive group caption (aria-hidden; name the role="group" with it)
    .menu__sep        a 2px rule between groups (a border, so it survives forced colours)
    .menu__chevron    the arrow on the button; turns over while open (not under reduced motion)
@@ -30,6 +33,9 @@
                      rows, a scrim and a Cancel row. `auto` does it below 40em, so one menu is a
                      dropdown on a desktop and an action sheet on a phone.
    data-keep-open    (menu or item) activating does not close it
+
+   LARGE TEXT. The words grow; the row's chrome does not (--chrome-*): its padding, the gap, the 20px leading
+   icon and the 44px target stay at their 100% size, so at 200% text a label keeps the room.
 
    A ROW IS A PILL-LESS BUTTON. Rows are not pills (they do not stand alone) and do not lift:
    the menu's frame clips them, and a hard shadow inside a frame would be a shadow on a
@@ -126,12 +132,12 @@
 
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--chrome-3);
     inline-size: 100%;
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     margin: 0;
-    padding-block: var(--space-2);
-    padding-inline: var(--space-4);
+    padding-block: var(--chrome-2);
+    padding-inline: var(--chrome-4);
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
     background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--paper));
     /* the top edge is the 1px rule between rows; transparent on the first, so every row has a
@@ -151,9 +157,9 @@
       border-block-start-color: var(--line);
     }
 
-    /* the icon on a row follows the row's text colour (a mask on currentColor) */
+    /* the icon on a row follows the row's text colour (a mask on currentColor); a leading slot, so chrome */
     & > .ic {
-      --ic-size: 1.25rem;
+      --ic-size: var(--chrome-ic-sm);
     }
 
     /* hover (gated), keyboard focus, pressed: the row inverts */
@@ -215,16 +221,46 @@
 
   .menu__meta {
     margin-inline-start: auto;
-    padding-inline-start: var(--space-3);
+    padding-inline-start: var(--chrome-3);
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--ink-soft));
     font: var(--type-meta);
     font-variant-numeric: tabular-nums;
-    /* may wrap at its spaces ("After / review") and shrink: a nowrap reason ("After review") ran past the row's
-       padding into the dashed frame of an unavailable row on a narrow screen. A shortcut ("Ctrl+S") has no
-       space to break at, so it stays whole. */
-    min-inline-size: 0;
+    /* Never narrower than its longest word: at min-inline-size 0 a reason shrank to nothing and printed one letter
+       a line, a 500px-tall row at 200% text. When it does not fit beside the label it drops under it (below). */
     text-align: end;
     overflow-wrap: break-word;
+  }
+
+  /* A row with a reason or a shortcut, measured (SG.fit in 63-menu.js): "inline" keeps the reason at the end of
+     the row's line, and the row does not wrap while it is measured, so a reason that does not fit shows up as
+     overflow; "stack" puts it under the label, aligned with the label's start (a value that drops under its
+     label starts where the label starts, never at the far edge). */
+  .menu__item[data-fit="inline"] {
+    white-space: nowrap;
+
+    & > .menu__meta {
+      flex: none;
+    }
+  }
+  .menu__item[data-fit="stack"] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--chrome-3);
+
+    & > .menu__meta {
+      grid-column: 2;
+      margin: 0;
+      padding: 0;
+      text-align: start;
+    }
+    &:not(:has(> .ic)) {
+      grid-template-columns: minmax(0, 1fr);
+
+      & > .menu__meta {
+        grid-column: 1;
+      }
+    }
   }
   .menu__item[aria-disabled="true"] > .menu__meta {
     color: var(--ink-faint);
@@ -232,7 +268,7 @@
 
   .menu__label {
     display: block;
-    padding: var(--space-3) var(--space-4) var(--space-1);
+    padding: var(--chrome-3) var(--chrome-4) var(--chrome-1);
     color: var(--ink-soft);
     font: var(--type-label);
     letter-spacing: var(--ls-label);
@@ -311,7 +347,7 @@
     }
   }
   [popover].menu[data-sheet] .menu__item {
-    min-block-size: var(--ctl-lg);
+    min-block-size: var(--chrome-ctl-lg);
     font-size: var(--text-lg);
   }
   [popover].menu[data-sheet] .menu__item[data-variant="cancel"] {
