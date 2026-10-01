@@ -23,6 +23,12 @@
    data-quiet      --line-soft. Decoration only: never the only thing that marks a boundary.
    data-align      center (default) | start | end       where a labelled divider puts its label
    data-orientation  horizontal (default) | vertical    vertical needs a row to stretch in (flex or grid)
+
+   A ROW WITH VERTICAL RULES never wraps: a wrapped row put a rule at the start or the end of a line
+   ("| Settings"), where it separates nothing. src/js/48-divider.js measures the row (SG.fit) and writes
+   data-fit on it: "row" keeps everything on one line; "stack" turns the row into a column and lays the
+   rules flat between the items. Either way a rule only ever sits between two items. Without JS the row
+   wraps as it did.
    ========================================================================== */
 
 @layer sg.components {
@@ -81,6 +87,31 @@
       min-block-size: 1.5rem;
       border: 0;
       border-inline-start: var(--_w) solid var(--_c);
+    }
+  }
+
+  /* the row that holds vertical rules (whatever flex row it is), measured by 48-divider.js: one line, its items
+     whole, so a row that does not fit shows up as overflow ... */
+  [data-fit="row"]:has(> .divider[data-orientation="vertical"]) {
+    flex-wrap: nowrap;
+
+    & > :not(.divider) {
+      flex: none;
+      white-space: nowrap;
+    }
+  }
+  /* ... or a column, with the rules lying flat between the items */
+  [data-fit="stack"]:has(> .divider[data-orientation="vertical"]) {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+
+    & > .divider[data-orientation="vertical"] {
+      align-self: stretch;
+      inline-size: auto;
+      min-block-size: 0;
+      border-inline-start: 0;
+      border-block-start: var(--_w) solid var(--_c);
     }
   }
 

@@ -31,11 +31,16 @@
    --_glyph-* are mask drawings on the 24 grid with the guide's 2px square-cap
    stroke (the bundled icons.css is optional, so the tag cannot depend on it).
 
-   WRAPPING (WCAG 1.4.4, 1.4.10). A tag is a short label and stays ONE LINE where it can. Where it cannot
-   (a narrow card, 200% text on a phone) it wraps between WORDS ("Due" / "tomorrow"), never inside one; if
-   the glyph and the word do not fit side by side, the word drops under the glyph, centred. A word is cut
-   only when it cannot fit a line of its own. The corners stay at half the one-line height, so a tag that
-   wraps is a rounded rectangle, never an oval.
+   WRAPPING (WCAG 1.4.4, 1.4.10). A tag is a short label and stays ONE LINE where it can: its side padding
+   and the gap after the glyph are chrome (they stop at their 100% size), so at 200% text the words keep the
+   room. Where it cannot (a narrow card, a long label) it wraps between WORDS ("Due" / "tomorrow"), never
+   inside one, and the glyph stays BESIDE the words, centred on the first line: it never sits above them.
+   A word is cut only when it cannot fit a line of its own. A short label with a separator is one unit: bind
+   the dot on both sides and the number to its unit ("Deck&nbsp;·&nbsp;20&nbsp;cards"), so it never splits at
+   the dot ("Deck ·" / "20 cards"); it still fits one line at 200% text on a 320px phone. (In running meta
+   text, bind the dot to the word AFTER it instead, so a line never ends on the dot and the text can still
+   wrap.) The corners stay at half the one-line height, so a tag that wraps is a rounded rectangle, never an
+   oval.
 
    CONTRAST is by construction: --tone-ink on --tone-bg (7:1), --tone-on-fill on
    --tone-fill (4.5:1) for solid, --ink on --paper for neutral.
@@ -48,7 +53,7 @@
     --_line: currentColor;
     --_bw: var(--bw-thin);
     --_h: 1.5rem;
-    --_px: var(--space-2);
+    --_px: var(--chrome-2);
     --_py: calc(var(--space-1) / 2);
     --_fs: var(--text-sm);
     --_glyph: none;
@@ -64,15 +69,15 @@
     --_glyph-low: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 14h6v8H2z'/%3E%3Cpath d='M10 9h4v12h-4zM17 3h4v18h-4z' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E");
 
     display: inline-flex;
-    flex-wrap: wrap; /* in a row too narrow for glyph + word, the word drops UNDER the glyph instead of being cut letter by letter */
-    align-items: center;
-    align-content: center;
+    flex-wrap: nowrap; /* the glyph stays beside the words; the words wrap beside it (it used to drop them under it) */
+    align-items: flex-start; /* the glyph sits on the FIRST line of words (its margin centres it there) */
     justify-content: center;
     flex-shrink: 0; /* beside other content in a row, the OTHER content gives way; max-inline-size still stops it outgrowing the row */
-    gap: var(--space-1);
+    gap: var(--chrome-1);
     max-inline-size: 100%;
     min-block-size: var(--_h);
-    padding: var(--_py) var(--_px);
+    /* the block padding centres ONE line in the size step (20 / 24 / 32px); more lines grow the tag */
+    padding: max(var(--_py), (var(--_h) - 1lh) / 2 - var(--_bw)) var(--_px);
     margin: 0;
     color: var(--_ink);
     background: var(--_bg);
@@ -100,11 +105,14 @@
       flex: none;
       inline-size: 1.125em;
       block-size: 1.125em;
+      margin-block-start: calc((1lh - 1.125em) / 2); /* centred on the first line */
       background: currentColor;
       mask: var(--_glyph) center / contain no-repeat;
     }
     & > .ic {
       --ic-size: 1.125em;
+      flex: none;
+      margin-block-start: calc((1lh - 1.125em) / 2);
     }
 
     /* ---- status: the glyph travels with the colour, so colour is never alone.
@@ -163,7 +171,7 @@
     }
     &[data-size="lg"] {
       --_h: 2rem;
-      --_px: var(--space-3);
+      --_px: var(--chrome-3);
       --_fs: var(--text-md);
     }
   }

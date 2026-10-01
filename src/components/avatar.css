@@ -4,8 +4,8 @@
    A person, team or app, as a circle: a photo, or their initials when there is
    none (or it fails to load). Circles are the shape of things that ACT in this
    guide, so an avatar is a plain, static circle until it is a link or a button;
-   then it behaves like every other pressable circle (hard shadow on hover and
-   focus, sinks on press, 44px hit area).
+   then it behaves like every other pressable circle (a hard shadow when it can
+   be pressed, a tint while it is, 44px hit area).
 
    <span class="avatar" role="img" aria-label="Maya Okafor">MO</span>
    <span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="maya.jpg" alt=""></span>
@@ -22,6 +22,13 @@
    data-presence  online | away | busy | offline
    data-overflow  the "+3" that closes a stack: inverted, so it cannot be mistaken for a person
 
+   AN AVATAR IS A PICTURE, NOT A LINE OF TEXT. Its sizes are chrome: they stop at their 100% size
+   (min(rem, px)), and the initials are sized from the circle (a share of its diameter), not from the
+   root. So at 200% text a 44px avatar is still 44px with the same initials in it, a name beside it keeps
+   its room, and a stack is still one row. (In rem they doubled: a stack of four wrapped its "+3" onto a
+   line of its own, and a list row's title was pushed under its avatar.) Browser zoom still scales them.
+   At 28px two letters are set narrower (semi-condensed), so they clear the frame.
+
    NAMES. The avatar's name is the person's name. If the name is written next to it,
    mark the avatar aria-hidden="true" so it is not read twice; if not, role="img" and
    aria-label. A presence dot has no text of its own, so put the state in the name
@@ -32,44 +39,56 @@
    The shapes survive data-palette="wire" and forced colours, which repaints them with
    system colours.
 
-   STACKS are for "who is in this": a flat row of overlapping circles, DOM order = visual
-   order, the last one on top. Their items are NOT pressable (overlapping targets fail
+   STACKS are for "who is in this": ONE row of overlapping circles, at every text size, DOM order =
+   visual order, the last one on top. Their items are NOT pressable (overlapping targets fail
    WCAG 2.5.8 spacing). To make the stack do something, put ONE control beside it, or make
-   the "+3" a <button class="avatar"> that opens the list.
+   the "+3" a <button class="avatar"> that opens the list. Keep a stack short (three or four faces
+   and a count): it does not wrap, so it is the count that grows, never the row.
+
+   STATES of a pressable avatar (the selection-control model: the person's colour or photo is never
+   painted over with a solid fill):
+     rest                       flat
+     :hover (hover: hover)      raised: 2px up and the 4px hard shadow
+     :focus-visible             raised, and the ring
+     :active                    back onto the page, with a tint (16% of the ink over the field, the
+                                photo darkened as much), visible within 100ms on touch
+     aria-current / aria-pressed="true"   the frame doubles
+     aria-disabled="true"       dashed frame, faint ink, no shadow
 
    PRIVATE PROPERTIES (--_*) hold what sizes and variants change. --lift and --fill are
    only declared on the pressable forms: a static avatar inside a lifted card must not
-   inherit the card's lift.
+   inherit the card's lift or its fill.
    ========================================================================== */
 
 @layer sg.components {
   .avatar,
   .avatar-stack {
+    /* --avatar-fs is the initials' share of the diameter */
     &[data-size="xs"] {
-      --avatar-size: 1.75rem;
-      --avatar-fs: 0.75rem;
+      --avatar-size: min(1.75rem, 28px);
+      --avatar-fs: 0.4;
+      --avatar-stretch: semi-condensed;
     }
     &[data-size="sm"] {
-      --avatar-size: 2.25rem;
-      --avatar-fs: var(--text-xs);
-      --avatar-dot: 0.875rem;
+      --avatar-size: var(--chrome-ctl-sm);
+      --avatar-fs: 0.36;
+      --avatar-dot: min(0.875rem, 14px);
     }
     &[data-size="lg"] {
-      --avatar-size: 4rem;
-      --avatar-fs: 1.5rem;
-      --avatar-dot: 1.25rem;
+      --avatar-size: min(4rem, 64px);
+      --avatar-fs: 0.375;
+      --avatar-dot: min(1.25rem, 20px);
     }
     &[data-size="xl"] {
-      --avatar-size: 6rem;
-      --avatar-fs: 2.25rem;
-      --avatar-dot: 1.75rem;
+      --avatar-size: min(6rem, 96px);
+      --avatar-fs: 0.375;
+      --avatar-dot: min(1.75rem, 28px);
     }
   }
 
   .avatar {
-    --_size: var(--avatar-size, var(--hit));
-    --_fs: var(--avatar-fs, var(--text-md));
-    --_dot: var(--avatar-dot, 1rem);
+    --_size: var(--avatar-size, var(--chrome-ctl));
+    --_dot: var(--avatar-dot, min(1rem, 16px));
     --_bg: var(--tone-bg, var(--paper-2));
     --_ink: var(--tone-ink, var(--ink));
 
@@ -86,8 +105,8 @@
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-pill);
     font: var(--type-ctl);
-    font-size: var(--_fs);
-    font-stretch: semi-expanded;
+    font-size: calc(var(--_size) * var(--avatar-fs, 0.364)); /* from the circle, not the root: 16px in 44px */
+    font-stretch: var(--avatar-stretch, semi-expanded);
     line-height: 1;
     white-space: nowrap;
     text-decoration: none;
@@ -148,7 +167,7 @@
     display: none;
   }
 
-  /* ---- pressable: a link or a button is a circle that acts, so it lifts like one ---- */
+  /* ---- pressable: a link or a button is a circle that acts, so it raises like one ---- */
   a.avatar,
   button.avatar {
     --lift: 0;
@@ -156,8 +175,8 @@
     --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
 
     cursor: pointer;
-    color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--_ink));
-    background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--_bg));
+    /* --fill only ever TINTS (a pressed tap, 16%): the field keeps the person's colour and the text keeps its ink */
+    background: color-mix(in srgb, var(--_ink) calc(var(--fill) * 100%), var(--_bg));
     box-shadow: var(--_shadow);
     transform: translate(
       calc(var(--lift) * var(--space-1) / -2 * var(--move)),
@@ -167,12 +186,17 @@
       --lift var(--dur-hover) var(--ease-out),
       --fill var(--dur-hover) var(--ease-out);
 
+    /* the same tint on a photo: it darkens by the share the field is tinted */
+    & > img {
+      filter: brightness(calc(1 - var(--fill)));
+    }
+
     /* hit area: the drawn circle may be smaller than 44px, the target is not */
     &::after {
       content: "";
       position: absolute;
-      inset-block: min(0px, calc((100% - var(--hit)) / 2));
-      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+      inset-block: min(0px, calc((100% - var(--chrome-hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
     }
 
     /* the ring: the base rule draws it for a real :focus-visible; written out here so .is-focus (how the
@@ -183,23 +207,24 @@
       box-shadow: var(--focus-shadow, 0 0 0 var(--ring-offset) var(--focus-halo, var(--paper))), var(--_shadow);
     }
 
+    /* raised: where a pointer can hover, and on keyboard focus. Never filled: a solid ink circle wiped out
+       the person's colour or photo, and read as "chosen" */
     @media (hover: hover) {
       &:is(:hover, .is-hover):not([aria-disabled="true"]) {
         --lift: 1;
-        --fill: 1;
       }
     }
     &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
       --lift: 1;
-      --fill: 1;
     }
+    /* pressed: back onto the page, with a tint. After hover so it wins. */
     &:is(:active, .is-active):not([aria-disabled="true"]) {
       --lift: 0;
-      --fill: 1;
+      --fill: 0.16;
       transition-duration: var(--dur-press);
     }
 
-    /* current: the frame doubles (a second cue that survives a pale accent) */
+    /* current: the frame doubles (a structural cue; the colour stays the person's) */
     &[aria-current="true"],
     &[aria-pressed="true"] {
       --_shadow: 0 0 0 var(--bw) var(--line);
@@ -215,26 +240,23 @@
     }
   }
 
-  /* ---- stack: overlapping circles, DOM order = visual order, the last one on top ---- */
+  /* ---- stack: ONE row of overlapping circles, DOM order = visual order, the last one on top ---- */
   .avatar-stack {
-    --avatar-size: var(--hit);
+    --avatar-size: var(--chrome-ctl);
     --_overlap: 0.22; /* how much of a circle the next one covers; enough to read as a group, little enough to keep two letters legible */
 
     display: flex;
-    flex-wrap: wrap; /* big text or a narrow column: a second row, never a circle cut off (WCAG 1.4.4 / 1.4.10) */
+    flex-wrap: nowrap; /* a stack is one row: its circles are chrome-sized, so at 200% text it is as wide as at 100% */
     align-items: center;
-    row-gap: var(--space-1);
     margin: 0;
-    /* The overlap is a negative margin on the END of every circle but the last, so a wrapped row starts flush with
-       the edge. Each row's last circle then overhangs by one overlap; this padding is where it lands. */
     padding: 0;
-    padding-inline-end: calc(var(--avatar-size) * var(--_overlap));
     list-style: none;
 
     & > li {
       display: flex;
       flex: none;
     }
+    /* the overlap is a negative margin on the END of every circle but the last */
     & > li:not(:last-child) {
       margin-inline-end: calc(var(--avatar-size) * var(--_overlap) * -1);
     }

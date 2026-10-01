@@ -40,6 +40,21 @@
 
    THE PATTERN (same as button.css): --lift raises the chip on hover and keyboard focus (a hard
    shadow; a swatch is something you press), one transition, travel x --move, hover gated.
+   STATES (the selection-control model; the colour itself is content, so nothing fills it):
+     rest                 a flat chip
+     :hover, :focus-visible   the chip raises with its hard shadow; focus adds the ring
+     :active              the chip sits back down and the whole option takes a light tint (12% of the ink),
+                          so a tap shows within 100ms (it used to look exactly like rest)
+     :checked             the check, the second ring and the underlined name
+   A chosen swatch raises on hover too.
+
+   SIZES. The chip, the check, the insets and the gaps are chrome: they stop at their 100% size, so at
+   200% text a set is not one 88px circle a row. The NAME grows with the text, and the grid's columns
+   are sized for names (4rem of text, "Terracotta"), so a colour name is never cut inside a word: a set is
+   three or four to a row on a phone, two to a row at 200% text, and never more than six to a row on a wide
+   screen. The rows come out even: never five to a row, and a set of four, six or eight picks a count that
+   divides it (see THE COLUMNS).
+   The name sits 16px under the chip, clear of the focus ring around a chosen chip.
    ========================================================================== */
 
 @layer sg.components {
@@ -56,30 +71,65 @@
     }
   }
 
+  /* THE COLUMNS. A column is as wide as a name of 4rem ("Terracotta"), and never narrower than the chip with
+     room for its rings (a focused, chosen chip reaches 12px out). A set is six to a row when six fit, else
+     four, three, two or one: never five, so twelve colours always make even rows (6, 4, 3 or 2 to a row).
+     A set of four or eight is four or two to a row (never 3 + 3 + 2), and a set of six is six, three or two
+     (never 4 + 2). Each choice is a clamp() switch, as in the tile grid: "room left after N columns, times
+     1000" is far below zero when N columns of --_col fit the row and far above it when they do not. The half
+     pixel keeps rounding from losing a track. A longer name wraps between words, or breaks if it must. */
   .swatch-set__list {
+    --_col-gap: var(--chrome-1);
+    --_col: max(var(--chrome-ctl) + 2 * var(--chrome-3), 4rem);
+    --_6: calc((100% - 5 * var(--_col-gap)) / 6 - 0.5px);
+    --_4: calc((100% - 3 * var(--_col-gap)) / 4 - 0.5px);
+    --_3: calc((100% - 2 * var(--_col-gap)) / 3 - 0.5px);
+    --_2: calc((100% - var(--_col-gap)) / 2 - 0.5px);
+    --_room-6: calc(100% - 6 * var(--_col) - 5 * var(--_col-gap));
+    --_room-4: calc(100% - 4 * var(--_col) - 3 * var(--_col-gap));
+    --_room-3: calc(100% - 3 * var(--_col) - 2 * var(--_col-gap));
+    --_room-2: calc(100% - 2 * var(--_col) - var(--_col-gap));
+    --_2-or-1: clamp(var(--_2), 100% - var(--_room-2) * 1000, 100%);
+    --_3-2-1: clamp(var(--_3), var(--_2-or-1) - var(--_room-3) * 1000, var(--_2-or-1));
+    --_4-or-less: max(var(--_col), var(--_4)); /* auto-fill makes this four, three, two or one */
+    --_track: clamp(var(--_6), var(--_4-or-less) - var(--_room-6) * 1000, var(--_4-or-less));
+
     display: grid;
-    /* 5.25rem: "Unavailable" (the longest name in the docs) fits a column with its 4px side padding, so a
-       colour name is never cut at 1024px; a longer one wraps between words, or breaks if it must */
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 5.25rem), 1fr));
-    gap: var(--space-2) var(--space-1);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_track)), 1fr));
+    gap: var(--space-2) var(--_col-gap);
+  }
+  /* four or eight colours: four to a row, or two, or one */
+  .swatch-set__list:has(> :nth-child(4):last-child, > :nth-child(8):last-child) {
+    --_track: clamp(var(--_4), var(--_2-or-1) - var(--_room-4) * 1000, var(--_2-or-1));
+  }
+  /* six colours: six to a row, or three, two or one */
+  .swatch-set__list:has(> :nth-child(6):last-child) {
+    --_track: clamp(var(--_6), var(--_3-2-1) - var(--_room-6) * 1000, var(--_3-2-1));
   }
 
   .swatch-set__opt {
     --lift: 0;
-    --_chip: var(--ctl);
+    --fill: 0;
+    --_chip: var(--chrome-ctl);
     --_ring-gap: 0px; /* extra room the focus ring leaves for the selection ring */
     --_on: var(--ink);
     --_plate: none;
+    --_plate-size: min(1.75rem, 28px); /* chrome, like the chip it sits in */
 
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-2);
-    min-inline-size: var(--hit);
-    padding: var(--space-3) var(--space-1) var(--space-2); /* room for the ring (3 x 2px) and the lift */
+    gap: var(--chrome-4); /* the name clears the focus ring around a chosen chip (12px out) */
+    min-inline-size: var(--chrome-hit);
+    padding: var(--chrome-3) 0 var(--chrome-2); /* room above for the rings and the lift; the name may use the whole column */
+    /* the pressed tint: a share of the text colour over the whole option, behind the chip and the name */
+    background: color-mix(in srgb, currentColor calc(var(--fill) * 100%), transparent);
+    border-radius: var(--radius-tile);
     cursor: pointer;
-    transition: --lift var(--dur-hover) var(--ease-out);
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
 
     /* The radio itself is the hit area: invisible, the size of the label, above the chip and the name
        so a tap lands on the radio (and a focus-obscured check finds nothing on top of it). */
@@ -105,9 +155,11 @@
     &:is(:has(> input:checked), .is-selected) {
       --_ring-gap: calc(var(--bw) * 3);
     }
-    /* pressed: back onto the surface. After hover so it wins. */
+    /* pressed: back onto the surface, and a light tint on the option, so a tap is seen at once. After hover
+       so it wins. */
     &:is(:active, .is-active):has(> input:not(:disabled)) {
       --lift: 0;
+      --fill: 0.12;
       transition-duration: var(--dur-press);
     }
   }
@@ -130,7 +182,7 @@
 
     /* the check: shown only on the chosen one */
     & > .ic {
-      --ic-size: 1.25rem;
+      --ic-size: var(--chrome-ic-sm);
       grid-area: 1 / 1;
       position: relative; /* above the plate */
       visibility: hidden;
@@ -139,8 +191,8 @@
     &::before {
       content: "";
       grid-area: 1 / 1;
-      inline-size: 1.75rem;
-      block-size: 1.75rem;
+      inline-size: var(--_plate-size);
+      block-size: var(--_plate-size);
       background: var(--paper);
       border: var(--bw) solid var(--line);
       border-radius: var(--radius-pill);

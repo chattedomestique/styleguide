@@ -5,12 +5,14 @@
   .docs-article .demo ul[role="list"] > li { max-inline-size: none; }
   .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
   .docs-article .demo h3 { margin-block-start: 0; }
+  /* docs only: when the "11 due" tag drops under the greeting (large text), it lines up with it, not with the far edge */
+  .docs-article .demo .split > :last-child:not(:first-child) { margin-inline-start: 0; }
 </style>
 <h1>Stat</h1>
 <p class="lede">One number, big, with just enough around it to mean something. This page adds no CSS: a stat is the <a href="@/components/card.html#stat">Card stat recipe</a>, and this is how it sits with a <a href="@/components/tag.html">Tag</a>, a <a href="@/components/list.html">List</a>, an <a href="@/components/avatar.html">Avatar</a> and a <a href="@/components/divider.html">Divider</a> to make a dashboard.</p>
 
 <h2 id="recipe">The recipe</h2>
-<p>Four parts, in this order: what it counts (<code>.card__eyebrow</code>), the number (<code>.card__figure</code>), a one-line reading of it (<code>.card__meta</code>), and optionally what state it is in (a tag). The figure scales with the card's own width, from 28 to 104px, and uses tabular figures.</p>
+<p>Four parts, in this order: what it counts (<code>.card__eyebrow</code>), the number (<code>.card__figure</code>), what state it is in (one tag, optional, or a meter), and a one-line reading of it (<code>.card__meta</code>). One state per card: a second fact goes in the meta line, not in a second tag. The figure scales with the card's own width, from 28 to 104px, stays on one line, and uses tabular figures. Square cards in one row share one height.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="grid" style="--grid-min: 9rem">
@@ -26,27 +28,14 @@
         <div class="card__body">
           <p class="card__eyebrow">Streak</p>
           <p class="card__figure">4</p>
-          <div class="cluster">
-            <span class="tag" data-tone="ok" data-size="sm">On track</span>
-            <span class="tag" data-size="sm">Best is 9</span>
-          </div>
-          <p class="card__meta">Days running.</p>
-        </div>
-      </article>
-      <article class="card card--square" data-tone="ink">
-        <div class="card__body">
-          <p class="card__eyebrow">Accuracy this week</p>
-          <p class="card__figure">86<small>%</small></p>
-          <div class="cluster">
-            <span class="tag" data-tone="ok" data-size="sm">Up 8 points</span>
-          </div>
-          <p class="card__meta">Across 140 cards.</p>
+          <div class="cluster"><span class="tag" data-tone="ok" data-size="sm">On track</span></div>
+          <p class="card__meta">Days running. Best is nine.</p>
         </div>
       </article>
     </div>
   </div>
 </div>
-<p class="t-meta">The state goes in a tag, never in the tone. The tone gives the grid its rhythm; "On track" is the words and the check.</p>
+<p class="t-meta">The state goes in a tag, never in the tone. The tone gives the grid its rhythm; "On track" is the words and the check. The ink tone works the same way (see the wider screen below).</p>
 
 <h2 id="dashboard">A dashboard</h2>
 <p>The stat leads; the list is what to do next; the tags say where each row stands; the stack says who is in it. A labelled divider names each group. Everything is an element from the guide with its own markup; the only thing here that is new is the order.</p>
@@ -56,14 +45,14 @@
       <div class="phone__screen">
         <div class="stack" data-gap="5">
           <header class="split">
-            <div class="cluster" data-gap="3">
+            <div class="cluster" data-gap="3" style="flex-wrap: nowrap">
               <a class="avatar" href="#" data-presence="online" aria-label="Your profile, Sam Castillo, online">SC<img src="@/assets/surfaces/avatar-sam.svg" alt=""></a>
               <div>
                 <p class="t-meta">Good evening</p>
                 <h3 class="t-title">Sam</h3>
               </div>
             </div>
-            <span class="tag" data-tone="warn">11 due</span>
+            <span class="tag" data-tone="warn">11&nbsp;due</span>
           </header>
 
           <div class="grid" style="--grid-min: 8rem">
@@ -86,8 +75,8 @@
           <div class="stack" data-gap="3">
             <h4 class="divider" data-align="start">Due today</h4>
             <ul class="list" role="list" data-variant="framed">
-              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">7 cards</span></span><span class="list__trail"><span class="tag" data-priority="high" data-size="sm">High</span></span></a></li>
-              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">4 cards</span></span><span class="list__trail"><span class="tag" data-priority="low" data-size="sm">Low</span></span></a></li>
+              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">7&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-priority="high" data-size="sm">High</span></span></a></li>
+              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">4&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-priority="low" data-size="sm">Low</span></span></a></li>
             </ul>
           </div>
 
@@ -99,7 +88,7 @@
                 <li><span class="avatar" role="img" aria-label="Jonas Berg">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span></li>
                 <li><span class="avatar" role="img" aria-label="Priya Nair">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span></li>
               </ul>
-              <span class="t-meta">Three friends this week</span>
+              <p class="t-meta">Three friends this week</p>
             </div>
           </div>
         </div>
@@ -139,7 +128,7 @@
           <div class="card__body">
             <p class="card__eyebrow">Accuracy</p>
             <p class="card__figure">86<small>%</small></p>
-            <div class="cluster"><span class="tag" data-tone="ok" data-size="sm">Up 8 points</span></div>
+            <div class="cluster"><span class="tag" data-tone="ok" data-size="sm">Up 8&nbsp;points</span></div>
           </div>
         </article>
       </div>
@@ -147,9 +136,9 @@
         <section class="card">
           <header class="card__bar"><p class="card__label">Decks</p></header>
           <ul class="list" role="list">
-            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards</span></span><span class="list__trail"><span class="tag" data-tone="ok" data-size="sm">Synced</span></span></a></li>
-            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards</span></span><span class="list__trail"><span class="tag" data-tone="warn" data-size="sm">Needs review</span></span></a></li>
-            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards</span></span><span class="list__trail"><span class="tag" data-tone="bad" data-size="sm">Sync failed</span></span></a></li>
+            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-tone="ok" data-size="sm">Synced</span></span></a></li>
+            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-tone="warn" data-size="sm">Needs review</span></span></a></li>
+            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-tone="bad" data-size="sm">Sync failed</span></span></a></li>
           </ul>
         </section>
         <article class="card">

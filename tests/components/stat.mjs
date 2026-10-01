@@ -89,4 +89,23 @@ export const tests = [
       expect.ok(Math.abs(r.first - r.second) <= 1, 'the first two stats share a row')
     },
   },
+  {
+    name: 'cards in one row share one height, and a card holds at most one state (one tag or one meter)',
+    async run({ page, goto, expect }) {
+      await goto('components/stat.html')
+      for (const [w, text] of [[390, 100], [1024, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const rows = await page.evaluate(() => [...document.querySelectorAll('.grid')].filter((g) => g.offsetParent).flatMap((g) => {
+          const byTop = new Map()
+          for (const c of g.children) { const b = c.getBoundingClientRect(); const k = Math.round(b.top); byTop.set(k, [...(byTop.get(k) || []), b.height]) }
+          return [...byTop.values()].filter((hs) => hs.length > 1)
+        }))
+        for (const hs of rows) expect.ok(Math.max(...hs) - Math.min(...hs) <= 1, `${w}px ${text}%: one row, one height (${hs.map((h) => h.toFixed(0)).join(', ')})`)
+      }
+      const states = await page.evaluate(() => [...document.querySelectorAll('.card--square')].map((c) => c.querySelectorAll('.tag, .meter').length))
+      expect.ok(states.every((n) => n <= 1), `one state per card (${states.join(', ')})`)
+    },
+  },
 ]

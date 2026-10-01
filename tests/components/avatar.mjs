@@ -1,5 +1,6 @@
 // Interaction spec for Avatar and the avatar stack: the photo falls back to initials, presence is a shape
-// and not only a colour, a pressable avatar lifts and keeps a 44px hit area, a static one never inherits a lift.
+// and not only a colour, a pressable avatar lifts (a press tints, nothing paints over the person) and keeps a 44px
+// hit area, a static one never inherits a lift, and avatars are pictures: chrome-sized, so a stack is one row at 200%.
 export const tests = [
   {
     name: 'a photo that fails to load is hidden, so the initials underneath show',
@@ -72,23 +73,26 @@ export const tests = [
     },
   },
   {
-    name: 'a pressable avatar raises on hover and keyboard focus, sinks when pressed, and keeps a 44px hit area',
+    name: 'a pressable avatar raises on hover and keyboard focus, sinks with a light tint when pressed, and keeps a 44px hit area',
     async run({ page, goto, expect }) {
       await goto('components/avatar.html')
       const a = page.locator('#pressable ~ .demo a.avatar:not(.is-hover):not(.is-focus):not(.is-active)').first()
-      const nums = () => a.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')), shadow: getComputedStyle(el).boxShadow }))
+      const nums = () => a.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')), shadow: getComputedStyle(el).boxShadow, img: getComputedStyle(el.querySelector('img')).filter }))
       await page.waitForTimeout(50)
-      expect.equal((await nums()).lift, 0, 'rest: flat')
+      const rest = await nums()
+      expect.equal(rest.lift, 0, 'rest: flat')
       await a.hover()
       await page.waitForTimeout(400)
       const hover = await nums()
       expect.equal(hover.lift, 1, 'hover: raised')
+      expect.equal(hover.fill, 0, 'hover: not filled, so the photo or colour stays the person\'s')
       expect.ok(/4px 4px 0px 0px/.test(hover.shadow), `hard shadow, zero blur (got ${hover.shadow})`)
       await page.mouse.down()
       await page.waitForTimeout(400)
       const down = await nums()
       expect.equal(down.lift, 0, 'pressed: back onto the surface')
-      expect.equal(down.fill, 1, 'pressed: fill stays')
+      expect.ok(down.fill > 0.05 && down.fill < 0.3, `pressed: a light tint, never a solid fill (--fill ${down.fill})`)
+      expect.ok(down.img !== rest.img && /brightness/.test(down.img), `pressed: the photo darkens by the tint (${down.img})`)
       await page.mouse.up()
       await page.mouse.move(0, 0)
       await page.keyboard.press('Tab')
@@ -213,7 +217,7 @@ export const tests = [
     async run({ page, goto, expect }) {
       await goto('components/avatar.html')
       const names = await page.evaluate(() => [...document.querySelectorAll('#pressable ~ .demo .av-state')].map((s) => s.querySelector('.t-meta').textContent.trim()))
-      expect.equal(names.join(','), 'Rest,Hover,Focus,Pressed,Current,Unavailable', 'rest, hover, focus, pressed, current, unavailable')
+      expect.equal(names.join(','), 'Rest,Hover,Focus,Pressed,Current,Disabled', 'rest, hover, focus, pressed, current, disabled')
     },
   },
   {
@@ -222,6 +226,41 @@ export const tests = [
       await goto('components/avatar.html')
       const r = await page.evaluate(() => [...document.querySelectorAll('.avatar-stack[data-size="sm"] .avatar, .avatar-stack[data-size="xs"] .avatar')].filter((a) => !a.querySelector('img')).map((a) => a.textContent.trim().length))
       expect.ok(r.length > 0 && r.every((n) => n === 1), `single letters at 36px and below (${r.join(',')})`)
+    },
+  },
+  {
+    name: 'avatars are pictures: at 200% text every size keeps its 100% size, and every stack stays one row',
+    async run({ page, goto, expect }) {
+      await goto('components/avatar.html')
+      const read = () => page.evaluate(() => ({
+        sizes: [...document.querySelectorAll('#sizes + p + .demo .avatar')].map((a) => Math.round(a.getBoundingClientRect().width)),
+        stacks: [...document.querySelectorAll('.avatar-stack')].filter((s) => s.offsetParent).map((s) => new Set([...s.querySelectorAll(':scope > li')].map((li) => Math.round(li.getBoundingClientRect().top + li.getBoundingClientRect().height / 2))).size),
+      }))
+      const at100 = await read()
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(150)
+      const at200 = await read()
+      expect.equal(at200.sizes.join(), at100.sizes.join(), `sizes stay put (${at100.sizes.join(', ')} at 100%, ${at200.sizes.join(', ')} at 200%)`)
+      expect.ok(at200.stacks.length >= 3 && at200.stacks.every((n) => n === 1), `every stack is one row at 200% (rows: ${at200.stacks.join(', ')})`)
+    },
+  },
+  {
+    name: 'two initials sit inside the circle at every size, 28px included',
+    async run({ page, goto, expect }) {
+      await goto('components/avatar.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('.avatar')].filter((a) => a.offsetParent && !a.querySelector('img') && a.textContent.trim().length === 2 && !a.closest('.avatar-stack')).map((a) => {
+        const range = document.createRange()
+        range.selectNodeContents(a.firstChild)
+        const t = range.getBoundingClientRect(), b = a.getBoundingClientRect()
+        const bw = parseFloat(getComputedStyle(a).borderLeftWidth)
+        // the widest chord at the text's top and bottom edges: the letters must fit inside the ring there
+        const rIn = b.width / 2 - bw, cy = b.top + b.height / 2
+        const dy = Math.max(Math.abs(t.top - cy), Math.abs(t.bottom - cy)) * 0.6 // cap height, not the line box
+        const half = Math.sqrt(Math.max(0, rIn * rIn - dy * dy))
+        return { name: a.getAttribute('aria-label') || a.textContent, size: Math.round(b.width), textW: t.width, room: half * 2 }
+      }))
+      expect.ok(r.length >= 5, `measured ${r.length} avatars`)
+      for (const x of r) expect.ok(x.textW <= x.room - 4, `${x.name} (${x.size}px): ${x.textW.toFixed(1)}px of letters in ${x.room.toFixed(1)}px of circle`)
     },
   },
 ]

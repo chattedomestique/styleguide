@@ -1,5 +1,24 @@
 // Interaction spec for Accordion: native details/summary keyboard behaviour, exclusive and independent groups,
 // focus staying on the head, closed content out of the tab order, the ring drawn inside, states as --fill.
+// Words cut across two lines: a Range over a word has client rects at more than one height once the word was broken.
+// (Self-contained, because Playwright serialises it into the page.)
+const brokenWords = (selector) => {
+  const out = []
+  for (const root of document.querySelectorAll(selector)) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+    for (let n; (n = walker.nextNode()); ) {
+      const re = /\S+/g
+      for (let m; (m = re.exec(n.data)); ) {
+        const r = document.createRange()
+        r.setStart(n, m.index)
+        r.setEnd(n, m.index + m[0].length)
+        if (new Set([...r.getClientRects()].map((q) => Math.round(q.top))).size > 1) out.push(m[0])
+      }
+    }
+  }
+  return out
+}
+
 export const tests = [
   {
     name: 'Tab reaches each head; Enter and Space toggle it; focus stays on the head',
@@ -268,6 +287,48 @@ export const tests = [
       expect.ok(r.acc / r.rem <= 12, `the accordion is a narrow container (${(r.acc / r.rem).toFixed(1)}rem)`)
       expect.ok(r.pad <= r.rem * 0.5 + 0.5, `side padding is 0.5rem or less (${r.pad}px of ${r.rem}px)`)
       expect.ok(r.title >= r.acc * 0.55, `the title keeps more than half the head (${r.title.toFixed(0)} of ${r.acc.toFixed(0)}px)`)
+    },
+  },
+  {
+    name: 'the + control is chrome: it keeps its 100% size at 200% text, and no title or row is cut inside a word',
+    async run({ page, goto, expect }) {
+      await goto('components/accordion.html')
+      const control = () => page.locator('#one-open ~ .demo .accordion__head').first().evaluate((el) => { const cs = getComputedStyle(el, '::before'); return [parseFloat(cs.width), parseFloat(cs.height)].join('x') })
+      const at100 = await control()
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(200)
+      expect.equal(await control(), at100, 'the control box is the same size at 200% text')
+      const cut = await page.evaluate(brokenWords, '.accordion__title, .accordion__body .list__title, .accordion__body .list__value')
+      expect.equal(cut.join(', '), '', 'words split across lines')
+    },
+  },
+  {
+    name: 'in context: the rows inside an open item start their text where the item titles start',
+    async run({ page, goto, expect }) {
+      await goto('components/accordion.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => {
+          const acc = document.querySelector('#context ~ .demo .accordion')
+          const range = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect().left }
+          return {
+            titles: [...acc.querySelectorAll('.accordion__title')].map(range),
+            rows: [...acc.querySelectorAll('.accordion__item[open] .list__title')].map(range),
+          }
+        })
+        expect.ok(r.rows.length >= 2, `rows in the open item (${r.rows.length})`)
+        for (const x of r.rows) expect.ok(Math.abs(x - r.titles[0]) <= 1, `${text}%: a row starts at ${x.toFixed(1)}px, the titles at ${r.titles[0].toFixed(1)}px`)
+      }
+    },
+  },
+  {
+    name: 'state specimens: every caption clears its specimen by 12px or more',
+    async run({ page, goto, expect }) {
+      await goto('components/accordion.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('#states ~ .demo .accordion + .t-meta')].map((cap) => ({ cap: cap.textContent.trim().slice(0, 20), gap: cap.getBoundingClientRect().top - cap.previousElementSibling.getBoundingClientRect().bottom })))
+      expect.ok(r.length >= 4, `captions (${r.length})`)
+      for (const x of r) expect.ok(x.gap >= 12 - 0.5, `${x.cap}: ${x.gap.toFixed(1)}px under its specimen`)
     },
   },
 ]
