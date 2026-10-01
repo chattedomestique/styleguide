@@ -28,6 +28,7 @@
     /* a meta line of facts clips its inline overflow (it hides the dot that starts a line), so it is measured
        itself: a word that does not fit beside the value would not show in its .list__main */
     parts: '.list__row, .list__main, .list__meta[data-facts]',
+    strict: true, /* a title that runs a pixel into the row's end padding has not fitted */
     attrs: ['aria-current', 'aria-pressed']
   });
 

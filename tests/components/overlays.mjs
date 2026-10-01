@@ -51,6 +51,10 @@ async function auditOpenOverlays({ page, goto, expect, pageUrl, openers, how = '
         await page.keyboard.press('Enter')
         await page.waitForTimeout(550)
       }
+      if (how === 'key' && /data-sg-open/.test(sel)) {
+        const target = sel.match(/#[\w-]+/)[0]
+        expect.ok(await page.evaluate((t) => { const el = document.querySelector(t); return !!el && (el.matches('[open]') || el.checkVisibility()) }, target), `[${app.name}] ${target} opened (an earlier overlay that did not close would block it)`)
+      }
       const v = await axeViolations(page, app.media.forcedColors === 'active', scope)
       expect.ok(v.length === 0, `[${app.name}] ${sel} open: ${v.join(' ; ')}`)
       await page.keyboard.press('Escape')
@@ -64,7 +68,8 @@ export const tests = [
   {
     name: 'axe finds nothing on any OPEN dialog, in five appearances',
     async run(ctx) {
-      await auditOpenOverlays({ ...ctx, pageUrl: 'components/dialog.html', openers: ['[data-sg-open="#dlg-confirm"]', '[data-sg-open="#dlg-delete"]', '[data-sg-open="#dlg-rename"]', '[data-sg-open="#dlg-required"]', '[data-sg-open="#dlg-long"]', '[data-sg-open="#dlg-tone"]'] })
+      await auditOpenOverlays({ ...ctx, pageUrl: 'components/dialog.html', openers: ['[data-sg-open="#dlg-confirm"]', '[data-sg-open="#dlg-delete"]', '[data-sg-open="#dlg-rename"]', '[data-sg-open="#dlg-long"]', '[data-sg-open="#dlg-tone"]', '[data-sg-open="#dlg-required"]'] })
+      // the required dialog is last: by design Esc does not close it, so anything opened after it would never open
     },
   },
   {

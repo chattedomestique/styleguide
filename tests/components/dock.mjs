@@ -416,7 +416,7 @@ export const tests = [
         await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
         await page.waitForTimeout(400)
         const r = await page.evaluate(() => {
-          const demo = document.querySelector('#space ~ .demo'); const list = demo.querySelector('.card__list[data-rows]')
+          const demo = document.querySelector('#space ~ .demo'); const list = demo.querySelector('.card__list')
           const rows = [...list.children].map((li) => { const a = li.querySelector('a').getBoundingClientRect(); const v = li.querySelector('.num').getBoundingClientRect(); return { under: v.top >= a.bottom - 1, start: Math.abs(v.left - a.left) <= 1, overlap: v.left < a.right - 1 && v.top < a.bottom - 1 } })
           const card = demo.querySelector('.card').getBoundingClientRect(); const dock = demo.querySelector('.dock').getBoundingClientRect()
           return { fit: list.getAttribute('data-fit'), under: rows.filter((x) => x.under).length, n: rows.length, started: rows.every((x) => !x.under || x.start), overlap: rows.some((x) => x.overlap), inside: dock.left >= card.left + 4 && dock.right <= card.right - 4 }

@@ -36,7 +36,7 @@ export const tests = [
     },
   },
   {
-    name: 'hover and keyboard focus raise the button the same way; pressing sinks it',
+    name: 'hover and keyboard focus raise the button the same way; pressing sinks it and, on a filled button, lightens the fill',
     async run({ page, goto, expect }) {
       await goto('components/button.html')
       const b = page.locator('#variants ~ .demo .btn[data-variant="primary"]').first()
@@ -53,7 +53,9 @@ export const tests = [
       await page.waitForTimeout(400)
       const down = await nums()
       expect.equal(down.lift, 0, 'pressed: back onto the surface')
-      expect.equal(down.fill, 1, 'pressed: fill stays')
+      // a primary button is filled at rest, so a press that only sank it would look like rest on a touch screen:
+      // its fill lightens a little instead (golden rule 14)
+      expect.equal(down.fill, 0.85, 'pressed: the fill lightens, so a tap shows')
       await page.mouse.up()
       await page.mouse.move(0, 0)
       await page.keyboard.press('Tab') // switch to keyboard modality so :focus-visible applies

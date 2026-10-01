@@ -13,6 +13,7 @@
        steps: ['labels', 'compact', 'icons'],   richest first; the last one is used when none fits
        measure: '.dock__list',                  what must not overflow (default: the element itself)
        parts: '.seg__label',                    optional: descendants that must not overflow either
+       strict: true,                            optional: parts may not run into their own end padding either
        start: function (el) { return 0; },      optional: index of the first step to try
        attrs: ['aria-current']                  optional: attribute changes inside that re-check
      })
@@ -36,12 +37,32 @@
     return node.scrollWidth > node.clientWidth + 1;
   }
 
+  /* Content that runs into an element's end padding without passing its padding box does not change scrollWidth
+     (and scrollWidth is rounded), so a word 0.9px into a row's padding read as "fits". With strict: true the parts
+     are also measured against their content box, to half a pixel. */
+  function runsIntoPadding(node) {
+    var cs = getComputedStyle(node);
+    var box = node.getBoundingClientRect();
+    var rtl = cs.direction === 'rtl';
+    var edge = rtl ? box.left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft)
+      : box.right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight);
+    var range = document.createRange();
+    range.selectNodeContents(node);
+    var rects = range.getClientRects();
+    for (var i = 0; i < rects.length; i++) {
+      var q = rects[i];
+      if (q.width < 1) continue;
+      if (rtl ? q.left < edge - 0.5 : q.right > edge + 0.5) return true;
+    }
+    return false;
+  }
+
   function fits(el, kind) {
     var box = kind.measure ? el.querySelector(kind.measure) : el;
     if (!box || overflows(box)) return !box;
     if (!kind.parts) return true;
     var parts = el.querySelectorAll(kind.parts);
-    for (var i = 0; i < parts.length; i++) if (overflows(parts[i])) return false;
+    for (var i = 0; i < parts.length; i++) if (overflows(parts[i]) || (kind.strict && runsIntoPadding(parts[i]))) return false;
     return true;
   }
 
@@ -101,7 +122,7 @@
 
   SG.fit = {
     register: function (selector, opts) {
-      var kind = { selector: selector, steps: opts.steps, measure: opts.measure, parts: opts.parts, start: opts.start };
+      var kind = { selector: selector, steps: opts.steps, measure: opts.measure, parts: opts.parts, start: opts.start, strict: opts.strict };
       kinds.push(kind);
       (opts.attrs || []).forEach(function (a) { if (attrNames.indexOf(a) < 0) attrNames.push(a); });
       if (started) { observe(); schedule(); }
