@@ -26,8 +26,9 @@
      headline, not "bar chart"), and every chart has its data as a real table in a
      <details>. Interactive charts are a radio group (native arrows, native state).
    · bars are tone + PATTERN (00-chart-marks.css), frame 2px, value printed at the cap.
-   · the selected bar is FOUR things: filled with the accent, a doubled frame, its
-     value in heavy weight and its axis label inverted. Never the accent alone.
+   · the selected bar is FOUR things: filled with the accent, a doubled frame (a paper gap and a second
+     line, so it shows on an ink fill), its value in heavy weight and its axis label inverted. Never the
+     accent alone.
 
    data-orientation   vertical (default) | horizontal. Vertical flips to horizontal by
                       itself when the chart is narrower than 15rem (rem, so 200% text flips
@@ -100,8 +101,15 @@
   .bars__col {
     --lift: 0;
     --fill: 0;
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
-    --_select: 0 0 0 0 transparent;
+    /* A filled bar is ink wherever the accent is ink (default, wire, higher contrast), and an ink hard shadow
+       touching an ink fill reads as one lumpy blob: hover, press and "chosen" all looked alike. So the shadow
+       stands off the bar behind a paper gap (the gap grows with --lift, so a bar at rest has none), and the
+       chosen frame is gap + line. Both then show against their own fill, in every palette. */
+    --_gap: var(--bars-bg, var(--card-bg, var(--paper)));
+    --_shadow:
+      0 0 0 calc(var(--lift) * var(--bw)) var(--_gap),
+      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--lift) * var(--bw)) var(--line);
+    --_select: 0 0 0 0 transparent, 0 0 0 0 transparent;
 
     position: relative;
     display: grid;
@@ -275,7 +283,7 @@
   /* selected: fill, doubled frame, heavy value, inverted label. */
   .bars__col:is(:has(.bars__input:checked), [aria-current="true"], .is-selected) {
     --fill: 1;
-    --_select: 0 0 0 var(--bw) var(--line);
+    --_select: 0 0 0 var(--bw) var(--_gap), 0 0 0 calc(var(--bw) * 2) var(--line);
   }
 
   .bars__col:is(:has(.bars__input:checked), [aria-current="true"], .is-selected) .bars__value {
