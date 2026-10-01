@@ -181,4 +181,36 @@ export const tests = [
       expect.ok(/4px 4px/.test(r.shadow), 'and the shadow still says "press me"')
     },
   },
+  {
+    name: 'the forced .is-focus state draws the same 3px ring, offset outside the frame, that a real focus does',
+    async run({ page, goto, expect }) {
+      await goto('components/tile.html')
+      const r = await page.locator('#states ~ .demo .tile.is-focus').first().evaluate((el) => { const cs = getComputedStyle(el); return { s: cs.outlineStyle, w: cs.outlineWidth, o: cs.outlineOffset } })
+      expect.equal(r.s, 'solid', 'a ring is drawn')
+      expect.equal(r.w, '3px', 'the ring width')
+      expect.equal(r.o, '3px', 'outside the frame')
+    },
+  },
+  {
+    name: 'caption tiles are square whatever is in the field (a photo cannot stretch one), and their bars start at the same height',
+    async run({ page, goto, expect }) {
+      await goto('components/tile.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('#caption ~ .demo .tile[data-variant="caption"]')].map((t) => {
+        const b = t.getBoundingClientRect()
+        return { w: b.width, h: b.height, bar: t.querySelector('.tile__bar').getBoundingClientRect().top - b.top, name: t.querySelector('.tile__label').textContent.trim() }
+      }))
+      expect.ok(r.length >= 3, `three caption tiles (${r.length})`)
+      for (const t of r) expect.ok(Math.abs(t.h - t.w) <= 1, `${t.name} is square (${t.w.toFixed(0)} x ${t.h.toFixed(0)})`)
+      const first = r.slice(0, 2)
+      expect.ok(Math.abs(first[0].bar - first[1].bar) <= 1, `a one-line and a two-line name share a bar height (${first[0].bar.toFixed(0)} / ${first[1].bar.toFixed(0)})`)
+    },
+  },
+  {
+    name: 'the tones demo shows what it says: the six slots, ink and the four status tones',
+    async run({ page, goto, expect }) {
+      await goto('components/tile.html')
+      const names = await page.evaluate(() => [...document.querySelectorAll('#tones ~ .demo .tile')].slice(0, 11).map((t) => t.dataset.tone))
+      expect.equal(names.join(','), '1,2,3,4,5,6,ink,ok,warn,bad,info', 'every tone is on the page')
+    },
+  },
 ]

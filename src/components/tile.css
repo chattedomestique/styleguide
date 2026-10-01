@@ -15,7 +15,10 @@
    <button class="tile" type="button" aria-pressed="true">…</button>
 
    CAPTION variant: a field (colour, an icon or a photo) closed by a bar that carries the name.
-   Text never sits on the photo, so its contrast does not depend on the photo.
+   Text never sits on the photo, so its contrast does not depend on the photo. The photo is laid
+   OVER the field (absolute, object-fit: cover), so its natural size never sizes the tile: a caption
+   tile is as square as its siblings. The bar holds room for a two-line name and a meta line, so the
+   bars of a row start at the same height; a third line grows the tile, it never clips.
    <a class="tile" data-variant="caption" data-tone="3" href="/decks/colours">
      <span class="tile__field"><span class="ic ic--droplet" aria-hidden="true"></span></span>
      <span class="tile__bar"><span class="tile__label">Colours</span><span class="tile__meta">8 cards</span></span>
@@ -58,6 +61,7 @@
     --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
     --_select: 0 0 0 0 transparent;
     --_icon: clamp(1.5rem, 26cqi, 3rem);
+    --_lbl: clamp(var(--text-sm), 9cqi, var(--text-lg)); /* the label's size; the caption bar sizes itself from it */
 
     position: relative;
     display: flex;
@@ -97,8 +101,12 @@
       --ic-size: var(--_icon);
     }
 
-    &:focus-visible {
-      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+    /* the ring: the base rule draws it for a real :focus-visible; written out here so .is-focus (how the
+       docs SHOW the state) draws the very same ring, halo and lift */
+    &:is(:focus-visible, .is-focus) {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--focus-shadow, 0 0 0 var(--ring-offset) var(--focus-halo, var(--paper))), var(--_select), var(--_shadow);
     }
 
     /* raised: where a pointer can hover, and always on keyboard focus (same lift, so both match) */
@@ -148,9 +156,9 @@
 
   .tile__label {
     font: var(--type-ctl);
-    font-size: clamp(var(--text-sm), 9cqi, var(--text-lg));
+    font-size: var(--_lbl);
     line-height: var(--lh-snug);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word; /* a word is cut only when it cannot fit a line of its own */
     text-wrap: balance;
   }
 
@@ -192,26 +200,35 @@
     padding: 0;
     overflow: clip;
 
+    /* The field FILLS what the bar leaves and never sizes the tile: a photo is laid over it
+       (absolute), so its natural height cannot push the tile taller than its square siblings. */
     .tile__field {
+      position: relative;
       display: grid;
-      flex: 1 1 auto;
+      flex: 1 1 0;
       place-items: center;
       inline-size: 100%;
-      min-block-size: 0;
+      min-block-size: var(--_icon);
       overflow: clip;
 
       & > img {
+        position: absolute;
+        inset: 0;
         inline-size: 100%;
         block-size: 100%;
         object-fit: cover;
       }
     }
 
+    /* The bar holds room for a two-line name and a meta line, so bars in one row start at the same
+       height; a third line grows it. 1.3 is --lh-snug on the label (--_lbl) and on the meta (--text-sm). */
     .tile__bar {
       display: flex;
+      flex: none;
       flex-direction: column;
       gap: var(--space-1);
       inline-size: 100%;
+      min-block-size: calc(var(--space-2) * 2 + var(--bw) + var(--space-1) + var(--lh-snug) * (var(--_lbl) * 2 + var(--text-sm)));
       padding: var(--space-2) var(--space-3);
       color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper));
       background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
