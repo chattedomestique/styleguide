@@ -19,9 +19,15 @@
 
    greeting   <div class="appbar__heading"><p class="appbar__eyebrow">Good morning</p><h1 class="appbar__title">Taylor</h1></div>
               + one trailing action. A small eyebrow over a large name; no rule under it.
-   editor     cancel × | title (+ help) | apply ✓. The tool-tray pattern: cancel always on one side,
-              apply always on the other, so it is learned once.
-   search     back | search field | add. The field is a real <input type="search"> with a name.
+   editor     cancel × | title | (help ?) apply ✓. The tool-tray pattern: cancel always on one side,
+              apply always on the other, so it is learned once. The title is centred on the BAR, not
+              between unequal neighbours: the two sides are columns of the same width (the wider one's).
+              <button class="btn" …>×</button> <h1 class="appbar__title">Edit card</h1>
+              <div class="appbar__end"><button … aria-label="Help: …">?</button><button … data-variant="primary">✓</button></div>
+   search     back | search field | add. The field is a real <input type="search"> with a name. One height for
+              the row: the field is 44px (a target a finger can hit), so the circles here are the default 44px
+              too, and at large text, where the field grows with its words (its insets do not), the circles grow
+              with it (--_field-h), so a pill and a circle of different sizes never share the bar.
 
    A BAR IS A FRAME, NOT A BUTTON: flat (no shadow), a 2px rule under it, the title an uppercase bar
    label (--type-label; "uppercase is structure") except in the greeting, which is a sentence.
@@ -29,12 +35,16 @@
    inside follow them: on an ink bar a button inverts (paper fill, ink text) and the ring is paper,
    or it would vanish into the bar.
 
-   LARGE TEXT AND NARROW SCREENS (WCAG 1.4.4, 1.4.10). The bar WRAPS instead of squeezing: the title, the
-   greeting and the search field each keep at least 6rem, and whatever does not fit
-   drops to a second row with its actions at the end. Without that floor a flexible title shrinks to a
-   sliver next to three 88px buttons at 200% text and breaks into one letter per line, and a sticky bar
-   that tall eats half the screen. A toned or ink bar pads its sides so the buttons never touch the
-   edge of the fill (and the focus ring has room).
+   ONE ROW AT EVERY SIZE (WCAG 1.4.4, 1.4.10): [lead circle] [title, which may wrap to 2 or 3 lines] [action
+   circles]. The circles are chrome (button.css caps an icon-only circle at its 100% size, 36px here, with a
+   44px target), and so are the bar's gaps and padding, so at 200% text the title keeps the room the words
+   need. The controls sit at the top, centred on the title's FIRST line (the title pads itself by half the
+   difference between a control and one line, 1lh), so a title that wraps grows the bar downwards and the
+   actions stay where the thumb expects them. The greeting and the search field are one block each, so
+   their controls are centred on them instead. A title word breaks only if it alone is wider than the
+   bar. A toned or ink bar pads its sides so the buttons never touch the edge of the fill (and the focus
+   ring has room). A bar never wraps its controls onto rows of their own: a sticky bar that did ate a third
+   of the screen at 200% text.
    RIGHT-TO-LEFT: Back / forward arrows (.ic--arrow-left|right, .ic--chevron-left|right) mirror.
 
    --appbar-h  src/js/41-bars.js measures a sticky bar and publishes its height, so
@@ -43,37 +53,38 @@
    (a preview frame) publishes on the frame, not on <html>.
 
    Private properties (--_*): --_bg --_ink --_ink-soft --_h (height of the controls in the row)
+   --_side (the editor's side columns: as wide as its wider cluster of circles) --_field-h (the search row's one height)
    ========================================================================== */
 
 @layer sg.components {
   :root:has(.appbar[data-sticky]:not([hidden], [data-chrome-scope] *)) {
-    --appbar-h: calc(var(--ctl-sm) + 2 * var(--space-2) + var(--bw) + var(--safe-top));
+    --appbar-h: calc(var(--chrome-ctl-sm) + 2 * var(--chrome-2) + var(--bw) + var(--safe-top));
   }
 
   .appbar {
     --_bg: var(--tone-bg, var(--canvas));
     --_ink: var(--tone-ink, var(--ink));
     --_ink-soft: var(--tone-ink-soft, var(--ink-soft));
-    --_h: var(--ctl-sm);
+    --_h: var(--chrome-ctl-sm); /* the small circles of the bar: chrome, 36px at every text size */
     --focus: var(--_ink); /* the ring follows the surface */
 
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
+    flex-wrap: nowrap; /* one row at every size: the title wraps, the controls never drop to a row of their own */
+    align-items: flex-start; /* the controls line up with the title's first line (see .appbar__title) */
+    gap: var(--chrome-2);
     /* never shrink: in a column flex parent (.app, a phone frame) an explicit min-block-size lets the bar
-       squash to one row while its wrapped content is two, so the end action hangs below the rule and over
-       the first row of the list, and --appbar-h under-reports (WCAG 1.4.10, 2.4.11) */
+       squash while its title is two lines, so the rule cuts through the words and --appbar-h under-reports
+       (WCAG 1.4.10, 2.4.11) */
     flex: none;
-    min-block-size: calc(var(--_h) + 2 * var(--space-2));
-    padding-block: var(--space-2);
+    min-block-size: calc(var(--_h) + 2 * var(--chrome-2));
+    padding-block: var(--chrome-2);
     color: var(--_ink);
     background: var(--_bg);
     border-block-end: var(--bw) solid var(--line);
 
     /* a filled bar is a block of colour: its buttons must not touch the edge of it */
     &[data-tone] {
-      padding-inline: var(--space-3);
+      padding-inline: var(--chrome-3);
     }
 
     &[data-sticky] {
@@ -82,7 +93,7 @@
       z-index: var(--z-sticky);
       /* bleed to the screen edges inside the padded .app column, and pad the status bar */
       margin-inline: calc(-1 * max(var(--gutter), var(--safe-left))) calc(-1 * max(var(--gutter), var(--safe-right)));
-      padding-block-start: calc(var(--space-2) + var(--safe-top));
+      padding-block-start: calc(var(--chrome-2) + var(--safe-top));
       padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
     }
   }
@@ -101,19 +112,20 @@
     --line: var(--_ink);
   }
 
-  /* the actions sit at the end of whichever row they land on */
+  /* the actions sit at the end of the row */
   .appbar > :is(.appbar__end, .btn:last-child) {
     margin-inline-start: auto;
   }
 
-  /* The title asks for its longest WORD (flex-basis: min-content, which is why overflow-wrap is break-word:
-     "anywhere" would make that one letter) and never less than 6rem, then grows into what is left. A row
-     that cannot give it that wraps the title onto a row of its own. */
+  /* The title takes what the controls leave and wraps at its spaces (a word breaks only if it alone is wider
+     than that: break-word, not anywhere, which made the floor one letter). Its first line is centred on the
+     controls: it pads itself by half the difference between a control (--_h) and one of its own lines (1lh),
+     so a one-line title is exactly a control tall and a longer one grows the bar downwards. */
   .appbar__title {
-    flex: 1 1 min-content;
-    min-inline-size: min(100%, 6rem);
-    max-inline-size: 100%;
+    flex: 1 1 auto;
+    min-inline-size: 0;
     margin: 0;
+    padding-block: max(0px, (var(--_h) - 1lh) / 2);
     font: var(--type-label);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
@@ -121,17 +133,16 @@
     text-wrap: balance;
   }
 
-  /* a title with something else beside it (an eyebrow above, a help button next to it) */
+  /* a title with an eyebrow above it (the greeting) */
   .appbar__heading {
-    flex: 1 1 min-content;
-    min-inline-size: min(100%, 6rem);
-    max-inline-size: 100%;
+    flex: 1 1 auto;
+    min-inline-size: 0;
     display: flex;
     flex-direction: column;
 
     & > .appbar__title {
       flex: none;
-      min-inline-size: 0;
+      padding-block: 0;
     }
   }
   .appbar__eyebrow {
@@ -145,12 +156,13 @@
     display: flex;
     flex: none;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
   }
 
   /* ---- Greeting: a small eyebrow over a large name, one action at the end ----------------------- */
   .appbar[data-variant="greeting"] {
-    padding-block: var(--space-3);
+    align-items: center; /* the action is centred on the eyebrow and the name together */
+    padding-block: var(--chrome-3);
     border-block-end-color: transparent; /* a real edge for forced colours, invisible otherwise */
 
     & .appbar__title {
@@ -160,60 +172,80 @@
     }
   }
 
-  /* ---- Editor: cancel | title + help | apply ---------------------------------------------------- */
+  /* ---- Editor: cancel | title | help, apply -------------------------------------------------------
+     Three columns. The two sides are the same width (the wider cluster's: --_side counts the circles in the end
+     group), so the title is centred on the bar itself, never pushed off-centre by the extra help circle. 16px
+     between the title's column and the sides: on a 320px phone the centred words otherwise came within 9px of
+     the help circle and read as glued to it; now the title wraps a line sooner instead. */
   .appbar[data-variant="editor"] {
-    justify-content: space-between;
+    --_side: var(--_h);
 
-    & .appbar__heading {
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      column-gap: var(--space-1);
-      text-align: center;
+    display: grid;
+    grid-template-columns: minmax(var(--_side), 1fr) minmax(0, auto) minmax(var(--_side), 1fr);
+    align-items: start;
+    column-gap: var(--chrome-4);
+
+    &:has(> :last-child > :nth-child(2)) {
+      --_side: calc(2 * var(--_h) + var(--chrome-2));
+    }
+    &:has(> :last-child > :nth-child(3)) {
+      --_side: calc(3 * var(--_h) + 2 * var(--chrome-2));
+    }
+    & > :first-child {
+      justify-self: start;
+    }
+    & > :last-child {
+      justify-self: end;
     }
     & .appbar__title {
-      flex: none;
-      max-inline-size: 100%;
       font-size: var(--text-md);
       text-align: center;
     }
-    /* keep the centre title centred even when one side is wider than the other */
-    & > .btn {
-      flex: none;
-    }
   }
 
-  /* ---- Search: back | field | add ---------------------------------------------------------------- */
+  /* ---- Search: back | field | add: one block in the middle, so the circles are centred on it --------------
+     One height (--_field-h): the field's line and its 4px insets (chrome), never under 44px, and the circles
+     take it too. */
   .appbar[data-variant="search"] {
-    --_h: var(--ctl);
+    --_field-h: max(var(--chrome-ctl), calc(var(--text-md) * var(--lh-snug) + 2 * var(--chrome-1) + 2 * var(--bw)));
+
+    align-items: center;
+
+    & .btn {
+      --_h: var(--_field-h);
+      --_cap: var(--_field-h);
+    }
   }
   .appbar__search {
+    --ic-size: var(--chrome-ic-sm); /* the field's leading glyph is chrome, like the field's padding */
+
     position: relative;
     display: flex;
     flex: 1 1 0;
     align-items: center;
-    min-inline-size: min(100%, 6rem);
+    min-inline-size: 0;
     margin: 0;
 
     & > .ic {
       position: absolute;
-      inset-inline-start: var(--space-3);
+      inset-inline-start: var(--chrome-3);
       color: var(--ink-soft);
       pointer-events: none;
     }
   }
   .appbar__input {
     inline-size: 100%;
-    min-block-size: var(--ctl);
+    min-inline-size: 0;
+    min-block-size: var(--_field-h, var(--chrome-ctl)); /* 44px; the words grow it from there (their insets do not) */
     margin: 0;
-    padding-block: var(--space-2);
-    padding-inline: calc(var(--space-3) + var(--ic-size, 1.25rem) + var(--space-2)) var(--space-3);
+    padding-block: var(--chrome-1);
+    padding-inline: calc(var(--chrome-3) + var(--ic-size) + var(--chrome-2)) var(--chrome-3);
     color: var(--ink);
     background: var(--paper);
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-ctl);
     font: var(--type-body); /* 16px: iOS does not zoom the page on focus */
+    line-height: var(--lh-snug);
     appearance: none;
     -webkit-appearance: none;
   }

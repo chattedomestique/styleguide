@@ -48,20 +48,32 @@ export const tests = [
     },
   },
   {
-    name: 'The editor title group is centred between cancel and apply',
+    name: 'The editor title is centred on the bar, with the help circle in the end group (never glued to the title), at 390 and at 320',
     async run({ page, goto, expect }) {
+     for (const w of [390, 320]) {
+      await page.setViewportSize({ width: w, height: 844 })
       await goto('components/appbar.html')
-      const d = await page.evaluate(() => { const b = document.querySelector('.appbar[data-variant="editor"]'); const h = b.querySelector('.appbar__heading').getBoundingClientRect(); const br = b.getBoundingClientRect(); return Math.abs((h.left + h.right) / 2 - (br.left + br.right) / 2) })
-      expect.ok(d < 2, 'heading group is centred within 2px: off by ' + d)
+      const r = await page.evaluate(() => {
+        const b = document.querySelector('.appbar[data-variant="editor"]'); const t = b.querySelector('.appbar__title'); const br = b.getBoundingClientRect()
+        const rg = document.createRange(); rg.selectNodeContents(t); const words = rg.getBoundingClientRect()
+        const help = b.querySelector('[aria-label^="Help"]').getBoundingClientRect()
+        return { off: Math.abs((words.left + words.right) / 2 - (br.left + br.right) / 2), gap: Math.round(help.left - words.right), inEnd: !!b.querySelector('.appbar__end [aria-label^="Help"]') }
+      })
+      expect.ok(r.off < 2, w + 'px: the words are centred on the bar within 2px: off by ' + r.off)
+      expect.ok(r.inEnd, 'help sits in the end group, beside Apply')
+      expect.ok(r.gap >= 16, w + 'px: the help circle keeps clear of the words (' + r.gap + 'px)')
+     }
     },
   },
   {
-    name: 'Search bar: labelled type=search input, 16px text, a 2px frame, 44px tall, in a search form; focus ring on the field',
+    name: 'Search bar: labelled type=search input, 16px text, a 2px frame, 44px tall like the circles beside it, in a search form; focus ring on the field',
     async run({ page, goto, expect }) {
       await goto('components/appbar.html')
       const r = await page.evaluate(() => { const i = document.getElementById('appbar-q'); const cs = getComputedStyle(i); return { type: i.type, label: document.querySelector('label[for="appbar-q"]').textContent.trim(), px: parseFloat(cs.fontSize), h: i.getBoundingClientRect().height, bw: parseFloat(cs.borderTopWidth), form: i.closest('form').getAttribute('role') } })
       expect.equal(r.type, 'search'); expect.equal(r.label, 'Search decks'); expect.equal(r.form, 'search')
       expect.ok(r.px >= 16, 'iOS will not zoom: ' + r.px); expect.ok(r.h >= 44, 'height ' + r.h); expect.equal(r.bw, 2, 'a --bw frame')
+      const circles = await page.evaluate(() => [...document.querySelectorAll('.appbar[data-variant="search"] .btn')].map((b) => Math.round(b.getBoundingClientRect().height)))
+      expect.ok(circles.every((h) => Math.abs(h - r.h) <= 1), 'the circles are the field\'s height: ' + JSON.stringify({ circles, field: r.h }))
       await page.locator('#appbar-q').focus()
       await page.keyboard.type('bones')
       expect.equal(await page.locator('#appbar-q').inputValue(), 'bones', 'typing works')
@@ -103,7 +115,7 @@ export const tests = [
     },
   },
   {
-    name: 'A sticky bar in a column-flex frame never shrinks: at 320px a wrapped end action stays inside the rule, clear of the first row',
+    name: 'A sticky bar in a column-flex frame never shrinks: at 320px, at 100% and 200% text, every control stays inside the rule, clear of the first row',
     viewport: { width: 320, height: 700 },
     async run({ page, goto, expect }) {
       await goto('components/appbar.html')
@@ -183,40 +195,47 @@ export const tests = [
     },
   },
   {
-    name: 'Large text (200% at 390px): the bar wraps instead of squeezing, so a title keeps its whole words and a sticky bar stays about two rows',
+    name: 'Large text (200% at 390px): every bar is ONE row: circles keep their 100% size, the title wraps beside them by whole words, the controls line up with its first line, the editor title stays centred',
     viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await goto('components/appbar.html')
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(300)
       const r = await page.evaluate(() => {
-        document.documentElement.style.fontSize = '200%'
-        const host = document.createElement('div')
-        host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:326px;background:var(--canvas)'
-        const btn = (l, i) => '<button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="' + l + '"><span class="ic ic--' + i + '" aria-hidden="true"></span></button>'
-        host.innerHTML = [
-          '<header class="appbar">' + btn('Back', 'arrow-left') + '<h2 class="appbar__title">Spanish verbs deck</h2><div class="appbar__end">' + btn('Search', 'search') + btn('More', 'ellipsis') + '</div></header>',
-          '<header class="appbar" data-variant="greeting"><div class="appbar__heading"><p class="appbar__eyebrow">Good morning</p><h2 class="appbar__title">Alexandria</h2></div>' + btn('Notifications', 'bell') + '</header>',
-          '<header class="appbar" data-variant="editor">' + btn('Cancel', 'close') + '<div class="appbar__heading"><h2 class="appbar__title">Edit card</h2>' + btn('Help', 'circle-help') + '</div>' + btn('Apply', 'check') + '</header>',
-          '<header class="appbar" data-variant="search">' + btn('Back', 'arrow-left') + '<form class="appbar__search" role="search"><label class="sr-only" for="fx-q">Search</label><span class="ic ic--search" aria-hidden="true"></span><input class="appbar__input" id="fx-q" type="search"></form>' + btn('New', 'plus') + '</header>',
-        ].join('')
-        document.body.appendChild(host)
-        // width of the longest WORD of a title, measured on a clone that cannot wrap
-        const longest = (t) => Math.max(...t.textContent.trim().split(/\s+/).map((w) => { const p = t.cloneNode(false); p.textContent = w; p.style.cssText += ';position:absolute;visibility:hidden;white-space:nowrap;flex:none;inline-size:auto;min-inline-size:0'; t.parentElement.appendChild(p); const x = p.getBoundingClientRect().width; p.remove(); return x }))
-        const bars = [...host.children].map((b) => {
-          const t = b.querySelector('.appbar__title')
-          const f = b.querySelector('.appbar__input')
-          return { kind: b.getAttribute('data-variant') || 'standard', h: Math.round(b.getBoundingClientRect().height), title: t ? Math.round(t.getBoundingClientRect().width) : 0, word: t ? Math.round(longest(t)) : 0, field: f ? Math.round(f.getBoundingClientRect().width) : null, sw: b.scrollWidth, cw: b.clientWidth }
+        const longest = (t) => Math.max(...t.textContent.trim().split(/\s+/).map((w) => { const p = t.cloneNode(false); p.textContent = w; p.style.cssText += ';position:absolute;visibility:hidden;white-space:nowrap;flex:none;inline-size:auto;min-inline-size:0;padding:0'; t.parentElement.appendChild(p); const x = p.getBoundingClientRect().width; p.remove(); return x }))
+        return [...document.querySelectorAll('.docs-article .appbar')].map((b) => {
+          const br = b.getBoundingClientRect()
+          const btns = [...b.querySelectorAll('.btn')].map((x) => x.getBoundingClientRect())
+          const kids = [...b.children].filter((k) => getComputedStyle(k).position !== 'absolute' && !k.classList.contains('sr-only')).map((k) => k.getBoundingClientRect())
+          // one row: no child starts below the bottom of another
+          const stacked = kids.some((a) => kids.some((c) => c !== a && c.top >= a.bottom - 1))
+          const t = b.querySelector('.appbar__title:not(.sr-only)')
+          let firstLine = null, word = 0, title = 0, centreOff = null
+          if (t) {
+            const rg = document.createRange(); rg.selectNodeContents(t); const line = rg.getClientRects()[0]
+            firstLine = line ? (line.top + line.bottom) / 2 : null
+            word = Math.round(longest(t)); title = Math.round(t.getBoundingClientRect().width)
+            const all = rg.getBoundingClientRect(); centreOff = Math.abs((all.left + all.right) / 2 - (br.left + br.right) / 2)
+          }
+          // visible boxes only: a 36px circle's 44px hit area may reach past an untoned bar's edge, into the gutter
+          const over = kids.some((k) => k.left < br.left - 1 || k.right > br.right + 1)
+          const field = b.querySelector('.appbar__input')
+          return { kind: b.getAttribute('data-variant') || 'standard', h: Math.round(br.height), stacked, sizes: [...new Set(btns.map((x) => Math.round(x.height)))], centres: btns.map((x) => (x.top + x.bottom) / 2), firstLine, word, title, centreOff, over, field: field ? Math.round(field.getBoundingClientRect().height) : null }
         })
-        const out = { bars, hostOverflow: host.scrollWidth > 326 }
-        host.remove(); document.documentElement.style.fontSize = ''
-        return out
       })
-      expect.ok(!r.hostOverflow, 'nothing pokes out of a 326px column')
-      for (const b of r.bars) {
-        if (b.kind !== 'search') expect.ok(b.title >= b.word - 1, b.kind + ': the title (' + b.title + 'px) is at least as wide as its longest word (' + b.word + 'px), so no word is broken into letters')
-        expect.ok(b.h <= 260, b.kind + ': the bar is ' + b.h + 'px tall at 200% text (wrapped, not crushed: a letter-per-line title made it 346px)')
-        expect.ok(b.sw <= b.cw + 1, b.kind + ': no sideways overflow')
+      for (const b of r) {
+        expect.ok(!b.stacked, b.kind + ': one row, nothing dropped under anything: ' + JSON.stringify(b))
+        if (b.kind === 'search') expect.ok(b.sizes.length === 1 && Math.abs(b.sizes[0] - b.field) <= 1, 'search: the circles are the field\'s height, one height for the row: ' + JSON.stringify(b))
+        else expect.ok(b.sizes.every((h) => h <= 44.5), b.kind + ': the circles keep their 100% size (36px small, 44px default; chrome): ' + b.sizes)
+        expect.ok(!b.over, b.kind + ': no sideways overflow')
+        if (b.kind === 'standard' || b.kind === 'editor') {
+          expect.ok(b.title >= b.word - 1, b.kind + ': the title is at least as wide as its longest word: ' + JSON.stringify(b))
+          expect.ok(b.centres.every((c) => Math.abs(c - b.firstLine) <= 2), b.kind + ': the controls are level with the title\'s first line: ' + JSON.stringify(b))
+        }
+        if (b.kind === 'editor') expect.ok(b.centreOff < 2, 'editor: the title stays centred on the bar (' + b.centreOff + ')')
       }
-      expect.ok(r.bars.find((b) => b.kind === 'search').field >= 6 * 32 - 2, 'the search field keeps at least 6rem')
+      const sticky = r.filter((b) => b.kind === 'standard').map((b) => b.h)
+      expect.ok(Math.max(...sticky) <= 120, 'a standard bar is at most three lines of title tall: ' + sticky)
     },
   },
   {

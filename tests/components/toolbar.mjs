@@ -156,25 +156,31 @@ export const tests = [
     },
   },
   {
-    name: 'a narrow tray (320px; 200% text on a 390px phone) keeps the scroll buttons: they drop to a row under the list, at either end, and still scroll it',
+    name: 'a narrow tray (320px; 200% text on a 390px phone) is still ONE row: the scroll buttons stay beside the list, level with the tools, and scroll it; the circles stay 44px and no label word is broken',
     async run({ page, goto, expect }) {
       await goto('components/toolbar.html')
       // the two required conditions: 320px wide, and 200% text on a 390px phone
       for (const [vw, text] of [[320, 100], [390, 200]]) {
         await page.setViewportSize({ width: vw, height: 700 })
         await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
-        await page.waitForTimeout(250)
+        await page.waitForTimeout(300)
         const r = await page.evaluate((s) => {
           const bar = document.querySelector(s), list = bar.querySelector('.toolbar__list')
           const back = bar.querySelector('[data-dir="back"]'), fwd = bar.querySelector('[data-dir="forward"]')
-          const l = list.getBoundingClientRect(), b = back.getBoundingClientRect(), f = fwd.getBoundingClientRect(), t = bar.getBoundingClientRect()
-          return { over: list.scrollWidth > list.clientWidth, shown: getComputedStyle(back).display !== 'none' && getComputedStyle(fwd).display !== 'none' && !back.hidden && !fwd.hidden,
-            below: b.top >= l.bottom - 0.5 && f.top >= l.bottom - 0.5, ends: Math.round(b.left - t.left) < Math.round(t.right - b.right) && Math.round(t.right - f.right) < Math.round(f.left - t.left), inside: b.bottom <= t.bottom && f.bottom <= t.bottom && b.left >= t.left && f.right <= t.right,
-            rem: Math.round(t.width / parseFloat(getComputedStyle(document.documentElement).fontSize) * 10) / 10 }
+          const l = list.getBoundingClientRect(), b = back.getBoundingClientRect(), f = fwd.getBoundingClientRect()
+          const crop = document.getElementById('t1-crop').getBoundingClientRect()
+          const whole = [...list.querySelectorAll('.toolbar__item')].filter((i) => { const ir = i.getBoundingClientRect(); return ir.left >= l.left - 1 && ir.right <= l.right + 1 }).length
+          const broken = [...list.querySelectorAll('.toolbar__label')].filter((x) => x.scrollWidth > x.clientWidth + 1).length
+          return { over: list.scrollWidth > list.clientWidth, shown: !back.hidden && !fwd.hidden, beside: b.right <= l.left + 0.5 && f.left >= l.right - 0.5,
+            level: Math.abs((b.top + b.bottom) / 2 - (crop.top + crop.bottom) / 2) <= 1 && Math.abs((f.top + f.bottom) / 2 - (crop.top + crop.bottom) / 2) <= 1, circle: Math.round(crop.width), whole, broken }
         }, TOOLS)
         expect.ok(r.over, vw + 'px, ' + text + '%: the tools overflow the tray')
-        expect.ok(r.shown, vw + 'px, ' + text + '%: both scroll buttons are shown (tray ' + r.rem + 'rem wide)')
-        expect.ok(r.below && r.ends && r.inside, vw + 'px, ' + text + '%: on a row under the list, back at the start, forward at the end, inside the tray: ' + JSON.stringify(r))
+        expect.ok(r.shown && r.beside && r.level, vw + 'px, ' + text + '%: both scroll buttons on the same row, beside the list, level with the tools\' circles: ' + JSON.stringify(r))
+        expect.equal(r.circle, 44, vw + 'px, ' + text + '%: the tool circles keep their 100% size')
+        // 44px circles in cells of their label + 4px a side (52px at least), 36px scroll buttons: two whole tools on a 320px phone,
+        // and two at 200% text on a 390px phone (the labels are words, so they grow: "Colour" is 84px wide there)
+        expect.ok(r.whole >= 2, vw + 'px, ' + text + '%: at least two whole tools beside the buttons: ' + JSON.stringify(r))
+        expect.equal(r.broken, 0, vw + 'px, ' + text + '%: no label spills (a word is never broken)')
         const before = await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => el.scrollLeft)
         const fwd = page.locator(`${TOOLS} [data-dir="forward"]`)
         await fwd.scrollIntoViewIfNeeded()
@@ -186,6 +192,75 @@ export const tests = [
         await page.waitForTimeout(700)
         await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => { el.scrollLeft = 0 })
       }
+    },
+  },
+  {
+    name: 'pages of whole tools: at rest and after every press of forward or back, every tool in view is whole and the page fills the list; the pages show every tool once (390, 320, 200% text)',
+    reducedMotion: true,
+    async run({ page, goto, expect }) {
+      const look = (bar) => bar.evaluate((el) => {
+        const list = el.querySelector('.toolbar__list'); const l = list.getBoundingClientRect(); const cs = getComputedStyle(list)
+        const inS = l.left + parseFloat(cs.paddingLeft), inE = l.right - parseFloat(cs.paddingRight)
+        const items = [...list.querySelectorAll('.toolbar__item')].map((i) => ({ n: i.querySelector('.toolbar__label').textContent.trim(), r: i.getBoundingClientRect() })).filter((i) => i.r.right > l.left + 0.5 && i.r.left < l.right - 0.5)
+        const fwd = el.querySelector('[data-dir="forward"]'), back = el.querySelector('[data-dir="back"]')
+        return { names: items.map((i) => i.n), cut: items.filter((i) => i.r.left < inS - 0.5 || i.r.right > inE + 0.5).map((i) => i.n), startGap: items.length ? Math.round(items[0].r.left - inS) : null, endGap: items.length ? Math.round(inE - items[items.length - 1].r.right) : null, fwdEnd: fwd.getAttribute('aria-disabled') === 'true', backEnd: back.getAttribute('aria-disabled') === 'true', hidden: fwd.hidden }
+      })
+      for (const [vw, text, least] of [[390, 100, 3], [320, 100, 2], [390, 200, 2]]) {
+        await page.setViewportSize({ width: vw, height: 800 })
+        await goto('components/toolbar.html')
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(400)
+        const trays = await page.locator('.docs-article .toolbar').count()
+        expect.ok(trays >= 5, 'found the trays')
+        for (let t = 0; t < trays; t++) {
+          const bar = page.locator('.docs-article .toolbar').nth(t)
+          const label = await bar.locator('.toolbar__list').getAttribute('aria-label')
+          const tag = `${vw}px ${text}% ${label}`
+          let r = await look(bar)
+          if (r.hidden) continue
+          // go to the first page, then walk forward to the end and back again
+          for (let i = 0; i < 9 && !r.backEnd; i++) { await bar.locator('[data-dir="back"]').click(); await page.waitForTimeout(80); r = await look(bar) }
+          const all = await bar.evaluate((el) => [...el.querySelectorAll('.toolbar__label')].map((x) => x.textContent.trim()).join(' '))
+          const seen = []
+          for (let i = 0; i < 12; i++) {
+            expect.ok(r.names.length >= 1 && !r.cut.length, tag + ' page ' + (i + 1) + ': every tool in view is whole: ' + JSON.stringify(r))
+            expect.ok(Math.abs(r.startGap) <= 1 && Math.abs(r.endGap) <= 1, tag + ' page ' + (i + 1) + ': the page fills the list, edge to edge inside its padding: ' + JSON.stringify(r))
+            if (i === 0 && (label === 'Photo tools' || (label === 'Photo tools, editor' && text === 100))) expect.ok(r.names.length >= least, tag + ': the first page shows at least ' + least + ' whole tools: ' + JSON.stringify(r))
+            seen.push(...r.names)
+            if (r.fwdEnd) break
+            await bar.locator('[data-dir="forward"]').click(); await page.waitForTimeout(80); r = await look(bar)
+          }
+          expect.equal(seen.join(' '), all, tag + ': the pages show every tool once, in order')
+          await bar.locator('[data-dir="back"]').click(); await page.waitForTimeout(80)
+          const back = await look(bar)
+          expect.ok(!back.cut.length && Math.abs(back.startGap) <= 1, tag + ': back lands on whole tools too: ' + JSON.stringify(back))
+        }
+      }
+    },
+  },
+  {
+    name: 'S1: a radio or toggle tool only lifts on hover and tints when pressed; the fill is kept for on; an action tool keeps Button\'s fill on hover',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const nums = (sel) => page.locator(sel).evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      await page.locator('#t1-crop').scrollIntoViewIfNeeded()
+      await page.locator('#t1-crop').hover()
+      await page.waitForTimeout(350)
+      const h = await nums('#t1-crop')
+      expect.equal(h.lift, 1, 'an off radio tool raises'); expect.equal(h.fill, 0, 'but is not filled')
+      await page.mouse.down(); await page.waitForTimeout(300)
+      const p = await nums('#t1-crop')
+      expect.ok(p.lift === 0 && p.fill > 0.1 && p.fill < 0.2, 'pressed: sunk with a light tint: ' + JSON.stringify(p))
+      await page.mouse.move(0, 0); await page.mouse.up()
+      await page.locator('#t1-light').hover(); await page.waitForTimeout(350)
+      const on = await nums('#t1-light')
+      expect.ok(on.lift === 1 && on.fill === 1, 'the on tool stays filled while raised: ' + JSON.stringify(on))
+      await page.locator('#t2-undo').scrollIntoViewIfNeeded()
+      await page.locator('#t2-undo').hover(); await page.waitForTimeout(350)
+      expect.equal((await nums('#t2-undo')).fill, 1, 'an action tool (Undo) fills on hover, as a Button does')
+      await page.locator('#t2-grid').scrollIntoViewIfNeeded()
+      await page.locator('#t2-grid').hover(); await page.waitForTimeout(350)
+      expect.equal((await nums('#t2-grid')).fill, 0, 'an off toggle (Grid) does not fill on hover')
     },
   },
   {
@@ -230,6 +305,8 @@ export const tests = [
       })
       expect.ok(r.w >= 43.5 && r.h >= 43.5, `44px circle (${r.w}x${r.h})`)
       expect.ok(r.padTop >= 6, `room above the circle for the 6px focus ring (${r.padTop}px)`)
+      // raised (2px up and back) and ringed (3px offset + 3px ring): the ring reaches 8px before the circle's resting edge
+      expect.ok(r.padStart >= 7.5, `room before the first circle for its raised focus ring (${r.padStart}px)`)
     },
   },
   {

@@ -24,7 +24,7 @@ export const tests = [
     },
   },
   {
-    name: 'Filter chip: on = filled AND a second 2px ring AND a check; its leading icon gives way to the check',
+    name: 'Filter chip: on = filled AND a doubled frame drawn inside AND a check; its leading icon gives way to the check',
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       await page.mouse.move(0, 0)
@@ -34,12 +34,12 @@ export const tests = [
         return { on: c.getAttribute('aria-pressed') === 'true', fill: Number(cs.getPropertyValue('--fill')), shadow: cs.boxShadow, iconShown: getComputedStyle(icon).display !== 'none', check: getComputedStyle(c, '::before').display !== 'none' }
       }), FILTERS)
       const on = r.find((c) => c.on); const off = r.find((c) => !c.on)
-      expect.equal(on.fill, 1, 'on: --fill 1'); expect.ok(/0px 0px 0px 2px/.test(on.shadow), 'on: a second 2px ring: ' + on.shadow); expect.ok(on.check, 'on: check'); expect.ok(!on.iconShown, 'on: leading icon hidden')
+      expect.equal(on.fill, 1, 'on: --fill 1'); expect.ok(/0px 0px 0px 2px inset/.test(on.shadow), 'on: a 2px ring inside the frame: ' + on.shadow); expect.ok(on.check, 'on: check'); expect.ok(!on.iconShown, 'on: leading icon hidden')
       expect.equal(off.fill, 0, 'off: --fill 0'); expect.ok(!off.check, 'off: no check'); expect.ok(off.iconShown, 'off: leading icon shown')
     },
   },
   {
-    name: 'Filter chip: hover and keyboard focus raise it (--lift 1), pressing sinks it; toggling does not change its width',
+    name: 'Filter chip: hover and keyboard focus raise it (--lift 1) WITHOUT the fill, pressing sinks it with a light tint; toggling does not change its width',
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       const chip = page.locator(`${FILTERS} .chip`, { hasText: 'Travel' }).first()
@@ -50,15 +50,41 @@ export const tests = [
       await chip.hover()
       await page.waitForTimeout(400)
       const hover = await nums()
-      expect.equal(hover.lift, 1, 'hover: --lift 1'); expect.equal(hover.fill, 1, 'hover: --fill 1')
+      expect.equal(hover.lift, 1, 'hover: --lift 1'); expect.equal(hover.fill, 0, 'hover: --fill 0 (the solid fill is kept for on)')
       expect.ok(/4px 4px 0px 0px/.test(hover.shadow), 'hard 4px shadow, zero blur: ' + hover.shadow)
       await page.mouse.down()
       await page.waitForTimeout(400)
       const down = await nums()
-      expect.equal(down.lift, 0, 'pressed: sunk'); expect.equal(down.fill, 1, 'pressed: filled')
+      expect.equal(down.lift, 0, 'pressed: sunk'); expect.ok(down.fill > 0.1 && down.fill < 0.2, 'pressed: a light tint, not the on fill: ' + down.fill)
       await page.mouse.up() // a click: it toggles the chip on
+      await page.waitForTimeout(400)
+      const on = await nums()
+      expect.equal(on.fill, 1, 'on: filled'); expect.equal(on.lift, 1, 'on and still hovered: raised as well')
+      expect.ok(/6px 6px 0px 0px/.test(on.shadow) && /0px 0px 0px 2px(?! inset)/.test(on.shadow), 'a raised on chip keeps a surface-coloured gap before its shadow (it does not fuse with it): ' + on.shadow)
       const w1 = await chip.evaluate((el) => el.getBoundingClientRect().width)
       expect.ok(Math.abs(w1 - w0) < 1.5, `toggling does not reflow the row: ${w0} -> ${w1}`)
+    },
+  },
+  {
+    name: 'S1: the fill is kept for on. An action chip and a "more" chip only lift on hover; an on chip lightens a little while pressed',
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      const read = (loc) => loc.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      for (const loc of [page.locator('#action + p + .demo .chip').first(), page.locator('.chip[data-kind="more"]')]) {
+        await loc.scrollIntoViewIfNeeded()
+        await loc.hover()
+        await page.waitForTimeout(350)
+        const r = await read(loc)
+        expect.equal(r.lift, 1, 'hover raises'); expect.equal(r.fill, 0, 'hover does not fill a chip that is not on')
+      }
+      const on = page.locator(`${FILTERS} .chip[aria-pressed="true"]`).first()
+      await on.scrollIntoViewIfNeeded()
+      await on.hover()
+      await page.mouse.down()
+      await page.waitForTimeout(350)
+      const r = await read(on)
+      expect.equal(r.lift, 0, 'pressed: sunk'); expect.ok(r.fill > 0.8 && r.fill < 0.9, 'an on chip pressed lightens a little: ' + r.fill)
+      await page.mouse.up()
     },
   },
   {
@@ -166,8 +192,15 @@ export const tests = [
       expect.equal(await page.locator('#chip-rcpt .chip').count(), 0, 'all removed')
       await expect.focused(page, '#chip-add-person', 'focus lands on the named fallback')
       expect.ok((await status(page)).includes('Sofia Rossi removed. None left.'))
-      await page.locator('#chip-reset').click()
-      expect.equal(await page.locator('#chip-rcpt .chip').count(), 3, 'the docs reset button restores the demo')
+      // the demo's Undo: shown only once someone is removed, puts the last one back in place with focus on them, hides when empty
+      expect.equal(await page.locator('#chip-undo').isVisible(), true, 'Undo appears after a removal')
+      for (const [n, count] of [['Sofia Rossi', 1], ['Ravi Patel', 2], ['Anna Kim', 3]]) {
+        await page.locator('#chip-undo').click()
+        expect.equal(await page.locator('#chip-rcpt .chip').count(), count, n + ' is back')
+        await expect.focused(page, `#chip-rcpt .chip__remove[aria-label="Remove ${n}"]`, 'focus goes to the person who came back')
+      }
+      expect.equal(await page.locator('#chip-rcpt .chip__label').allTextContents().then((a) => a.join(', ')), 'Anna Kim, Ravi Patel, Sofia Rossi', 'in their old order')
+      expect.equal(await page.locator('#chip-undo').isVisible(), false, 'Undo hides when there is nothing left to undo')
     },
   },
   {
@@ -180,6 +213,8 @@ export const tests = [
       expect.equal(await page.locator('#chip-rcpt .chip').count(), 3, 'nothing removed')
       expect.equal(await page.evaluate(() => window.__label), 'Anna Kim', 'detail carries the label')
       await expect.focused(page, '#chip-rcpt .chip__remove[aria-label="Remove Anna Kim"]', 'focus stays put')
+      await page.waitForTimeout(50)
+      expect.equal(await page.locator('#chip-undo').isVisible(), false, 'a cancelled removal offers no Undo')
     },
   },
   {
@@ -237,16 +272,63 @@ export const tests = [
     },
   },
   {
-    name: 'Reduced motion: a chip raises with no travel, the fill still changes',
+    name: 'Reduced motion: a chip raises with no travel; the shadow and the press tint still show',
     reducedMotion: true,
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       const chip = page.locator(`${FILTERS} .chip`, { hasText: 'Health' }).first()
       await chip.hover()
       await page.waitForTimeout(500)
-      const r = await chip.evaluate((el) => ({ t: getComputedStyle(el).transform, fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      const r = await chip.evaluate((el) => ({ t: getComputedStyle(el).transform, lift: Number(getComputedStyle(el).getPropertyValue('--lift')), shadow: getComputedStyle(el).boxShadow }))
       expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', `no movement (got ${r.t})`)
-      expect.equal(r.fill, 1, 'the fill still changes')
+      expect.equal(r.lift, 1, 'still raised'); expect.ok(/4px 4px 0px 0px/.test(r.shadow), 'the hard shadow still says "you can press this": ' + r.shadow)
+      await page.mouse.down()
+      await page.waitForTimeout(300)
+      const f = await chip.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
+      expect.ok(f > 0.1 && f < 0.2, 'the press tint still shows: ' + f)
+      await page.mouse.up()
+    },
+  },
+  {
+    name: 'An on chip keeps the size of its neighbours: its doubled frame is inside, nothing is drawn outside it at rest; a tone chip that is on has no inner ring',
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      await page.mouse.move(0, 0)
+      const r = await page.evaluate(() => {
+        const outward = (shadow) => [...shadow.matchAll(/(rgba?\([^)]*\)|#\w+)?\s*(-?[\d.]+)px (-?[\d.]+)px ([\d.]+)px (-?[\d.]+)px( inset)?/g)].filter((m) => !m[6] && (Number(m[2]) || Number(m[3]) || Number(m[5]) > 0)).length
+        const rows = [...document.querySelectorAll('.chips')].map((row) => [...row.querySelectorAll(':scope > .chip, :scope > li.chip')].filter((c) => c.offsetParent && !c.matches('.is-hover, .is-focus, .is-active, [data-kind="input"]')))
+        const bad = []
+        for (const chips of rows) {
+          const hs = new Set(chips.map((c) => Math.round(c.getBoundingClientRect().height)))
+          if (hs.size > 1 && chips.every((c) => !c.closest('[data-size]') && c.getAttribute('data-size') === chips[0].getAttribute('data-size'))) bad.push('heights ' + [...hs] + ' in ' + chips.map((c) => c.textContent.trim()).join('/'))
+          for (const c of chips) if ((c.matches('[aria-pressed="true"], [aria-checked="true"]') || c.querySelector(':scope > .chip__input:checked')) && outward(getComputedStyle(c).boxShadow)) bad.push('outer ring on ' + c.textContent.trim() + ': ' + getComputedStyle(c).boxShadow)
+        }
+        const tone = [...document.querySelectorAll('.chip[data-variant="tone"]')].find((c) => c.matches('[aria-pressed="true"], :has(> .chip__input:checked)'))
+        return { bad, tone: tone ? getComputedStyle(tone).boxShadow : null, toneCheck: tone ? getComputedStyle(tone, '::before').display : null }
+      })
+      expect.ok(!r.bad.length, 'every chip in a row is one height and an on chip draws nothing outside its frame: ' + JSON.stringify(r.bad))
+      expect.ok(r.tone && !/[1-9][\d.]*px inset/.test(r.tone), 'a tone chip that is on keeps a single frame: ' + r.tone)
+      expect.ok(r.toneCheck !== 'none', 'and shows its check')
+    },
+  },
+  {
+    name: 'At 200% text the leading icon and the check grow with the label (1.15em); the remove glyph of an input chip is 20px drawn',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => {
+          const icon = [...document.querySelectorAll('.chip > .chip__icon, .chip > .ic')].find((i) => i.getBoundingClientRect().width > 0); const chip = icon.closest('.chip')
+          const on = document.querySelector('.chip[aria-pressed="true"]')
+          const rm = document.querySelector('.chip__remove > .ic')
+          return { font: parseFloat(getComputedStyle(chip).fontSize), icon: icon.getBoundingClientRect().width, check: parseFloat(getComputedStyle(on, '::before').width), onFont: parseFloat(getComputedStyle(on).fontSize), remove: rm.getBoundingClientRect().width }
+        })
+        expect.ok(Math.abs(r.icon - r.font * 1.15) < 1, text + '%: the leading icon is 1.15em of its label: ' + JSON.stringify(r))
+        expect.ok(Math.abs(r.check - r.onFont * 1.15) < 1, text + '%: the check is 1.15em of its label: ' + JSON.stringify(r))
+        expect.ok(r.remove >= 19.5 && r.remove <= 20.5, text + '%: the remove glyph is 20px (its own control, chrome): ' + JSON.stringify(r))
+      }
     },
   },
   {
@@ -310,20 +392,38 @@ export const tests = [
     },
   },
   {
-    name: 'Scrolling row cue: the row marks the edges that hide chips (data-more) and draws a rule there; a row that fits has none',
+    name: 'Scrolling row cue: no fence line at the edge; the row runs to the frame of the stage and the next chip is cut there',
     viewport: { width: 320, height: 700 },
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       const ROW = '#scroll + p + .demo .chips.scroller'
-      const read = () => page.locator(ROW).evaluate((el) => ({ more: el.getAttribute('data-more'), shadow: getComputedStyle(el).boxShadow }))
       await page.locator(ROW).scrollIntoViewIfNeeded()
-      const a = await read()
-      expect.equal(a.more, 'end', 'at the start only the end hides chips'); expect.ok(/inset/.test(a.shadow), 'and draws its rule: ' + a.shadow)
-      await page.locator(ROW).evaluate((el) => { el.scrollLeft = el.scrollWidth })
-      await page.waitForTimeout(100)
-      expect.equal((await read()).more, 'start', 'at the end only the start does')
-      const fits = await page.evaluate(() => [...document.querySelectorAll('.chips.scroller')].filter((l) => l.scrollWidth <= l.clientWidth + 1).every((l) => !l.hasAttribute('data-more')))
-      expect.ok(fits, 'a row that fits shows no cue')
+      const r = await page.locator(ROW).evaluate((el) => {
+        const row = el.getBoundingClientRect(); const stage = el.closest('.demo__stage').getBoundingClientRect()
+        const cut = [...el.querySelectorAll('.chip')].filter((c) => { const b = c.getBoundingClientRect(); return b.left < row.right && b.right > row.right + 1 })
+        return { shadow: getComputedStyle(el).boxShadow, more: el.hasAttribute('data-more'), toFrame: Math.abs(row.right - (stage.right - parseFloat(getComputedStyle(el.closest('.demo__stage')).borderRightWidth))), cut: cut.length }
+      })
+      expect.ok(r.shadow === 'none' || !/inset/.test(r.shadow), 'no inset rule on the edge: ' + r.shadow)
+      expect.ok(!r.more, 'the row is not marked data-more any more (nothing draws it)')
+      expect.ok(r.toFrame <= 1, 'the row runs to the frame of the stage: ' + r.toFrame)
+      expect.equal(r.cut, 1, 'one chip is cut by the frame: it peeks in, so the row reads as going on')
+    },
+  },
+  {
+    name: 'Scrolling row: at rest the chip at the edge is cut near its middle (30-60% of it shows, at least 24px) at 390, 320 and 200% text',
+    async run({ page, goto, expect }) {
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await goto('components/chip.html')
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(400)
+        const r = await page.locator('#scroll + p + .demo .chips.scroller').evaluate((el) => {
+          const row = el.getBoundingClientRect()
+          const c = [...el.querySelectorAll('.chip')].map((x) => ({ n: x.textContent.trim(), b: x.getBoundingClientRect() })).find((x) => x.b.left < row.right && x.b.right > row.right + 0.5)
+          return c ? { n: c.n, v: Math.round(row.right - c.b.left), w: Math.round(c.b.width), frac: Math.round((row.right - c.b.left) / c.b.width * 100) / 100 } : null
+        })
+        expect.ok(r && r.frac >= 0.3 && r.frac <= 0.6 && r.v >= 24, `${w}px ${text}%: the cut chip shows 30-60% of itself: ` + JSON.stringify(r))
+      }
     },
   },
 ]

@@ -1,10 +1,10 @@
 // Pagination: real links in a labelled nav, the current page filled + framed twice + aria-current,
-// unavailable Previous/Next that stay focusable but inert, and the two layouts the nav chooses from its
-// OWN width. The live pager in the docs re-renders, moves focus to the results and announces.
+// unavailable Previous/Next that stay focusable but inert, and the one-row forms the nav chooses from its
+// OWN width (47-pagination.js, SG.fit). The live pager in the docs re-renders, moves focus to the results and announces.
 const status = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r([...document.querySelectorAll('[role="status"]')].map((e) => e.textContent).join('|'))))))
 const LIVE = '#pg-live'
-// The live pager and the Markup / First-and-last demos sit in a frame at least 42rem wide (so they show the numbers on
-// every screen); the short form is shown by the resizable box in "Narrow: the short form", which starts at 16rem.
+// The short form is shown by the resizable box in "Narrow: the short form", which starts at 16rem.
+const settle = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50)))))
 const SHORT = '#narrow ~ .demo .resize-box .pagination'
 const WIDE = { width: 1024, height: 900 }
 
@@ -26,14 +26,15 @@ export const tests = [
     },
   },
   {
-    name: 'The current page is filled AND ringed a second time; the others are outlines',
+    name: 'The current page is filled AND its frame doubles (inside); the others are outlines',
     viewport: WIDE,
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
       await page.mouse.move(0, 0)
       const r = await page.evaluate((sel) => [...document.querySelectorAll(sel + ' .pagination__page .btn')].map((b) => { const cs = getComputedStyle(b); return { cur: b.getAttribute('aria-current') === 'page', fill: Number(cs.getPropertyValue('--fill')), shadow: cs.boxShadow, tab: cs.fontVariantNumeric } }), LIVE)
       const cur = r.find((b) => b.cur); const other = r.filter((b) => !b.cur)
-      expect.equal(cur.fill, 1, 'current: --fill 1'); expect.ok(/0px 0px 0px 2px/.test(cur.shadow), 'current: second 2px ring: ' + cur.shadow)
+      expect.equal(cur.fill, 1, 'current: --fill 1'); expect.ok(/0px 0px 0px 2px inset/.test(cur.shadow), 'current: its frame doubles inside (a 2px inset ring): ' + cur.shadow)
+      expect.ok(!/0px 0px 0px [1-9][\d.]*px(?! inset)/.test(cur.shadow), 'current: nothing drawn outside its frame, so it is the size of the numbers beside it: ' + cur.shadow)
       expect.ok(other.every((b) => b.fill === 0 && !/0px 0px 0px 2px/.test(b.shadow)), 'others: outline, one frame')
       expect.ok(cur.tab.includes('tabular-nums'), 'numbers are tabular')
     },
@@ -87,7 +88,6 @@ export const tests = [
     name: 'Narrow (390px): the numbers give way to "Page N of M"; Previous and Next are 44px circles that keep their names',
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
-      // was asserted on the live pager; that demo now keeps a 42rem frame on every screen, so the narrow box is the subject
       const r = await page.evaluate((sel) => {
         const nav = document.querySelector(sel)
         const d = (s) => getComputedStyle(nav.querySelector(s)).display
@@ -103,12 +103,14 @@ export const tests = [
     viewport: WIDE,
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
-      const r = await page.evaluate(() => {
-        const box = document.querySelector('#narrow ~ .demo .resize-box'); const nav = box.querySelector('.pagination')
-        const d = () => getComputedStyle(nav.querySelector('.pagination__status')).display
-        box.style.inlineSize = '44rem'; const wide = d(); box.style.inlineSize = '20rem'; const narrow = d(); return { wide, narrow }
-      })
-      expect.equal(r.wide, 'none', 'roomy box: numbers'); expect.equal(r.narrow, 'block', 'narrow box on the same screen: short form')
+      const d = () => page.evaluate(() => { const nav = document.querySelector('#narrow ~ .demo .resize-box .pagination'); return { status: getComputedStyle(nav.querySelector('.pagination__status')).display, fit: nav.getAttribute('data-fit') } })
+      await page.evaluate(() => { document.querySelector('#narrow ~ .demo .resize-box').style.inlineSize = '44rem' })
+      await settle(page)
+      const wide = await d()
+      await page.evaluate(() => { document.querySelector('#narrow ~ .demo .resize-box').style.inlineSize = '20rem' })
+      await settle(page)
+      const narrow = await d()
+      expect.ok(wide.status === 'none' && wide.fit === 'full', 'roomy box: numbers: ' + JSON.stringify(wide)); expect.ok(narrow.status === 'block' && narrow.fit === 'short', 'narrow box on the same screen: short form: ' + JSON.stringify(narrow))
     },
   },
   {
@@ -132,66 +134,96 @@ export const tests = [
       await expect.attr(page, `${nav} .pagination__next .btn`, 'aria-label', 'Next month, February')
       await page.locator(`${nav} .pagination__next .btn`).focus()
       await page.keyboard.press('Enter')
-      expect.equal((await page.locator(`${nav} .pagination__status`).textContent()).trim(), 'February 2024', 'Enter moved to the next month')
+      expect.equal((await page.locator(`${nav} .pagination__status`).textContent()).trim(), 'February 2026', 'Enter moved to the next month')
       await expect.attr(page, `${nav} .pagination__next .btn`, 'aria-label', 'Next month, March')
       await expect.attr(page, `${nav} .pagination__prev .btn`, 'aria-label', 'Previous month, January')
       await expect.focused(page, `${nav} .pagination__next .btn`, 'focus stays on the pressed button')
     },
   },
   {
-    name: 'Reduced motion: a page button raises without travel',
+    name: 'Reduced motion: a page button raises without travel (its shadow still shows); it is not filled, the fill means current',
     reducedMotion: true,
     viewport: WIDE,
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
       const b = page.locator(`${LIVE} .pagination__page a[data-page="6"]`)
       await b.hover(); await page.waitForTimeout(500)
-      const r = await b.evaluate((el) => ({ t: getComputedStyle(el).transform, fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
-      expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', 'no travel: ' + r.t); expect.equal(r.fill, 1, 'fill still changes')
+      const r = await b.evaluate((el) => ({ t: getComputedStyle(el).transform, lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')), shadow: getComputedStyle(el).boxShadow }))
+      expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', 'no travel: ' + r.t)
+      expect.equal(r.lift, 1, 'raised'); expect.ok(/4px 4px 0px 0px/.test(r.shadow), 'its hard shadow shows: ' + r.shadow)
+      expect.equal(r.fill, 0, 'not filled: only the current page is (S1)')
+      await page.mouse.down(); await page.waitForTimeout(300)
+      const f = await b.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
+      expect.ok(f > 0.1 && f < 0.2, 'pressed: a light tint: ' + f)
+      await page.mouse.up()
     },
   },
   {
-    name: 'Large text: the status line never prints under a button; under 13rem of the nav\'s own width it takes a row above the two circles',
+    name: 'The short form is ONE row at every size: at 200% text and at 100% in a tiny box the status sits between the circles (wrapping there), never under them',
     viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
-      const measure = (w) => page.evaluate((w) => {
-        document.documentElement.style.fontSize = '200%'
-        const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:' + w + 'px;background:var(--canvas)'
-        host.innerHTML = '<nav class="pagination" aria-label="fx"><ul class="pagination__list" role="list"><li class="pagination__prev"><a class="btn" href="#fx"><span class="ic ic--arrow-left" aria-hidden="true"></span><span class="pagination__label">Previous</span></a></li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 1">1</a></li><li class="pagination__status">Page 12 of 12</li><li class="pagination__next"><a class="btn" href="#fx"><span class="pagination__label">Next</span><span class="ic ic--arrow-right" aria-hidden="true"></span></a></li></ul></nav>'
-        document.body.appendChild(host)
-        const st = host.querySelector('.pagination__status'); const sr = st.getBoundingClientRect()
-        const btns = [...host.querySelectorAll('.btn')].map((b) => b.getBoundingClientRect()).filter((b) => b.width > 0)
-        const hit = btns.some((b) => Math.min(sr.right, b.right) - Math.max(sr.left, b.left) > 1 && Math.min(sr.bottom, b.bottom) - Math.max(sr.top, b.top) > 1)
-        const out = { hit, above: btns.every((b) => sr.bottom <= b.top + 1), overflow: host.scrollWidth > w, clipped: st.scrollWidth > st.clientWidth + 1, textLines: Math.round(sr.height / parseFloat(getComputedStyle(st).lineHeight)) }
-        host.remove(); document.documentElement.style.fontSize = ''
-        return out
-      }, w)
-      const narrow = await measure(326)   // 10.2rem at 200%: stacked
-      expect.ok(!narrow.hit && !narrow.overflow && !narrow.clipped, 'stacked: the status is not under a button and nothing overflows: ' + JSON.stringify(narrow))
-      expect.ok(narrow.above, 'stacked: the status sits above the two circles')
-      const mid = await measure(640)      // 20rem at 200%: one row
-      expect.ok(!mid.hit && !mid.overflow && !mid.clipped, 'one row: the status is between the circles, not under them: ' + JSON.stringify(mid))
+      const measure = async (w, text) => {
+        await page.evaluate(([w, text]) => {
+          document.documentElement.style.fontSize = text + '%'
+          const host = document.createElement('div'); host.id = 'fx-host'; host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:' + w + 'px;background:var(--canvas)'
+          host.innerHTML = '<nav class="pagination" aria-label="fx"><ul class="pagination__list" role="list"><li class="pagination__prev"><a class="btn" href="#fx"><span class="ic ic--arrow-left" aria-hidden="true"></span><span class="pagination__label">Previous</span></a></li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 1">1</a></li><li class="pagination__gap" aria-hidden="true">…</li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 5">5</a></li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 6" aria-current="page">6</a></li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 7">7</a></li><li class="pagination__gap" aria-hidden="true">…</li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 12">12</a></li><li class="pagination__status">Page 6 of 12</li><li class="pagination__next"><a class="btn" href="#fx"><span class="pagination__label">Next</span><span class="ic ic--arrow-right" aria-hidden="true"></span></a></li></ul></nav>'
+          document.body.appendChild(host)
+        }, [w, text])
+        await settle(page)
+        return page.evaluate((w) => {
+          const host = document.getElementById('fx-host'); const nav = host.querySelector('.pagination')
+          const st = host.querySelector('.pagination__status'); const sr = st.getBoundingClientRect()
+          const [a, b] = [host.querySelector('.pagination__prev .btn'), host.querySelector('.pagination__next .btn')].map((e) => e.getBoundingClientRect())
+          const out = { fit: nav.getAttribute('data-fit'), between: sr.left >= a.right - 1 && sr.right <= b.left + 1, sameRow: Math.abs((a.top + a.bottom) / 2 - (sr.top + sr.bottom) / 2) < 2 && Math.abs(a.top - b.top) < 1, circle: Math.round(a.width), lines: Math.round(sr.height / parseFloat(getComputedStyle(st).lineHeight)), overflow: host.scrollWidth > w, clipped: st.scrollWidth > st.clientWidth + 1 }
+          host.remove(); document.documentElement.style.fontSize = ''
+          return out
+        }, w)
+      }
+      for (const [w, text] of [[326, 200], [236, 100], [190, 100], [160, 200]]) {
+        const r = await measure(w, text)
+        expect.equal(r.fit, 'short', w + 'px at ' + text + '%: the short form')
+        expect.ok(r.between && r.sameRow && !r.overflow && !r.clipped, w + 'px at ' + text + '%: Previous, the status, Next on ONE row, the status centred between the circles: ' + JSON.stringify(r))
+        expect.equal(r.circle, 44, 'the circles stay 44px (chrome)')
+      }
     },
   },
   {
-    name: 'A 320px phone at normal text keeps ONE row: Previous, the status, Next; the status takes its own row only under 13rem',
-    viewport: { width: 320, height: 700 },
+    name: 'At 390px the live pager fits its frame: one row, nothing cut off, the current page wholly visible; a wide screen shows the full row',
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
-      const measure = (w) => page.evaluate((w) => {
-        const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:' + w + 'px;background:var(--canvas)'
-        host.innerHTML = '<nav class="pagination" aria-label="fx"><ul class="pagination__list" role="list"><li class="pagination__prev"><a class="btn" href="#fx"><span class="ic ic--arrow-left" aria-hidden="true"></span><span class="pagination__label">Previous</span></a></li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 1">1</a></li><li class="pagination__status">Page 5 of 12</li><li class="pagination__next"><a class="btn" href="#fx"><span class="pagination__label">Next</span><span class="ic ic--arrow-right" aria-hidden="true"></span></a></li></ul></nav>'
-        document.body.appendChild(host)
-        const sr = host.querySelector('.pagination__status').getBoundingClientRect()
-        const [a, b] = [host.querySelector('.pagination__prev .btn'), host.querySelector('.pagination__next .btn')].map((e) => e.getBoundingClientRect())
-        const out = { between: sr.left >= a.right - 1 && sr.right <= b.left + 1, sameRow: Math.abs(a.top - b.top) < 2 && Math.abs(a.top - sr.top) < a.height, apart: Math.round(b.left - a.right), overflow: host.scrollWidth > w }
-        host.remove(); return out
-      }, w)
-      const phone = await measure(236)   // 14.75rem: what the docs demos give a 320px screen
-      expect.ok(phone.between && phone.sameRow && !phone.overflow, 'at 236px (14.75rem) the status sits between the two circles on one row: ' + JSON.stringify(phone))
-      const tiny = await measure(190)    // 11.9rem: stacked
-      expect.ok(!tiny.between && !tiny.overflow, 'at 190px (11.9rem) it takes its own row: ' + JSON.stringify(tiny))
+      const read = () => page.evaluate(() => [...document.querySelectorAll('.docs-article nav.pagination:not([data-variant="switcher"])')].map((nav) => {
+        const stage = nav.closest('.demo__stage, .resize-box, .phone__screen').getBoundingClientRect(); const items = [...nav.querySelectorAll('.pagination__list > li')].filter((li) => getComputedStyle(li).display !== 'none').map((li) => li.getBoundingClientRect())
+        const cur = nav.querySelector('[aria-current="page"]'); const c = cur && getComputedStyle(cur.closest('li')).display !== 'none' ? cur.getBoundingClientRect() : null
+        return { label: nav.getAttribute('aria-label'), fit: nav.getAttribute('data-fit'), rows: new Set(items.map((x) => Math.round((x.top + x.bottom) / 2))).size, out: items.filter((x) => x.left < stage.left - 1 || x.right > stage.right + 1).length, cur: c ? c.left >= stage.left - 1 && c.right <= stage.right + 1 : 'short' }
+      }))
+      const phone = await read()
+      expect.ok(phone.every((n) => n.rows === 1 && n.out === 0 && n.cur), 'one row, inside its frame, current page visible: ' + JSON.stringify(phone))
+      expect.equal(phone.find((n) => n.label === 'Decks pages').fit, 'fewer', 'the live pager keeps the first, the current and the last page at 390px')
+      await page.setViewportSize({ width: 1024, height: 900 })
+      await settle(page)
+      const wide = await read()
+      expect.equal(wide.find((n) => n.label === 'Decks pages').fit, 'full', 'at 1024px the full row')
+      expect.ok(wide.every((n) => n.rows === 1 && n.out === 0), 'and still one row in its frame: ' + JSON.stringify(wide))
+    },
+  },
+  {
+    name: 'Fewer numbers: the first, the current and the last page, with one … for each run left out, whatever the window in the markup',
+    async run({ page, goto, expect }) {
+      await goto('components/pagination.html')
+      // walk the live pager, then FORCE the fewer form (the measure would choose compact where that fits) and read
+      // what shows: the CSS must leave first, current and last, with one … per missing run, for every window
+      const shown = async (n) => {
+        await page.evaluate((n) => { const a = document.querySelector('#pg-live a[data-page="' + n + '"]'); if (a) a.click() }, n)
+        await settle(page)
+        return page.evaluate(() => { const nav = document.getElementById('pg-live'); const fit = nav.getAttribute('data-fit'); nav.setAttribute('data-fit', 'fewer'); const seq = [...nav.querySelectorAll('.pagination__list > :is(.pagination__page, .pagination__gap)')].filter((li) => getComputedStyle(li).display !== 'none').map((li) => { const a = li.querySelector('a'); return a && getComputedStyle(a).display !== 'none' ? a.textContent.trim() : '…' }).join(' '); nav.setAttribute('data-fit', fit); return { fit, seq } })
+      }
+      const c5 = await shown(5)
+      expect.equal(c5.fit, 'fewer', 'at 390px the live pager on page 5 needs the fewer form'); expect.equal(c5.seq, '1 … 5 … 12')
+      expect.equal((await shown(4)).seq, '1 … 4 … 12', 'page 4')
+      expect.equal((await shown(3)).seq, '1 … 3 … 12', 'page 3: page 2, left out with no gap in the markup, still gets its …')
+      expect.equal((await shown(2)).seq, '1 2 … 12', 'page 2')
+      expect.equal((await shown(1)).seq, '1 … 12', 'page 1')
     },
   },
   {
@@ -203,6 +235,33 @@ export const tests = [
       const a = await t(); expect.ok(a.l === 'none' && a.r === 'none', 'LTR: not flipped')
       await page.evaluate(() => document.documentElement.setAttribute('dir', 'rtl'))
       const b = await t(); expect.ok(b.l === 'matrix(-1, 0, 0, 1, 0, 0)' && b.r === 'matrix(-1, 0, 0, 1, 0, 0)', 'RTL: mirrored ' + JSON.stringify(b))
+    },
+  },
+  {
+    name: 'Pagers of one list share a height and line up their arrows (the status keeps the room of "Page 88 of 88"); every pager is centred in its frame; the month holds one line at 320',
+    async run({ page, goto, expect }) {
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await goto('components/pagination.html')
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await settle(page)
+        const r = await page.evaluate(() => {
+          const navs = [...document.querySelectorAll('#ends ~ .demo')][0].querySelectorAll('.pagination')
+          const ends = [...navs].map((n) => { const a = n.querySelector('.pagination__prev .btn').getBoundingClientRect(); const b = n.querySelector('.pagination__next .btn').getBoundingClientRect(); return { h: Math.round(n.getBoundingClientRect().height), prev: Math.round(a.left), next: Math.round(b.left) } })
+          const centred = [...document.querySelectorAll('.docs-article .pagination')].map((n) => {
+            const nr = n.getBoundingClientRect(); const kids = [...n.querySelector('.pagination__list').children].filter((k) => getComputedStyle(k).display !== 'none').map((k) => k.getBoundingClientRect())
+            return { label: n.getAttribute('aria-label'), off: Math.round((kids[0].left - nr.left) - (nr.right - kids[kids.length - 1].right)) }
+          })
+          const month = document.querySelector('#pg-month .pagination__status'); const lines = Math.round(month.getBoundingClientRect().height / parseFloat(getComputedStyle(month).lineHeight))
+          return { ends, centred, monthLines: lines, monthFont: parseFloat(getComputedStyle(month).fontSize) }
+        })
+        const tag = w + 'px ' + text + '%'
+        expect.ok(r.ends.length === 2 && r.ends[0].h === r.ends[1].h, tag + ': the first and the last page\'s pagers are one height: ' + JSON.stringify(r.ends))
+        expect.ok(Math.abs(r.ends[0].prev - r.ends[1].prev) <= 1 && Math.abs(r.ends[0].next - r.ends[1].next) <= 1, tag + ': their arrows line up: ' + JSON.stringify(r.ends))
+        expect.ok(r.centred.every((c) => Math.abs(c.off) <= 1), tag + ': every pager is centred in its frame: ' + JSON.stringify(r.centred.filter((c) => Math.abs(c.off) > 1)))
+        if (text === 100) expect.ok(r.monthLines === 1, tag + ': "January 2026" holds one line between the arrows: ' + JSON.stringify(r))
+        expect.ok(r.monthFont >= 16 * text / 100 - 0.5, tag + ': the month never drops below the reader\'s body size: ' + r.monthFont)
+      }
     },
   },
 ]

@@ -98,6 +98,21 @@ export const tests = [
     },
   },
   {
+    name: 'The "…" is drawn at the scale of the words (its 44px is the hit area, not the drawing), and stays tinted while open',
+    async run({ page, goto, expect }) {
+      await goto('components/breadcrumb.html')
+      const read = () => page.locator(`${LONG} button`).evaluate((b) => { const r = b.getBoundingClientRect(); const fs = parseFloat(getComputedStyle(b).fontSize); const a = getComputedStyle(b, '::after'); return { h: r.height, w: r.width, fs, hitH: parseFloat(a.height), hitW: parseFloat(a.width), bg: getComputedStyle(b).backgroundColor } })
+      const a = await read()
+      expect.ok(a.h <= a.fs * 1.4 && Math.abs(a.w - a.h) <= 1, 'drawn as a small circle, about one line of the trail tall: ' + JSON.stringify(a))
+      expect.ok(a.hitH >= 43.5 && a.hitW >= 43.5, 'the target is still 44x44: ' + JSON.stringify(a))
+      await page.locator(`${LONG} button`).focus()
+      await page.keyboard.press('Enter')
+      await page.mouse.move(0, 0)
+      const b = await read()
+      expect.ok(!/\/ 0\)$|rgba\(0, 0, 0, 0\)|transparent/.test(b.bg), 'open, it keeps a light tint: ' + b.bg)
+    },
+  },
+  {
     name: 'A narrow trail wraps onto more lines and never scrolls sideways or truncates',
     async run({ page, goto, expect }) {
       await goto('components/breadcrumb.html')

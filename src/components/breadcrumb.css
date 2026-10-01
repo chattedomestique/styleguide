@@ -16,11 +16,14 @@
    The current page is plain text or a link to itself; either way it carries aria-current="page".
 
    A LONG TRAIL collapses its middle into one "…" button that shows the hidden levels in place:
-     <li><button class="btn" data-shape="circle" data-size="sm" type="button" data-sg-disclose
-                 aria-expanded="false" aria-controls="crumb-2 crumb-3" aria-label="Earlier levels">…</button></li>
+     <li><button class="breadcrumb__more" type="button" data-sg-disclose aria-expanded="false"
+                 aria-controls="crumb-2 crumb-3" aria-label="Earlier levels"><span class="ic ic--ellipsis" aria-hidden="true"></span></button></li>
      <li id="crumb-2" hidden><a href="…">Europe</a></li>
    The script is the generic disclosure (src/js/43-disclose.js). Keep the button's NAME stable; the
-   state is aria-expanded.
+   state is aria-expanded. The "…" sits in a line of words, so it is drawn at the words' scale (a small
+   circle, 1.375em across, in the text colour: an icon-only control is a circle) and only its TARGET is
+   44px (the ::after pattern): a 36px circle in a line of 14px links was heavy and out of scale. Hover and press tint it; open, it keeps the
+   tint, so the expanded state shows as well as being announced.
 
    The chevron after each item is decoration, so CSS draws it (a mask, in the text colour) and it is
    not in the markup: a screen reader never hears "greater than".
@@ -29,7 +32,9 @@
 
    NOT COLOUR ALONE: ancestors are underlined links; the current page is bold, not underlined.
    PRESS FEEDBACK: on hover and press the underline moves away from the word (text-underline-offset).
-   TARGETS: each link is 44px tall, and its hit area reaches 44px wide (the ::after pattern).
+   TARGETS: each link is 44px tall, and its hit area reaches 44px wide (the ::after pattern). 44px is a
+   size for a finger, so it does not grow with the text (--chrome-hit): at 200% text a wrapped trail keeps
+   its lines close instead of spacing them 88px apart.
 
    Private properties (--_*): --_sep (the chevron: the same drawing as src/icons/chevron-right.svg,
    inlined so the trail works with only the main bundle)
@@ -78,7 +83,7 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     color: inherit;
     text-decoration: underline;
     text-decoration-thickness: var(--bw);
@@ -89,7 +94,7 @@
     &::after {
       content: "";
       position: absolute;
-      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
       inset-block: 0;
     }
 
@@ -105,11 +110,50 @@
     }
   }
 
+  /* the collapsed middle: a small pill at the scale of the words, a 44px target */
+  .breadcrumb__more {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    inline-size: 1.375em;
+    block-size: 1.375em;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: var(--bw) solid currentColor;
+    border-radius: var(--radius-pill);
+    font: inherit;
+    cursor: pointer;
+
+    & > .ic {
+      --ic-size: 0.875em;
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--chrome-hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
+    }
+    @media (hover: hover) {
+      &:hover {
+        background: color-mix(in srgb, currentColor 15%, transparent);
+      }
+    }
+    &[aria-expanded="true"] {
+      background: color-mix(in srgb, currentColor 15%, transparent);
+    }
+    &:active {
+      background: color-mix(in srgb, currentColor 30%, transparent);
+    }
+  }
+
   /* where you are: bold and not underlined, so it reads as a place and not as a destination */
   .breadcrumb [aria-current="page"] {
     display: inline-flex;
     align-items: center;
-    min-block-size: var(--hit);
+    min-block-size: var(--chrome-hit);
     font-weight: 700;
     text-decoration: none;
     overflow-wrap: break-word;
@@ -119,6 +163,14 @@
     .breadcrumb__list > li:not(:last-child)::after {
       forced-color-adjust: none;
       background-color: CanvasText;
+    }
+    .breadcrumb__more {
+      border-color: ButtonText;
+
+      &:is(:hover, :focus-visible, [aria-expanded="true"]) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
     }
     .breadcrumb [aria-current="page"] {
       border-block-end: var(--bw) solid CanvasText; /* a second cue for "you are here" once weight may be overridden */

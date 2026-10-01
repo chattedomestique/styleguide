@@ -395,7 +395,16 @@ export const tests = [
       await goto('components/menu.html')
       await page.locator('#mb-sheet').click()
       await page.waitForTimeout(500)
-      await page.mouse.click(10, 10)
+      // tap the scrim over something inert (at 10,10 a phone-width page has the docs bar's own menu button, which
+      // a non-modal popover's light dismiss lets the click reach, and that button then takes focus)
+      // (with the sheet open every point hits its backdrop, so pick from the layout: the padding corner of a demo stage)
+      const spot = await page.evaluate(() => {
+        const sheet = document.getElementById('m-sheet').getBoundingClientRect()
+        const st = [...document.querySelectorAll('.docs-article .demo__stage')].map((e) => e.getBoundingClientRect()).find((r) => r.top >= 60 && r.top + 6 < sheet.top)
+        return st ? { x: Math.round(st.left + 4), y: Math.round(st.top + 4) } : null
+      })
+      expect.ok(spot, 'found an inert spot above the sheet')
+      await page.mouse.click(spot.x, spot.y)
       await page.waitForTimeout(300)
       expect.ok(!(await isOpen(page, 'm-sheet')), 'scrim tap closes')
       await page.locator('#mb-sheet').focus()
@@ -496,6 +505,50 @@ export const tests = [
         })
         expect.ok(r.length === 2 && r.every((x) => x.menuInside), vw + 'px, ' + text + '%: both previews sit inside the stage: ' + JSON.stringify(r))
         if (text === 100) expect.ok(r.every((x) => x.metaInside), vw + 'px: the reason ends inside the row\'s padding, clear of the dashed frame: ' + JSON.stringify(r))
+      }
+    },
+  },
+  {
+    name: 'a row\'s reason stays at the end of its line at 100% text and drops under the label, aligned with its start, at 200%; it never shrinks to letters',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/menu.html')
+      const read = () => page.evaluate(() => [...document.querySelectorAll('#menu-states .menu__item[aria-disabled="true"]')].map((row) => {
+        const meta = row.querySelector('.menu__meta').getBoundingClientRect(); const rr = row.getBoundingClientRect()
+        const text = [...row.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim())
+        const rg = document.createRange(); rg.selectNodeContents(text); const label = rg.getBoundingClientRect()
+        const lines = Math.round(meta.height / parseFloat(getComputedStyle(row.querySelector('.menu__meta')).lineHeight))
+        return { fit: row.getAttribute('data-fit'), h: Math.round(rr.height), metaLeft: Math.round(meta.left), labelLeft: label ? Math.round(label.left) : null, below: meta.top >= (label ? label.bottom - 2 : 0), atEnd: Math.abs(meta.right - (rr.right - parseFloat(getComputedStyle(row).paddingRight))) < 2, lines }
+      }))
+      const a = await read()
+      expect.ok(a.every((r) => r.fit === 'inline' && r.atEnd && r.h <= 50), '100%: the reason sits at the end of the row\'s line: ' + JSON.stringify(a))
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(400)
+      const b = await read()
+      expect.ok(b.every((r) => r.fit === 'stack' && r.below && Math.abs(r.metaLeft - r.labelLeft) <= 1), '200%: the reason is under the label, starting where the label starts: ' + JSON.stringify(b))
+      expect.ok(b.every((r) => r.lines <= 2 && r.h < 200), '200%: whole words, a compact row (it was a 500px column of letters): ' + JSON.stringify(b))
+    },
+  },
+  {
+    name: 'in the open dropdown, at 100% and 200% text, every reason and shortcut ends inside the row\'s padding (never on its frame), and a label keeps clear of the rules between rows',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      for (const text of [100, 200]) {
+        await goto('components/menu.html')
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(300)
+        const trig = page.locator('button[aria-haspopup="menu"]', { hasText: 'Deck options' }).first()
+        await trig.scrollIntoViewIfNeeded()
+        await trig.click()
+        await page.waitForTimeout(500)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.menu:popover-open .menu__item')].map((row) => {
+          const rr = row.getBoundingClientRect(); const cs = getComputedStyle(row); const meta = row.querySelector('.menu__meta')
+          const text = [...row.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim()); const rg = document.createRange(); rg.selectNodeContents(text); const lb = rg.getBoundingClientRect()
+          return { row: text.textContent.trim(), fit: row.getAttribute('data-fit'), metaClear: meta ? Math.round(rr.right - meta.getBoundingClientRect().right) : null, pad: parseFloat(cs.paddingRight), above: Math.round(lb.top - rr.top), below: Math.round(rr.bottom - lb.bottom) }
+        }))
+        expect.ok(r.length >= 4, 'the dropdown is open')
+        const bad = r.filter((x) => (x.metaClear !== null && x.metaClear < x.pad - 0.5) || x.above < 8 || x.below < 8)
+        expect.ok(!bad.length, text + '%: every meta ends inside the padding and every label keeps 8px from the rules: ' + JSON.stringify(bad.length ? bad : r))
       }
     },
   },

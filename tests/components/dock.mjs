@@ -18,14 +18,14 @@ export const tests = [
       const r = await page.evaluate(() => [...document.querySelectorAll('nav.dock')].map((d) => ({
         name: d.getAttribute('aria-label'),
         current: d.querySelectorAll('[aria-current="page"]').length,
-        items: [...d.querySelectorAll('.dock__item')].map((i) => { const l = i.querySelector('.dock__label'); return { label: l.textContent.trim(), px: parseFloat(getComputedStyle(l).fontSize) } }),
+        items: [...d.querySelectorAll('.dock__item')].map((i) => { const l = i.querySelector('.dock__label'); const cs = getComputedStyle(l); return { label: l.textContent.trim(), px: parseFloat(cs.fontSize), shown: cs.clipPath === 'none' } }),
         actionLabel: [...d.querySelectorAll('.dock__action')].map((a) => a.getAttribute('aria-label')),
       })))
       expect.ok(r.length >= 8, 'found the demo docks')
       expect.ok(r.every((d) => d.name), 'every dock has an aria-label')
       expect.equal(new Set(r.map((d) => d.name)).size, r.length, 'labels are unique on the page (landmark-unique)')
       expect.ok(r.every((d) => d.current === 1), 'exactly one aria-current="page" per dock')
-      expect.ok(r.every((d) => d.items.every((i) => i.label && i.px >= 13)), 'every destination shows text of at least 13px')
+      expect.ok(r.every((d) => d.items.every((i) => i.label && (!i.shown || i.px >= 13))), 'every destination has its word, and a word that shows is at least 13px (a compact dock hides the inactive words visually; they stay the names)')
       expect.ok(r.every((d) => d.actionLabel.every(Boolean)), 'the icon-only centre action has an aria-label')
     },
   },
@@ -160,6 +160,36 @@ export const tests = [
     },
   },
   {
+    name: 'Pressing an item tints it (--fill 0.15) and does not give it the current fill; in the States demo press and current differ',
+    async run({ page, goto, expect }) {
+      await goto('components/dock.html')
+      const item = page.locator('nav.dock[aria-label="Main"] .dock__item').nth(1)
+      await item.scrollIntoViewIfNeeded()
+      await item.hover()
+      await page.mouse.down()
+      await page.waitForTimeout(300)
+      const f = await item.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
+      expect.ok(f > 0.1 && f < 0.2, 'pressed: a light tint, not "you are here": ' + f)
+      await page.mouse.up()
+      const st = await page.evaluate(() => { const d = document.querySelector('nav.dock[aria-label="Main, states"]'); const fill = (sel) => Number(getComputedStyle(d.querySelector(sel)).getPropertyValue('--fill')); return { press: fill('.is-active'), now: fill('[aria-current="page"]') } })
+      expect.ok(st.press < 0.2 && st.now === 1, 'the forced press specimen is a tint, the current one is filled: ' + JSON.stringify(st))
+    },
+  },
+  {
+    name: 'A count badge is chrome: at 200% text it keeps its 100% size, like the icon it sits on',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/dock.html')
+      const read = () => page.evaluate(() => { const b = document.querySelector('.dock__badge'); const ic = b.closest('.dock__item').querySelector('.ic'); const r = b.getBoundingClientRect(); const i = ic.getBoundingClientRect(); return { h: Math.round(r.height), w: Math.round(r.width), font: parseFloat(getComputedStyle(b).fontSize), icon: Math.round(i.width) } })
+      const a = await read()
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(300)
+      const b = await read()
+      expect.equal(b.icon, a.icon, 'the icon is chrome (it does not grow)')
+      expect.ok(b.h === a.h && b.w <= a.w + 1 && b.font === a.font, 'nor does its badge: ' + JSON.stringify({ a, b }))
+    },
+  },
+  {
     name: 'A count badge adds its meaning to the link\'s name ("Inbox 3 unread") and is not colour alone',
     async run({ page, goto, expect }) {
       await goto('components/dock.html')
@@ -245,7 +275,7 @@ export const tests = [
       }
       expect.ok(res.every((r) => r.inFrame), 'dock pinned inside the frame')
       expect.ok(res.every((r) => r.clear), 'each focused row sits above the dock: ' + JSON.stringify(res.filter((r) => !r.clear)))
-      expect.ok(res[7].label.startsWith('Last row'), 'the last row is reachable')
+      expect.ok(res[7].label.startsWith('Parking'), 'the last row (Parking) is reachable')
     },
   },
   {
@@ -374,6 +404,27 @@ export const tests = [
       for (const [w, a] of [[358, false], [358, true], [288, true]]) {
         const r = await rowsAt(w, a)
         expect.equal(r.rows, 1, w + 'px' + (a ? ' with the centre action' : '') + ': one row (height ' + r.h + ')')
+      }
+    },
+  },
+  {
+    name: 'Keeping content clear: the rows of the list switch together (all values beside, or all under their labels, starting with them); the floating dock sits inside the cards\' side frames',
+    async run({ page, goto, expect }) {
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await goto('components/dock.html')
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(400)
+        const r = await page.evaluate(() => {
+          const demo = document.querySelector('#space ~ .demo'); const list = demo.querySelector('.card__list[data-rows]')
+          const rows = [...list.children].map((li) => { const a = li.querySelector('a').getBoundingClientRect(); const v = li.querySelector('.num').getBoundingClientRect(); return { under: v.top >= a.bottom - 1, start: Math.abs(v.left - a.left) <= 1, overlap: v.left < a.right - 1 && v.top < a.bottom - 1 } })
+          const card = demo.querySelector('.card').getBoundingClientRect(); const dock = demo.querySelector('.dock').getBoundingClientRect()
+          return { fit: list.getAttribute('data-fit'), under: rows.filter((x) => x.under).length, n: rows.length, started: rows.every((x) => !x.under || x.start), overlap: rows.some((x) => x.overlap), inside: dock.left >= card.left + 4 && dock.right <= card.right - 4 }
+        })
+        const tag = w + 'px ' + text + '%'
+        expect.ok(r.under === 0 || r.under === r.n, tag + ': every row the same way: ' + JSON.stringify(r))
+        expect.ok(r.started && !r.overlap, tag + ': a value under its label starts where the label starts; nothing overlaps: ' + JSON.stringify(r))
+        expect.ok(r.inside, tag + ': the floating dock sits inside the card\'s side frames: ' + JSON.stringify(r))
       }
     },
   },

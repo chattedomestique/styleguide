@@ -6,7 +6,7 @@
    the undo row above a canvas. It holds Buttons; it does not restyle them.
 
    <div class="toolbar">
-     <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="back" aria-label="Scroll tools back" hidden>…</button>
+     <button class="btn toolbar__scroll" data-shape="circle" type="button" data-dir="back" aria-label="Scroll tools back" hidden>…</button>
      <div class="toolbar__list" role="toolbar" aria-label="Edit tools">
        <div class="toolbar__item">
          <button class="btn" data-shape="circle" type="button" id="tool-crop"><span class="ic ic--crop" aria-hidden="true"></span></button>
@@ -27,7 +27,11 @@
    .toolbar__sep     a thin rule between groups
    .toolbar__scroll  previous / next when the list overflows (shown by the script, hidden when it fits)
    State is the Button's: aria-pressed (a toggle), role="radio" + aria-checked (pick one of a group),
-   aria-disabled. The label of the on item is underlined as well, so "on" is never only a fill.
+   aria-disabled. An on tool is filled and its frame doubles, inside its border so it stays the size of the
+   tools beside it, and its label is underlined as well, so "on" is never only a fill.
+   THE FILL MEANS ON for a toggle or a radio tool: hover and focus raise it (Button's hard shadow), a press
+   tints it (--fill 0.15), and only an on tool is filled (and ringed, and underlined). An action tool (Undo)
+   keeps Button's fill on hover: it has no "on" to be mistaken for.
 
    WHY THE LABEL IS A <label>. The name has to be visible (WCAG 2.5.3, and icons alone are
    ambiguous: what does a flame do?) and the words under a round button look like part of it,
@@ -36,17 +40,35 @@
    that pseudo-element's containing block the 44px circle anyway).
 
    WHY THE LIST HAS PADDING. overflow-x: auto also clips y. The focus ring (6px), the lift
-   (2px) and the hard shadow (4px) all live outside the circle, so the list pads them in
-   (WCAG 2.4.7: a ring that is clipped is not visible).
+   (2px) and the hard shadow (4px) all live outside the circle, so the list pads 8px on every side
+   (WCAG 2.4.7: a ring that is clipped is not visible). A cell is its label plus 4px each side, never
+   narrower than the circle plus 4px each side (52px), and cells sit 4px apart: two circles are at least
+   12px apart, two labels at least 12px.
 
    WHERE THE SCROLL BUTTONS GO. They are for people whose pointer cannot swipe (WCAG 2.5.1), and
-   they matter most exactly where the tools are most crowded, so they are never hidden. Wide
-   enough (18rem of the tray's own width and up): one on each side of the list, level with the
-   tools' circles (not with circle plus label). Narrower (a 320px phone, or large text where
-   every rem doubles): two 44px buttons beside the list would leave one tool showing, so the list
-   takes the whole first row and the two buttons take a second, back at the start and forward at
-   the end, level with the tools' own edges. Either way they sit OUTSIDE the scrolling list's box,
-   so they never cover a tool.
+   they matter most exactly where the tools are most crowded, so they are never hidden. Always one on
+   each side of the list, on the same row, centred on the tools' circles (not on circle plus label),
+   OUTSIDE the scrolling list's box, so they never cover a tool. (They used to drop to a row of their
+   own on a narrow tray: two lonely circles under the tools.) Give them data-size="sm": 36px drawn with
+   a 44px target, so the tools keep the room (three whole tools on a 390px phone, two at 320px).
+   PAGES OF WHOLE TOOLS. While the list overflows, the script (71-toolbar.js) cuts the tools into pages:
+   each page is the run of whole cells that fits the list, its cells widen evenly (--_spread, on each
+   cell) until they fill it, and the next page starts a padding's width past the list's edge. So at
+   every page every tool in view is whole, evenly spread, with no sliver of a circle or a word at an edge
+   (a sliver read as a stray bracket, "Effe" as broken), whatever the label widths. A press goes one page;
+   a swipe snaps to one (scroll-snap, mandatory, on each page's first cell). The forward button is the
+   sign that there are more. Without the script the list simply scrolls.
+
+   LARGE TEXT. The labels are words and grow with the reader's text; the circles (44px), their 44px targets,
+   the scroll buttons, the gaps, the insets and the cells' minimum width (52px) are chrome and keep their
+   100% size, so at 200% text the tray still shows whole tools beside its scroll buttons (two on a 390px
+   phone: a word like "Colour" is 84px wide at 200%, and three such words and their circles need more room
+   than a phone has beside two buttons). A label wraps at its spaces inside its cell (up to 6rem wide); a
+   single word is never broken.
+
+   Private properties (--_*): --_bg --_ink (the tray), --_cell (a cell's minimum), --_spread (set by the
+   script on each cell of a page: what it adds so the page fills the list), --_tail (set by the script on a
+   page's last cell: the room before the next page)
    ========================================================================== */
 
 @layer sg.components {
@@ -55,17 +77,16 @@
     --_ink: var(--tone-ink, var(--ink));
 
     display: flex;
-    /* wrap, so the narrow rule at the bottom can send the scroll buttons to a row of their own; the list's
-       flex-basis is 0 (below), so on a wide tray everything still fits on one line */
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* one row: back, the tools, forward */
     /* the scroll circles line up with the tools' circles at the top, not with the middle of circle + label */
     align-items: flex-start;
     justify-content: space-between;
-    gap: 0 var(--space-2);
+    gap: 0 var(--chrome-2);
     inline-size: 100%;
     min-inline-size: 0;
     container: toolbar / inline-size;
-    padding-inline: var(--space-1);
+    /* 4px: the scroll buttons are not tab stops (no ring to hold), so the tray keeps its room for the tools */
+    padding-inline: var(--chrome-1);
     color: var(--_ink);
     background: var(--_bg);
     border: var(--bw) solid var(--line);
@@ -81,17 +102,20 @@
     display: flex;
     align-items: flex-start;
     flex: 1 1 0;
-    gap: var(--space-2);
+    gap: var(--chrome-1);
     min-inline-size: 0;
-    padding: var(--space-2);
+    padding: var(--chrome-2); /* room for a raised, focused tool's ring and shadow (see the header) */
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: var(--space-2);
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
       display: none;
+    }
+    /* pages (see the header): a swipe lands on a page; the scroll padding matches the list's padding */
+    &[data-sg-paged] {
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--chrome-2);
     }
   }
 
@@ -100,18 +124,29 @@
     display: flex;
     flex: none;
     align-items: flex-start;
-    gap: var(--space-2);
+    gap: var(--chrome-1);
   }
 
   .toolbar__item {
+    /* chrome: the 44px circle and 4px on each side, at every text size; a wider label widens its cell */
+    --_cell: calc(var(--chrome-ctl) + 2 * var(--chrome-1));
+    --_spread: 0px; /* the script sets it (inline) on each cell of a page */
+    --_tail: 0px; /* the script sets it (inline) on a page's last cell */
+
     display: flex;
     flex: none;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-1);
-    min-inline-size: 4.5rem;
-    max-inline-size: 6rem;
-    scroll-snap-align: start;
+    gap: var(--chrome-1);
+    /* --_spread: what the script adds to each cell of a page so the page fills the list (see the header) */
+    min-inline-size: calc(var(--_cell) + var(--_spread, 0px));
+    max-inline-size: calc(max(var(--_cell), 6rem + 2 * var(--chrome-1)) + var(--_spread, 0px)); /* words: a long label wraps at its spaces */
+    margin-inline-end: var(--_tail, 0px);
+    padding-inline: calc(var(--chrome-1) + var(--_spread, 0px) / 2);
+
+    &[data-sg-page] {
+      scroll-snap-align: start;
+    }
   }
 
   .toolbar__label {
@@ -138,56 +173,88 @@
     cursor: not-allowed;
   }
 
-  /* A radio in a toolbar is a Button that stands for one choice of a group: on = pressed. */
+  /* A radio in a toolbar is a Button that stands for one choice of a group: on = pressed. The doubled frame of an
+     on tool is drawn inside its border (Button draws it outside, which made the on circle 4px larger than the
+     tools beside it). */
   .toolbar .btn[role="radio"][aria-checked="true"] {
     --fill: 1;
-    --_select: 0 0 0 var(--bw) var(--line);
+    --_selw: var(--bw);
+  }
+  .toolbar .btn:is([aria-pressed="true"], [role="radio"][aria-checked="true"]) {
+    --_select: inset 0 0 0 var(--bw) var(--paper);
+    --_halo: 0 0 0 calc(var(--lift) * var(--fill) * var(--bw)) var(--focus-halo, var(--paper)); /* Button's gap, outside the frame */
   }
 
-  /* Pressing or hovering the words lifts the circle, as if you had pressed the circle. */
+  /* A toggle or a radio tool keeps the fill for ON: hover and focus only raise it, a press tints it. (Button
+     fills on hover, which is right for an action; on a tool that can be on, a hovered tool looked chosen.) */
+  .toolbar .btn:is([aria-pressed], [role="radio"]):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --fill: 0;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --fill: 0;
+    }
+    &:is(:active, .is-active) {
+      --fill: 0.15;
+    }
+    &:is([aria-pressed="true"], [aria-checked="true"]) {
+      --fill: 1;
+
+      &:is(:active, .is-active) {
+        --fill: 0.85;
+      }
+    }
+  }
+
+  /* Pressing or hovering the words does what pressing or hovering the circle does. */
   @media (hover: hover) {
     .toolbar__item:has(> .toolbar__label:hover) > .btn:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
       --lift: 1;
       --fill: 1;
+
+      &:is([aria-pressed], [role="radio"]):not([aria-pressed="true"], [aria-checked="true"]) {
+        --fill: 0;
+      }
     }
   }
   .toolbar__item:has(> .toolbar__label:active) > .btn:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
     --lift: 0;
     --fill: 1;
     transition-duration: var(--dur-press);
+
+    &:is([aria-pressed], [role="radio"]):not([aria-pressed="true"], [aria-checked="true"]) {
+      --fill: 0.15;
+    }
   }
 
-  /* group divider: a 1px rule the height of the circles */
+  /* group divider: a 1px rule the height of the circles. The box is as tall as a tool (circle and label), so
+     it sits in the tools' row by any measure; the rule itself is drawn the circles' height, at the top. */
   .toolbar__sep {
     flex: none;
-    align-self: flex-start;
+    align-self: stretch;
     inline-size: 0;
-    block-size: var(--hit);
-    margin-inline: var(--space-1);
-    border-inline-start: var(--bw-thin) solid var(--line-soft);
+    margin-inline: var(--chrome-1);
+
+    &::before {
+      content: "";
+      display: block;
+      block-size: var(--chrome-hit);
+      border-inline-start: var(--bw-thin) solid var(--line-soft);
+    }
   }
 
-  /* overflow: previous / next. Unavailable at the ends, hidden when everything fits. */
+  /* overflow: previous / next, one on each side of the list on the same row. Unavailable at the ends, hidden
+     when everything fits. Level with the tools' circles: the list's padding above the tools (chrome, so it
+     holds at every text size). A small pair (data-size="sm", the usual: the tools keep the room) is centred
+     on the tools' circles. */
   .toolbar .toolbar__scroll {
     flex: none;
-    min-inline-size: 0; /* a small circle is 36px wide; .btn's 44px minimum would stretch it into a pill (the hit area below already reaches 44px) */
-    /* centre the 36px circle on the 44px tool circle beside it: the list's padding plus half the difference */
-    margin-block-start: calc(var(--space-2) + (var(--ctl) - var(--ctl-sm)) / 2);
-  }
+    margin-block-start: var(--chrome-2);
 
-  /* In a narrow tray (a small phone, or large text, where every rem doubles) two buttons beside the list
-     would leave one tool showing. The list takes the whole first row (and comes first on screen, as in
-     the DOM order's reading: back, tools, forward stays the order for assistive tech), and the buttons
-     drop to a second row at either end. The 4px above each keeps its 44px hit area 8px clear of the
-     tools' labels; the 8px below and at the sides match the list's own padding. */
-  @container toolbar (inline-size < 18rem) {
-    .toolbar__list {
-      flex: 1 0 100%;
-      order: -1;
-    }
-    .toolbar .toolbar__scroll {
-      margin-block: var(--space-1) var(--space-2);
-      margin-inline: var(--space-1);
+    &[data-size="sm"] {
+      margin-block-start: calc(var(--chrome-2) + (var(--chrome-ctl) - var(--chrome-ctl-sm)) / 2);
     }
   }
 
@@ -196,7 +263,7 @@
     .toolbar {
       border-color: CanvasText;
     }
-    .toolbar__sep {
+    .toolbar__sep::before {
       border-color: GrayText;
     }
   }

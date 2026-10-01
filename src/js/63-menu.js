@@ -24,12 +24,20 @@
    Placement, aria-expanded on the button and focus return are shared with the popover card:
    src/js/62-popover.js (load order: this file needs it).
 
+   A row with a .menu__meta (a shortcut, or why it is unavailable) is measured with SG.fit: data-fit="inline"
+   keeps the meta at the end of the row's line while it fits, "stack" puts it under the label (menu.css).
+
    SG.menu.open(menu, { trigger, focus: 'first' | 'last' })   SG.menu.close(menu)
    ========================================================================== */
 (function (SG) {
   'use strict';
 
   var ITEMS = '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]';
+
+  // the meta of a row beside its label while it fits, under it when it does not (rows of a closed menu measure
+  // as fitting; they are measured again when they open, because their size changes). The meta is the part that
+  // overflows when the row is short of room (menu.css lets it shrink below its words in the inline layout).
+  if (SG.fit) SG.fit.register('.menu__item:has(> .menu__meta)', { steps: ['inline', 'stack'], parts: '.menu__meta' });
 
   function popoverOpen(el) {
     try { return el.matches(':popover-open'); } catch (e) { return false; }
