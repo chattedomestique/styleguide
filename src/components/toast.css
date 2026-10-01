@@ -149,9 +149,15 @@
     margin-inline-start: var(--space-1);
   }
   /* A small circle Button is square, 36 x 36, and reaches 44 x 44 through its ::after. Button's
-     own min-inline-size (--hit) would make it a 44 x 36 oval, so it is lifted here. */
+     own min-inline-size (--hit) would make it a 44 x 36 oval, so it is lifted here. And it must
+     not SHRINK: the toast is a flex row, and a flex item with the default flex: 0 1 auto gives up
+     width to a long message until the circle is a 20 x 36 oval with its glyph spilling out
+     (rule 3: circles act, and a circle that deforms stops reading as one). flex: none keeps it 36 x 36 whatever the
+     message length; the message column (min-inline-size: 0) is the one that wraps. */
   .btn.toast__close {
+    flex: none;
     min-inline-size: 0;
+    inline-size: var(--ctl-sm);
     justify-self: end;
   }
   .toast__action {
