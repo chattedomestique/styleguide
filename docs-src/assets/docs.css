@@ -172,7 +172,7 @@
 .demo__stage { padding: var(--chrome-5); background: var(--demo-bg, var(--canvas)); container-type: inline-size; }
 /* Chrome caps (00-foundation.css): the stage and the phone mock are insets, so they stop at their 100% size;
    in rem they doubled at 200% text and left a nested demo a few letters a line. Tighter on a phone. */
-@media (max-width: 40em) { .demo__stage { padding: var(--chrome-3); } .phone__screen { padding: var(--chrome-3); } }
+@media (max-width: 40em) { .demo__stage { padding: var(--chrome-3); } }
 .demo[data-bg="paper"] .demo__stage { --demo-bg: var(--paper); }
 .demo[data-bg="ink"] .demo__stage { --demo-bg: var(--ink); color: var(--paper); }
 .demo[data-bg="media"] .demo__stage { --demo-bg: var(--tone-2); }
@@ -189,10 +189,16 @@
 /* A phone-sized frame for screens and patterns. */
 .phone { inline-size: min(100%, 24.375rem); margin-inline: auto; border: var(--bw) solid var(--line); border-radius: var(--radius-card); background: var(--canvas); color: var(--ink); overflow: clip; container-type: inline-size; }
 .phone__screen { padding: var(--chrome-4); }
+/* the tighter phone inset: after the rule above, which would otherwise win at the same specificity */
+@media (max-width: 40em) { .phone__screen { padding: var(--chrome-3); } }
+/* A phone mock's title is sized from the phone as well as from the text size, so its longest word fits the screen at
+   200% text on a 320px phone ("Reminders", "Notifications" broke inside the word). At 100% text, and on a 390px phone
+   at 200%, it is the ordinary title size or within 2px of it. */
+.phone .t-title { font-size: min(var(--text-xl), 15cqi); }
 .phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-5); justify-items: center; }
 
 /* ---- Callouts: a frame, a label word and an icon (never colour alone) ---------------------- */
-.note { display: flex; gap: var(--space-3); padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
+.note { display: flex; gap: var(--chrome-3); padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); } /* chrome: at 200% text on a 320px phone rem insets left a note 139px for its words */
 .note > .ic { flex: none; margin-block-start: 0.125rem; }
 .note > div { min-inline-size: 0; overflow-wrap: break-word; }
 

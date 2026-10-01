@@ -168,6 +168,9 @@
   }
 
   .card__label {
+    /* a label that wraps (200% text in a narrow card) keeps 8px above and below it instead of touching the bar's
+       edges; one line stays inside the bar's 44px, so the owner's bar is unchanged */
+    padding-block: var(--chrome-2);
     font: var(--type-label);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
@@ -335,7 +338,7 @@
 
   .card__figure > small {
     margin-inline-start: 0.08em;
-    font-size: 0.42em;
+    font-size: max(0.42em, var(--text-sm)); /* never smaller than the eyebrow above it, or the hierarchy inverts */
     font-weight: 500;
     letter-spacing: 0;
     color: var(--card-ink-soft);
@@ -863,8 +866,10 @@
     hyphens: auto;
   }
 
-  /* narrow cards (two to a phone row): the poster sizes come down so real values still fit */
-  @container card (inline-size <= 12rem) {
+  /* narrow cards (two to a phone row): the poster sizes come down so real values still fit. In px, because a card's
+     width is the layout's, not the text's: in rem (12rem is 384px at 200% text) it fired on every full-width phone
+     card and dropped the figure below its own eyebrow. */
+  @container card (inline-size <= 192px) {
     .card__figure {
       font-size: 18cqi;
     }

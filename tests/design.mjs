@@ -147,8 +147,10 @@ function probe() {
     if (!seenNarrow.has(host) && rs.length >= 3 && hb.width > 0 && hb.width < fs * 4.5) { seenNarrow.add(host); add('narrow-text', host, `${Math.round(hb.width)}px wide at ${fs}px text, ${rs.length} lines`) }
   }
   // bar-wraps
-  for (const el of scope.querySelectorAll('.dock__list, [role="tablist"], .segmented, .choice-group[data-variant="segmented"], .toolbar__list, .pagination__list, [role="toolbar"]')) {
+  for (const el of scope.querySelectorAll('.dock__list, [role="tablist"], .segmented, .toolbar__list, .pagination__list, [role="toolbar"]')) {
     if (hidden(el) || el.matches('[aria-orientation="vertical"]') || el.closest('[aria-orientation="vertical"]')) continue
+    // a layout SG.fit chose on purpose (a 2x2 grid, one option per row) is a deliberate switch, not a ragged wrap
+    if (el.closest('[data-fit="grid"], [data-fit="stack"]')) continue
     const kids = [...el.children].filter((k) => !hidden(k) && box(k).width > 0)
     const rows = []; for (const k of kids) { const c = (box(k).top + box(k).bottom) / 2; if (!rows.some((r) => Math.abs(r - c) < 6)) rows.push(c) }
     if (rows.length > 1) add('bar-wraps', el, `${rows.length} rows`)

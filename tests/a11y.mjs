@@ -254,7 +254,9 @@ async function audit(pg, app) {
   const page = await ctx.newPage()
   const consoleErrors = []
   page.on('pageerror', (e) => consoleErrors.push(String(e)))
-  page.on('requestfailed', (r) => consoleErrors.push('request failed: ' + r.url()))
+  // A media request Chromium leaves open (preload="metadata" on a clip larger than it reads up front; the local server
+  // ignores Range) is aborted at teardown: that is not a failed request
+  page.on('requestfailed', (r) => { if (r.resourceType() === 'media' && /ERR_ABORTED/.test(r.failure()?.errorText || '')) return; consoleErrors.push('request failed: ' + r.url()) })
   page.on('response', (r) => { if (r.status() >= 400) consoleErrors.push(`HTTP ${r.status()} ${r.url()}`) })
   await page.addInitScript((p) => { try { localStorage.setItem('sg:prefs', JSON.stringify(p)) } catch (e) {} }, app.prefs)
   await page.exposeFunction('__key', async (k) => { await page.keyboard.press(k) })
