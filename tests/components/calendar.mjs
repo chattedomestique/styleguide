@@ -325,4 +325,56 @@ export const tests = [
       expect.equal(r.narrow, 'inline', 'weekday names shrink to one letter')
     },
   },
+  {
+    name: 'a day is drawn inside its column less its doubled frame, and a focused or forced-focus day wears a whole ring above its neighbours',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.waitForTimeout(150)
+        const r = await page.evaluate(() => [...document.querySelectorAll('#demo-month td[aria-selected="true"] > .cal__day, #demo-week td[aria-selected="true"] > .cal__day')].map((d) => {
+          const td = d.closest('td').getBoundingClientRect(), b = d.getBoundingClientRect(), bw = parseFloat(getComputedStyle(d).borderTopWidth)
+          return { over: b.width + 2 * bw - td.width }
+        }))
+        expect.ok(r.length >= 2, 'a chosen day in the month and in the week strip')
+        for (const x of r) expect.ok(x.over <= 0.5, `${w}px: the chosen day plus its outer frame is wider than its column by ${x.over.toFixed(1)}px`)
+      }
+      // keyboard focus on the chosen day: it paints above its neighbours (they have opaque paper backgrounds) and keeps the ring
+      await page.setViewportSize({ width: 390, height: 800 })
+      await page.locator('#demo-week td[aria-selected="true"] .cal__day').focus()
+      await page.keyboard.press('Shift+Tab')
+      await page.keyboard.press('Tab')
+      const f = await page.evaluate(() => { const cs = getComputedStyle(document.activeElement); return { cls: document.activeElement.className, z: cs.zIndex, outline: cs.outlineStyle + ' ' + cs.outlineWidth, shadow: cs.boxShadow } })
+      expect.ok(/cal__day/.test(f.cls), 'a day has focus')
+      expect.ok(Number(f.z) >= 1, `the focused day is above its neighbours (z-index ${f.z})`)
+      expect.equal(f.outline, 'solid 3px', 'the ring')
+      // the forced Focus specimen draws the same ring a real focus does, not only the lift
+      const s = await page.locator('#demo-states .cal__day.is-focus').evaluate((el) => { const cs = getComputedStyle(el); return cs.outlineStyle + ' ' + cs.outlineWidth })
+      expect.equal(s, 'solid 3px', 'is-focus shows the focus ring')
+    },
+  },
+  {
+    name: 'the States specimens wrap in a grid and never overprint their names, at 320px and at 200% text',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      for (const [w, pct] of [[320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(200)
+        const r = await page.locator('#demo-states').evaluate((el) => {
+          const names = [...el.querySelectorAll('.t-meta')].map((n) => n.getBoundingClientRect())
+          let clash = 0
+          for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) {
+            const a = names[i], b = names[j]
+            if (a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5) clash++
+          }
+          const cal = el.querySelector('.cal').getBoundingClientRect()
+          return { n: names.length, clash, inside: names.every((n) => n.left >= cal.left && n.right <= cal.right), over: el.querySelector('.cal').scrollWidth > el.querySelector('.cal').clientWidth + 1 }
+        })
+        expect.equal(r.n, 12, `${w}px ${pct}%: twelve specimens, each with its name`)
+        expect.equal(r.clash, 0, `${w}px ${pct}%: no two names overlap`)
+        expect.ok(r.inside && !r.over, `${w}px ${pct}%: names stay inside the frame`)
+      }
+    },
+  },
 ]

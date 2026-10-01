@@ -52,7 +52,10 @@
    --steps         how many 15-minute rows the grid has (4 x the hours shown)
    --lanes  and  data-lanes  how many events ever overlap (1 to 3). data-lanes lets CSS know when
                    the lanes no longer fit: 2 lanes need 16rem, 3 lanes 26rem of width.
-   --step          the height of 15 minutes (default 1.75rem; an hour is 7rem)
+   --step          the height of 15 minutes (default 2rem; an hour is 8rem). A 30-minute event is two steps, 4rem:
+                   inside its frame and padding that is room for a title on two lines AND its time line, which is
+                   what a half-hour event in a narrow lane (a phone: ~7rem wide) needs. At 1.75rem the time line
+                   fell onto the bottom frame, and in soft corners the corner cut its first digits.
 
    WHY THE EVENT CARDS ARE CARDS  They are the owner's element: a 2px frame, a tone, the stretched
    link with one tab stop, the lift on hover. Each event keeps the whole card's hit area. Nothing is
@@ -195,6 +198,13 @@
     &:is(:focus-visible, .is-focus) {
       --lift: 1;
     }
+    /* .is-focus forces the state on the docs page: it has to show the ring a real focus gets, or "Focus" looks like "Hover" */
+    &.is-focus {
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--focus-shadow), calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    }
     &:is(:active, .is-active) {
       --lift: 0;
       transition-duration: var(--dur-press);
@@ -247,7 +257,7 @@
      2 · ONE DAY
      ========================================================================= */
   .agenda-day {
-    --step: 1.75rem; /* 15 minutes; an hour is 7rem */
+    --step: 2rem; /* 15 minutes; an hour is 8rem. See the header: 2 steps must hold a two-line title and the time */
     container: agenda-day / inline-size;
     display: flex;
     flex-direction: column;
@@ -310,6 +320,12 @@
     --card-pad: var(--space-2);
     --card-gap: 0;
     z-index: 1;
+  }
+
+  /* An event takes the tile corners: the card radius (24px when soft) is most of a half-hour event's height and it cut the
+     first digits of the time. Two classes, because card.css sorts after this file and sets --card-radius on .card. */
+  .agenda-day .agenda-day__event {
+    --card-radius: var(--radius-tile);
   }
 
   /* title and times flow on one line when they fit and wrap when they do not; the title keeps to two

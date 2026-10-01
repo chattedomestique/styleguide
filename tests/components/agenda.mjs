@@ -134,6 +134,43 @@ export const tests = [
     },
   },
   {
+    name: 'no event loses its time line: a half-hour event in a narrow lane keeps title and times inside its frame, at any width and text size',
+    async run({ page, goto, expect }) {
+      await goto('components/agenda.html')
+      // for every event in the demo: the times (the last thing in the card) end inside the border box, and do not run past its side
+      const lost = (sel) => page.locator(sel).evaluate((el) => [...el.querySelectorAll('.agenda-day__event')].flatMap((e) => {
+        const b = e.getBoundingClientRect(), bw = parseFloat(getComputedStyle(e).borderBottomWidth), m = e.querySelector('.card__meta').getBoundingClientRect()
+        const t = e.querySelector('.card__title')
+        const out = []
+        if (m.bottom > b.bottom - bw + 0.5) out.push(e.querySelector('.card__title').textContent.trim() + ': time line below the frame by ' + (m.bottom - (b.bottom - bw)).toFixed(1))
+        if (m.right > b.right - bw + 0.5) out.push(e.querySelector('.card__title').textContent.trim() + ': time line past the side by ' + (m.right - (b.right - bw)).toFixed(1))
+        if (t.scrollHeight > t.clientHeight + 1 && t.getBoundingClientRect().bottom > m.top + 0.5) out.push('title overlaps the time line')
+        return out
+      }))
+      // the 390px phone (the Friday grid sits in a ~19rem column: two lanes of ~7.5rem)
+      expect.equal((await lost(GRID)).join('; '), '', 'phone width, the Friday grid')
+      // the same day while the column is dragged from 15rem to 28rem (below 16rem it stacks; every width in between has to hold)
+      for (const rem of [15, 16, 16.5, 17.5, 19, 21, 24, 28]) {
+        await page.locator('#demo-stack .resize-box').evaluate((b, r) => { b.style.inlineSize = r + 'rem' }, rem)
+        await page.waitForTimeout(60)
+        const l = await lost('#demo-stack')
+        expect.equal(l.join('; '), '', `column ${rem}rem wide`)
+      }
+      // and the quarter-hour scale is still a fixed rem length at normal text: a half hour is two steps
+      const step = await page.locator(GRID).evaluate((el) => {
+        const ev = [...el.querySelectorAll('.agenda-day__event')].find((e) => e.querySelector('.card__title').textContent.trim() === 'Call with landlord')
+        return ev.getBoundingClientRect().height / parseFloat(getComputedStyle(document.documentElement).fontSize)
+      })
+      expect.ok(Math.abs(step - 4) < 0.05, `a 30-minute event is 4rem tall (${step.toFixed(2)})`)
+      // bigger text: still nothing lost in the Friday grid (it stacks, or it fits)
+      for (const pct of [125, 150, 200]) {
+        await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(120)
+        expect.equal((await lost(GRID)).join('; '), '', `${pct}% text, the Friday grid`)
+      }
+    },
+  },
+  {
     name: 'the ruler is decorative; DOM and tab order are chronological; one tab stop per event',
     async run({ page, goto, expect }) {
       await goto('components/agenda.html')
@@ -266,6 +303,15 @@ export const tests = [
       const r = await page.evaluate(() => ({ chip: getComputedStyle(document.querySelector('.agenda__event')).borderTopWidth, card: getComputedStyle(document.querySelector('.agenda-day__event')).borderTopWidth }))
       expect.equal(r.chip, '2px', 'chip frame')
       expect.equal(r.card, '2px', 'event card frame')
+    },
+  },
+  {
+    name: 'the forced Focus specimen wears the ring a real keyboard focus gets, not only the lift',
+    async run({ page, goto, expect }) {
+      await goto('components/agenda.html')
+      const r = await page.locator('.agenda__event.is-focus').evaluate((el) => { const cs = getComputedStyle(el); return { outline: cs.outlineStyle + ' ' + cs.outlineWidth, lift: cs.getPropertyValue('--lift').trim() } })
+      expect.equal(r.outline, 'solid 3px', 'is-focus draws the ring')
+      expect.equal(r.lift, '1', 'and the lift')
     },
   },
 ]
