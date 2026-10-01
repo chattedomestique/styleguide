@@ -138,6 +138,9 @@
    longest title words, so the face narrows in steps instead of the word breaking. In rem, so it follows the text size. */
 @container article (max-width: 16rem) { .docs-article h1 { font-stretch: 100%; } }
 @container article (max-width: 11rem) { .docs-article h1 { font-stretch: 72%; } }
+/* h2 is expanded type too: at 200% text "Accessibility" is wider than a phone line and broke inside the word */
+@container article (max-width: 11rem) { .docs-article h2 { font-stretch: 100%; } }
+@container article (max-width: 9rem) { .docs-article h2 { font-stretch: 87.5%; } }
 .docs-article h2 {
   margin-block-start: var(--space-8);
   padding-block-start: var(--space-4);
@@ -246,7 +249,7 @@ html { --appbar-h: calc(2.75rem + var(--safe-top)); }
 /* ---- Misc -------------------------------------------------------------------------------------- */
 .docs-article code.nb { white-space: nowrap; } /* a token or attribute name is one word: it must not break after its leading hyphens */
 .docs-article code:not(pre code) { padding: 0.05em 0.35em; background: var(--paper-2); border: var(--bw-thin) solid var(--line-soft); font-size: 0.88em; overflow-wrap: anywhere; }
-.docs-article hr { margin-block: var(--space-6); }
+.docs-article hr:not([class]) { margin-block: var(--space-6); } /* only the prose rule: a component's own <hr> (a menu separator) keeps its spacing */
 .cards-index { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--gutter); list-style: none; padding: 0; }
 .cards-index a { display: block; padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink); text-decoration: none; }
 .cards-index a:hover { box-shadow: var(--space-1) var(--space-1) 0 var(--line); }

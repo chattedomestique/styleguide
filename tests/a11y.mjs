@@ -165,6 +165,13 @@ function probeTargets() {
   return out
 }
 
+// Two frames, so measured layouts settle first: SG.fit and the scripts that measure (dock, segmented, pager, empty
+// actions) run in ResizeObserver callbacks, which a real browser runs before it paints; read right after a resize,
+// the page would still show the intermediate layout no one ever sees.
+function settle() {
+  return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+}
+
 function probeOverflow() {
   const W = document.documentElement.clientWidth
   const bad = []
@@ -290,11 +297,13 @@ async function audit(pg, app) {
       // name= makes a group exclusive (opening one closes the rest), so drop it or only the last item would stay open
       await page.evaluate(() => document.querySelectorAll('details').forEach((d) => { d.removeAttribute('name'); d.open = true }))
       await page.setViewportSize({ width: 320, height: 640 })
+      await page.evaluate(settle)
       const o1 = await page.evaluate(probeOverflow)
       if (o1) rec.errors.push(`reflow@320: horizontal overflow ${o1.overflow}px. ${o1.bad.join('; ')}`)
       for (const c of await page.evaluate(probeClipped)) rec.errors.push(`clipped@320: ${c}`)
       await page.setViewportSize({ width: 390, height: 844 })
       await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.evaluate(settle)
       const o2 = await page.evaluate(probeOverflow)
       if (o2) rec.errors.push(`reflow@200% text: horizontal overflow ${o2.overflow}px. ${o2.bad.join('; ')}`)
       for (const c of await page.evaluate(probeClipped)) rec.errors.push(`clipped@200% text: ${c}`)
