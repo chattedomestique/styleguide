@@ -51,20 +51,54 @@ export const tests = [
       await until(page, () => window.__said.length === 1, null, 'one announcement')
       expect.equal((await page.evaluate(() => window.__said))[0], 'Recent sessions loaded')
       expect.equal(await page.locator('#sk-slow').getAttribute('aria-disabled'), null, 'button usable again')
-      expect.equal(await page.locator('#sk-body .card--row').count(), 3, 'content rendered')
+      expect.equal(await page.locator('#sk-body .list__row').count(), 3, 'content rendered')
     },
   },
   {
-    name: 'placeholder rows are as tall as the real card rows they are swapped for (when the row is wide enough not to wrap its trail)',
+    // The list placeholder mirrors the List it is swapped for: the same row height, the same 1px rule between rows
+    // (the real list had rules, the placeholder had none), and the framed list's 2px frame.
+    name: 'placeholder rows match the real list rows they are swapped for: height, the 1px rules between rows, the frame',
     viewport: { width: 1024, height: 900 },
     async run({ page, goto, expect }) {
       await goto(PAGE)
       await page.locator('#sk-slow').click()
       await page.waitForTimeout(50)
-      const sk = await page.locator('#sk-body .skeleton__row').first().evaluate((el) => el.getBoundingClientRect().height)
+      const sk = await page.locator('#sk-body .skeleton').evaluate((el) => {
+        const rows = [...el.querySelectorAll('.skeleton__row')]
+        return { h: rows[0].getBoundingClientRect().height, rules: rows.slice(1).map((r) => getComputedStyle(r).borderTopWidth), frame: getComputedStyle(el).borderTopWidth, first: getComputedStyle(rows[0]).borderTopWidth }
+      })
       await until(page, () => document.getElementById('sk-region').getAttribute('aria-busy') === 'false', null, 'load complete', 80)
-      const real = await page.locator('#sk-body .card--row').first().evaluate((el) => el.getBoundingClientRect().height)
-      expect.ok(Math.abs(sk - real) <= 1, `skeleton row ${sk}px vs card row ${real}px`)
+      const real = await page.locator('#sk-body .list').evaluate((el) => {
+        const items = [...el.querySelectorAll(':scope > li')]
+        return { h: items[0].querySelector('.list__row').getBoundingClientRect().height, rules: items.slice(1).map((r) => getComputedStyle(r).borderTopWidth), frame: getComputedStyle(el).borderTopWidth }
+      })
+      expect.ok(Math.abs(sk.h - real.h) <= 1, `skeleton row ${sk.h}px vs list row ${real.h}px`)
+      expect.equal(sk.rules.join(), real.rules.join(), 'the same rule between rows')
+      expect.equal(sk.first, '0px', 'no rule above the first row')
+      expect.equal(sk.frame, real.frame, 'the same frame')
+    },
+  },
+  {
+    // Regression: at 200% text the tile and the fixed trailing value left the lines beside them ~10px wide, and in
+    // the phone frame the lines ran past the frame.
+    name: '200% text: slots keep their size, lines take the width left beside them (never a sliver, never past the frame)',
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(200)
+      const r = await page.evaluate(() => [...document.querySelectorAll('.skeleton__row')].map((row) => {
+        const box = row.getBoundingClientRect()
+        const frame = (row.closest('.skeleton[data-variant="framed"]') || row.closest('.phone') || row.closest('.demo__stage')).getBoundingClientRect()
+        const tile = row.querySelector('.skeleton__tile')
+        const lines = [...row.querySelectorAll('.skeleton__stack > .skeleton__line')].map((l) => l.getBoundingClientRect())
+        return { tile: tile ? tile.getBoundingClientRect().width : null, minLine: Math.min(...lines.map((l) => l.width)), rowW: box.width, spill: Math.max(...[...row.querySelectorAll('.skeleton__line')].map((l) => l.getBoundingClientRect().right - frame.right)) }
+      }))
+      expect.ok(r.length >= 10, 'rows: ' + r.length)
+      for (const x of r) {
+        if (x.tile != null) expect.ok(Math.abs(x.tile - 44) < 0.5, `the tile stays 44px (${x.tile})`)
+        expect.ok(x.minLine >= 24, `a line keeps a real width, not a sliver (${Math.round(x.minLine)}px in a ${Math.round(x.rowW)}px row)`)
+        expect.ok(x.spill <= 0.5, `a line runs ${x.spill}px past its frame`)
+      }
     },
   },
   {

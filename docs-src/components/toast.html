@@ -1,12 +1,18 @@
 <!--{"title":"Toast","group":"Components","order":91,"summary":"A short, passing confirmation above the dock that never takes focus, pauses while you read it, and keeps errors until you dismiss them."}-->
 <style>
-  /* Docs-only scaffolding for the in-context phone. Roles only. */
-  #tc-screen { position: relative; min-block-size: 29rem; }
-  #tc-toasts { position: absolute; inset-inline: var(--space-4); inset-block-end: calc(3.5rem + var(--space-4) + var(--space-3)); inline-size: auto; }
-  #tc-dock { position: absolute; inset-inline: var(--space-4); inset-block-end: var(--space-4); display: flex; align-items: center; justify-content: space-around; block-size: 3.5rem; border-radius: var(--radius-pill); background: var(--ink); color: var(--paper); }
   /* docs.css gives every article list a start padding and li margins; components opt out. */
-  .demo .toast-list { padding: 0; }
-  .demo .toast-list > li { margin: 0; }
+  .demo :is(.toast-list, .list, .dock__list) { padding: 0; }
+  .demo :is(.toast-list, .list, .dock__list) > li { margin: 0; max-inline-size: none; }
+  /* Six triggers in equal columns: one, two or three to a row by the room the stage has (rem, so it
+     follows the text size), never a ragged 3 + 2 or a lonely last button. */
+  #ts-status { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  @container (min-width: 18rem) { #ts-status { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container (min-width: 36rem) { #ts-status { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  /* In context: the toast sits right above the dock, both at the foot of the screen. The foot is a plain
+     block, as the page is for a fixed dock: the dock then spans the screen and picks the presentation
+     that fits it (a flex item with auto margins would size to its longest row and spill out instead). */
+  #tc-foot { margin-block-start: auto; }
+  #tc-toasts { inline-size: auto; }
 </style>
 
 <h1>Toast</h1>
@@ -31,14 +37,17 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="status">Status</h3>
-<p>Press each button. The plain one and the statuses close themselves; the error stays until you dismiss it, because a timer must not take away the only chance to read what failed.</p>
-<div class="demo" data-layout="row">
+<p>Press each button. The plain one and the statuses close themselves; the error stays until you dismiss it, because a timer must not take away the only chance to read what failed. <em>Long text</em> shows a two-line message, which stays longer (see the duration rule below).</p>
+<div class="demo">
   <div class="demo__stage">
-    <button class="btn" type="button" data-sg-toast="Link copied to clipboard">Plain</button>
-    <button class="btn" type="button" data-sg-toast="Deck saved" data-toast-status="success">Success</button>
-    <button class="btn" type="button" data-sg-toast="Sync paused. You are on a metered connection." data-toast-status="info">Info</button>
-    <button class="btn" type="button" data-sg-toast="Storage is almost full" data-toast-status="warning">Warning</button>
-    <button class="btn" type="button" data-sg-toast="Could not save. Check your connection and try again." data-toast-status="danger">Error</button>
+    <div id="ts-status">
+      <button class="btn" type="button" data-sg-toast="Link copied to clipboard">Plain</button>
+      <button class="btn" type="button" data-sg-toast="Deck saved" data-toast-status="success">Success</button>
+      <button class="btn" type="button" data-sg-toast="Sync paused. You are on a metered connection." data-toast-status="info">Info</button>
+      <button class="btn" type="button" data-sg-toast="Storage is almost full" data-toast-status="warning">Warning</button>
+      <button class="btn" type="button" data-sg-toast="Could not save. Check your connection and try again." data-toast-status="danger">Error</button>
+      <button class="btn" type="button" data-sg-toast="Your changes were saved on this device and will be uploaded as soon as you are back online.">Long text</button>
+    </div>
   </div>
 </div>
 
@@ -46,10 +55,14 @@
 <p>One action at most, and it must also be reachable somewhere else (a menu, the item itself), because keyboard and screen-reader users reach a toast last. A toast with an action never closes itself.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
-    <article class="card card--row" id="undo-row">
-      <span class="card__tile" data-tone="1" aria-hidden="true"></span>
-      <div class="card__main"><p class="card__title">Farm animals</p><p class="card__meta" id="undo-state">In your library</p></div>
-    </article>
+    <ul class="list" data-variant="framed" role="list">
+      <li>
+        <div class="list__row" id="undo-row">
+          <span class="list__lead" data-shape="tile" data-tone="1" aria-hidden="true"><span class="ic ic--palette" aria-hidden="true"></span></span>
+          <span class="list__main"><span class="list__title">Colours</span><span class="list__meta" id="undo-state">In your library</span></span>
+        </div>
+      </li>
+    </ul>
     <button class="btn" type="button" id="archive-btn" data-sg-toast="Deck archived" data-toast-action="Undo" data-toast-status="success">Archive deck</button>
   </div>
 </div>
@@ -71,7 +84,7 @@
 <p>At most three toasts are visible. The newest wins: the oldest toast that would have closed itself makes room. Toasts that cannot close themselves (errors, actions) are never dropped; a new one waits in a queue instead.</p>
 <div class="demo" data-layout="row" data-nocode>
   <div class="demo__stage">
-    <button class="btn" type="button" id="burst">Fire five toasts</button>
+    <button class="btn" type="button" id="burst">Show five</button>
     <button class="btn" type="button" id="clear-toasts">Clear all</button>
   </div>
 </div>
@@ -112,34 +125,40 @@
 </div>
 
 <h3 id="context">In context: above the dock</h3>
-<p>The region is pinned to the bottom of the screen and lifted by <code>--dock-h</code> and the safe-area inset, the same variables the dock publishes. A toast therefore never covers navigation, on a phone with a home indicator or without.</p>
+<p>The region is pinned to the bottom of the screen and lifted by <code>--dock-h</code> and the safe-area inset, the same variables the <a href="@/components/dock.html">dock</a> publishes. A toast therefore never covers navigation, on a phone with a home indicator or without. Below, the real Dock in a phone frame (in flow: <code>data-position</code> set to <code>static</code>), with the toast just above it.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="phone">
       <div class="phone__screen stack" data-gap="3" id="tc-screen">
         <h4 class="t-title">My decks</h4>
-        <article class="card card--row"><span class="card__tile" data-tone="2" aria-hidden="true"></span><div class="card__main"><p class="card__title">Shapes</p><p class="card__meta">12 cards</p></div></article>
-        <article class="card card--row"><span class="card__tile" data-tone="4" aria-hidden="true"></span><div class="card__main"><p class="card__title">Colours</p><p class="card__meta">8 cards</p></div></article>
-        <ol class="toast-list" role="list" id="tc-toasts">
-          <li class="toast" data-tone="ok">
-            <span class="ic ic--circle-check toast__icon" aria-hidden="true"></span>
-            <p class="toast__msg"><span class="sr-only">Success: </span>Deck archived</p>
-            <button class="btn toast__action" data-variant="tone" data-tone="ok" data-size="sm" type="button">Undo</button>
-            <button class="btn toast__close" data-variant="tone" data-tone="ok" data-shape="circle" data-size="sm" type="button" aria-label="Dismiss notification"><span class="ic ic--close" aria-hidden="true"></span></button>
-          </li>
-        </ol>
-        <div id="tc-dock" aria-hidden="true">
-          <span class="ic ic--house" aria-hidden="true"></span>
-          <span class="ic ic--search" aria-hidden="true"></span>
-          <span class="ic ic--bell" aria-hidden="true"></span>
-          <span class="ic ic--user" aria-hidden="true"></span>
+        <ul class="list" data-variant="framed" role="list">
+          <li><div class="list__row"><span class="list__lead" data-shape="tile" data-tone="2" aria-hidden="true"><span class="ic ic--blend" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards</span></span></div></li>
+          <li><div class="list__row"><span class="list__lead" data-shape="tile" data-tone="4" aria-hidden="true"><span class="ic ic--hash" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards</span></span></div></li>
+        </ul>
+        <div id="tc-foot">
+          <ol class="toast-list" role="list" id="tc-toasts">
+            <li class="toast" data-tone="ok">
+              <span class="ic ic--circle-check toast__icon" aria-hidden="true"></span>
+              <p class="toast__msg"><span class="sr-only">Success: </span>Colours archived</p>
+              <button class="btn toast__action" data-variant="tone" data-tone="ok" data-size="sm" type="button">Undo</button>
+              <button class="btn toast__close" data-variant="tone" data-tone="ok" data-shape="circle" data-size="sm" type="button" aria-label="Dismiss notification"><span class="ic ic--close" aria-hidden="true"></span></button>
+            </li>
+          </ol>
+          <nav class="dock" data-position="static" aria-label="Main, in the preview">
+            <ul class="dock__list" role="list">
+              <li><a class="dock__item" href="#context"><span class="ic ic--book-open" aria-hidden="true"></span><span class="dock__label">Study</span></a></li>
+              <li><a class="dock__item" href="#context" aria-current="page"><span class="ic ic--layers" aria-hidden="true"></span><span class="dock__label">Decks</span></a></li>
+              <li><a class="dock__item" href="#context"><span class="ic ic--chart-column" aria-hidden="true"></span><span class="dock__label">Stats</span></a></li>
+              <li><a class="dock__item" href="#context"><span class="ic ic--user" aria-hidden="true"></span><span class="dock__label">Profile</span></a></li>
+            </ul>
+          </nav>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<h2 id="announce">SG.announce or a toast?</h2>
+<h2 id="announce">Toast, or just announce?</h2>
 <p>Both tell a screen reader something happened without moving focus. The difference is whether a sighted person sees it too.</p>
 <div class="table-wrap"><table class="docs-table">
   <caption class="sr-only">Choosing between SG.announce, toast, alert and dialog</caption>
@@ -171,7 +190,7 @@
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Region</strong>: one <code>&lt;section aria-label="Notifications"&gt;</code> in the top layer (<code>popover="manual"</code>), above modal dialogs, lifted by <code>--dock-h</code> and <code>--safe-bottom</code>. Its empty strip never intercepts taps.</li>
+  <li><strong>Region</strong>: one <code>&lt;section&gt;</code> labelled “Notifications” (<code>aria-label</code>) in the top layer (a manual <code>popover</code>), above modal dialogs, lifted by <code>--dock-h</code> and <code>--safe-bottom</code>. Its empty strip never intercepts taps.</li>
   <li><strong>Surface</strong>: a rectangle with a 2px frame (<code>--radius-card</code>). The plain toast is ink with paper text, so it stands apart from the page in light and dark; a status toast takes the tone's pastel. No shadow: it is not pressable.</li>
   <li><strong>Status icon</strong> (optional): a 24px mask. The shape differs per status; the hue is rhythm on top.</li>
   <li><strong>Message</strong>: one sentence, sentence case, semibold, with a visually hidden status word for screen readers.</li>
@@ -225,6 +244,7 @@
     <tr><td>Hover, focus, touch-hold</td><td>Each pauses the auto-dismiss timer (WCAG 2.2.1 Timing Adjustable; nothing is lost while reading).</td></tr>
     <tr><td>Touch</td><td>Dismiss and action have a 44&times;44px hit area with 8px between.</td></tr>
     <tr><td>Focus ring</td><td>On the plain (ink) toast the ring is paper and its halo ink, so it follows the surface. On a status tone the page's ring is used.</td></tr>
+    <tr><td>Text size</td><td>The message grows with the reader's text size, and so does the status icon, which leads its first line (1.25 times the message's size, never under 24px: 40px at 200%). The insets and the 36px dismiss circle stop at their 100% size, so at 200% the sentence keeps the room. The icon and the dismiss circle stay level with the message's first line, and the action drops under the words, never under the icon. Where the words beside them would still be narrower than their longest word (a narrow panel, 200% text on a small phone), the dismiss circle moves down to the action row, for every toast of the stack alike, so a word never breaks inside itself.</td></tr>
     <tr><td>Reduced motion</td><td>The rise is replaced by a fade (<code>--move</code> is 0); the exit is a fade too.</td></tr>
     <tr><td>Forced colours</td><td>The toast keeps a <code>CanvasText</code> frame; each button keeps its own border; icons are <code>CanvasText</code>.</td></tr>
   </tbody>
@@ -237,7 +257,7 @@
 </ul>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--ink</code>, <code>--paper</code>, <code>--line</code>, <code>--focus-shadow</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--type-body</code>, <code>--lh-snug</code>, <code>--ctl-sm</code>, <code>--dock-h</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--safe-right</code>, <code>--gutter</code>, <code>--z-overlay</code>, <code>--move</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--ease-in</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-4</code>. Buttons bring their own (<a href="@/components/button.html">Button</a>).</p>
+<p><code>--ink</code>, <code>--paper</code>, <code>--line</code>, <code>--focus-shadow</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--type-body</code>, <code>--text-md</code>, <code>--lh-snug</code>, <code>--ctl-sm</code>, <code>--chrome-1</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-4</code>, <code>--chrome-ic</code>, <code>--chrome-ctl-sm</code>, <code>--dock-h</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--safe-right</code>, <code>--gutter</code>, <code>--z-overlay</code>, <code>--move</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--ease-in</code>, <code>--space-2</code>, <code>--space-4</code>. Buttons bring their own (<a href="@/components/button.html">Button</a>).</p>
 
 <script>
   window.addEventListener('DOMContentLoaded', function () {
@@ -251,7 +271,7 @@
     var burst = document.getElementById('burst');
     if (burst) burst.addEventListener('click', function () {
       ['Draft saved', 'Photo added', 'Note pinned', 'Reminder set', 'List shared'].forEach(function (m, i) {
-        SG.toast.show({ message: m + ' (' + (i + 1) + ')', status: 'success' });
+        SG.toast.show({ message: m + '\u00a0(' + (i + 1) + ')', status: 'success' }); // a no-break space: the count never sits alone on a line
       });
     });
     var clear = document.getElementById('clear-toasts');

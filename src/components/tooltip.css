@@ -42,7 +42,7 @@
     box-sizing: border-box;
     max-inline-size: min(20rem, calc(100vw - var(--_edge)));
     margin: 0;
-    padding: var(--space-2) var(--space-3);
+    padding: var(--chrome-2) var(--chrome-3); /* chrome: the words grow with the text size, the box around them does not */
     overflow: visible;
     color: var(--paper);
     background: var(--ink);
@@ -79,21 +79,15 @@
     }
   }
 
-  /* KEEP A GUTTER AT THE SCREEN'S EDGE. A tooltip lined up with its trigger's start edge ("bottom-start")
-     is given the whole strip from there to the end of the screen, and shrinks to fit it: on a 320px phone
-     it ran flush to the glass (right edge at x = 320) while a popover kept 16px. The margin is on the side
-     the screen bounds (and flips with the placement, in RTL too); it costs nothing when the tooltip is
-     narrower than the strip. The centred placements get the same gutter from the edge-aligned fallbacks
-     in popover.css (--sg-ts ...). Beside a control (start, end) a tooltip is a few words and flips when
-     it does not fit, so those are left alone: a gutter there would flip a tooltip that fits. Native
-     placement only: the script's fallback already clamps to 8px. */
+  /* A TOOLTIP KEEPS ITS OWN WIDTH. A box that only shrinks to fit is squeezed into whatever strip a placement
+     leaves it: at 200% text on a phone "Before it." wrapped beside its button and ran flush to the glass, and a
+     long hint lined up with a button near the edge became a column of one word a line. Anchored, it keeps its
+     natural width (one line, up to max-inline-size), so a place without room for that overflows, and the anchor
+     contract (popover.css) moves on to the next: beside, then below or above, then the script's centred place
+     inside the gutters. The gutter and the clearance of the app bar and the dock come from the contract too.
+     Native placement only: the script measures the same natural width. */
   [popover].tooltip[data-anchored]:not([data-anchor-js]) {
-    &[data-placement$="-start"] {
-      margin-inline-end: var(--_screen-gap);
-    }
-    &[data-placement$="-end"] {
-      margin-inline-start: var(--_screen-gap);
-    }
+    inline-size: max-content;
   }
 
   /* Not in the top layer: a static preview in the page flow. */

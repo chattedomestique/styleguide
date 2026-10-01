@@ -149,50 +149,52 @@ export const tests = [
     },
   },
   {
-    name: 'text that fits does not scroll; the toggle is present, dimmed and says why',
+    // A control that can do nothing is hidden, not shown disabled: the dashed pause button in a strip that does
+    // not move read as broken.
+    name: 'text that fits does not scroll, and the toggle is hidden (nothing to pause), not shown disabled',
     async run({ page, goto, expect }) {
       await goto(PAGE)
       const fit = await page.locator('.marquee[data-tone="info"]').evaluate((el) => {
         const t = el.querySelector('.marquee__toggle')
-        return { fit: el.hasAttribute('data-fit'), loop: el.hasAttribute('data-loop'), disabled: t.getAttribute('aria-disabled'), desc: document.getElementById(t.getAttribute('aria-describedby'))?.textContent, anim: getComputedStyle(el.querySelector('.marquee__track')).animationName }
+        return { fit: el.hasAttribute('data-fit'), loop: el.hasAttribute('data-loop'), hidden: t.hidden, shown: t.getBoundingClientRect().width > 0, disabled: t.getAttribute('aria-disabled'), anim: getComputedStyle(el.querySelector('.marquee__track')).animationName }
       })
       expect.ok(fit.fit && !fit.loop, 'fits, no loop')
-      expect.equal(fit.disabled, 'true')
-      expect.ok(/fits/.test(fit.desc), 'reason: ' + fit.desc)
+      expect.ok(fit.hidden && !fit.shown, 'the toggle is hidden')
+      expect.equal(fit.disabled, null, 'and never just dimmed')
       expect.equal(fit.anim, 'none')
     },
   },
   {
-    name: 'reduced motion: never scrolls, toggle shows paused and is disabled with the reason',
+    name: 'reduced motion: never scrolls, the list is static and whole, and there is no toggle (nothing to pause)',
     reducedMotion: true,
     async run({ page, goto, expect }) {
       await goto(PAGE)
       const r = await page.locator(FIRST).evaluate((el) => {
         const t = el.querySelector('.marquee__toggle')
-        return { loop: el.hasAttribute('data-loop'), clone: el.querySelector('[data-clone]') !== null, pressed: t.getAttribute('aria-pressed'), disabled: t.getAttribute('aria-disabled'), desc: document.getElementById(t.getAttribute('aria-describedby'))?.textContent, anim: getComputedStyle(el.querySelector('.marquee__track')).animationName, visible: t.getBoundingClientRect().width > 0 }
+        const list = el.querySelector('.marquee__list:not([data-clone])')
+        return { loop: el.hasAttribute('data-loop'), clone: el.querySelector('[data-clone]') !== null, hidden: t.hidden, shown: t.getBoundingClientRect().width > 0, disabled: t.getAttribute('aria-disabled'), anim: getComputedStyle(el.querySelector('.marquee__track')).animationName, wrap: getComputedStyle(list).flexWrap }
       })
       expect.equal(r.loop, false)
       expect.equal(r.clone, false, 'no loop copy')
-      expect.equal(r.pressed, 'true')
-      expect.equal(r.disabled, 'true')
-      expect.ok(/Motion is turned off/.test(r.desc), r.desc)
       expect.equal(r.anim, 'none')
-      expect.ok(r.visible, 'the control is still visible')
-      await page.locator(`${FIRST} .marquee__toggle`).click({ force: true })
-      await expect.attr(page, `${FIRST} .marquee__toggle`, 'aria-pressed', 'true', 'a disabled toggle stays inert (SG.guard)')
+      expect.equal(r.wrap, 'wrap', 'the static list wraps, every item readable')
+      expect.ok(r.hidden && !r.shown, 'the toggle is hidden')
+      expect.equal(r.disabled, null, 'not a dimmed control')
     },
   },
   {
-    name: 'switching the Motion preference at runtime stops and restarts the loop',
+    name: 'switching the Motion preference at runtime stops and restarts the loop, and hides and brings back the toggle',
     async run({ page, goto, expect }) {
       await goto(PAGE)
       expect.ok(await page.locator(FIRST).evaluate((el) => el.hasAttribute('data-loop')), 'looping to start with')
       await page.evaluate(() => SG.prefs.set('motion', 'reduced'))
       await until(page, (sel) => !document.querySelector(sel).hasAttribute('data-loop'), FIRST, 'loop removed')
       expect.equal((await probe(page)).name, 'none')
+      expect.ok(await page.locator(`${FIRST} .marquee__toggle`).evaluate((t) => t.hidden), 'toggle hidden while nothing moves')
       await page.evaluate(() => SG.prefs.set('motion', 'full'))
       await until(page, (sel) => document.querySelector(sel).hasAttribute('data-loop'), FIRST, 'loop restored')
       expect.equal((await probe(page)).name, 'sg-ticker')
+      expect.ok(await page.locator(`${FIRST} .marquee__toggle`).evaluate((t) => !t.hidden && t.getBoundingClientRect().width > 0), 'toggle back')
     },
   },
   {
@@ -245,7 +247,7 @@ export const tests = [
     },
   },
   {
-    name: '200% text on a phone: too little room to scroll, so it stays a static wrapped list with nothing clipped, and the toggle says why',
+    name: '200% text on a phone: too little room to scroll, so it stays a static wrapped list with nothing clipped, and the toggle is hidden',
     async run({ page, goto, expect }) {
       await goto(PAGE)
       await page.addStyleTag({ content: 'html{font-size:200%}' })
@@ -259,16 +261,16 @@ export const tests = [
         // Measured against the STRIP, not the viewport: the viewport is the thing that used to spill (a grid
         // of label + toggle wider than the strip pushed the toggle and the text out past the phone's frame).
         const strip = el.getBoundingClientRect()
-        const parts = [...el.querySelectorAll('.marquee__label, .marquee__toggle, .marquee__viewport'), ...lists.flatMap((l) => [...l.children])]
+        const parts = [...el.querySelectorAll('.marquee__label, .marquee__toggle, .marquee__viewport'), ...lists.flatMap((l) => [...l.children])].filter((n) => n.getClientRects().length) // a hidden toggle has no box
         const spill = Math.max(...parts.flatMap((n) => { const r = n.getBoundingClientRect(); return [r.right - strip.right, strip.left - r.left] }))
-        return { loop: el.hasAttribute('data-loop'), overflow, spill, disabled: t.getAttribute('aria-disabled'), desc: (document.getElementById(t.getAttribute('aria-describedby')) || {}).textContent || '', fit: el.hasAttribute('data-fit') }
+        return { loop: el.hasAttribute('data-loop'), overflow, spill, hidden: t.hidden, disabled: t.getAttribute('aria-disabled'), fit: el.hasAttribute('data-fit') }
       }))
       expect.ok(r.length >= 6, 'strips: ' + r.length)
       for (const x of r) {
         expect.equal(x.loop, false, 'nothing scrolls in a few letters of room')
         expect.ok(x.overflow <= 1, `text does not spill past the viewport (${x.overflow}px)`)
         expect.ok(x.spill <= 1, `label, toggle, viewport and text all stay inside the strip (${x.spill}px past it)`)
-        expect.ok(x.fit || x.desc.length > 10, 'the toggle says why: ' + x.desc)
+        expect.ok(x.hidden && x.disabled === null, 'nothing moves, so the toggle is hidden (not dimmed)')
       }
     },
   },

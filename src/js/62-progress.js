@@ -23,6 +23,9 @@
    .progress-steps  SG.progress.set(el, 2, { max: 4, name: "Payment" }) rewrites the text
                     "Step 2 of 4 Payment" and marks the segments done / current / upcoming
 
+   Heads that share a parent switch between "value beside the label" and "value under it" together
+   (SG.fit, data-fit="beside" | "under" on the parent; see the end of this file).
+
    Nothing here is required: static markup with matching numbers works without it.
    ========================================================================== */
 (function (SG) {
@@ -128,4 +131,15 @@
   }
 
   SG.progress = { set: set, percent: percent };
+
+  /* ---- Label and value rows switch together ----------------------------------------------------
+     A head (.progress__head above a bar or a meter, the text of a .progress-steps) keeps its value
+     beside its label while the row has room, and drops it under the label when it does not. The heads
+     of one GROUP, the bars, meters and step counters that share a parent, switch together, so the values
+     of a card or a list never zigzag (one beside, the next under). CSS cannot ask "do all of them fit?",
+     so SG.fit (05-fit.js) measures it: data-fit="beside" | "under" on the group. It re-checks when the
+     group's width or the reader's text size changes, and when a value's text changes (set() above).
+     Without JS each head wraps on its own (progress.css). */
+  var HEADS = ':scope > * > :is(.progress__head, .progress-steps__text)';
+  SG.fit.register(':has(> * > :is(.progress__head, .progress-steps__text))', { steps: ['beside', 'under'], measure: HEADS, parts: HEADS });
 })((window.SG = window.SG || {}));

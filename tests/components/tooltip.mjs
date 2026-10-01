@@ -211,17 +211,20 @@ export const tests = [
         await page.waitForTimeout(250)
         await page.mouse.move(x, y)
         await page.waitForTimeout(800)
-        const r = await page.evaluate(([s, i]) => { const b = document.querySelector(s).getBoundingClientRect(); const t = document.getElementById(i).getBoundingClientRect(); return { above: b.top - t.bottom, below: t.top - b.bottom, before: b.left - t.right, after: t.left - b.right, cy: (t.top + t.bottom) / 2 - (b.top + b.bottom) / 2, cx: (t.left + t.right) / 2 - (b.left + b.right) / 2, inside: t.left >= 0 && t.right <= innerWidth && t.top >= 0 && t.bottom <= innerHeight } }, [btnSel, id])
+        const r = await page.evaluate(([s, i]) => { const b = document.querySelector(s).getBoundingClientRect(); const el = document.getElementById(i); const t = el.getBoundingClientRect(); const vw = document.documentElement.clientWidth; return { above: b.top - t.bottom, below: t.top - b.bottom, before: b.left - t.right, after: t.left - b.right, cy: (t.top + t.bottom) / 2 - (b.top + b.bottom) / 2, cx: (t.left + t.right) / 2 - (b.left + b.right) / 2, inside: t.left >= 0 && t.right <= innerWidth && t.top >= 0 && t.bottom <= innerHeight, width: t.width, roomBefore: b.left, roomAfter: vw - b.right, gutter: parseFloat(getComputedStyle(el).scrollMarginLeft) } }, [btnSel, id])
         return r
       }
       const top = await measure('[aria-describedby="tip-p-top"]', 'tip-p-top')
       expect.ok(Math.abs(top.above - 8) <= 2.5 && Math.abs(top.cx) <= 3 && top.inside, `top: ${JSON.stringify(top)}`)
       const bot = await measure('[aria-describedby="tip-p-bottom"]', 'tip-p-bottom')
       expect.ok(Math.abs(bot.below - 8) <= 2.5 && Math.abs(bot.cx) <= 3 && bot.inside, `bottom: ${JSON.stringify(bot)}`)
+      // Beside, 8px from the control, on its own side when that side holds the tooltip, the gap AND the screen's gutter
+      // (a tooltip never runs flush to the glass); otherwise flipped to the other side. Either way centred on the control.
+      const fits = (room, r) => room >= r.width + 8 + r.gutter
       const st = await measure('[aria-describedby="tip-p-start"]', 'tip-p-start')
-      expect.ok(Math.abs(st.before - 8) <= 2.5 && Math.abs(st.cy) <= 3 && st.inside, `start: ${JSON.stringify(st)}`)
+      expect.ok(Math.abs((fits(st.roomBefore, st) ? st.before : st.after) - 8) <= 2.5 && Math.abs(st.cy) <= 3 && st.inside, `start: ${JSON.stringify(st)}`)
       const en = await measure('[aria-describedby="tip-p-end"]', 'tip-p-end')
-      expect.ok(Math.abs(en.after - 8) <= 2.5 && Math.abs(en.cy) <= 3 && en.inside, `end: ${JSON.stringify(en)}`)
+      expect.ok(Math.abs((fits(en.roomAfter, en) ? en.after : en.before) - 8) <= 2.5 && Math.abs(en.cy) <= 3 && en.inside, `end: ${JSON.stringify(en)}`)
     },
   },
   {

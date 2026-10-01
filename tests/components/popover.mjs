@@ -225,6 +225,42 @@ export const tests = [
     },
   },
   {
+    // Regression: on a phone neither side of an end-of-row button has room for a card, and with only a flip to try, the End
+    // popover was slid back over the button that opened it (x 126-382 over a button at 201-360; at 200% text it hid it).
+    // And a card flipped above its button at 200% text was drawn over the sticky docs bar, cutting its settings button.
+    name: 'on a phone, at 100% and 200% text, an open popover never covers its button, keeps the gutters and stays clear of the sticky bar',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      for (const text of [100, 200]) {
+        await goto('components/popover.html')
+        if (text !== 100) await page.addStyleTag({ content: `html{font-size:${text}%!important}` })
+        await page.waitForTimeout(250)
+        for (const [id, where] of [['pop-p1', 'mid'], ['pop-p2', 'mid'], ['pop-p3', 'mid'], ['pop-p4', 'mid'], ['pop-known', 'mid'], ['pop-options', 'mid'], ['pop-options', 'low'], ['pop-remind', 'mid'], ['pop-tone', 'mid'], ['pop-p4', 'low']]) {
+          const sel = `[popovertarget="${id}"][aria-haspopup]`
+          // the button in the middle of the screen, or near its bottom (so the card has to go above it)
+          await page.evaluate(([s, w]) => { const b = document.querySelector(s); const y = b.getBoundingClientRect().top + scrollY; scrollTo(0, w === 'low' ? y - (innerHeight - b.offsetHeight - 24) : y - innerHeight / 2) }, [sel, where])
+          await page.waitForTimeout(100)
+          await page.locator(sel).click()
+          await page.waitForTimeout(450)
+          const r = await page.evaluate(([s, i]) => {
+            const t = document.querySelector(s).getBoundingClientRect(), m = document.getElementById(i), p = m.getBoundingClientRect()
+            const bar = document.querySelector('.docs-bar').getBoundingClientRect()
+            const gutter = parseFloat(getComputedStyle(m).scrollMarginLeft)
+            const covers = p.left < t.right - 1 && p.right > t.left + 1 && p.top < t.bottom - 1 && p.bottom > t.top + 1
+            return { covers, left: p.left, right: p.right, top: p.top, bottom: p.bottom, vw: document.documentElement.clientWidth, vh: innerHeight, gutter, bar: bar.bottom, open: m.matches(':popover-open') }
+          }, [sel, id])
+          const at = `${id} (${where}) at ${text}%: ${JSON.stringify(r)}`
+          expect.ok(r.open, 'open: ' + at)
+          expect.ok(!r.covers, 'does not cover its button: ' + at)
+          expect.ok(r.left >= r.gutter - 1 && r.right <= r.vw - r.gutter + 1, 'inside the gutters: ' + at)
+          expect.ok(r.top >= r.bar + 1 && r.bottom <= r.vh, 'below the sticky bar and on screen: ' + at)
+          await page.keyboard.press('Escape')
+          await page.waitForTimeout(150)
+        }
+      }
+    },
+  },
+  {
     name: 'reduced motion: a fade with no vertical travel',
     reducedMotion: true,
     async run({ page, goto, expect }) {

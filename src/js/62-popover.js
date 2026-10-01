@@ -14,11 +14,13 @@
      SG.anchor.attach(popover, trigger)   marks the popover data-anchored and either names the
                                           anchor (CSS anchor positioning) or flags data-anchor-js
      SG.anchor.place(popover)             JS fallback: write inset-inline-start / inset-block-start
-                                          next to the trigger, flipped if there is no room, kept on
-                                          screen. No-op when native.
+                                          next to the trigger, in the order popover.css tries places,
+                                          never over the trigger, clear of the gutters, the app bar and
+                                          the dock (read from the popover's scroll-margin). No-op when native.
      SG.anchor.release(popover)           stop tracking a JS-placed popover
      SG.anchor.verify(popover)            safety net: if a natively placed popover still runs off the screen,
-                                          place it with the script (called after every open)
+                                          under the sticky chrome or over its trigger, place it with the
+                                          script (called after every open)
      SG.anchor.native                     true when CSS anchor positioning is available
      SG.anchor.forceJs                    set true to use the fallback everywhere (tests, old WebViews)
 
@@ -79,42 +81,67 @@
     pop.style.removeProperty('max-block-size');
   };
 
-  /** A SAFETY NET for CSS anchor positioning. If an open, natively placed popover still runs off the
-      screen (nothing in its fallback list fits, for example a menu taller than either side of its
-      button at 200% text), place it with the script instead: same gap, clamped inside the screen. */
+  /** The room a placed popover keeps free, in px: the gutter at the sides, and the sticky app bar and the
+      dock (each plus the 8px gap) at the top and the bottom. popover.css resolves them as the popover's own
+      scroll-margin, so the script and the CSS fallbacks keep the same distances. */
+  function keep(pop) {
+    var cs = getComputedStyle(pop);
+    return {
+      side: Math.max(MARGIN, parseFloat(cs.scrollMarginLeft) || 0),
+      top: Math.max(MARGIN, parseFloat(cs.scrollMarginTop) || 0),
+      bottom: Math.max(MARGIN, parseFloat(cs.scrollMarginBottom) || 0),
+    };
+  }
+
+  function covers(a, b) {
+    return a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
+  }
+
+  /** A SAFETY NET for CSS anchor positioning. If an open, natively placed popover still runs into the
+      gutter, under the sticky chrome, or over its own trigger (nothing in its five fallbacks fits, for
+      example a card taller than either side of its button at 200% text), place it with the script
+      instead: same gaps, and capped to the larger side so its body scrolls. */
   A.verify = function (pop) {
     if (!pop.hasAttribute('data-anchored') || pop.hasAttribute('data-anchor-js') || !popoverOpen(pop)) return;
     var r = pop.getBoundingClientRect();
     var vw = document.documentElement.clientWidth;
     var vh = document.documentElement.clientHeight;
-    var slack = 12; // the entry settles by a few px; do not mistake that for overflow
-    if (r.left >= -1 && r.right <= vw + 1 && r.top >= -slack && r.bottom <= vh + slack) return;
+    var k = keep(pop);
+    var slack = 12; // the entry settles downwards by a few px; do not mistake that for overflow at the bottom
+    var t = pop.__sgTrigger && pop.__sgTrigger.getBoundingClientRect();
+    if (r.left >= k.side - 1 && r.right <= vw - k.side + 1 && r.top >= k.top - GAP - 1 && r.bottom <= vh - k.bottom + GAP + slack && !(t && covers(r, t))) return;
     pop.removeAttribute('data-placed');
     pop.setAttribute('data-anchor-js', '');
     pop.style.removeProperty('position-anchor');
     A.place(pop);
   };
 
-  /** Fallback placement. Physical coordinates are computed from logical placement names. */
+  /** Fallback placement. Physical coordinates are computed from logical placement names, tried in the
+      order popover.css tries them: the asked-for place, the opposite side, the edge-aligned places, centred.
+      A side placement (start, end) goes below or above when neither side has room. */
   A.place = function (pop) {
     if (!pop.hasAttribute('data-anchor-js')) return;
     var trigger = pop.__sgTrigger;
     if (!trigger || !popoverOpen(pop)) return;
+    pop.style.removeProperty('max-block-size'); // measure its own height, not the cap of the last placement
     var t = trigger.getBoundingClientRect();
     var p = pop.getBoundingClientRect();
     var vw = document.documentElement.clientWidth;
     var vh = document.documentElement.clientHeight;
+    var k = keep(pop);
     var rtl = getComputedStyle(pop).direction === 'rtl';
     var parts = (pop.getAttribute('data-placement') || 'bottom-start').split('-');
     var side = parts[0];
     var align = parts[1] || 'center';
+    var beside = side === 'start' || side === 'end';
+    var opposite = { top: 'bottom', bottom: 'top', start: 'end', end: 'start' };
 
-    function at(s) {
+    function at(s, al) {
       var x, y;
       if (s === 'bottom' || s === 'top') {
         y = s === 'bottom' ? t.bottom + GAP : t.top - GAP - p.height;
-        if (align === 'start') x = rtl ? t.right - p.width : t.left;
-        else if (align === 'end') x = rtl ? t.left : t.right - p.width;
+        if (al === 'start') x = rtl ? t.right - p.width : t.left;
+        else if (al === 'end') x = rtl ? t.left : t.right - p.width;
         else x = t.left + t.width / 2 - p.width / 2;
       } else {
         var onLeft = (s === 'start') !== rtl;
@@ -124,20 +151,36 @@
       return { x: x, y: y };
     }
     function fits(c) {
-      return c.x >= MARGIN && c.y >= MARGIN && c.x + p.width <= vw - MARGIN && c.y + p.height <= vh - MARGIN;
+      return c.x >= k.side && c.x + p.width <= vw - k.side && c.y >= k.top && c.y + p.height <= vh - k.bottom;
     }
-    var opposite = { top: 'bottom', bottom: 'top', start: 'end', end: 'start' };
-    var pos = at(side);
-    if (!fits(pos)) {
-      var flipped = at(opposite[side]);
-      if (fits(flipped)) pos = flipped;
+    var tries = beside
+      ? [at(side), at(opposite[side]), at('bottom', 'start'), at('bottom', 'end'), at('top', 'start'), at('top', 'end'), at('bottom'), at('top')]
+      : [at(side, align), at(opposite[side], align), at(side, 'start'), at(side, 'end'), at(opposite[side], 'start'), at(opposite[side], 'end'), at(side), at(opposite[side])];
+    var pos = null;
+    for (var i = 0; i < tries.length && !pos; i++) if (fits(tries[i])) pos = tries[i];
+    var h = p.height;
+    var room = vh - k.top - k.bottom;
+    if (!pos) {
+      // Nothing fits whole: below or above, wherever there is more room, capped to that room so the body
+      // scrolls (never over the trigger), centred on it and kept inside the gutters. Only when even that
+      // room is too small to read in does it fall back to the whole screen.
+      var below = vh - k.bottom - (t.bottom + GAP);
+      var above = t.top - GAP - k.top;
+      var down = below >= above;
+      var space = down ? below : above;
+      if (space >= Math.min(p.height, 160)) {
+        h = Math.min(p.height, space);
+        pos = { x: t.left + t.width / 2 - p.width / 2, y: down ? t.bottom + GAP : t.top - GAP - h };
+      } else {
+        h = Math.min(p.height, room);
+        pos = at(side, align);
+      }
     }
-    var x = Math.max(MARGIN, Math.min(pos.x, vw - p.width - MARGIN));
-    var y = Math.max(MARGIN, Math.min(pos.y, vh - p.height - MARGIN));
+    var x = Math.max(k.side, Math.min(pos.x, vw - p.width - k.side));
+    var y = Math.max(k.top, Math.min(pos.y, vh - k.bottom - h));
+    if (h < p.height) pop.style.maxBlockSize = Math.floor(h) + 'px';
     // Viewport coordinates of a position: fixed box. The logical inset is used for the inline
     // axis so the same number means the same thing in RTL.
-    // Taller than the screen (200% text on a phone): let it scroll inside instead of running off.
-    if (p.height > vh - MARGIN * 2) pop.style.maxBlockSize = (vh - MARGIN * 2) + 'px';
     pop.style.insetInlineStart = Math.round(rtl ? vw - x - p.width : x) + 'px';
     pop.style.insetBlockStart = Math.round(y) + 'px';
     pop.setAttribute('data-placed', '');
@@ -257,6 +300,9 @@
     giveFocusBack: giveFocusBack,
     isOpen: popoverOpen,
   };
+
+  /* ---- Popover card: the action row is one row, or a stack of full-width pills (popover.css) ------------- */
+  if (SG.fit) SG.fit.register('.popover__actions', { steps: ['row', 'stack'], parts: '.btn' });
 
   /* ---- Popover card: Esc hands focus back deterministically ---------------------------------------- */
   document.addEventListener('keydown', function (e) {

@@ -170,4 +170,40 @@ export const tests = [
       for (const icons of Object.values(rows)) expect.ok(Math.max(...icons) - Math.min(...icons) <= 1, `icons start at the same height within a row (${icons.map((n) => n.toFixed(0)).join(' / ')})`)
     },
   },
+  {
+    // The lead's review: stacked pairs of two different widths, centred, read as ragged; and a side-by-side pair
+    // squeezed the longer label into its padding until the label touched the frame. Two buttons are side by
+    // side only at one shared width with every label whole and clear of the frame; otherwise they stack, one
+    // per line, at one shared width.
+    name: 'a pair of actions is one row or one stack, at one shared width and height; a label never touches its frame',
+    async run({ page, goto, expect }) {
+      for (const [width, text] of [[390, 100], [390, 200], [320, 200], [420, 100], [1024, 100]]) {
+        await page.setViewportSize({ width, height: 844 })
+        await goto(PAGE)
+        if (text !== 100) await page.addStyleTag({ content: `html{font-size:${text}%}` })
+        await page.waitForTimeout(250)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.empty__actions')].filter((a) => a.children.length > 1 && a.getClientRects().length).map((a) => {
+          const btns = [...a.querySelectorAll(':scope > .btn')].map((b) => {
+            const br = b.getBoundingClientRect(), cs = getComputedStyle(b)
+            const range = document.createRange()
+            range.selectNodeContents(b)
+            const cr = range.getBoundingClientRect()
+            return { top: br.top, left: br.left, w: br.width, h: br.height, gapL: cr.left - br.left, gapR: br.right - cr.right, pad: parseFloat(cs.paddingInlineStart), label: b.textContent.trim() }
+          })
+          return { fit: a.dataset.fit, btns }
+        }))
+        expect.ok(r.length >= 2, `${width}px ${text}%: pairs found ${r.length}`)
+        for (const { fit, btns } of r) {
+          const names = btns.map((b) => b.label).join(' / ')
+          const widths = btns.map((b) => b.w)
+          expect.ok(Math.max(...widths) - Math.min(...widths) <= 1, `${width}px ${text}% ${fit}: one shared width (${widths.map((n) => n.toFixed(0)).join(' vs ')}) for ${names}`)
+          const heights = btns.map((b) => b.h)
+          expect.ok(Math.max(...heights) - Math.min(...heights) <= 1, `${width}px ${text}% ${fit}: one shared height (${heights.map((n) => n.toFixed(0)).join(' vs ')}) for ${names}`)
+          if (fit === 'row') expect.ok(btns.every((b) => Math.abs(b.top - btns[0].top) <= 1), `${width}px ${text}%: a row is one line: ${names}`)
+          else expect.ok(btns.every((b, i) => i === 0 || (b.top > btns[i - 1].top + 20 && Math.abs(b.left - btns[0].left) <= 1)), `${width}px ${text}%: a stack is one button per line, left edges level: ${names}`)
+          for (const b of btns) expect.ok(Math.min(b.gapL, b.gapR) >= b.pad - 1, `${width}px ${text}%: "${b.label}" keeps its side padding (${b.gapL.toFixed(0)} / ${b.gapR.toFixed(0)} of ${b.pad})`)
+        }
+      }
+    },
+  },
 ]

@@ -14,14 +14,16 @@
 
    IT DECLINES TO ANIMATE WHEN
      - the user prefers reduced motion (OS setting or the app's data-motion="reduced");
-       the toggle then shows "paused" and is aria-disabled with the reason as its
-       description, because it would have nothing to do;
      - the text already fits inside the strip (nothing to scroll);
      - there is under 8rem of room for the moving text (200% text on a phone): it stays a
-       static, wrapped list, with the toggle disabled and the reason as its description;
+       static, wrapped list;
      - there is no .marquee__toggle in the markup. WCAG 2.2.2 requires a pause control
        for anything that moves on its own for more than five seconds, and hover or focus
        pausing does not satisfy it, so the loop never starts without the button.
+   In the first three cases nothing moves and the toggle could do nothing, so it is HIDDEN (not
+   shown disabled): a control with no state to show and nothing to do is noise, and a dashed button
+   in every strip at 200% text read as broken. It comes back as soon as the strip can move again.
+   A strip the person paused keeps its toggle: it has a state to show (paused) and an action (play).
 
    The toggle:  aria-pressed="true" = PAUSED. Its accessible name stays "Pause ticker";
    only the pressed state and the icon change (WAI-ARIA toggle button).
@@ -37,7 +39,6 @@
 
   var reducedMq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   var all = [];
-  var uid = 0;
 
   function naturalWidth(inst) {
     // Measure the list laid out on ONE line, whatever mode the strip is in right now.
@@ -71,25 +72,22 @@
     inst.clone = null;
   }
 
-  function setReason(inst, text) {
+  /* Nothing can move: hide the toggle. If it had focus, focus moves to the strip's first focusable
+     content or stays on the page rather than being lost with a hidden button. */
+  function setIdle(inst, idle) {
     var t = inst.toggle;
-    if (!text) {
-      t.removeAttribute('aria-disabled');
-      t.removeAttribute('aria-describedby');
-      t.removeAttribute('title');
-      if (inst.note) inst.note.textContent = '';
+    if (idle) {
+      if (t.hidden) return;
+      var hadFocus = document.activeElement === t;
+      t.hidden = true;
+      if (hadFocus) {
+        var next = inst.list.querySelector('a[href], button, [tabindex]:not([tabindex="-1"])');
+        if (next) next.focus();
+        else { inst.root.setAttribute('tabindex', '-1'); inst.root.focus(); }
+      }
       return;
     }
-    if (!inst.note) {
-      inst.note = document.createElement('span');
-      inst.note.className = 'sr-only';
-      inst.note.id = 'sg-marquee-note-' + ++uid;
-      inst.root.appendChild(inst.note);
-    }
-    inst.note.textContent = text;
-    t.setAttribute('aria-disabled', 'true');
-    t.setAttribute('aria-describedby', inst.note.id);
-    t.setAttribute('title', text);
+    if (t.hidden) t.hidden = false;
   }
 
   function setPressed(inst, pressed) {
@@ -104,8 +102,19 @@
     var gap = parseFloat(cs.columnGap) || 0;
     var pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
     var label = inst.root.querySelector('.marquee__label');
-    var used = (label ? label.offsetWidth : 0) + inst.toggle.offsetWidth + gap * 2;
+    // the toggle's width even while it is hidden: the question is "would the moving text have room
+    // beside the label AND the toggle?", whether or not the toggle is showing right now
+    var toggle = inst.toggle.hidden ? toggleWidth(inst) : inst.toggle.offsetWidth;
+    var used = (label ? label.offsetWidth : 0) + toggle + gap * 2;
     return inst.root.clientWidth - pad - used;
+  }
+
+  function toggleWidth(inst) {
+    var t = inst.toggle;
+    t.hidden = false;
+    var w = t.offsetWidth;
+    t.hidden = true;
+    return w;
   }
 
   function refresh(root) {
@@ -123,29 +132,17 @@
     if (fits) root.setAttribute('data-fit', '');
     else root.removeAttribute('data-fit');
 
-    if (reduced) {
+    if (reduced || fits || cramped) {
+      // Nothing moves (the person asked for less motion, the text fits, or there is too little room to
+      // read a moving line): no loop, a static list, and no toggle, because it could do nothing.
       root.removeAttribute('data-loop');
       dropClone(inst);
-      setPressed(inst, true);
-      setReason(inst, 'Motion is turned off in your settings, so the ticker is not scrolling.');
-      return;
-    }
-    if (fits) {
-      root.removeAttribute('data-loop');
-      dropClone(inst);
-      setPressed(inst, false);
-      setReason(inst, 'Nothing is scrolling because the text fits.');
-      return;
-    }
-    if (cramped) {
-      root.removeAttribute('data-loop');
-      dropClone(inst);
-      setPressed(inst, true);
-      setReason(inst, 'There is not enough room to scroll, so the ticker shows all of its text.');
+      setPressed(inst, inst.userPaused);
+      setIdle(inst, true);
       return;
     }
 
-    setReason(inst, '');
+    setIdle(inst, false);
     setPressed(inst, inst.userPaused);
     if (!inst.clone || !inst.clone.parentNode) buildClone(inst);
     var speed = Number(root.getAttribute('data-speed')) || 40;
@@ -163,7 +160,7 @@
       if (window.console && console.warn) console.warn('SG.marquee: a .marquee needs a .marquee__viewport > .marquee__track > .marquee__list and a .marquee__toggle (WCAG 2.2.2). Leaving it static.', root);
       return;
     }
-    var inst = { root: root, toggle: toggle, track: track, viewport: viewport, list: list, clone: null, note: null, userPaused: toggle.getAttribute('aria-pressed') === 'true' };
+    var inst = { root: root, toggle: toggle, track: track, viewport: viewport, list: list, clone: null, userPaused: toggle.getAttribute('aria-pressed') === 'true' };
     root._sgMarquee = inst;
     all.push(inst);
     root.setAttribute('data-ready', '');

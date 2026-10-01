@@ -9,8 +9,9 @@
      ~15rem strip, so every demo fell into the "not enough room to scroll" branch and none showed a
      ticker. A strip needs its room, as it would have in an app. */
   .demo__stage:has(> .marquee, > .stack > .marquee) { padding: var(--space-2); }
-  /* and the phone mock's 30rem minimum height left ~11rem of empty screen under the strip */
-  .phone__screen { min-block-size: 0; }
+  /* docs.css gives every article list a start padding and li margins; components opt out. */
+  .demo .list { padding: 0; }
+  .demo .list > li { margin: 0; max-inline-size: none; }
 </style>
 
 <h1>Marquee</h1>
@@ -92,7 +93,7 @@
           <ul class="marquee__list" role="list">
             <li>All systems normal</li>
             <li>Last backup 2:14 am</li>
-            <li>12 cards waiting for Wi-Fi</li>
+            <li>12 cards waiting for Wi-&#8288;Fi</li>
             <li>Sync is on</li>
           </ul>
         </div>
@@ -125,7 +126,7 @@
 </div>
 
 <h3 id="tone">Tone</h3>
-<p>A tone colours the strip and the label from its own roles, and keeps 7:1 text contrast in every hue. The second strip shows the third rule: when the text already fits, nothing scrolls, and the button says why (it is dashed, and its description reads "Nothing is scrolling because the text fits").</p>
+<p>A tone colours the strip and the label from its own roles, and keeps 7:1 text contrast in every hue. The second strip shows another rule: when the text already fits, nothing scrolls, so there is no Pause button. A control that could do nothing is hidden, not shown disabled.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="stack" data-gap="3">
@@ -185,8 +186,10 @@
       </div>
     </div>
         <h4 class="t-title">Home</h4>
-        <article class="card card--row"><span class="card__tile" data-tone="1" aria-hidden="true"></span><div class="card__main"><p class="card__title">Dentist</p><p class="card__meta">Tomorrow, 9:30</p></div></article>
-        <article class="card card--row"><span class="card__tile" data-tone="4" aria-hidden="true"></span><div class="card__main"><p class="card__title">Groceries</p><p class="card__meta">6 items left</p></div></article>
+        <ul class="list" data-variant="framed" role="list">
+          <li><div class="list__row"><span class="list__lead" data-shape="tile" data-tone="1" aria-hidden="true"><span class="ic ic--calendar" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Dentist</span><span class="list__meta">Tomorrow, 9:30</span></span></div></li>
+          <li><div class="list__row"><span class="list__lead" data-shape="tile" data-tone="4" aria-hidden="true"><span class="ic ic--shopping-cart" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Groceries</span><span class="list__meta">6 items left</span></span></div></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -200,8 +203,9 @@
     <tr><td>Default</td><td>Scrolls at <code>data-speed</code> px per second (40 by default), so long and short lists move at the same pace.</td></tr>
     <tr><td>Pause pressed (<code>aria-pressed="true"</code>)</td><td>Animation off, loop copy hidden. The strip becomes a title row (label and toggle) over the text, which wraps. Press again to resume.</td></tr>
     <tr><td>Pointer over the strip, or focus anywhere inside it</td><td>Frozen in place (<code>animation-play-state: paused</code>). A courtesy, not the pause mechanism.</td></tr>
-    <tr><td>Reduced motion (OS, or the Motion switch in Appearance)</td><td>Never starts. Static wrapped list; the button shows "pressed" and is dashed, described as "Motion is turned off in your settings". Try it: switch Motion to Reduced.</td></tr>
-    <tr><td>The text fits in the strip</td><td>Nothing to scroll, so nothing moves.</td></tr>
+    <tr><td>Reduced motion (OS, or the Motion switch in Appearance)</td><td>Never starts. Static wrapped list, and no Pause button: there is nothing to pause. Try it: switch Motion to Reduced.</td></tr>
+    <tr><td>The text fits in the strip</td><td>Nothing to scroll, so nothing moves, and the button is hidden.</td></tr>
+    <tr><td>Too little room for a moving line (200% text on a phone)</td><td>Static wrapped list, every item whole, and the button is hidden. It comes back when there is room again.</td></tr>
     <tr><td>No script, or no toggle in the markup</td><td>Static wrapped list. The loop needs JavaScript (a continuous loop needs a duplicate) and needs the button.</td></tr>
     <tr><td>Right-to-left</td><td>Direction mirrors with <code>:dir(rtl)</code>.</td></tr>
   </tbody>
@@ -211,9 +215,9 @@
 <ol>
   <li><strong>Strip</strong> (<code>.marquee</code>): a rectangle with the 2px frame (<code>--radius-card</code>) in a tone or on paper. It is not pressable, so it casts no shadow.</li>
   <li><strong>Label</strong>: the caption at the start, in the uppercase label style on the tone's fill. Not interactive.</li>
-  <li><strong>Toggle</strong>: the small round <a href="@/components/button.html">button</a>, 44&times;44px hit area, stable name "Pause ticker", <code>aria-pressed</code> for state (filled and a doubled frame when paused), an icon that swaps between pause and play. It comes <em>before</em> the moving text in the DOM, so a keyboard or screen-reader user meets the control that stops the motion before the motion. Grid areas put it at the end visually.</li>
+  <li><strong>Toggle</strong>: the small round <a href="@/components/button.html">button</a>, 36px drawn with a 44&times;44px hit area, stable name "Pause ticker", <code>aria-pressed</code> for state (filled and a doubled frame when paused), an icon that swaps between pause and play. It comes <em>before</em> the moving text in the DOM, so a keyboard or screen-reader user meets the control that stops the motion before the motion; <code>order</code> puts it at the end visually. It is hidden whenever nothing can move.</li>
   <li><strong>Viewport</strong>: clips the moving track, with block padding so a link's focus ring is never clipped. There is no edge fade: a fade is a gradient.</li>
-  <li><strong>List</strong>: a real <code>&lt;ul&gt;</code>, read once, left in the DOM for assistive technology. Items are separated by a small square drawn with a box, not a text glyph, so it is not read aloud.</li>
+  <li><strong>List</strong>: a real <code>&lt;ul&gt;</code>, read once, left in the DOM for assistive technology. Items are separated by a small square drawn with a box, not a text glyph, so it is not read aloud. A single item that is not moving has no square: it would separate nothing.</li>
   <li><strong>Loop copy</strong> (added by script): a second list, <code>aria-hidden</code> and <code>inert</code>, for the continuous wrap.</li>
 </ol>
 
@@ -226,7 +230,7 @@
     <tr><td><code>data-tone</code></td><td><code>ink</code>, <code>ok</code>, <code>warn</code>, <code>bad</code>, <code>info</code>, <code>1</code> to <code>6</code></td><td>Colours strip and label. No attribute = paper with an ink label. Put the same tone on the toggle (<code>data-variant="tone"</code>).</td></tr>
     <tr><td><code>data-size</code></td><td><code>lg</code></td><td>Display-size text.</td></tr>
     <tr><td><code>data-speed</code></td><td>number (px/s)</td><td>Scroll speed. Default 40.</td></tr>
-    <tr><td><code>data-loop</code>, <code>data-fit</code>, <code>data-ready</code></td><td>set by script</td><td>Looping is active; the text fits on one line; the script has run (until then the toggle is hidden, because it could do nothing). Do not write them yourself.</td></tr>
+    <tr><td><code>data-loop</code>, <code>data-fit</code>, <code>data-ready</code>, <code>hidden</code> on the toggle</td><td>set by script</td><td>Looping is active; the text fits on one line; the script has run (until then the toggle is hidden, because it could do nothing); nothing can move right now, so the toggle is hidden. Do not write them yourself.</td></tr>
     <tr><td><code>aria-pressed</code> on the toggle</td><td><code>true</code> = paused</td><td>The only state. An initial <code>true</code> starts the strip paused.</td></tr>
     <tr><td><code>SG.marquee.init(el)</code>, <code>.refresh(el)</code></td><td></td><td>Enhance a strip added later (automatic), or rebuild after changing the list items.</td></tr>
   </tbody>
@@ -243,10 +247,11 @@
     <tr><td>Touch</td><td>The toggle has a 44&times;44px hit area.</td></tr>
     <tr><td>Reduced motion</td><td>Never scrolls; travel is multiplied by <code>--move</code> (0) and the script also stops the loop so the text wraps instead of sitting clipped.</td></tr>
     <tr><td>Legibility</td><td>Line height 1.4 and block padding: the reference design clipped the bottoms of capitals ("E" read as "F").</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the reader's text size; the strip's insets, the label's box and the toggle stop at their 100% size. Where a moving line would leave a few words of room (200% text on a phone) the strip is a static list, every item whole, and the toggle is hidden.</td></tr>
     <tr><td>Focus ring</td><td>On the ink band the ring is paper and its halo ink, so it follows the surface.</td></tr>
     <tr><td>Forced colours</td><td>Strip and label keep real borders in <code>CanvasText</code>; the toggle is a Button, whose border doubles when pressed.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--radius-ctl</code>, <code>--ctl-sm</code>, <code>--type-label</code>, <code>--type-title</code>, <code>--type-display</code>, <code>--ls-label</code>, <code>--ls-display</code>, <code>--text-lg</code>, <code>--text-2xl</code>, <code>--focus-shadow</code>, <code>--move</code>, <code>--space-1</code> to <code>--space-7</code>. The keyframe <code>sg-ticker</code> is this component's own.</p>
+<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--radius-ctl</code>, <code>--chrome-1</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-ctl-sm</code>, <code>--chrome-ctl</code>, <code>--type-label</code>, <code>--type-title</code>, <code>--type-display</code>, <code>--ls-label</code>, <code>--ls-display</code>, <code>--text-lg</code>, <code>--text-2xl</code>, <code>--focus-shadow</code>, <code>--move</code>, <code>--space-1</code>, <code>--space-4</code>. The keyframe <code>sg-ticker</code> is this component's own.</p>

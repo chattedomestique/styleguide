@@ -31,7 +31,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="four">The four states</h3>
-<p>Built on the card's ghost idea: a dashed frame means "nothing here yet". An error or an offline notice is not empty, it is something that happened, so a tone makes it solid and filled. Each has its own icon shape, so colour is never the only cue. The one primary action is the filled button (<code>data-variant="primary"</code>); a quiet alternative takes the card's tone as an outline (<code>data-variant="tone"</code>, which reads the tone from the card). The cards in a row line up at the top.</p>
+<p>Built on the card's ghost idea: a dashed frame means "nothing here yet". An error or an offline notice is not empty, it is something that happened, so a tone makes it solid and filled. Each has its own icon shape, so colour is never the only cue. The one primary action is the filled button (<code>data-variant</code> set to <code>primary</code>); a quiet alternative takes the card's tone as an outline (set to <code>tone</code>, which reads the tone from the card). Two actions share one width, side by side or stacked. The cards in a row line up at the top.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="grid" style="--grid-min: 17rem">
@@ -66,7 +66,7 @@
           <p class="card__text">Saved decks still work. New ones need a connection.</p>
           <div class="empty__actions">
             <button class="btn" data-variant="primary" type="button">Try again</button>
-            <button class="btn" data-variant="tone" type="button">Open saved decks</button>
+            <button class="btn" data-variant="tone" type="button">Study offline</button>
           </div>
         </div>
       </section>
@@ -90,24 +90,22 @@
 </div>
 
 <h3 id="page">Full screen</h3>
-<p><code>data-layout="page"</code> fills what the app shell leaves between the app bar and the dock, and centres the content. Set <code>--empty-page-h</code> to fit a preview frame (this phone uses 25rem). It is a minimum, not a fixed height, so 200% text scrolls instead of clipping.</p>
+<p><code>data-layout="page"</code> fills what the app shell leaves between the app bar and the dock, and centres the content. Set <code>--empty-page-h</code> to fit a preview frame (this one uses 25rem). It is a minimum, not a fixed height, so 200% text scrolls instead of clipping. The two actions sit side by side when both fit at the width of the wider one, and otherwise stack at that one width, so the pair never shows two different sizes.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="phone">
-      <div class="phone__screen stack" data-gap="3" style="--empty-page-h: 25rem">
-        <h4 class="t-title">My decks</h4>
-        <section class="card empty" data-layout="page" aria-labelledby="em-page">
-          <div class="card__body">
-            <span class="empty__icon" aria-hidden="true"><span class="ic ic--layers" aria-hidden="true"></span></span>
-            <h5 class="card__title" id="em-page">Start your first deck</h5>
-            <p class="card__text">A deck is a set of cards you flip through. Start with one.</p>
-            <div class="empty__actions">
-              <button class="btn" data-variant="primary" type="button"><span class="ic ic--plus" aria-hidden="true"></span>Add deck</button>
-              <button class="btn" type="button">Import from file</button>
-            </div>
+    <div class="stack" data-gap="3" style="--empty-page-h: 25rem">
+      <h4 class="t-title">My decks</h4>
+      <section class="card empty" data-layout="page" aria-labelledby="em-page">
+        <div class="card__body">
+          <span class="empty__icon" aria-hidden="true"><span class="ic ic--layers" aria-hidden="true"></span></span>
+          <h5 class="card__title" id="em-page">Start your first deck</h5>
+          <p class="card__text">A deck is a set of cards you flip through. Start with one.</p>
+          <div class="empty__actions">
+            <button class="btn" data-variant="primary" type="button"><span class="ic ic--plus" aria-hidden="true"></span>Add deck</button>
+            <button class="btn" type="button">Import a file</button>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   </div>
 </div>
@@ -134,7 +132,7 @@
 
 <h2 id="announce">Announcing and recovering</h2>
 <ul>
-  <li><strong>When the state appears because of an action</strong> (search, filter, refresh, a dropped connection), tell people without moving focus (WCAG 4.1.3). Either insert the state into a container that already exists with <code>role="status"</code> (<code>role="alert"</code> for errors), or keep the markup plain and call <code>SG.announce(message)</code>. Do both and it is read twice.</li>
+  <li><strong>When the state appears because of an action</strong> (search, filter, refresh, a dropped connection), tell people without moving focus (WCAG 4.1.3). Either insert the state into a container that already exists with <code>role="status"</code> (<code>role="alert"</code> for errors), or keep the markup plain and call <code>SG.announce()</code>. Do both and it is read twice.</li>
   <li><strong>When it is simply what the page is</strong> (first load, no data), it is content, not an event. No role.</li>
   <li><strong>If the thing that had focus disappears</strong> (the "Clear search" button you just pressed), move focus on purpose: to the field, to the heading of the new content, or to the first result.</li>
   <li><strong>Offer recovery</strong>: a retry that works, a way to keep going offline, a path back. The action is a real <code>&lt;button&gt;</code>, or a link if it navigates.</li>
@@ -144,10 +142,10 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Card</strong> (<code>.card.empty</code>): the 2px frame is the card's own, dashed for "nothing yet", solid and filled with a tone for "something happened". Padding is on the <code>.card__body</code>, as for every card.</li>
-  <li><strong>Icon tile</strong> (<code>.empty__icon</code>): the owner's icon tile, a 2px-framed square slot in <code>--radius-tile</code>, with a paper fill so it reads on the dashed canvas and on any tone. <code>aria-hidden</code>, because the title says the same thing in words.</li>
+  <li><strong>Icon tile</strong> (<code>.empty__icon</code>): the owner's icon tile, a 2px-framed square slot in <code>--radius-tile</code>, with a paper fill so it reads on the dashed canvas and on any tone. 56px (72 in the page layout, 44 in the list layout), the same at every text size. <code>aria-hidden</code>, because the title says the same thing in words.</li>
   <li><strong>Title</strong> (<code>.card__title</code>): what is true now, in a short sentence. A real heading, at the level that fits the page.</li>
   <li><strong>Message</strong> (<code>.card__text</code>): what to do, or why. About 36 characters wide, so it never becomes a paragraph.</li>
-  <li><strong>Actions</strong> (<code>.empty__actions</code>): one primary, at most one quiet alternative.</li>
+  <li><strong>Actions</strong> (<code>.empty__actions</code>): one primary, at most one quiet alternative. Side by side at one shared width (the widest label’s) while the row has room for that; otherwise stacked, every button as wide as the widest (measured by <code>66-empty.js</code>, which writes <code>data-fit="row"</code> or <code>"stack"</code>; without JS the row wraps).</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -171,13 +169,13 @@
     <tr><td>Keyboard</td><td>The actions are ordinary buttons in reading order. After a state replaces focused content, move focus on purpose.</td></tr>
     <tr><td>Touch</td><td>Buttons are 44px or taller with 8px between them.</td></tr>
     <tr><td>Colour</td><td>Never the only cue: a different icon shape plus words. The <code>wire</code> palette keeps all four distinguishable.</td></tr>
-    <tr><td>Zoom / text size</td><td>Everything is in rem and wraps. The page layout has a minimum height, not a fixed one.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the reader's text size and wrap between words; the icon tile and the card's insets stop at their 100% size, and a button's icon stays beside its label. The page layout has a minimum height, not a fixed one.</td></tr>
     <tr><td>Forced colours</td><td>The card's border (dashed or solid) and the tile's border stay in <code>CanvasText</code>.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--card-bg</code>, <code>--card-ink</code>, <code>--tone-bg</code>, <code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--bw</code>, <code>--radius-tile</code>, <code>--hit</code>, <code>--appbar-h</code>, <code>--dock-h</code>, <code>--safe-top</code>, <code>--safe-bottom</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-4</code>, <code>--space-6</code>, <code>--space-7</code>.</p>
+<p><code>--card-bg</code>, <code>--card-ink</code>, <code>--tone-bg</code>, <code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--bw</code>, <code>--radius-tile</code>, <code>--chrome-2</code>, <code>--chrome-4</code>, <code>--chrome-6</code>, <code>--chrome-ic-sm</code>, <code>--chrome-ctl-lg</code>, <code>--chrome-hit</code>, <code>--appbar-h</code>, <code>--dock-h</code>, <code>--safe-top</code>, <code>--safe-bottom</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-6</code>.</p>
 
 <script>
   window.addEventListener('DOMContentLoaded', function () {

@@ -218,6 +218,30 @@ export const tests = [
     },
   },
   {
+    // Lead's note after round 1: capped at the 24px chrome size, the status icon was a speck beside 32px words at 200% text.
+    // It leads a line of words, so it grows with them (1.25 x the message size, never under 24px); the close stays 36.
+    name: 'the status icon grows with the message (24px at 100% text, 40px at 200%) and stays beside its first line; the close stays 36',
+    async run({ page, goto, expect }) {
+      await boot(page, goto)
+      for (const scale of [100, 200]) {
+        await page.addStyleTag({ content: `html{font-size:${scale}%!important}` })
+        await page.evaluate(() => SG.toast.clear && SG.toast.clear())
+        await waitVisible(page, 0)
+        await page.evaluate(() => SG.toast.show({ message: 'Could not save. Check your connection.', status: 'danger' }))
+        await waitVisible(page, 1)
+        const r = await page.evaluate((sel) => {
+          const t = document.querySelector(sel), ic = t.querySelector('.toast__icon').getBoundingClientRect(), c = t.querySelector('.toast__close').getBoundingClientRect()
+          const m = t.querySelector('.toast__msg'), mr = m.getBoundingClientRect(), lh = parseFloat(getComputedStyle(m).lineHeight)
+          return { ic: ic.width, ich: ic.height, icMid: (ic.top + ic.bottom) / 2, line1: mr.top + lh / 2, close: c.width, rem: parseFloat(getComputedStyle(document.documentElement).fontSize) }
+        }, VISIBLE)
+        const want = Math.max(24, 1.25 * r.rem)
+        expect.ok(Math.abs(r.ic - want) <= 0.5 && Math.abs(r.ich - want) <= 0.5, `@${scale}%: icon ${r.ic} x ${r.ich}, expected ${want}`)
+        expect.ok(Math.abs(r.icMid - r.line1) <= 1.5, `@${scale}%: icon centred on the first line (${r.icMid} vs ${r.line1})`)
+        expect.ok(Math.abs(r.close - 36) <= 0.5, `@${scale}%: the close circle stays 36 (${r.close})`)
+      }
+    },
+  },
+  {
     name: 'at most three are visible; the newest wins; persistent toasts queue instead of being lost',
     async run({ page, goto, expect }) {
       await boot(page, goto)
@@ -369,6 +393,44 @@ export const tests = [
       await page.waitForTimeout(150)
       const wide = await page.locator(VISIBLE).first().evaluate((el) => ({ msg: el.querySelector('.toast__msg').getBoundingClientRect(), act: el.querySelector('.toast__action').getBoundingClientRect() }))
       expect.ok(wide.act.top < wide.msg.bottom && wide.act.bottom > wide.msg.top, 'wide: message and action share a row')
+    },
+  },
+  {
+    // At 200% text on a 320px phone, in a frame, the words beside the icon and the dismiss circle got ~80px and broke
+    // inside themselves ("Colo / urs / archi / ved"). Measured (SG.fit on the list): too narrow for a word, the circle
+    // moves down to the action row and the words get the width, every toast of the list alike.
+    name: 'a message never breaks inside a word: too narrow, the list switches to the narrow layout (dismiss circle on the action row)',
+    viewport: { width: 320, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(300)
+      const r = await page.evaluate(() => [...document.querySelectorAll('.docs-article .toast-list')].filter((l) => l.getClientRects().length).map((l) => ({
+        fit: l.getAttribute('data-fit'),
+        toasts: [...l.querySelectorAll(':scope > .toast')].map((t) => {
+          const m = t.querySelector('.toast__msg'), c = t.querySelector('.toast__close').getBoundingClientRect(), mr = m.getBoundingClientRect()
+          const split = []
+          const walker = document.createTreeWalker(m, NodeFilter.SHOW_TEXT)
+          for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+            if (n.parentElement.closest('.sr-only')) continue
+            for (const w of n.textContent.matchAll(/\S+/g)) {
+              const rg = document.createRange(); rg.setStart(n, w.index); rg.setEnd(n, w.index + w[0].length)
+              if (new Set([...rg.getClientRects()].map((x) => Math.round(x.top))).size > 1) split.push(w[0])
+            }
+          }
+          return { split, closeBelow: c.top >= mr.bottom - 1, close: [Math.round(c.width), Math.round(c.height)] }
+        }),
+      })))
+      const at = JSON.stringify(r)
+      expect.ok(r.length >= 2, 'toast lists measured: ' + at)
+      for (const l of r) {
+        for (const t of l.toasts) {
+          expect.equal(t.split.length, 0, 'words broken inside themselves: ' + at)
+          expect.equal(t.close.join('x'), '36x36', 'the dismiss circle stays 36 x 36: ' + at)
+          expect.equal(t.closeBelow, l.fit === 'narrow', 'the circle is under the words exactly when the list is narrow: ' + at)
+        }
+      }
+      expect.ok(r.some((l) => l.fit === 'narrow'), 'at 320px and 200% text the framed demo needs the narrow layout (so the test has teeth): ' + at)
     },
   },
   {

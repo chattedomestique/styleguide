@@ -3,15 +3,20 @@
   /* Docs-only scaffolding: see dialog.html for why margins are reverted in demos. */
   .docs-article .demo .demo__stage > :is(dialog, [popover]) { margin: revert-layer; }
   #tip-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: var(--space-5); padding-block: var(--space-6); justify-items: center; }
-  /* a static map of the four placements: the tooltip and its control, 8px apart (the real gap) */
-  #tip-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-5); }
+  /* a static map of the four placements: the tooltip and its control, 8px apart (the real gap). The control is an
+     icon-only circle (a tooltip's usual owner, 44px at every text size), so a beside-placement keeps its words and the
+     button on one line down to a 320px phone at 200% text. One pair per row until a row has room for two whole
+     pairs, then two, then four: squeezed into half a phone, a pill-sized button broke "Before it." into "Befo / re it." */
+  #tip-map { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  @container (min-width: 30rem) { #tip-map { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container (min-width: 60rem) { #tip-map { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   #tip-map .t-label { margin-block-end: var(--space-2); }
   #tip-map .btn { flex: none; }
   #tip-map .pair { display: flex; gap: var(--space-2); align-items: center; }
-  #tip-map [data-at="top"] { flex-direction: column; }
-  #tip-map [data-at="bottom"] { flex-direction: column-reverse; }
+  #tip-map [data-at="top"] { flex-direction: column; inline-size: fit-content; } /* centred on the button, the pair itself at the start like the others */
+  #tip-map [data-at="bottom"] { flex-direction: column-reverse; inline-size: fit-content; }
   #tip-map [data-at="end"] { flex-direction: row-reverse; justify-content: flex-end; }
-  #tip-map .tooltip { max-inline-size: 100%; }
+  #tip-map .tooltip { max-inline-size: 100%; min-inline-size: min-content; text-wrap: balance; }
   #tip-corners > div { min-inline-size: 0; }
   #tip-corners .t-label { margin-block-end: var(--space-2); }
   #tip-tool .card__body { align-items: flex-start; }
@@ -25,7 +30,7 @@
     <span class="ic ic--check" aria-hidden="true"></span>
     <div>
       <strong>Do</strong>
-      <p>Use a tooltip to add a <em>shortcut</em>, a <em>consequence</em> or a <em>reason</em> to a control that already has its own name. Keep it to one short line. Wire it with <code>aria-describedby</code>.</p>
+      <p>Use a tooltip to add a <em>shortcut</em>, a <em>consequence</em> or a <em>reason</em> to a control that already has its own name. Keep it to one short line. Wire it with <code>aria-<wbr>describedby</code>.</p>
     </div>
   </div>
   <div class="note" data-kind="dont">
@@ -88,25 +93,25 @@
 </div>
 
 <h3 id="placement">Placement</h3>
-<p><code>data-placement</code> is <code>top</code> by default. It is logical (<code>start</code> and <code>end</code> flip in right-to-left text) and it flips to the other side when there is no room. First what each looks like, as static previews (<code>data-inline</code>), then the live thing: hover or focus each button.</p>
+<p><code>data-placement</code> is <code>top</code> by default. It is logical (<code>start</code> and <code>end</code> flip in right-to-left text). A tooltip keeps its own width, one line where the words allow, and when its place has no room for that it moves: to the other side, then below or above with one edge lined up with the control's, then across the screen inside its gutters. It never covers its control. First what each looks like, as static previews (<code>data-inline</code>), then the live thing: hover or focus each button.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div id="tip-map">
       <div>
         <p class="t-label">top</p>
-        <div class="pair" data-at="top"><div class="tooltip" popover data-inline role="note">Above, centred.</div><span class="btn" aria-hidden="true">Top</span></div>
+        <div class="pair" data-at="top"><div class="tooltip" popover data-inline role="note">Above, centred.</div><span class="btn" data-shape="circle" aria-hidden="true"><span class="ic ic--rotate-cw" aria-hidden="true"></span></span></div>
       </div>
       <div>
         <p class="t-label">bottom</p>
-        <div class="pair" data-at="bottom"><div class="tooltip" popover data-inline role="note">Below, centred.</div><span class="btn" aria-hidden="true">Bottom</span></div>
+        <div class="pair" data-at="bottom"><div class="tooltip" popover data-inline role="note">Below, centred.</div><span class="btn" data-shape="circle" aria-hidden="true"><span class="ic ic--rotate-cw" aria-hidden="true"></span></span></div>
       </div>
       <div>
         <p class="t-label">start</p>
-        <div class="pair" data-at="start"><div class="tooltip" popover data-inline role="note">Before it.</div><span class="btn" aria-hidden="true">Start</span></div>
+        <div class="pair" data-at="start"><div class="tooltip" popover data-inline role="note">Before it.</div><span class="btn" data-shape="circle" aria-hidden="true"><span class="ic ic--rotate-cw" aria-hidden="true"></span></span></div>
       </div>
       <div>
         <p class="t-label">end</p>
-        <div class="pair" data-at="end"><div class="tooltip" popover data-inline role="note">After it.</div><span class="btn" aria-hidden="true">End</span></div>
+        <div class="pair" data-at="end"><div class="tooltip" popover data-inline role="note">After it.</div><span class="btn" data-shape="circle" aria-hidden="true"><span class="ic ic--rotate-cw" aria-hidden="true"></span></span></div>
       </div>
     </div>
   </div>
@@ -153,7 +158,7 @@
 </div>
 
 <h3 id="context">In context</h3>
-<p>A study card with its three tools. Every one is a named button; the tooltips add the keys. They open below (<code>data-placement="bottom"</code>) so they never cover the question while it is being read.</p>
+<p>A study card with its three tools. Every one is a named button; the tooltips add the keys. They open below (<code>data-placement</code> set to <code>bottom</code>) so they never cover the question while it is being read.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <article class="card" id="tip-tool" style="max-inline-size: 22rem">
@@ -190,13 +195,13 @@
     <tr><td>Hides when pointer and focus have left; 120ms grace to cross onto it</td><td><code>64-tooltip.js</code>.</td></tr>
     <tr><td><kbd>Esc</kbd> hides it and is swallowed, so a dialog around it stays open</td><td><code>64-tooltip.js</code> (capture phase).</td></tr>
     <tr><td>Above everything, no z-index</td><td>The top layer (<code>popover="manual"</code>).</td></tr>
-    <tr><td>Next to the control, flipped when there is no room</td><td>CSS anchor positioning (<code>popover.css</code>); a script fallback where unsupported.</td></tr>
+    <tr><td>Next to the control; moved to another side when there is no room, never over the control, clear of the screen's edges, the app bar and the dock</td><td>CSS anchor positioning (<code>popover.css</code>); the script places it where that is unsupported or nothing fits.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Trigger</strong>: any control with its own accessible name and <code>aria-describedby</code> pointing at the tooltip. It may also be <code>aria-disabled</code>.</li>
+  <li><strong>Trigger</strong>: any control with its own accessible name and <code>aria-<wbr>describedby</code> pointing at the tooltip. It may also be <code>aria-disabled</code>.</li>
   <li><strong>Tooltip</strong>: <code>&lt;div class="tooltip" role="tooltip" popover="manual"&gt;</code>, placed right after its trigger. An ink box with paper text, framed in paper, <code>--radius-ctl</code>, 20rem at most. No shadow and no arrow.</li>
   <li><strong>Key cap</strong>: a <code>&lt;kbd&gt;</code> inside is inverted so it stays readable.</li>
 </ol>
@@ -224,7 +229,7 @@
     <tr><td>Pointer</td><td>Hover waits 500ms; moving onto the tooltip keeps it; pressing the control hides it (and it stays away until the pointer leaves).</td></tr>
     <tr><td>Screen reader</td><td>"Flip card, button, Show the answer space." The name comes from <code>aria-label</code>, the description from the tooltip. Nothing is announced when it appears.</td></tr>
     <tr><td>Touch</td><td>Never shown. The control has a 44px target and a real name; the information is also available elsewhere.</td></tr>
-    <tr><td>Zoom / text size</td><td>Rem padding, 20rem at most and never wider than the screen; long words wrap.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the text size; the padding is chrome. A tooltip keeps its own width (one line where the words allow, 20rem at most, never wider than the screen); where its place has no room for that, it moves to another one instead of squeezing its words.</td></tr>
     <tr><td>Reduced motion</td><td>The 4px settle is multiplied by <code>--move</code>, so only a fade remains.</td></tr>
     <tr><td>Forced colours</td><td>The fill is gone; the frame becomes <code>CanvasText</code>.</td></tr>
   </tbody>

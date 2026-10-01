@@ -28,7 +28,7 @@
 </div>
 
 <h3 id="sizes">Sizes</h3>
-<p>Four sizes, from text height to a hero loader. The ring and its stroke scale together, so the weight looks the same.</p>
+<p>Four sizes, from text height to a hero loader: 16, 24, 40 and 56px. The ring and its stroke scale together, so the weight looks the same. A ring on its own is chrome: it keeps these sizes at 200% text, where the words around it grow. A ring that leads a visible label is part of that line of words, so it grows with it (1.15 times the label's size, never under 24px), the same mark as the spinner in a busy button.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <div class="cluster" data-gap="5">
@@ -41,11 +41,11 @@
 </div>
 
 <h3 id="sr-label">Label for screen readers only</h3>
-<p>When the spot is tiny and the meaning obvious, hide the label visually with <code>sr-only</code>. It is still the accessible name. A button that is working needs no spinner element: <code>aria-busy="true"</code> on the <a href="@/components/button.html">button</a> itself draws its own small one and ignores taps.</p>
-<div class="demo" data-layout="row">
+<p>When the spot is tiny and the meaning obvious, hide the label visually with <code>sr-only</code>: below, a deck that is syncing. The hidden label is still the accessible name. A button that is working needs no spinner element: <code>aria-busy="true"</code> on the <a href="@/components/button.html">button</a> itself draws its own small one, before its label, and ignores taps.</p>
+<div class="demo" data-layout="stack">
   <div class="demo__stage">
+    <p class="cluster t-body" data-gap="3">Shapes <span class="spinner" data-size="sm" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="sr-only">Syncing Shapes</span></span></p>
     <button class="btn" type="button" aria-busy="true">Saving deck</button>
-    <span class="spinner" data-size="sm" role="status"><span class="spinner__ring" aria-hidden="true"></span><span class="sr-only">Syncing</span></span>
   </div>
 </div>
 
@@ -61,7 +61,7 @@
 </div>
 
 <h3 id="overlay">Overlay</h3>
-<p>Covers a region while it reloads. The overlay is positioned against its parent, so the parent needs <code>position: relative</code> (a card is). The label stays on a solid plate, never directly on the dimmed content. Mark the region <code>aria-busy="true"</code> and make what is underneath <code>inert</code>, so a keyboard cannot reach controls nobody can see.</p>
+<p>Covers a region while it reloads. The overlay is positioned against its parent, so the parent needs <code>position: relative</code> (a card is). The label stays on a solid plate, never directly on the dimmed content. Over a region shorter than 16rem, like this card, the plate covers the whole region: a plate across the middle of a few lines of text would leave cut letters peeking out above and below it. Over a larger region (a list, a screen) the scrim dims everything and the framed plate sits in the middle. Mark the region <code>aria-busy="true"</code> and make what is underneath <code>inert</code>, so a keyboard cannot reach controls nobody can see.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="card" aria-busy="true">
@@ -106,7 +106,7 @@
   <li><strong>Ring</strong>: a masked track plus a 28% arc (<code>::after</code>), <code>aria-hidden</code>. The arc is <code>currentColor</code>; the track is <code>--line-soft</code>. No <code>&lt;svg&gt;</code> in the markup.</li>
   <li><strong>Label</strong>: visible (<code>spinner__label</code>) or <code>sr-only</code>. Never absent.</li>
   <li><strong>Status role</strong>: <code>role="status"</code> on the wrapper.</li>
-  <li><strong>Overlay</strong> (optional): <code>--scrim</code> over the region plus a solid, framed plate that holds the spinner and its label.</li>
+  <li><strong>Overlay</strong> (optional): <code>--scrim</code> over the region plus a solid, framed plate that holds the spinner and its label. Over a region under 16rem tall, the plate covers the whole region, framed by the region's own frame.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -115,7 +115,7 @@
   <thead><tr><th>Class or attribute</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
     <tr><td><code>.spinner</code></td><td></td><td>Wrapper. Parts: <code>.spinner__ring</code>, <code>.spinner__label</code>.</td></tr>
-    <tr><td><code>data-size</code></td><td><code>sm</code> (16), md (24), <code>lg</code> (40), <code>xl</code> (56)</td><td>Ring size, in rem.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code> (16), md (24), <code>lg</code> (40), <code>xl</code> (56)</td><td>Ring size in px; it does not grow with the text size.</td></tr>
     <tr><td><code>data-delay</code></td><td></td><td>Fade in after 300&nbsp;ms. Works on <code>.spinner</code> and <code>.spinner-overlay</code>.</td></tr>
     <tr><td><code>.spinner-overlay</code></td><td><code>data-fixed</code></td><td>Covers the positioned parent; <code>data-fixed</code> covers the viewport.</td></tr>
   </tbody>
@@ -130,13 +130,13 @@
     <tr><td>Keyboard</td><td>Not focusable. An overlay does not trap focus: make the content beneath <code>inert</code>, and never cover a Cancel control.</td></tr>
     <tr><td>Text contrast</td><td>The overlay label sits on a solid paper plate at 7:1, not on the scrim (WCAG 1.4.3).</td></tr>
     <tr><td>Reduced motion</td><td>The arc pulses instead of turning.</td></tr>
-    <tr><td>Zoom / text size</td><td>Sizes are in rem and grow with text. Labels wrap.</td></tr>
+    <tr><td>Zoom / text size</td><td>Labels grow with the reader's text size and wrap beside the ring (under it only when their longest word cannot sit beside it); a ring that leads a visible label grows with it. A ring on its own and the plate's insets are chrome and keep their size, so the words keep the room. Browser zoom scales everything.</td></tr>
     <tr><td>Forced colours</td><td>Track <code>GrayText</code>, arc <code>Highlight</code>, plate <code>Canvas</code> with a <code>CanvasText</code> frame.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--anim-spin</code>, <code>--ink</code>, <code>--paper</code>, <code>--line</code>, <code>--line-soft</code>, <code>--scrim</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--type-ctl</code>, <code>--text-sm</code>, <code>--lh-snug</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--z-raised</code>, <code>--z-overlay</code>.</p>
+<p><code>--anim-spin</code>, <code>--ink</code>, <code>--paper</code>, <code>--line</code>, <code>--line-soft</code>, <code>--scrim</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--type-ctl</code>, <code>--text-sm</code>, <code>--lh-snug</code>, <code>--chrome-1</code> to <code>--chrome-5</code>, <code>--chrome-ic</code>, <code>--chrome-ctl-lg</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--z-raised</code>, <code>--z-overlay</code>.</p>
 
 <script>
   window.addEventListener('DOMContentLoaded', function () {
