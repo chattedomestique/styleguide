@@ -217,4 +217,32 @@ export const tests = [
       expect.equal(ring, 'solid 3px', 'is-focus draws the ring')
     },
   },
+  {
+    name: 'large text: minus, bar and plus stay on one line on a phone, and a readout that drops under its label starts under the label (no indent)',
+    async run({ page, goto, expect }) {
+      let wrapped = 0
+      for (const [w, pct] of [[390, 100], [390, 200], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await goto('components/scrubber.html')
+        if (pct !== 100) await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(250)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.scrubber')].map((sc) => {
+          const label = sc.querySelector('.scrubber__label'), value = sc.querySelector('.scrubber__value')
+          const lr = label && label.getBoundingClientRect(), vr = value && value.getBoundingClientRect()
+          const parts = [...sc.querySelectorAll('.scrubber__row > *')].map((x) => x.getBoundingClientRect()).filter((x) => x.width > 0)
+          const mid = (x) => x.top + x.height / 2
+          return {
+            id: sc.querySelector('input').id, w: sc.getBoundingClientRect().width,
+            under: !!(lr && vr && vr.top >= lr.bottom - 1), indent: lr && vr ? Math.round(vr.left - lr.left) : 0,
+            oneLine: parts.every((x) => Math.abs(mid(x) - mid(parts[0])) < 1),
+          }
+        }))
+        for (const x of r) {
+          if (x.under) { wrapped++; expect.ok(Math.abs(x.indent) <= 1, `${w}px ${pct}% ${x.id}: the readout under its label starts where it starts (indent ${x.indent}px)`) }
+          if (x.w >= 200) expect.ok(x.oneLine, `${w}px ${pct}% ${x.id}: minus, bar and plus share one line in a ${Math.round(x.w)}px scrubber`)
+        }
+      }
+      expect.ok(wrapped > 0, 'at least one readout dropped under its label somewhere in these sizes (so the rule was exercised)')
+    },
+  },
 ]

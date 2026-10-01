@@ -25,7 +25,7 @@
 (function (SG) {
   'use strict';
 
-  var TEXT = { loading: 'Loading image', failed: "Image didn't load", retry: 'Try again' };
+  var TEXT = { loading: 'Loading image', failed: 'Image didn’t load', retry: 'Try again' };
 
   function figureOf(el) { return el && el.closest ? el.closest('.media') : null; }
   function frameOf(fig) { return fig.querySelector('.media__frame'); }

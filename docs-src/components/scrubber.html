@@ -10,7 +10,7 @@
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
-    <div><strong>Don't</strong><p>Use it to pick one of a few options (use a segmented control or swatches), to enter an exact amount (use a number field), or ship it without the step buttons where the value matters.</p></div>
+    <div><strong>Don’t</strong><p>Use it to pick one of a few options (use a segmented control or swatches), to enter an exact amount (use a number field), or ship it without the step buttons where the value matters.</p></div>
   </div>
 </div>
 
@@ -61,7 +61,7 @@
 </div>
 
 <h3 id="formats">Readouts</h3>
-<p><code>data-format</code> decides how the number is written, for the eye and for <code>aria-valuetext</code>. Negative numbers use the true minus (U+2212), never a hyphen. Add <code>data-unit</code> for a suffix. Register your own with <code>SG.scrubber.formatters.name = function (value, input) { return { text, spoken } }</code>.</p>
+<p><code>data-format</code> decides how the number is written, for the eye and for <code>aria-valuetext</code>. Negative numbers use the true minus (U+2212), never a hyphen. Add <code>data-unit</code> for a suffix. Register your own with <code>SG.scrubber<wbr>.formatters<wbr>.name = function (value, input) { return { text, spoken } }</code>.</p>
 <div class="table-wrap"><table class="docs-table">
   <caption class="sr-only">Scrubber readout formats</caption>
   <thead><tr><th>data-format</th><th>Value 12</th><th>Value −12</th><th>Use for</th></tr></thead>
@@ -113,7 +113,7 @@
 </div>
 
 <h3 id="dark">On a dark stage</h3>
-<p>Pro editors live on a dark surface so the photo is the brightest thing on screen. Put <code>data-theme="dark"</code> on the tray: it is an island, every role is re-derived, and the ring, ticks and thumb follow it with no extra code.</p>
+<p>Pro editors live on a dark surface so the photo is the brightest thing on screen. Put <code>data-theme=<wbr>"dark"</code> on the tray: it is an island, every role is re-derived, and the ring, ticks and thumb follow it with no extra code.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="card" data-theme="dark"><div class="card__body">
@@ -138,9 +138,7 @@
   <div class="demo__stage">
     <div class="phone" data-theme="dark">
       <div class="phone__screen stack" data-gap="4">
-        <div class="card__media wf-media" data-tone="1" style="--ratio: 16 / 9" role="img" aria-label="Photo: a harbour at dawn, boats at anchor">
-          <span class="wf-tag">Photo 4:3</span>
-        </div>
+        <figure class="media" data-ratio="4:3"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="The photo being edited: a harbour at dawn, three boats at anchor under a low orange sun" width="1200" height="900"></div></figure>
         <p class="t-title">Light</p>
         <div class="stack" data-gap="4">
           <div class="scrubber" data-format="signed" data-origin="0">
@@ -179,11 +177,11 @@
 <ol>
   <li><strong>Label</strong> (<code>.scrubber__label</code>): a real <code>&lt;label for&gt;</code>. It is the accessible name, so the parameter is named for everyone.</li>
   <li><strong>Readout</strong> (<code>.scrubber__value</code>): an <code>&lt;output&gt;</code> with tabular figures, so the number does not jitter while you drag. <code>aria-live="off"</code>: the slider itself announces its value, and a live output would say everything twice.</li>
-  <li><strong>Step buttons</strong> (<code>data-step="down|up"</code>): 36px circles with a 44px hit area. The pointer alternative to dragging (WCAG 2.5.7), and a fine adjustment for anyone.</li>
+  <li><strong>Step buttons</strong> (<code>data-step=<wbr>"down|up"</code>): 36px circles with a 44px hit area. The pointer alternative to dragging (WCAG 2.5.7), and a fine adjustment for anyone.</li>
   <li><strong>Ruler</strong> (<code>.scrubber__ticks</code>): decorative, <code>aria-hidden</code>, built by the script. Every Nth tick is taller (<code>data-major</code>).</li>
   <li><strong>Input</strong> (<code>.scrubber__input</code>): the native range, 44px tall, transparent. The whole bar is the target and clicking it jumps the thumb.</li>
   <li><strong>Thumb</strong>: a 28px circle with a 2px frame. The only thing that lifts.</li>
-  <li><strong>Reset</strong> (<code>data-reset</code>, optional): returns to the input's default value; <code>aria-disabled</code> while there is nothing to undo.</li>
+  <li><strong>Reset</strong> (<code>data-reset</code>, optional): returns to the input’s default value; <code>aria-disabled</code> while there is nothing to undo.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -199,8 +197,8 @@
     <tr><td><code>data-ticks</code> / <code>data-major</code></td><td>numbers</td><td>Dial only. Divisions (default one per step, or 20) and which Nth tick is tall (default 5).</td></tr>
     <tr><td><code>--scrubber-thumb</code></td><td>a length</td><td>The drawn thumb, default <code>1.75rem</code>. The hit area stays 44px.</td></tr>
     <tr><td><code>data-step</code></td><td><code>down</code>, <code>up</code></td><td>On a button: one <code>step</code> down or up. Fires <code>input</code> and <code>change</code>, announces the new value.</td></tr>
-    <tr><td><code>data-reset</code></td><td></td><td>On a button: back to the input's <code>data-default</code>, or its <code>value</code> attribute if there is none.</td></tr>
-    <tr><td><code>SG.scrubber.sync(el)</code></td><td></td><td>Call after you set a value, <code>min</code> or <code>max</code> from code (that fires no event).</td></tr>
+    <tr><td><code>data-reset</code></td><td></td><td>On a button: back to the input’s <code>data-default</code>, or its <code>value</code> attribute if there is none.</td></tr>
+    <tr><td><code>SG.scrubber<wbr>.sync(el)</code></td><td></td><td>Call after you set a value, <code>min</code> or <code>max</code> from code (that fires no event).</td></tr>
   </tbody>
 </table></div>
 
@@ -217,10 +215,11 @@
     <tr><td>Step buttons</td><td><kbd>Enter</kbd> / <kbd>Space</kbd> step by one and announce "Exposure +13". At the ends they are <code>aria-disabled</code>, so focus stays put.</td></tr>
     <tr><td>Screen reader</td><td>"Exposure, slider, +12" from the label and <code>aria-valuetext</code>. The numbers carry the state; the ruler is hidden.</td></tr>
     <tr><td>Touch</td><td>The bar is 44px tall and the buttons have 44px hit areas. The input takes horizontal drags; vertical scrolling passes through.</td></tr>
+    <tr><td>Zoom / text size</td><td>The label and the readout grow with the text; the bar, the thumb, the ticks and the buttons keep their 100% size, so minus, bar and plus stay on one line on a phone at 200% text. When the label and the readout cannot share a line, the readout goes under the label and starts where it starts.</td></tr>
     <tr><td>Reduced motion</td><td>The thumb does not travel when it lifts; the fill change stays.</td></tr>
-    <tr><td>Forced colours</td><td>Ticks, fill and thumb take system colours; the thumb's frame goes 4px <code>Highlight</code> on hover and focus.</td></tr>
+    <tr><td>Forced colours</td><td>Ticks, fill and thumb take system colours; the thumb’s frame goes 4px <code>Highlight</code> on hover and focus.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--line</code>, <code>--line-soft</code>, <code>--accent</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--hit</code>, <code>--space-1</code> to <code>--space-3</code>, <code>--text-lg</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--line</code>, <code>--line-soft</code>, <code>--accent</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--chrome-hit</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--ring-offset-in</code>, <code>--space-1</code>, <code>--space-3</code>, <code>--text-lg</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>

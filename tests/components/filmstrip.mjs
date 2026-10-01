@@ -103,29 +103,40 @@ export const tests = [
     },
   },
   {
-    name: 'hover and keyboard focus raise a thumbnail the same way; pressing sinks it',
+    name: 'hover and keyboard focus raise a thumbnail the same way without filling it; pressing sinks it and tints it at once',
     async run({ page, goto, expect }) {
       await goto('components/filmstrip.html')
       const t = page.locator(`${PHOTOS} .filmstrip__thumb`).nth(1)
       await t.scrollIntoViewIfNeeded()
-      const nums = () => t.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      // the alpha of the tint, whichever way the browser writes the colour (rgba(…) or color(srgb … / a))
+      const nums = () => t.evaluate((el) => {
+        const c = getComputedStyle(el.querySelector('input')).backgroundColor
+        const m = c.match(/\/\s*([\d.]+)\s*\)$/) || c.match(/^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)$/)
+        return { lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')), tint: c, alpha: m ? Number(m[1]) : (c === 'transparent' ? 0 : 1) }
+      })
       await page.waitForTimeout(50)
-      expect.equal((await nums()).lift, 0, 'rest: flat')
+      const rest = await nums()
+      expect.equal(rest.lift, 0, 'rest: flat')
+      expect.equal(rest.alpha, 0, `rest: no tint (${rest.tint})`)
       await t.hover()
       await page.waitForTimeout(400)
       const h = await nums()
       expect.equal(h.lift, 1, 'hover: raised')
-      expect.equal(h.fill, 1)
+      expect.equal(h.fill, 0, 'hover: no fill (only the chosen one may look chosen)')
       await page.mouse.down()
       await page.waitForTimeout(300)
-      expect.equal((await nums()).lift, 0, 'pressed: sinks')
+      const d = await nums()
+      expect.equal(d.lift, 0, 'pressed: sinks')
+      expect.ok(Math.abs(d.fill - 0.15) < 0.01, `pressed: --fill 0.15 (got ${d.fill})`)
+      expect.ok(d.alpha > 0.1, `pressed: a visible ink tint over the picture (${d.tint})`)
       await page.mouse.up()
       await page.mouse.move(0, 0)
       await page.keyboard.press('Tab')
       await page.locator(`${PHOTOS} input:checked`).focus()
       await page.waitForTimeout(400)
-      const f = await page.locator(`${PHOTOS} input:checked`).evaluate((i) => ({ lift: Number(getComputedStyle(i.parentElement).getPropertyValue('--lift')), ring: getComputedStyle(i.parentElement).outlineWidth }))
+      const f = await page.locator(`${PHOTOS} input:checked`).evaluate((i) => ({ lift: Number(getComputedStyle(i.parentElement).getPropertyValue('--lift')), fill: Number(getComputedStyle(i.parentElement).getPropertyValue('--fill')), ring: getComputedStyle(i.parentElement).outlineWidth }))
       expect.equal(f.lift, 1, 'keyboard focus: same lift')
+      expect.equal(f.fill, 0, 'keyboard focus: no fill')
       expect.equal(f.ring, '3px', 'and the label wears the ring')
     },
   },
@@ -133,12 +144,13 @@ export const tests = [
     name: 'swatches: choosing a tone recolours the stage; None clears it; circles are round',
     async run({ page, goto, expect }) {
       await goto('components/filmstrip.html')
-      expect.equal((await stage(page, BACKDROP)).tone, '1', 'starts on backdrop 1')
+      expect.equal((await stage(page, BACKDROP)).tone, '1', 'starts on the first backdrop')
+      expect.equal((await stage(page, BACKDROP)).title, 'Shop listing', 'named for what it is to the person, not "Backdrop 1"')
       await page.locator(`${BACKDROP} input[value="1"]`).focus()
       await page.keyboard.press('ArrowRight')
       await page.keyboard.press('ArrowRight')
       expect.equal((await stage(page, BACKDROP)).tone, '3', 'tone 3')
-      await expect.eventually(() => said(page), (v) => /Showing Backdrop 3, 4 of 7/.test(v), 'announced')
+      await expect.eventually(() => said(page), (v) => /Showing Gift card, 4 of 7/.test(v), 'announced')
       await page.keyboard.press('Home')
       expect.equal((await stage(page, BACKDROP)).tone, null, 'None removes the tone')
       const radius = await page.locator(`${BACKDROP} .filmstrip__thumb`).first().evaluate((el) => getComputedStyle(el).borderTopLeftRadius)
@@ -161,7 +173,7 @@ export const tests = [
     },
   },
   {
-    name: 'reduced motion removes the lift travel but keeps the fill',
+    name: 'reduced motion removes the lift travel but keeps the raised state (the hard shadow)',
     reducedMotion: true,
     async run({ page, goto, expect }) {
       await goto('components/filmstrip.html')
@@ -169,9 +181,10 @@ export const tests = [
       await t.scrollIntoViewIfNeeded()
       await t.hover()
       await page.waitForTimeout(600)
-      const r = await t.evaluate((el) => ({ t: getComputedStyle(el).transform, fill: getComputedStyle(el).getPropertyValue('--fill') }))
+      const r = await t.evaluate((el) => ({ t: getComputedStyle(el).transform, lift: getComputedStyle(el).getPropertyValue('--lift'), shadow: getComputedStyle(el).boxShadow }))
       expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', `no movement (got ${r.t})`)
-      expect.equal(Number(r.fill), 1, 'the fill still changes')
+      expect.equal(Number(r.lift), 1, 'still raised')
+      expect.ok(/4px 4px 0px 0px/.test(r.shadow), `the hard shadow still shows (${r.shadow})`)
     },
   },
   {
@@ -191,6 +204,22 @@ export const tests = [
       await page.waitForTimeout(400)
       const vis = await page.evaluate((s) => { const t = document.querySelector(s + ' .filmstrip__track'); const r = document.querySelector(s + ' input:checked').getBoundingClientRect(); const tr = t.getBoundingClientRect(); return r.left >= tr.left - 1 && r.right <= tr.right + 1 }, PHOTOS)
       expect.ok(vis, 'the chosen thumbnail is scrolled into view')
+    },
+  },
+  {
+    name: 'on load every strip shows its chosen thumbnail whole: the track scrolls (to a snap point) when it starts past the edge',
+    async run({ page, goto, expect }) {
+      await goto('components/filmstrip.html')
+      await page.waitForTimeout(300)
+      const r = await page.evaluate(() => [...document.querySelectorAll('.filmstrip__track')].map((t) => {
+        const on = t.querySelector('input:checked')
+        if (!on) return null
+        const a = on.parentElement.getBoundingClientRect(), b = t.getBoundingClientRect()
+        return { inView: a.left >= b.left - 0.5 && a.right <= b.right + 0.5, scrolled: t.scrollLeft, name: t.closest('fieldset').querySelector('legend').textContent }
+      }).filter(Boolean))
+      expect.ok(r.length >= 5, 'the demo strips')
+      for (const x of r) expect.ok(x.inView, `${x.name}: the chosen thumbnail is fully in view (scrollLeft ${x.scrolled})`)
+      expect.ok(r.some((x) => x.scrolled > 0), 'at least one strip had to scroll to show it (the in-context tool, where the fifth swatch is chosen)')
     },
   },
 ]

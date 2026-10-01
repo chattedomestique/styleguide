@@ -4,8 +4,13 @@
   .phone h3 { margin: 0; }
   .phone [data-role="actions"] { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   .phone [data-role="actions"] > .btn { flex: 1 1 auto; }
-  .demo [data-role="dots"] { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-4); }
-  .demo [data-role="dots"] > div { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+  /* state specimens: equal columns, three a row on a phone, six on a wide stage, two at 200% text (never one
+     left over); each caption under its dot and clear of the ring by more than 8px */
+  .demo [data-role="dots"] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5) var(--space-4); }
+  .demo [data-role="dots"] > div { display: flex; flex-direction: column; align-items: center; gap: var(--chrome-4); text-align: center; }
+  .demo [data-role="dots"] .carousel__dots { order: 0; flex: none; margin: 0; }
+  @container (min-width: 36rem) { .demo [data-role="dots"] { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  @container (max-width: 15rem) { .demo [data-role="dots"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 <h1>Carousel</h1>
 <p class="lede">A short set of pictures or cards you look at one at a time. The slides are a native scroll strip, so a swipe works with no script; the buttons, dots and counter sit in a bar underneath, where they never depend on what the photo looks like. It does not move by itself unless you ask it to, and then it always has a pause.</p>
@@ -18,7 +23,7 @@
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
-    <div><strong>Don't</strong><p>Hide something people must read on slide four, or use a carousel for a promotion that cycles on its own. If it moves, it needs a pause (WCAG 2.2.2). If a person has to go looking, put it on the page.</p></div>
+    <div><strong>Don’t</strong><p>Hide something people must read on slide four, or use a carousel for a promotion that cycles on its own. If it moves, it needs a pause (WCAG 2.2.2). If a person has to go looking, put it on the page.</p></div>
   </div>
 </div>
 
@@ -86,7 +91,7 @@
         </div>
       </div>
       <div class="carousel__bar">
-        <p class="carousel__count"><span class="num" data-sg-current>1</span> of <span class="num" data-sg-total>6</span></p>
+        <p class="carousel__count"><span class="num" data-sg-current>1</span><span class="carousel__of"> of </span><span class="num" data-sg-total>6</span></p>
         <div class="carousel__dots" role="group" aria-label="Choose a photo">
           <button class="carousel__dot" type="button" aria-label="Slide 1" aria-current="true"></button>
           <button class="carousel__dot" type="button" aria-label="Slide 2"></button>
@@ -157,7 +162,7 @@
         </div>
       </div>
       <div class="carousel__bar">
-        <p class="carousel__count"><span class="num" data-sg-current>1</span> of <span class="num" data-sg-total>5</span></p>
+        <p class="carousel__count"><span class="num" data-sg-current>1</span><span class="carousel__of"> of </span><span class="num" data-sg-total>5</span></p>
         <div class="carousel__nav">
           <button class="btn carousel__prev" data-shape="circle" type="button" aria-label="Previous slide" aria-controls="peek-track" aria-disabled="true"><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
           <button class="btn carousel__next" data-shape="circle" type="button" aria-label="Next slide" aria-controls="peek-track"><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
@@ -171,7 +176,7 @@
 <p><code>data-loop</code> lets <em>Previous</em> on the first slide go to the last and <em>Next</em> on the last go to the first. The buttons are then never disabled. Without it, the buttons say <code>aria-disabled</code> at the ends (not <code>disabled</code>, so focus is never lost when you reach the last slide). The next example loops.</p>
 
 <h3 id="autoplay">Auto-advance</h3>
-<p><code>data-autoplay="3500"</code> adds a Play button and moves to the next slide every 3.5 seconds once it is pressed. It is <strong>off until the person asks</strong>. Add <code>data-autoplay-start</code> to begin playing on load. The rules that keep it safe are in the script, not left to you:</p>
+<p><code>data-autoplay=<wbr>"3500"</code> adds a Play button and moves to the next slide every 3.5 seconds once it is pressed. It is <strong>off until the person asks</strong>. Add <code>data-<wbr>autoplay-start</code> to begin playing on load. The rules that keep it safe are in the script, not left to you:</p>
 <ul>
   <li>It needs a <code>.carousel__play</code> button. Without one it logs a warning and stays off: WCAG 2.2.2 wants a visible way to pause anything that moves for more than five seconds.</li>
   <li>It never starts, and stops if already running, under reduced motion.</li>
@@ -187,7 +192,7 @@
             <div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div>
           <figcaption class="media__caption">
             <span class="media__title">Kites on the ridge</span>
-            <span class="media__meta">Open the wind first.</span>
+            <span class="media__meta">Check the wind first.</span>
           </figcaption>
           </figure>
         </div>
@@ -220,7 +225,7 @@
         </div>
       </div>
       <div class="carousel__bar">
-        <p class="carousel__count"><span class="num" data-sg-current>1</span> of <span class="num" data-sg-total>4</span></p>
+        <p class="carousel__count"><span class="num" data-sg-current>1</span><span class="carousel__of"> of </span><span class="num" data-sg-total>4</span></p>
         <div class="carousel__dots" role="group" aria-label="Choose a photo">
           <button class="carousel__dot" type="button" aria-label="Slide 1" aria-current="true"></button>
           <button class="carousel__dot" type="button" aria-label="Slide 2"></button>
@@ -238,17 +243,30 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>The dots are the state worth seeing on their own. The current one is <strong>filled and stretched into a pill</strong>, so it is never just a darker dot; in forced colours the fill goes and the long, heavy outline stays. Hover and keyboard focus fill a dot. Each is a 44px target around a 12px circle.</p>
+<p>The dots are the state worth seeing on their own. The solid fill is kept for the <strong>current</strong> dot, and it also <strong>stretches into a pill</strong>, so it is never just a darker dot; in forced colours the fill goes and the long, heavy outline stays. Hover draws the dot’s 44px cell as a ring, keyboard focus is the focus ring, and a press tints the dot half way at once, so a tap shows before the slide has moved. None of them fills a dot: a filled dot means “here”.</p>
 <div class="demo">
   <div class="demo__stage">
     <div data-role="dots">
       <div><div class="carousel__dots" role="group" aria-label="Rest"><button class="carousel__dot" type="button" aria-label="Rest"></button></div><span class="t-meta">Rest</span></div>
       <div><div class="carousel__dots" role="group" aria-label="Hover"><button class="carousel__dot is-hover" type="button" aria-label="Hover"></button></div><span class="t-meta">Hover</span></div>
       <div><div class="carousel__dots" role="group" aria-label="Focus"><button class="carousel__dot is-focus" type="button" aria-label="Focus"></button></div><span class="t-meta">Focus</span></div>
+      <div><div class="carousel__dots" role="group" aria-label="Pressed"><button class="carousel__dot is-active" type="button" aria-label="Pressed"></button></div><span class="t-meta">Pressed</span></div>
       <div><div class="carousel__dots" role="group" aria-label="Current"><button class="carousel__dot" type="button" aria-label="Current" aria-current="true"></button></div><span class="t-meta">Current</span></div>
+      <div><div class="carousel__dots" role="group" aria-label="Current, focused"><button class="carousel__dot is-focus" type="button" aria-label="Current, focused" aria-current="true"></button></div><span class="t-meta">Current, focused</span></div>
     </div>
   </div>
 </div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Dot states and the two numbers behind them</caption>
+  <thead><tr><th>State</th><th>What changes</th><th><code>--fill</code></th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td>A 12px circle, outlined, in a 44px cell.</td><td>0</td></tr>
+    <tr><td>Hover</td><td>The cell’s 2px ring appears (where a pointer can hover).</td><td>0</td></tr>
+    <tr><td>Focus</td><td>The focus ring around the cell.</td><td>0</td></tr>
+    <tr><td>Pressed</td><td>The dot fills half way at once.</td><td>0.5</td></tr>
+    <tr><td>Current</td><td>Filled, and stretched into a 28px pill.</td><td>1</td></tr>
+  </tbody>
+</table></div>
 <p>The circles are <a href="@/components/button.html">Buttons</a>: they lift and fill on hover and focus, and at the ends of a non-looping carousel they go dashed with <code>aria-disabled</code>. The Play button swaps its icon with <code>data-playing</code>, and its name with it.</p>
 
 <h3 id="context">In context</h3>
@@ -290,7 +308,7 @@
         </div>
       </div>
       <div class="carousel__bar">
-        <p class="carousel__count"><span class="num" data-sg-current>1</span> of <span class="num" data-sg-total>3</span></p>
+        <p class="carousel__count"><span class="num" data-sg-current>1</span><span class="carousel__of"> of </span><span class="num" data-sg-total>3</span></p>
         <div class="carousel__dots" role="group" aria-label="Choose a stop">
           <button class="carousel__dot" type="button" aria-label="Slide 1" aria-current="true"></button>
           <button class="carousel__dot" type="button" aria-label="Slide 2"></button>
@@ -312,12 +330,12 @@
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Frame</strong> <code>.carousel</code>: a <code>&lt;section&gt;</code> with <code>aria-roledescription="carousel"</code> and a label. 2px, <code>--radius-card</code>, clipped, a size container.</li>
+  <li><strong>Frame</strong> <code>.carousel</code>: a <code>&lt;section&gt;</code> with <code>aria-roledescription=<wbr>"carousel"</code> and a label. 2px, <code>--radius-card</code>, clipped, a size container.</li>
   <li><strong>Track</strong> <code>.carousel__track</code>: a native horizontal scroller with <code>scroll-snap-type: x mandatory</code>. No scrollbar; swipe, trackpad and Shift+wheel work with no script. It is <code>tabindex="0"</code> with <code>role="group"</code> and a name, so a keyboard can reach it.</li>
-  <li><strong>Slide</strong> <code>.carousel__slide</code>: <code>role="group"</code>, <code>aria-roledescription="slide"</code>, <code>aria-label="3 of 6"</code>. Holds a <a href="@/components/media.html">Media</a> figure, or anything else.</li>
-  <li><strong>Bar</strong> <code>.carousel__bar</code>: paper, closed off by the 2px rule. Hidden when scripting is off, so there are no controls that do nothing.</li>
-  <li><strong>Count</strong> <code>.carousel__count</code>: "3 of 6" in the label style, tabular figures.</li>
-  <li><strong>Dots</strong> <code>.carousel__dots</code> &gt; <code>.carousel__dot</code> (optional): a group of buttons, the current one <code>aria-current="true"</code>. They get their own row below 36rem.</li>
+  <li><strong>Slide</strong> <code>.carousel__slide</code>: <code>role="group"</code>, <code>aria-roledescription=<wbr>"slide"</code>, <code>aria-label="3 of 6"</code>. Holds a <a href="@/components/media.html">Media</a> figure, or anything else.</li>
+  <li><strong>Bar</strong> <code>.carousel__bar</code>: paper, closed off by the 2px rule. One row: the count, then the circles at the end. Hidden when scripting is off, so there are no controls that do nothing.</li>
+  <li><strong>Count</strong> <code>.carousel__count</code>: “3 of 6” in the label style, tabular figures. Put the words in <code>.carousel__of</code>: when the count and the circles cannot share the line, it shortens to “3/6” (the words stay for a screen reader), and only then goes.</li>
+  <li><strong>Dots</strong> <code>.carousel__dots</code> &gt; <code>.carousel__dot</code> (optional): a group of buttons, the current one <code>aria-current=<wbr>"true"</code>. Their own row, centred, below 40rem; between the count and the circles from 40rem. Hidden as a group when one line cannot hold them.</li>
   <li><strong>Nav</strong> <code>.carousel__nav</code>: optional <code>.carousel__play</code>, then <code>.carousel__prev</code> and <code>.carousel__next</code> (Buttons, circles).</li>
 </ol>
 
@@ -326,12 +344,12 @@
   <caption class="sr-only">Carousel attributes</caption>
   <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
-    <tr><td><code>class="carousel"</code></td><td></td><td>On a <code>&lt;section&gt;</code> with <code>aria-roledescription="carousel"</code> and <code>aria-label</code>. Needs <code>dist/icons.css</code> for the chevrons and the play / pause glyphs.</td></tr>
-    <tr><td><code>data-ratio</code></td><td>same as <a href="@/components/media.html#ratios">Media</a></td><td>The ratio of every slide's picture. Give the slides one ratio.</td></tr>
+    <tr><td><code>class="carousel"</code></td><td></td><td>On a <code>&lt;section&gt;</code> with <code>aria-roledescription=<wbr>"carousel"</code> and <code>aria-label</code>. Needs <code>dist/icons.css</code> for the chevrons and the play / pause glyphs.</td></tr>
+    <tr><td><code>data-ratio</code></td><td>same as <a href="@/components/media.html#ratios">Media</a></td><td>The ratio of every slide’s picture. Give the slides one ratio.</td></tr>
     <tr><td><code>data-peek</code></td><td></td><td>Slides 84% wide; the next one shows at the edge.</td></tr>
     <tr><td><code>data-loop</code></td><td></td><td>Previous / Next wrap around; they are never disabled.</td></tr>
     <tr><td><code>data-autoplay</code></td><td>milliseconds (default 5000)</td><td>Enables auto-advance, off until Play is pressed. Needs <code>.carousel__play</code>.</td></tr>
-    <tr><td><code>data-autoplay-start</code></td><td></td><td>Begin playing on load (never under reduced motion).</td></tr>
+    <tr><td><code>data-<wbr>autoplay-start</code></td><td></td><td>Begin playing on load (never under reduced motion).</td></tr>
     <tr><td><code>--slide-size</code></td><td><code>100%</code></td><td>Slide width. Any length or percentage.</td></tr>
     <tr><td><code>data-index</code></td><td>read only</td><td>The current slide, 0-based, written by the script for your own CSS and tests.</td></tr>
     <tr><td><code>data-label-start</code>, <code>data-label-stop</code></td><td>text</td><td>On the Play button: its name when stopped and when playing (for translated apps).</td></tr>
@@ -352,10 +370,10 @@
     <tr><td>Screen reader</td><td>"Field notes, six photos, carousel". Each slide: "3 of 6, slide, group". The current dot: "Slide 3, current". After a control: "Slide 3 of 6: Tram on line 28".</td></tr>
     <tr><td>Touch</td><td>Swipe is native scrolling and snaps to one slide. Every gesture has a button: no drag is required (WCAG 2.5.7). Buttons and dots are 44px targets.</td></tr>
     <tr><td>Reduced motion</td><td>The jump between slides is instant (a position change, not travel), auto-advance never runs, nothing bounces.</td></tr>
-    <tr><td>Zoom / text size</td><td>The bar wraps: count and buttons on one row, dots on the next. Fine at 320px wide and 200% text.</td></tr>
+    <tr><td>Zoom / text size</td><td>The circles, the dots and the bar’s insets keep their 100% size; the count grows with the text. The count and the circles always share one row (the count shortens to “1/6” first, measured by the script); the dots have their own row, or none when it cannot hold them. Fine at 320px wide and 200% text.</td></tr>
     <tr><td>Forced colours</td><td>Frame and dots keep real borders; the current dot gets a 4px outline and its pill shape.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-card</code>, <code>--radius-pill</code>, <code>--hit</code>, <code>--space-1</code>…<code>3</code>, <code>--type-label</code>, <code>--ls-label</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, and everything in <a href="@/components/button.html">Button</a> for the circles.</p>
+<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-card</code>, <code>--radius-pill</code>, <code>--chrome-hit</code>, <code>--chrome-1</code>…<code>4</code>, <code>--chrome-ic-xs</code>, <code>--type-label</code>, <code>--ls-label</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, and everything in <a href="@/components/button.html">Button</a> for the circles.</p>

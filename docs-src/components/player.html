@@ -1,6 +1,6 @@
-<!--{"title":"Player","group":"Components","order":134,"summary":"Play, pause, seek and mute for a native audio or video element, with the browser's own controls kept as the fallback."}-->
+<!--{"title":"Player","group":"Components","order":134,"summary":"Play, pause, seek and mute for a native audio or video element, with the browser’s own controls kept as the fallback."}-->
 <h1>Player</h1>
-<p class="lede">A player puts Play, Back, Forward, a seek bar, the time and Mute under a recording. The recording is a native <code>&lt;audio&gt;</code> or <code>&lt;video&gt;</code>; the browser decodes it, buffers it and keeps its own controls, and the script only swaps those for ones that match the rest of the app. If the script never loads, the browser's controls are all you see, and they work.</p>
+<p class="lede">A player puts Play, Back, Forward, a seek bar, the time and Mute under a recording. The recording is a native <code>&lt;audio&gt;</code> or <code>&lt;video&gt;</code>; the browser decodes it, buffers it and keeps its own controls, and the script only swaps those for ones that match the rest of the app. If the script never loads, the browser’s controls are all you see, and they work.</p>
 
 <h2 id="when">When to use</h2>
 <div class="dodont">
@@ -10,7 +10,7 @@
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
-    <div><strong>Don't</strong><p>Autoplay, or start sound on load. Do not put controls over the picture (they would need a scrim to be readable on every frame), and do not rename Play to Pause when it toggles: the name stays, the state is <code>aria-pressed</code>.</p></div>
+    <div><strong>Don’t</strong><p>Autoplay, or start sound on load. Do not put controls over the picture (they would need a scrim to be readable on every frame), and do not rename Play to Pause when it toggles: the name stays, the state is <code>aria-pressed</code>.</p></div>
   </div>
 </div>
 
@@ -35,11 +35,11 @@
         <div class="player__row">
           <div class="player__transport">
             <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-            <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-            <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            <button class="btn" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+            <button class="btn" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
           </div>
           <div class="player__end">
-            <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
+            <button class="btn" data-shape="circle" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
           </div>
         </div>
         <p class="player__status" role="status"></p>
@@ -49,7 +49,7 @@
 </div>
 
 <h3 id="video">Video</h3>
-<p>The picture sits above the controls and is closed off by a frame-weight rule, like a Card's media. Clicking it plays and pauses (a pointer convenience; the button is the control). This clip is silent, so there is no Mute, and its caption track says so. With real speech, add a real <code>&lt;track kind="captions"&gt;</code>: the native controls carry the captions switch, so when they go, the Player brings it back as the Captions button, shown only when the media has captions.</p>
+<p>The picture sits above the controls and is closed off by a frame-weight rule, like a Card’s media. Clicking it plays and pauses (a pointer convenience; the button is the control). This clip is silent, so there is no Mute, and its caption track says so. With real speech, add a real <code>&lt;track kind=<wbr>"captions"&gt;</code>: the native controls carry the captions switch, so when they go, the Player brings it back as the Captions button, shown only when the media has captions.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="player" role="group" aria-labelledby="p2-title" data-skip="5">
@@ -72,11 +72,11 @@
         <div class="player__row">
           <div class="player__transport">
             <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-            <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-            <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            <button class="btn" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+            <button class="btn" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
           </div>
           <div class="player__end">
-            <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="captions" aria-pressed="false" aria-label="Captions" hidden><span class="ic ic--captions" aria-hidden="true"></span></button>
+            <button class="btn" data-shape="circle" type="button" data-player="captions" aria-pressed="false" aria-label="Captions" hidden><span class="ic ic--captions" aria-hidden="true"></span></button>
           </div>
         </div>
         <p class="player__status" role="status"></p>
@@ -86,7 +86,7 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Playing and muted are <code>aria-pressed</code>: filled and a doubled frame. Buffering is written in the status line after a beat, never by making Play inert. A failure is a dashed frame and a plain sentence with an icon, and the controls go <code>aria-disabled</code>.</p>
+<p>Playing and muted are <code>aria-pressed</code>: filled and a doubled frame. Hovering or focusing Mute while it is off raises its outline but does not fill it, so it never looks muted under the pointer. Buffering is written in the status line after a beat, never by making Play inert. A failure is a dashed frame and a plain sentence with an icon (a second line hangs past the icon), the controls go <code>aria-disabled</code>, and the sentence’s “try again” is a real button under it: it reloads the recording and gives the controls back.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
       <div class="player" role="group" aria-labelledby="p3-title" data-skip="5">
@@ -100,11 +100,11 @@
           <div class="player__row">
             <div class="player__transport">
               <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="true" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-              <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-              <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+              <button class="btn" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+              <button class="btn" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
             </div>
             <div class="player__end">
-              <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="true" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
+              <button class="btn" data-shape="circle" type="button" data-player="mute" aria-pressed="true" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
             </div>
           </div>
           <p class="player__status" role="status"></p>
@@ -121,11 +121,11 @@
           <div class="player__row">
             <div class="player__transport">
               <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="true" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-              <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-              <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+              <button class="btn" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+              <button class="btn" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
             </div>
             <div class="player__end">
-              <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
+              <button class="btn" data-shape="circle" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
             </div>
           </div>
           <p class="player__status" role="status">Buffering…</p>
@@ -142,21 +142,22 @@
           <div class="player__row">
             <div class="player__transport">
               <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-disabled="true" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-              <button class="btn" data-size="sm" type="button" data-player="back" aria-disabled="true" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-              <button class="btn" data-size="sm" type="button" data-player="forward" aria-disabled="true" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+              <button class="btn" type="button" data-player="back" aria-disabled="true" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+              <button class="btn" type="button" data-player="forward" aria-disabled="true" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
             </div>
             <div class="player__end">
-              <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-disabled="true" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
+              <button class="btn" data-shape="circle" type="button" data-player="mute" aria-disabled="true" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
             </div>
           </div>
-          <p class="player__status" role="status"><span class="ic ic--circle-alert" aria-hidden="true"></span> This recording could not be played. Check your connection and try again.</p>
+          <p class="player__status" role="status"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>This recording could not be played. Check your connection and try again.</span></p>
+          <button class="btn" data-size="sm" type="button" data-player="retry">Try again</button>
         </div>
       </div>
   </div>
 </div>
 
 <h3 id="dark">On a dark stage</h3>
-<p>A player on an editor's dark surface is an island like anything else: <code>data-theme="dark"</code>.</p>
+<p>A player on an editor’s dark surface is an island like anything else: <code>data-theme=<wbr>"dark"</code>.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="player" role="group" aria-labelledby="p6-title" data-skip="5" data-theme="dark">
@@ -174,11 +175,11 @@
         <div class="player__row">
           <div class="player__transport">
             <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-            <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-            <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            <button class="btn" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+            <button class="btn" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
           </div>
           <div class="player__end">
-            <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
+            <button class="btn" data-shape="circle" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
           </div>
         </div>
         <p class="player__status" role="status"></p>
@@ -214,11 +215,11 @@
             <div class="player__row">
               <div class="player__transport">
                 <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-                <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-                <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+                <button class="btn" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+                <button class="btn" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
               </div>
               <div class="player__end">
-                <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="captions" aria-pressed="false" aria-label="Captions" hidden><span class="ic ic--captions" aria-hidden="true"></span></button>
+                <button class="btn" data-shape="circle" type="button" data-player="captions" aria-pressed="false" aria-label="Captions" hidden><span class="ic ic--captions" aria-hidden="true"></span></button>
               </div>
             </div>
             <p class="player__status" role="status"></p>
@@ -233,15 +234,16 @@
 <ol>
   <li><strong>Frame</strong> (<code>.player</code>, <code>role="group"</code> with a label): a 2px rectangle. <code>data-skip</code> sets the jump.</li>
   <li><strong>Stage</strong> (<code>.player__stage</code>, video only): the picture at 16 / 9 (<code>--ratio</code> changes it), <code>object-fit: cover</code>.</li>
-  <li><strong>Head</strong> (<code>.player__head</code>): title and a sentence about what is in it. The description is the media element's <code>aria-describedby</code>.</li>
+  <li><strong>Head</strong> (<code>.player__head</code>): title and a sentence about what is in it. The description is the media element’s <code>aria-describedby</code>.</li>
   <li><strong>Media</strong> (<code>.player__media</code>): the native element. Keeps <code>controls</code> until the script takes over.</li>
-  <li><strong>Seek bar</strong>: a <a href="@/components/scrubber.html">Scrubber</a> (<code>data-variant="plain"</code>, <code>data-format="time"</code>). Its label is visually hidden.</li>
-  <li><strong>Transport</strong> (<code>.player__transport</code>, inside <code>.player__row</code>): Play, Back and Forward as one group. When the row is too narrow for them and Mute, Mute (<code>.player__end</code>) drops under the group, so the three never come apart. Under 18rem wide the circle goes from 56 to 44px and the pills tighten.</li>
-  <li><strong>Play</strong> (<code>.player__play</code>): the large primary circle. Two icons, one shows.</li>
-  <li><strong>Back and Forward</strong> (<code>data-player="back|forward"</code>): small pills with the arrow and the number of seconds they jump (<code>data-skip</code>). The digit is visible and is in the name ("Back 5 seconds"), so the label matches.</li>
-  <li><strong>Time</strong> (<code>.player__time</code>): position and length, tabular, <code>aria-hidden</code> (the seek bar says it).</li>
-  <li><strong>Captions and Mute</strong> (<code>data-player="captions|mute"</code>): toggles at the end of the row.</li>
-  <li><strong>Status</strong> (<code>.player__status</code>, <code>role="status"</code>): empty unless something needs saying.</li>
+  <li><strong>Seek bar</strong>: a <a href="@/components/scrubber.html">Scrubber</a> (<code>data-variant=<wbr>"plain"</code>, <code>data-format=<wbr>"time"</code>). Its label is visually hidden.</li>
+  <li><strong>Row</strong> (<code>.player__row</code>): one line at every size, every control centred on it. Play, Back and Forward are one group (<code>.player<wbr>__transport</code>); Mute or Captions sit at the end (<code>.player__end</code>). The row is chrome: at 200% text it keeps its 100% size and the words around it grow. The script measures it and writes the richest layout that fits to <code>data-fit</code>: <code>full</code>, then <code>compact</code> (the skip pills become circles with the number inside the arrow), <code>tight</code> (Play at 44px too), and in a very narrow player <code>bare</code> (Play and Mute; the seek bar does the jumping).</li>
+  <li><strong>Play</strong> (<code>.player__play</code>): the primary circle, 56px (44 in the <code>tight</code> layout). Two icons, one shows.</li>
+  <li><strong>Back and Forward</strong> (<code>data-player=<wbr>"back|forward"</code>): 44px pills with the arrow and the number of seconds they jump (<code>data-skip</code>). The arrow and the number read as one glyph, so neither grows with the text. The digit is visible and is in the name (“Back 5 seconds”), so the label matches.</li>
+  <li><strong>Time</strong> (<code>.player__time</code>): position and length, tabular, never broken, <code>aria-hidden</code> (the seek bar says it).</li>
+  <li><strong>Captions and Mute</strong> (<code>data-player=<wbr>"captions|mute"</code>): 44px toggles at the end of the row, the same height as the skip pills.</li>
+  <li><strong>Status</strong> (<code>.player__status</code>, <code>role="status"</code>): empty unless something needs saying. The icon is a column of its own, so a wrapped line hangs past it.</li>
+  <li><strong>Try again</strong> (<code>data-player=<wbr>"retry"</code>): only after a failure, under the sentence and lined up with its words. The script makes it if the markup has none.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -251,11 +253,12 @@
   <tbody>
     <tr><td><code>data-skip</code></td><td><code>.player</code></td><td>Seconds for Back and Forward (default 10). Write the same number in their <code>aria-label</code>.</td></tr>
     <tr><td><code>controls</code></td><td>the media element</td><td>Leave it in the markup. The script removes it only when it has taken over.</td></tr>
-    <tr><td><code>hidden</code></td><td><code>.player__controls</code></td><td>Leave it in the markup. The script shows the row; without the script the native controls stay.</td></tr>
-    <tr><td><code>data-player</code></td><td>a Button</td><td><code>back</code>, <code>forward</code>, <code>mute</code>, <code>captions</code>. Play is <code>.player__play</code>.</td></tr>
+    <tr><td><code>hidden</code></td><td><code>.player<wbr>__controls</code></td><td>Leave it in the markup. The script shows the row; without the script the native controls stay.</td></tr>
+    <tr><td><code>data-player</code></td><td>a Button</td><td><code>back</code>, <code>forward</code>, <code>mute</code>, <code>captions</code>, <code>retry</code>. Play is <code>.player__play</code>.</td></tr>
+    <tr><td><code>data-fit</code></td><td><code>.player__row</code> (set by the script)</td><td><code>full</code>, <code>compact</code>, <code>tight</code> or <code>bare</code>: the richest layout that keeps the row on one line.</td></tr>
     <tr><td><code>data-state</code></td><td><code>.player</code> (set by the script)</td><td><code>buffering</code> or <code>error</code>; absent otherwise. <code>error</code> dashes the frame.</td></tr>
     <tr><td><code>--ratio</code></td><td><code>.player__stage</code></td><td>Picture shape, default <code>16 / 9</code>.</td></tr>
-    <tr><td><code>SG.player.init(el)</code></td><td>JS</td><td>Wire a player you added after load (existing ones are found automatically).</td></tr>
+    <tr><td><code>SG.player<wbr>.init(el)</code></td><td>JS</td><td>Wire a player you added after load (existing ones are found automatically).</td></tr>
   </tbody>
 </table></div>
 
@@ -264,19 +267,20 @@
   <caption class="sr-only">Player keyboard and screen reader behaviour</caption>
   <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
   <tbody>
-    <tr><td><kbd>Tab</kbd></td><td>Seek bar, Play, Back, Forward, Captions, Mute, in the order they read. Every control is a native button or range.</td></tr>
+    <tr><td><kbd>Tab</kbd></td><td>Seek bar, Play, Back, Forward, Captions, Mute, in the order they read (then Try again, after a failure). Every control is a native button or range.</td></tr>
     <tr><td>Play: <kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Plays or pauses. The name stays "Play"; a screen reader hears "Play, toggle button, pressed" while it plays. Finishing is announced.</td></tr>
     <tr><td>Seek: <kbd>Left</kbd> <kbd>Right</kbd> <kbd>PageUp</kbd> <kbd>PageDown</kbd> <kbd>Home</kbd> <kbd>End</kbd></td><td>Native range keys, one second per step. The value is spoken as "0:06 of 0:12". Clicking the bar jumps there.</td></tr>
     <tr><td>Back, Forward</td><td>Jump <code>data-skip</code> seconds and announce the new position, since focus stays on the button.</td></tr>
-    <tr><td>Screen reader</td><td>The group is named by the title; the media element is described by the sentence under it. Icons are hidden; every button has a name.</td></tr>
+    <tr><td>Screen reader</td><td>The group is named by the title; the media element is described by the sentence under it. Icons are hidden; every button has a name. A failure is read from the status line; Try again is announced and moves focus to Play.</td></tr>
     <tr><td>Captions and transcripts</td><td>Video with speech needs a caption track (WCAG 1.2.2). Audio-only needs a transcript or an equivalent sentence (1.2.1). The Captions button appears only when there is a track.</td></tr>
-    <tr><td>Touch</td><td>Every target is 44px or has a 44px hit area. Nothing needs a drag: the bar jumps on tap, and the buttons step.</td></tr>
+    <tr><td>Touch</td><td>Every target is 44px or has a 44px hit area, 8px apart. Nothing needs a drag: the bar jumps on tap, and the buttons step.</td></tr>
+    <tr><td>Zoom / text size</td><td>The title, description, time and status grow with the text; the row of controls keeps its 100% size and stays one line (measured), so it never breaks into rows of single buttons. Fine at 320px wide and 200% text.</td></tr>
     <tr><td>Autoplay and sound</td><td>Never autoplays. Starting one player pauses the others.</td></tr>
-    <tr><td>No script</td><td>The browser's native controls remain and work.</td></tr>
+    <tr><td>No script</td><td>The browser’s native controls remain and work.</td></tr>
     <tr><td>Reduced motion</td><td>Nothing in the Player moves; the Button fills stay.</td></tr>
     <tr><td>Forced colours</td><td>Frame and stage take <code>CanvasText</code>; buttons keep their borders; pressed is a 4px frame.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--paper-3</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--bad-ink</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-ink-soft</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--space-1</code> to <code>--space-4</code>, <code>--text-lg</code>, <code>--type-title</code>, <code>--type-meta</code>, <code>--type-ctl</code>. The buttons and the seek bar bring their own: see <a href="@/components/button.html">Button</a> and <a href="@/components/scrubber.html">Scrubber</a>.</p>
+<p><code>--paper</code>, <code>--paper-3</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--bad-ink</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-ink-soft</code>, <code>--bw</code>, <code>--radius-card</code>, <code>--radius-pill</code>, <code>--chrome-1</code> to <code>--chrome-4</code>, <code>--chrome-ctl</code>, <code>--chrome-ic</code>, <code>--chrome-ic-sm</code>, <code>--chrome-ic-xs</code>, <code>--space-2</code>, <code>--text-md</code>, <code>--text-lg</code>, <code>--type-title</code>, <code>--type-meta</code>, <code>--type-ctl</code>. The buttons and the seek bar bring their own: see <a href="@/components/button.html">Button</a> and <a href="@/components/scrubber.html">Scrubber</a>.</p>

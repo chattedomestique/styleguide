@@ -32,6 +32,10 @@
                      stops for good when focus enters the carousel or the track is touched; pauses while the
                      pointer rests on it or the tab is hidden. data-autoplay-start begins playing on load.
    · reduced motion  scrolling is instant (a position change is the safe kind of motion), never skipped
+   · one-row bar     measured with SG.fit (05-fit.js): data-fit on the bar is long ("1 of 6"), short ("1/6")
+                     or none (the count hidden), the first in which the count and the circles share one line;
+                     data-fit on the carousel is dots, or nodots when one line cannot hold the dots. It re-checks
+                     when the carousel's width or the reader's text size changes. carousel.css draws each one.
    ========================================================================== */
 (function (SG) {
   'use strict';
@@ -265,6 +269,13 @@
   window.addEventListener('resize', function () {
     SG.qsa('.carousel').forEach(function (c) { if (state.has(c) && !state.get(c).lock) sync(c, currentIndex(parts(c))); });
   });
+
+  /* the bar never wraps raggedly: the count shortens (or goes) before the circles leave its line, and the dots
+     are one line or none (see carousel.css, THE BAR) */
+  if (SG.fit) {
+    SG.fit.register('.carousel__bar', { steps: ['long', 'short', 'none'], measure: '.carousel__count' });
+    SG.fit.register('.carousel', { steps: ['dots', 'nodots'], measure: '.carousel__dots' });
+  }
 
   SG.carousel = { init: init, go: function (c, i) { bind(c); go(c, i, false); }, play: function (c, on) { bind(c); setPlaying(c, !!on, false); } };
   SG.ready(function () { init(document); });

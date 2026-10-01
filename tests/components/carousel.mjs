@@ -288,14 +288,47 @@ export const tests = [
     },
   },
   {
-    name: 'the bar wraps: no horizontal overflow at 320px wide',
-    viewport: { width: 320, height: 700 },
+    name: 'the bar is one row at 320px and 390px, at 100% and 200% text: the count and the circles share a line, the dots are one line or none',
     async run({ page, goto, expect }) {
-      await goto('components/carousel.html')
-      const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
-      expect.ok(over <= 1, `page does not scroll sideways (overflow ${over})`)
-      const bar = await page.evaluate(() => { const b = document.querySelector('.carousel__bar'); return b.scrollWidth <= b.clientWidth + 1 })
-      expect.ok(bar, 'the bar fits its frame')
+      for (const [w, pct] of [[390, 100], [390, 200], [320, 100], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await goto('components/carousel.html')
+        if (pct !== 100) await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(300) // SG.fit re-measures on the next frame after the size changes
+        // the page as a whole at the a11y gate's sizes (at 320px with 200% text the docs prose has long code chips of its own)
+        if (!(w === 320 && pct === 200)) {
+          const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+          expect.ok(over <= 1, `${w}px ${pct}%: the page does not scroll sideways (overflow ${over})`)
+        }
+        const wide = await page.evaluate(() => [...document.querySelectorAll('.carousel')].filter((c) => c.getBoundingClientRect().right > innerWidth + 1).length)
+        expect.equal(wide, 0, `${w}px ${pct}%: every carousel stays inside the screen`)
+        const bars = await page.evaluate(() => [...document.querySelectorAll('.carousel')].map((c) => {
+          const bar = c.querySelector('.carousel__bar'), b = bar.getBoundingClientRect(), count = c.querySelector('.carousel__count')
+          const mid = (r) => r.top + r.height / 2
+          const nav = [...c.querySelectorAll('.carousel__nav .btn')].map((x) => x.getBoundingClientRect())
+          const dots = c.querySelector('.carousel__dots'), dr = dots && dots.getBoundingClientRect()
+          const shown = getComputedStyle(count).position !== 'absolute'
+          return {
+            name: c.getAttribute('aria-label'), fit: bar.dataset.fit, cr: count.getBoundingClientRect(), shown,
+            countMid: mid(count.getBoundingClientRect()), navMids: nav.map(mid), navInside: nav.every((r) => r.left >= b.left - 0.5 && r.right <= b.right + 0.5),
+            countFits: count.scrollWidth <= count.clientWidth + 1,
+            dots: dots ? { shown: getComputedStyle(dots).display !== 'none', oneLine: [...dots.children].every((d) => Math.abs(d.getBoundingClientRect().top - dots.children[0].getBoundingClientRect().top) < 1), inside: !dr || dr.width === 0 || (dr.left >= b.left - 4.5 && dr.right <= b.right + 4.5) } : null,
+          }
+        }))
+        for (const c of bars) {
+          expect.ok(c.navInside, `${w}px ${pct}% ${c.name}: the circles are inside the bar`)
+          expect.ok(c.navMids.every((m) => Math.abs(m - c.navMids[0]) < 1), `${w}px ${pct}% ${c.name}: the circles share one line`)
+          if (c.shown) {
+            expect.ok(Math.abs(c.countMid - c.navMids[0]) < 2, `${w}px ${pct}% ${c.name}: the count is on the circles' line (${c.fit})`)
+            expect.ok(c.countFits, `${w}px ${pct}% ${c.name}: the count is not cut (${c.fit})`)
+          }
+          if (c.dots && c.dots.shown) {
+            expect.ok(c.dots.oneLine, `${w}px ${pct}% ${c.name}: the dots are one line`)
+            expect.ok(c.dots.inside, `${w}px ${pct}% ${c.name}: the dots fit the bar`)
+          }
+        }
+        if (w === 390) for (const c of bars) expect.equal(c.fit, 'long', `${w}px ${pct}% ${c.name}: at 390px the count keeps its words`)
+      }
     },
   },
   {
@@ -315,6 +348,52 @@ export const tests = [
         expect.ok(c.vw, `${c.name}: the carousel stays inside the screen`)
         for (const [label, ok] of c.buttons) expect.ok(ok, `${c.name}: "${label}" is inside the frame`)
       }
+    },
+  },
+  {
+    name: 'every slide picture covers its frame: no band between the picture and the caption or the bar, at 100% and 200% text',
+    async run({ page, goto, expect }) {
+      await goto('components/carousel.html')
+      for (const pct of [100, 200]) {
+        if (pct !== 100) await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(250)
+        const gaps = await page.evaluate(() => [...document.querySelectorAll('.carousel__slide > .media')].map((m) => {
+          const f = m.querySelector('.media__frame').getBoundingClientRect(), img = m.querySelector('img').getBoundingClientRect()
+          const cap = m.querySelector('.media__caption'), c = cap.getBoundingClientRect(), over = getComputedStyle(cap).gridRowStart === '1'
+          const below = over ? m.getBoundingClientRect().bottom - (getComputedStyle(m).borderBottomWidth === '0px' ? 0 : 2) : c.top
+          return { band: Math.round(below - f.bottom), img: Math.round(f.bottom - img.bottom) }
+        }))
+        for (const g of gaps) {
+          expect.ok(Math.abs(g.band) <= 1, `${pct}%: the frame reaches the caption (band ${g.band}px)`)
+          expect.ok(Math.abs(g.img) <= 1, `${pct}%: the picture fills the frame (${g.img}px short)`)
+        }
+      }
+    },
+  },
+  {
+    name: 'dots keep the solid fill for the current one: hover draws the cell ring, pressing tints half way, the current one fills and stretches',
+    async run({ page, goto, expect }) {
+      await goto('components/carousel.html')
+      const dot = page.locator(`${car(NOTES)} .carousel__dot`).nth(2)
+      await dot.scrollIntoViewIfNeeded()
+      const read = () => dot.evaluate((d) => ({ fill: Number(getComputedStyle(d).getPropertyValue('--fill')), ring: getComputedStyle(d).borderTopColor, w: d.getBoundingClientRect().width }))
+      const rest = await read()
+      expect.equal(rest.fill, 0, 'rest: --fill 0')
+      expect.equal(Math.round(rest.w), 44, 'a 44px cell')
+      await dot.hover()
+      await page.waitForTimeout(300)
+      const h = await read()
+      expect.equal(h.fill, 0, 'hover: no fill (a filled dot means "here")')
+      expect.ok(h.ring !== rest.ring, `hover: the cell ring appears (${rest.ring} -> ${h.ring})`)
+      await page.mouse.down()
+      await page.waitForTimeout(250)
+      expect.equal((await read()).fill, 0.5, 'pressed: half way, at once')
+      await page.mouse.up()
+      await page.waitForTimeout(300)
+      const cur = await dot.evaluate((d) => ({ current: d.getAttribute('aria-current'), fill: Number(getComputedStyle(d).getPropertyValue('--fill')), pill: getComputedStyle(d, '::before').width }))
+      expect.equal(cur.current, 'true', 'the click made it current')
+      expect.equal(cur.fill, 1, 'current: filled')
+      expect.equal(cur.pill, '28px', 'and stretched into a pill')
     },
   },
 ]

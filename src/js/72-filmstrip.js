@@ -19,7 +19,7 @@
                   recolours the space behind a cut-out picture
    and the change is announced ("Showing Harbour at dawn, 2 of 6") because the picture that changed is
    not where focus is. Home / End jump to the first / last thumbnail (the browser gives the arrows).
-   On load the track is scrolled, sideways only, so the chosen thumbnail is in view.
+   On load the track is scrolled, sideways only, so the chosen thumbnail is in view (to a snap point: see reveal).
    ========================================================================== */
 (function (SG) {
   'use strict';
@@ -81,14 +81,29 @@
     to.dispatchEvent(new Event('change', { bubbles: true }));
   });
 
-  /** Scroll the track (sideways only, never the page) so the chosen thumbnail is fully in view. */
+  /** Scroll the track (sideways only, never the page) so the chosen thumbnail is fully in view. The track snaps
+      to the start of a thumbnail (scroll-snap, proximity), and a position between two snap points is pulled back
+      to the nearer one, which undid a plain "scroll by the overflow" and left the chosen swatch cut off at the
+      edge. So it goes to a snap point: the first thumbnail start from which the chosen one is fully inside. */
   function reveal(track) {
     var on = track.querySelector('.filmstrip__thumb > input:checked');
     if (!on) return;
-    var t = on.parentNode.getBoundingClientRect(), tr = track.getBoundingClientRect();
-    var pad = parseFloat(getComputedStyle(track).paddingLeft) || 0;
-    if (t.right > tr.right) track.scrollLeft += t.right - tr.right + pad;
-    else if (t.left < tr.left) track.scrollLeft -= tr.left - t.left + pad;
+    var cs = getComputedStyle(track);
+    var rtl = cs.direction === 'rtl';
+    var tr = track.getBoundingClientRect();
+    var scrolled = Math.abs(track.scrollLeft);
+    // distance of an edge from the track's scroll origin, measured from the start side (left, or right in RTL)
+    function fromStart(r, edge) { return (rtl ? tr.right - r[edge === 'start' ? 'right' : 'left'] : r[edge === 'start' ? 'left' : 'right'] - tr.left) + scrolled; }
+    var padStart = parseFloat(rtl ? cs.scrollPaddingRight : cs.scrollPaddingLeft) || 0;
+    var padEnd = parseFloat(rtl ? cs.paddingLeft : cs.paddingRight) || 0;
+    var t = on.parentNode.getBoundingClientRect();
+    var start = fromStart(t, 'start'), end = fromStart(t, 'end') + padEnd;
+    if (start - padStart >= scrolled && end - scrolled <= track.clientWidth) return; // already in view
+    var thumbs = SG.qsa('.filmstrip__thumb', track);
+    for (var i = 0; i < thumbs.length; i++) {
+      var snap = Math.max(0, fromStart(thumbs[i].getBoundingClientRect(), 'start') - padStart);
+      if (end - snap <= track.clientWidth + 0.5) { track.scrollLeft = rtl ? -snap : snap; return; }
+    }
   }
 
   SG.filmstrip = { show: show, reveal: reveal };

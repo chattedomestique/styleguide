@@ -202,4 +202,44 @@ export const tests = [
       for (const m of await measure()) if (m.w < 10) expect.ok(!m.covers, `a ${m.w.toFixed(1)}rem-wide figure puts the caption under the picture`)
     },
   },
+  {
+    name: 'the ratios specimen reads in rows: the pictures in a row share one height, and at 200% text there is one per line',
+    async run({ page, goto, expect }) {
+      await goto('components/media.html')
+      const rows = () => page.evaluate(() => [...document.querySelectorAll('#ratios + p + .demo [data-role="ratios"] > div')].map((row) => [...row.children].map((f) => f.querySelector('.media__frame').getBoundingClientRect()).map((r) => ({ h: r.height, top: r.top }))))
+      for (const row of await rows()) {
+        expect.ok(row.every((r) => Math.abs(r.h - row[0].h) < 1), `one height per row (${row.map((r) => r.h.toFixed(1))})`)
+        expect.ok(row.every((r) => Math.abs(r.top - row[0].top) < 1), 'one line per row')
+      }
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(250)
+      const tops = (await rows()).flat().map((r) => Math.round(r.top))
+      expect.equal(new Set(tops).size, tops.length, 'at 200% text every picture has a line of its own')
+    },
+  },
+  {
+    name: 'the figure behind its children is the frame colour (no light seam inside a soft corner); a dashed failed frame keeps paper in its gaps',
+    async run({ page, goto, expect }) {
+      await goto('components/media.html')
+      const r = await page.evaluate(() => {
+        const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+        const soft = document.querySelector('#corners ~ .demo [data-corners="soft"] .media')
+        const failed = document.querySelector('#states ~ .demo .media[data-state="failed"]')
+        return { soft: getComputedStyle(soft).backgroundColor, line: probe('--line'), failed: getComputedStyle(failed).backgroundColor, paper: probe('--paper'), radius: parseFloat(getComputedStyle(soft).borderTopLeftRadius) }
+      })
+      expect.ok(r.radius > 0, 'the soft figure is rounded')
+      expect.equal(r.soft, r.line, 'its background is the line colour, so the anti-aliased inner corner reads as frame')
+      expect.equal(r.failed, r.paper, 'the dashed frame shows paper between its dashes, not a solid line')
+    },
+  },
+  {
+    name: 'a focused linked figure: the paper halo sits in front of the hard shadow, so the ring is not stepped at the corner',
+    async run({ page, goto, expect }) {
+      await goto('components/media.html')
+      const sh = await page.evaluate(() => getComputedStyle(document.querySelector('#link ~ .demo .media.is-focus')).boxShadow)
+      const first = sh.split(/,(?![^(]*\))/)[0].trim() // the first of the comma-separated shadows (commas inside a colour do not split)
+      expect.ok(/ 0px 0px 0px 3px$/.test(first), `the first shadow is the 3px halo in the ring's offset (${sh})`)
+      expect.ok(/4px 4px 0px 0px/.test(sh), `the hard shadow is still there behind it (${sh})`)
+    },
+  },
 ]
