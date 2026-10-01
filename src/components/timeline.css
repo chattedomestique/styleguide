@@ -40,6 +40,10 @@
    aria-describedby: a picture of the sound is not the sound, and it must not be the only place the
    loud and quiet parts are described. No gradient.
 
+   THE RULER IS 3.5rem TALL because the playhead's head (1.75rem, a circle) sits in its top and the time labels in its
+   bottom. At the old 2.75rem the head was centred on the ruler and covered whichever label was near it ("0:30" read
+   ":30"). The labels are to the right of their tick, so the head and a label can only meet vertically, never sideways.
+
    WHY THE PADDING. The scroller (overflow-x) clips y, and the focus ring (6px), the lift (2px) and the
    hard shadow (4px) all sit outside the clips and the head, so the scroller pads them in (WCAG 2.4.7).
 
@@ -98,9 +102,11 @@
     }
   }
 
+  /* [back] 0:30 / 1:24 [forward]: one cluster that never splits (the pair belongs around the readout), so it does
+     not wrap. When the bar is too narrow for it on one line it regroups (the two queries below) instead. */
   .timeline__time {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: var(--space-2);
     font: var(--type-ctl);
@@ -120,11 +126,99 @@
     align-items: center;
     gap: var(--space-2);
   }
-  /* At large text a label such as "Trim start" is wider than the bar: let it wrap inside the pill instead of being clipped. */
+  /* A label stays whole: "Trim start" is one line in a pill, and when the group cannot fit three on a line the
+     group wraps one button at a time. (A .btn breaks anywhere, which turned "Split" into "Spli / t".) */
   .timeline__actions .btn {
-    white-space: normal;
-    text-align: start;
-    padding-block: var(--space-2);
+    flex: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+
+  /* Too narrow for the cluster on a line (a phone mock, or large text): the readout stacks between the two
+     buttons ("0:52" over "/ 1:24"), which keeps all three together at about 9rem. */
+  @container timeline (inline-size < 14rem) {
+    .timeline__time {
+      display: grid;
+      grid-template-columns: auto auto auto;
+      justify-content: start;
+      column-gap: var(--space-2);
+      row-gap: 0;
+    }
+    .timeline__time > [data-timeline="back"] {
+      grid-area: 1 / 1 / span 2 / 2;
+    }
+    .timeline__time > output {
+      grid-area: 1 / 2;
+      justify-self: center;
+    }
+    .timeline__time > small {
+      grid-area: 2 / 2;
+      justify-self: center;
+    }
+    .timeline__time > [data-timeline="forward"] {
+      grid-area: 1 / 3 / span 2 / 4;
+    }
+  }
+
+  /* Narrower still (200 % text on a phone: two 72px buttons are most of the bar): the readout takes a line and
+     the pair sits under it, and the actions become a column of full-width buttons whose words may wrap at a space.
+     A wrapped pill turns into an oval, so these take the tile radius: a rectangle (soft or square per data-corners). */
+  @container timeline (inline-size < 10.5rem) {
+    .timeline__time > output {
+      grid-area: 1 / 1;
+      justify-self: start;
+    }
+    .timeline__time > small {
+      grid-area: 1 / 2 / 2 / 4;
+      justify-self: start;
+    }
+    .timeline__time > [data-timeline="back"] {
+      grid-area: 2 / 1;
+    }
+    .timeline__time > [data-timeline="forward"] {
+      grid-area: 2 / 2;
+    }
+  }
+  @container timeline (inline-size < 11rem) {
+    .timeline__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .timeline__actions .btn {
+      justify-content: flex-start;
+      min-inline-size: 0;
+      padding-block: var(--space-2);
+      padding-inline: var(--space-3);
+      white-space: normal;
+      overflow-wrap: break-word;
+      text-align: start;
+      border-radius: var(--radius-tile);
+    }
+  }
+
+  /* A timeline panel under 6.5rem (200 % text inside a phone-sized frame: 4.8rem): the glyph and the word no longer
+     fit side by side, and neither do the readout's number and total, nor two 72px buttons (they need 6.4rem). The
+     word says what the button does (the glyph is aria-hidden), so the glyph goes; the readout and the pair become
+     one column. At 7rem (200 % text on a 390px screen) everything above still fits as laid out. */
+  @container timeline (inline-size < 6.5rem) {
+    .timeline__actions .btn .ic {
+      display: none;
+    }
+    .timeline__time {
+      grid-template-columns: auto;
+    }
+    .timeline__time > output {
+      grid-area: 1 / 1;
+    }
+    .timeline__time > small {
+      grid-area: 2 / 1;
+    }
+    .timeline__time > [data-timeline="back"] {
+      grid-area: 3 / 1;
+    }
+    .timeline__time > [data-timeline="forward"] {
+      grid-area: 4 / 1;
+    }
   }
   /* small circles: 36px wide, not the 44px minimum that would stretch them into pills (hit area is 44 anyway) */
   .timeline__bar .btn[data-shape="circle"] {
@@ -156,6 +250,7 @@
   }
   .timeline__body {
     --_track-h: 4rem;
+    --_ruler-h: 3.5rem; /* the head (1.75rem) sits in the top of it and the labels in the bottom, so neither covers the other */
 
     position: relative;
     display: grid;
@@ -169,7 +264,7 @@
   /* ---- ruler: a tick and a label every few seconds (the script picks how many) ---- */
   .timeline__ruler {
     position: relative;
-    block-size: var(--hit);
+    block-size: var(--_ruler-h);
     border-block-end: var(--bw-thin) solid var(--line-soft);
     font: var(--type-meta);
     font-variant-numeric: tabular-nums lining-nums;
@@ -186,10 +281,15 @@
     block-size: 0.5rem;
     background: var(--line-soft);
   }
+  /* a label sits on a plate above the playhead's line (z 3), so the line breaks behind a number instead of
+     striking through it ("0:5|2") - the same move as the value plates in a bar chart with a reference line */
   .timeline__ruler > span {
     position: absolute;
-    inset-block-end: 0.625rem;
+    z-index: 4;
+    inset-block-end: 0.5rem;
     inset-inline-start: calc(var(--t, 0) * var(--pps) + var(--space-1));
+    padding-inline: 0.125rem;
+    background: var(--_bg);
     white-space: nowrap;
   }
 
@@ -232,10 +332,20 @@
       --lift var(--dur-hover) var(--ease-out),
       --fill var(--dur-hover) var(--ease-out);
 
+    /* the doubled frame goes ABOVE the paper halo, or on the selected clip the halo (3px) hides it (2px) */
     &:focus-visible {
       z-index: 2;
       --ring-gap: var(--ring-offset);
-      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+      box-shadow: var(--_select), var(--focus-shadow), var(--_shadow);
+    }
+    /* .is-focus forces the state on the docs page: it has to draw the ring a real focus gets */
+    &.is-focus {
+      z-index: 2;
+      --ring-gap: var(--ring-offset);
+      --focus-shadow: 0 0 0 var(--ring-gap) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap);
+      box-shadow: var(--_select), var(--focus-shadow), var(--_shadow);
     }
 
     @media (hover: hover) {
@@ -318,10 +428,13 @@
   .timeline__head {
     --lift: 0;
     --fill: 0;
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    /* raised, the head is filled with the accent (ink in the default looks): a paper gap stands the hard shadow off it */
+    --_shadow:
+      0 0 0 calc(var(--lift) * var(--bw)) var(--paper),
+      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--lift) * var(--bw)) var(--line);
 
     position: absolute;
-    inset-block-start: calc((var(--hit) - 1.75rem) / 2 + var(--space-1));
+    inset-block-start: var(--space-1); /* the top of the ruler row; the labels are in its bottom half */
     inset-inline-start: -0.875rem;
     inline-size: 1.75rem;
     block-size: 1.75rem;
@@ -355,6 +468,13 @@
     &:is(:focus-visible, .is-focus) {
       --lift: 1;
       --fill: 1;
+    }
+    /* .is-focus forces the state on the docs page: it has to draw the ring a real focus gets */
+    &.is-focus {
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--focus-shadow), var(--_shadow);
     }
     &:is(:active, .is-active) {
       --lift: 0;

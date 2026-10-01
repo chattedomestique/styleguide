@@ -310,4 +310,71 @@ export const tests = [
       expect.equal(await c.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill'))), 1, 'the fill still changes')
     },
   },
+  {
+    name: 'the playhead head never covers a ruler label, wherever it is',
+    async run({ page, goto, expect }) {
+      await goto('components/timeline.html')
+      await page.locator('#tl1-head').scrollIntoViewIfNeeded()
+      await page.locator('#tl1-head').focus()
+      const hits = []
+      for (const key of ['Home', 'PageDown', 'PageDown', 'ArrowRight', 'PageDown', 'PageDown', 'ArrowRight', 'ArrowRight', 'PageDown', 'End']) {
+        await page.keyboard.press(key)
+        await page.waitForTimeout(80)
+        const h = await page.evaluate(() => {
+          const t = document.querySelector('#editor + p + .demo .timeline')
+          const hd = t.querySelector('.timeline__head').getBoundingClientRect()
+          return [...t.querySelectorAll('.timeline__ruler > span')].filter((s) => {
+            const b = s.getBoundingClientRect()
+            return b.width && hd.left < b.right && b.left < hd.right && hd.top < b.bottom && b.top < hd.bottom
+          }).map((s) => s.textContent)
+        })
+        if (h.length) hits.push(key + ': ' + h.join())
+      }
+      expect.equal(hits.join(' | '), '', 'no label sits under the head')
+    },
+  },
+  {
+    name: 'the time cluster (Back, readout, Forward) stays together and the actions keep their words whole, at 320px and 200% text',
+    async run({ page, goto, expect }) {
+      await goto('components/timeline.html')
+      for (const [w, pct] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(250)
+        const r = await page.locator(root).evaluate((t) => {
+          const lines = (n) => { const tops = []; const wk = document.createTreeWalker(n, NodeFilter.SHOW_TEXT); for (let x = wk.nextNode(); x; x = wk.nextNode()) { if (!x.textContent.trim()) continue; const r = document.createRange(); r.selectNodeContents(x); for (const q of r.getClientRects()) if (q.width > 0 && !tops.some((y) => Math.abs(y - q.top) < 4)) tops.push(q.top) } return tops.length }
+          const time = t.querySelector('.timeline__time'), back = time.querySelector('[data-timeline="back"]').getBoundingClientRect(), fwd = time.querySelector('[data-timeline="forward"]').getBoundingClientRect(), out = time.querySelector('output').getBoundingClientRect()
+          const tl = t.getBoundingClientRect(), tm = time.getBoundingClientRect()
+          return {
+            // all three share the cluster's box (they are in one grid/flex, not three wrapped rows)
+            together: back.top < tm.bottom && fwd.top < tm.bottom && Math.abs((back.top + back.height / 2) - (fwd.top + fwd.height / 2)) < 30 || (Math.abs(back.top - fwd.top) < 2),
+            inside: back.left >= tl.left && fwd.right <= tl.right && out.right <= tl.right,
+            words: [...t.querySelectorAll('.timeline__actions .btn')].map((b) => [b.textContent.trim(), b.querySelectorAll('.ic').length, lines(b), getComputedStyle(b).borderTopLeftRadius]),
+          }
+        })
+        expect.ok(r.together, `${w}px ${pct}%: Back and Forward sit beside the readout`)
+        expect.ok(r.inside, `${w}px ${pct}%: the cluster is inside the timeline`)
+        for (const [name, , lines, radius] of r.words) {
+          const split = name.split(/\s+/)
+          expect.ok(lines <= split.length, `${w}px ${pct}%: "${name}" wraps at spaces only (${lines} lines)`)
+          if (lines > 1) expect.ok(parseFloat(radius) < 30, `${w}px ${pct}%: "${name}" wrapped, so it is a rectangle, not an oval (radius ${radius})`)
+        }
+      }
+    },
+  },
+  {
+    name: 'the Clips demo shows Rest, Selected, Hover, Focus and Pressed together, with no scrolling needed',
+    async run({ page, goto, expect }) {
+      await goto('components/timeline.html')
+      const r = await page.locator('#clips + p + .demo').evaluate((el) => {
+        const sc = el.querySelector('.timeline__scroll'), tl = el.querySelector('.timeline').getBoundingClientRect()
+        const clips = [...el.querySelectorAll('.timeline__clip')]
+        return { n: clips.length, names: clips.map((c) => c.querySelector('.timeline__name').textContent.trim()), inside: clips.every((c) => { const b = c.getBoundingClientRect(); return b.left >= tl.left && b.right <= tl.right }), scrolls: sc.scrollWidth > sc.clientWidth + 1 }
+      })
+      expect.equal(r.names.join(), 'Rest,Selected,Hover,Focus,Pressed', 'Selected sits next to Rest')
+      expect.ok(r.inside && !r.scrolls, 'every state is in view at 390px')
+      const f = await page.locator('#clips + p + .demo .timeline__clip.is-focus').evaluate((el) => { const c = getComputedStyle(el); return c.outlineStyle + ' ' + c.outlineWidth })
+      expect.equal(f, 'solid 3px', 'the Focus specimen draws the ring')
+    },
+  },
 ]
