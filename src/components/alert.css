@@ -96,13 +96,25 @@
     gap: var(--space-2);
   }
 
-  /* A button's label is nowrap; at 200% text in a narrow card that would clip it (WCAG 1.4.4).
-     Here it may wrap, stays centred, and keeps its 44px minimum height. */
+  /* A pill is for ONE line: a label that wraps inside a pill turns it into an oval ("Manage /
+     storage" at 320px). So the label stays on one line, and the button never outgrows the card.
+     Below 12rem of card (200% text on a phone, where "Manage storage" is wider than the card) one
+     line cannot be promised, so the label may wrap (WCAG 1.4.4) and the control becomes a
+     rectangle, --radius-ctl, which holds two lines. */
   .alert__actions .btn {
     max-inline-size: 100%;
     padding-block: var(--space-2);
-    white-space: normal;
+    white-space: nowrap;
     line-height: var(--lh-snug);
+  }
+  @container card (max-width: 12rem) {
+    .alert__actions .btn {
+      white-space: normal;
+      border-radius: var(--radius-ctl);
+      /* the button's 1.5rem of side padding is 96px at 200% text: in a 160px card it left the label
+         ~60px, a letter or two a line ("Manag / e sto / rag / e") */
+      padding-inline: var(--space-2);
+    }
   }
 
   /* Dismiss: a circle button. Its drawn 36px is pulled in by the difference to the 24px line
@@ -119,45 +131,59 @@
     justify-self: end;
   }
 
-  /* ---- Narrow card (a 320px phone with padding around it, or 200% text, where 14rem is 448px): the icon and the
-     dismiss button share a row above the words, so the text column gets the full width
-     instead of a few letters. rem in a container query scales with the reader's text size. --- */
-  @container card (max-width: 14rem) {
-    .alert > .card__body,
-    .alert > .card__body:has(> .alert__close) {
+  /* ---- Narrow card: the icon and the dismiss button share a row above the words, so the text
+     column gets the full width instead of a few letters. In a card, beside the icon and the dismiss
+     circle the words have the card's width minus about 7rem (padding, icon, circle, three gaps); 17rem
+     leaves them 10rem, a readable measure. At 14rem it was 7rem, and a 320px phone with a page and a
+     stage around the card (~15rem) got a column of five words a line. rem in a container query
+     scales with the reader's text size (200% text on a 390px phone is a ~9.5rem card). ---------- */
+  @container card (max-width: 17rem) {
+    .alert:not([data-size="sm"]) > .card__body,
+    .alert:not([data-size="sm"]) > .card__body:has(> .alert__close) {
       grid-template-columns: auto minmax(0, 1fr) auto;
       grid-template-areas:
         "icon . close"
         "main main main"
         "actions actions actions";
     }
-    .alert > .card__body > .ic {
+    .alert:not([data-size="sm"]) > .card__body > .ic {
       grid-area: icon;
     }
-    .alert__main {
+    .alert:not([data-size="sm"]) .alert__main {
       grid-area: main;
     }
-    .alert__actions {
+    .alert:not([data-size="sm"]) .alert__actions {
       grid-area: actions;
     }
-    .alert__close {
+    .alert:not([data-size="sm"]) .alert__close {
       grid-area: close;
     }
   }
 
-  /* ---- Banner row: everything on one line; the text column is the only one that wraps. ---- */
+  /* ---- Banner row (data-size="sm") ---------------------------------------------------------
+     Icon, words, action and close on ONE row while the card has room (26rem: the words keep 10rem
+     beside a 6rem action and the 36px close). Everything starts on the first line: the icon and the
+     words are padded 6px so a one-line banner centres them on the 36px controls, and a two-line one
+     keeps the icon beside line one, the way a regular alert does (the icon used to be centred on
+     the whole message in one banner and top-aligned in the next). Below 26rem the action drops under
+     the words, indented to the words' column instead of under the icon. */
   .alert[data-size="sm"] > .card__body {
     --_gap: var(--space-2);
+    --_pad: calc(var(--space-1) * 1.5); /* (36px control - 24px line) / 2 */
 
     display: flex;
     flex-direction: row; /* .card__body is a column */
-    flex-wrap: wrap; /* at 200% text the action and close wrap under the words */
-    align-items: center;
+    flex-wrap: wrap; /* a long action label wraps under the words rather than squeezing them */
+    align-items: flex-start;
     padding-block: var(--space-2);
     padding-inline: var(--space-3) var(--space-2);
 
+    > .ic {
+      margin-block-start: var(--_pad);
+    }
     > .alert__main {
-      flex: 1 1 10rem;
+      flex: 1 1 8rem;
+      padding-block: var(--_pad);
     }
     > .alert__actions,
     > .alert__close {
@@ -166,6 +192,55 @@
     > .alert__close {
       margin-block: 0;
       margin-inline-end: 0;
+    }
+  }
+
+  @container card (max-width: 26rem) {
+    .alert[data-size="sm"] > .card__body {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "icon main close"
+        ".    actions actions";
+      row-gap: 0;
+
+      &:not(:has(> .alert__close)) {
+        grid-template-areas:
+          "icon main main"
+          ".    actions actions";
+      }
+      > .ic {
+        grid-area: icon;
+      }
+      > .alert__main {
+        grid-area: main;
+      }
+      > .alert__actions {
+        grid-area: actions;
+        padding-block-end: var(--space-1);
+      }
+      > .alert__close {
+        grid-area: close;
+      }
+    }
+  }
+
+  /* So narrow (200% text on a phone) that icon and words side by side leave the words a few letters:
+     the icon and the close share a row above them, as in a regular alert. */
+  @container card (max-width: 12rem) {
+    .alert[data-size="sm"] > .card__body,
+    .alert[data-size="sm"] > .card__body:not(:has(> .alert__close)) {
+      grid-template-areas:
+        "icon . close"
+        "main main main"
+        "actions actions actions";
+
+      > .ic {
+        margin-block-start: 0;
+      }
+      > .alert__main {
+        padding-block: 0;
+      }
     }
   }
 }

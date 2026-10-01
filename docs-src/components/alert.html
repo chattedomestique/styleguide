@@ -1,4 +1,10 @@
 <!--{"title":"Alert","group":"Components","order":90,"summary":"An inline banner, built on Card, for information, success, warning and errors that stays until it is fixed or dismissed."}-->
+<style>
+  /* docs scaffolding only: the two live-region containers exist from the start and are empty (a live
+     region must be in the page before it has text). An empty one must not leave the stage's sibling
+     margin behind as dead space under the buttons. */
+  #live-status-box:empty, #live-alert-box:empty { margin-block-start: 0; }
+</style>
 <h1>Alert</h1>
 <p class="lede">An alert is a message that lives in the page: a warning above a form, a failed sync above a list, a tip under a heading. It stays until the problem is fixed or the person dismisses it. It is a <a href="@/components/card.html">card</a> with a tone and one row of parts, not a second kind of surface.</p>
 
@@ -126,9 +132,9 @@
 <p><button class="btn" data-size="sm" type="button" id="alerts-restore">Bring the alerts back</button></p>
 
 <h3 id="banner">Banner row</h3>
-<p><code>data-size="sm"</code> puts icon, text, action and close on one row, for things that are state rather than news: offline, read-only, trial ending. Keep it to one or two lines. It stays a card: the frame and the tone are the same.</p>
+<p><code>data-size="sm"</code> puts icon, text, action and close on one row when the card has room (about 26rem, a tablet or a phone turned sideways), for things that are state rather than news: offline, read-only, trial ending. Narrower, as on a phone held upright, the action drops under the words and lines up with them, not with the icon. Keep it to one or two lines. It stays a card: the frame and the tone are the same.</p>
 <div class="demo" data-layout="stack">
-  <div class="demo__stage">
+  <div class="demo__stage" id="banner-stage">
     <div class="stack" data-gap="3">
       <div class="card alert" data-tone="warn" data-size="sm" role="status">
         <div class="card__body">
@@ -147,9 +153,20 @@
           <div class="alert__actions"><button class="btn" data-variant="tone" data-tone="info" data-size="sm" type="button">Upgrade</button></div>
         </div>
       </div>
+      <div class="card alert" data-tone="ok" data-size="sm" data-dismissible role="status">
+        <div class="card__body">
+          <span class="ic ic--circle-check" aria-hidden="true"></span>
+          <div class="alert__main">
+            <p class="alert__text"><span class="sr-only">Success: </span>Backup finished. 214 cards are safe.</p>
+          </div>
+          <div class="alert__actions"><button class="btn" data-variant="tone" data-tone="ok" data-size="sm" type="button">View backup</button></div>
+          <button class="btn alert__close" data-variant="tone" data-tone="ok" data-shape="circle" data-size="sm" type="button" data-sg-dismiss aria-label="Dismiss backup message"><span class="ic ic--close" aria-hidden="true"></span></button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+<p><button class="btn" data-size="sm" type="button" id="banner-restore">Bring the banner back</button></p>
 
 <h3 id="bold">Bold emphasis</h3>
 <p>For the one message that must not be missed. <code>data-emphasis="bold"</code> flips the tone to a saturated fill with near-white text. Use it once per screen, at most. It goes on the same element as <code>data-tone</code>.</p>
@@ -285,6 +302,11 @@
     if (restore) restore.addEventListener('click', function () {
       SG.qsa('#dismiss-stage [data-dismissible]').forEach(function (a) { a.hidden = false; });
       SG.announce('Alerts restored');
+    });
+    var bannerBack = document.getElementById('banner-restore');
+    if (bannerBack) bannerBack.addEventListener('click', function () {
+      SG.qsa('#banner-stage [data-dismissible]').forEach(function (a) { a.hidden = false; });
+      SG.announce('Banner restored');
     });
     var statusBox = document.getElementById('live-status-box');
     var alertBox = document.getElementById('live-alert-box');
