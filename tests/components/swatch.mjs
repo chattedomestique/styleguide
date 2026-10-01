@@ -3,6 +3,25 @@ const SET = '#set + p + .demo .swatch-set'
 
 const checkedOf = (page, sel = SET) => page.evaluate((s) => [...document.querySelectorAll(s + ' input')].filter((i) => i.checked).map((i) => i.value), sel)
 
+// Words cut across two lines: a Range over a word has client rects at more than one height once the word was broken.
+// (Self-contained, because Playwright serialises it into the page.)
+const brokenWords = (selector) => {
+  const out = []
+  for (const root of document.querySelectorAll(selector)) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+    for (let n; (n = walker.nextNode()); ) {
+      const re = /\S+/g
+      for (let m; (m = re.exec(n.data)); ) {
+        const r = document.createRange()
+        r.setStart(n, m.index)
+        r.setEnd(n, m.index + m[0].length)
+        if (new Set([...r.getClientRects()].map((q) => Math.round(q.top))).size > 1) out.push(m[0])
+      }
+    }
+  }
+  return out
+}
+
 export const tests = [
   {
     name: 'Tab enters the group on the chosen swatch; arrows move AND choose, wrapping; the next Tab leaves',
@@ -174,6 +193,15 @@ export const tests = [
       expect.equal(r.frame, 4, 'chosen: 4px frame')
       expect.equal(r.otherFrame, 2, 'others: 2px frame')
       expect.ok(r.plate !== 'none', 'the check sits on a plate')
+    },
+  },
+  {
+    name: 'at 1024px no colour name is cut inside a word ("Unavailable" fits its column)',
+    viewport: { width: 1024, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto('components/swatch.html')
+      const cut = await page.evaluate(brokenWords, '.swatch-set__name')
+      expect.equal(cut.join(', '), '', 'words split across lines')
     },
   },
 ]

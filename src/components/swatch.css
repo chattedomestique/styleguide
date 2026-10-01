@@ -58,7 +58,9 @@
 
   .swatch-set__list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 4.75rem), 1fr));
+    /* 5.25rem: "Unavailable" (the longest name in the docs) fits a column with its 4px side padding, so a
+       colour name is never cut at 1024px; a longer one wraps between words, or breaks if it must */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 5.25rem), 1fr));
     gap: var(--space-2) var(--space-1);
   }
 
@@ -181,7 +183,7 @@
     font: var(--type-meta);
     text-align: center;
     text-wrap: balance;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word; /* between words first; a word is cut only when it cannot fit a column alone */
   }
   .swatch-set__opt:is(:has(> input:checked), .is-selected) .swatch-set__name {
     text-decoration: underline;
