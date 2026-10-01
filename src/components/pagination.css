@@ -28,11 +28,14 @@
    in between.
 
    LARGE TEXT (WCAG 1.4.4). In the short form the status line may wrap onto two lines between the two
-   circles (it never prints under them), and when the nav is narrower than 16rem of its own width (200%
-   text on a phone) the status takes a row to itself above the two circles.
+   circles (it never prints under them), and when the nav is narrower than 13rem of its own width (a 320px
+   phone at 100% text is 14.75rem here, so it keeps its one tidy row; 200% text on a phone is under it
+   because the rem doubles) the status takes a row to itself above the two circles, which sit together
+   in the middle. 13rem is what the two circles, their gaps and the nav's padding need (8.5rem) plus about
+   4.5rem for two short lines of the status.
    RIGHT-TO-LEFT: the arrows mirror.
 
-   CURRENT PAGE is filled AND its frame doubles (the .btn "on" look, as a pressed toggle), and the
+   CURRENT PAGE is filled AND ringed a second time (the .btn "on" look, as a pressed toggle: a 2px ring in the line colour), and the
    status line says it in words. Never colour alone. Numbers are tabular.
    No JavaScript: this is links.
 
@@ -69,7 +72,7 @@
     }
   }
 
-  /* the page you are on: filled, and the frame doubles (as a pressed toggle) */
+  /* the page you are on: filled, and ringed a second time (as a pressed toggle) */
   .pagination .btn[aria-current="page"] {
     --fill: 1;
     --_select: 0 0 0 var(--bw) var(--line);
@@ -88,6 +91,7 @@
     font: var(--type-ctl);
     font-variant-numeric: tabular-nums lining-nums;
     text-align: center;
+    text-wrap: balance; /* two short lines ("Page 5 / of 12"), not a long one and an orphan */
     overflow-wrap: break-word;
   }
 
@@ -178,13 +182,14 @@
 
   /* ---- Very narrow (200% text on a phone): the status gets a row of its own ----------------------
      Two 88px circles and a gap leave a sliver of a 326px line for "Page 12 of 12"; it would print under
-     a button. So the circles share the second row (Previous at the start, Next at the end) and the
-     status, first in the visual order, spans the first. Reading order in the DOM is unchanged. */
-  @container pagination (max-width: 16rem) {
+     a button. So the circles share the second row, side by side in the middle (far apart they would
+     frame an empty row), and the status, first in the visual order, spans the first. Reading order in the
+     DOM is unchanged. The threshold is in rem so it follows the text size; see LARGE TEXT above. */
+  @container pagination (max-width: 13rem) {
     .pagination__list,
     .pagination[data-variant="switcher"] .pagination__list {
       flex-wrap: wrap;
-      justify-content: space-between;
+      justify-content: center;
       row-gap: var(--space-3);
     }
     .pagination .pagination__status,
