@@ -1,8 +1,10 @@
 <!--{"title":"Progress","group":"Components","order":92,"summary":"Linear, indeterminate, ring and step progress, plus the meter that Card's stat uses: always with the value as text."}-->
 <style>
-  /* docs scaffolding only: the phone mock keeps a 30rem minimum height, which left 5 to 11rem of empty
-     screen under the last row of this demo. Fit it to its content. */
-  .phone__screen { min-block-size: 0; }
+  /* In context: the ring beside its words, the words under it when the ring and a two-line title cannot share
+     the card's width. */
+  .pg-ctx-goal { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); }
+  .pg-ctx-goal > .progress-ring { flex: none; }
+  .pg-ctx-goal > :last-child { flex: 1 1 9rem; min-inline-size: 0; }
 </style>
 <h1>Progress</h1>
 <p class="lede">Progress answers "how far, and how long?". Every form here writes the value as words as well as length, so nobody has to read a percentage off a bar or tell two hues apart. The same flat pill frame holds all of them, and the meter at the end is the one Card's stat recipe uses.</p>
@@ -110,7 +112,7 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
 </div>
 
 <h3 id="tone">Tone</h3>
-<p>The fill takes the tone's dark colour and the track its pastel. The words carry the meaning, so a colour-blind reader, the <code>wire</code> palette and forced colours lose nothing.</p>
+<p>The fill takes the tone's dark colour and the track its pastel. The words carry the meaning, so a colour-blind reader, the <code>wire</code> palette and forced colours lose nothing. A status under the bar is a <code>.progress__<wbr>status</code>: an icon <em>and</em> words, with a hidden status word for screen readers. When the status has a fix, it goes beside it in a <code>.progress__foot</code>: <em>Try again</em> below resumes the import.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="progress" data-tone="ok">
@@ -126,15 +128,18 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
         <span class="progress__value">85%</span>
       </div>
       <div class="progress__track"><progress class="progress__bar" id="pg-warn" value="85" max="100">85%</progress></div>
-      <p class="progress__hint">Warning: 750 MB left. Old backups can go.</p>
+      <p class="progress__status"><span class="ic ic--triangle-alert" aria-hidden="true"></span><span><span class="sr-only">Warning: </span>750&nbsp;MB left. Old backups can go.</span></p>
     </div>
-    <div class="progress" data-tone="bad">
+    <div class="progress" data-tone="bad" id="pg-fail">
       <div class="progress__head">
         <label class="progress__label" for="pg-bad">Import failed</label>
         <span class="progress__value">41%</span>
       </div>
       <div class="progress__track"><progress class="progress__bar" id="pg-bad" value="41" max="100">41%</progress></div>
-      <p class="progress__hint">Error: the connection dropped. Try again.</p>
+      <div class="progress__foot">
+        <p class="progress__status"><span class="ic ic--circle-alert" aria-hidden="true"></span><span><span class="sr-only">Error: </span>The connection dropped.</span></p>
+        <button class="btn" data-size="sm" type="button" id="pg-retry">Try again</button>
+      </div>
     </div>
     <div class="progress" data-tone="5">
       <div class="progress__head">
@@ -150,7 +155,7 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
 <p>A scalar inside a known range. It is a <code>div</code> with <code>role="meter"</code>, a name, <code>aria-valuemin</code>, <code>aria-valuemax</code> and <code>aria-valuenow</code>; the fill comes from <code>--value</code>, a percentage <em>with</em> its <code>%</code>. It takes its colours from the card it sits in: ink on the card's own fill, so a toned card just works.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 14rem">
+    <div class="grid" style="--grid-min: 9rem">
       <article class="card card--square" data-tone="1">
         <div class="card__body">
           <p class="card__eyebrow">Learned so far</p>
@@ -170,16 +175,16 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
     </div>
   </div>
 </div>
-<p>On its own, a meter needs a name and a visible value next to it. Give it a tone when the level matters, and say what the level means in words.</p>
+<p>On its own, a meter needs a name and a visible value next to it: the same label and value row as a bar (<code>.progress__head</code>), above it. Give it a tone when the level matters, and say what the level means in words, with the status icon (<code>.progress__<wbr>status</code>).</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="stack" data-gap="2">
-      <div class="split"><span id="mt-storage" class="t-body">Storage</span><span class="num">4.6 of 5 GB</span></div>
+      <div class="progress__head"><span class="progress__label" id="mt-storage">Storage</span><span class="progress__value">4.6 of 5&nbsp;GB</span></div>
       <div class="meter" data-tone="warn" role="meter" aria-labelledby="mt-storage" aria-valuemin="0" aria-valuemax="5" aria-valuenow="4.6" aria-valuetext="4.6 of 5 gigabytes used" style="--value: 92%"></div>
-      <p class="t-meta">Warning: almost full.</p>
+      <p class="progress__status"><span class="ic ic--triangle-alert" aria-hidden="true"></span><span><span class="sr-only">Warning: </span>Almost full.</span></p>
     </div>
     <div class="stack" data-gap="2">
-      <div class="split"><span id="mt-budget" class="t-body">Study budget</span><span class="num">3 of 10 hours left</span></div>
+      <div class="progress__head"><span class="progress__label" id="mt-budget">Study budget</span><span class="progress__value">3 of 10&nbsp;hours left</span></div>
       <div class="meter" data-size="lg" role="meter" aria-labelledby="mt-budget" aria-valuemin="0" aria-valuemax="10" aria-valuenow="7" aria-valuetext="7 of 10 hours used" style="--value: 70%"></div>
     </div>
   </div>
@@ -241,7 +246,7 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
 </div>
 
 <h3 id="context">In context</h3>
-<p>A session summary: a ring for today's goal, a meter for the deck, a linear bar for a sync that is running.</p>
+<p>A session summary: a ring for today's goal, a meter for one deck with its name and value above it, a linear bar for a sync that is running.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="phone">
@@ -250,7 +255,7 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
         <section class="card" aria-labelledby="pg-ctx-h">
           <header class="card__bar"><h5 class="card__label" id="pg-ctx-h">Daily goal</h5></header>
           <div class="card__body">
-            <div class="cluster" data-gap="4">
+            <div class="pg-ctx-goal">
               <div class="progress-ring" role="progressbar" aria-label="Daily goal" aria-valuenow="18" aria-valuemin="0" aria-valuemax="25" aria-valuetext="18 of 25 cards" style="--value: 72">
                 <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false">
                   <circle class="progress-ring__track" cx="18" cy="18" r="16" pathLength="100" />
@@ -259,12 +264,14 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
                 <span class="progress-ring__label"><span class="progress-ring__num">72%</span></span>
               </div>
               <div>
-                <p class="card__title">18 of 25 cards</p>
-                <p class="card__meta">Seven to go. Streak: 12 days.</p>
+                <p class="card__title">18&nbsp;of&nbsp;25 cards</p>
+                <p class="card__meta">Seven to go. Streak: 12&nbsp;days.</p>
               </div>
             </div>
-            <div class="meter" data-size="sm" role="meter" aria-label="Shapes deck learned" aria-valuemin="0" aria-valuemax="12" aria-valuenow="9" aria-valuetext="9 of 12 shapes learned" style="--value: 75%"></div>
-            <p class="card__meta">Shapes: 9 of 12 learned.</p>
+            <div class="stack" data-gap="2">
+              <div class="progress__head"><span class="progress__label" id="pg-ctx-shapes">Shapes</span><span class="progress__value">9 of 12 learned</span></div>
+              <div class="meter" data-size="sm" role="meter" aria-labelledby="pg-ctx-shapes" aria-valuemin="0" aria-valuemax="12" aria-valuenow="9" aria-valuetext="9 of 12 shapes learned" style="--value: 75%"></div>
+            </div>
           </div>
         </section>
         <div class="progress" data-size="sm">
@@ -292,12 +299,13 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Label</strong> (<code>.progress__label</code>): a real <code>&lt;label for&gt;</code>; the accessible name. Meters and rings take <code>aria-label</code> or <code>aria-labelledby</code>.</li>
-  <li><strong>Value</strong> (<code>.progress__value</code>): the number as text, tabular figures, so the layout does not wobble while it counts.</li>
+  <li><strong>Label</strong> (<code>.progress__<wbr>label</code>): a real <code>&lt;label for&gt;</code>; the accessible name. Meters and rings take <code>aria-label</code> or <code>aria-labelledby</code>.</li>
+  <li><strong>Value</strong> (<code>.progress__<wbr>value</code>): the number as text, tabular figures, so the layout does not wobble while it counts.</li>
   <li><strong>Frame</strong>: <code>--bw</code> (2px) in <code>--line</code> (or the card's ink), <code>--radius-pill</code>. The fill is clipped to it, so the left end is round and the value end is flat.</li>
   <li><strong>Fill</strong>: <code>--card-ink</code> inside a card, <code>--ink</code> otherwise, or <code>--tone-fill</code> with <code>data-tone</code>. Always at least 3:1 against the track.</li>
   <li><strong>Track</strong>: the surface itself (<code>--card-bg</code> or <code>--paper</code>), or <code>--tone-bg</code>.</li>
-  <li><strong>Hint</strong> (<code>.progress__hint</code>): what the number means, and the status word when the tone is meaningful.</li>
+  <li><strong>Hint</strong> (<code>.progress__hint</code>): what the number means ("146 of 214 cards").</li>
+  <li><strong>Status</strong> (<code>.progress__<wbr>status</code>): what a toned level means, as an icon <em>and</em> words in the tone's status ink, with a hidden status word ("Warning: ") in front. With a fix, it shares a <code>.progress__foot</code> with that one button; the button drops under the words, at the start, when the row is too narrow.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -306,7 +314,7 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
   <caption class="sr-only">Progress classes and attributes</caption>
   <thead><tr><th>Class or attribute</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
-    <tr><td><code>.progress</code></td><td><code>data-size</code> <code>sm</code> | <code>lg</code>, <code>data-tone</code></td><td>Linear. Parts: <code>__head</code>, <code>__label</code>, <code>__value</code>, <code>__track</code> &gt; <code>progress.progress__bar</code>, <code>__hint</code>. No <code>value</code> = indeterminate.</td></tr>
+    <tr><td><code>.progress</code></td><td><code>data-size</code> <code>sm</code> | <code>lg</code>, <code>data-tone</code></td><td>Linear. Parts: <code>__head</code>, <code>__label</code>, <code>__value</code>, <code>__track</code> &gt; <code>progress.progress__bar</code>, <code>__hint</code>, <code>__status</code> (icon + words), <code>__foot</code> (a status and its one action). No <code>value</code> = indeterminate. The head and the status also go above and below a meter.</td></tr>
     <tr><td><code>.meter</code></td><td><code>role="meter"</code>, <code>aria-valuemin | max | now</code>, <code>--value: 41.6%</code></td><td>The fill. Same sizes and tones.</td></tr>
     <tr><td><code>.progress-ring</code></td><td><code>role="progressbar"</code>, <code>--value: 68</code></td><td>Ring. Parts: <code>svg</code> with <code>__track</code> and <code>__arc</code> (<code>pathLength="100"</code>), <code>__label</code>, <code>__num</code>, <code>__cap</code> (hidden at <code>sm</code>).</td></tr>
     <tr><td><code>.progress-steps</code></td><td><code>data-state="done | current"</code> on each segment</td><td>Parts: <code>__text</code> (<code>strong</code>, <code>__name</code>), <code>__bar</code> (<code>aria-hidden</code>).</td></tr>
@@ -333,17 +341,44 @@ SG.progress.set(bar, 100, { announce: 'Importing deck' })
     <tr><td>Keyboard</td><td>Not focusable. There is nothing to operate.</td></tr>
     <tr><td>Colour</td><td>The value is always text too, and the level of a toned bar is said in words (WCAG 1.4.1). Fill against track is at least 3:1 (1.4.11).</td></tr>
     <tr><td>Reduced motion</td><td>Indeterminate pulses in place instead of sliding.</td></tr>
-    <tr><td>Zoom / text size</td><td>Labels wrap; heights are rem. Rings scale with their <code>data-size</code>, so check the centre text at 200%.</td></tr>
+    <tr><td>Zoom / text size</td><td>Labels and values grow with the reader's text size and wrap between words; a value that no longer fits beside its label drops under it, at the start. The bars are chrome: 10, 14 and 20px at every text size. Rings scale with their <code>data-size</code>, so check the centre text at 200%.</td></tr>
     <tr><td>Forced colours</td><td><code>Highlight</code> fill, <code>Canvas</code> track, <code>CanvasText</code> frame; ring arc <code>Highlight</code> on a <code>GrayText</code> track.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--ink</code>, <code>--ink-soft</code>, <code>--paper</code>, <code>--canvas</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-fill</code>, <code>--card-ink</code>, <code>--card-bg</code>, <code>--card-ink-soft</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--type-figure</code>, <code>--ls-figure</code>, <code>--lh-snug</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--move</code>.</p>
+<p><code>--ink</code>, <code>--ink-soft</code>, <code>--paper</code>, <code>--canvas</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-fill</code>, <code>--card-ink</code>, <code>--card-bg</code>, <code>--card-ink-soft</code>, <code>--ok-ink</code>, <code>--warn-ink</code>, <code>--bad-ink</code>, <code>--info-ink</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--type-figure</code>, <code>--ls-figure</code>, <code>--lh-snug</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--chrome-2</code>, <code>--move</code>.</p>
 
 <script>
   window.addEventListener('DOMContentLoaded', function () {
     var SG = window.SG;
+    // Tone demo: "Try again" resumes the failed import from where it stopped. While it runs the button is
+    // busy (it ignores taps); when the import is in, the status says so and the button, now with nothing
+    // to do, goes. Focus moves to the bar's row so a keyboard user is not dropped on the page.
+    var retry = document.getElementById('pg-retry');
+    var fail = document.getElementById('pg-fail');
+    if (retry && fail) retry.addEventListener('click', function () {
+      if (retry.getAttribute('aria-busy') === 'true') return;
+      var label = fail.querySelector('.progress__label');
+      var status = fail.querySelector('.progress__status');
+      fail.removeAttribute('data-tone');
+      label.textContent = 'Importing deck';
+      status.innerHTML = '<span class="ic ic--refresh-cw" aria-hidden="true"></span><span>Trying again.</span>';
+      retry.setAttribute('aria-busy', 'true');
+      var n = SG.progress.percent(fail) || 0;
+      var timer = setInterval(function () {
+        n = Math.min(100, n + 3);
+        SG.progress.set(fail, n, { announce: 'Importing deck' });
+        if (n < 100) return;
+        clearInterval(timer);
+        fail.setAttribute('data-tone', 'ok');
+        label.textContent = 'Import finished';
+        status.innerHTML = '<span class="ic ic--circle-check" aria-hidden="true"></span><span><span class="sr-only">Success: </span>All 214 cards are in.</span>';
+        var hadFocus = document.activeElement === retry;
+        retry.hidden = true;
+        if (hadFocus) { fail.setAttribute('tabindex', '-1'); fail.focus(); }
+      }, 120);
+    });
     var btn = document.getElementById('pg-live-btn');
     var root = document.getElementById('pg-live-root');
     if (!btn || !root) return;

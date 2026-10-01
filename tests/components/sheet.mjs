@@ -113,7 +113,10 @@ export const tests = [
     },
   },
   {
-    name: 'the handle acts like a pill: rest 0/0, hover and keyboard focus lift and fill, pressed sinks, on is filled with a doubled frame',
+    // S1: the handle is a selection control, so the solid fill means one thing, "full height is on". Hover and
+    // focus raise the outline, a press sinks and tints it, on is filled with a doubled frame. (It used to fill on
+    // hover, focus and press as well, so a mouse user hovering an off handle saw it "on".)
+    name: 'the handle is a selection control: rest 0/0, hover and focus raise the outline (fill 0), pressed sinks and tints, only on is filled (with a doubled frame)',
     async run({ page, goto, expect }) {
       await goto('components/sheet.html')
       await page.locator('[data-sg-open="#sh-deck"]').click()
@@ -128,22 +131,43 @@ export const tests = [
       await page.waitForTimeout(400)
       const hov = await nums(h)
       expect.equal(hov.lift, 1, 'hover: raised')
-      expect.equal(hov.fill, 1, 'hover: filled')
+      expect.equal(hov.fill, 0, 'hover: still an outline (only "on" is filled)')
       await page.mouse.down()
       await page.waitForTimeout(300)
       const down = await nums(h)
       expect.equal(down.lift, 0, 'pressed: back onto the surface')
-      expect.equal(down.fill, 1, 'pressed: fill stays')
+      expect.ok(down.fill > 0 && down.fill < 0.5, `pressed: a light tint (--fill ${down.fill})`)
       await page.mouse.up()
       await page.waitForTimeout(600)
       // the tap toggled it on: filled, and the frame doubles
       expect.equal(await h.getAttribute('aria-pressed'), 'true')
+      await h.hover() // the sheet grew to full height, so the handle moved out from under the pointer
+      await page.waitForTimeout(400)
+      const onHover = await nums(h)
+      expect.equal(onHover.lift, 1, 'on + hover: raised')
+      expect.equal(onHover.fill, 1, 'on + hover: filled')
       await page.mouse.move(5, 5)
+      await page.waitForTimeout(400)
+      const on = await h.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')), shadow: getComputedStyle(el, '::before').boxShadow }))
+      expect.equal(on.fill, 1, 'on: filled')
+      expect.equal(on.lift, 0, 'on: at rest on the surface')
+      expect.ok(/0px 0px 0px 2px/.test(on.shadow), `on: doubled frame (${on.shadow})`)
+      await page.keyboard.press('Shift+Tab')
       await page.keyboard.press('Tab')
       await page.waitForTimeout(400)
-      const on = await h.evaluate((el) => ({ fill: Number(getComputedStyle(el).getPropertyValue('--fill')), shadow: getComputedStyle(el, '::before').boxShadow }))
-      expect.equal(on.fill, 1, 'on: filled')
-      expect.ok(/0px 0px 0px 2px/.test(on.shadow), `on: doubled frame (${on.shadow})`)
+      const focusOn = await nums(h)
+      expect.equal(focusOn.lift, 1, 'keyboard focus raises it')
+    },
+  },
+  {
+    name: 'the handle is chrome: 48 x 28 at 200% text too (it holds no words)',
+    async run({ page, goto, expect }) {
+      await goto('components/sheet.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(200)
+      const sizes = await page.locator('.sheet__handle').evaluateAll((els) => els.filter((e) => e.getClientRects().length).map((e) => { const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] }))
+      expect.ok(sizes.length >= 4, 'handles measured: ' + sizes.length)
+      for (const [w, hh] of sizes) expect.ok(w === 48 && hh === 28, `drawn ${w} x ${hh}`)
     },
   },
   {

@@ -4,6 +4,9 @@
      region must be in the page before it has text). An empty one must not leave the stage's sibling
      margin behind as dead space under the buttons. */
   #live-status-box:empty, #live-alert-box:empty { margin-block-start: 0; }
+  /* docs.css gives every article list a start padding and li margins; components opt out. */
+  .demo .list { padding: 0; }
+  .demo .list > li { margin: 0; max-inline-size: none; }
 </style>
 <h1>Alert</h1>
 <p class="lede">An alert is a message that lives in the page: a warning above a form, a failed sync above a list, a tip under a heading. It stays until the problem is fixed or the person dismisses it. It is a <a href="@/components/card.html">card</a> with a tone and one row of parts, not a second kind of surface.</p>
@@ -32,7 +35,7 @@
           <span class="ic ic--info" aria-hidden="true"></span>
           <div class="alert__main">
             <p class="alert__title"><span class="sr-only">Information: </span>Sync runs at night</p>
-            <p class="alert__text">New cards upload over Wi-Fi between 1 and 5 am. Nothing to do.</p>
+            <p class="alert__text">New cards upload over Wi-&#8288;Fi between 1 and 5 am. Nothing to do.</p>
           </div>
         </div>
       </div>
@@ -68,7 +71,7 @@
 </div>
 
 <h3 id="actions">With an action</h3>
-<p>One action that fixes the problem, and at most one quiet second. Buttons use <code>data-variant="tone"</code> with the alert's own <code>data-tone</code>, so they take its colours and stay readable by construction. The primary one fills on hover like every button.</p>
+<p>One action that fixes the problem, and at most one quiet second. Buttons set <code>data-variant</code> to <code>tone</code> and carry the alert's own <code>data-tone</code>, so they take its colours and stay readable by construction. The primary one fills on hover like every button.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="stack" data-gap="3">
@@ -80,7 +83,7 @@
             <p class="alert__text">You have used 92% of your space.</p>
           </div>
           <div class="alert__actions">
-            <button class="btn" data-variant="tone" data-tone="warn" type="button">Manage storage</button>
+            <button class="btn" data-variant="tone" data-tone="warn" type="button">Free up space</button>
             <button class="btn" type="button">Not now</button>
           </div>
         </div>
@@ -169,7 +172,7 @@
 <p><button class="btn" data-size="sm" type="button" id="banner-restore">Bring the banner back</button></p>
 
 <h3 id="bold">Bold emphasis</h3>
-<p>For the one message that must not be missed. <code>data-emphasis="bold"</code> flips the tone to a saturated fill with near-white text. Use it once per screen, at most. It goes on the same element as <code>data-tone</code>.</p>
+<p>For the one message that must not be missed. <code>data-emphasis</code> set to <code>bold</code> flips the tone to a saturated fill with near-white text. Use it once per screen, at most. It goes on the same element as <code>data-tone</code>.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="card alert" data-tone="bad" data-emphasis="bold">
@@ -186,12 +189,12 @@
 </div>
 
 <h3 id="live">Announcing a new alert</h3>
-<p>These two buttons add an alert while you are on the page. The first goes into a <code>role="status"</code> container (polite). The second goes into a <code>role="alert"</code> one (assertive, it interrupts). Both containers exist from the start and are empty; the alert is inserted into them.</p>
+<p>These two buttons add an alert while you are on the page. <em>Save draft</em> puts a success alert into a <code>role="status"</code> container (polite). <em>Sync now</em> pretends the sync failed and puts an error into a <code>role="alert"</code> one (assertive, it interrupts). Both containers exist from the start and are empty; the alert is inserted into them.</p>
 <div class="demo" data-layout="stack" data-nocode>
   <div class="demo__stage">
     <div class="cluster">
       <button class="btn" type="button" id="live-status">Save draft</button>
-      <button class="btn" type="button" id="live-alert">Simulate a failed sync</button>
+      <button class="btn" type="button" id="live-alert">Sync now</button>
     </div>
     <div class="stack" data-gap="3" role="status" id="live-status-box"></div>
     <div class="stack" data-gap="3" role="alert" id="live-alert-box"></div>
@@ -199,7 +202,7 @@
 </div>
 
 <h3 id="context">In context</h3>
-<p>The alert sits directly above the thing it is about, with its fix inside it. The list below it stays readable.</p>
+<p>The alert sits directly above the thing it is about, with its fix inside it. The list below it stays readable, and says which decks are waiting.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="phone">
@@ -215,16 +218,10 @@
             <div class="alert__actions"><button class="btn" data-variant="tone" data-tone="bad" type="button">Try again</button></div>
           </div>
         </div>
-        <article class="card card--row">
-          <span class="card__tile" data-tone="1" aria-hidden="true"></span>
-          <div class="card__main"><p class="card__title">Shapes</p><p class="card__meta">12 cards</p></div>
-          <div class="card__trail"><p class="card__meta">Not synced</p></div>
-        </article>
-        <article class="card card--row">
-          <span class="card__tile" data-tone="2" aria-hidden="true"></span>
-          <div class="card__main"><p class="card__title">Colours</p><p class="card__meta">8 cards</p></div>
-          <div class="card__trail"><p class="card__meta">Synced</p></div>
-        </article>
+        <ul class="list" data-variant="framed" role="list">
+          <li><div class="list__row"><span class="list__lead" data-shape="tile" data-tone="2" aria-hidden="true"><span class="ic ic--blend" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards</span></span><span class="list__trail"><span class="list__value">Not synced</span></span></div></li>
+          <li><div class="list__row"><span class="list__lead" data-shape="tile" data-tone="1" aria-hidden="true"><span class="ic ic--palette" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards</span></span><span class="list__trail"><span class="list__value">Synced</span></span></div></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -254,7 +251,7 @@
   <li><strong>Icon</strong>: a 24px mask, decorative. A different shape per status: information circle, check circle, warning triangle, alert circle.</li>
   <li><strong>Title</strong> (<code>.alert__title</code>, optional): the headline in bold, with a visually hidden status word in front (<code>Warning:&nbsp;</code>).</li>
   <li><strong>Text</strong> (<code>.alert__text</code>): what happened and what to do. 16px, in the card's full ink (at least 7:1), never the softer one.</li>
-  <li><strong>Actions</strong> (<code>.alert__actions</code>, optional): <code>.btn</code> with <code>data-variant="tone"</code>. They sit under the text, or at the end of a banner row.</li>
+  <li><strong>Actions</strong> (<code>.alert__actions</code>, optional): <code>.btn</code> with <code>data-variant</code> set to <code>tone</code>. They sit under the text, or at the end of a banner row.</li>
   <li><strong>Dismiss</strong> (<code>.alert__close</code>, optional): a small circle button with a 44&times;44px hit area, named for what it closes.</li>
 </ol>
 
@@ -281,13 +278,13 @@
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd> on dismiss</td><td>Hides the alert and moves focus to the next focusable element, so keyboard users keep their place (WCAG 2.4.3).</td></tr>
     <tr><td>Touch</td><td>Buttons and the dismiss circle have a 44&times;44px hit area with 8px between.</td></tr>
     <tr><td>Colour</td><td>Never the only cue (WCAG 1.4.1): icon shape plus a title. The <code>wire</code> palette removes hue entirely and the four statuses remain distinguishable.</td></tr>
-    <tr><td>Zoom / text size</td><td>Everything is in rem; text wraps with <code>overflow-wrap</code>; the row reflows at 320px and at 200% text.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the reader's text size; the insets, the 24px icon and the 36px dismiss circle stop at their 100% size, so the words keep the room. Text wraps between words; the row reflows at 320px and at 200% text. In a narrow alert the icon and the dismiss circle share a row above the words; a banner row keeps its icon beside the first line. An action label that is wider than the whole alert wraps inside its pill, which keeps its round ends.</td></tr>
     <tr><td>Forced colours</td><td>The card's border becomes <code>CanvasText</code>; each button keeps its own border.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p>Everything comes through <a href="@/components/card.html">Card</a> and <a href="@/components/button.html">Button</a>: <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--paper</code>, <code>--ink</code>, <code>--bw</code>, <code>--radius-card</code>. The alert itself adds <code>--type-body</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>.</p>
+<p>Everything comes through <a href="@/components/card.html">Card</a> and <a href="@/components/button.html">Button</a>: <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--paper</code>, <code>--ink</code>, <code>--bw</code>, <code>--radius-card</code>. The alert itself adds <code>--type-body</code>, <code>--text-md</code>, <code>--lh-body</code>, <code>--lh-snug</code>, <code>--space-1</code>, and the chrome caps <code>--chrome-1</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-ic</code>, <code>--chrome-ctl-sm</code>.</p>
 
 <script>
   window.addEventListener('DOMContentLoaded', function () {

@@ -3,13 +3,17 @@
   /* Docs-only scaffolding: see dialog.html for why margins are reverted in demos. */
   .docs-article .demo .demo__stage > :is(dialog, [popover]) { margin: revert-layer; }
   #tip-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: var(--space-5); padding-block: var(--space-6); justify-items: center; }
-  /* a static map of the four placements: the tooltip and its control, 8px apart (the real gap) */
-  #tip-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-5); }
+  /* a static map of the four placements: the tooltip and its control, 8px apart (the real gap). One pair per row
+     until a row has room for two whole pairs, then two, then four: a beside-placement needs the tooltip's words
+     and the button on one line, and squeezed into half a phone it broke "Before it." into "Befo / re it." */
+  #tip-map { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  @container (min-width: 30rem) { #tip-map { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container (min-width: 60rem) { #tip-map { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   #tip-map .t-label { margin-block-end: var(--space-2); }
   #tip-map .btn { flex: none; }
   #tip-map .pair { display: flex; gap: var(--space-2); align-items: center; }
-  #tip-map [data-at="top"] { flex-direction: column; }
-  #tip-map [data-at="bottom"] { flex-direction: column-reverse; }
+  #tip-map [data-at="top"] { flex-direction: column; inline-size: fit-content; } /* centred on the button, the pair itself at the start like the others */
+  #tip-map [data-at="bottom"] { flex-direction: column-reverse; inline-size: fit-content; }
   #tip-map [data-at="end"] { flex-direction: row-reverse; justify-content: flex-end; }
   #tip-map .tooltip { max-inline-size: 100%; }
   #tip-corners > div { min-inline-size: 0; }
@@ -25,7 +29,7 @@
     <span class="ic ic--check" aria-hidden="true"></span>
     <div>
       <strong>Do</strong>
-      <p>Use a tooltip to add a <em>shortcut</em>, a <em>consequence</em> or a <em>reason</em> to a control that already has its own name. Keep it to one short line. Wire it with <code>aria-describedby</code>.</p>
+      <p>Use a tooltip to add a <em>shortcut</em>, a <em>consequence</em> or a <em>reason</em> to a control that already has its own name. Keep it to one short line. Wire it with <code>aria-<wbr>describedby</code>.</p>
     </div>
   </div>
   <div class="note" data-kind="dont">
@@ -153,7 +157,7 @@
 </div>
 
 <h3 id="context">In context</h3>
-<p>A study card with its three tools. Every one is a named button; the tooltips add the keys. They open below (<code>data-placement="bottom"</code>) so they never cover the question while it is being read.</p>
+<p>A study card with its three tools. Every one is a named button; the tooltips add the keys. They open below (<code>data-placement</code> set to <code>bottom</code>) so they never cover the question while it is being read.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <article class="card" id="tip-tool" style="max-inline-size: 22rem">
@@ -196,7 +200,7 @@
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Trigger</strong>: any control with its own accessible name and <code>aria-describedby</code> pointing at the tooltip. It may also be <code>aria-disabled</code>.</li>
+  <li><strong>Trigger</strong>: any control with its own accessible name and <code>aria-<wbr>describedby</code> pointing at the tooltip. It may also be <code>aria-disabled</code>.</li>
   <li><strong>Tooltip</strong>: <code>&lt;div class="tooltip" role="tooltip" popover="manual"&gt;</code>, placed right after its trigger. An ink box with paper text, framed in paper, <code>--radius-ctl</code>, 20rem at most. No shadow and no arrow.</li>
   <li><strong>Key cap</strong>: a <code>&lt;kbd&gt;</code> inside is inverted so it stays readable.</li>
 </ol>

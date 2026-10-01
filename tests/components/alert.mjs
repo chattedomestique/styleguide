@@ -213,23 +213,34 @@ export const tests = [
     },
   },
   {
-    name: '200% text on a phone: the icon and dismiss share a row above the words, and nothing pokes out of the card',
+    // A regular alert stacks its icon and dismiss above the words in a narrow card (the words get the width). A banner
+    // row is one line of state, so it keeps its icon beside the first line, as a toast does; its icon, insets and
+    // dismiss circle are chrome-capped, which leaves the words a readable column at 200% text.
+    name: '200% text on a phone: a regular alert puts icon and dismiss above the words, a banner keeps its icon beside the first line; nothing pokes out of the card',
     async run({ page, goto, expect }) {
       await goto(PAGE)
       await page.addStyleTag({ content: 'html{font-size:200%}' })
       await page.waitForTimeout(200)
-      const r = await page.evaluate(() => [...document.querySelectorAll('#actions ~ .demo .alert, #dismiss-stage .alert')].map((c) => {
+      const r = await page.evaluate(() => [...document.querySelectorAll('#actions ~ .demo .alert, #dismiss-stage .alert')].filter((c) => c.getClientRects().length).map((c) => {
         const cr = c.getBoundingClientRect()
         const parts = [...c.querySelectorAll('.alert__title, .alert__text, .alert__actions .btn, .alert__close, .card__body > .ic')]
         const icon = c.querySelector('.card__body > .ic').getBoundingClientRect()
         const main = c.querySelector('.alert__main').getBoundingClientRect()
-        return { worst: Math.max(...parts.map((p) => p.getBoundingClientRect().right - cr.right)), iconAbove: icon.bottom <= main.top + 1, mainW: main.width, cardW: cr.width }
+        const text = c.querySelector('.alert__title, .alert__text')
+        const lh = parseFloat(getComputedStyle(text).lineHeight), t = text.getBoundingClientRect()
+        return { banner: c.dataset.size === 'sm', worst: Math.max(...parts.map((p) => p.getBoundingClientRect().right - cr.right)), iconAbove: icon.bottom <= main.top + 1, iconMid: (icon.top + icon.bottom) / 2, firstLineMid: t.top + lh / 2, mainW: main.width, cardW: cr.width }
       }))
-      expect.ok(r.length >= 4, 'alerts: ' + r.length)
+      expect.ok(r.filter((x) => !x.banner).length >= 4, 'regular alerts: ' + r.filter((x) => !x.banner).length)
+      expect.ok(r.filter((x) => x.banner).length >= 3, 'banners: ' + r.filter((x) => x.banner).length)
       for (const x of r) {
         expect.ok(x.worst <= 0.5, `a part pokes ${x.worst}px out of the card`)
-        expect.ok(x.iconAbove, 'icon sits above the words in a narrow card')
-        expect.ok(x.mainW > x.cardW * 0.6, `the words get most of the width (${x.mainW} of ${x.cardW})`)
+        if (x.banner) {
+          expect.ok(Math.abs(x.iconMid - x.firstLineMid) <= 1.5, `banner: icon centre ${x.iconMid} vs first line centre ${x.firstLineMid}`)
+          expect.ok(x.mainW > x.cardW * 0.6, `banner: the words keep most of the width (${x.mainW} of ${x.cardW})`)
+        } else {
+          expect.ok(x.iconAbove, 'icon sits above the words in a narrow card')
+          expect.ok(x.mainW > x.cardW * 0.6, `the words get most of the width (${x.mainW} of ${x.cardW})`)
+        }
       }
     },
   },

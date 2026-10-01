@@ -23,8 +23,8 @@
   .dlg-readout { margin-block-end: var(--space-2); }
   #dlg-corners > div { min-inline-size: 0; }
   #dlg-corners .t-label { margin-block-end: var(--space-2); }
-  #dlg-decks { margin: 0; padding: 0; list-style: none; }
-  #dlg-decks li { max-inline-size: none; margin: 0; }
+  #dlg-decks { margin: 0; padding: 0; }
+  #dlg-decks > li { max-inline-size: none; margin: 0; }
 </style>
 <h1>Dialog</h1>
 <p class="lede">A dialog stops the flow to ask for one decision. It is a native <code>&lt;dialog&gt;</code> wearing the card's frame, so the browser does the hard parts (it traps focus, blocks the page behind it, closes on <kbd>Esc</kbd>) and the look stays the owner's: a 2px frame, an ink bar, a flat scrim behind.</p>
@@ -143,7 +143,7 @@
 <p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-required">Last choice: <strong>none yet</strong></p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
-    <button class="btn" type="button" data-sg-open="#dlg-required">Show required dialog</button>
+    <button class="btn" type="button" data-sg-open="#dlg-required">End session</button>
 
     <dialog class="dialog card" id="dlg-required" data-required aria-labelledby="dlg-required-t" aria-describedby="dlg-required-d">
       <header class="card__bar">
@@ -154,7 +154,7 @@
         <p class="card__text" id="dlg-required-d">You were signed out after 15 minutes without activity. Sign in again to keep your changes, or leave without saving them.</p>
       </div>
       <div class="dialog__actions">
-        <button class="btn" type="button" data-sg-close value="left">Leave without saving</button>
+        <button class="btn" type="button" data-sg-close value="left">Don’t save</button>
         <button class="btn" data-variant="primary" type="button" data-sg-close value="sign in" autofocus>Sign in again</button>
       </div>
     </dialog>
@@ -166,7 +166,7 @@
 <p>The bar and the actions stay put; the body scrolls. If the body holds nothing focusable, SG makes it a keyboard-reachable region named after the dialog. A close control in the bar is friendly when there is no obvious "No" (touch screens have no <kbd>Esc</kbd>). <code>data-size="lg"</code> widens it to 40rem.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
-    <button class="btn" type="button" data-sg-open="#dlg-long">How sharing works</button>
+    <button class="btn" type="button" data-sg-open="#dlg-long">About sharing</button>
 
     <dialog class="dialog card" id="dlg-long" data-size="lg" aria-labelledby="dlg-long-t">
       <header class="card__bar">
@@ -194,7 +194,7 @@
 <p>A dialog is a card, so <code>data-tone</code> works: the body takes the tone, and <code>ink</code> flips the bar to paper. Tones carry rhythm, never meaning: what makes this a good-news dialog is the word and the icon in the bar.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
-    <button class="btn" type="button" data-sg-open="#dlg-tone">Finish today’s study</button>
+    <button class="btn" type="button" data-sg-open="#dlg-tone">Finish study</button>
 
     <dialog class="dialog card" id="dlg-tone" data-tone="4" data-size="sm" aria-labelledby="dlg-tone-t" aria-describedby="dlg-tone-d">
       <header class="card__bar">
@@ -265,20 +265,20 @@
 <p>Delete sits in the row, the dialog names the thing being deleted, and focus returns to that row's button afterwards so a keyboard user keeps their place.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <ul class="stack" data-gap="3" id="dlg-decks" aria-label="Your decks" role="list">
+    <ul class="list" data-variant="framed" id="dlg-decks" aria-label="Your decks" role="list">
       <li>
-        <article class="card card--row">
-          <span class="card__tile wf-media" data-tone="1" aria-hidden="true"></span>
-          <div class="card__main"><p class="card__title">Shapes</p><p class="card__meta">12 cards</p></div>
-          <div class="card__trail"><button class="btn" data-shape="circle" data-size="sm" type="button" data-sg-open="#dlg-ctx-shapes" aria-label="Delete Shapes"><span class="ic ic--trash-2" aria-hidden="true"></span></button></div>
-        </article>
+        <div class="list__row">
+          <span class="list__lead" data-shape="tile" data-tone="2" aria-hidden="true"><span class="ic ic--blend" aria-hidden="true"></span></span>
+          <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards</span></span>
+          <span class="list__trail"><button class="btn" data-shape="circle" data-size="sm" type="button" data-sg-open="#dlg-ctx-shapes" aria-label="Delete Shapes"><span class="ic ic--trash-2" aria-hidden="true"></span></button></span>
+        </div>
       </li>
       <li>
-        <article class="card card--row">
-          <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
-          <div class="card__main"><p class="card__title">Colours</p><p class="card__meta">8 cards</p></div>
-          <div class="card__trail"><button class="btn" data-shape="circle" data-size="sm" type="button" data-sg-open="#dlg-ctx-colours" aria-label="Delete Colours"><span class="ic ic--trash-2" aria-hidden="true"></span></button></div>
-        </article>
+        <div class="list__row">
+          <span class="list__lead" data-shape="tile" data-tone="1" aria-hidden="true"><span class="ic ic--palette" aria-hidden="true"></span></span>
+          <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards</span></span>
+          <span class="list__trail"><button class="btn" data-shape="circle" data-size="sm" type="button" data-sg-open="#dlg-ctx-colours" aria-label="Delete Colours"><span class="ic ic--trash-2" aria-hidden="true"></span></button></span>
+        </div>
       </li>
     </ul>
     <dialog class="dialog card" id="dlg-ctx-shapes" role="alertdialog" aria-labelledby="dlg-ctx-shapes-t" aria-describedby="dlg-ctx-shapes-d">
@@ -318,11 +318,11 @@
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Dialog</strong>: <code>&lt;dialog class="dialog card"&gt;</code>. The owner's card in the top layer: 2px frame, <code>--radius-card</code>, no shadow. 28rem wide at most (<code>data-size</code>), never wider than the screen minus a 16px margin and the safe areas.</li>
+  <li><strong>Dialog</strong>: <code>&lt;dialog class="dialog card"&gt;</code>. The owner's card in the top layer: 2px frame, <code>--radius-card</code>, no shadow. 28rem wide at most (<code>data-size</code>), never wider than the screen minus a 16px margin and the safe areas. The margin is chrome: it stays 16px at 200% text, so the words keep the width.</li>
   <li><strong>Bar</strong> (<code>.card__bar</code>): names the <em>kind</em> of dialog in uppercase (Confirm, Rename, Signed out), with an icon when it is a status, and holds the close control when there is one.</li>
   <li><strong>Title</strong> (<code>.card__title</code>, a real heading, <code>h2</code> by default): a sentence-case question the person can answer. <code>aria-labelledby</code> points at it.</li>
   <li><strong>Body</strong> (<code>.card__body</code>, <code>.card__text</code>): the consequence, or the fields. Scrolls on its own when long.</li>
-  <li><strong>Actions</strong> (<code>.dialog__actions</code>): pills, primary last. On a phone-width dialog they stack full width in the same order.</li>
+  <li><strong>Actions</strong> (<code>.dialog__<wbr>actions</code>): pills, primary last. On a phone-width dialog they stack full width in the same order, one line each: keep the labels to two words (<em>Don’t save</em>, <em>Delete deck</em>), so the stack has one height at 200% text too.</li>
   <li><strong>Scrim</strong>: <code>--scrim</code> (60% black), the one translucency the system allows. With the 2px frame it is the only thing that separates the dialog from the page.</li>
 </ol>
 
@@ -356,7 +356,7 @@
     <tr><td>Focus order (2.4.3)</td><td>DOM order is visual order, also when the actions stack on a phone. Nothing is reversed with CSS.</td></tr>
     <tr><td>Screen reader</td><td>Announced as "Title, dialog" (or "alert dialog") followed by the description. The title is a real heading, so heading navigation works. The bar's icon is hidden; its words are read.</td></tr>
     <tr><td>Touch</td><td>Buttons are 44px tall with 8px between them. The scrim tap and every button are taps; nothing needs a gesture.</td></tr>
-    <tr><td>Zoom / text size</td><td>Width and padding are rem, the body scrolls, long words wrap. The dialog never exceeds the screen and stays inside the safe areas, also at 200% text and 320px.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the reader's text size; the margin to the screen edge and the insets of the actions stop at their 100% size, so the title and the buttons keep the width. The body scrolls, long words wrap. The dialog never exceeds the screen and stays inside the safe areas, also at 200% text and 320px.</td></tr>
     <tr><td>Reduced motion</td><td>The 24px rise is multiplied by <code>--move</code>, so only a fade remains (180ms, never instant).</td></tr>
     <tr><td>Forced colours</td><td>The card's frame becomes <code>CanvasText</code>; the bar gets a real line under it because its ink fill is gone; buttons keep their borders.</td></tr>
   </tbody>
@@ -369,7 +369,7 @@
 </ul>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--scrim</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-card</code>, <code>--card-pad</code>, <code>--card-ink</code>, <code>--hit</code>, <code>--ring</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-4</code>, <code>--space-5</code>, <code>--safe-top</code>, <code>--safe-right</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--move</code>, <code>--dur-enter</code>, <code>--dur-hover</code>, <code>--ease-out</code>, <code>--ease-in</code>.</p>
+<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--scrim</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-card</code>, <code>--card-pad</code>, <code>--card-ink</code>, <code>--hit</code>, <code>--ring</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-4</code>, <code>--space-5</code>, <code>--measure</code>, <code>--safe-top</code>, <code>--safe-right</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--move</code>, <code>--dur-enter</code>, <code>--dur-hover</code>, <code>--ease-out</code>, <code>--ease-in</code>.</p>
 <p>Related: <a href="@/components/sheet.html">Sheet</a>, <a href="@/components/menu.html">Menu</a>, <a href="@/components/popover.html">Popover</a>, <a href="@/components/tooltip.html">Tooltip</a>, <a href="@/components/button.html">Button</a>, <a href="@/components/card.html">Card</a>.</p>
 
 <script>

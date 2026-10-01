@@ -45,6 +45,16 @@
      first load, nothing there yet    no role: it is page content, not an event
    The heading keeps its level in the page outline (h2/h3/h4): pick it, do not hard-code it.
 
+   ACTIONS: ONE ROW, OR ONE WIDTH. Two buttons sit side by side, at one shared width, when the row has room
+   for both at the width of the wider; when it does not, they stack, and every button in the stack takes the
+   width of the widest, so a centred pair never reads as two ragged pills. CSS cannot ask "do both fit?", so SG.fit measures it
+   (src/js/66-empty.js writes data-fit="row" | "stack" on .empty__actions); without JS the actions wrap.
+   A label wraps inside its pill only when it is wider than the whole card, and the Button keeps its round
+   ends then. The icon of a button stays beside its label at every size (button.css).
+
+   LARGE TEXT. The words grow with the reader's text size; the icon tile, its glyph and the card's block
+   insets are chrome and stop at their 100% size, so at 200% text the title and the sentence keep the room.
+
    Not pressable, so no lift and no shadow. The frame is the card's own real border (dashed
    or solid), so forced colours keeps it; the tile keeps its own.
    ========================================================================== */
@@ -68,7 +78,7 @@
       align-items: center;
       justify-content: flex-start; /* cards in one grid row stretch to the tallest: the icons and titles line up at the top, instead of each card centring its own (the page layout centres, below) */
       gap: var(--space-3);
-      padding-block: var(--space-7);
+      padding-block: calc(var(--chrome-6) * 1.5); /* 48px: an inset, so it does not double at 200% text */
       text-align: center;
     }
     .card__text {
@@ -77,36 +87,65 @@
     }
   }
 
-  /* the icon tile: paper with a 2px frame, so it reads on the dashed canvas and on any tone */
+  /* the icon tile: paper with a 2px frame, so it reads on the dashed canvas and on any tone. A picture, so
+     chrome: 56px with a 28px glyph at every text size. */
   .empty__icon {
-    --ic-size: 1.75rem;
+    --ic-size: min(1.75rem, 28px);
 
     display: grid;
     place-items: center;
     flex: none;
-    inline-size: 3.5rem;
-    block-size: 3.5rem;
+    inline-size: var(--chrome-ctl-lg);
+    block-size: var(--chrome-ctl-lg);
     color: var(--ink);
     background: var(--paper);
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-tile);
   }
 
+  /* without JS: a centred row that wraps */
   .empty__actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
     margin-block-start: var(--space-2);
   }
 
-  /* A button's label is nowrap; at 200% text in a narrow card that would clip it (WCAG 1.4.4).
-     Here it may wrap, stays centred, and keeps its 44px minimum height. */
+  /* measured (SG.fit): a grid of equal columns, shrink-wrapped and centred, never wider than the card. "row"
+     lays the buttons side by side in equal tracks, each as wide as the widest button needs, every label on one
+     line. When the card is narrower than that, the tracks stay equal, so the widest label no longer fits its
+     button, and that has to show up as overflow for SG.fit to see it. Two things make it show: "safe center"
+     sends a label that does not fit out at the END of its button (plain centring spills it evenly into both
+     side paddings), and "overflow: hidden" makes the button count its end padding in its scroll width (a
+     visible-overflow box only reports what passes its frame, so a label could sit on the frame unnoticed).
+     The clip never shows: the row is only kept when nothing overflows. So the pair is side by side only at one
+     shared width. "stack" is one column: each button is as wide as the widest, or as the card when that is
+     narrower, and a label that is wider than the card wraps inside its pill. */
+  .empty__actions[data-fit] {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    justify-content: center;
+    max-inline-size: 100%;
+  }
+  .empty__actions[data-fit="row"] {
+    grid-auto-flow: column;
+
+    > .btn {
+      justify-content: safe center;
+      max-inline-size: none;
+      overflow: hidden; /* a 44px-tall button: its hit area is its own box, so nothing outside it is clipped */
+      white-space: nowrap;
+    }
+  }
+  .empty__actions[data-fit="stack"] {
+    grid-auto-flow: row;
+    grid-auto-rows: 1fr; /* one height too: when one label wraps (a 320px phone at 200% text), the other pill matches it */
+  }
+
   .empty__actions .btn {
     max-inline-size: 100%;
-    padding-block: var(--space-2);
-    white-space: normal;
-    line-height: var(--lh-snug);
+    line-height: var(--lh-snug); /* a wrapped label needs more than --type-ctl's 1 */
   }
 
   /* ---- Page: fills what the app shell leaves, so the state sits at the optical centre
@@ -121,9 +160,10 @@
       justify-content: center;
     }
     > .card__body > .empty__icon {
-      inline-size: 4.5rem;
-      block-size: 4.5rem;
-      --ic-size: 2.25rem;
+      /* a whole screen: the tile steps up one size (72px, a 36px glyph), still chrome, so it stops there */
+      inline-size: calc(var(--chrome-ctl-lg) + var(--chrome-4));
+      block-size: calc(var(--chrome-ctl-lg) + var(--chrome-4));
+      --ic-size: calc(var(--chrome-ic) * 1.5);
     }
   }
 
@@ -141,16 +181,16 @@
         ".    actions";
       justify-items: start;
       align-items: start;
-      column-gap: var(--space-4);
+      column-gap: var(--chrome-4); /* between the tile and the words: an inset of the row, chrome */
       row-gap: var(--space-1);
       padding-block: var(--card-pad);
       text-align: start;
     }
     > .card__body > .empty__icon {
       grid-area: icon;
-      inline-size: var(--hit);
-      block-size: var(--hit);
-      --ic-size: 1.25rem;
+      inline-size: var(--chrome-hit);
+      block-size: var(--chrome-hit);
+      --ic-size: var(--chrome-ic-sm);
     }
     > .card__body > .card__title {
       grid-area: title;
@@ -165,6 +205,9 @@
       grid-area: actions;
       justify-content: flex-start;
       margin-block-start: var(--space-2);
+    }
+    > .card__body > .empty__actions[data-fit] {
+      justify-content: start;
     }
   }
 

@@ -88,33 +88,49 @@ export const tests = [
     },
   },
   {
-    name: 'overlay: scrim over the region, a solid framed plate under the label, content beneath is inert',
+    // Over a small region (a card) the plate covers the whole region: a plate across the middle of a few lines of
+    // text left cut letters peeking out above and below it. Over a large region the scrim dims everything and a
+    // framed plate sits in the middle.
+    name: 'overlay: a small region is covered whole by a solid plate (ring and label centred together); a large one gets the scrim and a framed plate; content beneath is inert',
     async run({ page, goto, expect }) {
       await goto(PAGE)
-      const r = await page.evaluate(() => {
+      const read = () => page.evaluate(() => {
         const ov = document.querySelector('.spinner-overlay')
         const plate = ov.querySelector('.spinner')
         const cs = getComputedStyle(plate)
         const ocs = getComputedStyle(ov)
         const a = (c) => (c.startsWith('rgba') ? Number(c.split(',')[3]) : c.includes('/') ? Number(c.split('/')[1].replace(')', '')) : 1)
+        const o = ov.getBoundingClientRect(), p = plate.getBoundingClientRect()
+        const ring = plate.querySelector('.spinner__ring').getBoundingClientRect(), label = plate.querySelector('.spinner__label')
+        const range = document.createRange(); range.selectNodeContents(label); const text = range.getBoundingClientRect()
         return {
           position: ocs.position,
           veilAlpha: a(ocs.backgroundColor),
           plateAlpha: a(cs.backgroundColor),
           plateBorder: cs.borderTopWidth,
+          covers: Math.abs(p.width - o.width) <= 1 && Math.abs(p.height - o.height) <= 1,
+          groupMid: (ring.left + text.right) / 2, mid: (o.left + o.right) / 2,
           inert: !!ov.parentElement.querySelector('[inert]'),
           busy: ov.parentElement.getAttribute('aria-busy'),
-          w: ov.getBoundingClientRect().width,
+          w: o.width,
           parentW: ov.parentElement.getBoundingClientRect().width,
         }
       })
-      expect.equal(r.position, 'absolute', 'covers the positioned parent')
-      expect.ok(r.veilAlpha < 1 && r.veilAlpha > 0.5, 'the scrim is the one translucent thing: ' + r.veilAlpha)
-      expect.equal(r.plateAlpha, 1, 'the plate behind the label is solid')
-      expect.equal(r.plateBorder, '2px', 'plate has the 2px frame')
-      expect.ok(r.inert, 'content beneath is inert')
-      expect.equal(r.busy, 'true', 'region is aria-busy')
-      expect.ok(Math.abs(r.w - r.parentW) <= 4.5, `overlay spans the parent's padding box (${r.w} of ${r.parentW})`)
+      const small = await read()
+      expect.equal(small.position, 'absolute', 'covers the positioned parent')
+      expect.ok(Math.abs(small.w - small.parentW) <= 4.5, `overlay spans the parent's padding box (${small.w} of ${small.parentW})`)
+      expect.ok(small.covers, 'a small region: the plate covers the whole region')
+      expect.equal(small.plateAlpha, 1, 'the plate is solid')
+      expect.ok(Math.abs(small.groupMid - small.mid) <= 3, `ring and label are centred as one group (${small.groupMid} vs ${small.mid})`)
+      expect.ok(small.inert, 'content beneath is inert')
+      expect.equal(small.busy, 'true', 'region is aria-busy')
+      await page.addStyleTag({ content: '#overlay ~ .demo .card[aria-busy] { min-block-size: 32rem }' })
+      await page.waitForTimeout(100)
+      const large = await read()
+      expect.ok(!large.covers, 'a large region: the plate sits in the middle')
+      expect.ok(large.veilAlpha < 1 && large.veilAlpha > 0.5, 'the scrim is the one translucent thing: ' + large.veilAlpha)
+      expect.equal(large.plateAlpha, 1, 'the plate behind the label is solid')
+      expect.equal(large.plateBorder, '2px', 'plate has the 2px frame')
     },
   },
   {

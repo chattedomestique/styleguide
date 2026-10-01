@@ -7,17 +7,24 @@
   .docs-article .sheet li { max-inline-size: none; }
   .docs-article .sheet .card__list > li + li { margin-block-start: 0; }
   .docs-article .sheet p { max-inline-size: none; }
-  /* A stage: a dimmed "page" with a static sheet docked to the bottom. */
-  [data-stage] { position: relative; display: flex; align-items: flex-end; min-block-size: 24rem; overflow: clip; border: var(--bw) solid var(--line); background: var(--canvas); }
-  [data-stage] > .card[aria-hidden] { position: absolute; inset-block-start: var(--space-4); inset-inline: var(--space-4); }
+  /* the article's <hr> spacing (2rem above and below) must not reach the action sheet's separator, where it opened a gap between its groups */
+  .docs-article .menu .menu__sep { margin: revert-layer; }
+  /* A stage: a dimmed "page" with a static sheet docked to its bottom edge. It is as tall as the sheet plus
+     a strip of the page above it (a fixed 96px peek: chrome, so 200% text does not leave a tall empty page),
+     and its own 2px frame closes it on all four sides. The page's card is absolute, so it never sizes the
+     stage; its floor is lifted, or a card's 10rem minimum would push it past the stage's edge. */
+  [data-stage] { position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding-block-start: calc(var(--chrome-6) * 3); overflow: clip; border: var(--bw) solid var(--line); background: var(--canvas); }
+  [data-stage] > .card[aria-hidden] { position: absolute; inset-block-start: var(--chrome-4); inset-inline: var(--chrome-4); min-inline-size: 0; }
   [data-stage] > [data-scrim] { position: absolute; inset: 0; background: var(--scrim); }
   [data-stage] > .sheet { position: relative; }
-  [data-stage][data-side] { align-items: stretch; justify-content: flex-end; }
+  /* the side pane: as tall as its content (no peek), docked to the end edge */
+  [data-stage][data-side] { flex-direction: row; justify-content: flex-end; padding-block-start: 0; }
   [data-stage][data-side] > .sheet { flex: 0 1 16rem; margin: 0; }
   #sh-corners > div { min-inline-size: 0; }
   #sh-corners .t-label { margin-block-end: var(--space-2); }
-  #sh-states .card { inline-size: 8rem; }
-  #sh-states .stack { align-items: flex-start; }
+  /* the handle's states: equal cells, 16px apart, each caption 8px clear of its specimen (S3) */
+  .sh-states { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 6rem), 1fr)); gap: var(--space-4); }
+  .sh-states .card { inline-size: 100%; padding-block: var(--chrome-2); } /* room for the ring and the lift around the 48px capsule */
   #sh-filter .card__body { gap: var(--space-5); }
   #sh-filter fieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
   #sh-filter legend { padding: 0; margin-block-end: var(--space-2); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
@@ -181,7 +188,7 @@
 </div>
 
 <h3 id="action-sheet">Action sheet</h3>
-<p>A list of actions presented as a sheet on phones is a <a href="@/components/menu.html#action-sheet">menu with <code>data-presentation="sheet"</code></a> (or <code>auto</code>, which does it below 40em). It shares this page's scrim, slide and safe-area rules. Press the button on a phone-sized screen to see it; on a wide screen the same menu opens as a dropdown.</p>
+<p>A list of actions presented as a sheet on phones is a <a href="@/components/menu.html#action-sheet">menu</a> with <code>data-presentation</code> set to <code>sheet</code>, or to <code>auto</code>, which does it below 40em. It shares this page's scrim, slide and safe-area rules. Press the button on a phone-sized screen to see it; on a wide screen the same menu opens as a dropdown.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" type="button" id="sh-act-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="sh-act" popovertarget="sh-act">
@@ -198,7 +205,7 @@
 </div>
 
 <h3 id="corners">Square and soft corners</h3>
-<p>The top corners read <code>--radius-card</code>; the docked bottom edge stays straight. Static previews (<code>data-inline</code>) on a dimmed page, half height.</p>
+<p>The top corners read <code>--radius-card</code>; the docked bottom edge stays straight. Static previews (<code>data-inline</code>) docked to the bottom of a dimmed page.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="grid" id="sh-corners" style="--grid-min: 19rem; --grid-gap: var(--space-5)">
@@ -210,7 +217,7 @@
           <section class="sheet card" data-inline role="group" aria-labelledby="sh-sq-t">
             <button class="sheet__handle" type="button" data-sg-sheet-size aria-pressed="false" aria-label="Full height"></button>
             <header class="card__bar"><h3 class="card__label" id="sh-sq-t">Shapes</h3><button class="card__ctl" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button></header>
-            <div class="card__body"><p class="card__figure num">9<small>of 12 known</small></p><p class="card__meta">Last studied yesterday</p></div>
+            <div class="card__body"><p class="card__figure num">9<small>known</small></p></div>
           </section>
         </div>
       </div>
@@ -222,7 +229,7 @@
           <section class="sheet card" data-inline role="group" aria-labelledby="sh-so-t">
             <button class="sheet__handle" type="button" data-sg-sheet-size aria-pressed="false" aria-label="Full height"></button>
             <header class="card__bar"><h3 class="card__label" id="sh-so-t">Shapes</h3><button class="card__ctl" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button></header>
-            <div class="card__body"><p class="card__figure num">9<small>of 12 known</small></p><p class="card__meta">Last studied yesterday</p></div>
+            <div class="card__body"><p class="card__figure num">9<small>known</small></p></div>
           </section>
         </div>
       </div>
@@ -231,16 +238,31 @@
 </div>
 
 <h3 id="states">The handle, in each state</h3>
-<p>A pill, so it acts: outlined at rest, it lifts and fills on hover and keyboard focus, sinks while pressed, and when <em>Full height</em> is on it is filled and its frame doubles (a second cue that does not depend on the accent being dark). The <code>is-*</code> classes only force a state for this page.</p>
-<div class="demo" data-layout="row" id="sh-states">
+<p>A pill, so it acts, but it is a selection control, so the solid fill means one thing: <em>Full height</em> is on. At rest it is an outline. Hover and keyboard focus raise the outline (its hard shadow says "you can press this"), a press sinks it and tints it, and on is filled <em>and</em> its frame doubles (a second cue that does not depend on the accent being dark). Hovering an "on" handle raises it, with a gap of paper between the fill and its shadow. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="stack" data-gap="2"><p class="t-label">Rest</p><div class="card"><button class="sheet__handle" type="button" aria-label="Full height, rest"></button></div></div>
-    <div class="stack" data-gap="2"><p class="t-label">Hover</p><div class="card"><button class="sheet__handle is-hover" type="button" aria-label="Full height, hover"></button></div></div>
-    <div class="stack" data-gap="2"><p class="t-label">Focus</p><div class="card"><button class="sheet__handle is-focus" type="button" aria-label="Full height, focus"></button></div></div>
-    <div class="stack" data-gap="2"><p class="t-label">Pressed</p><div class="card"><button class="sheet__handle is-active" type="button" aria-label="Full height, pressed"></button></div></div>
-    <div class="stack" data-gap="2"><p class="t-label">On</p><div class="card"><button class="sheet__handle" type="button" aria-pressed="true" aria-label="Full height, on"></button></div></div>
+    <div class="sh-states">
+      <div class="stack" data-gap="2"><p class="t-label">Rest</p><div class="card"><button class="sheet__handle" type="button" aria-label="Full height, rest"></button></div></div>
+      <div class="stack" data-gap="2"><p class="t-label">Hover</p><div class="card"><button class="sheet__handle is-hover" type="button" aria-label="Full height, hover"></button></div></div>
+      <div class="stack" data-gap="2"><p class="t-label">Focus</p><div class="card"><button class="sheet__handle is-focus" type="button" aria-label="Full height, focus"></button></div></div>
+      <div class="stack" data-gap="2"><p class="t-label">Pressed</p><div class="card"><button class="sheet__handle is-active" type="button" aria-label="Full height, pressed"></button></div></div>
+      <div class="stack" data-gap="2"><p class="t-label">On</p><div class="card"><button class="sheet__handle" type="button" aria-pressed="true" aria-label="Full height, on"></button></div></div>
+      <div class="stack" data-gap="2"><p class="t-label">On + hover</p><div class="card"><button class="sheet__handle is-hover" type="button" aria-pressed="true" aria-label="Full height, on, hover"></button></div></div>
+    </div>
   </div>
 </div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Handle states and the two numbers they set</caption>
+  <thead><tr><th>State</th><th><code>--lift</code></th><th><code>--fill</code></th><th>Second cue</th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td class="num">0</td><td class="num">0</td><td>2px outline</td></tr>
+    <tr><td>Hover (pointer devices only)</td><td class="num">1</td><td class="num">0</td><td>raised outline and its hard shadow</td></tr>
+    <tr><td>Keyboard focus</td><td class="num">1</td><td class="num">0</td><td>the focus ring, outside the capsule</td></tr>
+    <tr><td>Pressed</td><td class="num">0</td><td class="num">0.15</td><td>back on the surface, tinted</td></tr>
+    <tr><td>On (<code>aria-pressed="true"</code>)</td><td class="num">0</td><td class="num">1</td><td>filled and the frame doubles</td></tr>
+    <tr><td>On + hover</td><td class="num">1</td><td class="num">1</td><td>raised, with a paper gap before the shadow</td></tr>
+  </tbody>
+</table></div>
 
 <h2 id="behaviour">What happens, and who does it</h2>
 <div class="table-wrap"><table class="docs-table">
@@ -261,7 +283,7 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Sheet</strong>: <code>&lt;dialog class="sheet card"&gt;</code> (modal) or <code>&lt;section class="sheet card" popover="manual"&gt;</code> (persistent). The owner's card, docked to the bottom: 2px frame on three sides, top corners <code>--radius-card</code>, at most 36rem wide and centred above that. No shadow.</li>
-  <li><strong>Handle</strong> (<code>.sheet__handle</code>): a 48&times;28px button at the top whose pill is drawn by <code>::before</code> and whose hit area reaches 44px. <code>aria-pressed</code>, a label that never changes.</li>
+  <li><strong>Handle</strong> (<code>.sheet__handle</code>): a 48&times;28px button at the top whose pill is drawn by <code>::before</code> and whose hit area reaches 44px. It is chrome: it stays 48&times;28 at 200% text. <code>aria-pressed</code>, a label that never changes; only "on" is filled.</li>
   <li><strong>Bar</strong> (<code>.card__bar</code>): the title in uppercase (<code>.card__label</code>, a heading) and the Close control (<code>.card__ctl</code>, 44px). <code>aria-labelledby</code> points at the heading.</li>
   <li><strong>Body</strong> (<code>.card__body</code>): the only part that scrolls. Its bottom padding includes the home-indicator inset. A <code>.card__list</code> inside it bleeds edge to edge.</li>
   <li><strong>Actions</strong> (<code>.sheet__actions</code>, optional): pills pinned below the body.</li>
@@ -298,7 +320,7 @@
     <tr><td>Touch</td><td>Close and the handle are 44px targets. Tap the scrim to close, tap the handle to resize. Dragging is optional (2.5.7).</td></tr>
     <tr><td>Scrolling</td><td>A body that holds nothing focusable becomes a named tab stop so the keyboard can scroll it. It never scrolls the page behind (<code>overscroll-behavior: contain</code>).</td></tr>
     <tr><td>Safe areas</td><td>The sheet is inset by the left and right insets; the body and actions pad the bottom inset; a side panel's bar pads the top inset. Landscape phones keep their side insets.</td></tr>
-    <tr><td>Zoom / text size</td><td>Heights use <code>dvh</code> with the top inset removed; padding is rem. At 200% text the body simply scrolls.</td></tr>
+    <tr><td>Zoom / text size</td><td>Heights use <code>dvh</code> with the top inset removed. The words grow with the reader's text size; the handle, the bar's height and the insets of the actions stop at their 100% size. At 200% text the body simply scrolls.</td></tr>
     <tr><td>Reduced motion</td><td>No travel: the sheet fades in and out. Resizing still eases, in 180ms. A drag still follows the finger, and releasing to dismiss fades instead of sliding.</td></tr>
     <tr><td>Forced colours</td><td>The card's frame becomes <code>CanvasText</code>; the handle keeps a <code>ButtonText</code> frame, raised gets a 4px <code>Highlight</code> outline and on gets a 4px frame; the bar gets a real line.</td></tr>
   </tbody>
@@ -310,7 +332,7 @@
 </ul>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--accent</code>, <code>--scrim</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--radius-card</code>, <code>--radius-pill</code>, <code>--card-pad</code>, <code>--hit</code>, <code>--ring</code>, <code>--lift</code>, <code>--fill</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-8</code>, <code>--safe-top</code>, <code>--safe-right</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--dock-h</code>, <code>--move</code>, <code>--dur-enter</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--ease-in</code>.</p>
+<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--accent</code>, <code>--scrim</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--radius-card</code>, <code>--radius-pill</code>, <code>--card-pad</code>, <code>--ring</code>, <code>--lift</code>, <code>--fill</code>, <code>--chrome-1</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-5</code>, <code>--chrome-ctl</code>, <code>--chrome-hit</code>, <code>--space-8</code>, <code>--safe-top</code>, <code>--safe-right</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--dock-h</code>, <code>--move</code>, <code>--dur-enter</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--ease-in</code>.</p>
 <p>Related: <a href="@/components/dialog.html">Dialog</a>, <a href="@/components/menu.html">Menu</a> (action sheet), <a href="@/components/popover.html">Popover</a>, <a href="@/components/button.html">Button</a>, <a href="@/components/card.html">Card</a>.</p>
 
 <script>

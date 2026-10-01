@@ -81,7 +81,9 @@
 
   /* ---- Shared private properties ------------------------------------------------------- */
   :is(.progress, .progress-ring, .progress-steps, .meter) {
-    --_h: 0.875rem;
+    /* bar heights 14 / 10 / 20px: a track is chrome, it does not get easier to read at 200% text, it only
+       takes height from the words (the value is always written out beside it) */
+    --_h: min(0.875rem, 14px);
     --_fill: var(--card-ink, var(--ink));
     --_track: var(--card-bg, var(--paper));
     --_frame: var(--card-ink, var(--line));
@@ -91,10 +93,10 @@
       --_dir: -1;
     }
     &[data-size="sm"] {
-      --_h: 0.625rem;
+      --_h: min(0.625rem, 10px);
     }
     &[data-size="lg"] {
-      --_h: 1.25rem;
+      --_h: min(1.25rem, 20px);
     }
     /* a tone on the element itself (read here: --tone-* do not inherit) */
     &[data-tone] {
@@ -123,9 +125,13 @@
     gap: var(--space-2);
     min-inline-size: 0;
   }
+  /* The head is a label + value row, above a bar or a meter. At large text or in a narrow column the value
+     drops under the label: a flat row would squeeze the label to a letter per line. A dropped value is alone
+     on its line, and space-between puts a lone item at the START, under the label (the iOS large-text
+     pattern), never right-aligned under left-aligned words. A number never breaks inside itself. */
   .progress__head {
     display: flex;
-    flex-wrap: wrap; /* at large text or in a narrow column the value drops under the label: a flat row would squeeze the label to a letter per line */
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-1) var(--space-3);
@@ -138,13 +144,72 @@
   }
   .progress__value {
     flex: none;
+    max-inline-size: 100%;
     font: var(--type-ctl);
     line-height: var(--lh-snug);
     font-variant-numeric: tabular-nums lining-nums;
+    overflow-wrap: break-word; /* between words only: keep a number and its unit together with a no-break space ("5&nbsp;GB") */
   }
   .progress__hint {
     font: var(--type-meta);
     color: var(--card-ink-soft, var(--ink-soft));
+  }
+
+  /* A STATUS under a bar or a meter ("almost full", "the connection dropped") is an icon AND words, never
+     words with a colour, never a colour alone (WCAG 1.4.1): the icon's shape says which status, the words
+     say what it means, and a visually hidden status word in front says it to a screen reader. The words take
+     the status ink of a toned bar or meter (--warn-ink ...), and the icon sits beside their first line, the
+     way a field error does. */
+  .progress__status {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--chrome-2);
+    min-inline-size: 0;
+    margin: 0;
+    font: var(--type-meta);
+    font-weight: 600;
+    color: var(--card-ink-soft, var(--ink-soft));
+
+    > .ic {
+      --ic-size: 1.125rem;
+      flex: none;
+      margin-block-start: calc((1lh - var(--ic-size)) / 2);
+    }
+    > span:last-child {
+      min-inline-size: 0;
+      overflow-wrap: break-word;
+    }
+  }
+  /* the status ink of the bar's tone (a meter's tone is on the meter itself, so its status line follows it) */
+  :is(.progress[data-tone="ok"] .progress__status, .meter[data-tone="ok"] ~ .progress__status, .meter[data-tone="ok"] ~ .progress__foot > .progress__status) {
+    color: var(--ok-ink);
+  }
+  :is(.progress[data-tone="warn"] .progress__status, .meter[data-tone="warn"] ~ .progress__status, .meter[data-tone="warn"] ~ .progress__foot > .progress__status) {
+    color: var(--warn-ink);
+  }
+  :is(.progress[data-tone="bad"] .progress__status, .meter[data-tone="bad"] ~ .progress__status, .meter[data-tone="bad"] ~ .progress__foot > .progress__status) {
+    color: var(--bad-ink);
+  }
+  :is(.progress[data-tone="info"] .progress__status, .meter[data-tone="info"] ~ .progress__status, .meter[data-tone="info"] ~ .progress__foot > .progress__status) {
+    color: var(--info-ink);
+  }
+
+  /* The foot: a status and the ONE action that fixes it ("Try again"), on one row while both fit. When they
+     do not, the action drops under the words, at the start (a lone item on its line), never squeezing them. */
+  .progress__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--chrome-2) var(--space-3);
+
+    > .progress__status {
+      flex: 1 1 10rem;
+    }
+    > .btn {
+      flex: none;
+      max-inline-size: 100%;
+    }
   }
 
   /* the native bar fills the track; its pseudo-elements paint the fill */

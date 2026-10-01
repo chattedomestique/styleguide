@@ -36,8 +36,9 @@
    ArrowDown on it set full / half. Dragging it is an enhancement on top (WCAG 2.5.7), never the
    only way: Close is always visible, Esc and the scrim tap close, the handle resizes. (The
    reference screen's grabber was a 1.6:1 picture and the only control; this is the fix.)
-   It is a pill, and pills act: outlined at rest, it lifts and fills like a Button, and when
-   "on" it fills and doubles its frame. A 48×28px box whose hit area reaches 44px.
+   It is a pill, and pills act, but it is a SELECTION control, so only "on" is solid: outlined at
+   rest, raised (outline + hard shadow) on hover and focus, tinted while pressed, and filled with a
+   doubled frame when on. A 48×28px box (chrome: it does not grow with text) whose hit area reaches 44px.
 
    WIDE SCREENS. From 48em the sheet becomes a side panel docked to the inline-end edge at the
    full height of the screen: there is no half or full any more, so the handle is hidden and
@@ -203,21 +204,31 @@
 
   /* ---- The handle: a pill that acts ------------------------------------------------------
      The button is a 48×28px capsule with 6px of strip above and below it; the pill is drawn by
-     ::before and the hit area by ::after, which reaches 44px. The focus ring goes AROUND the
-     capsule (outside it, in the strip), so the pill, its lift shadow and the ring never touch.
-     Same --lift / --fill pattern as Button. */
+     ::before and the hit area by ::after, which reaches 44px. It is chrome (a control that holds no
+     words), so none of that grows with the reader's text size. The focus ring goes AROUND the capsule
+     (outside it, in the strip), so the pill, its lift shadow and the ring never touch.
+     A SELECTION CONTROL (S1): the solid fill means one thing, "full height is on". Hover and keyboard
+     focus raise the OUTLINE (lift 1, fill 0: the hard shadow says "you can press this"), a press sinks it
+     and tints it (fill 0.15, visible within 100ms on touch), and on is filled with a doubled frame (a
+     second cue that does not depend on the accent being dark). On + hover is raised AND filled; the lift
+     then opens a gap in the surface colour between the fill and its shadow, as on Button, so the two never
+     fuse into one dark lump. Same --lift / --fill pattern as Button. */
   .sheet__handle {
     --lift: 0;
     --fill: 0;
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
-    --_select: 0 0 0 0 transparent;
+    --_selw: 0px;
+    --_gap: calc(var(--lift) * var(--fill) * var(--bw));
+    --_halo: 0 0 0 calc(var(--_selw) + var(--_gap)) var(--focus-halo, var(--paper));
+    --_shadow: calc(var(--lift) * var(--chrome-1) + var(--_gap)) calc(var(--lift) * var(--chrome-1) + var(--_gap)) 0 0 var(--line);
+    --_select: 0 0 0 var(--_selw) var(--line);
+    --_strip: calc(var(--chrome-1) * 1.5); /* 6px above and below the capsule */
 
     position: relative;
     flex: none;
     align-self: center;
-    inline-size: 3rem;
-    block-size: 1.75rem;
-    margin: 0.375rem 0;
+    inline-size: calc(var(--chrome-ctl) + var(--chrome-1)); /* 48 */
+    block-size: calc(var(--chrome-5) + var(--chrome-1)); /* 28 */
+    margin: var(--_strip) 0;
     padding: 0;
     background: none;
     border: 0;
@@ -231,15 +242,15 @@
     &::before {
       content: "";
       position: absolute;
-      inset-block: 0.375rem;
+      inset-block: var(--_strip);
       inset-inline: 0;
       background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
       border: var(--bw) solid var(--line);
       border-radius: var(--radius-pill);
-      box-shadow: var(--_select), var(--_shadow);
+      box-shadow: var(--_select), var(--_halo), var(--_shadow);
       transform: translate(
-        calc(var(--lift) * var(--space-1) / -2 * var(--move)),
-        calc(var(--lift) * var(--space-1) / -2 * var(--move))
+        calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+        calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
       );
     }
 
@@ -248,8 +259,8 @@
     &::after {
       content: "";
       position: absolute;
-      inset-block: -0.375rem calc(100% - var(--hit) + 0.375rem);
-      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+      inset-block: calc(var(--_strip) * -1) calc(100% - var(--chrome-hit) + var(--_strip));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
     }
 
     /* the ring hugs the capsule from outside (the card's own rule gives it a 2px offset) */
@@ -261,23 +272,22 @@
     @media (hover: hover) {
       &:is(:hover, .is-hover) {
         --lift: 1;
-        --fill: 1;
       }
     }
     &:is(:focus-visible, .is-focus) {
       --lift: 1;
-      --fill: 1;
     }
     &:is(:active, .is-active) {
       --lift: 0;
-      --fill: 1;
+      --fill: 0.15;
       cursor: grabbing;
       transition-duration: var(--dur-press);
     }
-    /* "full height" is on: filled AND the frame doubles, so it never depends on the accent being dark */
+    /* "full height" is on: filled AND the frame doubles. After :active, so pressing an "on" handle keeps
+       its fill until the tap turns it off. */
     &[aria-pressed="true"] {
       --fill: 1;
-      --_select: 0 0 0 var(--bw) var(--line);
+      --_selw: var(--bw);
     }
   }
   .sheet[data-dragging] .sheet__handle {
@@ -288,7 +298,7 @@
 
   /* The bar names the sheet; in a panel it also pads the top inset. */
   .sheet .card__bar {
-    min-block-size: calc(var(--hit) + var(--safe-top) * var(--_side));
+    min-block-size: calc(var(--chrome-hit) + var(--safe-top) * var(--_side));
     padding-block-start: calc(var(--safe-top) * var(--_side));
     /* a drag may start on the bar as well as on the handle: the page must not scroll under it */
     touch-action: none;
@@ -300,7 +310,7 @@
     min-block-size: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-block-end: max(var(--card-pad), calc(var(--safe-bottom) + var(--space-3)));
+    padding-block-end: max(var(--card-pad), calc(var(--safe-bottom) + var(--chrome-3)));
 
     &:focus-visible {
       --ring-gap: calc(var(--ring) * -1);
@@ -327,8 +337,8 @@
     flex: none;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--card-pad) max(var(--space-3), calc(var(--safe-bottom) + var(--space-2)));
+    gap: var(--chrome-2);
+    padding: var(--chrome-3) var(--card-pad) max(var(--chrome-3), calc(var(--safe-bottom) + var(--chrome-2)));
     border-block-start: var(--bw-thin) solid var(--card-ink);
   }
 

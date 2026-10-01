@@ -59,7 +59,7 @@
   dialog.dialog {
     /* 1 · private properties */
     --_w: 28rem;
-    --_room: var(--space-4); /* breathing room kept from each screen edge */
+    --_room: var(--chrome-4); /* breathing room kept from each screen edge: chrome, so 200% text keeps the width */
     --_rise: calc(var(--move) * var(--space-5)); /* closed / entering pose. --move 0 leaves a plain fade. */
 
     /* The UA centres a modal with margin: auto inside inset: 0. Insetting by the safe areas
@@ -188,12 +188,21 @@
     text-wrap: pretty;
   }
 
+  /* The title: the card's own size, except that its floor (1.375rem, 44px at 200% text) gives way to the
+     dialog's width (14.5cqi; the card is the container) when the dialog is narrow for its text. At 200% text on
+     a 320px phone the floor made Delete “Shapes”? wider than its line, so the last word broke and stranded
+     the question mark on a line of its own. At 100% text, and at 200% on a 390px phone, the size is
+     unchanged (14.5cqi is above the floor there). */
+  dialog.dialog .card__title {
+    font-size: clamp(min(1.375rem, 14.5cqi), 8cqi, 2rem);
+  }
+
   /* The bar names the KIND of dialog, with an icon when it is a status. Icon + words, never
      colour alone (WCAG 1.4.1). */
   dialog.dialog .card__label {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
   }
 
   /* No close control (confirm, alert, required): keep the label off the right-hand frame. */
@@ -201,25 +210,33 @@
     padding-inline-end: var(--card-pad);
   }
 
-  /* Actions: the foot's 1px rule, then a row of pills, primary last. */
+  /* Actions: the foot's 1px rule, then a row of pills, primary last. The insets and the gap are chrome
+     (they stop at their 100% size), so at 200% text a two-word label keeps one line. */
   .dialog__actions {
     display: flex;
     flex: none;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--card-pad);
+    gap: var(--chrome-2);
+    padding: var(--chrome-3) var(--card-pad);
     border-block-start: var(--bw-thin) solid var(--card-ink);
   }
 
   /* Narrow dialog (every phone): full-width pills, stacked in DOM order. Primary ends up
-     at the bottom, under the thumb. The order is NOT reversed: tab order must match. */
+     at the bottom, under the thumb. The order is NOT reversed: tab order must match. Full width
+     means every label has the whole row, so with two-word labels each pill is one line and the
+     stack is one height throughout. A full-width pill centres its label, so it needs side padding
+     only to keep a label that fills the row off the round ends: 16px instead of the Button's 24
+     (--_px) gives a two-word label 16px more before it wraps. Where it still wraps (a preview
+     inside a 320px page at 200% text), the two lines fit inside the pill's nominal height (--ctl,
+     2.75rem), so the stack keeps one height and the pill keeps its round ends. */
   @container card (max-width: 26rem) {
     .dialog__actions {
       flex-direction: column;
       align-items: stretch;
     }
     .dialog__actions > .btn {
+      --_px: var(--chrome-4);
       inline-size: 100%;
     }
   }

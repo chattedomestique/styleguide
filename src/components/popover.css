@@ -46,7 +46,7 @@
 @layer sg.components {
   /* ---- The anchor contract ------------------------------------------------------------- */
   [popover][data-anchored] {
-    --_gap: var(--space-2);
+    --_gap: var(--chrome-2); /* 8px between the trigger and the card: chrome, it does not grow with text */
     /* What the screen's edge keeps free beside an edge-aligned placement (the --sg-* fallbacks below):
        the same gutter as the popover's own width cap. Without it a box that only SHRINKS to fit (a
        tooltip) ran flush to the glass. */
@@ -221,14 +221,15 @@
     padding-inline-end: var(--card-pad);
   }
 
-  /* Actions row at the bottom of a popover form: same rule as the dialog's. */
+  /* Actions row at the bottom of a popover form: same rule as the dialog's (chrome insets, so a two-word
+     label keeps one line at 200% text). */
   .popover__actions {
     display: flex;
     flex: none;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--card-pad);
+    gap: var(--chrome-2);
+    padding: var(--chrome-3) var(--card-pad);
     border-block-start: var(--bw-thin) solid var(--card-ink);
   }
 

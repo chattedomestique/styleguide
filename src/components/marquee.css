@@ -35,17 +35,21 @@
                   a plain, readable, wrapped list: that is the no-JS, reduced-motion and
                   paused presentation, laid out as a title row (label + toggle) over the text.
    data-fit       set BY JS when the text already fits on one line: nothing to scroll, so
-                  the single-row layout stays and the toggle is dashed with an explanation.
+                  the single-row layout stays, and the toggle is hidden (it could do nothing).
    data-ready     set BY JS on init. Until then the toggle is hidden: it would do nothing.
+   [hidden] on the toggle: set BY JS whenever nothing can move (the text fits, reduced motion,
+                  too little room to read a moving line at large text). A control with no state
+                  to show and nothing to do is hidden, not shown disabled. A strip the person
+                  paused keeps it (a state: paused; an action: play).
    data-speed     px per second, default 40 (read by the JS)
 
-   LARGE TEXT AND NARROW STRIPS (WCAG 1.4.4, 1.4.10)  The strip is a wrapping flex row, not a
-   grid of fixed areas. At 200% text the label and the round toggle together are wider than a
-   phone-width strip, and a grid could only let the toggle spill out of it (and the text under
-   it with it) into whatever clips. Flex wraps instead: label and toggle share the title row
-   while they fit; when they do not, the toggle drops to its own row (at the start, since it is
-   then alone on its line) and the text always has the strip's full width. The label wraps
-   inside its pill rather than growing past the strip.
+   LARGE TEXT AND NARROW STRIPS (WCAG 1.4.4, 1.4.10)  The words grow with the reader's text size;
+   the chrome does not (chrome caps): the strip's insets, the label's box and the 36px toggle stop at
+   their 100% size, so the label and the toggle always share the title row. The strip is a wrapping
+   flex row, not a grid of fixed areas, so the text under the title row always has the strip's full
+   width. At 200% text on a phone there is too little room for a moving line, so the strip stays a
+   static, wrapped list and its toggle is hidden. The label wraps inside its box rather than growing
+   past the strip.
 
    WCAG 2.2.2 (Pause, Stop, Hide): anything that moves on its own for more than 5 s and sits
    beside other content needs a pause control, and pausing on hover or focus alone does NOT
@@ -92,14 +96,14 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between; /* label and toggle at the two ends; a toggle alone on its line sits at the start */
-    column-gap: var(--space-2);
-    row-gap: var(--space-1);
+    column-gap: var(--chrome-2);
+    row-gap: var(--chrome-1);
     min-inline-size: 0;
     /* The STRIP is the size container, not the viewport inside it. Its width does not change when the
        layout flips between one row and a wrapped list, so type sized from it (data-size="lg" below)
        is the same in both, and the script's one-row measurement stays true to what is drawn. */
     container: marquee / inline-size;
-    padding: var(--space-2);
+    padding: var(--chrome-2);
     color: var(--_ink);
     background: var(--_bg);
     border: var(--bw) solid var(--line);
@@ -133,8 +137,8 @@
     display: inline-flex;
     align-items: center;
     max-inline-size: 100%; /* never wider than the strip: a longer label wraps inside its pill */
-    min-block-size: var(--ctl-sm);
-    padding-inline: var(--space-3);
+    min-block-size: var(--chrome-ctl-sm);
+    padding-inline: var(--chrome-3);
     color: var(--_label-ink);
     background: var(--_label-bg);
     border-radius: var(--radius-ctl);
@@ -150,14 +154,15 @@
     flex: 1 1 100%; /* its own row under the title row */
     min-inline-size: 0;
     /* Room for a link's focus ring inside the clip; see .marquee__list a below. */
-    padding-block: var(--space-1);
+    padding-block: var(--chrome-1);
     overflow: clip;
   }
-  /* Wrapped presentation: breathing room at the sides. */
+  /* Wrapped presentation: the list starts at the label's edge (markers, or the words when the markers go,
+     line up with the label above them), with breathing room under the last line. */
   .marquee:not([data-loop], [data-fit]) .marquee__viewport,
   .marquee:has(> .marquee__toggle[aria-pressed="true"]) .marquee__viewport {
-    padding-inline: var(--space-2);
-    padding-block-end: var(--space-2);
+    padding-inline: 0;
+    padding-block-end: var(--chrome-2);
   }
   .marquee__track {
     display: flex;
@@ -197,9 +202,9 @@
        can see. An explicit surface keeps the pair true wherever the item is. */
     background: var(--_bg);
   }
-  /* Decorative marker drawn with a box, not a text glyph (glyphs get read aloud). EVERY item has one:
-     the first used to go without, so a wrapped list had one flush-left item over a column indented
-     behind squares. A box has no baseline, so the flex row takes its bottom edge; the translate lifts
+  /* Decorative marker drawn with a box, not a text glyph (glyphs get read aloud). EVERY item of a list has
+     one (a lone item that is not moving excepted, below): the first used to go without, so a wrapped list
+     had one flush-left item over a column indented behind squares. A box has no baseline, so the flex row takes its bottom edge; the translate lifts
      it to the middle of the capitals and x-height of the first line. */
   .marquee__list > li::before {
     content: "";
@@ -208,6 +213,16 @@
     block-size: 0.5rem;
     background: currentColor;
     translate: 0 calc(0.25rem - 0.3em);
+  }
+  /* A list of ONE item that is not moving ("All caught up"): the square would mark it off from nothing, so it
+     goes (rule 7: no decoration). A lone item that loops keeps it, because there it divides the item from its
+     own repeat. */
+  .marquee:is(:not([data-loop]), :has(> .marquee__toggle[aria-pressed="true"])) .marquee__list > li:only-child {
+    gap: 0;
+
+    &::before {
+      display: none;
+    }
   }
   .marquee__list a {
     color: inherit;
@@ -221,9 +236,9 @@
   /* Wrapped text in a narrow viewport (a phone at 200% text). Every item then starts its own line, so
      the square between items separates nothing, yet it and its gap would cost 3rem of a line that may
      be 6rem wide and push the words into a letter per line. Dropped here only: the looping row and any
-     wider wrapped list keep it. The query is on the strip, whose content box is the wrapped line plus
-     its 1rem of side padding, so 10rem here is the 9rem line where that 3rem is a third of it; a phone
-     at 100% text has about 12rem and keeps its separators. */
+     wider wrapped list keep it. The query is on the strip, whose content box is the wrapped line, so
+     10rem here is a line where that 3rem is a third of it; a phone at 100% text has 15rem or more and
+     keeps its separators. */
   @container marquee (max-width: 10rem) {
     .marquee:is(:not([data-loop], [data-fit]), :has(> .marquee__toggle[aria-pressed="true"])) .marquee__list > li {
       gap: 0;
@@ -249,7 +264,8 @@
      room a seven-capital word needs. --text-2xl stays the ceiling on wide strips. The floor is
      --text-xs, not body size: at 200% text on a 390px phone the wrapped line is only ~5rem wide, and
      a 1rem floor (32px there) still cut PALETTE into PALET / TE. A word longer than seven capitals
-     can still break, which is what overflow-wrap: anywhere on the item is there for, last. */
+     can still break: overflow-wrap: break-word on the item breaks a word only when the word alone is
+     wider than the line, the last resort. */
   .marquee[data-size="lg"] .marquee__list {
     font: var(--type-display);
     font-size: clamp(var(--text-xs), calc((100cqi - 2.5rem) / 6.5), var(--text-2xl));
@@ -258,14 +274,14 @@
     line-height: 1.3;
   }
   .marquee[data-size="lg"] .marquee__label {
-    min-block-size: var(--ctl);
+    min-block-size: var(--chrome-ctl);
   }
 
   /* ---- Looping: JS has built the copy AND the user has not paused ---------------------
      Not looping (the default, and when paused or reduced) keeps the wrapped list above. */
   .marquee[data-loop]:not(:has(> .marquee__toggle[aria-pressed="true"])) {
     & .marquee__viewport {
-      padding-inline: var(--space-1);
+      padding-inline: var(--chrome-1);
     }
     & .marquee__track {
       inline-size: max-content;

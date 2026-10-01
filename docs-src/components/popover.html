@@ -14,7 +14,8 @@
   #pop-remind label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
   #pop-remind input { box-sizing: border-box; inline-size: 100%; min-block-size: var(--ctl); padding-inline: var(--space-3); border: var(--bw) solid var(--line); border-radius: var(--radius-ctl); background: var(--paper); color: var(--ink); font: var(--type-body); font-variant-numeric: tabular-nums; }
   /* a static map of where each placement puts the card: the control and the card, 8px apart (the real gap) */
-  #pop-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: var(--space-5); }
+  #pop-map { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  @container (min-width: 36rem) { #pop-map { grid-template-columns: repeat(2, minmax(0, 1fr)); } } /* 2 + 2, never 3 + 1 */
   #pop-map .t-label { margin-block-end: var(--space-2); }
   #pop-map .btn { flex: none; }
   #pop-map .pair { display: flex; gap: var(--space-2); }
@@ -23,8 +24,8 @@
   #pop-map [data-at="top"] { flex-direction: column; align-items: center; }
   #pop-map [data-at="end"] { flex-direction: row-reverse; justify-content: flex-end; align-items: flex-start; }
   #pop-map .popover { flex: 0 1 auto; min-inline-size: 0; }
-  #pop-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-4); }
-  #pop-places .btn { justify-self: start; }
+  /* the live triggers: equal cells, each button as wide as its cell, so a row of them reads as one set */
+  #pop-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--space-3); }
 </style>
 <h1>Popover</h1>
 <p class="lede">A popover is a small card that opens next to the control that asked for it: a line of help, a couple of options. It is the native <code>popover</code> attribute, so it sits above everything with no z-index, closes when you click away or press <kbd>Esc</kbd>, and never blocks the page behind it.</p>
@@ -54,7 +55,7 @@
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" type="button" popovertarget="pop-known" aria-haspopup="dialog" aria-expanded="false">
-      <span class="ic ic--circle-help" aria-hidden="true"></span>What counts as known?
+      <span class="ic ic--circle-help" aria-hidden="true"></span>Known cards
     </button>
 
     <div class="popover card" id="pop-known" popover role="dialog" aria-labelledby="pop-known-t">
@@ -100,11 +101,11 @@
 </div>
 
 <h3 id="actions">With actions</h3>
-<p>A popover with a field that must be saved gets an action row under a 1px rule (<code>.popover__actions</code>). Cancel is a visible button because light dismiss (clicking outside, <kbd>Esc</kbd>) discards what was typed.</p>
+<p>A popover with a field that must be saved gets an action row under a 1px rule (<code>.popover__<wbr>actions</code>). Cancel is a visible button because light dismiss (clicking outside, <kbd>Esc</kbd>) discards what was typed.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" type="button" popovertarget="pop-remind" aria-haspopup="dialog" aria-expanded="false">
-      <span class="ic ic--clock" aria-hidden="true"></span>Daily reminder
+      <span class="ic ic--clock" aria-hidden="true"></span>Reminder
     </button>
 
     <div class="popover card" id="pop-remind" popover role="dialog" aria-labelledby="pop-remind-t" data-size="sm">
@@ -236,11 +237,11 @@
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Button</strong>: any <code>.btn</code> with <code>popovertarget</code>, <code>aria-haspopup="dialog"</code> and <code>aria-expanded</code>. An icon-only button also carries an <code>aria-label</code>.</li>
+  <li><strong>Button</strong>: any <code>.btn</code> with <code>popovertarget</code>, <code>aria-expanded</code>, and <code>aria-haspopup</code> set to <code>dialog</code>. An icon-only button also carries an <code>aria-label</code>.</li>
   <li><strong>Popover</strong>: <code>&lt;div class="popover card" popover role="dialog"&gt;</code>. The owner's card next to the button: 2px frame, <code>--radius-card</code>, no shadow. 20rem wide by default and never wider than the screen.</li>
   <li><strong>Bar</strong> (<code>.card__bar</code>, optional): title in uppercase and a Close control. Without a title, name the popover with <code>aria-label</code>.</li>
   <li><strong>Body</strong> (<code>.card__body</code>): text or a few controls. Scrolls when taller than the screen.</li>
-  <li><strong>Actions</strong> (<code>.popover__actions</code>, optional): pills under a 1px rule, for a popover with a form that needs a Save.</li>
+  <li><strong>Actions</strong> (<code>.popover__<wbr>actions</code>, optional): pills under a 1px rule, for a popover with a form that needs a Save.</li>
 </ol>
 
 <h2 id="api">API</h2>

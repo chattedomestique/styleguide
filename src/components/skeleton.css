@@ -19,14 +19,22 @@
      </div>
    </section>
 
-   parts          skeleton__line (text) · __tile (square slot, like .card__tile) ·
+   parts          skeleton__line (text) · __tile (square slot, like a list's tile) ·
                   __avatar (circle) · __block (media; data-ratio="16/9|4/3|1/1|21/9") ·
                   __pill (a button or chip)
    layout helpers skeleton__row (slot + text, flex; a __line placed directly in it is a
                   short trailing value) · __stack (lines, grid)
-   data-w         25 | 40 | 60 | 75 | 90 | 100 (default): width of a line, in %
+   data-w         25 | 40 | 60 | 75 | 90 | 100 (default): width of a line, in % of what holds it
    data-size      avatar: sm (32) | md (48, default) | lg (72)
-   data-layout    list: rows the height of a .card--row, so they swap for real rows in place
+   data-layout    list: the rows of a List (list.css): its row height and insets and the same 1px rule
+                  between rows, so the placeholder rows turn into the real ones without moving
+   data-variant   framed (with data-layout="list"): the List's framed variant, its 2px frame and corners
+
+   LARGE TEXT. A line is as tall as the text it stands for, so it grows with the reader's text size. The
+   slots are chrome, as the real ones are (a 44px tile, 32 / 48 / 72px avatars): they stop at their 100%
+   size. In a row the lines take the width that is LEFT beside the slot (flex: 1 1 0) and the trailing value
+   takes a fixed share of the row, so at 200% text a line never shrinks to a sliver and never runs past the
+   frame.
 
    FLAT, NOT SHIMMER. A shape is a solid fill: the ink mixed 26% into whatever it
    sits on (the card's own paper or tone, else the canvas). 14% was ~1.3:1 on the
@@ -85,13 +93,26 @@
     /* `both` holds the from-state (opacity 0) through the 300 ms delay. */
     animation: sg-skeleton-in var(--dur-enter) var(--ease-out) 300ms both;
 
-    /* rows the height of a .card--row (tile + 2 x space-3 + its 2px frame) and the gap of a
-       .stack data-gap="3", so placeholders turn into real rows without moving anything */
+    /* the rows of a List (list.css: a 3.5rem minimum, its block and side insets, a 1px rule between rows), so
+       placeholders turn into real rows without moving anything. The rule and the frame are the list's own
+       structure, not loading content, so they are drawn in the list's colours, not the placeholder grey. */
     &[data-layout="list"] {
-      --_gap: var(--space-3);
+      --_gap: 0;
 
       > .skeleton__row {
-        padding: calc(var(--space-3) + var(--bw));
+        min-block-size: 3.5rem;
+        padding: var(--chrome-2) var(--chrome-4);
+      }
+      > .skeleton__row + .skeleton__row {
+        border-block-start: var(--bw-thin) solid var(--card-ink, var(--line));
+      }
+      &[data-variant="framed"] {
+        background: var(--card-bg, var(--paper));
+        border: var(--bw) solid var(--line);
+        border-radius: var(--radius-card);
+        overflow: clip;
+        /* the shapes mix with the frame's own paper, not the page behind it */
+        --_fill: color-mix(in srgb, var(--card-ink, var(--ink)) 26%, var(--card-bg, var(--paper)));
       }
     }
   }
@@ -133,24 +154,25 @@
     }
   }
 
-  /* The square slot at the head of a row: the size of .card__tile. */
+  /* The square slot at the head of a row: the size of a list's tile (chrome: 44px at every text size). */
   .skeleton__tile {
-    inline-size: var(--hit);
-    block-size: var(--hit);
+    inline-size: var(--chrome-hit);
+    block-size: var(--chrome-hit);
     border-radius: var(--radius-tile);
   }
 
+  /* avatars are pictures: chrome, like the real ones */
   .skeleton__avatar {
-    --_s: 3rem;
+    --_s: min(3rem, 48px);
     inline-size: var(--_s);
     block-size: var(--_s);
     border-radius: var(--radius-pill);
 
     &[data-size="sm"] {
-      --_s: 2rem;
+      --_s: min(2rem, 32px);
     }
     &[data-size="lg"] {
-      --_s: 4.5rem;
+      --_s: min(4.5rem, 72px);
     }
   }
 
@@ -182,18 +204,20 @@
   .skeleton__row {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--chrome-3);
     min-inline-size: 0;
   }
+  /* the lines beside a slot take the width that is left (basis 0), so their percentages are of a real width */
   .skeleton__stack {
     display: grid;
-    flex: 1 1 auto;
+    flex: 1 1 0;
     gap: var(--space-2);
     min-inline-size: 0;
   }
-  /* A line placed directly in a row is the trailing value (an amount, a time). */
+  /* A line placed directly in a row is the trailing value (an amount, a time): a fixed share of the row. */
   .skeleton__row > .skeleton__line {
-    inline-size: 3.5rem;
+    flex: none;
+    inline-size: 22%;
   }
 
   /* ---- Reduced motion: the pulse is OFF, the shapes are still --------------------------------
