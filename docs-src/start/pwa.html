@@ -1,0 +1,515 @@
+<!--{"title":"PWA","group":"Start","order":4,"summary":"Make an app installable and offline: the manifest and its icons (maskable too), standalone display and safe areas, theme-color per scheme, a service worker that updates without surprises, the offline state, and install prompts. Run in Chromium; not on a device."}-->
+<h1>PWA</h1>
+<p class="lede">An installed app has no browser around it: nothing to go back, nothing to refresh, no address to tell you where you are. This page makes an app on the guide installable, lets it start offline, and says what it looks like when the connection goes.</p>
+
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div><strong>What was and was not seen</strong><p>Everything on this page was run in <em>Chromium 141 on Linux</em>: the manifest was parsed, installability was asked of the browser, a service worker installed, reloaded offline and updated. <strong>Nothing was run on an iPhone or an Android phone.</strong> Install on a real device, the maskable icon on a real launcher, standalone safe areas, the iOS status bar and Dynamic Type are all listed under <a href="#limits">What could not be verified</a>. The example app is called Tasks; it is the complete minimal file from <a href="@/start/install.html#minimal">Install</a> with the additions below.</p></div>
+</div>
+
+<h2 id="installable">What installable means today</h2>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">What each browser needs before it offers to install a web app</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Browser</th><th role="columnheader">What it needs</th><th role="columnheader">Source</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Browser">Chrome and Edge (desktop and Android), Samsung Internet</td><td role="cell" data-label="What it needs">HTTPS (or localhost). A manifest with <code>name</code> or <code>short_name</code>, <code>icons</code> that include a 192 and a 512 pixel image, <code>start_url</code>, and <code>display</code> set to <code>standalone</code>, <code>fullscreen</code>, <code>minimal-ui</code> or <code>window-controls-overlay</code>; <code>prefer_related_applications</code> absent or false. <strong>No service worker is required.</strong> The automatic prompt also waits for the person to have clicked the page once and spent 30 seconds on it.</td><td role="cell" data-label="Source">web.dev, "Installation criteria", read on 30 September 2026 (it lists no service worker). Chrome dropped the requirement in 108 on Android and 112 on desktop (from the research behind this guide).</td></tr>
+    <tr role="row"><td role="cell" data-label="Browser">Safari on iPhone and iPad, version 26</td><td role="cell" data-label="What it needs"><strong>Nothing.</strong> "Added support for any website to become a web app on iOS or iPadOS". A manifest and a service worker make it better, but are not required.</td><td role="cell" data-label="Source">Safari 26 release notes, read on 30 September 2026.</td></tr>
+    <tr role="row"><td role="cell" data-label="Browser">Safari on Mac</td><td role="cell" data-label="What it needs">"Add to Dock" (Safari 17 and later). A manifest is optional.</td><td role="cell" data-label="Source">MDN, from the research.</td></tr>
+    <tr role="row"><td role="cell" data-label="Browser">Firefox</td><td role="cell" data-label="What it needs">No manifest-based install on desktop. Firefox for Android adds a browser-badged shortcut, not an installed app. Treat Firefox as a browser, not an app host.</td><td role="cell" data-label="Source">MDN, from the research.</td></tr>
+  </tbody>
+</table></div>
+<p>Lighthouse's PWA category is deprecated; Chrome's own page says so. Check installability in DevTools (<em>Application</em>, then <em>Manifest</em>), not with a score. The research behind this page is in <code>references/standards/standards-platform.md</code>.</p>
+
+<h2 id="manifest">The manifest</h2>
+<p>One JSON file, linked from the head. This is the one the example app ships; Chromium parsed it with no errors, and asked whether the page could be installed it reported one problem, <code>in-incognito</code>, which is the test browser's profile, not the app.</p>
+<pre aria-label="manifest.webmanifest for the example app">{
+  &quot;id&quot;: &quot;/tasks/&quot;,
+  &quot;name&quot;: &quot;Tasks&quot;,
+  &quot;short_name&quot;: &quot;Tasks&quot;,
+  &quot;description&quot;: &quot;Today's tasks, streaks and reminders.&quot;,
+  &quot;start_url&quot;: &quot;./?source=pwa&quot;,
+  &quot;scope&quot;: &quot;./&quot;,
+  &quot;display&quot;: &quot;standalone&quot;,
+  &quot;background_color&quot;: &quot;#f5f5f5&quot;,
+  &quot;theme_color&quot;: &quot;#f5f5f5&quot;,
+  &quot;color_scheme_dark&quot;: { &quot;background_color&quot;: &quot;#0e0e0e&quot;, &quot;theme_color&quot;: &quot;#0e0e0e&quot; },
+  &quot;categories&quot;: [&quot;productivity&quot;],
+  &quot;icons&quot;: [
+    { &quot;src&quot;: &quot;icons/icon-192.png&quot;, &quot;sizes&quot;: &quot;192x192&quot;, &quot;type&quot;: &quot;image/png&quot;, &quot;purpose&quot;: &quot;any&quot; },
+    { &quot;src&quot;: &quot;icons/icon-512.png&quot;, &quot;sizes&quot;: &quot;512x512&quot;, &quot;type&quot;: &quot;image/png&quot;, &quot;purpose&quot;: &quot;any&quot; },
+    { &quot;src&quot;: &quot;icons/icon-maskable-192.png&quot;, &quot;sizes&quot;: &quot;192x192&quot;, &quot;type&quot;: &quot;image/png&quot;, &quot;purpose&quot;: &quot;maskable&quot; },
+    { &quot;src&quot;: &quot;icons/icon-maskable-512.png&quot;, &quot;sizes&quot;: &quot;512x512&quot;, &quot;type&quot;: &quot;image/png&quot;, &quot;purpose&quot;: &quot;maskable&quot; }
+  ]
+}</pre>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The manifest members used and what each does</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Member</th><th role="columnheader">Value</th><th role="columnheader">Why</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Member"><code>id</code></td><td role="cell" data-label="Value"><code>"/tasks/"</code></td><td role="cell" data-label="Why">The app's identity, resolved against the origin. Make it unique <em>per app</em>: several apps on one origin, such as <code>user.github.io/tasks/</code> and <code>user.github.io/decks/</code>, would otherwise be one app to the browser. Without it the identity falls back to <code>start_url</code>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>name</code>, <code>short_name</code></td><td role="cell" data-label="Value"><code>"Tasks"</code></td><td role="cell" data-label="Why">The name in the install dialog, and under the icon. <code>short_name</code> is the one that has to fit under the icon.</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>description</code></td><td role="cell" data-label="Value">One sentence</td><td role="cell" data-label="Why">Shown in Chrome's richer install dialog.</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>start_url</code>, <code>scope</code></td><td role="cell" data-label="Value"><code>"./?source=pwa"</code>, <code>"./"</code></td><td role="cell" data-label="Why">Relative, so the same file works under any base path. <code>?source=pwa</code> lets you tell, in analytics, a launch as an app from a visit. <code>scope</code> decides which URLs belong to the app.</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>display</code></td><td role="cell" data-label="Value"><code>"standalone"</code></td><td role="cell" data-label="Why">No browser bar. You must supply a way back, a visible title and a way to refresh (<a href="#standalone">below</a>).</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>background_color</code>, <code>theme_color</code></td><td role="cell" data-label="Value">The canvas colour, as hex</td><td role="cell" data-label="Why">The splash background and the title bar. Take them from the <a href="@/start/install.html#theme-color">theme-color table</a>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>color_scheme_dark</code></td><td role="cell" data-label="Value"><code>{ "background_color": …, "theme_color": … }</code></td><td role="cell" data-label="Why">The dark pair. WebKit implemented it (bug 311727, fixed 29 May 2026) and Chromium says it intends to; browsers that do not know a member ignore it, so it is safe to include. Chromium 141 reported no manifest error for it.</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>icons</code></td><td role="cell" data-label="Value">Four entries</td><td role="cell" data-label="Why">192 and 512 are the install minimum. Keep <code>any</code> and <code>maskable</code> as separate entries (<a href="#icons">below</a>).</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>orientation</code></td><td role="cell" data-label="Value">Left out</td><td role="cell" data-label="Why">Do not lock portrait or landscape (WCAG 1.3.4).</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>categories</code></td><td role="cell" data-label="Value"><code>["productivity"]</code></td><td role="cell" data-label="Why">A hint for app stores that index web apps. Optional.</td></tr>
+  </tbody>
+</table></div>
+<p><code>shortcuts</code>, <code>screenshots</code>, <code>display_override</code> and <code>launch_handler</code> are optional Chromium extras. A single-window app needs none of them.</p>
+
+<h3 id="head">Link it: the head additions</h3>
+<p>Add these to the head of the <a href="@/start/install.html#minimal">complete file</a>:</p>
+<pre aria-label="Head additions for an installable app">&lt;link rel=&quot;manifest&quot; href=&quot;manifest.webmanifest&quot;&gt;
+&lt;link rel=&quot;icon&quot; href=&quot;icons/icon-192.png&quot; type=&quot;image/png&quot;&gt;
+&lt;link rel=&quot;apple-touch-icon&quot; href=&quot;icons/apple-touch-icon-180.png&quot;&gt;
+&lt;meta name=&quot;mobile-web-app-capable&quot; content=&quot;yes&quot;&gt;
+&lt;meta name=&quot;apple-mobile-web-app-capable&quot; content=&quot;yes&quot;&gt;
+&lt;meta name=&quot;apple-mobile-web-app-title&quot; content=&quot;Tasks&quot;&gt;
+&lt;meta name=&quot;apple-mobile-web-app-status-bar-style&quot; content=&quot;default&quot;&gt;</pre>
+<ul>
+  <li><strong><code>apple-touch-icon</code></strong> is an opaque 180&nbsp;px PNG. Safari uses it for the Home Screen icon and does not use an SVG favicon for that; according to the compatibility data it falls back to the manifest's <code>any</code> icons only when there is no touch icon. (Not seen on a device.)</li>
+  <li><strong>Both capable tags</strong>: Safari reads the <code>apple-mobile-web-app-*</code> family, and <code>mobile-web-app-capable</code> is the standard name for the same idea. Keep both.</li>
+  <li><strong>Changes to the status-bar style are not picked up</strong> by an app that was already added (WebKit bug 260508, open since 2023). Treat the Apple metadata as read when the app is added; to see a change, remove the app and add it again.</li>
+</ul>
+
+<h2 id="icons">Icons, including maskable</h2>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The icon files an installable app ships</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">File</th><th role="columnheader">Size</th><th role="columnheader">Purpose</th><th role="columnheader">Notes</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="File"><code>icon-192.png</code>, <code>icon-512.png</code></td><td role="cell" data-label="Size">192, 512</td><td role="cell" data-label="Purpose"><code>any</code></td><td role="cell" data-label="Notes">The install minimum. Transparent corners are fine.</td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>icon-maskable-192.png</code>, <code>icon-maskable-512.png</code></td><td role="cell" data-label="Size">192, 512</td><td role="cell" data-label="Purpose"><code>maskable</code></td><td role="cell" data-label="Notes">Full-bleed background, with the mark inside the safe zone (below). The launcher crops it to its own shape.</td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>apple-touch-icon-180.png</code></td><td role="cell" data-label="Size">180</td><td role="cell" data-label="Purpose">iOS Home Screen</td><td role="cell" data-label="Notes">Opaque; iOS rounds the corners itself.</td></tr>
+  </tbody>
+</table></div>
+<figure class="safezone-fig">
+  <div class="safezone" role="img" aria-label="A square icon file. A dashed circle inside it touches the middle of each side. A smaller solid square sits inside the circle."><span class="safezone__mark"></span></div>
+  <figcaption>
+    <p><strong>The safe zone</strong> of a maskable icon is a circle whose diameter is 80% of the side. A launcher may crop to a circle, a squircle or a rounded square, so anything outside the circle can be lost. A square mark fits when it is at most 56% of the side (0.8 divided by the square root of two), as the solid square is.</p>
+  </figcaption>
+</figure>
+<p>Do not make the maskable icon by stretching the <code>any</code> icon: the mark has to shrink, and the background has to reach every edge. This script exports all five files from one SVG of the mark, with the same Playwright and Chromium the guide's tests use. It was run here on the sample mark and produced the five sizes, with transparent corners on the <code>any</code> icons and opaque ones on the rest.</p>
+<pre aria-label="make-icons.mjs, which exports the app icons from one SVG">// make-icons.mjs: export the app icons from one SVG, using the same browser the guide's tests use.
+//   node make-icons.mjs mark.svg icons
+// Needs playwright-core (a dev dependency of the guide). Set CHROME_PATH if Playwright cannot find a browser.
+import { chromium } from 'playwright-core'
+import { mkdirSync, readFileSync } from 'node:fs'
+
+const [svgFile = 'mark.svg', outDir = 'icons'] = process.argv.slice(2)
+const mark = 'data:image/svg+xml;base64,' + readFileSync(svgFile).toString('base64')
+const PAPER = '#f5f5f5' // your light canvas; see the theme-color table on the Install page
+
+// size: pixels. fill: the share of the side the whole SVG takes (the mark has its own margin inside it). background: null = transparent.
+const ICONS = {
+  'icon-192.png': { size: 192, fill: 1, background: null },
+  'icon-512.png': { size: 512, fill: 1, background: null },
+  // maskable: the OS crops to a circle of 80% of the side, so a square mark may use 0.8 / sqrt(2) = 56% of it.
+  // The SVG is drawn at 56%, so a mark that sits inside its canvas (this one ends up at 47%) stays inside the circle.
+  'icon-maskable-192.png': { size: 192, fill: 0.56, background: PAPER },
+  'icon-maskable-512.png': { size: 512, fill: 0.56, background: PAPER },
+  // iOS wants an opaque square and rounds the corners itself
+  'apple-touch-icon-180.png': { size: 180, fill: 0.7, background: PAPER },
+}
+
+mkdirSync(outDir, { recursive: true })
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined })
+const page = await browser.newPage()
+for (const [name, { size, fill, background }] of Object.entries(ICONS)) {
+  await page.setViewportSize({ width: size, height: size })
+  await page.setContent(`&lt;body style=&quot;margin:0;display:grid;place-items:center;block-size:100vh;background:${background ?? 'transparent'}&quot;&gt;&lt;img src=&quot;${mark}&quot; style=&quot;inline-size:${fill * 100}%;block-size:${fill * 100}%&quot;&gt;&lt;/body&gt;`)
+  await page.screenshot({ path: `${outDir}/${name}`, omitBackground: background === null })
+  console.log(`${outDir}/${name}`)
+}
+await browser.close()</pre>
+<pre aria-label="mark.svg, the sample mark">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 512 512&quot;&gt;
+  &lt;!-- The mark alone, on a transparent 512 x 512 canvas. Square marks: keep them inside the middle 400. --&gt;
+  &lt;rect x=&quot;56&quot; y=&quot;56&quot; width=&quot;400&quot; height=&quot;400&quot; fill=&quot;none&quot; stroke=&quot;#141414&quot; stroke-width=&quot;32&quot;/&gt;
+  &lt;rect x=&quot;176&quot; y=&quot;176&quot; width=&quot;160&quot; height=&quot;160&quot; fill=&quot;#141414&quot;/&gt;
+&lt;/svg&gt;</pre>
+<p class="t-meta">Set <code>CHROME_PATH</code> if Playwright cannot find a browser. Any image editor does the same job; what matters is the safe zone and the opaque maskable background. Whether a real launcher crops the result as expected was not checked.</p>
+
+<h2 id="standalone">Standalone display and safe areas</h2>
+<p>With <code>display: standalone</code> the browser's back button, reload button and address bar are gone. Build them in:</p>
+<ul>
+  <li><strong>A way back on every screen but the first</strong>: the <a href="@/components/appbar.html">App bar</a>'s named back control, or a <a href="@/components/breadcrumb.html">Breadcrumb</a>. Nothing important may be reachable only by an edge swipe, which collides with the system's back gesture.</li>
+  <li><strong>A way to refresh</strong>: a visible control, or pull-to-refresh with a button beside it (every gesture has a tap equivalent).</li>
+  <li><strong>Know you are installed</strong> when it matters: <code>matchMedia('(display-mode: standalone)').matches</code>, or <code>navigator.standalone === true</code> on iOS. Use it to hide "Install" and, in CSS, <code>@media (display-mode: standalone)</code> to hide an "Open in browser" link.</li>
+  <li><strong>Do not lock orientation</strong>, and keep the dock and the app bar in <code>--dock-h</code> and <code>--appbar-h</code> so focus is never hidden behind them (WCAG 2.4.11).</li>
+</ul>
+<p>The shell does what it can without a device. <code>viewport-fit=cover</code> makes <code>env(safe-area-inset-*)</code> real; <code>.app</code> pads the left and right by <code>max(var(--gutter), var(--safe-left))</code> and its right twin (landscape phones have side insets), <code>.safe-top</code> and <code>.safe-bottom</code> are there for bars and docks, and everything full-height uses <code>100dvh</code>, never <code>vh</code>. <strong>Nothing in the shell depends on the top inset being non-zero</strong>, for the reason in the next box.</p>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div><strong>iOS may report a safe area of 0 and still draw a system strip</strong><p>WebKit bug 301994 ("Status bar remains visible in fullscreen mode in Home Screen web apps") began on iOS 26.1, when a reporter found that <code>env(safe-area-inset-top)</code> now returned 0. Reporters said 26.2 fixed it; on 21 July 2026 one measured it again on iOS 26.5.2: <code>screen.height</code> 874 against <code>innerHeight</code> and <code>100dvh</code> of 812, a 62&nbsp;px gap "drawn by the system above the web layer and unreachable by any DOM element", and a strip colour taken from the page background that updates only when the app is relaunched. An Apple engineer confirmed it on iOS 27 beta and reopened the bug on 5 August 2026. Status when checked on 30 September 2026: <strong>reopened</strong>, last changed 28 August.</p>
+<p>What to do: set the page background (<code>html { background: var(--canvas) }</code> is already in the guide), so the strip matches; do not assume the viewport is as tall as the screen; use a flex column, not <code>position: fixed</code> full-height layers; do not use <code>apple-mobile-web-app-status-bar-style: black-translucent</code> on a light page (community reports say it forces white glyphs, which is not documented by Apple). <strong>None of this was tested on a device.</strong></p></div>
+</div>
+
+<h2 id="theme-color">theme-color per colour scheme</h2>
+<p>Three places say what colour the browser's chrome should be, and they are not the same thing:</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Where theme-color is set and what reads it</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Where</th><th role="columnheader">What it colours</th><th role="columnheader">Notes</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Where">Two <code>&lt;meta name="theme-color"&gt;</code> with <code>media</code></td><td role="cell" data-label="What it colours">The browser toolbar, the title bar of an installed app</td><td role="cell" data-label="Notes">Light and dark pair from the <a href="@/start/install.html#theme-color">Install table</a>. In a Safari tab the bar tint comes from the page background or a fixed element at the edge instead (WebKit bug 301756); in Safari 26 the meta is used for installed apps.</td></tr>
+    <tr role="row"><td role="cell" data-label="Where"><code>theme_color</code> and <code>background_color</code> in the manifest</td><td role="cell" data-label="What it colours">The installed app's title bar and splash screen</td><td role="cell" data-label="Notes">One colour each. Add <code>color_scheme_dark</code> for the dark pair.</td></tr>
+    <tr role="row"><td role="cell" data-label="Where"><code>SG.prefs</code></td><td role="cell" data-label="What it colours">Both metas, live</td><td role="cell" data-label="Notes">When a person overrides the theme or palette, both tags become the live canvas colour, and the original values come back when the override is removed. Checked: choosing dark wrote <code>#0e0e0e</code> into both tags. The manifest cannot follow; it stays at the pair you shipped.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="sw">Service worker</h2>
+<p>A worker is what lets the app start with no network. It is not needed to install. This one precaches the shell (the files the app cannot run without), answers every page navigation with that shell, and keeps everything else fresh in the background. It is the tested code.</p>
+<pre aria-label="sw.js, an offline app shell">/* sw.js: offline app shell. Bump VERSION on every deploy that changes a precached file. */
+const VERSION = 'v1'
+const SHELL = `shell-${VERSION}`          // precached, cache-first, replaced as a whole on update
+const RUNTIME = 'runtime'                 // everything else: stale-while-revalidate
+const RUNTIME_MAX = 60
+const PRECACHE = [
+  './',
+  './index.html',
+  './app.js',
+  './manifest.webmanifest',
+  './styleguide/styleguide.min.css',
+  './styleguide/icons.css',
+  './styleguide/styleguide.min.js',
+  './styleguide/fonts/archivo-latin-var.woff2',
+  './icons/icon-192.png',
+]
+
+self.addEventListener('install', (event) =&gt; {
+  event.waitUntil((async () =&gt; {
+    const cache = await caches.open(SHELL)
+    // cache: 'reload' skips the HTTP cache, so a host that sends max-age cannot hand the worker stale files
+    await cache.addAll(PRECACHE.map((url) =&gt; new Request(url, { cache: 'reload' })))
+    // No skipWaiting() here: the page offers the update and asks for it.
+  })())
+})
+
+self.addEventListener('activate', (event) =&gt; {
+  event.waitUntil((async () =&gt; {
+    for (const key of await caches.keys()) if (key.startsWith('shell-') &amp;&amp; key !== SHELL) await caches.delete(key)
+    await self.clients.claim()
+  })())
+})
+
+self.addEventListener('message', (event) =&gt; {
+  if (event.data &amp;&amp; event.data.type === 'SKIP_WAITING') self.skipWaiting()
+})
+
+self.addEventListener('fetch', (event) =&gt; {
+  const req = event.request
+  if (req.method !== 'GET') return                        // never touch writes
+  const url = new URL(req.url)
+  if (url.origin !== self.location.origin) return         // never touch other origins or APIs
+
+  if (req.mode === 'navigate') {                          // any page address gets the shell
+    event.respondWith((async () =&gt; {
+      const shell = await caches.open(SHELL)
+      return (await shell.match(req, { ignoreSearch: true }))
+        || (await shell.match('./index.html'))
+        || fetch(req)
+    })())
+    return
+  }
+
+  event.respondWith((async () =&gt; {
+    const hit = await (await caches.open(SHELL)).match(req)
+    if (hit) return hit
+    const runtime = await caches.open(RUNTIME)
+    const cached = await runtime.match(req)
+    const network = fetch(req).then(async (res) =&gt; {
+      if (res.ok &amp;&amp; res.type === 'basic') {
+        await runtime.put(req, res.clone())
+        const keys = await runtime.keys()
+        for (const k of keys.slice(0, Math.max(0, keys.length - RUNTIME_MAX))) await runtime.delete(k)
+      }
+      return res
+    })
+    if (cached) { event.waitUntil(network.catch(() =&gt; {})); return cached }
+    return network
+  })())
+})</pre>
+<h3 id="register">Register it, and offer updates</h3>
+<p>The page registers the worker, offers a waiting update and shows the connection. The update is a <a href="@/components/toast.html">Toast</a> with an action, because an update is something the person decides about, and a toast with an action stays until dismissed.</p>
+<p>The script needs two additions to the complete file: a line that loads it after the guide's script, and the banner it shows and hides. The banner is the same banner row the demo below uses. Put it first inside <code>&lt;main&gt;</code>, so it sits above the content on every screen.</p>
+<pre aria-label="Additions to index.html for app.js">&lt;!-- in the head, after the guide's script --&gt;
+&lt;script src=&quot;app.js&quot; defer&gt;&lt;/script&gt;
+
+&lt;!-- first child of &lt;main&gt; --&gt;
+&lt;div class=&quot;card alert&quot; data-tone=&quot;warn&quot; data-size=&quot;sm&quot; id=&quot;offline&quot; hidden&gt;
+  &lt;div class=&quot;card__body&quot;&gt;
+    &lt;span class=&quot;ic ic--wifi-off&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+    &lt;div class=&quot;alert__main&quot;&gt;&lt;p class=&quot;alert__text&quot;&gt;&lt;span class=&quot;sr-only&quot;&gt;Warning: &lt;/span&gt;You are offline. Changes sync when you reconnect.&lt;/p&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+<pre aria-label="app.js, which registers the worker, offers updates and shows the connection state">/* app.js: register the worker, offer updates, show the connection state. */
+(function () {
+  'use strict'
+
+  /* --- service worker + update prompt ------------------------------------------ */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' }).then(function (reg) {
+      function offer(worker) {
+        SG.toast.show({
+          message: 'A new version is ready.',
+          persistent: true,
+          action: { label: 'Reload', onClick: function () { worker.postMessage({ type: 'SKIP_WAITING' }) } },
+        })
+      }
+      if (reg.waiting &amp;&amp; navigator.serviceWorker.controller) offer(reg.waiting)
+      reg.addEventListener('updatefound', function () {
+        var w = reg.installing
+        w.addEventListener('statechange', function () {
+          if (w.state === 'installed' &amp;&amp; navigator.serviceWorker.controller) offer(w)
+        })
+      })
+      // An installed app is rarely cold-started: look for updates whenever it comes back to the front.
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') reg.update().catch(function () {})
+      })
+    })
+    var reloading = false
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (reloading) return
+      reloading = true
+      location.reload()
+    })
+  }
+
+  /* --- connection state: a hint, never a gate ---------------------------------- */
+  var banner = document.getElementById('offline')
+  function sync() {
+    var off = !navigator.onLine
+    if (banner.hidden === !off) return
+    banner.hidden = !off
+    SG.announce(off ? 'You are offline. Changes sync when you reconnect.' : 'Back online.')
+  }
+  window.addEventListener('online', sync)
+  window.addEventListener('offline', sync)
+  sync()
+})()</pre>
+<h3 id="sw-checked">What was checked</h3>
+<p>Served from <code>http://127.0.0.1</code> with the guide's <code>dist</code> files and the code above, in Chromium:</p>
+<ul>
+  <li>First load installs the worker; the next load is controlled by it, and the shell cache held the nine precached files.</li>
+  <li>With the network switched off, a reload rendered the page, with its font; so did <code>/?utm=1</code>.</li>
+  <li>After editing <code>index.html</code> and bumping <code>VERSION</code>, <code>registration.update()</code> found a waiting worker while the page still showed the old version, and the toast appeared. Pressing <em>Reload</em> made exactly one reload, the page showed the new version, and <code>caches.keys()</code> was <code>["runtime", "shell-v2"]</code>: the old shell cache was gone.</li>
+</ul>
+<h3 id="sw-rules">Rules that keep it from biting</h3>
+<ul>
+  <li><strong>Bump <code>VERSION</code> on every deploy that changes a precached file.</strong> A byte change in <code>sw.js</code> is what triggers an install, and the cache name is how old files are dropped. Forget it and installed copies keep the old CSS.</li>
+  <li><strong>Never call <code>skipWaiting()</code> by itself.</strong> Swapping the worker under a page that is open pairs new scripts with old markup and loses a half-filled form. Offer the update and let the person press it.</li>
+  <li><strong><code>updateViaCache: 'none'</code> and <code>cache: 'reload'</code></strong> stop the HTTP cache from handing the worker a stale copy of itself or of the files it precaches. GitHub Pages answered with <code>max-age=600</code> when measured during the research.</li>
+  <li><strong>An installed app is rarely cold-started</strong>, so it checks for an update when it becomes visible again, not only at launch.</li>
+  <li><strong>Navigations are cache-first from a versioned cache</strong>, not stale-while-revalidate: refreshing <code>index.html</code> in the background into the old cache would pair new markup with old assets.</li>
+  <li><strong>Real paths need absolute URLs.</strong> The worker answers <code>/some/deep/route</code> with <code>index.html</code>, and relative URLs in that file then resolve against the deep path: in the test, six requests went to paths under <code>/some/deep/</code> and returned 404. Use root-relative or <code>&lt;base href&gt;</code> URLs, or hash routes, if your app has paths.</li>
+  <li><strong>Storage belongs to the origin, not the path.</strong> <code>localStorage</code>, IndexedDB and Cache Storage are shared by every app on <code>user.github.io</code>. Prefix cache names and storage keys with the app's id. The guide's own key, <code>sg:prefs</code>, is not prefixed, so two apps on one origin share their appearance settings; give each app its own origin if that matters.</li>
+  <li><strong>Precache the other font files</strong> (<code>archivo-latin-ext-var.woff2</code>, <code>archivo-vietnamese-var.woff2</code>) if your content can contain those characters; otherwise offline they fall back to another font.</li>
+  <li>The worker never touches writes or other origins. Queue writes yourself (IndexedDB) and retry on <code>online</code> and when the app becomes visible; Background Sync is Chromium-only.</li>
+</ul>
+
+<h2 id="offline">The offline state</h2>
+<p>Offline is a state the person should see and understand, not an error. Three elements from the guide cover it, and each has a different job:</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Which element shows which part of being offline</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Element</th><th role="columnheader">Shows</th><th role="columnheader">When</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Element"><a href="@/components/alert.html#banner">Alert, banner row</a></td><td role="cell" data-label="Shows">"You are offline. Changes sync when you reconnect."</td><td role="cell" data-label="When">While offline, above the content, on every screen. It is state, so it stays until the state ends.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element"><a href="@/components/empty.html">Empty state</a>, the offline kind</td><td role="cell" data-label="Shows">"You're offline. Saved decks still work." with a way to open what is saved</td><td role="cell" data-label="When">Only where a screen has nothing to show without a connection. It replaces the missing content; it does not sit on top of content you have.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element"><a href="@/components/toast.html">Toast</a></td><td role="cell" data-label="Shows">"Back online. 2 changes synced."</td><td role="cell" data-label="When">At the moment it changes back. Passing, so it does not repeat the banner.</td></tr>
+  </tbody>
+</table></div>
+<p>Press the button to simulate the connection going and coming back. The banner appears and is announced once, politely; coming back is a toast.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="3">
+        <p class="t-label">Tasks</p>
+        <p class="t-title">Today</p>
+        <div class="card alert" data-tone="warn" data-size="sm" id="demo-offline" hidden>
+          <div class="card__body">
+            <span class="ic ic--wifi-off" aria-hidden="true"></span>
+            <div class="alert__main"><p class="alert__text"><span class="sr-only">Warning: </span>You are offline. Changes sync when you reconnect.</p></div>
+          </div>
+        </div>
+        <ul class="stack" role="list" data-gap="2" style="list-style: none; padding: 0; margin: 0">
+          <li>Reply to Mira about the deck</li>
+          <li>Renew the library card</li>
+          <li>Plan Saturday&rsquo;s long run</li>
+        </ul>
+        <button class="btn" type="button" id="demo-toggle" aria-pressed="false">Simulate offline</button>
+      </div>
+    </div>
+  </div>
+</div>
+<pre aria-label="The connection state, without the toast: a banner that is shown and announced">window.addEventListener('offline', sync)
+window.addEventListener('online', sync)
+
+function sync() {
+  var off = !navigator.onLine
+  banner.hidden = !off
+  SG.announce(off ? 'You are offline. Changes sync when you reconnect.' : 'Back online.')
+}</pre>
+<ul>
+  <li><strong><code>navigator.onLine</code> is a hint.</strong> False is reliable; true only means a network interface exists. A request that fails is the real signal, so the screens that fetch should handle their own failure (the Empty state's <em>error</em> and <em>offline</em> kinds) rather than wait for an event.</li>
+  <li><strong>Say what still works</strong> ("Saved decks still work"), and keep what the person typed.</li>
+  <li><strong>The announcement is polite and happens once</strong>, through <code>SG.announce</code>. A live region that is hidden and shown again is not announced reliably, so the banner itself has no <code>role</code>.</li>
+  <li><strong>The device holds the only copy.</strong> Ask for durable storage after the first real action (<code>navigator.storage.persist()</code>; WebKit grants it by heuristics such as being a Home Screen app), say whether it was granted in Settings, and offer an export and import of the data as JSON. Store money as integers in minor units.</li>
+</ul>
+
+<h2 id="install-ui">Install prompts</h2>
+<p>Chromium can tell the page that it is installable (<code>beforeinstallprompt</code>, Chromium only). Safari cannot, so on iPhone you explain where the command is. Either way: no pop-up on the first visit, a button in Settings where a person looks for it, and nothing at all once the app is installed.</p>
+<pre aria-label="install.js, an install button for Chromium and instructions for Safari">/* install.js: offer &quot;Install&quot; only where the browser can install, and only when the person asks. */
+(function () {
+  'use strict'
+
+  var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
+  if (standalone) return                              // already running as an app: show nothing
+
+  var button = document.getElementById('install')     // &lt;button class=&quot;btn&quot; hidden&gt;Install Tasks&lt;/button&gt;
+  var help = document.getElementById('install-help')  // a hidden card that explains Share, then Add to Home Screen
+  var saved = null
+
+  // Chromium fires this when the app is installable. Keep the event; do not interrupt the first visit.
+  window.addEventListener('beforeinstallprompt', function (event) {
+    event.preventDefault()
+    saved = event
+    button.hidden = false
+  })
+
+  button.addEventListener('click', function () {
+    if (!saved) return
+    saved.prompt()
+    saved.userChoice.then(function (choice) {
+      SG.announce(choice.outcome === 'accepted' ? 'Installing Tasks.' : 'Not installed. You can install from Settings later.')
+      saved = null
+      button.hidden = true
+    })
+  })
+
+  window.addEventListener('appinstalled', function () {
+    button.hidden = true
+    SG.announce('Tasks is installed.')
+  })
+
+  // Safari has no install event. On iPhone and iPad, say where the command is (iPadOS reports itself as a Mac).
+  var apple = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' &amp;&amp; navigator.maxTouchPoints &gt; 1)
+  if (apple) help.hidden = false
+})()</pre>
+<p>It needs a script line and two elements, both hidden until the script decides to show one. Put them wherever your settings live:</p>
+<pre aria-label="Additions to index.html for install.js">&lt;script src=&quot;install.js&quot; defer&gt;&lt;/script&gt;
+
+&lt;button class=&quot;btn&quot; type=&quot;button&quot; id=&quot;install&quot; hidden&gt;Install Tasks&lt;/button&gt;
+&lt;section class=&quot;card&quot; id=&quot;install-help&quot; aria-labelledby=&quot;install-help-title&quot; hidden&gt;
+  &lt;div class=&quot;card__body&quot;&gt;
+    &lt;p class=&quot;card__title&quot; id=&quot;install-help-title&quot;&gt;Add to Home Screen&lt;/p&gt;
+    &lt;p class=&quot;card__text&quot;&gt;Tap Share, then Add to Home Screen. It opens as an app.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</pre>
+<p>What a person sees, in a browser that can install and on an iPhone:</p>
+<div class="demo" data-layout="stack" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 16rem">
+      <section class="card" aria-labelledby="ip-1">
+        <div class="card__body">
+          <p class="card__eyebrow">Chrome, Edge, Android</p>
+          <p class="card__title" id="ip-1">Install Tasks</p>
+          <p class="card__text">Opens in its own window and works without a connection.</p>
+          <div class="cluster"><button class="btn" data-variant="primary" type="button">Install Tasks</button></div>
+        </div>
+      </section>
+      <section class="card" aria-labelledby="ip-2">
+        <div class="card__body">
+          <p class="card__eyebrow">iPhone and iPad</p>
+          <p class="card__title" id="ip-2">Add to Home Screen</p>
+          <p class="card__text">Tap Share, then Add to Home Screen. It opens as an app.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<ul>
+  <li><strong>Stash the event</strong> and call <code>prompt()</code> from the person's click; the browser refuses to show it from anywhere else.</li>
+  <li><strong>Hide everything when installed</strong>: <code>display-mode: standalone</code> or <code>navigator.standalone</code>, and the <code>appinstalled</code> event.</li>
+  <li><strong>The handler was exercised with a synthetic event</strong> that has the same shape (<code>prompt()</code>, <code>userChoice</code>): the button appeared, the click called <code>prompt()</code> and hid the button, an iPhone user agent showed the instructions, and standalone mode showed neither. <strong>The browser's own event was not fired</strong>: headless Chromium does not raise it, so the real prompt was never seen.</li>
+  <li>Instructions for iOS are user-agent sniffing, which is fragile. iPadOS reports itself as a Mac, hence the touch-point check. Keep the text short and in Settings.</li>
+</ul>
+
+<h2 id="limits">What could not be verified</h2>
+<ul>
+  <li><strong>Any real device.</strong> Install on Android (and whether a WebAPK is minted) and on iOS; the launcher icon with the maskable image; the splash screen; the title bar colour.</li>
+  <li><strong>iOS standalone safe areas and the status strip</strong> (WebKit 301994 above), and <code>apple-mobile-web-app-status-bar-style</code> values. The advice is from bug reports and community posts, not Apple documentation.</li>
+  <li><strong>Dynamic Type and Android font scale</strong> in an installed app, including <code>&lt;meta name="text-scale"&gt;</code>; the behaviour of iOS Home Screen apps and web-view shells with the OS text size is unknown.</li>
+  <li><strong><code>color_scheme_dark</code></strong> beyond "Chromium does not complain". Whether Safari 27 or any Chromium uses it was not observed.</li>
+  <li><strong>The real <code>beforeinstallprompt</code> event</strong>, Samsung Internet, and Firefox.</li>
+  <li><strong>Safari and WebKit</strong> for everything else here, including the service worker on iOS.</li>
+</ul>
+<p>The scripts to run on a phone are on the <a href="@/accessibility/manual.html">Manual</a> page.</p>
+<style>
+/* Docs-only: tables of words become stacked rows on a phone. Each cell carries its column name
+   (data-label) and the table keeps its ARIA roles, because display: block would otherwise strip
+   the table semantics in some browsers. */
+@media (max-width: 40em) {
+  .docs-table[data-stack] { min-inline-size: 0; }
+  .docs-table[data-stack],
+  .docs-table[data-stack] tbody,
+  .docs-table[data-stack] tr,
+  .docs-table[data-stack] td { display: block; }
+  .docs-table[data-stack] thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: clip;
+    white-space: nowrap;
+  }
+  .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
+  .docs-table[data-stack] tr:last-child { border-block-end: 0; }
+  .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
+  /* the first cell names the row, so it needs no label of its own */
+  .docs-table[data-stack] td:first-child { font-weight: 700; }
+  .docs-table[data-stack] td:first-child::before { display: none; }
+  .docs-table[data-stack] td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--ink-soft);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+}
+
+/* In a wide table a file name or token is a word: keep it whole and let the column take the width,
+   because the docs' "anywhere" wrapping lets a column shrink until "styleguide.css" reads "styleg / uide.c / ss".
+   The table scrolls inside its own focusable wrapper when a row is wider than the column (1.4.10 exempts data tables). */
+@media (min-width: 40em) {
+  .docs-article .docs-table td code { overflow-wrap: break-word; }
+}
+
+/* a long unbreakable word in a note's title (a host name) must wrap at 200% text, not push the note wider */
+.docs-article .note > div { min-inline-size: 0; }
+.docs-article .note strong:first-child { overflow-wrap: anywhere; }
+/* Schematic of a maskable icon. The square is the file, the dashed circle is the safe zone
+   (a circle whose diameter is 80% of the side), the solid square is a mark that fits inside it. */
+.safezone { position: relative; inline-size: 12rem; max-inline-size: 100%; aspect-ratio: 1; flex: 0 1 auto; border: var(--bw) solid var(--line); background: var(--paper-2); }
+.safezone::before { content: ""; position: absolute; inset: 10%; border: var(--bw) dashed var(--line); border-radius: var(--radius-pill); }
+/* the frame is what survives forced colours, which removes the fill: the mark would vanish without it */
+.safezone__mark { position: absolute; inset: 22%; background: var(--ink); border: var(--bw) solid var(--line); }
+.safezone-fig { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-5); }
+.safezone-fig figcaption { flex: 1 1 14rem; min-inline-size: 0; }
+</style>
+<script>
+(function () {
+  var banner = document.getElementById('demo-offline')
+  var toggle = document.getElementById('demo-toggle')
+  var offline = false
+  toggle.addEventListener('click', function () {
+    offline = !offline
+    banner.hidden = !offline
+    toggle.setAttribute('aria-pressed', String(offline))
+    var words = offline ? 'You are offline. Changes sync when you reconnect.' : 'Back online. 2 changes synced.'
+    if (offline) SG.announce(words)
+    else if (SG.toast) SG.toast.show(words) // a toast is announced for you
+    else SG.announce(words)
+  })
+})()
+</script>

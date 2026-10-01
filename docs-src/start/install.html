@@ -1,0 +1,323 @@
+<!--{"title":"Install","group":"Start","order":1,"summary":"Copy dist/, add the head, pick a look with attributes and ship a first screen. A complete index.html, the theme-color values, icons, a content security policy and what to check when it looks wrong."}-->
+<h1>Install</h1>
+<p class="lede">The guide is plain files. Copy them into your app or link a tagged release. There is no package to install and no build step for your app.</p>
+
+<h2 id="files">What is in dist/</h2>
+<p><code>npm run build</code> in the guide's repository writes everything an app needs to <code>dist/</code>. Nothing else in the repository is for apps.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Files in dist and what each is for</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">File</th><th role="columnheader">What it is</th><th role="columnheader">Needed?</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="File"><code>styleguide.css</code></td><td role="cell" data-label="What it is">Every layer, tokens to utilities, with the comments that explain why a rule exists. Read this one when something looks odd.</td><td role="cell" data-label="Needed?">One of the two CSS files</td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>styleguide.min.css</code></td><td role="cell" data-label="What it is">The same CSS with comments and whitespace removed, and the version banner kept. Use it in production.</td><td role="cell" data-label="Needed?">One of the two CSS files</td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>styleguide.js</code></td><td role="cell" data-label="What it is">A plain script that defines <code>window.SG</code>: saved appearance, screen-reader announcements, the <code>aria-disabled</code> guard, and the behaviour of every element that needs script. No modules, so it runs from <code>file://</code> too. It keeps the comments that document every function.</td><td role="cell" data-label="Needed?">Recommended, in one of its two forms. <a href="@/start/customize.html#off">What you lose without it</a></td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>styleguide.min.js</code></td><td role="cell" data-label="What it is">The same script with comments and indentation removed, and the version banner kept. Use it in production; it is well over a third smaller.</td><td role="cell" data-label="Needed?">One of the two script files</td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>icons.css</code></td><td role="cell" data-label="What it is">Well over a hundred more masked icons. The five the owner drew (<code>arrow</code>, <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code>) are already in the main file.</td><td role="cell" data-label="Needed?">Only if you use more than those five. See <a href="#icons">Icons</a></td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>core.min.css</code>, <code>core.min.js</code>, <code>elements/</code>, <code>js/</code></td><td role="cell" data-label="What it is">The main files cut into pieces: the foundation once, then one file per element and one script per element that needs one, each also unminified. <code>elements/manifest.json</code> says what builds on what.</td><td role="cell" data-label="Needed?">Only if you link pieces instead of the whole guide. See <a href="#pieces">Only some elements</a></td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>wire.css</code></td><td role="cell" data-label="What it is">The wireframe placeholders (<code>.wf-*</code>). For designing screens before real elements exist.</td><td role="cell" data-label="Needed?">No. Development only; nothing in the guide depends on it</td></tr>
+    <tr role="row"><td role="cell" data-label="File"><code>fonts/</code></td><td role="cell" data-label="What it is">Archivo Variable in three files (<code>archivo-latin-var.woff2</code>, <code>archivo-latin-ext-var.woff2</code>, <code>archivo-vietnamese-var.woff2</code>) and the licence. A browser downloads a file only when a page uses a character in its range, so an English app pays for the latin file alone.</td><td role="cell" data-label="Needed?">Yes, unless you <a href="@/start/customize.html#font">change the font</a>. Keep the licence next to it</td></tr>
+  </tbody>
+</table></div>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div><strong>Icon licence</strong><p>The icons that are not the owner's come from Lucide (ISC licence), re-stroked to the guide's line. The ISC licence asks that its copyright and permission notice stay with copies. <code>dist/icons.css</code> names Lucide in its banner comment but does not carry the licence text, which lives in <code>src/icons/LICENSE-lucide.txt</code> in the repository. If you ship <code>icons.css</code>, add that file to your app's third-party notices. The font's licence, <code>OFL-Archivo.txt</code>, is already in <code>dist/fonts/</code>.</p></div>
+</div>
+
+<h2 id="copy">Option A: copy the files (recommended)</h2>
+<p>Best for anything installed or offline. The files are same-origin, they go into your precache, and no third party is involved.</p>
+<ol>
+  <li>In the guide's repository run <code>npm run build</code>, or take <code>dist/</code> from a tagged release.</li>
+  <li>Copy what you need into your app and keep the structure:</li>
+</ol>
+<pre aria-label="Folder layout in an app">my-app/
+  index.html
+  styleguide/
+    styleguide.min.css
+    styleguide.min.js
+    icons.css                               (optional, see Icons)
+    fonts/
+      archivo-latin-var.woff2
+      archivo-latin-ext-var.woff2
+      archivo-vietnamese-var.woff2
+      OFL-Archivo.txt</pre>
+<ol start="3">
+  <li>Reference the files with relative URLs, as in the <a href="#minimal">complete index.html</a> below.</li>
+</ol>
+
+<h3 id="font-path">The fonts must sit in fonts/ next to the CSS</h3>
+<p>The stylesheet asks for <code>url("fonts/archivo-latin-var.woff2")</code>. A URL inside a stylesheet is relative to <em>the stylesheet</em>, not to your page. Move the CSS into another folder, or bundle it somewhere else, and that request returns 404. The page still works (text falls back to Helvetica or Arial, with no width axis, so condensed labels look wider), but it is no longer Archivo.</p>
+<p>Two fixes: keep <code>fonts/</code> beside the CSS, or declare the face again in your own CSS with the path you want. Declared after the guide's, the later rule wins and the original file is never requested (checked in Chromium: only the new URL was fetched).</p>
+<pre aria-label="Declaring the font face again with another path">/* In your own CSS, loaded after styleguide.css. */
+@font-face {
+  font-family: &quot;Archivo&quot;;
+  src: url(&quot;/assets/archivo.woff2&quot;) format(&quot;woff2&quot;);
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}</pre>
+<p>This one face has no <code>unicode-range</code>, so it covers every character. Copy the latin-ext and vietnamese files only if you need them and then keep their ranges.</p>
+
+<h2 id="cdn">Option B: link a tagged release from jsDelivr</h2>
+<p>Good for a prototype: nothing to copy. jsDelivr serves any tag of a public GitHub repository, and pins a tag as immutable.</p>
+<pre aria-label="Head lines that load the guide from jsDelivr">&lt;link rel=&quot;preload&quot; href=&quot;https://cdn.jsdelivr.net/gh/chattedomestique/styleguide@v0.2.0/dist/fonts/archivo-latin-var.woff2&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/chattedomestique/styleguide@v0.2.0/dist/styleguide.min.css&quot;&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/gh/chattedomestique/styleguide@v0.2.0/dist/styleguide.min.js&quot; defer&gt;&lt;/script&gt;</pre>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div><strong>Link a tag, not raw GitHub or a branch</strong><p>Headers checked on 30 September 2026: <code>raw.githubusercontent.com</code> answers with <code>content-type: text/plain</code> and <code>x-content-type-options: nosniff</code>, so a browser refuses the file as a stylesheet or a script. A jsDelivr tag URL answered <code>text/css</code> with <code>access-control-allow-origin: *</code> and <code>cache-control: public, max-age=31536000, immutable</code>. A branch URL such as <code>@main</code> is not immutable: it is cached for a while and changes under you.</p></div>
+</div>
+<ul>
+  <li><strong>The tag in the example does not exist yet.</strong> On 30 September 2026 the repository had no tags (GitHub's tags API returned an empty list), so the URL above returns 404 until you push <code>v0.2.0</code> (see <a href="@/start/upgrade.html#release">Upgrade</a>). The URL shape is jsDelivr's documented one, checked against another project's tag; this repository has never served the guide through jsDelivr.</li>
+  <li><strong>It is a runtime dependency.</strong> Offline, the first load fails unless your service worker has cached the three URLs, and a cross-origin stylesheet can only be cached in <code>cors</code> mode. For an installed app use Option A.</li>
+  <li><strong>The preload must use the same full URL</strong> as the one the CSS resolves to, with <code>crossorigin</code>.</li>
+  <li><strong>Optional integrity check.</strong> A tag never changes, so you can pin its hash with <code>integrity="sha384-…"</code> and <code>crossorigin="anonymous"</code> on the stylesheet link. A wrong hash blocks the file.</li>
+</ul>
+<pre aria-label="Command that prints the integrity hash">openssl dgst -sha384 -binary dist/styleguide.min.css | openssl base64 -A</pre>
+
+<h2 id="pieces">Only some elements</h2>
+<p>The build also writes the main file in pieces, so an app can link only what it uses. <code>dist/core.min.css</code> holds the tokens, base, layout and utilities (everything but the elements); <code>dist/elements/&lt;name&gt;.min.css</code> is one element; <code>dist/core.min.js</code> is <code>SG</code>, the prefs, the guard and the disclosure helper; <code>dist/js/&lt;NN-name&gt;.min.js</code> is one element's script. <code>dist/elements/manifest.json</code> says which elements each one builds on and which script each needs.</p>
+<pre aria-label="Linking core and three elements instead of the whole guide">&lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/core.min.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/elements/button.min.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/elements/card.min.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/elements/toast.min.css&quot;&gt;
+&lt;script src=&quot;styleguide/core.min.js&quot; defer&gt;&lt;/script&gt;
+&lt;script src=&quot;styleguide/js/63-toast.min.js&quot; defer&gt;&lt;/script&gt;</pre>
+<ul>
+  <li><strong>Order matters:</strong> core first, then the elements, then <code>core.min.js</code>, then the scripts of the elements you linked. Each element file repeats the layer order, so it cannot arrive in the wrong layer.</li>
+  <li><strong>Checked</strong> with exactly the six lines above: the button drew its 2px pill frame, <code>SG.prefs</code> and <code>SG.toast</code> were defined and a toast showed. The toast's status icons live in <code>icons.css</code>.</li>
+  <li><strong>If an element lists others under <code>buildsOn</code></strong> in the manifest, link those too: it reads their private properties.</li>
+  <li>Palettes, tones and corners are part of core and cannot be left out.</li>
+</ul>
+
+<h2 id="head">The head</h2>
+<p>Each line is in the complete file further down. None is decoration: each prevents a specific failure.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Head elements and why each is needed</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Element</th><th role="columnheader">Why</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Element"><code>&lt;html lang="en"&gt;</code></td><td role="cell" data-label="Why">Screen readers choose a voice and pronunciation from it (WCAG 3.1.1). Set it to the language of the page.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element"><code>viewport</code> with <code>viewport-fit=cover</code></td><td role="cell" data-label="Why">Without <code>cover</code> every <code>env(safe-area-inset-*)</code> is 0 and content can sit under a notch or the home indicator; the app shell and the <code>--safe-*</code> tokens rely on it. <code>interactive-widget=resizes-content</code> makes Chrome on Android shrink the layout when the keyboard opens; iOS Safari ignores it. <strong>Never add</strong> <code>maximum-scale</code> or <code>user-scalable=no</code>: they block pinch zoom (WCAG 1.4.4), and the guide's lint and axe both flag them.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element"><code>color-scheme</code> = <code>light dark</code></td><td role="cell" data-label="Why">Native controls, scrollbars and the page background before the CSS arrives follow the OS scheme. The CSS sets the same value on <code>:root</code>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element">Two <code>theme-color</code> metas with <code>media</code></td><td role="cell" data-label="Why">Colour the browser toolbar to match the canvas in light and dark. Use the pair in <a href="#theme-color">the table below</a>. When a person overrides the theme or palette in your settings, <code>SG.prefs</code> rewrites both tags to the live canvas colour.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element">Inline prefs script</td><td role="cell" data-label="Why">Applies the saved theme, contrast, palette, corners and motion to <code>&lt;html&gt;</code> before the first paint, so a dark-mode user does not see a white flash. It must be inline and in the head, and it is wrapped in <code>try/catch</code> for private windows.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element"><code>&lt;link rel="preload"&gt;</code> for the latin font</td><td role="cell" data-label="Why">Starts the download before the CSS is parsed. <code>crossorigin</code> is required even on the same origin, because fonts are always fetched in CORS mode; without it the file is fetched twice. The complete file below made one request for the font. Drop the preload if you change the font.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element">Stylesheet, then <code>styleguide.min.js</code> with <code>defer</code></td><td role="cell" data-label="Why">A deferred script runs after the page is parsed and before <code>DOMContentLoaded</code>, so <code>SG</code> exists for your own code in a <code>DOMContentLoaded</code> handler or a later deferred script.</td></tr>
+    <tr role="row"><td role="cell" data-label="Element"><code>text-scale</code> = <code>scale</code> (optional)</td><td role="cell" data-label="Why"><code>&lt;meta name="text-scale" content="scale"&gt;</code> asks Chrome and Edge on Android (version 146 and later, per the compatibility data) to scale <code>rem</code> text with the OS font size. Other browsers ignore it. <strong>Not verified on a device.</strong> It scales only text set in <code>rem</code> or <code>em</code>, and can cause sideways scrolling in layouts that use <code>px</code>. The guide uses <code>rem</code> throughout, but it is not in the complete file below because nobody has seen it work.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="theme-color">theme-color values for each palette</h3>
+<p>Read from the page in Chromium as the resolved <code>--canvas</code>. Use the pair of the palette you ship by default. For your own palette, run <code>SG.tokenToHex('--canvas')</code> in the console once in light and once in dark. Higher contrast does not change the canvas, so one pair per palette covers it.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Canvas colour per palette in light and dark, for the theme-color meta tags</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Palette</th><th role="columnheader">Light</th><th role="columnheader">Dark</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Palette">default, and <code>wire</code></td><td role="cell" data-label="Light"><code>#f5f5f5</code></td><td role="cell" data-label="Dark"><code>#0e0e0e</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Palette">mint</td><td role="cell" data-label="Light"><code>#d4faee</code></td><td role="cell" data-label="Dark"><code>#05110e</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Palette">periwinkle</td><td role="cell" data-label="Light"><code>#eff4ff</code></td><td role="cell" data-label="Dark"><code>#0c0e17</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Palette">sand</td><td role="cell" data-label="Light"><code>#e9e8df</code></td><td role="cell" data-label="Dark"><code>#0f0f0b</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Palette">cream</td><td role="cell" data-label="Light"><code>#fff1d5</code></td><td role="cell" data-label="Dark"><code>#110e08</code></td></tr>
+  </tbody>
+</table></div>
+<p>These are the colours <code>SG.prefs</code> writes into the tags after a person changes the look.</p>
+
+<h2 id="minimal">A complete minimal index.html</h2>
+<p>Save this next to a <code>styleguide/</code> folder laid out as above and serve it over http. Any static server works: <code>npx serve</code> in the app folder, or <code>node scripts/serve.mjs /path/to/my-app</code> from the guide's repository (it listens on 127.0.0.1 only). It uses the app shell, the type styles, the layout primitives, the button and two icons, nothing else.</p>
+<pre aria-label="Complete minimal index.html">&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content&quot;&gt;
+  &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#f5f5f5&quot; media=&quot;(prefers-color-scheme: light)&quot;&gt;
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#0e0e0e&quot; media=&quot;(prefers-color-scheme: dark)&quot;&gt;
+  &lt;title&gt;Today · Tasks&lt;/title&gt;
+  &lt;link rel=&quot;icon&quot; href=&quot;data:,&quot;&gt;
+
+  &lt;!-- Apply the saved appearance before first paint (no flash of the wrong theme). --&gt;
+  &lt;script&gt;try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}&lt;/script&gt;
+
+  &lt;link rel=&quot;preload&quot; href=&quot;styleguide/fonts/archivo-latin-var.woff2&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/styleguide.min.css&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/icons.css&quot;&gt;
+  &lt;script src=&quot;styleguide/styleguide.min.js&quot; defer&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;a class=&quot;skip-link&quot; href=&quot;#main&quot;&gt;Skip to content&lt;/a&gt;
+
+  &lt;div class=&quot;app safe-top&quot;&gt;
+    &lt;main class=&quot;app__main stack&quot; id=&quot;main&quot; tabindex=&quot;-1&quot;&gt;
+      &lt;p class=&quot;t-label&quot;&gt;Tasks&lt;/p&gt;
+      &lt;h1 class=&quot;t-title&quot;&gt;Today&lt;/h1&gt;
+      &lt;p class=&quot;t-meta&quot;&gt;&lt;span id=&quot;count&quot; class=&quot;num&quot;&gt;3&lt;/span&gt; tasks left&lt;/p&gt;
+      &lt;div class=&quot;cluster&quot;&gt;
+        &lt;button class=&quot;btn&quot; data-variant=&quot;primary&quot; type=&quot;button&quot; id=&quot;add&quot;&gt;&lt;span class=&quot;ic ic--plus&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;Add task&lt;/button&gt;
+        &lt;button class=&quot;btn&quot; type=&quot;button&quot; id=&quot;reset&quot;&gt;&lt;span class=&quot;ic ic--rotate-ccw&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;Start over&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/main&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    // The guide's script is deferred: it runs before DOMContentLoaded, so SG exists here.
+    document.addEventListener('DOMContentLoaded', function () {
+      var count = document.getElementById('count');
+      var n = 3;
+      function show(message) { count.textContent = n; SG.announce(message); }
+      document.getElementById('add').addEventListener('click', function () { n += 1; show('Task added. ' + n + ' tasks left'); });
+      document.getElementById('reset').addEventListener('click', function () { n = 3; show('Back to 3 tasks'); });
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+<p>What was checked, by loading this exact file in Chromium at 390&nbsp;px wide: no console errors and no failed requests; the latin font loads, and with the preload it is requested once; <kbd>Tab</kbd> lands on the skip link first and <kbd>Enter</kbd> moves focus to <code>&lt;main&gt;</code>; <em>Add task</em> changes the count and puts "Task added. 4 tasks left" into a polite live region; axe reports no violations; a saved dark theme is applied again after a reload. Not checked: Safari, Firefox, any phone.</p>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div><strong>file:// works, with one console error</strong><p>Opened straight from disk the page, its styles and the font all work. The preload with <code>crossorigin</code> logs a CORS error on <code>file://</code> because browsers treat each file as its own origin; the font still loads through the stylesheet, and without the preload there is no error at all. Use http for real testing: service workers need it anyway.</p></div>
+</div>
+
+<h2 id="switches">Choose a look</h2>
+<p>Six attributes change the look. Put them on <code>&lt;html&gt;</code> for the whole app, or on any element to make an island; components never know which is active.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The appearance attributes, their values and what they change</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Attribute</th><th role="columnheader">Values</th><th role="columnheader">Changes</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Attribute"><code>data-palette</code></td><td role="cell" data-label="Values"><code>default</code> (or no attribute), <code>mint</code>, <code>periwinkle</code>, <code>sand</code>, <code>cream</code>, <code>wire</code></td><td role="cell" data-label="Changes">Hue, canvas tint, accent, tone hues. <code>wire</code> is greys only: the squint test.</td></tr>
+    <tr role="row"><td role="cell" data-label="Attribute"><code>data-corners</code></td><td role="cell" data-label="Values"><code>square</code> (default), <code>soft</code></td><td role="cell" data-label="Changes">The three radius roles. Pills and circles stay round.</td></tr>
+    <tr role="row"><td role="cell" data-label="Attribute"><code>data-theme</code></td><td role="cell" data-label="Values"><code>light</code>, <code>dark</code>; absent follows the device</td><td role="cell" data-label="Changes">Colours.</td></tr>
+    <tr role="row"><td role="cell" data-label="Attribute"><code>data-contrast</code></td><td role="cell" data-label="Values"><code>more</code>; absent follows the device; <code>off</code> ignores a device request</td><td role="cell" data-label="Changes">Lightness gaps: text 7:1 or more everywhere, and the accent collapses to ink. Page-wide only: it does not work on an island.</td></tr>
+    <tr role="row"><td role="cell" data-label="Attribute"><code>data-motion</code></td><td role="cell" data-label="Values"><code>reduced</code>, <code>full</code>; absent follows the device</td><td role="cell" data-label="Changes">Travel and durations (<code>--move</code> goes to 0). Page-wide only.</td></tr>
+    <tr role="row"><td role="cell" data-label="Attribute"><code>data-tone</code></td><td role="cell" data-label="Values"><code>1</code> to <code>6</code>, <code>ink</code>, <code>ok</code>, <code>warn</code>, <code>bad</code>, <code>info</code> (with <code>data-emphasis="bold"</code> on the same element)</td><td role="cell" data-label="Changes">A fill and its text, on that element only.</td></tr>
+  </tbody>
+</table></div>
+<div class="demo" data-layout="stack" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 15rem">
+      <div class="card" data-palette="default" data-theme="light"><div class="card__body"><p class="card__eyebrow">default, light</p><p class="card__title">Weekly goal</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></div>
+      <div class="card" data-palette="mint" data-theme="light" data-corners="soft"><div class="card__body"><p class="card__eyebrow">mint, soft corners</p><p class="card__title">Weekly goal</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></div>
+      <div class="card" data-palette="wire" data-theme="dark"><div class="card__body"><p class="card__eyebrow">wire, dark</p><p class="card__title">Weekly goal</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></div>
+    </div>
+  </div>
+</div>
+<p>Three islands: each <code>.card</code> carries its own attributes. The <strong>Appearance</strong> panel at the top of this site sets the same attributes on <code>&lt;html&gt;</code>.</p>
+
+<h3 id="prefs">Let people choose: SG.prefs</h3>
+<p>Give every app a settings screen with these five controls; some people cannot change the operating system's. <code>SG.prefs</code> stores the choices under the <code>sg:prefs</code> key in <code>localStorage</code> and applies them as attributes on <code>&lt;html&gt;</code>; the inline snippet in the head applies them again before first paint.</p>
+<pre aria-label="The SG.prefs API">SG.prefs.set('palette', 'mint')       // theme | contrast | palette | corners | motion
+SG.prefs.set('theme', 'system')       // &quot;system&quot; removes the attribute: follow the device
+SG.prefs.get('theme')                 // &quot;system&quot; | &quot;light&quot; | &quot;dark&quot;
+SG.prefs.all()                        // { theme: &quot;system&quot;, contrast: &quot;system&quot;, palette: &quot;default&quot;, corners: &quot;square&quot;, motion: &quot;system&quot; }
+SG.prefs.onChange(function (name, value) { /* keep your settings screen in step */ })
+SG.prefs.reset()                      // forget everything, follow the device</pre>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div><strong>Known limit: a chosen default is not saved</strong><p>"No attribute" is the default, so <code>default</code> and <code>square</code> are stored as nothing. If your HTML says <code>data-palette="mint"</code> and a person picks <em>default</em>, the attribute is removed and nothing is stored, so the next page load is mint again. <code>SG.prefs.reset()</code> also removes the attributes you wrote until the next load. Checked in Chromium.</p>
+<p>Until <code>SG.prefs</code> can store an explicit default, pick one:</p>
+<ul>
+  <li>Leave your look in the HTML alone, and do not offer <em>default</em> and <em>square</em> as choices when your app's own look differs.</li>
+  <li>Treat "never saved" as your app's default in the head snippet (<code>localStorage.getItem('sg:prefs') === null</code>), so a saved <code>{}</code> means "they chose the guide's default". It works, with one wart: choosing the default palette also drops your default corners on the next load.</li>
+</ul></div>
+</div>
+
+<h2 id="icons">Icons</h2>
+<p>Icons are CSS masks, so they take the text colour and need no sprite:</p>
+<pre aria-label="Markup for a decorative icon next to a label">&lt;button class=&quot;btn&quot; type=&quot;button&quot;&gt;
+  &lt;span class=&quot;ic ic--plus&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;Add task
+&lt;/button&gt;</pre>
+<ul>
+  <li><strong>Five are built in</strong> (<code>arrow</code>, <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code>). Every other name needs <code>icons.css</code> linked after the main file. Browse them on the <a href="@/foundations/icons.html">Icons</a> page.</li>
+  <li><strong>An icon with no mask paints a solid square.</strong> Use a name that does not exist, or forget <code>icons.css</code>, and the span is a 20&nbsp;px block of text colour (checked). The build fails for a missing name in this site's own pages; your app needs a look at the screen.</li>
+  <li><strong>Icons are decorative by default.</strong> They are <code>aria-hidden</code>; when one is a control's only content, the control carries the <code>aria-label</code>. Size them with <code>--ic-size</code> (default 1.25rem).</li>
+</ul>
+
+<h2 id="csp">Content Security Policy</h2>
+<p>Two things in the guide meet a strict policy: the one inline script, and the icon masks.</p>
+<ol>
+  <li><strong>The prefs snippet is inline.</strong> Allow that one script by hash. The hash is over the exact text between the tags, so whitespace matters; this prints it for the snippet as written in the complete file above:
+<pre aria-label="Command that prints the CSP hash of the prefs snippet">printf '%s' &quot;try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}&quot; | openssl dgst -sha256 -binary | openssl base64 -A</pre>
+    Put the result in <code>script-src 'self' 'sha256-…'</code>. Without it the snippet is refused (checked), and the saved look is applied a moment later by the guide's script: you keep the theme but lose the no-flash guarantee.</li>
+  <li><strong>The icon masks are <code>data:</code> URIs.</strong> A policy of <code>default-src 'self'</code> alone refuses them as images and every icon paints as a solid square (checked: "Refused to load the image 'data:image/svg+xml…'"). Add <code>img-src 'self' data:</code>.</li>
+</ol>
+<pre aria-label="A policy that works with the guide">Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-HASH-FROM-ABOVE'; img-src 'self' data:</pre>
+<p>Checked in Chromium with exactly this policy: the guide, its font and its icons load. <strong>Your own inline scripts are blocked too.</strong> The last script in the complete file above is the example app's own code, not the guide's, and this policy refuses it (checked: <em>Add task</em> stops counting). Put your code in a file (<code>&lt;script src="app.js" defer&gt;</code>), which <code>'self'</code> allows, as the <a href="@/start/pwa.html#register">PWA page</a> does. The guide's own CSS has no inline styles, so it needs nothing in <code>style-src</code>. Inline <code>style="…"</code> attributes in your own markup (the docs here use <code>style="--grid-min: 14rem"</code>) are blocked by a strict <code>style-src</code>; put them in a class instead.</p>
+
+<h2 id="cache">Caching and offline</h2>
+<ul>
+  <li><strong>File names are not hashed.</strong> <code>styleguide.min.css</code> is the same URL in every release, so a browser or service worker can keep serving an old copy. Put the version in the folder name (<code>styleguide-0.2.0/</code>) or bump your service worker's cache name on every upgrade.</li>
+  <li><strong>Precache</strong> your HTML, the CSS, the script, the latin font, <code>icons.css</code> if you use it, and the latin-ext and vietnamese fonts if your content needs them. The <a href="@/start/pwa.html#sw">PWA page</a> has a working service worker.</li>
+  <li><strong>Static hosts cache briefly.</strong> GitHub Pages answered with <code>max-age=600</code> when measured during the research for this guide, so allow ten minutes of stale files after a deploy, or use the versioned-folder approach.</li>
+  <li><strong>Which version does an app have?</strong> Both CSS files start with a banner: <code>head -c 120 styleguide/styleguide.min.css</code> prints <code>/*! styleguide v0.2.0 …</code>. There are no source maps.</li>
+</ul>
+
+<h2 id="verify">Check that it works</h2>
+<p>Paste into the browser console on your page:</p>
+<pre aria-label="Console commands that confirm the guide is loaded">document.fonts.check('16px &quot;Archivo&quot;')                                   // true once the font is ready
+typeof SG                                                              // &quot;object&quot;
+getComputedStyle(document.documentElement).getPropertyValue('--hit')   // &quot;2.75rem&quot;
+SG.prefs.all()   // { theme: &quot;system&quot;, contrast: &quot;system&quot;, palette: &quot;default&quot;, corners: &quot;square&quot;, motion: &quot;system&quot; }</pre>
+<p>All four gave those answers on the complete file above. <code>document.fonts.check</code> is also true when nothing on the page needs the font, so it proves the font is <em>usable</em>, not that it was fetched: look at the Network tab for <code>archivo-latin-var.woff2</code>.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Common install problems, their cause and the fix</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Symptom</th><th role="columnheader">Likely cause</th><th role="columnheader">Fix</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Symptom">Text looks like Arial</td><td role="cell" data-label="Likely cause">The font request returns 404 (Network tab), usually because the CSS moved away from <code>fonts/</code>.</td><td role="cell" data-label="Fix">Keep <code>fonts/</code> next to the CSS, or <a href="#font-path">declare the face again</a>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Symptom">Icons are solid squares</td><td role="cell" data-label="Likely cause">The name has no mask: <code>icons.css</code> is not linked, the name is misspelt, or a content security policy refuses <code>data:</code> images.</td><td role="cell" data-label="Fix">Link <code>icons.css</code> after the main file, check the name, and add <code>img-src 'self' data:</code>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Symptom">A white flash in dark mode</td><td role="cell" data-label="Likely cause">The prefs snippet is missing, blocked by a policy, or sits at the end of <code>&lt;body&gt;</code>.</td><td role="cell" data-label="Fix">Inline, in the head, and allowed by hash.</td></tr>
+    <tr role="row"><td role="cell" data-label="Symptom"><code>SG is not defined</code></td><td role="cell" data-label="Likely cause">The script returns 404, or your code ran before it.</td><td role="cell" data-label="Fix">Load it with <code>defer</code>; run your code on <code>DOMContentLoaded</code>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Symptom">Your CSS does not win</td><td role="cell" data-label="Likely cause">Your rule is inside an <code>@layer</code> that was declared before the guide's stylesheet.</td><td role="cell" data-label="Fix">Write it unlayered, or see <a href="@/start/customize.html#layers">cascade layers</a>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Symptom">iOS zooms in when a field is focused</td><td role="cell" data-label="Likely cause">A field's font size is under 16&nbsp;px.</td><td role="cell" data-label="Fix">Use <code>font: var(--type-body)</code> or larger on inputs; the guide's Input already does.</td></tr>
+    <tr role="row"><td role="cell" data-label="Symptom">Content sits under the notch or the home bar</td><td role="cell" data-label="Likely cause">No <code>viewport-fit=cover</code>, or no safe-area padding.</td><td role="cell" data-label="Fix">Use <code>.app</code>, <code>.safe-top</code>, <code>.safe-x</code> and the <code>--safe-*</code> tokens.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="next">Next</h2>
+<ul>
+  <li><a href="@/start/customize.html">Customize</a>: palettes, corners, the font and overrides that keep working.</li>
+  <li><a href="@/start/pwa.html">PWA</a>: make it installable and offline.</li>
+  <li><a href="@/start/upgrade.html">Upgrade</a>: coming from the original sheet, versions and what can break.</li>
+  <li><a href="@/accessibility/checklist.html">Accessibility checklist</a>: what every screen you build on this must pass.</li>
+</ul>
+<style>
+/* Docs-only: tables of words become stacked rows on a phone. Each cell carries its column name
+   (data-label) and the table keeps its ARIA roles, because display: block would otherwise strip
+   the table semantics in some browsers. */
+@media (max-width: 40em) {
+  .docs-table[data-stack] { min-inline-size: 0; }
+  .docs-table[data-stack],
+  .docs-table[data-stack] tbody,
+  .docs-table[data-stack] tr,
+  .docs-table[data-stack] td { display: block; }
+  .docs-table[data-stack] thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: clip;
+    white-space: nowrap;
+  }
+  .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
+  .docs-table[data-stack] tr:last-child { border-block-end: 0; }
+  .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
+  /* the first cell names the row, so it needs no label of its own */
+  .docs-table[data-stack] td:first-child { font-weight: 700; }
+  .docs-table[data-stack] td:first-child::before { display: none; }
+  .docs-table[data-stack] td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--ink-soft);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+}
+
+/* In a wide table a file name or token is a word: keep it whole and let the column take the width,
+   because the docs' "anywhere" wrapping lets a column shrink until "styleguide.css" reads "styleg / uide.c / ss".
+   The table scrolls inside its own focusable wrapper when a row is wider than the column (1.4.10 exempts data tables). */
+@media (min-width: 40em) {
+  .docs-article .docs-table td code { overflow-wrap: break-word; }
+}
+
+/* a long unbreakable word in a note's title (a host name) must wrap at 200% text, not push the note wider */
+.docs-article .note > div { min-inline-size: 0; }
+.docs-article .note strong:first-child { overflow-wrap: anywhere; }
+</style>
