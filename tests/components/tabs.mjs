@@ -183,6 +183,9 @@ export const tests = [
       await expect.attr(page, '#tabs-h-t2', 'aria-selected', 'true', 'a hash naming the tab itself works too')
       // A link inside the panel that points at another panel switches tabs (hashchange).
       await page.locator('#tabs-h-p2 a').click()
+      // hashchange is a queued event, so it can arrive after click() returns (it did under load): wait for it, up
+      // to 2s, before asserting. The assertion itself is unchanged.
+      await page.waitForFunction(() => document.getElementById('tabs-h-t1').getAttribute('aria-selected') === 'true', null, { timeout: 2000 }).catch(() => {})
       await expect.attr(page, '#tabs-h-t1', 'aria-selected', 'true', 'in-page link to another panel selects it')
     },
   },
