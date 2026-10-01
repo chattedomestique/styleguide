@@ -276,11 +276,74 @@ export const tests = [
       await b.hover()
       await page.waitForTimeout(400)
       expect.equal((await nums()).lift, 1, 'hover lifts')
+      expect.equal((await nums()).fill, 0, 'hover is an outline: the solid fill is the chosen day\'s alone')
       await page.mouse.down()
       await page.waitForTimeout(300)
       expect.equal((await nums()).lift, 0, 'pressed sinks')
+      expect.equal((await nums()).fill, 0.15, 'pressed: a light tint, at once')
       await page.mouse.move(0, 0)
       await page.mouse.up()
+      const chosen = await page.locator(`${M} td[aria-selected="true"] > .cal__day`).evaluate((el) => { el.classList.add('is-active'); return Number(getComputedStyle(el).getPropertyValue('--fill')) })
+      expect.equal(chosen, 1, 'the chosen day stays filled while pressed')
+    },
+  },
+  {
+    name: 'unavailable days are quiet: no frame, a faint numeral struck through',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const r = await page.locator('#demo-range .cal .cal__day[data-date="2026-09-10"]').evaluate((el) => {
+        const cs = getComputedStyle(el), n = getComputedStyle(el.querySelector('.cal__num'))
+        return { border: cs.borderTopColor, style: cs.borderTopStyle, deco: n.textDecorationLine }
+      })
+      expect.equal(r.border, 'rgba(0, 0, 0, 0)', 'no frame round an unavailable day')
+      expect.ok(r.style !== 'dashed', 'no dashed circle')
+      expect.equal(r.deco, 'line-through', 'struck through: a cue that is not colour')
+    },
+  },
+  {
+    name: 'the chosen day\'s events share one time column, so their titles line up',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      const r = await page.locator('#demo-month .cal__event .cal__what').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().left)))
+      expect.ok(r.length >= 3, `three events (${r.length})`)
+      expect.equal(new Set(r).size, 1, `titles start at one x (${r.join(', ')})`)
+    },
+  },
+  {
+    name: 'at 200% text the head stays one row and every day is a circle that holds its numeral',
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(300)
+      for (const id of ['#demo-month', '#demo-range', '#demo-locale']) {
+        const r = await page.locator(`${id} .cal`).evaluate((cal) => {
+          const head = [...cal.querySelector('.cal__head').children].map((c) => c.getBoundingClientRect())
+          const mid = (b) => b.top + b.height / 2
+          const days = [...cal.querySelectorAll('.cal__day')].map((d) => { const b = d.getBoundingClientRect(), n = d.querySelector('.cal__num').getBoundingClientRect(); return { w: b.width, h: b.height, fits: n.width <= d.clientWidth + 0.5 } })
+          return { oneRow: Math.abs(mid(head[0]) - mid(head[2])) < 2 && head[1].left > head[0].right && head[2].left > head[1].right, ovals: days.filter((d) => Math.abs(d.w - d.h) > 1.5).length, spill: days.filter((d) => !d.fits).length }
+        })
+        expect.ok(r.oneRow, `${id}: [prev] [month] [next] on one row`)
+        expect.equal(r.ovals, 0, `${id}: every day is round`)
+        expect.equal(r.spill, 0, `${id}: every numeral fits inside its circle`)
+      }
+    },
+  },
+  {
+    name: 'a week strip that cannot give seven 44px days scrolls with snap, and shows the chosen day',
+    viewport: { width: 320, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto('components/calendar.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(400)
+      const r = await page.locator('#demo-week .cal').evaluate((cal) => {
+        const box = cal.querySelector('.cal__scroll'), b = box.getBoundingClientRect()
+        const td = cal.querySelector('td[aria-selected="true"]').getBoundingClientRect()
+        return { scrolls: box.scrollWidth > box.clientWidth + 1, snap: getComputedStyle(box).scrollSnapType, cell: cal.querySelector('tbody td').getBoundingClientRect().width, inView: td.left >= b.left - 1 && td.right <= b.right + 1 }
+      })
+      expect.ok(r.scrolls, 'the strip scrolls')
+      expect.ok(/x/.test(r.snap), `with snap (${r.snap})`)
+      expect.ok(r.cell >= 42.9, `days keep their width (${r.cell.toFixed(1)}px)`)
+      expect.ok(r.inView, 'the chosen day is in view')
     },
   },
   {

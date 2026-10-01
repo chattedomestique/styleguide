@@ -127,4 +127,16 @@ export const tests = [
       expect.ok(r.stroke !== 'none' && r.tile !== 'none', `stroke ${r.stroke}, tile ${r.tile}`)
     },
   },
+  {
+    name: 'From data: the page shows the ring that SG.chart.donut returns, beside its legend and total',
+    async run({ page, goto, expect }) {
+      await goto('components/donut.html')
+      const r = await page.locator('#demo-data').evaluate((el) => { const svg = el.querySelector('svg.donut__ring'); return svg && { label: svg.getAttribute('aria-label'), segs: svg.querySelectorAll('.donut__seg').length, pats: svg.querySelectorAll('.donut__pat').length, centreAfter: !!svg.nextElementSibling && svg.nextElementSibling.classList.contains('donut__centre') } })
+      expect.ok(r, 'a ring was built')
+      expect.ok(/Essentials in April, \$1,056 in total/.test(r.label), `the label from the code (${r.label})`)
+      expect.equal(r.segs, 3, 'three sectors')
+      expect.equal(r.pats, 2, 'tones 2 and 3 carry their patterns')
+      expect.ok(r.centreAfter, 'inserted before the total, as the code says (afterbegin)')
+    },
+  },
 ]

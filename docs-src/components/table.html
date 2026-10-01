@@ -38,10 +38,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr><th scope="row">Nike Store</th><td>Clothing</td><td><time datetime="2026-04-08">8 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="-142">−$142.00</td></tr>
-            <tr><th scope="row">Apple Store</th><td>Electronics</td><td><time datetime="2026-04-08">8 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="-1199">−$1,199.00</td></tr>
-            <tr><th scope="row">Uber</th><td>Transport</td><td><time datetime="2026-04-07">7 Apr</time></td><td>Wallet</td><td data-align="end" data-value="-18.4">−$18.40</td></tr>
-            <tr><th scope="row">Zara refund</th><td>Clothing</td><td><time datetime="2026-04-06">6 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="64.9">+$64.90</td></tr>
+            <tr><th scope="row">Sports outlet</th><td>Clothing</td><td><time datetime="2026-04-08">8 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="-142">−$142.00</td></tr>
+            <tr><th scope="row">Tech store</th><td>Electronics</td><td><time datetime="2026-04-08">8 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="-1199">−$1,199.00</td></tr>
+            <tr><th scope="row">City bikes</th><td>Transport</td><td><time datetime="2026-04-07">7 Apr</time></td><td>Wallet</td><td data-align="end" data-value="-18.4">−$18.40</td></tr>
+            <tr><th scope="row">Outlet refund</th><td>Clothing</td><td><time datetime="2026-04-06">6 Apr</time></td><td>Card ending 4021</td><td data-align="end" data-value="64.9">+$64.90</td></tr>
             <tr><th scope="row">Fuel</th><td>Transport</td><td><time datetime="2026-04-05">5 Apr</time></td><td>Wallet</td><td data-align="end" data-value="-52.3">−$52.30</td></tr>
             <tr><th scope="row">Salary</th><td>Income</td><td><time datetime="2026-04-01">1 Apr</time></td><td>Bank transfer</td><td data-align="end" data-value="3200">+$3,200.00</td></tr>
           </tbody>
@@ -132,8 +132,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><th scope="row">Nike Store</th><td>Card ending 4021</td><td data-align="end" data-value="-142">−$142.00</td><td data-align="end">$11.36</td></tr>
-                  <tr><th scope="row">Uber</th><td>Wallet</td><td data-align="end" data-value="-18.4">−$18.40</td><td data-align="end">$0.00</td></tr>
+                  <tr><th scope="row">Sports outlet</th><td>Card ending 4021</td><td data-align="end" data-value="-142">−$142.00</td><td data-align="end">$11.36</td></tr>
+                  <tr><th scope="row">City bikes</th><td>Wallet</td><td data-align="end" data-value="-18.4">−$18.40</td><td data-align="end">$0.00</td></tr>
                   <tr><th scope="row">Fuel</th><td>Wallet</td><td data-align="end" data-value="-52.3">−$52.30</td><td data-align="end">$4.18</td></tr>
                 </tbody>
               </table>
@@ -185,8 +185,8 @@
   <li><strong>Row name</strong> (<code>&lt;th scope="row"&gt;</code>): sticky at the start edge, opaque, with a 1px rule that is a real border.</li>
   <li><strong>Numbers</strong>: <code>data-align="end"</code> right-aligns and turns on tabular, lining figures.</li>
   <li><strong>Row rules</strong>: 1px between rows, none after the last (the frame closes it). No zebra: nothing depends on telling two greys apart.</li>
-  <li><strong>Check column</strong> (optional): a 44px label around a 20px box. Checked = filled with a check mark; some = a dash.</li>
-  <li><strong>Hint</strong> (<code>.tbl__hint</code>): shown by <code>SG.table</code> only while the region overflows.</li>
+  <li><strong>Check column</strong> (optional): a 44px label around a 20px box, at every text size. Checked = filled with a check mark; some = a dash. On the ink header the box's frame is paper, so an empty "select all" reads as empty.</li>
+  <li><strong>Hint</strong> (<code>.tbl__hint</code>): shown by <code>SG.table</code> only while the region overflows. Its arrow points the way the table scrolls and sits on the first line of the sentence.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -200,6 +200,7 @@
     <tr><td><code>--tbl-max-h</code></td><td>a length</td><td>On <code>.tbl__scroll</code>: makes the region scroll vertically too, and the header bar sticks.</td></tr>
     <tr><td><code>data-select</code></td><td>on <code>.tbl</code></td><td>The first column is a checkbox column (<code>label.tbl__check</code> with an <code>input</code> and a <code>span.tbl__box</code>); the name column becomes the second sticky one.</td></tr>
     <tr><td><code>data-align="end"</code></td><td>on <code>th</code>, <code>td</code></td><td>Right-aligned with tabular figures.</td></tr>
+    <tr><td><code>data-wrap</code></td><td>on <code>td</code></td><td>A cell of prose that may wrap. Every other value stays on one line, so rows keep one height and the region scrolls instead.</td></tr>
     <tr><td><code>.tbl__sort</code></td><td>a <code>button</code> in a <code>th</code></td><td>Sortable header. <code>SG.table</code> sets <code>aria-sort</code> on the <code>th</code>.</td></tr>
     <tr><td><code>aria-sort</code></td><td><code>ascending</code>, <code>descending</code></td><td>The sorted column. Put it on the <code>th</code> for the initial order.</td></tr>
     <tr><td><code>data-value</code></td><td>on <code>td</code></td><td>The sort key when the text is not it (prices, durations). Otherwise <code>&lt;time datetime&gt;</code>, then the text.</td></tr>
@@ -223,7 +224,7 @@
     <tr><td>Arrow keys</td><td>With focus on the scroll region, they scroll it. (Screen-reader table commands move cell by cell.)</td></tr>
     <tr><td>Screen reader</td><td>"Transactions, April, region", then "table with 7 rows and 5 columns". Headers are <code>th scope</code>; the sorted one announces "sorted descending". Sorting is announced ("Sorted by Amount, ascending") through the polite live region. A selected row announces "selected".</td></tr>
     <tr><td>Touch</td><td>Every header and checkbox cell is at least 44px; rows are 44px. Sorting is a tap, not a gesture. The region scrolls with a swipe and with the keyboard.</td></tr>
-    <tr><td>Zoom / text size</td><td>Rows grow, nothing is fixed in px. At 320px or 200% text the table keeps its width and the region scrolls (tables are an exception to reflow, WCAG 1.4.10); the first column stays.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow; the 44px rows, the cell insets and the checkbox do not (they are chrome), so the room goes to the words, and a squeezed region tightens its side insets from 12px to 8px. At 320px or 200% text the table keeps its width and the region scrolls (tables are an exception to reflow, WCAG 1.4.10). Values stay on one line and no word is broken inside; the first column stays put while it takes less than about half the region, and scrolls with the rest when it would take more.</td></tr>
     <tr><td>Reduced motion</td><td>The only motion is the header fill and the checkbox lift; the lift's travel is multiplied by <code>--move</code>, so it becomes a plain fill.</td></tr>
     <tr><td>Forced colours</td><td>Frame and rules become <code>CanvasText</code>; hover and focus on a sort button draw a 4px <code>Highlight</code> outline; checked boxes get a 4px frame; a selected row gets a 4px <code>Highlight</code> edge.</td></tr>
   </tbody>

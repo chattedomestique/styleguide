@@ -49,7 +49,7 @@ export const tests = [
         return { heads, first }
       }, TX)
       expect.equal(r.heads.join(','), ',,,,ascending', 'only Amount is sorted; Date lost its initial aria-sort')
-      expect.equal(r.first[0], 'Apple Store', 'the most negative amount comes first when ascending')
+      expect.equal(r.first[0], 'Tech store', 'the most negative amount comes first when ascending')
     },
   },
   {
@@ -59,14 +59,14 @@ export const tests = [
       const order = () => page.evaluate((sel) => [...document.querySelector(sel + ' table').tBodies[0].rows].map((tr) => tr.cells[0].textContent.trim()).join(','), TX)
       const amount = page.locator(`${TX} .tbl__sort`, { hasText: 'Amount' })
       await amount.click()
-      expect.equal(await order(), 'Apple Store,Nike Store,Fuel,Uber,Zara refund,Salary', 'ascending: −$1,199 first, +$3,200 last')
+      expect.equal(await order(), 'Tech store,Sports outlet,Fuel,City bikes,Outlet refund,Salary', 'ascending: −$1,199 first, +$3,200 last')
       await expect.attr(page, `${TX} th:has(.tbl__sort:text("Amount"))`, 'aria-sort', 'ascending')
       await amount.click()
-      expect.equal(await order(), 'Salary,Zara refund,Uber,Fuel,Nike Store,Apple Store', 'descending reverses')
+      expect.equal(await order(), 'Salary,Outlet refund,City bikes,Fuel,Sports outlet,Tech store', 'descending reverses')
       await expect.attr(page, `${TX} th:has(.tbl__sort:text("Amount"))`, 'aria-sort', 'descending')
       const date = page.locator(`${TX} .tbl__sort`, { hasText: 'Date' })
       await date.click()
-      expect.equal(await order(), 'Salary,Fuel,Zara refund,Uber,Nike Store,Apple Store', 'date ascending; ties keep their order (stable)')
+      expect.equal(await order(), 'Salary,Fuel,Outlet refund,City bikes,Sports outlet,Tech store', 'date ascending; ties keep their order (stable)')
       expect.equal(await page.locator(`${TX} th[aria-sort]`).count(), 1, 'exactly one sorted header')
     },
   },
@@ -281,6 +281,53 @@ export const tests = [
       const r = await page.evaluate(() => [...document.querySelectorAll('.demo .tbl')].map((t) => ({ id: t.closest('.demo').id, scrolls: t.querySelector('.tbl__scroll').scrollWidth > t.querySelector('.tbl__scroll').clientWidth + 1, hint: !!t.querySelector('.tbl__hint') && getComputedStyle(t.querySelector('.tbl__hint')).display !== 'none' })))
       expect.ok(r.length >= 5, `table demos (${r.length})`)
       for (const t of r.filter((x) => x.scrolls)) expect.ok(t.hint, `${t.id} scrolls sideways and shows the hint`)
+    },
+  },
+  {
+    name: 'a scrolling table keeps one row height: values stay on one line, names fit their column, at 390 and 320px',
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => ['#demo-tx', '#demo-phone'].map((id) => {
+          const t = document.querySelector(id + ' table')
+          return { id, heights: [...new Set([...t.tBodies[0].rows].slice(0, -1).map((tr) => Math.round(tr.getBoundingClientRect().height)))], wraps: [...t.querySelectorAll('tbody td')].filter((td) => getComputedStyle(td).whiteSpace !== 'nowrap').length }
+        }))
+        for (const x of r) {
+          expect.equal(x.heights.length, 1, `${w}px ${x.id}: every row is one height (${x.heights})`)
+          expect.equal(x.wraps, 0, `${w}px ${x.id}: values never wrap`)
+        }
+      }
+    },
+  },
+  {
+    name: 'at 200% text no row name breaks inside a word, and the hint arrow is horizontal, text-sized and on the first line',
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(300)
+      const r = await page.evaluate(() => {
+        const lines = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); const tops = []; for (const q of rg.getClientRects()) if (q.width > 0 && !tops.some((y) => Math.abs(y - q.top) < 4)) tops.push(q.top); return tops.length }
+        const names = [...document.querySelectorAll('.demo .tbl tbody th')].map((th) => ({ text: th.textContent.trim(), lines: lines(th), words: th.textContent.trim().split(/\s+/).length }))
+        const hint = document.querySelector('#demo-tx .tbl__hint'), cs = getComputedStyle(hint, '::before'), hs = getComputedStyle(hint)
+        return { broken: names.filter((n) => n.lines > n.words).map((n) => n.text), mask: cs.maskImage, h: parseFloat(cs.blockSize), lh: parseFloat(hs.lineHeight), align: hs.alignItems }
+      })
+      expect.equal(r.broken.join(', '), '', 'no name is broken inside a word')
+      expect.ok(/M4 12h15/.test(decodeURIComponent(r.mask)), 'the arrow is horizontal (it points the way the table scrolls)')
+      expect.ok(Math.abs(r.h - r.lh) < 1 && r.align === 'flex-start', `the arrow box is one line high (${r.h} vs ${r.lh}) and sits on the first line`)
+    },
+  },
+  {
+    name: 'the select-all box on the ink header is an outline that follows the surface, not a solid paper square',
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      const r = await page.locator('#demo-select thead .tbl__box').evaluate((el) => {
+        const cs = getComputedStyle(el), th = getComputedStyle(el.closest('th'))
+        return { bg: cs.backgroundColor, frame: cs.borderTopColor, bar: th.backgroundColor }
+      })
+      expect.equal(r.bg, r.bar, 'empty: the box shows the bar through it')
+      expect.ok(r.frame !== r.bar, `its frame is the contrasting colour (${r.frame} on ${r.bar})`)
     },
   },
 ]

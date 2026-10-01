@@ -18,6 +18,10 @@
    the highest day") into the figure's <output class="bars__readout">. The output is a live
    region, so the change is announced without moving focus.
 
+   Labels: SG.fit measures each .bars chart's axis labels (data-fit="labels", then "narrow", then
+   "wrap"), so a label that fills its column takes Archivo's extra-condensed width instead of touching
+   the chosen label's plate or breaking inside its word.
+
    Nothing here animates. A chart that draws itself in is motion the reader did not ask for
    (WCAG 2.3.3); when the data changes, the new shape simply replaces the old.
    ========================================================================== */
@@ -56,7 +60,7 @@
 
   /**
    * <svg class="spark" role="img" aria-label="...">. A sparkline is a picture of a trend, so
-   * it MUST have a label that says the trend in words ("Notion: up 1.7% over 12 days, from
+   * it MUST have a label that says the trend in words ("Index fund: up 1.7% over 12 days, from
    * $278.90 to $283.72"); numbers that matter belong next to it as text.
    */
   function sparkline(values, opts) {
@@ -169,4 +173,11 @@
       if (out) out.textContent = input.getAttribute('aria-label') || '';
     });
   }
+
+  /* ---- labels: whole, on one line, clear of the plate; narrower before they would wrap ---- */
+  if (SG.fit) SG.fit.register('.bars', {
+    steps: ['labels', 'narrow', 'wrap'],
+    measure: '.bars__label',
+    parts: ':scope:is([data-fit="labels"], [data-fit="narrow"]) .bars__label',
+  });
 })((typeof window !== 'undefined' ? (window.SG = window.SG || {}) : (globalThis.SG = globalThis.SG || {})));

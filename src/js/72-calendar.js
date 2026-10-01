@@ -35,6 +35,11 @@
         SG.calendar.setEvents(el, map)   replace the events and redraw
         SG.calendar.labels        the English strings; replace them to translate
 
+   THE STRIP SCROLLS  The grid sits in a .cal__scroll box. In the week view, when seven days of 43px do not fit,
+   fitStrip() sizes the days (each 44px or more) so the box shows whole days and half of the next, the box
+   scrolls sideways with snap, and reveal() keeps the chosen day (or the focusable one) in view, without
+   moving the page. Half a day at the edge says "more"; a sliver of a few pixels looked like the week's end.
+
    WHAT A SCREEN READER HEARS  Each day is a button named with its full date from Intl:
    "Wednesday 30 September 2026, today, 2 events". The chosen day is aria-selected on its cell.
    The month title is a polite live region, so paging announces the new month. The day's events
@@ -215,6 +220,31 @@
     el.querySelector('[data-cal="next"]').setAttribute('aria-label', week ? LABELS.nextWeek : LABELS.nextMonth);
     // the cursor can be a day that is not in the grid (a month with no such weekday placement): keep one tab stop
     if (!el.querySelector('.cal__day[tabindex="0"]')) { var first = el.querySelector('.cal__day:not([data-outside])'); if (first) first.tabIndex = 0; }
+    reveal(el);
+  }
+
+  /** The week strip: seven days share the width while each gets 43px. Narrower, k + 0.5 days show, each 44px or more. */
+  function fitStrip(el) {
+    var st = state.get(el);
+    var box = el.querySelector('.cal__scroll');
+    if (!st || !box || st.view !== 'week') return;
+    var w = box.clientWidth;
+    if (!w || w >= 7 * 43) { box.style.removeProperty('--_strip'); return; }
+    var k = Math.max(1, Math.floor(w / 44 - 0.5)); // 44: the target, as --chrome-hit
+    box.style.setProperty('--_strip', Math.floor((7 * w) / (k + 0.5)) + 'px');
+  }
+
+  /** A strip that scrolls: bring the chosen day (else the tab stop) into view by moving the strip only, never the page. */
+  function reveal(el) {
+    fitStrip(el);
+    var box = el.querySelector('.cal__scroll');
+    if (!box || box.scrollWidth <= box.clientWidth + 1) return;
+    var day = el.querySelector('td[aria-selected="true"] > .cal__day') || el.querySelector('.cal__day[tabindex="0"]');
+    if (!day) return;
+    // move by whole days: the strip snaps to a day's edge, and a smaller step would snap straight back
+    var a = box.getBoundingClientRect(), b = day.parentNode.getBoundingClientRect(), c = b.width || 1;
+    if (b.right > a.right + 0.5) box.scrollLeft += Math.ceil((b.right - a.right - 0.5) / c) * c;
+    else if (b.left < a.left - 0.5) box.scrollLeft -= Math.ceil((a.left - b.left - 0.5) / c) * c;
   }
 
   function build(el) {
@@ -234,7 +264,7 @@
     shell.innerHTML =
       '<div class="cal__head">' + nav('prev', 'chevron-left') +
       '<p class="cal__title" id="' + id + '-title" aria-live="polite" aria-atomic="true"></p>' + nav('next', 'chevron-right') + '</div>' +
-      '<table class="cal__grid" role="grid" aria-labelledby="' + id + '-title"><thead>' + headHtml(st) + '</thead><tbody></tbody></table>' +
+      '<div class="cal__scroll"><table class="cal__grid" role="grid" aria-labelledby="' + id + '-title"><thead>' + headHtml(st) + '</thead><tbody></tbody></table></div>' +
       '<div class="cal__events" aria-live="polite" aria-atomic="true"></div>';
     while (shell.firstChild) el.appendChild(shell.firstChild);
     render(el);
@@ -315,8 +345,17 @@
     go(el, next, true);
   });
 
+  // a strip that starts to scroll later (fonts arrive, the text size or the screen changes) shows its chosen day again
+  var ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(function (entries) {
+    entries.forEach(function (e) { var el = e.target.closest('[data-sg-calendar]'); if (el) reveal(el); });
+  }) : null;
+
   function init(scope) {
-    SG.qsa('[data-sg-calendar]', scope).forEach(function (el) { if (!state.has(el)) build(el); });
+    SG.qsa('[data-sg-calendar]', scope).forEach(function (el) {
+      if (state.has(el)) return;
+      build(el);
+      if (ro && state.get(el).view === 'week') ro.observe(el.querySelector('.cal__scroll'));
+    });
   }
 
   SG.calendar = {

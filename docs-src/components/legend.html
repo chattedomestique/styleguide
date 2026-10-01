@@ -5,8 +5,10 @@
   /* the docs article styles bare lists; a legend is its own layout */
   .demo .legend { padding: 0; }
   .demo .legend__item { margin: 0; }
-  /* the marks demo: a mark is a bare box, so give it a size and a gap before its word */
-  #demo-marks .mark { display: inline-block; flex: none; inline-size: 1.25rem; block-size: 1.25rem; margin-inline-end: var(--space-2); vertical-align: -0.25em; }
+  /* the marks demo: a mark is a bare box, so give it a size (it grows with its word), and in a table cell a gap
+     before the word (chrome: 8px at any text size). A tag has its own gap, so a mark there adds none. */
+  #demo-marks .mark { display: inline-block; flex: none; inline-size: 1.25rem; block-size: 1.25rem; vertical-align: -0.25em; }
+  #demo-marks th .mark { margin-inline-end: var(--chrome-2); }
   #demo-marks .t-meta { margin: 0; }
 </style>
 <h1>Legend</h1>
@@ -89,6 +91,7 @@
             </tbody>
           </table>
         </div>
+        <p class="tbl__hint">Scroll sideways for more columns.</p>
       </div>
       <p class="t-meta">Tagged on a payment:</p>
       <div class="cluster" data-gap="2">

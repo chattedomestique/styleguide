@@ -145,20 +145,50 @@
 </div>
 
 <h3 id="data">From data</h3>
-<p><code>SG.chart.donut(items, { label })</code> returns the whole <code>&lt;svg&gt;</code>: the sectors, the pattern tiles it needs and the text alternative. Pass the legend and the total as ordinary markup beside it.</p>
-<div class="demo" data-nocode>
+<p><code>SG.chart<wbr>.donut(<wbr>items, { label })</code> returns the whole <code>&lt;svg&gt;</code>: the sectors, the pattern tiles it needs and the text alternative. Pass the legend and the total as ordinary markup beside it. This page runs the code below on the empty <code>.donut__body</code> of the chart under it (<code>el</code>), so the ring you see is what the helper returns.</p>
+<pre><code>const items = [
+  { label: 'Rent',
+    value: 620, tone: 1 },
+  { label: 'Food',
+    value: 284, tone: 2 },
+  { label: 'Transport',
+    value: 152, tone: 3 },
+]
+const label = [
+  'Essentials in April,',
+  '$1,056 in total:',
+  'rent 59%, food 27%,',
+  'transport 14%.',
+].join(' ')
+const ring = SG.chart
+  .donut(items, { label })
+el.insertAdjacentHTML(
+  'afterbegin', ring)</code></pre>
+<div class="demo" id="demo-data" data-nocode>
   <div class="demo__stage">
-    <pre><code>const ring = SG.chart.donut(
-  [
-    { label: 'Rent', value: 620, tone: 1 },
-    { label: 'Food', value: 284, tone: 2 },
-    { label: 'Transport', value: 152, tone: 3 },
-  ],
-  { label: 'Where April went, $1,056 in total: rent 59%, food 27%, transport 14%.' }
-)
-document.querySelector('.donut__body').insertAdjacentHTML('afterbegin', ring)</code></pre>
+    <figure class="donut">
+      <figcaption class="donut__title">Essentials in April</figcaption>
+      <div class="donut__layout">
+        <div class="donut__body" id="donut-built">
+          <div class="donut__centre"><p class="donut__total">$1,056</p><p class="donut__caption">in total</p></div>
+        </div>
+        <ul class="legend" role="list">
+          <li class="legend__item"><span class="legend__key" data-tone="1" aria-hidden="true"></span><span class="legend__label">Rent</span><span class="legend__value">$620</span><span class="legend__share">59%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="2" aria-hidden="true"></span><span class="legend__label">Food</span><span class="legend__value">$284</span><span class="legend__share">27%</span></li>
+          <li class="legend__item"><span class="legend__key" data-tone="3" aria-hidden="true"></span><span class="legend__label">Transport</span><span class="legend__value">$152</span><span class="legend__share">14%</span></li>
+        </ul>
+      </div>
+    </figure>
   </div>
 </div>
+<script>
+  /* demo only: run the code above, so the page shows exactly what the helper returns */
+  document.addEventListener('DOMContentLoaded', function () {
+    var items = [{ label: 'Rent', value: 620, tone: 1 }, { label: 'Food', value: 284, tone: 2 }, { label: 'Transport', value: 152, tone: 3 }];
+    var label = ['Essentials in April,', '$1,056 in total:', 'rent 59%, food 27%,', 'transport 14%.'].join(' ');
+    document.getElementById('donut-built').insertAdjacentHTML('afterbegin', SG.chart.donut(items, { label: label }));
+  });
+</script>
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>

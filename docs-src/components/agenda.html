@@ -4,12 +4,16 @@
   .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
   /* docs scaffolding only: the docs article styles bare lists and h3/h4; an agenda is its own layout */
   .demo :is(.agenda, .agenda__slots, .agenda__events, .agenda-day__hours) { padding: 0; }
-  .demo .agenda-day__events { padding: 0 0 0 var(--space-2); }
-  .demo :is(.agenda, .agenda-day) li { margin: 0; max-inline-size: none; }
+  .demo .agenda-day__events { padding: 0 0 0 var(--chrome-2); }
+  /* only the article's space between list items goes: an event's own 2px end margin (the gap between
+     back-to-back events) is the component's */
+  .demo :is(.agenda, .agenda-day) li { margin-block-start: 0; max-inline-size: none; }
   .demo .agenda-day__title { margin: 0; }
   .demo .agenda__num { margin: 0; }
-  .demo__stage:has(> .cal) { padding: var(--space-3); }
+  .demo__stage:has(> .cal) { padding: var(--chrome-3); }
   #demo-context .phone__screen { display: grid; gap: var(--space-4); align-content: start; min-block-size: 0; }
+  /* the states specimen: 16px between chips, so a lifted chip's shadow and a ring never touch the next one */
+  #demo-states .agenda__events { gap: var(--space-4); }
 </style>
 <h1>Agenda</h1>
 <p class="lede">An agenda says what is on and when. Two shapes, both built on the <a href="@/components/card.html">Card</a>: a list of days, each a tonal card whose busy hours are columns, and a single day laid out against the clock, where events that overlap sit side by side or, when there is no room, stack in time order.</p>
@@ -29,7 +33,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="days">Days, with hour columns</h3>
-<p>Each day is a Card with a tone. Only the hours that have something are shown, and an all-day event is a slot whose label says so (Friday's rent). On a phone the hours are rows; once the card is 34rem wide they become columns with 1px rules between, and the date becomes a rail (the query is on the card, not the screen). Two events in the same hour stack: Friday's 14:00 column holds two. The chips take the card's tone, darker, and lift when pressed like a Button. A day with nothing on says so.</p>
+<p>Each day is a Card with a tone. Only the hours that have something are shown, and an all-day event is a slot whose label says so (Friday's rent). On a phone the hours are rows; once the card is 34rem wide they become columns with 1px rules between, and the date becomes a rail (the query is on the card, not the screen). On a narrow card (200% text on a phone) each hour sits on its own line above its events, so a chip keeps the card's whole width. Every chip says its title, then its time under it. Two events in the same hour stack: Friday's 14:00 column holds two. The chips take the card's tone, darker, and lift when pressed like a Button. A day with nothing on says so.</p>
 <div class="demo" id="demo-days">
   <div class="demo__stage">
     <ol class="agenda" role="list">
@@ -133,7 +137,7 @@
 </div>
 
 <h3 id="grid">One day, against the clock</h3>
-<p>Hours run down the side; an event is a tonal Card as tall as it lasts. The grid has a line every 15 minutes, and each event says where it starts and ends with <code>--from</code> and <code>--to</code>. Where events overlap (design review and the slide deck, study block and the landlord's call) they take lanes. Each event is a whole-card link with one tab stop, so its hit area is the whole card. A quarter hour is <code>2rem</code>, so even a half-hour event in a narrow lane holds its title on two lines and its time line under them; a title that would need a third line is cut with an ellipsis in the grid, and the link's name still carries all of it.</p>
+<p>Hours run down the side; an event is a tonal Card as tall as it lasts. The grid has a line every 15 minutes, and each event says where it starts and ends with <code>--from</code> and <code>--to</code>. Where events overlap (design review and the slide deck, study block and the landlord's call) they take lanes; where one ends as the next begins (the standup and the review), a 2px gap keeps their frames from fusing into one heavy line. Each event is a whole-card link with one tab stop, so its hit area is the whole card. A quarter hour is <code>2rem</code>, so even a half-hour event in a narrow lane holds its title on two lines and its time line under them; a title that would need a third line is cut with an ellipsis in the grid, and the link's name still carries all of it.</p>
 <div class="demo" id="demo-grid">
   <div class="demo__stage">
     <div class="agenda-day" id="grid-fri" role="group" data-lanes="2" style="--steps: 24; --lanes: 2" aria-labelledby="grid-fri-t">
@@ -429,7 +433,7 @@
   <li><strong>Date</strong> (<code>.agenda__date</code>): weekday label and a big tabular numeral with the month, in a <code>&lt;time&gt;</code>. A rail at 34rem.</li>
   <li><strong>Hour</strong> (<code>.agenda__slot</code>, <code>.agenda__hour</code>): a row, or a column with 1px rules. Only busy hours exist.</li>
   <li><strong>Event chip</strong> (<code>.agenda__event</code>): a link in the card's darker tone (<code>--tone-fill</code>, text <code>--tone-on-fill</code>), 2px frame, with its start and end.</li>
-  <li><strong>Time grid</strong> (<code>.agenda-day__grid</code>): a 15-minute row grid. The ruler (<code>.agenda-day__hours</code>) draws 1px lines; the events (<code>.agenda-day__events</code>) sit on the same rows in lanes.</li>
+  <li><strong>Time grid</strong> (<code>.agenda-day__grid</code>): a 15-minute row grid. The ruler (<code>.agenda-day<wbr>__hours</code>) draws 1px lines; the events (<code>.agenda-day<wbr>__events</code>) sit on the same rows in lanes.</li>
   <li><strong>Event card</strong> (<code>.card.card--link.agenda-day__event</code>): a tonal link card placed by <code>--from</code>, <code>--to</code>, <code>--lane</code>. Title, then the times.</li>
 </ol>
 

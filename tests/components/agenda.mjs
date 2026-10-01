@@ -109,10 +109,12 @@ export const tests = [
       const r = await page.locator(GRID).evaluate((el) => {
         const events = el.querySelector('.agenda-day__events').getBoundingClientRect()
         const step = events.height / 24
-        const box = (title) => { const li = [...el.querySelectorAll('.agenda-day__event')].find((e) => e.querySelector('.card__title').textContent.trim() === title); const b = li.getBoundingClientRect(); return { top: (b.top - events.top) / step, rows: b.height / step, left: b.left, right: b.right } }
+        // an event's frame stops 2px short of its end (the gap between back-to-back events): its slot is frame + margin
+        const box = (title) => { const li = [...el.querySelectorAll('.agenda-day__event')].find((e) => e.querySelector('.card__title').textContent.trim() === title); const b = li.getBoundingClientRect(), mb = parseFloat(getComputedStyle(li).marginBottom); return { top: (b.top - events.top) / step, rows: (b.height + mb) / step, mb, left: b.left, right: b.right } }
         return { step, standup: box('Standup'), review: box('Design review'), deck: box('Slide deck'), lunch: box('Lunch with Sam'), study: box('Study block') }
       })
       expect.ok(Math.abs(r.standup.top - 2) < 0.05 && Math.abs(r.standup.rows - 2) < 0.05, `Standup starts 30 min in and lasts 30: ${JSON.stringify(r.standup)}`)
+      expect.equal(r.standup.mb, 2, 'its frame stops 2px short of the next event')
       expect.ok(Math.abs(r.review.top - 4) < 0.05 && Math.abs(r.review.rows - 6) < 0.05, 'Design review 10:00 for 90 min')
       expect.ok(Math.abs(r.study.rows - 6) < 0.05, 'Study block is 90 min too')
       expect.ok(Math.abs(r.lunch.top - 14) < 0.05, 'Lunch at 12:30')
@@ -159,9 +161,9 @@ export const tests = [
       // and the quarter-hour scale is still a fixed rem length at normal text: a half hour is two steps
       const step = await page.locator(GRID).evaluate((el) => {
         const ev = [...el.querySelectorAll('.agenda-day__event')].find((e) => e.querySelector('.card__title').textContent.trim() === 'Call with landlord')
-        return ev.getBoundingClientRect().height / parseFloat(getComputedStyle(document.documentElement).fontSize)
+        return (ev.getBoundingClientRect().height + parseFloat(getComputedStyle(ev).marginBottom)) / parseFloat(getComputedStyle(document.documentElement).fontSize)
       })
-      expect.ok(Math.abs(step - 4) < 0.05, `a 30-minute event is 4rem tall (${step.toFixed(2)})`)
+      expect.ok(Math.abs(step - 4) < 0.05, `a 30-minute event takes 4rem: its frame and the 2px gap after it (${step.toFixed(2)})`)
       // bigger text: still nothing lost in the Friday grid (it stacks, or it fits)
       for (const pct of [125, 150, 200]) {
         await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
@@ -312,6 +314,50 @@ export const tests = [
       const r = await page.locator('.agenda__event.is-focus').evaluate((el) => { const cs = getComputedStyle(el); return { outline: cs.outlineStyle + ' ' + cs.outlineWidth, lift: cs.getPropertyValue('--lift').trim() } })
       expect.equal(r.outline, 'solid 3px', 'is-focus draws the ring')
       expect.equal(r.lift, '1', 'and the lift')
+    },
+  },
+  {
+    name: 'back-to-back events stop 2px short, so two frames never fuse into one 4px line',
+    async run({ page, goto, expect }) {
+      await goto('components/agenda.html')
+      const gaps = await page.locator(GRID).evaluate((el) => {
+        const evs = [...el.querySelectorAll('.agenda-day__event')].map((e) => ({ from: +e.style.getPropertyValue('--from'), to: +e.style.getPropertyValue('--to'), lane: +(e.style.getPropertyValue('--lane') || 1), r: e.getBoundingClientRect(), name: e.querySelector('.card__title').textContent.trim() }))
+        const out = []
+        for (const a of evs) for (const b of evs) if (a.to === b.from && a.lane === b.lane) out.push([a.name + ' / ' + b.name, +(b.r.top - a.r.bottom).toFixed(1)])
+        return out
+      })
+      expect.ok(gaps.length >= 2, `the specimen has back-to-back pairs (${gaps.length})`)
+      for (const [pair, g] of gaps) expect.ok(g >= 2, `${pair}: ${g}px between the frames`)
+    },
+  },
+  {
+    name: 'every chip says what, then when: its time sits under its title, at 100% and 200% text',
+    async run({ page, goto, expect }) {
+      await goto('components/agenda.html')
+      for (const size of ['100%', '200%']) {
+        await page.addStyleTag({ content: `html{font-size:${size}!important}` })
+        await page.waitForTimeout(300)
+        const bad = await page.locator(DAYS).evaluate((el) => [...el.querySelectorAll('.agenda__event')].filter((a) => a.querySelector('.agenda__len')).filter((a) => {
+          const t = [...a.childNodes].find((n) => n.nodeType === 3 && n.data.trim()), rg = document.createRange(); rg.selectNodeContents(t)
+          return a.querySelector('.agenda__len').getBoundingClientRect().top < rg.getBoundingClientRect().bottom - 1
+        }).map((a) => a.textContent.trim()))
+        expect.equal(bad.join(' | '), '', `${size}: no time beside its title`)
+      }
+    },
+  },
+  {
+    name: 'at 200% text on a phone the hour goes above its events and a chip gets the whole width (never one letter per line)',
+    async run({ page, goto, expect }) {
+      await goto('components/agenda.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(300)
+      const r = await page.locator(DAYS).evaluate((el) => [...el.querySelectorAll('.agenda__slot')].map((s) => {
+        const h = s.querySelector('.agenda__hour').getBoundingClientRect(), c = s.querySelector('.agenda__event').getBoundingClientRect(), w = s.getBoundingClientRect().width
+        return { above: h.bottom <= c.top + 1, wide: c.width >= w * 0.95 }
+      }))
+      expect.ok(r.length >= 5, 'every slot was measured')
+      expect.ok(r.every((x) => x.above), 'the hour label sits above its events')
+      expect.ok(r.every((x) => x.wide), 'each chip takes the slot\'s whole width')
     },
   },
 ]
