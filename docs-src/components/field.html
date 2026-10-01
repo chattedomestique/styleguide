@@ -51,19 +51,23 @@
 </div>
 
 <h3 id="inline">Inline layout</h3>
-<p>Label beside the control, for settings and wide forms. There is no media query: the two columns share the row while they fit and stack when they do not, so on a phone it is the stacked field again. Wrap the control and its hint in <code>.field__body</code>.</p>
+<p>Label beside the control, for settings and wide forms. There is no media query: the two columns share the row while they fit and stack when they do not, so on a phone it is the stacked field again. Put the label and its hint in <code>.field__head</code> (the words) and the control in <code>.field__body</code>: stacked, that reads label, hint, control, exactly like every other field.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack">
       <div class="field" data-layout="inline" data-sg-field>
-        <label class="field__label" for="fld-city">City</label>
+        <div class="field__head">
+          <label class="field__label" for="fld-city">City</label>
+          <p class="field__hint" id="fld-city-hint">Where the order ships from.</p>
+        </div>
         <div class="field__body">
           <input class="input" id="fld-city" name="city" type="text" autocomplete="address-level2" aria-describedby="fld-city-hint">
-          <p class="field__hint" id="fld-city-hint">Where the order ships from.</p>
         </div>
       </div>
       <div class="field" data-layout="inline" data-sg-field>
-        <label class="field__label" for="fld-country">Country</label>
+        <div class="field__head">
+          <label class="field__label" for="fld-country">Country</label>
+        </div>
         <div class="field__body">
           <div class="select">
             <select id="fld-country" name="country" autocomplete="country-name">
@@ -80,7 +84,7 @@
 </div>
 
 <h3 id="counter">Character counter</h3>
-<p>Add <code>data-sg-counter</code> to a <code>.field__counter</code>. The visible count updates as you type. A screen reader hears the count <strong>once, politely, when you pause typing</strong>, never once per keystroke. <code>maxlength</code> is a hard limit (the browser stops typing). <code>data-sg-maxlength</code> is a soft limit: you may go over, the counter says how far over in words and weight, and the field becomes invalid inside a validating form.</p>
+<p>Add <code>data-sg-counter</code> to a <code>.field__counter</code>. The visible count updates as you type. A screen reader hears the count <strong>once, politely, when you pause typing</strong>, never once per keystroke. <code>maxlength</code> is a hard limit (the browser stops typing). <code>data-sg-<wbr>maxlength</code> is a soft limit: you may go over, the counter says how far over in words and weight, and the field becomes invalid inside a validating form.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack">
@@ -110,7 +114,7 @@
       <label class="field__label" for="fld-email-bad">Email <span class="field__req">(required)</span></label>
       <input class="input" id="fld-email-bad" name="email-bad" type="email" required value="sam.rivera@" aria-invalid="true" aria-describedby="fld-email-bad-msg">
       <div class="field__foot">
-        <p class="field__error" id="fld-email-bad-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like name@example.com</span></p>
+        <p class="field__error" id="fld-email-bad-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@<wbr>example.com</span></p>
       </div>
     </div>
   </div>
@@ -152,7 +156,7 @@
       <div class="field" data-sg-field>
         <label class="field__label" for="frm-email">Email <span class="field__req">(required)</span></label>
         <p class="field__hint">We only use it to reply.</p>
-        <input class="input" id="frm-email" name="email" type="email" required autocomplete="email" inputmode="email" data-error-missing="Enter your email" data-error-type="Enter an email like name@example.com">
+        <input class="input" id="frm-email" name="email" type="email" required autocomplete="email" inputmode="email" data-error-missing="Enter your email" data-error-type="Enter an email like you@example.com">
       </div>
       <div class="field" data-sg-field>
         <label class="field__label" for="frm-note">Message <span class="field__opt">(optional)</span></label>
@@ -167,10 +171,8 @@
           <span class="choice__label">I accept the terms <span class="field__req">(required)</span></span>
         </label>
       </div>
-      <div class="cluster">
-        <button class="btn" data-variant="primary" type="submit">Send</button>
-        <button class="btn" type="reset">Clear form</button>
-      </div>
+      <button class="btn" data-variant="primary" data-block type="submit">Send</button>
+      <button class="btn" data-block type="reset">Clear form</button>
       <p class="t-meta" role="status" data-demo-status></p>
     </form>
   </div>
@@ -205,7 +207,7 @@
             <label class="field__label" for="ctx-email">Email <span class="field__req">(required)</span></label>
             <input class="input" id="ctx-email" type="email" autocomplete="email" inputmode="email" required value="sam.rivera@" aria-invalid="true" aria-describedby="ctx-email-msg">
             <div class="field__foot">
-              <p class="field__error" id="ctx-email-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like name@example.com</span></p>
+              <p class="field__error" id="ctx-email-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@<wbr>example.com</span></p>
             </div>
           </div>
           <div class="field">
@@ -239,7 +241,7 @@
   </tbody>
 </table></div>
 
-<h3 id="redundant">Redundant entry: "same as"</h3>
+<h3 id="redundant">Redundant entry: “same as”</h3>
 <p>If you already asked for it, do not ask again (WCAG 3.3.7). The usual case is a billing address that matches the delivery address. Offer a checkbox, leave it on, and only show the second set of fields when it is turned off, pre-filled with what was typed.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -307,7 +309,7 @@
         </div>
       </div>
       <button class="btn" data-variant="primary" data-block type="submit">Sign in</button>
-      <button class="btn" data-block type="button"><span class="ic ic--mail" aria-hidden="true"></span>Email me a sign-in link instead</button>
+      <button class="btn" data-block type="button"><span class="ic ic--mail" aria-hidden="true"></span>Email me a sign-in link</button>
     </form>
   </div>
 </div>
@@ -323,7 +325,7 @@
     <tr><td>Label</td><td>A noun, short, in natural case. Never a question the placeholder answers.</td><td>Email</td></tr>
     <tr><td>Hint</td><td>What format or where to find it. Before the control, so it is read first.</td><td>Day, month, year. For example 14 3 2026</td></tr>
     <tr><td>Error</td><td>What is wrong <em>and</em> how to fix it. Plain words, no blame, no error codes.</td><td>Enter a date like 14 Mar 2026</td></tr>
-    <tr><td>Summary entry</td><td>The same sentence as the inline error, so the link and the field agree.</td><td>Enter an email like name@example.com</td></tr>
+    <tr><td>Summary entry</td><td>The same sentence as the inline error, so the link and the field agree.</td><td>Enter an email like you@example.com</td></tr>
     <tr><td>Counter</td><td>Remaining, then "over" in words when exceeded.</td><td>12 characters left / 3 characters over</td></tr>
   </tbody>
 </table></div>
@@ -336,7 +338,7 @@
   <li><strong>Control</strong>: <a href="@/components/input.html">input</a>, <a href="@/components/select.html">select</a>, <a href="@/components/choice.html">choice</a>, <a href="@/components/switch.html">switch</a>, <a href="@/components/slider.html">slider</a> or <a href="@/components/stepper.html">stepper</a>.</li>
   <li><strong>Foot row</strong> (<code>.field__foot</code>): the error on the start side, the counter on the end side. It takes no room while both are hidden.</li>
   <li><strong>Error</strong> (<code>.field__error</code>): icon + message in <code>--bad-ink</code>, shown only while the field is in error.</li>
-  <li><strong>Error summary</strong> (<code>.card.error-summary</code>, <code>data-tone="bad"</code>): at the top of the form; a bar with the heading, one 44&nbsp;px link row per problem.</li>
+  <li><strong>Error summary</strong> (<code>.card<wbr>.error-summary</code>, <code>data-tone="bad"</code>): at the top of the form; a bar with the heading, one 44&nbsp;px link row per problem.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -349,9 +351,9 @@
     <tr><td><code>data-size</code></td><td><code>lg</code>, on <code>.field__label</code></td><td>The heading of a group that holds several fields ("Delivery address"), so the legend outranks the labels inside it.</td></tr>
     <tr><td><code>data-sg-field</code></td><td></td><td>Turns on <code>30-field.js</code> for this field: ids, <code>label for</code>, <code>aria-describedby</code> (error id only while visible), counter.</td></tr>
     <tr><td><code>data-sg-form</code></td><td>on <code>&lt;form novalidate&gt;</code></td><td>Validate on leave, live after an error, everything on submit; fills and focuses the summary.</td></tr>
-    <tr><td><code>data-sg-summary</code></td><td>on <code>.card.error-summary</code></td><td>Where the summary is written. Keep <code>hidden</code>, <code>tabindex="-1"</code> and a <code>role="alert"</code> child.</td></tr>
-    <tr><td><code>data-sg-counter</code></td><td>on <code>.field__counter</code></td><td>Limit from <code>maxlength</code> (hard) or <code>data-sg-maxlength</code> (soft). Words: <code>data-left="{n} characters left"</code>, <code>data-over="{n} characters over"</code>.</td></tr>
-    <tr><td><code>data-error</code>, <code>data-error-missing|type|pattern|short|long|low|high|step|bad</code></td><td>text, on the control or the field</td><td>The message for that validity failure. Falls back to the browser's own text.</td></tr>
+    <tr><td><code>data-sg-summary</code></td><td>on <code>.card<wbr>.error-summary</code></td><td>Where the summary is written. Keep <code>hidden</code>, <code>tabindex="-1"</code> and a <code>role="alert"</code> child.</td></tr>
+    <tr><td><code>data-sg-counter</code></td><td>on <code>.field__counter</code></td><td>Limit from <code>maxlength</code> (hard) or <code>data-sg-<wbr>maxlength</code> (soft). Words: <code>data-left="{n} characters left"</code>, <code>data-over="{n} characters over"</code>.</td></tr>
+    <tr><td><code>data-error</code>, <code>data-error-missing|<wbr>type|<wbr>pattern|<wbr>short|<wbr>long|<wbr>low|<wbr>high|<wbr>step|<wbr>bad</code></td><td>text, on the control or the field</td><td>The message for that validity failure. Falls back to the browser's own text.</td></tr>
     <tr><td><code>aria-invalid="true"</code></td><td>on the control</td><td>Bad-ink frame and inner frame. Set by you, or by <code>SG.field</code>. <code>:user-invalid</code> does the same after the person has touched the field.</td></tr>
     <tr><td>JavaScript</td><td><code>SG.field.setError(el, msg)</code>, <code>.clearError(el)</code>, <code>.validate(field)</code>, <code>.validateForm(form)</code>, <code>.showErrors(form, [{control, message}])</code></td><td>Custom rules and server-side errors ("That email is already registered"). The event <code>sg:validated</code> is cancelable: cancel it to submit with <code>fetch</code>.</td></tr>
   </tbody>
@@ -364,11 +366,11 @@
   <tbody>
     <tr><td><kbd>Tab</kbd></td><td>Moves between controls in reading order. The error summary has <code>tabindex="-1"</code>, so <kbd>Tab</kbd> never stops on the box itself; script moves focus there after a failed submit, and <kbd>Tab</kbd> then walks the links inside it.</td></tr>
     <tr><td>Failed submit</td><td>Focus moves to the error summary (<code>tabindex="-1"</code>); its <code>role="alert"</code> child announces the heading and entries. <kbd>Tab</kbd> then walks the links; <kbd>Enter</kbd> focuses the field.</td></tr>
-    <tr><td>Screen reader, field</td><td>"Email (required), edit text, invalid entry, Enter an email like name@example.com". Label, then name / role / state, then the description.</td></tr>
+    <tr><td>Screen reader, field</td><td>"Email (required), edit text, invalid entry, Enter an email like you@example.com". Label, then name / role / state, then the description.</td></tr>
     <tr><td>Screen reader, group</td><td>The legend is announced with each option: "How should we remind you, Email, radio button, 2 of 3".</td></tr>
     <tr><td>Counter</td><td>Announced politely after a 1&nbsp;s pause, not per keystroke. The visible count is in <code>aria-describedby</code>, so it is read on focus too.</td></tr>
     <tr><td>Hidden error</td><td>A hidden element that is referenced by <code>aria-describedby</code> is <em>still read</em>. The script therefore adds the error id only while the error shows.</td></tr>
-    <tr><td>Not colour alone</td><td>Error = icon + words + inner frame. Over-limit counter = words + bold. Required = words.</td></tr>
+    <tr><td>Not colour alone</td><td>Error = icon + words + inner frame. A counter past its limit = words + bold. Required = words.</td></tr>
     <tr><td>Reduced motion</td><td>Nothing here moves.</td></tr>
     <tr><td>Forced colours</td><td>Borders are system colours; the error frame gets heavier (the inner frame is a shadow, which forced colours removes); the summary keeps its frame, bar and icon.</td></tr>
     <tr><td>No JavaScript</td><td>Labels, hints and native validation still work. Server-rendered errors are fully styled. You lose live validation, the summary behaviour and the counter.</td></tr>

@@ -124,7 +124,11 @@
     min-block-size: 0;
     font-size: clamp(1.5rem, 8cqi, 2rem);
     font-variant-numeric: tabular-nums lining-nums;
-    --ic-size: 1.75rem;
+  }
+  /* The delete key is a KEY, not an icon-only control: its glyph is as big as the digits beside it and
+     follows them (an icon-only circle's chrome cap left a 20px mark in a 110px key at 200% text). */
+  .keypad__keys > .btn.keypad__key > .ic {
+    --ic-size: 1.1em;
   }
 
   /* the point is the smallest glyph on the pad and the one people miss: draw it bigger and bolder */
@@ -149,7 +153,6 @@
     }
     .keypad__keys > .btn.keypad__key {
       font-size: clamp(1rem, 8cqi, 2rem);
-      --ic-size: 1rem;
     }
     .keypad__keys > .btn.keypad__key[data-key="."] {
       font-size: clamp(1.25rem, 11cqi, 2.75rem);

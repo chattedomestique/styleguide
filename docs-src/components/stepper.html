@@ -118,8 +118,9 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Group</strong> (<code>.stepper</code>, <code>role="group"</code>, <code>aria-labelledby</code> the label): so the two buttons are read with the name of what they change.</li>
-  <li><strong>Minus and plus</strong>: 44&nbsp;px circle <a href="@/components/button.html">buttons</a> with <code>data-sg-step</code> and a specific <code>aria-label</code>. They point at the input with <code>aria-controls</code>.</li>
-  <li><strong>Value</strong> (<code>.input.stepper__input</code>): an <a href="@/components/input.html">input</a> frame, centred, tabular figures, 18&nbsp;px. The native spinner arrows and the mouse-wheel step are removed (they are 10&nbsp;px targets and change the number by accident).</li>
+  <li><strong>Minus and plus</strong>: 44&nbsp;px circle <a href="@/components/button.html">buttons</a> with <code>data-sg-step</code> and a specific <code>aria-label</code>. They point at the input with <code>aria-controls</code>. They stay 44&nbsp;px at any text size.</li>
+  <li><strong>Value</strong> (<code>.input<wbr>.stepper__input</code>): an <a href="@/components/input.html">input</a> frame, centred, tabular figures, 20&nbsp;px. As wide as the longest number it can hold (the digits of <code>min</code> and <code>max</code>, at least two, counted by <code>32-stepper.js</code>) and as tall as the circles beside it (taller only when its figures need it), so the three share one height. The native spinner arrows and the mouse-wheel step are removed (they are 10&nbsp;px targets and change the number by accident).</li>
+  <li><strong>Row</strong>: [&minus;][value][+] is one row at every size; the figures grow with the text, the circles and the gaps do not.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -147,6 +148,7 @@
     <tr><td>Hold</td><td>After 450&nbsp;ms the step repeats and speeds up; release or leave to stop. An enhancement only; tapping always works (WCAG 2.5.1, 2.5.7).</td></tr>
     <tr><td>Screen reader</td><td>"Cards per session, group. Fewer cards, button. Cards per session, spin button, 20. More cards, button." At a limit: "More cards, button, dimmed".</td></tr>
     <tr><td>Touch</td><td>44&nbsp;px buttons and field, 8&nbsp;px apart. No gesture is needed.</td></tr>
+    <tr><td>Zoom / text size</td><td>The figures grow with the text and the box grows around them; the circles and the gaps stay their size, so the three controls keep one row, at one height, in a phone card at 200% text.</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the button fill still fades.</td></tr>
     <tr><td>Forced colours</td><td>Buttons and the field keep their real borders; raised and focused buttons get a 4px <code>Highlight</code> outline; limits use <code>GrayText</code>.</td></tr>
     <tr><td>No JavaScript</td><td>The buttons are hidden (<code>@media (scripting: none)</code>) and the browser's own spinner arrows return: a plain number field.</td></tr>
@@ -154,4 +156,4 @@
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p>Everything from <a href="@/components/input.html">Input</a> and <a href="@/components/button.html">Button</a>, plus <code>--type-ctl</code>, <code>--text-lg</code>, <code>--text-xl</code>, <code>--ctl-lg</code>, <code>--space-1</code>, <code>--space-2</code>.</p>
+<p>Everything from <a href="@/components/input.html">Input</a> and <a href="@/components/button.html">Button</a>, plus <code>--type-ctl</code>, <code>--text-lg</code>, <code>--text-xl</code>, <code>--chrome-1</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-ctl</code>, <code>--chrome-ctl-lg</code>.</p>

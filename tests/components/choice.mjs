@@ -1,5 +1,6 @@
-// Interaction spec for Checkbox, radio, choice card and segmented: Space, arrow keys, hit area, indeterminate,
-// lift / fill numbers, the ring, cards built on .card, forced colours, reduced motion.
+// Interaction spec for Checkbox, radio and choice card: Space, arrow keys, hit area, indeterminate, lift / fill
+// numbers, the ring, cards built on .card, forced colours, reduced motion, large text (chrome-capped box, inline
+// groups one row or stacked). The segmented demos on this page are the Segmented element (its own spec).
 const settle = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
 const W = (ms) => new Promise((r) => setTimeout(r, ms))
 
@@ -180,28 +181,18 @@ export const tests = [
     },
   },
   {
-    name: 'segmented: native radios in a pill track; arrows move and select; the track wears the ring; selected has a second outline',
+    name: 'segmented demos are the Segmented element (one way to draw a pill track): native radios, one tab stop, arrows move and select',
     async run({ page, goto, expect }) {
       await open(page, goto)
-      await page.keyboard.press('Tab')
+      const info = await page.evaluate(() => [...document.querySelectorAll('#segmented ~ .demo')].slice(0, 2).map((d) => ({ seg: !!d.querySelector('.segmented[role=radiogroup][aria-labelledby]'), old: !!d.querySelector('[data-variant=segmented]'), radios: d.querySelectorAll('.segmented__opt > input[type=radio]').length })))
+      for (const d of info) {
+        expect.ok(d.seg && !d.old, 'a .segmented radiogroup named by its visible label')
+        expect.ok(d.radios >= 2, 'built on native radios')
+      }
       await page.locator('input[name=sg-range][value=w]').focus()
       await page.keyboard.press('ArrowRight')
       await expect.focused(page, 'input[name=sg-range][value=m]', 'ArrowRight moves focus')
       expect.equal(await page.locator('input[name=sg-range][value=m]').isChecked(), true, 'and selects')
-      const info = await page.evaluate(() => {
-        const g = document.querySelector('.choice-group[data-variant=segmented]:has(input[name=sg-range])')
-        const gc = getComputedStyle(g)
-        const sel = g.querySelector('.choice:has(input:checked)'); const un = g.querySelector('.choice:not(:has(input:checked))')
-        const sc = getComputedStyle(sel), uc = getComputedStyle(un)
-        return { ring: gc.outlineStyle, rw: parseFloat(gc.outlineWidth), trackRadius: gc.borderTopLeftRadius, trackH: g.getBoundingClientRect().height, selBorder: sc.borderTopColor, unBorder: uc.borderTopColor, selW: sc.borderTopWidth, selBg: sc.backgroundColor, unBg: uc.backgroundColor, selInk: sc.color, unInk: uc.color, h: sel.querySelector('input').getBoundingClientRect().height }
-      })
-      expect.ok(info.ring !== 'none' && info.rw >= 3, 'the track wears the 3px ring')
-      // one row: the radius is half the track's height, i.e. a full pill (it is no longer 999px, so that a wrapped track stays a rounded rectangle: see the 320px spec below)
-      expect.ok(parseFloat(info.trackRadius) >= info.trackH / 2 - 0.5, 'a pill track: radius ' + info.trackRadius + ' in a box ' + info.trackH + 'px tall')
-      expect.equal(info.selW, '2px', 'the selected segment has its own 2px frame')
-      expect.ok(info.selBorder !== info.unBorder, 'which the others do not show')
-      expect.ok(info.selBg !== info.unBg && info.selInk !== info.unInk, 'fill and text flip')
-      expect.ok(info.h >= 43.9, 'each segment reaches a 44px hit area: ' + info.h)
     },
   },
   {
@@ -265,63 +256,67 @@ export const tests = [
     },
   },
   {
-    name: 'segmented: four short options share ONE row at 390 px (wrapped they made a two-row blob); nested groups indent their children under the parent label',
+    name: 'nested groups indent their children under the parent label, at 100% and at 200% text',
     async run({ page, goto, expect }) {
       await open(page, goto)
-      const seg = await page.evaluate(() => [...document.querySelectorAll('[data-variant=segmented]')].map((g) => ({ h: g.getBoundingClientRect().height, n: g.children.length, tops: new Set([...g.children].map((c) => Math.round(c.getBoundingClientRect().top))).size })))
-      for (const s of seg) expect.equal(s.tops, 1, s.n + ' segments on one row (track is ' + s.h + ' tall)')
-      const nest = await page.evaluate(() => {
+      const measure = () => page.evaluate(() => {
         const tree = document.querySelector('[data-demo-tree]'); const parent = tree.querySelector('[data-demo-parent]').closest('.choice'); const child = tree.querySelector('input[name=nt-mail]')
         const lab = parent.querySelector('.choice__label').getBoundingClientRect()
         const box = child.getBoundingClientRect()
         return { indent: box.left + 10 - parent.querySelector('input').getBoundingClientRect().left, labelOffset: lab.left - parent.querySelector('input').getBoundingClientRect().left, inline: !!tree.querySelector('[style]') }
       })
+      const nest = await measure()
       expect.ok(!nest.inline, 'no inline style in the demo: the indent is CSS')
       expect.ok(Math.abs(nest.indent - nest.labelOffset) <= 6, 'child box sits under the parent label text: ' + nest.indent + ' vs ' + nest.labelOffset)
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await settle(page)
+      const big = await measure()
+      expect.ok(Math.abs(big.indent - big.labelOffset) <= 6, 'at 200% text too: ' + big.indent + ' vs ' + big.labelOffset)
     },
   },
   {
-    name: 'segmented wrapped onto two rows (320 px): the 44px hit areas of the rows do not overlap',
-    viewport: { width: 320, height: 700 },
+    name: 'large text (200% at 390 px): the box, its column and the target stay 24 / 44px and the box stays centred on the first line of its label',
+    viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await open(page, goto)
-      const r = await page.evaluate(() => {
-        const g = document.querySelector('[data-variant=segmented]:has(input[name=sg-range])')
-        const rects = [...g.querySelectorAll('input')].map((i) => i.getBoundingClientRect())
-        const rows = new Set(rects.map((x) => Math.round(x.top))).size
-        let overlap = 0
-        for (let a = 0; a < rects.length; a++) for (let b = a + 1; b < rects.length; b++) {
-          const x = Math.min(rects[a].right, rects[b].right) - Math.max(rects[a].left, rects[b].left)
-          const y = Math.min(rects[a].bottom, rects[b].bottom) - Math.max(rects[a].top, rects[b].top)
-          if (x > 0.5 && y > 0.5) overlap++
-        }
-        return { rows, overlap }
-      })
-      expect.ok(r.rows >= 2, 'this width wraps the four segments: ' + r.rows + ' row(s)')
-      expect.equal(r.overlap, 0, 'no two segment hit areas overlap')
-    },
-  },
-  {
-    name: 'segmented wrapped onto two rows (320 px): the track is a rounded rectangle, not an oval; segment corners sit inside its corners; unselected segments paint nothing over its frame',
-    viewport: { width: 320, height: 700 },
-    async run({ page, goto, expect }) {
-      await open(page, goto)
-      const r = await page.evaluate(() => {
-        const g = document.querySelector('[data-variant=segmented]:has(input[name=sg-range])')
-        const gs = getComputedStyle(g), box = g.getBoundingClientRect()
-        const segs = [...g.children].map((c) => { const cs = getComputedStyle(c); return { r: parseFloat(cs.borderTopLeftRadius), bg: cs.backgroundColor, checked: c.querySelector('input').checked } })
-        return { h: box.height, radius: parseFloat(gs.borderTopLeftRadius), pad: parseFloat(gs.paddingTop), bw: parseFloat(gs.borderTopWidth), segs }
-      })
-      expect.ok(r.h > 80, 'this width wraps to two rows (' + r.h + 'px tall)')
-      expect.ok(r.radius < r.h / 2 - 8, `a wrapped track is a rounded rectangle: radius ${r.radius}px in a ${r.h}px box`)
-      for (const s of r.segs) {
-        expect.ok(Math.abs(s.r - (r.radius - r.pad - r.bw)) <= 1, `a segment's corner is concentric with the track's (${s.r}px vs ${r.radius - r.pad - r.bw}px)`)
-        if (!s.checked) expect.equal(s.bg, 'rgba(0, 0, 0, 0)', 'an unselected segment paints nothing over the track and its frame')
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await settle(page)
+      const r = await page.evaluate(() => [...document.querySelectorAll('#checkbox ~ .demo .choice, #radio ~ .demo .choice')].slice(0, 6).map((l) => {
+        const i = l.querySelector('input'); const box = getComputedStyle(i, '::before'); const ib = i.getBoundingClientRect()
+        const lab = l.querySelector('.choice__label'); const rg = document.createRange(); rg.selectNodeContents(lab.firstChild)
+        const first = rg.getClientRects()[0]
+        return { name: i.name, box: parseFloat(box.width), w: ib.width, mid: ib.top + ib.height / 2, line: first.top + first.height / 2 }
+      }))
+      for (const c of r) {
+        expect.ok(Math.abs(c.box - 24) < 0.5, c.name + ': the drawn box is 24px at 200% text (' + c.box + ')')
+        expect.ok(c.w >= 43.9 && c.w <= 44.1, c.name + ': the target column is 44px (' + c.w + ')')
+        expect.ok(Math.abs(c.mid - c.line) <= 3, c.name + ': the box is centred on the first line of the label (' + Math.round(c.mid) + ' vs ' + Math.round(c.line) + ')')
       }
     },
   },
   {
-    name: 'choice card in a narrow card (200% text): the corner mark moves above the title and the title gets the whole width; in a wide card the mark stays beside it',
+    name: 'inline group: one row while every option fits, else one option per row (never two and a lonely third)',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const rows = () => page.evaluate(() => {
+        const g = document.querySelector('#inline ~ .demo .choice-group[data-layout=inline]')
+        const tops = [...g.children].map((c) => Math.round(c.getBoundingClientRect().top))
+        return { fit: g.dataset.fit, rows: new Set(tops).size, n: tops.length, overflow: g.scrollWidth > g.clientWidth + 1 }
+      })
+      const wide = await rows()
+      expect.equal(wide.fit, 'row', 'measured: the row fits at 390 px')
+      expect.equal(wide.rows, 1, 'all three options on one row')
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await settle(page); await W(100); await settle(page)
+      const big = await rows()
+      expect.ok(big.rows === 1 || big.rows === big.n, `one row or one option per row, never ragged (${big.rows} rows for ${big.n} options, fit=${big.fit})`)
+      expect.ok(!big.overflow, 'and nothing spills sideways')
+    },
+  },
+  {
+    name: 'choice card: on a phone at 200% text the corner mark stays beside the first line (it and the padding are chrome); only a card too narrow for a word beside it moves the mark above the title',
+    viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await open(page, goto)
       const measure = () => page.evaluate(() => {
@@ -329,15 +324,20 @@ export const tests = [
         const body = card.querySelector('.card__body'), first = body.firstElementChild
         const cs = getComputedStyle(first), bs = getComputedStyle(body)
         const content = body.clientWidth - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight)
-        return { padEnd: parseFloat(cs.paddingRight), titleW: first.getBoundingClientRect().width, content, cardW: card.getBoundingClientRect().width, rem: parseFloat(getComputedStyle(document.documentElement).fontSize) }
+        const mark = getComputedStyle(card.querySelector('input'), '::before').width
+        return { padEnd: parseFloat(cs.paddingRight), titleW: first.getBoundingClientRect().width, content, cardW: card.getBoundingClientRect().width, mark }
       })
-      const wide = await measure()
-      expect.ok(wide.cardW > wide.rem * 12, `a wide card (${Math.round(wide.cardW)}px): the mark is beside the title`)
-      expect.ok(wide.padEnd > 0, 'the title keeps clear of the mark')
+      const phone = await measure()
+      expect.ok(phone.padEnd > 0, 'at 100%: the title keeps clear of the mark')
       await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await settle(page)
+      const big = await measure()
+      expect.equal(big.mark, '24px', 'the mark is chrome: 24px at 200% text')
+      expect.ok(big.padEnd > 0, `a ${Math.round(big.cardW)}px card at 200% text: the mark is still beside the first line, not above an empty band`)
+      await page.evaluate(() => { document.querySelector('.choice-card:has(input[name=cc-extra])').parentElement.style.inlineSize = '200px' }) // a card's own floor is its column
+      await settle(page)
       const narrow = await measure()
-      expect.ok(narrow.cardW <= narrow.rem * 12, `a narrow card (${Math.round(narrow.cardW)}px = ${(narrow.cardW / narrow.rem).toFixed(1)}rem)`)
-      expect.equal(narrow.padEnd, 0, 'the title no longer reserves a column for the mark')
+      expect.equal(narrow.padEnd, 0, 'a 200px card at 200% text: the title no longer reserves a column for the mark')
       expect.ok(narrow.titleW >= narrow.content - 1, `the title has the whole width (${Math.round(narrow.titleW)} of ${Math.round(narrow.content)}px)`)
     },
   },

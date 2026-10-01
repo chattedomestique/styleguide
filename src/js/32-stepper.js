@@ -14,6 +14,9 @@
        speeding up; releasing, leaving or cancelling stops it. A held press does not add one
        more step on release
      - a typed value outside min / max is pulled back into range when the field loses focus
+     - the number box is as wide as the longest number it can hold: the digits of min and max (at
+       least two, so steppers in one form line up) go into --_digits on the input, which
+       stepper.css turns into a width in ch. Without this script the box is two digits wide.
 
    Announcement wording: data-announce="{label}: {value}" on the stepper (default).
    Events bubble from the input: listen for "change".
@@ -37,6 +40,18 @@
     return s;
   }
   function num(v, d) { var n = parseFloat(v); return isNaN(n) ? d : n; }
+
+  /* Digits of the longest whole number the box can hold (min, max or the value), at least two. */
+  function size(stepper) {
+    var p = parts(stepper);
+    if (!p.input) return;
+    var digits = 2;
+    [p.input.min, p.input.max, p.input.value].forEach(function (v) {
+      var n = parseFloat(v);
+      if (isFinite(n)) digits = Math.max(digits, String(Math.trunc(Math.abs(n))).length + (n < 0 ? 1 : 0));
+    });
+    p.input.style.setProperty('--_digits', String(digits));
+  }
 
   function sync(stepper) {
     var p = parts(stepper);
@@ -158,7 +173,7 @@
     sync(stepper);
   });
 
-  function init(root) { SG.qsa('[data-sg-stepper]', root || document).forEach(sync); }
+  function init(root) { SG.qsa('[data-sg-stepper]', root || document).forEach(function (s) { size(s); sync(s); }); }
   document.addEventListener('reset', function (e) { window.setTimeout(function () { init(e.target); }, 0); });
 
   SG.stepper = { init: init, step: step };

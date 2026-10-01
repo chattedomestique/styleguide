@@ -17,7 +17,14 @@
 
    data-size   md (44, default) | lg (56)      on .select
    States      :disabled, :user-invalid, [aria-invalid="true"], :focus-visible: the same
-               frame as the text input (input.css is the one source).
+               frame as the text input (input.css is the one source). The error's inner second
+               frame is drawn by ::after, OVER the end slot, so the whole control (value and
+               chevron) wears one doubled frame; drawn on the wrapper's own box the slot covered it,
+               and the chevron cell kept a single thin frame beside a doubled one.
+
+   LARGE TEXT. The value grows with the reader's text size; the end slot (44px), the chevron (20px)
+   and the side padding are chrome and stop at their 100% size. At 200% text a rem-sized slot took a
+   third of the control and cut the value to "Dublin (…", "US…".
 
    A select is something you PRESS to open, so unlike a text field it is raised like a
    button: the frame holds the choice (a rectangle), the end slot is the action. The slot
@@ -56,7 +63,7 @@
     display: block;
     isolation: isolate;
     min-block-size: var(--_h);
-    box-shadow: var(--_inset), var(--_halo), var(--_shadow);
+    box-shadow: var(--_halo), var(--_shadow); /* the error's inset frame is ::after's (see below) */
     transform: translate(
       calc(var(--lift) * var(--space-1) / -2 * var(--move)),
       calc(var(--lift) * var(--space-1) / -2 * var(--move))
@@ -73,7 +80,7 @@
       z-index: 0;
       inset-block: calc(var(--_bw) * -1);
       inset-inline-end: calc(var(--_bw) * -1);
-      inline-size: calc(var(--hit) + var(--_bw));
+      inline-size: calc(var(--chrome-hit) + var(--_bw));
       background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--_bg));
       border: var(--_bw) solid var(--_line);
       border-start-end-radius: var(--radius-ctl);
@@ -89,7 +96,7 @@
       min-block-size: calc(var(--_h) - 2 * var(--_bw));
       margin: 0;
       padding-block: 0;
-      padding-inline: calc(var(--_px) - 2 * var(--_bw)) calc(var(--hit) + var(--space-2) - var(--_bw));
+      padding-inline: calc(var(--_px) - 2 * var(--_bw)) calc(var(--chrome-hit) + var(--chrome-2) - var(--_bw));
       color: inherit;
       background: transparent;
       /* a real border in no colour: see input.css (.input-group > .input) for why */
@@ -126,11 +133,23 @@
       }
     }
 
-    > .ic {
+    /* The error's inner frame, over everything but the chevron, so it runs round the end slot too */
+    &::after {
+      content: "";
       position: absolute;
       z-index: 2;
+      inset: 0;
+      border-radius: max(0px, calc(var(--radius-ctl) - var(--_bw))); /* the inner edge of the frame's corner */
+      box-shadow: var(--_inset);
+      pointer-events: none;
+    }
+
+    > .ic {
+      --ic-size: var(--chrome-ic-sm);
+      position: absolute;
+      z-index: 3;
       inset-block: 0;
-      inset-inline-end: calc((var(--hit) - var(--ic-size)) / 2);
+      inset-inline-end: calc((var(--chrome-hit) - var(--ic-size)) / 2);
       margin-block: auto;
       color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--_ink));
       pointer-events: none;
@@ -218,7 +237,7 @@
     .select:is(.is-focus, :has(> select:focus-visible)) {
       outline: var(--ring) solid var(--focus);
       outline-offset: var(--ring-gap, var(--ring-offset));
-      box-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper), var(--_inset), var(--_halo), var(--_shadow);
+      box-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper), var(--_halo), var(--_shadow);
     }
   }
 

@@ -207,30 +207,48 @@ export const tests = [
     },
   },
   {
-    name: 'Large text (200% at 390px): in a narrow field the stepper wraps inside the column instead of widening it past the card that clips it',
+    name: 'Large text (200%, 390 and 320 px): every stepper is ONE row [-][value][+] at one height, 44px circles, the value whole, inside the card that clips it',
     viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await open(page, goto)
-      const r = await page.evaluate(() => {
-        document.documentElement.style.fontSize = '200%'
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+        await page.waitForTimeout(150)
+        const rows = await page.evaluate(() => [...document.querySelectorAll('.stepper')].map((s) => {
+          const [m, i, p] = [...s.children].map((c) => c.getBoundingClientRect())
+          const card = s.closest('.card'); const clip = card ? card.getBoundingClientRect() : null
+          const input = s.querySelector('input'); const cs = getComputedStyle(input)
+          return { id: input.id, mids: [m, i, p].map((r) => Math.round(r.top + r.height / 2)), circles: [m, p].map((r) => Math.round(r.width)), inside: !clip || p.right <= clip.right + 0.5, whole: input.scrollWidth <= input.clientWidth + 1, h: Math.round(i.height), ch: Math.round(m.height), fs: parseFloat(cs.fontSize) }
+        }))
+        for (const r of rows) {
+          expect.ok(Math.max(...r.mids) - Math.min(...r.mids) <= 1, `${w}px: ${r.id} is one row (${r.mids.join(', ')})`)
+          expect.ok(r.circles.every((c) => c === 44 || c === 56), `${w}px: ${r.id} keeps its 44 / 56px circles (${r.circles})`)
+          expect.ok(r.inside, `${w}px: ${r.id}: the plus button stays inside the card`)
+          expect.ok(r.whole, `${w}px: ${r.id}: the number shows whole`)
+          expect.ok(r.h >= r.fs, `${w}px: ${r.id}: the box is as tall as its figures (${r.h}px for ${r.fs}px)`)
+          expect.ok(Math.abs(r.h - r.ch) <= 1, `${w}px: ${r.id}: the box and the circles share one height (${r.h}px, ${r.ch}px)`)
+        }
+      }
+    },
+  },
+  {
+    name: 'the value box is sized to its digits: two digits by default, three for a max of 999',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const w = await page.evaluate(() => {
         const host = document.createElement('div')
-        host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:4.8rem'
-        // a card frame clips (overflow: clip); its field is a grid whose one column is `auto`
-        host.innerHTML = '<section class="card"><div class="card__body"><div class="field"><label class="field__label" for="fx-n">Cards per session</label>'
-          + '<div class="stepper" role="group" aria-label="Cards"><button class="btn" type="button" data-shape="circle" aria-label="Fewer"><span class="ic ic--minus" aria-hidden="true"></span></button>'
-          + '<input class="input stepper__input" id="fx-n" type="number" value="20"><button class="btn" type="button" data-shape="circle" aria-label="More"><span class="ic ic--plus" aria-hidden="true"></span></button></div></div></div></section>'
+        host.innerHTML = '<div class="stepper" data-sg-stepper><button class="btn" type="button" data-shape="circle" data-sg-step="-1" aria-label="Fewer"><span class="ic ic--minus" aria-hidden="true"></span></button><input class="input stepper__input" type="number" min="1" max="999" value="20" aria-label="Count"><button class="btn" type="button" data-shape="circle" data-sg-step="1" aria-label="More"><span class="ic ic--plus" aria-hidden="true"></span></button></div>'
         document.body.appendChild(host)
-        const card = host.querySelector('.card').getBoundingClientRect()
-        const field = host.querySelector('.field').getBoundingClientRect()
-        const label = host.querySelector('.field__label'); const range = document.createRange(); range.selectNodeContents(label)
-        const text = [...range.getClientRects()].reduce((m, q) => Math.max(m, q.right), 0)
-        const out = { card: Math.round(card.right), field: Math.round(field.right), text: Math.round(text), input: Math.round(host.querySelector('.stepper__input').getBoundingClientRect().right) }
-        host.remove(); document.documentElement.style.fontSize = ''
-        return out
+        SG.stepper.init(host)
+        const big = host.querySelector('input').getBoundingClientRect().width
+        const two = document.querySelector('#stp-qty').getBoundingClientRect().width
+        const one = document.querySelector('#stp-max').getBoundingClientRect().width // 1..5: still two digits wide, so steppers in a form line up
+        host.remove()
+        return { big, two, one }
       })
-      expect.ok(r.field <= r.card, 'the field stays inside the card: ' + JSON.stringify(r))
-      expect.ok(r.text <= r.card, 'the label text is not cut by the card: ' + JSON.stringify(r))
-      expect.ok(r.input <= r.card, 'the number field stays inside the card: ' + JSON.stringify(r))
+      expect.ok(w.big > w.two + 8, `a 3-digit box is wider than a 2-digit one (${w.big} vs ${w.two})`)
+      expect.ok(Math.abs(w.one - w.two) < 0.5, `a 1-digit stepper keeps the 2-digit width (${w.one} vs ${w.two})`)
     },
   },
   {

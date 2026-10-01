@@ -25,7 +25,13 @@
    data-size      md (44, default) | lg (56)             on .input or .input-group
    data-width     xs | sm | md   cap the width for short answers (postcode, year, code)
    data-variant   amount   (group) big tabular figures + a currency prefix
-   .input-bar     search app bar: back button + search group + action button
+   .input-bar     search app bar: back button + search group + action button, ONE row at every size
+
+   LARGE TEXT. What you type grows with the reader's text size; the chrome around it does not: the side
+   padding, the icon in the start slot, the clear / show buttons and their targets, the date picker's
+   button and the gaps between them stop at their 100% size (--chrome-*). At 200% text they had grown
+   with the words and left the value a few letters ("Sam…", "03/14/202"). The amount's figure is sized
+   from the group's own width (cqi), so a big number shrinks to fit its box instead of being cut off.
 
    STATES come from native attributes and ARIA, never classes:
      :focus-visible          the ring (on the group when the input sits in one)
@@ -61,7 +67,7 @@
     --_bw: var(--bw);
     --_inset: 0 0 0 0 transparent; /* the error's inner frame */
     --_h: var(--ctl);
-    --_px: var(--space-3);
+    --_px: var(--chrome-3); /* chrome: the inset stops at 12px, the value keeps the room */
     --_fs: var(--text-md);
 
     min-inline-size: 0;
@@ -75,7 +81,7 @@
 
     &[data-size="lg"] {
       --_h: var(--ctl-lg);
-      --_px: var(--space-4);
+      --_px: var(--chrome-4);
       --_fs: var(--text-lg);
     }
     &[data-width="xs"] {
@@ -169,7 +175,8 @@
 
   /* ---- 4 · date and time ----------------------------------------------------------------
      Native pickers give the best mobile UI, so they stay; only the box is made consistent
-     (height, frame, text size). The calendar / clock button becomes a 44 px target. */
+     (height, frame, text size). The calendar / clock button becomes a 44 px target: a 20px icon in
+     12px of padding, both chrome, so at 200% text the date keeps the room ("03/14/2026" fits a phone). */
   .input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"], [type="week"]) {
     font-variant-numeric: tabular-nums lining-nums;
     text-align: start;
@@ -182,10 +189,10 @@
     }
     &::-webkit-calendar-picker-indicator {
       box-sizing: content-box;
-      inline-size: 1.25rem;
-      block-size: 1.25rem;
-      margin-inline: 0 calc(var(--space-3) * -1);
-      padding: var(--space-3);
+      inline-size: var(--chrome-ic-sm);
+      block-size: var(--chrome-ic-sm);
+      margin-inline: 0 calc(var(--chrome-3) * -1);
+      padding: var(--chrome-3);
       border-radius: var(--radius-ctl);
       cursor: pointer;
     }
@@ -196,7 +203,7 @@
      box of `rows` lines that the person can drag taller. */
   textarea.input {
     --_h: 7rem;
-    padding-block: calc(var(--space-3) - var(--_bw));
+    padding-block: calc(var(--chrome-3) - var(--_bw));
     resize: vertical;
     text-overflow: clip;
 
@@ -251,10 +258,10 @@
     }
 
     > .input-group__start + .input {
-      padding-inline-start: calc(var(--space-2) - var(--_bw));
+      padding-inline-start: calc(var(--chrome-2) - var(--_bw));
     }
     > .input:has(+ .input-group__end) {
-      padding-inline-end: calc(var(--space-2) - var(--_bw));
+      padding-inline-end: calc(var(--chrome-2) - var(--_bw));
     }
   }
 
@@ -279,15 +286,20 @@
     font: var(--type-ctl);
   }
   .input-group__start {
-    padding-inline: var(--space-3) 0;
+    padding-inline: var(--chrome-3) 0;
   }
   .input-group__end {
-    gap: var(--space-2); /* hit areas are 44 px wide and must not overlap */
-    padding-inline: 0 var(--space-3);
+    gap: var(--chrome-2); /* hit areas are 44 px wide and must not overlap */
+    padding-inline: 0 var(--chrome-3);
+  }
+  /* An icon in a slot is chrome (a search glyph does not get easier to read at 200%); a prefix or
+     suffix in WORDS ("kg", "CHF") is text and grows. */
+  :is(.input-group__start, .input-group__end) > .ic {
+    --ic-size: var(--chrome-ic-sm);
   }
   /* buttons are 36 px circles in a 40 px inner height: a little air from the frame */
   .input-group__end:has(> .input-group__btn) {
-    padding-inline-end: var(--space-1);
+    padding-inline-end: var(--chrome-1);
   }
   .input-group:has(> .input:disabled) > :is(.input-group__start, .input-group__end) {
     color: var(--ink-faint);
@@ -303,8 +315,8 @@
     display: grid;
     flex: none;
     place-items: center;
-    inline-size: var(--ctl-sm);
-    block-size: var(--ctl-sm);
+    inline-size: var(--chrome-ctl-sm); /* an icon-only control: chrome, 36px at any text size */
+    block-size: var(--chrome-ctl-sm);
     margin: 0;
     padding: 0;
     color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--ink));
@@ -320,8 +332,11 @@
     &::after {
       content: "";
       position: absolute;
-      inset-block: min(0px, calc((100% - var(--hit)) / 2));
-      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+      inset-block: min(0px, calc((100% - var(--chrome-hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
+    }
+    > .ic {
+      --ic-size: var(--chrome-ic-sm);
     }
 
     @media (hover: hover) {
@@ -368,43 +383,64 @@
     }
   }
 
-  /* ---- Search app bar: [back] [search field] [action] (calendar references) ------------- */
+  /* ---- Search app bar: [back] [search field] [action] (calendar references) -------------
+     ONE row at every size: the two circles are chrome (44px whatever the text size) and the field
+     takes all the room that is left. It used to wrap at 200% text, which stacked the bar into three
+     rows (back, field, action) and pushed the screen's content a third of the way down. */
   .input-bar {
     display: flex;
-    flex-wrap: wrap; /* at 200% text the field drops to its own row instead of being squeezed to nothing */
+    flex-wrap: nowrap;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--chrome-3);
     min-inline-size: 0;
 
     > .input-group,
     > .input {
-      flex: 1 1 6rem; /* 8rem pushed the action button onto its own row by 4 px on a 320 px phone */
+      --_h: var(--chrome-ctl); /* as tall as its words need, not the 88px of a lone field at 200%: one row, one height */
+      flex: 1 1 0;
+      min-inline-size: 0;
+    }
+    > .input-group {
+      container-type: inline-size; /* its width comes from the row (flex 1 1 0), never from its content */
     }
     > .btn {
       flex: none;
+    }
+  }
+  /* The short form of the bar: when the field is left too little room for a few words (320px at 200% text),
+     the decorative magnifier goes and its 40px go to the words. The field is still a labelled search field. */
+  @container (inline-size < calc(3.5em + 72px)) {
+    .input-bar > .input-group > .input-group__start:has(> .ic:only-child) {
+      display: none;
     }
   }
 
   /* ---- Amount: one big, tabular, unmistakable number -----------------------------------
      A plain text input with inputmode="decimal" (NOT type=number: the spinner and the wheel
      corrupt amounts, and type=number strips formatting). Formatting while typing is the
-     app's job; this only makes the number the hero of the screen. */
+     app's job; this only makes the number the hero of the screen.
+     The figure is a DISPLAY size bounded by the group's own width (the group is a size container):
+     it grows with the reader's text size until the box would no longer hold a ten-character amount
+     ("12,345.67" with its symbol), then it stops. At 200% text a fixed 2xl figure was cut to "$ 38…" in
+     a phone column. The box hugs the figure (padding, not a fixed height). */
   .input-group[data-variant="amount"] {
-    --_h: 4.5rem;
-    --_px: var(--space-4);
+    --_h: var(--chrome-ctl);
+    --_px: var(--chrome-4);
+    container-type: inline-size;
 
     > .input {
+      padding-block: calc(var(--chrome-4) - var(--_bw));
       font: var(--type-figure);
-      font-size: var(--text-2xl);
+      font-size: min(var(--text-2xl), 14cqi);
       line-height: var(--lh-tight);
       letter-spacing: var(--ls-figure);
       font-variant-numeric: tabular-nums lining-nums;
     }
     > .input-group__start {
-      padding-inline-start: var(--space-4);
+      padding-inline-start: var(--chrome-4);
       color: var(--ink);
       font: var(--type-figure);
-      font-size: var(--text-xl);
+      font-size: min(var(--text-xl), 10cqi);
       line-height: var(--lh-tight);
       letter-spacing: var(--ls-figure);
     }

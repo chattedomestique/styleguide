@@ -49,7 +49,7 @@
 </div>
 
 <h3 id="ticks">Tick marks and currency</h3>
-<p><code>data-ticks="5"</code> draws five marks, both ends included. They are decoration: the slider already exposes its minimum and maximum. <code>data-format="currency"</code> uses <code>Intl.NumberFormat</code>, so the symbol and grouping follow the page language; set <code>data-currency</code> for other currencies.</p>
+<p><code>data-ticks="5"</code> draws five marks, both ends included. They are decoration: the slider already exposes its minimum and maximum. <code>data-format=<wbr>"currency"</code> uses <code>Intl.NumberFormat</code>, so the symbol and grouping follow the page language; set <code>data-currency</code> for other currencies.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="slider" data-sg-slider data-format="currency" data-ticks="5">
@@ -70,7 +70,7 @@
 </div>
 
 <h3 id="minimal">Minutes, without buttons</h3>
-<p>The smallest form: label, readout, slider. Units come from <code>data-format="minutes"</code>: "25 min" on screen, "25 minutes" to a screen reader. Leave the buttons out only when the slider is a convenience and the exact value does not matter, since they are what meets WCAG 2.5.7 without a drag.</p>
+<p>The smallest form: label, readout, slider. Units come from <code>data-format=<wbr>"minutes"</code>: "25 min" on screen, "25 minutes" to a screen reader. Leave the buttons out only when the slider is a convenience and the exact value does not matter, since they are what meets WCAG 2.5.7 without a drag.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="slider" data-sg-slider data-format="minutes">
@@ -87,7 +87,7 @@
 </div>
 
 <h3 id="signed">Signed values</h3>
-<p>Negative numbers use the true minus sign (U+2212) on screen. <code>data-format="plain"</code> is a bare number; <code>data-format="unit"</code> with <code>data-unit="celsius"</code> (or <code>kilometer</code>, <code>percent</code>&hellip;) uses any Intl unit.</p>
+<p>Negative numbers use the true minus sign (U+2212) on screen. <code>data-format=<wbr>"plain"</code> is a bare number; <code>data-format=<wbr>"unit"</code> with <code>data-unit=<wbr>"celsius"</code> (or <code>kilometer</code>, <code>percent</code>&hellip;) uses any Intl unit.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="slider" data-sg-slider data-format="unit" data-unit="celsius" data-ticks="3">
@@ -188,8 +188,8 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Label</strong> (<code>.slider__label</code>): a real <code>&lt;label for&gt;</code>, always visible.</li>
-  <li><strong>Readout</strong> (<code>&lt;output class="slider__value"&gt;</code>): the value with its unit, tabular numerals. <code>aria-live="off"</code> so it does not repeat what the slider already says.</li>
-  <li><strong>Nudge buttons</strong> (optional, <code>data-sg-nudge</code>): ordinary 36&nbsp;px circle <a href="@/components/button.html">buttons</a> with 44&nbsp;px hit areas and 12&nbsp;px gaps.</li>
+  <li><strong>Readout</strong> (<code>&lt;output class=<wbr>"slider__<wbr>value"&gt;</code>): the value with its unit, tabular numerals. <code>aria-live="off"</code> so it does not repeat what the slider already says.</li>
+  <li><strong>Nudge buttons</strong> (optional, <code>data-sg-nudge</code>): ordinary 36&nbsp;px circle <a href="@/components/button.html">buttons</a> with 44&nbsp;px hit areas and 12&nbsp;px gaps. The row is [&minus;] track [+] at every size: the track takes the room that is left.</li>
   <li><strong>Rail</strong>: 12&nbsp;px, a <code>--bw</code> frame in <code>--line</code>, <code>--radius-ctl</code>. The filled part is <code>--accent</code>, painted to the thumb's centre from <code>--p</code> (0 to 1) that <code>31-slider.js</code> sets.</li>
   <li><strong>Thumb</strong>: a 28&nbsp;px circle, an outline at rest that fills and lifts on hover and focus and sinks while dragging. The input is 44&nbsp;px tall, so the touch target is 44.</li>
   <li><strong>Ticks</strong> (optional, <code>data-ticks</code>) and <strong>scale</strong> (<code>.slider__scale</code>): marks and minimum / maximum captions, <code>aria-hidden</code>.</li>
@@ -222,6 +222,7 @@
     <tr><td>Nudge buttons</td><td>The single-pointer alternative to dragging (WCAG 2.5.7). <kbd>Enter</kbd> or <kbd>Space</kbd> steps; the new value is announced politely because focus stays on the button.</td></tr>
     <tr><td>Screen reader</td><td>"Volume, slider, 40 percent". <code>aria-valuetext</code> carries the unit; the readout is not announced twice.</td></tr>
     <tr><td>Touch</td><td>Drag the thumb or tap the track. The input is 44&nbsp;px tall; the thumb is 28&nbsp;px.</td></tr>
+    <tr><td>Zoom / text size</td><td>The label, the readout and the captions grow with the text; the thumb, the rail, the ticks, the 44&nbsp;px input and the nudge circles stay their size, so [&minus;] track [+] keeps one row (about 260&nbsp;px of track on a 390&nbsp;px phone at 200% text). A readout that no longer fits beside its label drops under it, at the start.</td></tr>
     <tr><td>Focus</td><td>The ring wraps the thumb (with its paper halo).</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the thumb's fill still fades.</td></tr>
     <tr><td>Forced colours</td><td>Rail frame, fill (<code>Highlight</code>) and thumb (<code>ButtonFace</code> / <code>ButtonText</code>) use system colours; a focused thumb gets a 4px <code>Highlight</code> outline.</td></tr>
@@ -230,4 +231,4 @@
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--accent</code>, <code>--paper</code>, <code>--paper-2</code>, <code>--line</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--hit</code>, <code>--ctl-sm</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--lift</code>, <code>--fill</code>, <code>--move</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--type-ctl</code>, <code>--type-meta</code>.</p>
+<p><code>--accent</code>, <code>--paper</code>, <code>--paper-2</code>, <code>--line</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--chrome-1</code>, <code>--chrome-3</code>, <code>--chrome-hit</code>, <code>--chrome-ctl-sm</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--lift</code>, <code>--fill</code>, <code>--move</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--type-ctl</code>, <code>--type-meta</code>.</p>

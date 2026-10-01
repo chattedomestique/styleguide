@@ -119,7 +119,7 @@ export const tests = [
       await page.keyboard.press('Tab') // leave the field -> validate (it has a value)
       expect.equal(await page.locator('#frm-email').getAttribute('aria-invalid'), 'true', 'invalid after leaving')
       const msg = await page.locator('#frm-email').evaluate((el) => el.closest('.field').querySelector('.field__error').textContent.trim())
-      expect.equal(msg, 'Enter an email like name@example.com', 'type message')
+      expect.equal(msg, 'Enter an email like you@example.com', 'type message')
       await page.locator('#frm-email').focus()
       await page.keyboard.type('x.com') // -> jay@x.com
       expect.equal(await page.locator('#frm-email').getAttribute('aria-invalid'), null, 'cleared when fixed')
@@ -189,19 +189,28 @@ export const tests = [
     },
   },
   {
-    name: 'inline layout shares a row on a wide screen and stacks on a phone (no media query)',
+    name: 'inline layout shares a row on a wide screen and stacks on a phone (no media query); the hint stays in the label column, so stacked it reads label, hint, control like every field',
     viewport: { width: 1100, height: 800 },
     async run({ page, goto, expect }) {
       await open(page, goto)
       const rect = (s) => page.locator(s).evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, b: r.bottom, r: r.right } })
       const label = await rect('label[for=fld-city]')
       const input = await rect('#fld-city')
+      const hint = await rect('#fld-city-hint')
       expect.ok(input.x > label.r - 1, 'wide: control starts to the right of the label')
+      expect.ok(Math.abs(hint.x - label.x) < 1 && hint.y >= label.b - 1, 'wide: the hint is under the label, in its column')
+      expect.ok(hint.r <= input.x + 1, 'wide: the hint does not reach into the control column')
       await page.setViewportSize({ width: 390, height: 800 })
       await settle(page)
       const l2 = await rect('label[for=fld-city]')
+      const h2 = await rect('#fld-city-hint')
       const i2 = await rect('#fld-city')
-      expect.ok(i2.y >= l2.b - 1, 'narrow: control sits below the label')
+      expect.ok(h2.y >= l2.b - 1 && i2.y >= h2.b - 1, 'narrow: label, then hint, then control (the stacked order)')
+      const gaps = await page.evaluate(() => {
+        const g = (a, b) => document.querySelector(b).getBoundingClientRect().top - document.querySelector(a).getBoundingClientRect().bottom
+        return { inline: [g('label[for=fld-city]', '#fld-city-hint'), g('#fld-city-hint', '#fld-city')], stacked: [g('label[for=fld-name]', '#fld-name-hint'), g('#fld-name-hint', '#fld-name')] }
+      })
+      expect.ok(Math.abs(gaps.inline[0] - gaps.stacked[0]) < 1 && Math.abs(gaps.inline[1] - gaps.stacked[1]) < 1, 'narrow: the same spacing as the stacked field: ' + JSON.stringify(gaps))
     },
   },
   {

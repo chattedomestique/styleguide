@@ -285,12 +285,46 @@ export const tests = [
     },
   },
   {
-    name: 'search bar: back, field and action share one row on a 320 px phone',
+    name: 'search bar: back, field and action share ONE row at 320 and 390 px, at 100% and 200% text; the circles stay 44px and the field takes the rest',
     viewport: { width: 320, height: 700 },
     async run({ page, goto, expect }) {
       await goto('components/input.html')
-      const r = await page.locator('.input-bar').first().evaluate((bar) => [...bar.children].map((c) => Math.round(c.getBoundingClientRect().top)))
-      expect.equal(new Set(r).size, 1, 'one row: tops ' + r.join(', '))
+      const row = () => page.locator('.input-bar').first().evaluate((bar) => {
+        const kids = [...bar.children].map((c) => c.getBoundingClientRect())
+        return { mids: kids.map((r) => Math.round(r.top + r.height / 2)), circles: [kids[0], kids[2]].map((r) => [Math.round(r.width), Math.round(r.height)]), field: Math.round(kids[1].width), overflow: bar.scrollWidth > bar.clientWidth + 1 }
+      })
+      for (const [w, text] of [[320, 100], [390, 100], [320, 200], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 700 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(100)
+        const r = await row()
+        expect.ok(Math.max(...r.mids) - Math.min(...r.mids) <= 1, `${w}px, ${text}%: one row, centred on one line (${r.mids.join(', ')})`)
+        for (const c of r.circles) expect.ok(c[0] === 44 && c[1] === 44, `${w}px, ${text}%: the circles stay 44px (${c})`)
+        expect.ok(r.field > 80 && !r.overflow, `${w}px, ${text}%: the field takes the rest (${r.field}px) and nothing spills`)
+      }
+    },
+  },
+  {
+    name: 'large text (200% at 390 px): values have room: chrome-capped padding, icon slots and buttons leave the date, the recipient and the amount whole',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/input.html')
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(150)
+      const r = await page.evaluate(() => ['inp-date', 'ctx-to', 'ctx-amt', 'inp-amt', 'inp-clear'].map((id) => {
+        const e = document.getElementById(id); const cs = getComputedStyle(e)
+        const t = document.createElement('span'); t.style.cssText = 'position:absolute;white-space:pre;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing + ';font-variant-numeric:' + cs.fontVariantNumeric
+        t.textContent = e.value || e.placeholder; document.body.appendChild(t)
+        const need = t.getBoundingClientRect().width; t.remove()
+        const btn = e.closest('.input-group') && e.closest('.input-group').querySelector('.input-group__btn:not([hidden])')
+        return { id, need: Math.round(need), room: Math.round(e.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)), btn: btn ? btn.getBoundingClientRect().width : null }
+      }))
+      for (const x of r) {
+        expect.ok(x.need <= x.room, `${x.id}: the value fits (${x.need}px of text in ${x.room}px)`)
+        if (x.btn !== null) expect.ok(Math.round(x.btn) === 36, `${x.id}: the clear button stays a 36px circle (${x.btn})`)
+      }
+      const fs = await page.locator('#ctx-amt').evaluate((e) => parseFloat(getComputedStyle(e).fontSize))
+      expect.ok(fs >= 32, 'the amount is still a display figure (' + fs + 'px), bounded by its box')
     },
   },
 ]

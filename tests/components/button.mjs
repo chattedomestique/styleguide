@@ -64,6 +64,69 @@ export const tests = [
     },
   },
   {
+    name: 'a toggle is a selection control: off, hover and keyboard focus raise it WITHOUT filling, a press only tints it, on is filled with a doubled frame',
+    async run({ page, goto, expect }) {
+      await goto('components/button.html')
+      const read = (loc) => loc.evaluate((el) => { const c = getComputedStyle(el); return { lift: Number(c.getPropertyValue('--lift')), fill: Number(c.getPropertyValue('--fill')), shadow: c.boxShadow, bg: c.backgroundColor } })
+      const off = page.locator('#toggle ~ .demo .btn[aria-pressed="false"]:not(.is-hover, .is-active)').first()
+      const on = page.locator('#toggle ~ .demo .btn[aria-pressed="true"]:not(.is-hover, .is-active)').first()
+      await page.waitForTimeout(50)
+      const rest = await read(off)
+      expect.equal(rest.fill, 0, 'off at rest: an outline')
+      await off.hover()
+      await page.waitForTimeout(400)
+      const hover = await read(off)
+      expect.equal(hover.lift, 1, 'off + hover: raised')
+      expect.equal(hover.fill, 0, 'off + hover: NOT filled (the fill means on)')
+      await page.mouse.down()
+      await page.waitForTimeout(400)
+      const down = await read(off)
+      expect.equal(down.lift, 0, 'pressed: back onto the surface')
+      expect.ok(down.fill > 0 && down.fill < 0.5, 'pressed: a light tint, visible at once (' + down.fill + ')')
+      await page.mouse.move(0, 0)
+      await page.mouse.up()
+      await page.keyboard.press('Tab') // keyboard modality, so :focus-visible applies (the docs toggles are static: the click changed nothing)
+      await off.focus()
+      await page.waitForTimeout(400)
+      const focus = await read(off)
+      expect.equal(focus.lift, 1, 'off + keyboard focus: raised like hover')
+      expect.equal(focus.fill, 0, 'off + keyboard focus: not filled')
+      const onRest = await read(on)
+      expect.equal(onRest.fill, 1, 'on: filled')
+      expect.ok(/inset/.test(onRest.shadow), 'on: the doubled frame is a ring inside the frame: ' + onRest.shadow)
+      expect.ok(onRest.bg !== rest.bg, 'on and off differ in fill')
+      const forced = await read(page.locator('#toggle ~ .demo .btn.is-hover[aria-pressed="false"]').first())
+      expect.equal(forced.fill, 0, 'the forced "Off, hover" specimen is not filled')
+      const onHover = await read(page.locator('#toggle ~ .demo .btn.is-hover[aria-pressed="true"]').first())
+      expect.equal(onHover.lift, 1, 'on + hover: raised')
+      expect.equal(onHover.fill, 1, 'on + hover: still filled')
+    },
+  },
+  {
+    name: 'state specimens stand at least 16px apart (so a raised shadow or a ring, 6px, never comes within 8px of the next one or of the caption), at 100% and 200% text',
+    async run({ page, goto, expect }) {
+      await goto('components/button.html')
+      const gaps = () => page.evaluate(() => {
+        const out = []
+        for (const grid of document.querySelectorAll('#states ~ .demo .specimens')) {
+          // layout boxes, not the painted ones: a raised specimen is drawn 2px up and left of its box (its lift)
+          const box = (e) => { let x = 0, y = 0, n = e; while (n) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent } return { left: x, top: y, right: x + e.offsetWidth, bottom: y + e.offsetHeight } }
+          const items = [...grid.querySelectorAll(':scope > .btn, :scope > p, .specimens__col > .btn')].map((e) => ({ t: e.textContent.trim(), r: box(e) }))
+          for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+            const a = items[i].r, b = items[j].r
+            const dx = Math.max(b.left - a.right, a.left - b.right), dy = Math.max(b.top - a.bottom, a.top - b.bottom)
+            out.push({ pair: items[i].t + ' / ' + items[j].t, gap: Math.max(dx, dy) })
+          }
+        }
+        return out
+      })
+      for (const g of await gaps()) expect.ok(g.gap >= 15.5, `${g.pair}: ${Math.round(g.gap)}px apart`)
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(100)
+      for (const g of await gaps()) expect.ok(g.gap >= 15.5, `200% text, ${g.pair}: ${Math.round(g.gap)}px apart`)
+    },
+  },
+  {
     name: 'a 36px button still has a 44x44 hit area',
     async run({ page, goto, expect }) {
       await goto('components/button.html')

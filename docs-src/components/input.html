@@ -1,4 +1,10 @@
 <!--{"title":"Input","group":"Components","order":22,"summary":"Text, email, password, number, search, date and amount fields, and the auto-growing textarea, on native elements."}-->
+<style>
+  /* docs scaffolding only. The mock screen's top row is one row at every size: the back button, then the
+     title, which wraps beside it (a wrapping cluster put the title under the button at 200% text). */
+  .docs-article .mock-head { display: flex; align-items: center; gap: var(--chrome-3); }
+  .docs-article .mock-head > .t-title { flex: 1 1 0; min-inline-size: 0; }
+</style>
 <h1>Input</h1>
 <p class="lede">A native text field, made easy to see, easy to hit and easy to fill in: 16&nbsp;px text so iOS does not zoom, a 2px ink frame, and the right keyboard for what you are asking. A field holds what you type, so it is a rectangle; the buttons inside it are circles.</p>
 
@@ -10,7 +16,7 @@
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
-    <div><strong>Don't</strong><p>Use the placeholder as the label, block paste, or use <code>type="number"</code> for things that are not quantities (card numbers, postcodes, amounts): it adds spinners, drops leading zeros and breaks formatting.</p></div>
+    <div><strong>Don't</strong><p>Use the placeholder as the label, block paste, or use <code>type=<wbr>"number"</code> for things that are not quantities (card numbers, postcodes, amounts): it adds spinners, drops leading zeros and breaks formatting.</p></div>
   </div>
 </div>
 
@@ -125,7 +131,7 @@
 </div>
 
 <h3 id="search-bar">Search bar: back, field, action</h3>
-<p>The app bar from the calendar reference: a circular back button, the search field taking the space that is left, and a circular action. <code>.input-bar</code> is the row; the circles are ordinary <a href="@/components/button.html">buttons</a>.</p>
+<p>The app bar from the calendar reference: a circular back button, the search field taking the space that is left, and a circular action. <code>.input-bar</code> is the row, and it stays one row at every text size: the circles keep their 44&nbsp;px and the field takes the rest. The circles are ordinary <a href="@/components/button.html">buttons</a>.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="input-bar">
@@ -133,7 +139,7 @@
       <div class="input-group">
         <span class="input-group__start"><span class="ic ic--search" aria-hidden="true"></span></span>
         <label class="sr-only" for="inp-bar">Search the calendar</label>
-        <input class="input" id="inp-bar" type="search" placeholder="Date or event" autocomplete="off" enterkeyhint="search">
+        <input class="input" id="inp-bar" type="search" placeholder="Search" autocomplete="off" enterkeyhint="search">
         <span class="input-group__end">
           <button class="input-group__btn" type="button" data-sg-clear aria-label="Clear search" hidden>
             <span class="ic ic--close" aria-hidden="true"></span>
@@ -146,7 +152,7 @@
 </div>
 
 <h3 id="amount">Amount</h3>
-<p>One big, tabular number: the hero of a "send money" screen. It is a plain text input with <code>inputmode="decimal"</code> (not <code>type="number"</code>), a currency symbol in front, and no formatting of its own: group digits, limit decimals and parse with <code>Intl.NumberFormat</code> in your app. For a tap-only amount entry see the <a href="@/components/keypad.html">keypad</a>.</p>
+<p>One big, tabular number: the hero of a "send money" screen. It is a plain text input with <code>inputmode=<wbr>"decimal"</code> (not <code>type=<wbr>"number"</code>), a currency symbol in front, and no formatting of its own: group digits, limit decimals and parse with <code>Intl.NumberFormat</code> in your app. The figure grows with the reader's text size until the box would no longer hold a ten-character amount, then it stops: it is sized from the field's own width, so the amount is never cut off. For a tap-only amount entry see the <a href="@/components/keypad.html">keypad</a>.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="field">
@@ -179,7 +185,7 @@
       <div class="field"><label class="field__label" for="inp-st-2">Invalid</label><input class="input" id="inp-st-2" type="text" value="31 Feb 2026" aria-invalid="true" aria-describedby="inp-st-2-msg">
         <div class="field__foot"><p class="field__error" id="inp-st-2-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter a real date, like 28 Feb 2026</span></p></div></div>
       <div class="field"><label class="field__label" for="inp-st-3">Read-only</label><input class="input" id="inp-st-3" type="text" value="INV-2026-0042" readonly></div>
-      <div class="field"><label class="field__label" for="inp-st-4">Disabled</label><input class="input" id="inp-st-4" type="text" value="Not editable right now" disabled></div>
+      <div class="field"><label class="field__label" for="inp-st-4">Disabled</label><input class="input" id="inp-st-4" type="text" value="Spanish verbs" disabled></div>
     </div>
   </div>
 </div>
@@ -189,7 +195,7 @@
   <div class="demo__stage">
     <div class="phone">
       <div class="phone__screen stack" data-gap="5">
-        <div class="cluster" data-gap="3">
+        <div class="mock-head">
           <button class="btn" data-shape="circle" type="button" aria-label="Back"><span class="ic ic--arrow-left" aria-hidden="true"></span></button>
           <p class="t-title">Send money</p>
         </div>
@@ -224,17 +230,17 @@
   <thead><tr><th>Data</th><th><code>type</code></th><th><code>inputmode</code></th><th><code>autocomplete</code></th><th><code>enterkeyhint</code></th><th>Also</th></tr></thead>
   <tbody>
     <tr><td>Full name</td><td>text</td><td>not set</td><td><code>name</code></td><td>next</td><td><code>autocapitalize="words"</code></td></tr>
-    <tr><td>Email</td><td>email</td><td>email</td><td><code>email</code></td><td>next</td><td><code>autocapitalize="none" spellcheck="false"</code></td></tr>
-    <tr><td>Username</td><td>text</td><td>not set</td><td><code>username</code></td><td>next</td><td><code>autocapitalize="none" spellcheck="false"</code></td></tr>
+    <tr><td>Email</td><td>email</td><td>email</td><td><code>email</code></td><td>next</td><td><code>autocapitalize=<wbr>"none" spellcheck=<wbr>"false"</code></td></tr>
+    <tr><td>Username</td><td>text</td><td>not set</td><td><code>username</code></td><td>next</td><td><code>autocapitalize=<wbr>"none" spellcheck=<wbr>"false"</code></td></tr>
     <tr><td>Password (sign in)</td><td>password</td><td>not set</td><td><code>current-password</code></td><td>go</td><td>Allow paste. Keep the show / hide toggle.</td></tr>
     <tr><td>Password (new)</td><td>password</td><td>not set</td><td><code>new-password</code></td><td>go</td><td>State the rules in a hint before the field.</td></tr>
     <tr><td>One-time code</td><td>text</td><td>numeric</td><td><code>one-time-code</code></td><td>go</td><td><code>pattern="[0-9]*"</code>. Never block paste.</td></tr>
     <tr><td>Phone</td><td>tel</td><td>tel</td><td><code>tel</code></td><td>next</td><td>nothing more</td></tr>
-    <tr><td>Website</td><td>url</td><td>url</td><td><code>url</code></td><td>go</td><td><code>autocapitalize="none"</code></td></tr>
+    <tr><td>Website</td><td>url</td><td>url</td><td><code>url</code></td><td>go</td><td><code>autocapitalize=<wbr>"none"</code></td></tr>
     <tr><td>Street, city, postcode</td><td>text</td><td>not set</td><td><code>street-address</code>, <code>address-level2</code>, <code>postal-code</code></td><td>next</td><td>Postcode: <code>autocapitalize="characters"</code></td></tr>
     <tr><td>Quantity</td><td>number</td><td>numeric</td><td><code>off</code></td><td>done</td><td><code>min</code>, <code>max</code>, <code>step</code>; or use a <a href="@/components/stepper.html">stepper</a></td></tr>
     <tr><td>Amount of money</td><td>text</td><td>decimal</td><td><code>off</code></td><td>done</td><td><code>pattern="[0-9]*[.,]?[0-9]*"</code>; format in the app</td></tr>
-    <tr><td>Card number</td><td>text</td><td>numeric</td><td><code>cc-number</code></td><td>next</td><td>Not <code>type="number"</code>: it strips spaces and zeros.</td></tr>
+    <tr><td>Card number</td><td>text</td><td>numeric</td><td><code>cc-number</code></td><td>next</td><td>Not <code>type=<wbr>"number"</code>: it strips spaces and zeros.</td></tr>
     <tr><td>Birthday</td><td>date</td><td>not set</td><td><code>bday</code></td><td>next</td><td>Or three fields for memorable dates.</td></tr>
     <tr><td>Search</td><td>search</td><td>search</td><td><code>off</code></td><td>search</td><td>Name it with a visually hidden label.</td></tr>
   </tbody>
@@ -244,8 +250,8 @@
 <ol>
   <li><strong>Frame</strong>: <code>--bw</code> (2px) in <code>--line</code>, <code>--radius-ctl</code>, filled with <code>--paper</code>. Flat: a field at rest casts no shadow. On a group, the group is the frame.</li>
   <li><strong>Text</strong>: 16&nbsp;px, tabular figures for numbers and dates. The placeholder is <code>--ink-mute</code> (4.5:1) and only ever a hint.</li>
-  <li><strong>Start slot</strong> (optional): an icon or a prefix, decorative, ignores taps.</li>
-  <li><strong>End slot</strong> (optional): a suffix, or one or two circle buttons (clear, show password) with 44&nbsp;px hit areas that fill on hover and focus.</li>
+  <li><strong>Start slot</strong> (optional): an icon or a prefix, decorative, ignores taps. An icon stays 20&nbsp;px at any text size; a prefix in words grows with the text.</li>
+  <li><strong>End slot</strong> (optional): a suffix, or one or two 36&nbsp;px circle buttons (clear, show password) with 44&nbsp;px hit areas that fill on hover and focus. They stay that size at any text size.</li>
   <li><strong>Focus ring</strong>: the global ring plus paper halo round the whole box.</li>
   <li><strong>Error frame</strong>: a <code>--bad-ink</code> frame and a second inner frame. The message under it carries the icon and the words.</li>
 </ol>
@@ -260,8 +266,8 @@
     <tr><td><code>data-width</code></td><td><code>xs</code>, <code>sm</code>, <code>md</code></td><td>Caps the width for short answers.</td></tr>
     <tr><td><code>class="input-group"</code></td><td>with <code>.input-group__start</code> / <code>.input-group__end</code></td><td>Adornments inside the frame. The group is the bordered element.</td></tr>
     <tr><td><code>class="input-group__btn"</code></td><td>a <code>&lt;button&gt;</code> in the end slot</td><td>A 36&nbsp;px circle with a 44&nbsp;px hit area. Fills on hover, focus and press; <code>aria-pressed</code> fills and doubles.</td></tr>
-    <tr><td><code>data-variant="amount"</code></td><td>on the group</td><td>Big tabular figures and a currency prefix.</td></tr>
-    <tr><td><code>class="input-bar"</code></td><td></td><td>Search app bar row: back button, group, action button.</td></tr>
+    <tr><td><code>data-variant="amount"</code></td><td>on the group</td><td>Big tabular figures and a currency prefix. The figure grows with the text until a ten-character amount would no longer fit the box (it is sized from the group's own width), so it is never cut off.</td></tr>
+    <tr><td><code>class="input-bar"</code></td><td></td><td>Search app bar row: back button, group, action button. One row at every size: the circles stay 44&nbsp;px and the field takes the rest; in a very narrow bar (320&nbsp;px at 200% text) the magnifier steps aside so the words keep the room.</td></tr>
     <tr><td><code>data-sg-clear</code></td><td>on a button in the group</td><td>Clears the input, refocuses it, and hides itself while the input is empty (<code>33-input.js</code>).</td></tr>
     <tr><td><code>data-sg-reveal</code></td><td>on a button, with <code>aria-pressed</code></td><td>Switches the input between <code>password</code> and <code>text</code>; keeps the caret.</td></tr>
     <tr><td><code>aria-invalid="true"</code> / <code>:user-invalid</code></td><td></td><td>Bad-ink frame plus an inner frame. <code>:user-invalid</code> only applies after the person has touched the field.</td></tr>
@@ -280,11 +286,11 @@
     <tr><td><kbd>Esc</kbd> in <code>type="search"</code></td><td>Clears, in browsers that do it natively.</td></tr>
     <tr><td>Screen reader</td><td>"Label, edit text". Required, invalid and described-by are announced; the show button reads "Show password, toggle button, not pressed".</td></tr>
     <tr><td>Touch</td><td>Every input is at least 44&nbsp;px tall; clear and show buttons have 44&nbsp;px hit areas that do not overlap.</td></tr>
-    <tr><td>Zoom</td><td>Text is at least 1rem, so iOS does not zoom on focus; boxes are in rem and grow with text size. Known limit: a native date or time value is drawn by the browser and cannot wrap, so at 200% text in a field narrower than about 10rem its last characters can be cut off. Give date and time fields the full width of the screen; every segment still takes keyboard input and the picker still opens.</td></tr>
+    <tr><td>Zoom</td><td>Text is at least 1rem, so iOS does not zoom on focus, and it grows with the reader's text size. The side padding, the icon in the start slot, the clear and show buttons and the date picker's button stop at their 100% size, so the value keeps the room: "03/14/2026" and "Sam Rivera" fit a 390&nbsp;px phone at 200% text. Known limit: a native date or time value is drawn by the browser and cannot wrap, so in a field narrower than about 7rem at 200% text its last characters can be cut off. Give date and time fields the full width of the screen; every segment still takes keyboard input and the picker still opens.</td></tr>
     <tr><td>Forced colours</td><td>The frame is the control; invalid gets a heavier border; disabled uses the system grey; the group's ring is a system-colour outline.</td></tr>
     <tr><td>No JavaScript</td><td>Everything but clear and show / hide works. Those buttons are hidden (<code>@media (scripting: none)</code>), not left dead.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--ink-mute</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--bad-ink</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--radius-pill</code>, <code>--ctl</code>, <code>--ctl-sm</code>, <code>--ctl-lg</code>, <code>--hit</code>, <code>--type-body</code>, <code>--type-ctl</code>, <code>--type-figure</code>, <code>--text-md</code>, <code>--text-lg</code>, <code>--text-xl</code>, <code>--text-2xl</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>.</p>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--ink-mute</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--bad-ink</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--radius-pill</code>, <code>--ctl</code>, <code>--ctl-lg</code>, <code>--chrome-1</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-4</code>, <code>--chrome-ctl</code>, <code>--chrome-ctl-sm</code>, <code>--chrome-hit</code>, <code>--chrome-ic-sm</code>, <code>--type-body</code>, <code>--type-ctl</code>, <code>--type-figure</code>, <code>--text-md</code>, <code>--text-lg</code>, <code>--text-xl</code>, <code>--text-2xl</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>.</p>

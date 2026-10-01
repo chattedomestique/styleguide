@@ -10,7 +10,7 @@
      <p class="field__hint" id="email-hint">We send your receipt here.</p>
      <input class="input" id="email" type="email" required autocomplete="email" aria-describedby="email-hint">
      <div class="field__foot">
-       <p class="field__error" id="email-error" hidden><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like name@example.com</span></p>
+       <p class="field__error" id="email-error" hidden><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@example.com</span></p>
        <p class="field__counter" data-sg-counter>Up to 140 characters</p>
      </div>
    </div>
@@ -27,6 +27,16 @@
    data-layout    stacked (default) | inline (label beside the control; it wraps to
                   stacked when there is no room, with no media query)
    data-size      on .field__label: lg = the heading of a group of several fields
+
+   INLINE: two columns, the words and the control.
+   <div class="field" data-layout="inline" data-sg-field>
+     <div class="field__head"><label class="field__label" for="city">City</label>
+       <p class="field__hint" id="city-hint">Where the order ships from.</p></div>
+     <div class="field__body"><input class="input" id="city" …> (+ .field__foot)</div>
+   </div>
+   The hint belongs to the label's column, so when the columns stack (a phone) the field reads label,
+   hint, control: exactly the stacked field. (With the hint under the control, a phone showed two
+   different orders for the same kind of field on one page.)
 
    STATE comes from ARIA and native attributes, never classes:
      aria-invalid="true"   the control has a problem (set by you or by SG.field)
@@ -71,7 +81,7 @@
 
       /* Label column and control column share the row while there is room and wrap to
          a stacked field when there is not (a 390 px phone): no media query. */
-      > .field__label {
+      > :is(.field__head, .field__label) {
         flex: 1 1 8rem;
       }
       > .field__body {
@@ -80,8 +90,9 @@
     }
   }
 
-  /* Optional wrapper for the control + its hint/error so the inline layout can put
-     them in one column. Harmless in a stacked field. */
+  /* Optional wrappers so the inline layout can make two columns: the words (label + hint) and the
+     control (+ its error and counter). Harmless in a stacked field: the same gaps, the same order. */
+  .field__head,
   .field__body {
     display: grid;
     gap: var(--space-2);
@@ -142,12 +153,15 @@
     }
   }
 
-  /* ---- Error: icon + words, never colour alone ------------------------------------ */
+  /* ---- Error: icon + words, never colour alone ------------------------------------
+     The icon sits on the first line and the words hang beside it: a second line starts under the
+     first line's words, never under the icon. The icon grows with the words (it is part of the line);
+     the gap beside it is chrome and stops at 8px, which leaves the words the room at 200% text. */
   .field__error {
     display: flex;
     flex: 1 1 auto;
     align-items: flex-start;
-    gap: var(--space-2);
+    gap: var(--chrome-2);
     min-inline-size: 0;
     margin: 0;
     font: var(--type-meta);

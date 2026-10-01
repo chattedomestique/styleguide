@@ -29,11 +29,26 @@
    instead of turning into an oval. A circle is a square box at every size; a circle that holds a number
    or a letter (a keypad key, a page number) grows with the text, a circle that holds an icon does not.
 
+   A wrapped label beside an icon starts right after the icon (text-align: start). Centred in the width
+   that was left, its short lines floated away from the icon, which then looked stranded at the far edge
+   of a full-width button. A label without an icon stays centred. A full-width button pads its sides less
+   (--chrome-4): its label is centred anyway, and the 16px it gives back keeps "Create account" on one line
+   in a phone frame at 200% text.
+
    STATES come from ARIA and native attributes, never classes:
      :disabled / aria-disabled="true"   dashed frame, faint ink, no shadow, no hover
      aria-pressed="true"                on: filled AND the frame doubles (a second cue that survives pale accents)
      aria-busy="true"                   working: spinner (a pulse under reduced motion), ignores taps
    The .is-hover / .is-focus / .is-active classes force a state for docs and tests; not API.
+
+   A TOGGLE IS A SELECTION CONTROL (aria-pressed, or role="radio" with aria-checked). An action button fills
+   on hover because filling is what pressing it does. A toggle that filled on hover would look ON to a mouse
+   user who is only passing over it, so a toggle that is off only RAISES on hover and keyboard focus
+   (outline and hard shadow), a press tints it lightly (visible within 100 ms), and the solid fill means
+   "on" and nothing else. On = filled AND the doubled frame: a ring of the resting colour just inside the
+   frame, so the frame and the edge of the fill read as two outlines in every palette, also where the accent
+   is as dark as the frame. A primary toggle (filled at rest: play / pause) keeps the action look, and its
+   icon says the state.
 
    THE PATTERN (copy it)
    1. Two registered numbers drive interaction: --lift (geometry) and --fill (colour).
@@ -64,13 +79,14 @@
     /* A FILLED button that is raised would fuse with its own hard shadow (an ink fill beside an ink shadow
        is one lump). So the lift opens a gap in the colour of the surface: a ring that grows with
        --lift x --fill (outline buttons keep the owner's flush shadow), and the shadow moves out by the
-       same amount so it keeps its 4px. --_selw is the width of the doubled "on" frame, which the gap must
-       clear. */
+       same amount so it keeps its 4px. --_selw is the width of the doubled "on" frame: a ring of the
+       resting colour INSIDE the frame. (Drawn outside it, in ink, it merged with an ink fill into one fat
+       edge: the "on" cue vanished exactly where the accent is darkest.) */
     --_selw: 0px;
     --_gap: calc(var(--lift) * var(--fill) * var(--bw));
-    --_halo: 0 0 0 calc(var(--_selw) + var(--_gap)) var(--focus-halo, var(--paper));
+    --_halo: 0 0 0 var(--_gap) var(--focus-halo, var(--paper));
     --_shadow: calc(var(--lift) * var(--space-1) + var(--_gap)) calc(var(--lift) * var(--space-1) + var(--_gap)) 0 0 var(--line);
-    --_select: 0 0 0 var(--_selw) var(--line);
+    --_select: inset 0 0 0 var(--_selw) var(--_rest-bg);
 
     position: relative;
     display: inline-flex;
@@ -139,10 +155,31 @@
       transition-duration: var(--dur-press);
     }
 
-    /* on: filled, and the frame doubles, so "on" does not depend on the accent being dark */
-    &[aria-pressed="true"] {
+    /* A toggle that is OFF raises on hover and focus but does not fill (the fill means "on"), and a press
+       tints it lightly. See the header. */
+    &:is([aria-pressed], [role="radio"]):not([aria-pressed="true"], [aria-checked="true"], [data-variant="primary"]) {
+      @media (hover: hover) {
+        &:is(:hover, .is-hover):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+          --fill: 0;
+        }
+      }
+      &:is(:focus-visible, .is-focus):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        --fill: 0;
+      }
+      &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        --fill: 0.15;
+      }
+    }
+
+    /* on: filled, and the frame doubles (a ring of the resting colour inside the frame), so "on" does not
+       depend on the accent being dark. Raised on hover and focus like any button; a press lightens the
+       fill a little, so a tap on an "on" toggle shows before it turns off. */
+    &:is([aria-pressed="true"], [role="radio"][aria-checked="true"]) {
       --fill: 1;
       --_selw: var(--bw);
+      &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        --fill: 0.85;
+      }
     }
 
     /* working */
@@ -204,8 +241,13 @@
       font-size: var(--text-lg);
     }
     &[data-block] {
+      --_px: var(--chrome-4);
       display: flex;
       inline-size: 100%;
+    }
+    /* a label beside an icon wraps from the icon's side, not centred away from it (see the header) */
+    &:has(> .ic):not([data-shape="circle"]) {
+      text-align: start;
     }
 
     /* ---- shape: a circle is a square box holding one icon (or one short number, like a keypad key) ---- */
@@ -238,7 +280,7 @@
         outline: var(--bw-heavy) solid Highlight;
         outline-offset: 0;
       }
-      &[aria-pressed="true"] {
+      &:is([aria-pressed="true"], [role="radio"][aria-checked="true"]) {
         border-width: var(--bw-heavy);
       }
       &:disabled,
