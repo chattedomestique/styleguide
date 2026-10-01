@@ -25,7 +25,9 @@
                  list: compact, left-aligned: the icon beside the words, for inside a list or card
    data-tone     none = dashed, transparent ("nothing yet", "no results").
                  bad | warn | info | ok | 1…6 = solid and filled ("something failed", "offline").
-                 Put the SAME data-tone on the button (data-variant="tone") to match.
+                 The primary button stays the filled one (data-variant="primary"): an outline pill in the
+                 card's own tone has no weight, and the card would show no primary. A quiet alternative is
+                 data-variant="tone", which reads the tone from the card (no data-tone needed on it).
 
    NO DECORATIVE ART. The icon says WHICH kind of empty (a stack of cards, a magnifier, an
    alert circle, a crossed-out wifi); it lives in the owner's icon tile (a 2px-framed square
@@ -64,7 +66,7 @@
 
     > .card__body {
       align-items: center;
-      justify-content: center; /* cards in one grid row stretch to the tallest: keep the words centred */
+      justify-content: flex-start; /* cards in one grid row stretch to the tallest: the icons and titles line up at the top, instead of each card centring its own (the page layout centres, below) */
       gap: var(--space-3);
       padding-block: var(--space-7);
       text-align: center;

@@ -1,5 +1,24 @@
 // Interaction spec for List and the key / value grid: one tab stop per pressable row, the tint model (--fill only),
 // the ring drawn inside, the current row's three cues, disabled rows inert, rows wrapping when narrow, dl structure.
+// Words cut across two lines: a Range over a word has client rects at more than one height once the word was broken.
+// (Self-contained, because Playwright serialises it into the page.)
+const brokenWords = (selector) => {
+  const out = []
+  for (const root of document.querySelectorAll(selector)) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+    for (let n; (n = walker.nextNode()); ) {
+      const re = /\S+/g
+      for (let m; (m = re.exec(n.data)); ) {
+        const r = document.createRange()
+        r.setStart(n, m.index)
+        r.setEnd(n, m.index + m[0].length)
+        if (new Set([...r.getClientRects()].map((q) => Math.round(q.top))).size > 1) out.push(m[0])
+      }
+    }
+  }
+  return out
+}
+
 export const tests = [
   {
     name: 'Tab visits each pressable row once, in order, and skips static rows',
@@ -251,6 +270,28 @@ export const tests = [
         return bad
       })
       expect.ok(fails.length === 0, `contrast failures: ${fails.slice(0, 8).join(' | ')}`)
+    },
+  },
+  {
+    name: 'at 200% text a tag, a short button label and an amount in a trail are never cut inside a word (the trail drops under the text whole)',
+    async run({ page, goto, expect }) {
+      await goto('components/list.html')
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(200)
+      const cut = await page.evaluate(brokenWords, '.list__trail')
+      expect.equal(cut.join(', '), '', 'words split across lines in a trail')
+      const seen = await page.evaluate(() => document.querySelectorAll('.list__trail .tag, .list__trail .btn, .list__trail .list__value').length)
+      expect.ok(seen >= 12, `the page has trail tags, buttons and values to check (${seen})`)
+    },
+  },
+  {
+    name: 'the forced .is-focus state draws the same 3px ring inside the row that a real focus does (the docs show the state with it)',
+    async run({ page, goto, expect }) {
+      await goto('components/list.html')
+      const r = await page.locator('#states ~ .demo .list__row.is-focus').first().evaluate((el) => { const cs = getComputedStyle(el); return { s: cs.outlineStyle, w: cs.outlineWidth, o: cs.outlineOffset } })
+      expect.equal(r.s, 'solid', 'a ring is drawn')
+      expect.equal(r.w, '3px', 'the ring width')
+      expect.equal(r.o, '-3px', 'inside the row, where the frame would clip it')
     },
   },
 ]

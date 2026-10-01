@@ -244,4 +244,30 @@ export const tests = [
       expect.ok(fails.length === 0, `below 7:1: ${fails.slice(0, 6).join(' | ')}`)
     },
   },
+  {
+    name: 'the forced .is-focus state draws the same 3px ring inside the head that a real focus does',
+    async run({ page, goto, expect }) {
+      await goto('components/accordion.html')
+      const r = await page.locator('#states ~ .demo .accordion__head.is-focus').first().evaluate((el) => { const cs = getComputedStyle(el); return { s: cs.outlineStyle, w: cs.outlineWidth, o: cs.outlineOffset } })
+      expect.equal(r.s, 'solid', 'a ring is drawn')
+      expect.equal(r.w, '3px', 'the ring width')
+      expect.equal(r.o, '-3px', 'inside the head')
+    },
+  },
+  {
+    name: 'at 200% text on a phone the head gives its side padding back, so the title keeps room for whole words',
+    async run({ page, goto, expect }) {
+      await goto('components/accordion.html')
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(200)
+      const r = await page.locator('#one-open ~ .demo .accordion__head').first().evaluate((el) => {
+        const cs = getComputedStyle(el)
+        const acc = el.closest('.accordion').getBoundingClientRect().width
+        return { pad: parseFloat(cs.paddingLeft), acc, rem: parseFloat(getComputedStyle(document.documentElement).fontSize), title: el.querySelector('.accordion__title').getBoundingClientRect().width }
+      })
+      expect.ok(r.acc / r.rem <= 12, `the accordion is a narrow container (${(r.acc / r.rem).toFixed(1)}rem)`)
+      expect.ok(r.pad <= r.rem * 0.5 + 0.5, `side padding is 0.5rem or less (${r.pad}px of ${r.rem}px)`)
+      expect.ok(r.title >= r.acc * 0.55, `the title keeps more than half the head (${r.title.toFixed(0)} of ${r.acc.toFixed(0)}px)`)
+    },
+  },
 ]

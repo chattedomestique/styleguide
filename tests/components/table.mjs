@@ -245,4 +245,42 @@ export const tests = [
       expect.equal(small.join(','), '', 'all targets >= 44px')
     },
   },
+  {
+    name: 'the forced .is-focus state draws the 3px ring inside the sort button, and pressed is visibly not hover',
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      const r = await page.evaluate(() => {
+        const read = (sel) => { const el = document.querySelector(sel); const cs = getComputedStyle(el); return { s: cs.outlineStyle, w: cs.outlineWidth, o: cs.outlineOffset, bg: cs.backgroundColor, fill: cs.getPropertyValue('--fill') } }
+        return { hover: read('#demo-states .tbl__sort.is-hover'), focus: read('#demo-states .tbl__sort.is-focus'), pressed: read('#demo-states .tbl__sort.is-active') }
+      })
+      expect.equal(r.focus.s, 'solid', 'a ring is drawn')
+      expect.equal(r.focus.w, '3px', 'the ring width')
+      expect.equal(r.focus.o, '-3px', 'inside the button, where the header clips')
+      expect.ok(r.pressed.bg !== r.hover.bg, `pressed (${r.pressed.bg}) is not the hover fill (${r.hover.bg})`)
+    },
+  },
+  {
+    name: 'an empty table explains itself inside the visible region: the message is never half off-screen at 320px',
+    viewport: { width: 320, height: 640 },
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      const r = await page.locator('#demo-empty .tbl__scroll').evaluate((region) => {
+        const msg = region.querySelector('.tbl__empty-msg').getBoundingClientRect()
+        const box = region.getBoundingClientRect()
+        return { overflow: region.scrollWidth - region.clientWidth, left: msg.left - box.left, right: box.right - msg.right }
+      })
+      expect.ok(r.overflow > 0, 'the table is wider than its region (that is the case that cut the message)')
+      expect.ok(r.left >= 0 && r.right >= 0, `the sentence sits inside the region (${r.left.toFixed(0)}px from the start, ${r.right.toFixed(0)}px from the end)`)
+    },
+  },
+  {
+    name: 'every scrolling demo says so: the hint shows while the region overflows',
+    viewport: { width: 320, height: 640 },
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('.demo .tbl')].map((t) => ({ id: t.closest('.demo').id, scrolls: t.querySelector('.tbl__scroll').scrollWidth > t.querySelector('.tbl__scroll').clientWidth + 1, hint: !!t.querySelector('.tbl__hint') && getComputedStyle(t.querySelector('.tbl__hint')).display !== 'none' })))
+      expect.ok(r.length >= 5, `table demos (${r.length})`)
+      for (const t of r.filter((x) => x.scrolls)) expect.ok(t.hint, `${t.id} scrolls sideways and shows the hint`)
+    },
+  },
 ]

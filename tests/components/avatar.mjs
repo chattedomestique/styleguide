@@ -198,4 +198,30 @@ export const tests = [
       expect.ok(r.t === 'none' || r.t === 'matrix(1, 0, 0, 1, 0, 0)', `no movement (got ${r.t})`)
     },
   },
+  {
+    name: 'the forced .is-focus state draws the 3px ring outside the circle, as a real focus does',
+    async run({ page, goto, expect }) {
+      await goto('components/avatar.html')
+      const r = await page.locator('#pressable ~ .demo a.avatar.is-focus').first().evaluate((el) => { const cs = getComputedStyle(el); return { s: cs.outlineStyle, w: cs.outlineWidth, o: cs.outlineOffset } })
+      expect.equal(r.s, 'solid', 'a ring is drawn')
+      expect.equal(r.w, '3px', 'the ring width')
+      expect.equal(r.o, '3px', 'outside the circle')
+    },
+  },
+  {
+    name: 'the states are named: each pressable sample has its state written under it',
+    async run({ page, goto, expect }) {
+      await goto('components/avatar.html')
+      const names = await page.evaluate(() => [...document.querySelectorAll('#pressable ~ .demo .av-state')].map((s) => s.querySelector('.t-meta').textContent.trim()))
+      expect.equal(names.join(','), 'Rest,Hover,Focus,Pressed,Current,Unavailable', 'rest, hover, focus, pressed, current, unavailable')
+    },
+  },
+  {
+    name: 'a stack of 36px circles holds photos or single letters, not two-letter initials that the next circle covers',
+    async run({ page, goto, expect }) {
+      await goto('components/avatar.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('.avatar-stack[data-size="sm"] .avatar, .avatar-stack[data-size="xs"] .avatar')].filter((a) => !a.querySelector('img')).map((a) => a.textContent.trim().length))
+      expect.ok(r.length > 0 && r.every((n) => n === 1), `single letters at 36px and below (${r.join(',')})`)
+    },
+  },
 ]

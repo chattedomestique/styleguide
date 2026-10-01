@@ -1,7 +1,9 @@
 <!--{"title":"Empty state","group":"Components","order":95,"summary":"What a view shows when there is nothing yet, nothing found, something broke or there is no connection: an icon, a sentence, one fix."}-->
 <style>
-  /* Docs-only scaffolding for the live search demo. Roles only. */
-  #ex-q { inline-size: 100%; min-block-size: var(--ctl); padding-inline: var(--space-4); border: var(--bw) solid var(--line); border-radius: var(--radius-ctl); background: var(--paper); color: var(--ink); font: var(--type-body); }
+  /* docs only: the article's list styles must not indent or re-space the specimens */
+  .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
+  .docs-article .demo ul[role="list"] > li { max-inline-size: none; }
+  .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
   #ex-slot:empty { display: none; }
 </style>
 
@@ -33,7 +35,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="four">The four states</h3>
-<p>Built on the card's ghost idea: a dashed frame means "nothing here yet". An error or an offline notice is not empty, it is something that happened, so a tone makes it solid and filled. Each has its own icon shape, so colour is never the only cue.</p>
+<p>Built on the card's ghost idea: a dashed frame means "nothing here yet". An error or an offline notice is not empty, it is something that happened, so a tone makes it solid and filled. Each has its own icon shape, so colour is never the only cue. The one primary action is the filled button (<code>data-variant="primary"</code>); a quiet alternative takes the card's tone as an outline (<code>data-variant="tone"</code>, which reads the tone from the card). The cards in a row line up at the top.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="grid" style="--grid-min: 17rem">
@@ -58,7 +60,7 @@
           <span class="empty__icon" aria-hidden="true"><span class="ic ic--circle-alert" aria-hidden="true"></span></span>
           <h4 class="card__title" id="em-error">Couldn&rsquo;t load your decks</h4>
           <p class="card__text">They are safe on this phone. Check your connection and try again.</p>
-          <div class="empty__actions"><button class="btn" data-variant="tone" data-tone="bad" type="button">Try again</button></div>
+          <div class="empty__actions"><button class="btn" data-variant="primary" type="button">Try again</button></div>
         </div>
       </section>
       <section class="card empty" data-tone="warn" aria-labelledby="em-offline">
@@ -67,8 +69,8 @@
           <h4 class="card__title" id="em-offline">You&rsquo;re offline</h4>
           <p class="card__text">Saved decks still work. New ones need a connection.</p>
           <div class="empty__actions">
-            <button class="btn" data-variant="tone" data-tone="warn" type="button">Open saved decks</button>
-            <button class="btn" type="button">Try again</button>
+            <button class="btn" data-variant="primary" type="button">Try again</button>
+            <button class="btn" data-variant="tone" type="button">Open saved decks</button>
           </div>
         </div>
       </section>
@@ -118,17 +120,19 @@
 <p>Type something that is not a deck (try <em>fox</em>). The list is swapped for the state, the result is announced once and politely, and <em>Clear search</em> puts focus back in the field instead of losing it to the page.</p>
 <div class="demo" data-layout="stack" data-nocode>
   <div class="demo__stage">
-    <div class="stack" data-gap="2">
-      <label for="ex-q" class="t-meta">Search decks</label>
-      <input id="ex-q" type="search" autocomplete="off" />
+    <div class="stack" data-gap="4">
+      <div class="field">
+        <label class="field__label" for="ex-q">Search decks</label>
+        <input class="input" id="ex-q" type="search" placeholder="Try &ldquo;fox&rdquo;" autocomplete="off" enterkeyhint="search" />
+      </div>
+      <ul class="list" id="ex-list" role="list" data-variant="framed">
+        <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Shapes</span></span><span class="list__trail"><span class="list__value">12</span></span></a></li>
+        <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span></span><span class="list__trail"><span class="list__value">8</span></span></a></li>
+        <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Numbers to twenty</span></span><span class="list__trail"><span class="list__value">20</span></span></a></li>
+        <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Farm animals</span></span><span class="list__trail"><span class="list__value">15</span></span></a></li>
+      </ul>
+      <div id="ex-slot"></div>
     </div>
-    <ul class="card__list card" id="ex-list" role="list">
-      <li><a href="#">Shapes</a><span>12</span></li>
-      <li><a href="#">Colours</a><span>8</span></li>
-      <li><a href="#">Numbers to twenty</a><span>20</span></li>
-      <li><a href="#">Farm animals</a><span>15</span></li>
-    </ul>
-    <div id="ex-slot"></div>
   </div>
 </div>
 
@@ -157,7 +161,7 @@
   <tbody>
     <tr><td><code>class="card empty"</code></td><td></td><td>Container. Parts: <code>empty__icon</code>, <code>card__title</code>, <code>card__text</code>, <code>empty__actions</code>.</td></tr>
     <tr><td><code>data-layout</code></td><td>(default), <code>page</code>, <code>list</code></td><td>Centred block, full screen, or a compact left-aligned unit.</td></tr>
-    <tr><td><code>data-tone</code></td><td><code>bad</code>, <code>warn</code>, <code>info</code>, <code>ok</code>, <code>1</code> to <code>6</code></td><td>Solid and filled instead of dashed and empty. Put the same tone on the button with <code>data-variant="tone"</code>.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>bad</code>, <code>warn</code>, <code>info</code>, <code>ok</code>, <code>1</code> to <code>6</code></td><td>Solid and filled instead of dashed and empty. The primary action is <code>data-variant="primary"</code>; a quiet alternative is <code>data-variant="tone"</code>, which takes the card's tone.</td></tr>
     <tr><td><code>--empty-page-h</code></td><td>length</td><td>Overrides the page layout's minimum height (previews, embedded frames).</td></tr>
   </tbody>
 </table></div>

@@ -153,4 +153,21 @@ export const tests = [
       }
     },
   },
+  {
+    name: 'the primary action on a toned state is the filled button, and the cards in a row line up at the top',
+    viewport: { width: 1024, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      const r = await page.evaluate(() => [...document.querySelectorAll('#four + p + .demo .empty')].map((c) => ({
+        tone: c.dataset.tone || 'none',
+        first: c.querySelector('.empty__actions .btn').dataset.variant,
+        icon: c.querySelector('.empty__icon').getBoundingClientRect().top - c.getBoundingClientRect().top,
+        row: Math.round(c.getBoundingClientRect().top),
+      })))
+      for (const c of r.filter((x) => x.tone !== 'none')) expect.equal(c.first, 'primary', `the ${c.tone} card leads with the filled button`)
+      const rows = {}
+      for (const c of r) (rows[c.row] ||= []).push(c.icon)
+      for (const icons of Object.values(rows)) expect.ok(Math.max(...icons) - Math.min(...icons) <= 1, `icons start at the same height within a row (${icons.map((n) => n.toFixed(0)).join(' / ')})`)
+    },
+  },
 ]

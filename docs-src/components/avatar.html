@@ -3,6 +3,8 @@
   /* docs only: the article's list styles must not indent or re-space the specimens */
   .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
   .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
+  /* one avatar with its state named under it (this page only; roles and tokens only) */
+  .av-state { display: grid; justify-items: center; align-content: start; gap: var(--space-2); text-align: center; }
 </style>
 <h1>Avatar</h1>
 <p class="lede">A person, a team or an app, as a circle. A photo when there is one, their initials when there is not. In this guide circles are the shape of things that act, so an avatar stays a plain circle until it is a link or a button; then it raises like every other pressable circle.</p>
@@ -91,11 +93,19 @@
     <a class="avatar" href="#" aria-label="Your profile, Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></a>
     <button class="avatar" type="button" data-tone="1" aria-label="Switch account, Maya Okafor">MO</button>
     <button class="avatar" type="button" data-size="sm" data-tone="3" aria-label="Open Lena Fischer's card">LF</button>
-    <a class="avatar is-hover" href="#" data-tone="2" aria-label="Hover: Aiko Mori">AM</a>
-    <a class="avatar is-focus" href="#" data-tone="2" aria-label="Focus: Aiko Mori">AM</a>
-    <a class="avatar is-active" href="#" data-tone="2" aria-label="Pressed: Aiko Mori">AM</a>
-    <a class="avatar" href="#" data-tone="2" aria-current="true" aria-label="Current: Aiko Mori">AM</a>
-    <button class="avatar" type="button" aria-disabled="true" aria-label="Unavailable: Ines Duarte">ID</button>
+  </div>
+</div>
+<p class="t-meta">The states, one under another name. Hover and keyboard focus are the same state (raised, filled with the accent), focus adds the ring; pressing sinks it back onto the page with the fill kept; the current one doubles its frame; an unavailable one is dashed and faint.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 5rem">
+      <div class="av-state"><a class="avatar" href="#" data-tone="2" aria-label="Rest: Aiko Mori">AM</a><span class="t-meta">Rest</span></div>
+      <div class="av-state"><a class="avatar is-hover" href="#" data-tone="2" aria-label="Hover: Aiko Mori">AM</a><span class="t-meta">Hover</span></div>
+      <div class="av-state"><a class="avatar is-focus" href="#" data-tone="2" aria-label="Focus: Aiko Mori">AM</a><span class="t-meta">Focus</span></div>
+      <div class="av-state"><a class="avatar is-active" href="#" data-tone="2" aria-label="Pressed: Aiko Mori">AM</a><span class="t-meta">Pressed</span></div>
+      <div class="av-state"><a class="avatar" href="#" data-tone="2" aria-current="true" aria-label="Current: Aiko Mori">AM</a><span class="t-meta">Current</span></div>
+      <div class="av-state"><button class="avatar" type="button" aria-disabled="true" aria-label="Unavailable: Ines Duarte">ID</button><span class="t-meta">Unavailable</span></div>
+    </div>
   </div>
 </div>
 
@@ -111,14 +121,14 @@
     </ul>
   </div>
 </div>
-<p class="t-meta">Sizes are set once, on the stack: <code>data-size</code> on the list. Overlap is 22% of the diameter, so two letters stay legible; at the 28px size use photos or a single letter.</p>
+<p class="t-meta">Sizes are set once, on the stack: <code>data-size</code> on the list. Overlap is 22% of the diameter, so two letters stay legible from 44px up; at 36px and below use photos or a single letter, as in the first row below.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="4">
       <ul class="avatar-stack" data-size="sm" role="list" aria-label="Studying together: Maya, Jonas and Sam">
-        <li><span class="avatar" data-tone="1" role="img" aria-label="Maya Okafor">MO</span></li>
-        <li><span class="avatar" data-tone="2" role="img" aria-label="Jonas Berg">JB</span></li>
-        <li><span class="avatar" data-tone="4" role="img" aria-label="Sam Castillo">SC</span></li>
+        <li><span class="avatar" data-tone="1" role="img" aria-label="Maya Okafor">M</span></li>
+        <li><span class="avatar" data-tone="2" role="img" aria-label="Jonas Berg">J</span></li>
+        <li><span class="avatar" data-tone="4" role="img" aria-label="Sam Castillo">S</span></li>
       </ul>
       <ul class="avatar-stack" data-size="lg" role="list" aria-label="Family deck: Priya, Omar and 2 more">
         <li><span class="avatar" data-tone="5" role="img" aria-label="Priya Nair">PN</span></li>

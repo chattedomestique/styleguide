@@ -92,4 +92,48 @@ export const tests = [
       expect.ok(r.scrollW <= r.clientW + 1, `no sideways overflow (${r.scrollW} vs ${r.clientW})`)
     },
   },
+  {
+    name: 'at 200% text a label and its amount never overlap, and the amount keeps its minus with its digits',
+    async run({ page, goto, expect }) {
+      await goto('components/divider.html')
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(200)
+      const r = await page.evaluate(() => [...document.querySelectorAll('#heading ~ .demo .split')].map((row) => {
+        const [label, amount] = [row.firstElementChild, row.lastElementChild]
+        const a = label.getBoundingClientRect(), b = amount.getBoundingClientRect()
+        const lines = new Set([...(() => { const rg = document.createRange(); rg.selectNodeContents(amount); return rg.getClientRects() })()].map((q) => Math.round(q.top))).size
+        const apart = b.left >= a.right - 0.5 || b.top >= a.bottom - 0.5 || b.bottom <= a.top + 0.5
+        return { name: label.textContent.trim(), apart, lines, spill: row.scrollWidth - row.clientWidth }
+      }))
+      expect.ok(r.length >= 4, `rows (${r.length})`)
+      for (const x of r) {
+        expect.ok(x.apart, `${x.name}: the label and the amount are apart`)
+        expect.equal(x.lines, 1, `${x.name}: the amount is on one line, sign and digits together`)
+        expect.ok(x.spill <= 1, `${x.name}: the row does not spill sideways`)
+      }
+    },
+  },
+  {
+    name: 'a labelled divider spans its column even where a base style gives paragraphs a reading measure',
+    async run({ page, goto, expect }) {
+      await goto('components/divider.html')
+      // outside the docs article (whose own unlayered rule is not the component's business), with a measure added to the base layer
+      const r = await page.evaluate(() => {
+        const st = document.createElement('style')
+        st.textContent = '@layer sg.base { p { max-inline-size: 20ch } }'
+        document.head.append(st)
+        const host = document.createElement('div')
+        host.style.cssText = 'inline-size: 500px'
+        host.innerHTML = '<p class="divider">or</p>'
+        document.body.append(host)
+        const d = host.firstElementChild
+        const out = { max: getComputedStyle(d).maxInlineSize, w: d.getBoundingClientRect().width }
+        host.remove()
+        st.remove()
+        return out
+      })
+      expect.equal(r.max, 'none', 'the divider carries no measure')
+      expect.equal(Math.round(r.w), 500, 'and spans the 500px column')
+    },
+  },
 ]

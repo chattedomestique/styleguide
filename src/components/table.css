@@ -22,7 +22,8 @@
    th/td [data-align=end] right-aligned, tabular figures. Numbers line up on the decimal.
    th[aria-sort]         ascending | descending. The sorted label is underlined AND the icon
                          flips, so the state never rests on colour.
-   .tbl__empty           a single row that says why there is nothing.
+   .tbl__empty           a single row that says why there is nothing. Put its sentence in a .tbl__empty-msg
+                         so it is as wide as the visible region (the cell spans a table that may be wider).
    .tbl__hint            "scroll sideways": shown by SG.table only while the region overflows.
 
    THE LOOK  the owner's rules, applied to data: a 2px frame around everything, a bar of ink
@@ -34,8 +35,9 @@
      aria-sort="ascending|descending"   sorted column (underline + arrow)
      tr[aria-selected="true"]           selected row: accent-soft wash AND a checked box
      input:checked / :indeterminate     the checkbox
-   Hover and focus on the sort buttons set --fill (ink bar -> paper), like a Button. Rows do not
-   lift: only pressable things lift, and a row is held, not pressed.
+   Hover and focus on the sort buttons set --fill (ink bar -> paper), like a Button; focus adds the
+   ring inside; pressed sinks one step further (paper toward ink). Rows do not lift: only pressable
+   things lift, and a row is held, not pressed.
 
    WHY border-collapse: separate  Sticky cells lose their borders under collapse (the border
    belongs to the table grid, not the cell), so rules are drawn on the cells themselves.
@@ -211,13 +213,19 @@
         --fill: 1;
       }
     }
+    /* the ring is drawn inside the button (the header clips), in ink on the paper fill. Written out
+       so .is-focus, which the docs use to SHOW the state, draws it too. */
     &:is(:focus-visible, .is-focus) {
       --fill: 1;
       --ring-gap: calc(var(--ring) * -1);
-      outline-color: var(--ink);
+      outline: var(--ring) solid var(--ink);
+      outline-offset: var(--ring-gap);
     }
+    /* pressed: the paper fill sinks a step toward ink, straight away. Hover and focus are a clean
+       paper fill, so without this the three states looked the same. (The header never lifts.) */
     &:is(:active, .is-active) {
       --fill: 1;
+      background: color-mix(in srgb, var(--ink) 16%, var(--paper));
       transition-duration: var(--dur-press);
     }
   }
@@ -346,6 +354,21 @@
     color: var(--ink-soft);
     text-align: center;
     font: var(--type-body);
+  }
+
+  /* The sentence that explains the empty table. The cell spans the whole table, and a table that is wider
+     than its region would centre the sentence over the part you have to scroll to (the reader sees half
+     of it). Wrapped in .tbl__empty-msg it is only as wide as the REGION, sticks to its start edge while
+     the table scrolls, and wraps there. 100cqi is the .tbl; the frame and the cell padding come off. */
+  .tbl__empty-msg {
+    position: sticky;
+    inset-inline-start: 0;
+    inline-size: calc(100cqi - var(--bw) * 2 - var(--space-4) * 2);
+    max-inline-size: 100%;
+    margin: 0;
+    margin-inline-end: auto;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
   }
 
   .tbl__hint {
