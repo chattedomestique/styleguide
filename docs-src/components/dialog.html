@@ -20,7 +20,7 @@
     color: var(--ink);
     font: var(--type-body);
   }
-  #dlg-status { min-block-size: var(--hit); }
+  .dlg-readout { margin-block-end: var(--space-2); }
   #dlg-corners > div { min-inline-size: 0; }
   #dlg-corners .t-label { margin-block-end: var(--space-2); }
   #dlg-decks { margin: 0; padding: 0; list-style: none; }
@@ -56,10 +56,9 @@
 </div>
 
 <h2 id="examples">Examples</h2>
-<p class="t-meta cluster" id="dlg-status" role="status" aria-live="polite">Last choice: <strong id="dlg-result">none yet</strong></p>
-
 <h3 id="confirm">Confirm</h3>
 <p>A question with one clear next step. The primary button takes focus (<code>autofocus</code>), so <kbd>Enter</kbd> confirms. <kbd>Esc</kbd>, a tap on the scrim and <em>Not now</em> all leave things as they were.</p>
+<p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-confirm">Last choice: <strong>none yet</strong></p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" type="button" data-sg-open="#dlg-confirm">Archive deck</button>
@@ -80,8 +79,10 @@
   </div>
 </div>
 
+
 <h3 id="alert">Destructive alert</h3>
 <p>When the action cannot be undone the dialog is an <code>alertdialog</code>. The bar carries an icon <em>and</em> words (a status is never colour alone), initial focus goes to <strong>Cancel</strong> so a stray <kbd>Enter</kbd> never deletes anything, and the destructive button names exactly what will happen.</p>
+<p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-delete">Last choice: <strong>none yet</strong></p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" data-variant="tone" data-tone="bad" type="button" data-sg-open="#dlg-delete">
@@ -104,8 +105,10 @@
   </div>
 </div>
 
+
 <h3 id="form">Form</h3>
 <p>One short question. Wrap bar, body and actions in a <code>&lt;form method="dialog"&gt;</code>: the browser validates, closes the dialog and reports which button was pressed in <code>returnValue</code>. The first field has <code>autofocus</code>. Cancel is a plain <code>type="button"</code> with <code>data-sg-close</code>, so it skips validation, and because Save is the form's only submit button, <kbd>Enter</kbd> in the field saves.</p>
+<p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-rename">Last choice: <strong>none yet</strong></p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" type="button" data-sg-open="#dlg-rename">
@@ -134,8 +137,10 @@
   </div>
 </div>
 
+
 <h3 id="required">Required</h3>
 <p><code>data-required</code> switches off <kbd>Esc</kbd> and the scrim tap, and leaves out the close control, for the rare moment when the person must choose before anything else can happen (the session ended, a payment needs a decision). There is still a visible button for every way out; nobody is trapped. Every other dialog stays dismissible.</p>
+<p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-required">Last choice: <strong>none yet</strong></p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" type="button" data-sg-open="#dlg-required">Show required dialog</button>
@@ -155,6 +160,7 @@
     </dialog>
   </div>
 </div>
+
 
 <h3 id="long">Longer content</h3>
 <p>The bar and the actions stay put; the body scrolls. If the body holds nothing focusable, SG makes it a keyboard-reachable region named after the dialog. A close control in the bar is friendly when there is no obvious "No" (touch screens have no <kbd>Esc</kbd>). <code>data-size="lg"</code> widens it to 40rem.</p>
@@ -367,12 +373,13 @@
 <p>Related: <a href="@/components/sheet.html">Sheet</a>, <a href="@/components/menu.html">Menu</a>, <a href="@/components/popover.html">Popover</a>, <a href="@/components/tooltip.html">Tooltip</a>, <a href="@/components/button.html">Button</a>, <a href="@/components/card.html">Card</a>.</p>
 
 <script>
-  // Demo only: show which button closed which dialog (returnValue).
+  // Demo only: show which button closed which dialog (returnValue), under the demo it belongs to.
   (function () {
-    var out = document.getElementById('dlg-result');
     document.addEventListener('close', function (e) {
       var d = e.target;
-      if (!out || d.tagName !== 'DIALOG' || d.hasAttribute('data-inline')) return;
+      if (d.tagName !== 'DIALOG' || d.hasAttribute('data-inline')) return;
+      var out = document.querySelector('[data-for="' + d.id + '"] strong');
+      if (!out) return;
       var v = d.returnValue;
       d.returnValue = '';
       if (d.id === 'dlg-rename' && v === 'save') v = 'renamed to “' + d.querySelector('input').value + '”';

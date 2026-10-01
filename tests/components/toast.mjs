@@ -188,6 +188,36 @@ export const tests = [
     },
   },
   {
+    // Regression: the close circle was a shrinkable flex item, so a two-line message squeezed it to
+    // 20-28 x 36 px (an oval with the X spilling out). It is 36 x 36 whatever the message length.
+    name: 'the dismiss circle stays a 36 x 36 circle whatever the message length, at 390, 320 and 200% text',
+    async run({ page, goto, expect }) {
+      await boot(page, goto)
+      const long = 'Could not save. Check your connection and try again in a few minutes, then reopen the deck.'
+      for (const [w, scale] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.addStyleTag({ content: `html{font-size:${scale}%!important}` })
+        await page.evaluate(() => SG.toast.clear && SG.toast.clear())
+        await waitVisible(page, 0)
+        await page.evaluate((m) => {
+          SG.toast.show({ message: m, status: 'info', persistent: true })
+          SG.toast.show({ message: m, status: 'danger', action: { label: 'Undo', onClick: () => {} } })
+        }, long)
+        await waitVisible(page, 2)
+        const boxes = await page.locator(`${VISIBLE} .toast__close`).evaluateAll((els) => els.map((el) => {
+          const r = el.getBoundingClientRect(), t = el.closest('.toast').querySelector('.toast__msg').getBoundingClientRect()
+          return { w: r.width, h: r.height, msgLines: Math.round(t.height / parseFloat(getComputedStyle(el.closest('.toast').querySelector('.toast__msg')).lineHeight)) }
+        }))
+        expect.equal(boxes.length, 2, `${w}px @${scale}%: both toasts have a close button`)
+        for (const b of boxes) {
+          expect.ok(b.msgLines >= 2, `${w}px @${scale}%: the message wraps (${b.msgLines} lines), so the test has teeth`)
+          expect.ok(Math.abs(b.w - b.h) < 0.5, `${w}px @${scale}%: close is ${b.w} x ${b.h}, expected a square (a circle)`)
+          expect.ok(b.w >= 36 - 0.5, `${w}px @${scale}%: close is ${b.w}px wide, expected at least the 36px --ctl-sm`)
+        }
+      }
+    },
+  },
+  {
     name: 'at most three are visible; the newest wins; persistent toasts queue instead of being lost',
     async run({ page, goto, expect }) {
       await boot(page, goto)

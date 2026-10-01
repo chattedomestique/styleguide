@@ -27,6 +27,8 @@
                                            while focus is inside it.
    data-size   half (default) | full        62% of the screen / all but --space-8 of it
    data-inline                              static preview in the page flow (docs, split panes)
+   data-side                                with data-inline: the side-panel look (edge on the inline-start
+                                            side only, no handle) as a pane
    data-required                            no scrim tap, no Esc, no drag (see dialog.css)
 
    THE HANDLE IS A BUTTON, NOT A PICTURE. .sheet__handle is a real <button aria-pressed> with
@@ -163,6 +165,20 @@
     border-end-end-radius: var(--card-radius);
   }
 
+  /* The side panel as a static pane (a split view in an app, the docs preview): the same edge and
+     corners the panel gets from 48em below, with no handle because a pane has no half or full. */
+  .sheet.card[data-inline][data-side] {
+    border-width: 0;
+    border-inline-start-width: var(--bw);
+    border-radius: 0;
+    border-start-start-radius: var(--card-radius);
+    border-end-start-radius: var(--card-radius);
+
+    > .sheet__handle {
+      display: none;
+    }
+  }
+
   /* Not in the top layer: a static preview in the page flow (docs, split panes). Any element. */
   .sheet.card[data-inline] {
     position: relative;
@@ -294,6 +310,13 @@
   .sheet .card__body > .card__list {
     margin-inline: calc(var(--card-pad) * -1);
     border-block-start: var(--bw-thin) solid var(--card-ink);
+  }
+  /* ...and when it is the FIRST thing in the body it runs up to the bar too: the body's top padding
+     left a blank band with a hairline between the ink bar and the first row, which read as a missing
+     row (and cost a row of a half-height sheet). The bar already is the rule. */
+  .sheet .card__body > .card__list:first-child {
+    margin-block-start: calc(var(--card-pad) * -1);
+    border-block-start-width: 0;
   }
   .sheet .card__body:has(+ .sheet__actions) {
     padding-block-end: var(--card-pad);

@@ -273,6 +273,65 @@ export const tests = [
     },
   },
   {
+    // Regression: the display size was taken from the viewport width alone, so PALETTE broke into PALETT / E at 320
+    // and the line fell to a letter or two per line at 200% text. It is sized from the strip (cqi) now.
+    name: 'data-size="lg": no word is broken mid-word at 320 px, or at 200% text on a 390 px phone',
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      const broken = () => page.evaluate(() => {
+        const out = []
+        for (const strip of document.querySelectorAll('.marquee[data-size="lg"]')) {
+          for (const li of strip.querySelectorAll('.marquee__list:not([data-clone]) > li')) {
+            const node = [...li.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim())
+            const text = node.textContent
+            const re = /\S+/g
+            let m
+            while ((m = re.exec(text))) {
+              const r = document.createRange()
+              r.setStart(node, m.index); r.setEnd(node, m.index + m[0].length)
+              const tops = new Set([...r.getClientRects()].map((q) => Math.round(q.top)))
+              if (tops.size > 1) out.push(`"${m[0]}" is split over ${tops.size} lines at ${Math.round(parseFloat(getComputedStyle(li).fontSize))}px`)
+            }
+            const v = strip.querySelector('.marquee__viewport').getBoundingClientRect()
+            const lr = li.getBoundingClientRect()
+            if (lr.right > v.right + 1) out.push(`"${text}" spills ${Math.round(lr.right - v.right)}px past the viewport`)
+          }
+        }
+        return out
+      })
+      for (const [w, scale] of [[320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.addStyleTag({ content: `html{font-size:${scale}%!important}` })
+        await page.evaluate(() => { for (const el of document.querySelectorAll('.marquee')) SG.marquee.refresh(el) })
+        await page.waitForTimeout(250)
+        expect.equal((await broken()).join(' | '), '', `${w}px at ${scale}% text`)
+      }
+    },
+  },
+  {
+    // Regression: the first item of a wrapped list had no marker, so one item sat flush left over a column indented
+    // behind squares, and the square was centred on the whole item rather than its first line.
+    name: 'a wrapped (paused) list gives every item the same marker, aligned to its first line',
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      const r = await page.locator(FIRST).evaluate((el) => {
+        el.querySelector('.marquee__toggle').click()
+        return new Promise((done) => setTimeout(() => {
+          const items = [...el.querySelectorAll('.marquee__list:not([data-clone]) > li')]
+          done({
+            wrapped: !el.hasAttribute('data-loop') || el.querySelector('.marquee__toggle').getAttribute('aria-pressed') === 'true',
+            markers: items.map((li) => getComputedStyle(li, '::before').display),
+            align: items.map((li) => getComputedStyle(li).alignItems),
+            xs: items.map((li) => Math.round(li.getBoundingClientRect().left)),
+          })
+        }, 150))
+      })
+      expect.ok(r.wrapped, 'paused = wrapped list')
+      expect.ok(r.markers.every((d) => d !== 'none'), 'every item, the first too, has a marker: ' + r.markers.join(','))
+      expect.ok(r.align.every((a) => a === 'baseline'), 'the marker follows the first line (baseline alignment), not the middle of the item')
+    },
+  },
+  {
     name: 'the strip is a 2px-framed rectangle with no shadow; the ink band is ink with paper text and keeps 7:1 in every appearance',
     async run({ page, goto, expect }) {
       await goto(PAGE)

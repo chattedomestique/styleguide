@@ -47,6 +47,10 @@
   /* ---- The anchor contract ------------------------------------------------------------- */
   [popover][data-anchored] {
     --_gap: var(--space-2);
+    /* What the screen's edge keeps free beside an edge-aligned placement (the --sg-* fallbacks below):
+       the same gutter as the popover's own width cap. Without it a box that only SHRINKS to fit (a
+       tooltip) ran flush to the glass. */
+    --_screen-gap: max(var(--gutter), var(--safe-left), var(--safe-right));
     inset: auto; /* the UA pins popovers with inset: 0 */
     margin: 0;
   }
@@ -64,18 +68,22 @@
     @position-try --sg-ts {
       position-area: block-start span-inline-end;
       margin-block: 0 var(--_gap);
+      margin-inline: 0 var(--_screen-gap);
     }
     @position-try --sg-te {
       position-area: block-start span-inline-start;
       margin-block: 0 var(--_gap);
+      margin-inline: var(--_screen-gap) 0;
     }
     @position-try --sg-bs {
       position-area: block-end span-inline-end;
       margin-block: var(--_gap) 0;
+      margin-inline: 0 var(--_screen-gap);
     }
     @position-try --sg-be {
       position-area: block-end span-inline-start;
       margin-block: var(--_gap) 0;
+      margin-inline: var(--_screen-gap) 0;
     }
 
     /* The last resort, when the popover is nearly as wide as the screen (200% text on a phone):

@@ -111,6 +111,58 @@ export const tests = [
     },
   },
   {
+    // Regression: when the action wrapped it sat flush under the ICON, not under the words; and the icon was centred on a
+    // two-line message in one banner and on the first line in the next.
+    name: 'banner row: the icon sits beside the first line; wide, everything shares a row; narrow, the action drops into the words\' column',
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      const measure = () => page.evaluate(() => [...document.querySelectorAll('#banner ~ .demo .alert[data-size="sm"]')].map((el) => {
+        const r = (s) => { const n = el.querySelector(s); return n && n.getBoundingClientRect() }
+        const text = el.querySelector('.alert__text'), lh = parseFloat(getComputedStyle(text).lineHeight)
+        const ic = r('.card__body > .ic'), main = r('.alert__main'), act = r('.alert__actions .btn'), close = r('.alert__close'), t = text.getBoundingClientRect()
+        return { lines: Math.round(t.height / lh), iconMid: (ic.top + ic.bottom) / 2, firstLineMid: t.top + lh / 2, mainLeft: main.left, actLeft: act && act.left, actTop: act && act.top, mainBottom: main.bottom, mainTop: main.top, actMid: act && (act.top + act.bottom) / 2, closeMid: close && (close.top + close.bottom) / 2, closeRight: close && close.right, actRight: act && act.right, iconLeft: ic.left }
+      }))
+      await page.setViewportSize({ width: 1024, height: 900 })
+      await page.waitForTimeout(150)
+      const wide = await measure()
+      expect.equal(wide.length, 3, 'three banners')
+      for (const b of wide) {
+        expect.ok(Math.abs(b.iconMid - b.firstLineMid) <= 1.5, `wide: icon centre ${b.iconMid} vs first line centre ${b.firstLineMid}`)
+        if (b.actTop != null) expect.ok(b.actTop < b.mainBottom && b.actMid <= b.firstLineMid + 1.5 && b.actMid >= b.firstLineMid - 1.5, 'wide: the action is on the first line, beside the words')
+        if (b.closeMid != null) expect.ok(Math.abs(b.closeMid - b.firstLineMid) <= 1.5, 'wide: the close circle is on the first line')
+      }
+      await page.setViewportSize({ width: 390, height: 900 })
+      await page.waitForTimeout(150)
+      const narrow = await measure()
+      for (const b of narrow) {
+        expect.ok(Math.abs(b.iconMid - b.firstLineMid) <= 1.5, `narrow: icon centre ${b.iconMid} vs first line centre ${b.firstLineMid}`)
+        if (b.actTop != null) {
+          expect.ok(b.actTop >= b.mainBottom - 1, 'narrow: the action is under the words')
+          expect.ok(Math.abs(b.actLeft - b.mainLeft) <= 1, `narrow: the action lines up with the words (${b.actLeft} vs ${b.mainLeft}), not with the icon (${b.iconLeft})`)
+        }
+      }
+    },
+  },
+  {
+    // Regression: at 320 the text column beside the icon and the dismiss circle was ~100px wide and "Manage storage" wrapped
+    // inside its pill, which makes an oval.
+    name: 'at 320 px (a card ~15rem wide) the words keep most of the card and an action label stays on one line in its pill',
+    viewport: { width: 320, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto(PAGE)
+      const r = await page.evaluate(() => [...document.querySelectorAll('#actions + p + .demo .alert, #dismiss-stage .alert')].map((c) => {
+        const cr = c.getBoundingClientRect(), main = c.querySelector('.alert__main').getBoundingClientRect()
+        const btns = [...c.querySelectorAll('.alert__actions .btn')].map((b) => ({ h: b.getBoundingClientRect().height, label: b.textContent.trim(), radius: getComputedStyle(b).borderTopLeftRadius }))
+        return { mainW: main.width, cardW: cr.width, btns }
+      }))
+      expect.ok(r.length >= 4, 'alerts: ' + r.length)
+      for (const x of r) {
+        expect.ok(x.mainW >= x.cardW * 0.7, `the words get ${x.mainW} of ${x.cardW}px`)
+        for (const b of x.btns) expect.ok(b.h < 50, `"${b.label}" is ${b.h}px tall: it wrapped inside a pill (an oval)`)
+      }
+    },
+  },
+  {
     name: 'text is at least 7:1 on every tone (status and slots) in light and dark, every palette and contrast; bold is at least 4.5:1',
     async run({ page, goto, expect }) {
       await goto(PAGE)

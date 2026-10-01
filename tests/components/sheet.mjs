@@ -352,6 +352,43 @@ export const tests = [
     },
   },
   {
+    // Regression: the body's top padding left a blank band with a hairline between the ink bar and the first row.
+    name: 'a ruled list that opens the body runs up to the bar: no blank band above the first row',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/sheet.html')
+      await page.locator('[data-sg-open="#sh-panel"]').click()
+      await page.waitForTimeout(600)
+      const r = await page.evaluate(() => { const bar = document.querySelector('#sh-panel .card__bar').getBoundingClientRect(); const li = document.querySelector('#sh-panel .card__list > li').getBoundingClientRect(); return { gap: li.top - bar.bottom } })
+      expect.ok(Math.abs(r.gap) <= 1, `first row starts ${r.gap}px below the bar`)
+    },
+  },
+  {
+    // Regression: the soft preview's handle was aria-pressed="true" (filled), so the two previews differed by more than the corners.
+    name: 'the square and soft previews differ only by their corners: the same handle state in both',
+    async run({ page, goto, expect }) {
+      await goto('components/sheet.html')
+      const pressed = await page.locator('#sh-corners .sheet__handle').evaluateAll((els) => els.map((e) => e.getAttribute('aria-pressed')))
+      expect.equal(pressed.length, 2, 'two previews')
+      expect.equal(pressed[0], pressed[1], 'same handle state in both previews')
+    },
+  },
+  {
+    name: 'data-side: the static pane has the side-panel look (frame on the inline-start side only, no handle) and fills the stage height',
+    async run({ page, goto, expect }) {
+      await goto('components/sheet.html')
+      const r = await page.locator('[data-stage][data-side] > .sheet').evaluate((el) => {
+        const cs = getComputedStyle(el), st = el.parentElement.getBoundingClientRect(), r = el.getBoundingClientRect()
+        const h = el.querySelector('.sheet__handle')
+        return { start: cs.borderInlineStartWidth, end: cs.borderInlineEndWidth, top: cs.borderBlockStartWidth, bottom: cs.borderBlockEndWidth, handle: h ? getComputedStyle(h).display : 'none', fills: Math.abs(r.height - (st.height - 4)) < 3 }
+      })
+      expect.equal(r.start, '2px', 'frame on the start side')
+      expect.equal(r.end + r.top + r.bottom, '0px0px0px', 'and nowhere else')
+      expect.equal(r.handle, 'none', 'no handle on a pane')
+      expect.ok(r.fills, 'full height of the stage')
+    },
+  },
+  {
     name: 'wide screen: a side panel docked to the end edge at full height, no handle, slides in from the end',
     viewport: { width: 1024, height: 700 },
     async run({ page, goto, expect }) {

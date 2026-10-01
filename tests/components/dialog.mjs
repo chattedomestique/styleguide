@@ -5,6 +5,18 @@ const css = (page, id, prop, pseudo) => page.evaluate(([i, p, ps]) => getCompute
 
 export const tests = [
   {
+    // Regression: the card's 40ch cap left the right half of a 40rem dialog empty beside its paragraphs.
+    name: 'data-size="lg": paragraphs use the dialog\'s width (up to the system measure), not the card\'s 40ch column',
+    viewport: { width: 1024, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto('components/dialog.html')
+      await page.locator('[data-sg-open="#dlg-long"]').click()
+      await page.waitForTimeout(500)
+      const r = await page.evaluate(() => { const body = document.querySelector('#dlg-long .card__body'), t = document.querySelector('#dlg-long .card__text'); const cs = getComputedStyle(body); return { text: t.getBoundingClientRect().width, inner: body.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) } })
+      expect.ok(r.text >= r.inner * 0.9, `paragraph is ${Math.round(r.text)}px of a ${Math.round(r.inner)}px body`)
+    },
+  },
+  {
     name: 'nothing inside a closed dialog steals focus on page load',
     async run({ page, goto, expect }) {
       await goto('components/dialog.html')
@@ -89,7 +101,7 @@ export const tests = [
       await page.locator('#dlg-confirm [value="not now"]').click()
       expect.ok(!(await open(page, 'dlg-confirm')))
       await expect.focused(page, '[data-sg-open="#dlg-confirm"]')
-      expect.equal(await page.locator('#dlg-result').textContent(), 'not now', 'returnValue reported')
+      expect.equal(await page.locator('[data-for="dlg-confirm"] strong').textContent(), 'not now', 'returnValue reported')
     },
   },
   {
@@ -129,7 +141,7 @@ export const tests = [
       expect.ok(names.desc.length > 10, 'aria-describedby resolves to the message')
       await page.keyboard.press('Enter')
       expect.ok(!(await open(page, 'dlg-delete')), 'Enter on Cancel closes')
-      expect.equal(await page.locator('#dlg-result').textContent(), 'cancel', 'nothing was deleted')
+      expect.equal(await page.locator('[data-for="dlg-delete"] strong').textContent(), 'cancel', 'nothing was deleted')
     },
   },
   {
@@ -158,7 +170,7 @@ export const tests = [
       await page.keyboard.type('Pantry')
       await page.keyboard.press('Enter')
       expect.ok(!(await open(page, 'dlg-rename')), 'valid submit closes')
-      expect.equal(await page.locator('#dlg-result').textContent(), 'renamed to “Pantry”')
+      expect.equal(await page.locator('[data-for="dlg-rename"] strong').textContent(), 'renamed to “Pantry”')
       await expect.focused(page, '[data-sg-open="#dlg-rename"]')
     },
   },
@@ -172,7 +184,7 @@ export const tests = [
       await page.keyboard.press('Backspace')
       await page.locator('#dlg-rename .card__ctl').click()
       expect.ok(!(await open(page, 'dlg-rename')), 'closed although the required field is empty')
-      expect.equal(await page.locator('#dlg-result').textContent(), 'cancel')
+      expect.equal(await page.locator('[data-for="dlg-rename"] strong').textContent(), 'cancel')
     },
   },
   {

@@ -5,6 +5,12 @@
   .demo .marquee__list { padding-inline-start: 0; }
   .demo .marquee__list > li + li { margin-block-start: 0; }
   .docs-article .marquee__list > li { max-inline-size: none; }
+  /* docs scaffolding only: the stage's 1.5rem of padding on each side leaves a 320px phone with a
+     ~15rem strip, so every demo fell into the "not enough room to scroll" branch and none showed a
+     ticker. A strip needs its room, as it would have in an app. */
+  .demo__stage:has(> .marquee, > .stack > .marquee) { padding: var(--space-2); }
+  /* and the phone mock's 30rem minimum height left ~11rem of empty screen under the strip */
+  .phone__screen { min-block-size: 0; }
 </style>
 
 <h1>Marquee</h1>
@@ -96,7 +102,7 @@
 </div>
 
 <h3 id="large">Display size</h3>
-<p><code>data-size="lg"</code>: poster-sized words in the display line (uppercase, expanded, heavy). This one starts paused, to show the static presentation: the same content wrapped onto as many lines as it needs, nothing clipped.</p>
+<p><code>data-size="lg"</code>: poster-sized words in the display line (uppercase, expanded, heavy). The size follows the width of the strip, up to the display ceiling, so a word of about seven capitals fits on a 320px phone and at 200% text instead of breaking in two. This one starts paused, to show the static presentation: the same content wrapped onto as many lines as it needs, nothing clipped.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="marquee" data-size="lg" data-tone="ink" role="group" aria-label="Highlights">

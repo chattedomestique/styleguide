@@ -1,4 +1,9 @@
 <!--{"title":"Skeleton","group":"Components","order":94,"summary":"Flat placeholders that mirror the layout while content loads: shown only after 300 ms, a stepped pulse, and still when motion is reduced."}-->
+<style>
+  /* docs scaffolding only: the phone mock keeps a 30rem minimum height, which left 5 to 11rem of empty
+     screen under the last row of this demo. Fit it to its content. */
+  .phone__screen { min-block-size: 0; }
+</style>
 <h1>Skeleton</h1>
 <p class="lede">A skeleton is a grey sketch of the content that is on its way: same places, same sizes, so the page does not jump when the real thing lands. It shows only if the wait is long enough to notice, it never shimmers, and it holds perfectly still for people who ask for less motion.</p>
 
@@ -27,7 +32,7 @@
 </div>
 
 <h2 id="examples">Examples</h2>
-<p>Every piece sits in a <code>.skeleton</code> group that is <code>aria-hidden</code> and fades in after 300&nbsp;ms. A shape is the ink mixed 14% into the surface under it, so it reads on the canvas, on a card and on a tone alike.</p>
+<p>Every piece sits in a <code>.skeleton</code> group that is <code>aria-hidden</code> and fades in after 300&nbsp;ms. A shape is the ink mixed 26% into the surface under it, so it reads on the canvas, on a card and on a tone alike.</p>
 
 <h3 id="text">Text</h3>
 <p>Line widths are percentages, so a paragraph gets a natural ragged edge. The last line is shorter.</p>
@@ -165,7 +170,7 @@ SG.announce('Recent sessions loaded')">
 <h2 id="motion">Motion and timing</h2>
 <ul>
   <li><strong>Delay</strong>: the group starts at opacity 0 and fades in after 300&nbsp;ms (<code>animation-delay</code>), so there is no JavaScript timer to forget.</li>
-  <li><strong>Stepped pulse</strong>: four held levels over 1.6&nbsp;s (100%, 70%, 45%, 70% opacity), identical for every piece, so the screen breathes together. Nothing slides, nothing sweeps, nothing flashes: 2.5 small steps a second, below the 3-per-second line of WCAG 2.3.1.</li>
+  <li><strong>Stepped pulse</strong>: four held levels over 1.6&nbsp;s (100%, 75%, 55%, 75% opacity), identical for every piece, so the screen breathes together. Nothing slides, nothing sweeps, nothing flashes: 2.5 small steps a second, below the 3-per-second line of WCAG 2.3.1.</li>
   <li><strong>Reduced motion</strong>: the pulse is off (<code>animation: none</code>); the shapes are still. The 300&nbsp;ms fade-in stays: it is opacity only.</li>
   <li><strong>Never for ever</strong>: if the data has not arrived after about ten seconds, replace the skeleton with a message and a Retry button (see <a href="@/components/empty.html">Empty state</a>). Motion that cannot end fails WCAG 2.2.2 in spirit.</li>
 </ul>

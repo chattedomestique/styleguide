@@ -13,6 +13,16 @@
   #pop-options legend { padding: 0; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
   #pop-remind label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
   #pop-remind input { box-sizing: border-box; inline-size: 100%; min-block-size: var(--ctl); padding-inline: var(--space-3); border: var(--bw) solid var(--line); border-radius: var(--radius-ctl); background: var(--paper); color: var(--ink); font: var(--type-body); font-variant-numeric: tabular-nums; }
+  /* a static map of where each placement puts the card: the control and the card, 8px apart (the real gap) */
+  #pop-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: var(--space-5); }
+  #pop-map .t-label { margin-block-end: var(--space-2); }
+  #pop-map .btn { flex: none; }
+  #pop-map .pair { display: flex; gap: var(--space-2); }
+  #pop-map [data-at="bottom-start"] { flex-direction: column-reverse; align-items: flex-start; }
+  #pop-map [data-at="bottom-end"] { flex-direction: column-reverse; align-items: flex-end; }
+  #pop-map [data-at="top"] { flex-direction: column; align-items: center; }
+  #pop-map [data-at="end"] { flex-direction: row-reverse; justify-content: flex-end; align-items: flex-start; }
+  #pop-map .popover { flex: 0 1 auto; min-inline-size: 0; }
   #pop-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-4); }
   #pop-places .btn { justify-self: start; }
 </style>
@@ -117,7 +127,41 @@
 </div>
 
 <h3 id="placement">Placement</h3>
-<p><code>data-placement</code> says where it opens relative to the button. It is written in logical terms, so <code>start</code> and <code>end</code> flip in right-to-left text, and it flips to the other side when there is no room. Browsers with CSS anchor positioning do it in CSS; the others get the same result from a few lines of script.</p>
+<p><code>data-placement</code> says where it opens relative to the button. It is written in logical terms, so <code>start</code> and <code>end</code> flip in right-to-left text, and it flips to the other side when there is no room. Browsers with CSS anchor positioning do it in CSS; the others get the same result from a few lines of script. First where each puts the card, as static previews (<code>data-inline</code>); then press the buttons for the live thing.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div id="pop-map">
+      <div>
+        <p class="t-label">bottom-start (default)</p>
+        <div class="pair" data-at="bottom-start">
+          <div class="popover card" data-inline popover role="note" data-size="sm"><div class="card__body"><p class="card__text">Below the button, start edges aligned.</p></div></div>
+          <span class="btn" aria-hidden="true">Bottom start</span>
+        </div>
+      </div>
+      <div>
+        <p class="t-label">bottom-end</p>
+        <div class="pair" data-at="bottom-end">
+          <div class="popover card" data-inline popover role="note" data-size="sm"><div class="card__body"><p class="card__text">Below, end edges aligned.</p></div></div>
+          <span class="btn" aria-hidden="true">Bottom end</span>
+        </div>
+      </div>
+      <div>
+        <p class="t-label">top</p>
+        <div class="pair" data-at="top">
+          <div class="popover card" data-inline popover role="note" data-size="sm"><div class="card__body"><p class="card__text">Above, centred on the button.</p></div></div>
+          <span class="btn" aria-hidden="true">Top</span>
+        </div>
+      </div>
+      <div>
+        <p class="t-label">end</p>
+        <div class="pair" data-at="end">
+          <div class="popover card" data-inline popover role="note" data-size="sm"><div class="card__body"><p class="card__text">Beside it, on the end side.</p></div></div>
+          <span class="btn" aria-hidden="true">End</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div id="pop-places">

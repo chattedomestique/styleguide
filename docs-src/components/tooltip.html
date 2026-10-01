@@ -3,6 +3,15 @@
   /* Docs-only scaffolding: see dialog.html for why margins are reverted in demos. */
   .docs-article .demo .demo__stage > :is(dialog, [popover]) { margin: revert-layer; }
   #tip-places { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: var(--space-5); padding-block: var(--space-6); justify-items: center; }
+  /* a static map of the four placements: the tooltip and its control, 8px apart (the real gap) */
+  #tip-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-5); }
+  #tip-map .t-label { margin-block-end: var(--space-2); }
+  #tip-map .btn { flex: none; }
+  #tip-map .pair { display: flex; gap: var(--space-2); align-items: center; }
+  #tip-map [data-at="top"] { flex-direction: column; }
+  #tip-map [data-at="bottom"] { flex-direction: column-reverse; }
+  #tip-map [data-at="end"] { flex-direction: row-reverse; justify-content: flex-end; }
+  #tip-map .tooltip { max-inline-size: 100%; }
   #tip-corners > div { min-inline-size: 0; }
   #tip-corners .t-label { margin-block-end: var(--space-2); }
   #tip-tool .card__body { align-items: flex-start; }
@@ -79,7 +88,29 @@
 </div>
 
 <h3 id="placement">Placement</h3>
-<p><code>data-placement</code> is <code>top</code> by default. It is logical (<code>start</code> and <code>end</code> flip in right-to-left text) and it flips to the other side when there is no room. Hover or focus each.</p>
+<p><code>data-placement</code> is <code>top</code> by default. It is logical (<code>start</code> and <code>end</code> flip in right-to-left text) and it flips to the other side when there is no room. First what each looks like, as static previews (<code>data-inline</code>), then the live thing: hover or focus each button.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div id="tip-map">
+      <div>
+        <p class="t-label">top</p>
+        <div class="pair" data-at="top"><div class="tooltip" popover data-inline role="note">Above, centred.</div><span class="btn" aria-hidden="true">Top</span></div>
+      </div>
+      <div>
+        <p class="t-label">bottom</p>
+        <div class="pair" data-at="bottom"><div class="tooltip" popover data-inline role="note">Below, centred.</div><span class="btn" aria-hidden="true">Bottom</span></div>
+      </div>
+      <div>
+        <p class="t-label">start</p>
+        <div class="pair" data-at="start"><div class="tooltip" popover data-inline role="note">Before it.</div><span class="btn" aria-hidden="true">Start</span></div>
+      </div>
+      <div>
+        <p class="t-label">end</p>
+        <div class="pair" data-at="end"><div class="tooltip" popover data-inline role="note">After it.</div><span class="btn" aria-hidden="true">End</span></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div id="tip-places">
@@ -122,7 +153,7 @@
 </div>
 
 <h3 id="context">In context</h3>
-<p>A study card with its three tools. Every one is a named button; the tooltips add the keys.</p>
+<p>A study card with its three tools. Every one is a named button; the tooltips add the keys. They open below (<code>data-placement="bottom"</code>) so they never cover the question while it is being read.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <article class="card" id="tip-tool" style="max-inline-size: 22rem">
@@ -133,15 +164,15 @@
           <button class="btn" data-shape="circle" type="button" aria-label="Flip the card" aria-describedby="tip-c-flip">
             <span class="ic ic--rotate-cw" aria-hidden="true"></span>
           </button>
-          <div class="tooltip" id="tip-c-flip" role="tooltip" popover="manual">Show the answer <kbd>Space</kbd></div>
+          <div class="tooltip" id="tip-c-flip" role="tooltip" popover="manual" data-placement="bottom">Show the answer <kbd>Space</kbd></div>
           <button class="btn" data-shape="circle" type="button" aria-label="Skip" aria-describedby="tip-c-skip">
             <span class="ic ic--skip-forward" aria-hidden="true"></span>
           </button>
-          <div class="tooltip" id="tip-c-skip" role="tooltip" popover="manual">Come back to this card later <kbd>S</kbd></div>
+          <div class="tooltip" id="tip-c-skip" role="tooltip" popover="manual" data-placement="bottom">Come back to this card later <kbd>S</kbd></div>
           <button class="btn" data-shape="circle" type="button" aria-label="Mark as known" aria-describedby="tip-c-known">
             <span class="ic ic--check" aria-hidden="true"></span>
           </button>
-          <div class="tooltip" id="tip-c-known" role="tooltip" popover="manual">Known after 3 right answers in a row <kbd>K</kbd></div>
+          <div class="tooltip" id="tip-c-known" role="tooltip" popover="manual" data-placement="bottom">Known after 3 right answers in a row <kbd>K</kbd></div>
         </div>
       </div>
     </article>
