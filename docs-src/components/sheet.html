@@ -12,19 +12,34 @@
   /* A stage: a dimmed "page" with a static sheet docked to its bottom edge. It is as tall as the sheet plus
      a strip of the page above it (a fixed 96px peek: chrome, so 200% text does not leave a tall empty page),
      and its own 2px frame closes it on all four sides. The page's card is absolute, so it never sizes the
-     stage; its floor is lifted, or a card's 10rem minimum would push it past the stage's edge. */
-  [data-stage] { position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding-block-start: calc(var(--chrome-6) * 3); overflow: clip; border: var(--bw) solid var(--line); background: var(--canvas); }
+     stage; its floor is lifted, or a card's 10rem minimum would push it past the stage's edge. The docked
+     sheet lies ON the stage's side frames (2px out on each side, which the clip margin lets it paint), so its
+     own frame and the screen's edge are one 2px line, as on a phone; side by side they read as a 4px third
+     weight. The stage's bottom frame stays: it is the screen's edge under the sheet. */
+  [data-stage] { position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding-block-start: calc(var(--chrome-6) * 3); overflow: clip; overflow-clip-margin: var(--bw); border: var(--bw) solid var(--line); background: var(--canvas); }
   [data-stage] > .card[aria-hidden] { position: absolute; inset-block-start: var(--chrome-4); inset-inline: var(--chrome-4); min-inline-size: 0; }
   [data-stage] > [data-scrim] { position: absolute; inset: 0; background: var(--scrim); }
-  [data-stage] > .sheet { position: relative; }
-  /* the side pane: as tall as its content (no peek), docked to the end edge */
+  [data-stage] > .sheet { position: relative; inline-size: auto; margin-inline: calc(var(--bw) * -1); }
+  /* the side pane: as tall as its content (no peek), docked to the end edge, where the stage's frame is its
+     edge (the pane draws only its start side). It never takes the whole stage: a strip of the page stays in
+     view, so the pane's start frame never lies beside the stage's own. The page shows one tile at its start
+     (an icon, chrome-sized): a word cut by the pane read as clipped text. The pane is never narrower than its
+     longest word (the card's 10rem floor is lifted: it took the whole stage at 200% text). Where the tile and
+     those words cannot share the stage (a 320px phone at 200% text), the tile goes and a 24px strip of the
+     dimmed page remains. */
   [data-stage][data-side] { flex-direction: row; justify-content: flex-end; padding-block-start: 0; }
-  [data-stage][data-side] > .sheet { flex: 0 1 16rem; margin: 0; }
+  [data-stage][data-side] > .sheet { flex: 0 1 16rem; min-inline-size: min-content; max-inline-size: calc(100% - var(--chrome-6) * 2 - var(--chrome-5)); margin: 0; }
+  [data-stage][data-side] > .card[aria-hidden] { position: static; flex: none; align-self: flex-start; inline-size: calc(var(--chrome-ic) + var(--card-pad) * 2 + var(--bw) * 2); margin: var(--chrome-4); margin-inline-end: auto; }
+  [data-stage][data-side] > .card[aria-hidden] .ic { --ic-size: var(--chrome-ic); }
+  @container (max-width: calc(6rem + 92px)) {
+    [data-stage][data-side] > .card[aria-hidden] { display: none; }
+    [data-stage][data-side] > .sheet { max-inline-size: calc(100% - var(--chrome-5)); }
+  }
   #sh-corners > div { min-inline-size: 0; }
   #sh-corners .t-label { margin-block-end: var(--space-2); }
   /* the handle's states: equal cells, 16px apart, each caption 8px clear of its specimen (S3) */
   .sh-states { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 6rem), 1fr)); gap: var(--space-4); }
-  .sh-states .card { inline-size: 100%; padding-block: var(--chrome-2); } /* room for the ring and the lift around the 48px capsule */
+  .sh-states .card { inline-size: 100%; padding-block: var(--chrome-2); } /* room for the ring around the 56px handle box */
   #sh-filter .card__body { gap: var(--space-5); }
   #sh-filter fieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
   #sh-filter legend { padding: 0; margin-block-end: var(--space-2); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
@@ -130,7 +145,7 @@
             <button class="btn" data-size="sm" type="button" aria-pressed="false">Farm animals</button>
           </div>
         </fieldset>
-        <p class="card__meta">7 cards match. Filters apply when you choose <em>Show 7 cards</em>.</p>
+        <p class="card__meta">7 cards match. Filters apply when you choose <em>Show&nbsp;7&nbsp;cards</em>.</p>
       </div>
       <div class="sheet__actions">
         <button class="btn" type="button" data-reset-filters>Reset</button>
@@ -177,7 +192,7 @@
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div data-stage data-side>
-      <div class="card" aria-hidden="true"><div class="card__body"><p class="card__title">Decks</p></div></div>
+      <div class="card" aria-hidden="true"><div class="card__body"><span class="ic ic--layers" aria-hidden="true"></span></div></div>
       <div data-scrim aria-hidden="true"></div>
       <section class="sheet card" data-inline data-side role="group" aria-labelledby="sh-side-t">
         <header class="card__bar"><h3 class="card__label" id="sh-side-t">Shapes</h3><button class="card__ctl" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button></header>
@@ -283,10 +298,10 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Sheet</strong>: <code>&lt;dialog class="sheet card"&gt;</code> (modal) or <code>&lt;section class="sheet card" popover="manual"&gt;</code> (persistent). The owner's card, docked to the bottom: 2px frame on three sides, top corners <code>--radius-card</code>, at most 36rem wide and centred above that. No shadow.</li>
-  <li><strong>Handle</strong> (<code>.sheet__handle</code>): a 48&times;28px button at the top whose pill is drawn by <code>::before</code> and whose hit area reaches 44px. It is chrome: it stays 48&times;28 at 200% text. <code>aria-pressed</code>, a label that never changes; only "on" is filled.</li>
+  <li><strong>Handle</strong> (<code>.sheet__handle</code>): a 56&times;28px button at the top. Its 48&times;16px pill is drawn by <code>::before</code>, 4px in from each side so the raised pill and its hard shadow stay inside the box and the focus ring, round the box, never touches them; the hit area reaches 44px. It is chrome: it stays the same size at 200% text. <code>aria-pressed</code>, a label that never changes; only "on" is filled.</li>
   <li><strong>Bar</strong> (<code>.card__bar</code>): the title in uppercase (<code>.card__label</code>, a heading) and the Close control (<code>.card__ctl</code>, 44px). <code>aria-labelledby</code> points at the heading.</li>
   <li><strong>Body</strong> (<code>.card__body</code>): the only part that scrolls. Its bottom padding includes the home-indicator inset. A <code>.card__list</code> inside it bleeds edge to edge.</li>
-  <li><strong>Actions</strong> (<code>.sheet__actions</code>, optional): pills pinned below the body.</li>
+  <li><strong>Actions</strong> (<code>.sheet__actions</code>, optional): pills pinned below the body, primary last. One right-aligned row while they all fit; otherwise every pill is full width, one per line, in the same order (measured by <code>61-sheet.js</code>), so they never wrap into a ragged one-and-one.</li>
   <li><strong>Scrim</strong>: <code>--scrim</code>, modal sheets only.</li>
 </ol>
 
@@ -320,7 +335,7 @@
     <tr><td>Touch</td><td>Close and the handle are 44px targets. Tap the scrim to close, tap the handle to resize. Dragging is optional (2.5.7).</td></tr>
     <tr><td>Scrolling</td><td>A body that holds nothing focusable becomes a named tab stop so the keyboard can scroll it. It never scrolls the page behind (<code>overscroll-behavior: contain</code>).</td></tr>
     <tr><td>Safe areas</td><td>The sheet is inset by the left and right insets; the body and actions pad the bottom inset; a side panel's bar pads the top inset. Landscape phones keep their side insets.</td></tr>
-    <tr><td>Zoom / text size</td><td>Heights use <code>dvh</code> with the top inset removed. The words grow with the reader's text size; the handle, the bar's height and the insets of the actions stop at their 100% size. At 200% text the body simply scrolls.</td></tr>
+    <tr><td>Zoom / text size</td><td>Heights use <code>dvh</code> with the top inset removed. The words grow with the reader's text size; the handle, the bar's height and the insets of the actions stop at their 100% size. At 200% text the body simply scrolls, and actions that no longer fit on one row stack at full width, one width and one height.</td></tr>
     <tr><td>Reduced motion</td><td>No travel: the sheet fades in and out. Resizing still eases, in 180ms. A drag still follows the finger, and releasing to dismiss fades instead of sliding.</td></tr>
     <tr><td>Forced colours</td><td>The card's frame becomes <code>CanvasText</code>; the handle keeps a <code>ButtonText</code> frame, raised gets a 4px <code>Highlight</code> outline and on gets a 4px frame; the bar gets a real line.</td></tr>
   </tbody>

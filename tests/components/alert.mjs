@@ -228,12 +228,14 @@ export const tests = [
         const main = c.querySelector('.alert__main').getBoundingClientRect()
         const text = c.querySelector('.alert__title, .alert__text')
         const lh = parseFloat(getComputedStyle(text).lineHeight), t = text.getBoundingClientRect()
-        return { banner: c.dataset.size === 'sm', worst: Math.max(...parts.map((p) => p.getBoundingClientRect().right - cr.right)), iconAbove: icon.bottom <= main.top + 1, iconMid: (icon.top + icon.bottom) / 2, firstLineMid: t.top + lh / 2, mainW: main.width, cardW: cr.width }
+        return { banner: c.dataset.size === 'sm', worst: Math.max(...parts.map((p) => p.getBoundingClientRect().right - cr.right)), iconAbove: icon.bottom <= main.top + 1, iconMid: (icon.top + icon.bottom) / 2, firstLineMid: t.top + lh / 2, mainW: main.width, cardW: cr.width, icon: icon.width, rem: parseFloat(getComputedStyle(document.documentElement).fontSize) }
       }))
       expect.ok(r.filter((x) => !x.banner).length >= 4, 'regular alerts: ' + r.filter((x) => !x.banner).length)
       expect.ok(r.filter((x) => x.banner).length >= 3, 'banners: ' + r.filter((x) => x.banner).length)
       for (const x of r) {
         expect.ok(x.worst <= 0.5, `a part pokes ${x.worst}px out of the card`)
+        // the status icon leads the title's first line, so it grows with the words (1.25 x, never under 24px), as in a toast
+        expect.ok(Math.abs(x.icon - Math.max(24, 1.25 * x.rem)) <= 0.5, `status icon ${x.icon}px at 200% text, expected ${1.25 * x.rem}`)
         if (x.banner) {
           expect.ok(Math.abs(x.iconMid - x.firstLineMid) <= 1.5, `banner: icon centre ${x.iconMid} vs first line centre ${x.firstLineMid}`)
           expect.ok(x.mainW > x.cardW * 0.6, `banner: the words keep most of the width (${x.mainW} of ${x.cardW})`)

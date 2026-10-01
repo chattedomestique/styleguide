@@ -38,7 +38,13 @@
    reference screen's grabber was a 1.6:1 picture and the only control; this is the fix.)
    It is a pill, and pills act, but it is a SELECTION control, so only "on" is solid: outlined at
    rest, raised (outline + hard shadow) on hover and focus, tinted while pressed, and filled with a
-   doubled frame when on. A 48×28px box (chrome: it does not grow with text) whose hit area reaches 44px.
+   doubled frame when on. A 56×28px box holding a 48×16px pill (chrome: neither grows with text),
+   whose hit area reaches 44px.
+
+   ACTIONS. Pills under a 1px rule, primary last, right-aligned on one row while they fit; when they do
+   not (200% text on a phone), every one is full width and they stack in DOM order, so the row is never
+   a ragged one-and-one at two widths. src/js/61-sheet.js measures it with SG.fit (data-fit="row" |
+   "stack"); without JS the row wraps.
 
    WIDE SCREENS. From 48em the sheet becomes a side panel docked to the inline-end edge at the
    full height of the screen: there is no half or full any more, so the handle is hidden and
@@ -203,10 +209,12 @@
   }
 
   /* ---- The handle: a pill that acts ------------------------------------------------------
-     The button is a 48×28px capsule with 6px of strip above and below it; the pill is drawn by
-     ::before and the hit area by ::after, which reaches 44px. It is chrome (a control that holds no
-     words), so none of that grows with the reader's text size. The focus ring goes AROUND the capsule
-     (outside it, in the strip), so the pill, its lift shadow and the ring never touch.
+     The button is a 56×28px box; the pill is drawn by ::before, 48×16px, 4px in from each side and 6px
+     from the top and the bottom, and the hit area by ::after, which reaches 44px. It is chrome (a control
+     that holds no words), so none of that grows with the reader's text size. The box has room for the
+     raised pill and its hard shadow (2px up and left, 4px out to the bottom right), so the focus ring,
+     drawn around the BOX, never touches them: with the box as narrow as the pill, the shadow reached the
+     ring at the right-hand end and the two fused into one heavy shape.
      A SELECTION CONTROL (S1): the solid fill means one thing, "full height is on". Hover and keyboard
      focus raise the OUTLINE (lift 1, fill 0: the hard shadow says "you can press this"), a press sinks it
      and tints it (fill 0.15, visible within 100ms on touch), and on is filled with a doubled frame (a
@@ -226,7 +234,7 @@
     position: relative;
     flex: none;
     align-self: center;
-    inline-size: calc(var(--chrome-ctl) + var(--chrome-1)); /* 48 */
+    inline-size: calc(var(--chrome-ctl) + var(--chrome-1) * 3); /* 56: the 48px pill and 4px each side for its lift and shadow */
     block-size: calc(var(--chrome-5) + var(--chrome-1)); /* 28 */
     margin: var(--_strip) 0;
     padding: 0;
@@ -243,7 +251,7 @@
       content: "";
       position: absolute;
       inset-block: var(--_strip);
-      inset-inline: 0;
+      inset-inline: var(--chrome-1);
       background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
       border: var(--bw) solid var(--line);
       border-radius: var(--radius-pill);
@@ -254,7 +262,7 @@
       );
     }
 
-    /* hit area: 48px wide and 44px tall. It stays inside the card (the strip above, the bar's
+    /* hit area: 56px wide and 44px tall. It stays inside the card (the strip above, the bar's
        label row below, which holds no target), because the card clips at its frame. */
     &::after {
       content: "";
@@ -263,7 +271,7 @@
       inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
     }
 
-    /* the ring hugs the capsule from outside (the card's own rule gives it a 2px offset) */
+    /* the ring goes round the box, clear of the pill and its shadow (the card's own rule gives it a 2px offset) */
     &.is-focus {
       outline: var(--ring) solid var(--focus);
       outline-offset: var(--ring-offset-in);
@@ -340,6 +348,29 @@
     gap: var(--chrome-2);
     padding: var(--chrome-3) var(--card-pad) max(var(--chrome-3), calc(var(--safe-bottom) + var(--chrome-2)));
     border-block-start: var(--bw-thin) solid var(--card-ink);
+  }
+  /* Measured (see ACTIONS above). While SG.fit tries the row, nothing in it may wrap or shrink, so a row
+     that does not fit shows as overflow instead of as a label squeezed onto two lines. `safe`: a right-aligned
+     row that is too wide would otherwise spill out at the START, where no scroll width can see it. */
+  .sheet__actions[data-fit="row"] {
+    flex-wrap: nowrap;
+    justify-content: safe flex-end;
+
+    > .btn {
+      flex: none;
+      white-space: nowrap;
+    }
+  }
+  /* One per line, each the full width: one width and one height, labels centred. A full-width pill needs
+     side padding only to keep a label off its round ends (12px, as in dialog.css). */
+  .sheet__actions[data-fit="stack"] {
+    flex-direction: column;
+    align-items: stretch;
+
+    > .btn {
+      --_px: var(--chrome-3);
+      inline-size: 100%;
+    }
   }
 
   /* ---- Wide screens: a side panel ------------------------------------------------------------

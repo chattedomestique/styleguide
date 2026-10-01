@@ -37,10 +37,13 @@
    allows; the plate is paper with a 2px frame, like every other overlay.
 
    LARGE TEXT AND SMALL REGIONS (WCAG 1.4.4, 1.4.10)  The label is the content, so it grows with the
-   reader's text size and is never squeezed to a letter per line or cut off. The ring is chrome: it marks
-   the wait, it does not get easier to read at 200% text, so the four sizes stop at 16 / 24 / 40 / 56px
-   and a row of them stays a row. The label sits beside the ring and wraps there; when its longest word
-   does not fit beside it, it drops under it (flex-basis: min-content makes that the test).
+   reader's text size and is never squeezed to a letter per line or cut off. A ring on its own is chrome:
+   it marks the wait, it does not get easier to read at 200% text, so the four sizes stop at 16 / 24 /
+   40 / 56px and a row of them stays a row. A ring that LEADS A VISIBLE LABEL (the default size) is part
+   of that line of words, so it grows with it: 1.15em, never under 24px, the same mark as the spinner in a
+   busy Button (button.css, 1.1em). At 200% text a 24px ring beside a 32px label was a second, smaller
+   "working" mark. The label sits beside the ring and wraps there; when its longest word does not fit
+   beside it, it drops under it (flex-basis: min-content makes that the test).
    The overlay is a size container. Over a SMALL region (a card: under 16rem tall) the plate covers the
    whole region: a scrim over a few lines of text with a plate across the middle of them left cut letters
    peeking out above and below the plate, which reads as broken. Over a large region (a list, a screen)
@@ -82,6 +85,10 @@
     }
     &[data-size="xl"] {
       --_size: var(--chrome-ctl-lg); /* 56 */
+    }
+    /* leading a visible label: the ring is part of the line (LARGE TEXT above); em of the label's own size */
+    &:not([data-size]):has(> .spinner__label) {
+      --_size: max(var(--chrome-ic), 1.15em);
     }
     &[data-delay] {
       animation: sg-spinner-in var(--dur-enter) var(--ease-out) 300ms both;

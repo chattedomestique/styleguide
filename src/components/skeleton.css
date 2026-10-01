@@ -34,7 +34,8 @@
    slots are chrome, as the real ones are (a 44px tile, 32 / 48 / 72px avatars): they stop at their 100%
    size. In a row the lines take the width that is LEFT beside the slot (flex: 1 1 0) and the trailing value
    takes a fixed share of the row, so at 200% text a line never shrinks to a sliver and never runs past the
-   frame.
+   frame. A list's rows do what the real List does in a narrow column or at large text: the value drops
+   under the text lines, at their start, so the rows keep their shape when the content lands.
 
    FLAT, NOT SHIMMER. A shape is a solid fill: the ink mixed 26% into whatever it
    sits on (the card's own paper or tone, else the canvas). 14% was ~1.3:1 on the
@@ -93,14 +94,16 @@
     /* `both` holds the from-state (opacity 0) through the 300 ms delay. */
     animation: sg-skeleton-in var(--dur-enter) var(--ease-out) 300ms both;
 
-    /* the rows of a List (list.css: a 3.5rem minimum, its block and side insets, a 1px rule between rows), so
-       placeholders turn into real rows without moving anything. The rule and the frame are the list's own
-       structure, not loading content, so they are drawn in the list's colours, not the placeholder grey. */
+    /* the rows of a List (list.css: a 56px minimum, chrome, so it does not grow with text; its block and side
+       insets; a 1px rule between rows), so placeholders turn into real rows without moving anything. The rule
+       and the frame are the list's own structure, not loading content, so they are drawn in the list's
+       colours, not the placeholder grey. */
     &[data-layout="list"] {
       --_gap: 0;
+      container: skeleton-list / inline-size;
 
       > .skeleton__row {
-        min-block-size: 3.5rem;
+        min-block-size: min(3.5rem, 56px); /* lint-allow hygiene: chrome, the List's own 56px row minimum (list.css), which does not grow with text */
         padding: var(--chrome-2) var(--chrome-4);
       }
       > .skeleton__row + .skeleton__row {
@@ -218,6 +221,32 @@
   .skeleton__row > .skeleton__line {
     flex: none;
     inline-size: 22%;
+  }
+
+  /* A NARROW LIST (200% text on a phone, a 320px phone): the real List drops each row's value under its title,
+     at the start (src/js/46-list.js measures its rows). Placeholder rows that kept the value beside two short
+     lines turned, on arrival, into rows twice as tall and of another shape. So below the width at which a List
+     row holds a value beside its title, the placeholder's value line goes under the text lines too, and the
+     slot spans both. That width is the List's own arithmetic for a typical row: the title's 6rem floor and a
+     5rem value, beside 104px of chrome (the 44px tile, two 12px gaps, the 16px insets and the 2px frame). */
+  @container skeleton-list (max-width: calc(11rem + 104px)) {
+    .skeleton[data-layout="list"] > .skeleton__row:has(> .skeleton__stack + .skeleton__line) {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: var(--space-2) var(--chrome-3);
+      /* the real row's 8px inset plus the half-leading above its first line of words: a bar is only as tall
+         as the glyphs, so without it the first bar sat against the rule */
+      padding-block: var(--space-3);
+
+      > :is(.skeleton__tile, .skeleton__avatar) {
+        grid-row: span 2;
+      }
+      > .skeleton__line {
+        grid-column: 2;
+        inline-size: 40%;
+      }
+    }
   }
 
   /* ---- Reduced motion: the pulse is OFF, the shapes are still --------------------------------

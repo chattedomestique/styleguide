@@ -46,7 +46,9 @@
    - The value is ALWAYS also text (WCAG 1.4.1): a label, a number, and length are three cues.
    - Filled part vs unfilled part >= 3:1 (WCAG 1.4.11). The fill is ink (or the tone's dark
      fill) on the track, which is the surface itself; tests/components/progress.mjs measures it.
-   - The track keeps its real 2px frame, so the whole length is visible too.
+   - The track keeps its real 2px frame, so the whole length is visible too. The frame is drawn OVER
+     the fill (a pseudo-element with the border, on top): a fill clipped by the frame's inner curve let
+     a hairline of the track show inside the rounded ends of a full bar and of every filled step.
    - Not pressable, so: no lift, no shadow. Motion is transform + opacity only, travel x --move.
    - Forced colours: fills and tracks are given system colours (Highlight on Canvas).
 
@@ -106,17 +108,34 @@
     }
   }
 
-  /* ---- The framed pill: a track (.progress) or the meter itself ------------------------------ */
+  /* ---- The framed pill: a track (.progress), the meter itself, a step segment -------------------
+     The pill clips the fill to its OUTER shape, and the 2px frame is a pseudo-element on top of both
+     (border-radius: inherit), so the fill runs under the frame to the very edge. Clipped by the frame's
+     inner curve instead, its antialiased edge let the track's own paper show through as a light hairline
+     arc inside each rounded end of a full bar, in light and dark. isolation keeps the frame's z-index
+     inside the pill. */
   .progress__track,
-  .meter {
+  .meter,
+  .progress-steps__bar > * {
     position: relative;
     display: block;
     block-size: var(--_h);
-    border: var(--bw) solid var(--_frame);
     border-radius: var(--radius-pill);
     background: var(--_track);
     overflow: clip;
+    isolation: isolate;
     forced-color-adjust: none;
+  }
+  .progress__track::before,
+  .meter::after,
+  .progress-steps__bar > *::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: var(--bw) solid var(--_frame);
+    border-radius: inherit;
+    pointer-events: none;
   }
 
   /* ---- Linear: label left, value right, bar, hint -------------------------------------------- */
@@ -128,13 +147,30 @@
   /* The head is a label + value row, above a bar or a meter. At large text or in a narrow column the value
      drops under the label: a flat row would squeeze the label to a letter per line. A dropped value is alone
      on its line, and space-between puts a lone item at the START, under the label (the iOS large-text
-     pattern), never right-aligned under left-aligned words. A number never breaks inside itself. */
+     pattern), never right-aligned under left-aligned words. A number never breaks inside itself.
+     GROUPS. The heads that share a parent switch together (62-progress.js measures them with SG.fit and
+     writes data-fit on the parent): "beside" keeps every value beside its label, on one line while it is
+     measured, so a head that does not fit shows as overflow; "under" drops every value under its label.
+     Without JS there is no data-fit and each head wraps on its own. */
   .progress__head {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-1) var(--space-3);
+    min-inline-size: 0; /* a grid item: its words must not widen the column (and the bar under it) */
+  }
+  [data-fit="beside"] > * > :is(.progress__head, .progress-steps__text) {
+    flex-wrap: nowrap;
+
+    > * {
+      flex: none; /* neither shrinks: a label squeezed under its words would overlap the value instead of overflowing */
+      white-space: nowrap;
+    }
+  }
+  [data-fit="under"] > * > :is(.progress__head, .progress-steps__text) {
+    flex-direction: column;
+    align-items: flex-start;
   }
   .progress__label {
     min-inline-size: 0;
@@ -347,6 +383,7 @@
     flex-wrap: wrap;
     align-items: baseline;
     gap: var(--space-1) var(--space-2);
+    min-inline-size: 0;
     font: var(--type-ctl);
     line-height: var(--lh-snug);
     font-variant-numeric: tabular-nums lining-nums;
@@ -363,13 +400,6 @@
   }
   .progress-steps__bar > * {
     --_seg: 0%;
-    position: relative;
-    block-size: var(--_h);
-    border: var(--bw) solid var(--_frame);
-    border-radius: var(--radius-pill);
-    background: var(--_track);
-    overflow: clip;
-    forced-color-adjust: none;
 
     &::before {
       content: "";
@@ -394,8 +424,12 @@
     .progress__track,
     .meter,
     .progress-steps__bar > * {
-      border-color: CanvasText;
       background: Canvas;
+    }
+    .progress__track::before,
+    .meter::after,
+    .progress-steps__bar > *::after {
+      border-color: CanvasText;
     }
     .progress__track:has(> .progress__bar:not([value]))::after,
     .meter::before,

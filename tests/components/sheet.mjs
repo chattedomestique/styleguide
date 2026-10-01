@@ -160,18 +160,39 @@ export const tests = [
     },
   },
   {
-    name: 'the handle is chrome: 48 x 28 at 200% text too (it holds no words)',
+    name: 'the handle is chrome: a 56 x 28 box holding a 48 x 16 pill at 200% text too (it holds no words)',
     async run({ page, goto, expect }) {
       await goto('components/sheet.html')
       await page.addStyleTag({ content: 'html{font-size:200%!important}' })
       await page.waitForTimeout(200)
-      const sizes = await page.locator('.sheet__handle').evaluateAll((els) => els.filter((e) => e.getClientRects().length).map((e) => { const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] }))
+      const sizes = await page.locator('.sheet__handle').evaluateAll((els) => els.filter((e) => e.getClientRects().length).map((e) => { const r = e.getBoundingClientRect(); const p = getComputedStyle(e, '::before'); return [Math.round(r.width), Math.round(r.height), Math.round(r.width - parseFloat(p.left) - parseFloat(p.right)), Math.round(r.height - parseFloat(p.top) - parseFloat(p.bottom))] }))
       expect.ok(sizes.length >= 4, 'handles measured: ' + sizes.length)
-      for (const [w, hh] of sizes) expect.ok(w === 48 && hh === 28, `drawn ${w} x ${hh}`)
+      for (const [w, hh, pw, ph] of sizes) expect.ok(w === 56 && hh === 28 && pw === 48 && ph === 16, `box ${w} x ${hh}, pill ${pw} x ${ph}`)
     },
   },
   {
-    name: 'the handle is drawn 48x28 but its hit area is 44px tall',
+    // Regression: the box was as narrow as the pill, so the raised pill's hard shadow reached the focus ring (drawn round
+    // the box) at its right-hand end and the two fused into one heavy shape.
+    name: 'focused, the raised pill and its hard shadow stay inside the box, so the focus ring never touches them',
+    async run({ page, goto, expect }) {
+      await goto('components/sheet.html')
+      const r = await page.evaluate(() => {
+        const h = document.querySelector('.sh-states .sheet__handle.is-focus')
+        const b = h.getBoundingClientRect()
+        const p = getComputedStyle(h, '::before')
+        const m = new DOMMatrix(p.transform)
+        const shadow = p.boxShadow.split(/,(?![^(]*\))/).map((x) => x.trim()).pop() // the last layer is the hard shadow
+        const off = (shadow.match(/(-?[\d.]+)px/g) || []).map(parseFloat)
+        const right = b.width - parseFloat(p.right) + m.e + off[0]
+        const bottom = b.height - parseFloat(p.bottom) + m.f + off[1]
+        return { right, bottom, w: b.width, h: b.height, ringOffset: parseFloat(getComputedStyle(h).outlineOffset) }
+      })
+      expect.ok(r.right <= r.w && r.bottom <= r.h, `the shadow ends inside the box (${r.right} of ${r.w}, ${r.bottom} of ${r.h})`)
+      expect.ok(r.ringOffset >= 2, `and the ring is outside it (${r.ringOffset}px)`)
+    },
+  },
+  {
+    name: 'the handle is drawn 56x28 but its hit area is 44px tall',
     async run({ page, goto, expect }) {
       await goto('components/sheet.html')
       await page.locator('[data-sg-open="#sh-deck"]').click()
@@ -186,6 +207,39 @@ export const tests = [
       expect.ok(r.h < 44 && r.w >= 44, `drawn ${r.w}x${r.h}`)
       expect.ok(r.up && r.down, 'the invisible hit area reaches 44px tall (6px above, 10px below the capsule)')
       expect.ok(!r.beyond, 'and stops there')
+    },
+  },
+  {
+    // Regression: at 200% text the action row wrapped into a ragged one-and-one at two widths, Reset (about 135px) on one
+    // line and Show 7 cards (about 250px) on the next, both pushed to the right.
+    name: 'the action row: one right-aligned row while it fits; else every pill full width, one width, one height, one line',
+    async run({ page, goto, expect }) {
+      for (const text of [100, 200]) {
+        await goto('components/sheet.html')
+        if (text !== 100) await page.addStyleTag({ content: `html{font-size:${text}%!important}` })
+        await page.waitForTimeout(200)
+        await page.locator('[data-sg-open="#sh-filter"]').click()
+        await page.waitForTimeout(500)
+        const r = await page.evaluate(() => {
+          const a = document.querySelector('#sh-filter .sheet__actions'), cs = getComputedStyle(a), ar = a.getBoundingClientRect()
+          const lines = (b) => { const rg = document.createRange(); rg.selectNodeContents(b); return new Set([...rg.getClientRects()].map((x) => Math.round(x.top))).size }
+          return {
+            fit: a.getAttribute('data-fit'),
+            bs: [...a.querySelectorAll('.btn')].map((b) => { const x = b.getBoundingClientRect(); return { l: x.left, r: x.right, t: x.top, w: x.width, h: x.height, lines: lines(b) } }),
+            start: ar.left + parseFloat(cs.paddingLeft), end: ar.right - parseFloat(cs.paddingRight),
+          }
+        })
+        const at = `${text}%: ${JSON.stringify(r)}`
+        expect.ok(r.bs.length === 2 && r.bs.every((b) => b.lines === 1), 'one line per label: ' + at)
+        if (text === 100) {
+          expect.equal(r.fit, 'row', 'a 390px phone at 100% text keeps one row')
+          expect.ok(Math.abs(r.bs[0].t - r.bs[1].t) < 1 && Math.abs(r.bs[1].r - r.end) <= 2.5, 'one row, right-aligned: ' + at)
+        } else {
+          expect.equal(r.fit, 'stack', 'at 200% text the pair does not fit one row')
+          expect.ok(r.bs.every((b) => Math.abs(b.w - (r.end - r.start)) <= 1 && Math.abs(b.l - r.start) <= 1), 'every pill is full width: ' + at)
+          expect.ok(Math.abs(r.bs[0].h - r.bs[1].h) < 1 && r.bs[1].t > r.bs[0].t, 'one height, stacked in DOM order: ' + at)
+        }
+      }
     },
   },
   {

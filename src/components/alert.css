@@ -52,14 +52,16 @@
    ========================================================================== */
 
 @layer sg.components {
-  /* LARGE TEXT. The words grow with the reader's text size; the chrome stops at its 100% size (chrome caps,
-     00-foundation.css): the gaps, the 24px status icon and the 36px dismiss circle. --_line is one line of the
-     title, and the icon and the circle are centred on it at every size: at 100% the circle is pulled in by
-     the 6px it overhangs the 24px line (so the row is no taller than its text), at 200% it is pushed down by
-     the 6px the 48px line overhangs it. */
+  /* LARGE TEXT. The words grow with the reader's text size, and so does the status icon, because it leads the
+     title's first line: 1.25 times the title's size, never under 24px (24 at 100% text, 40 at 200%), the same
+     rule as the toast's icon. The chrome stops at its 100% size (chrome caps, 00-foundation.css): the gaps and
+     the 36px dismiss circle. --_line is one line of the title, and the icon and the circle are centred on it at
+     every size: at 100% the circle is pulled in by the 6px it overhangs the 24px line (so the row is no taller
+     than its text), at 200% it is pushed down by the 6px the 48px line overhangs it. A title that wraps is
+     balanced, so it never leaves its last word alone on a line ("Storage almost / full"). */
   .alert > .card__body {
     --_gap: var(--chrome-3);
-    --_ic: var(--chrome-ic);
+    --_ic: max(var(--chrome-ic), calc(var(--text-md) * 1.25));
     --_c: var(--chrome-ctl-sm);
     --_line: calc(var(--text-md) * var(--lh-body));
 
@@ -73,7 +75,7 @@
       grid-template-columns: auto minmax(0, 1fr) auto;
     }
 
-    /* the status icon: chrome (it marks the message, it is not read), level with the title's first line */
+    /* the status icon, level with the title's first line */
     > .ic {
       --ic-size: var(--_ic);
       margin-block-start: calc((var(--_line) - var(--_ic)) / 2);
@@ -89,6 +91,7 @@
     font: var(--type-body);
     font-weight: 700;
     overflow-wrap: break-word;
+    text-wrap: balance;
   }
   .alert__text {
     font: var(--type-body);
@@ -127,13 +130,13 @@
 
   /* ---- Narrow card: the icon (and the dismiss circle) move to a row of their own above the words, so the
      text column gets the card's full width instead of a few words a line. The words need about 10rem beside
-     the chrome, and the chrome is capped (00-foundation.css), so it is counted in px: the card's two 16px
-     insets, the 24px icon and its 12px gap make 68px; the 36px dismiss circle and its gap make 116px. rem in a
-     container query follows the reader's text size, so the words keep their 10rem at every size: at 200% text
-     on a 390px phone every regular alert stacks; at 100% on a 320px phone only a dismissible one does, and an
-     alert without a dismiss keeps its icon beside its title. (One 17rem threshold for both stacked every
-     alert on a 320px phone at 100% text, where the words had room.) ------------------------------------- */
-  @container card (max-width: calc(10rem + 116px)) {
+     the rest: the icon (max(24px, 1.25rem), as above) and the chrome, which is capped (00-foundation.css) and
+     so counted in px: the card's two 16px insets and the icon's 12px gap make 44px; the 36px dismiss circle
+     and its gap add 48px. rem in a container query follows the reader's text size, so the words keep their
+     10rem at every size: at 200% text on a 390px phone every regular alert stacks; at 100% on a 320px phone
+     only a dismissible one does, and an alert without a dismiss keeps its icon beside its title. (One 17rem
+     threshold for both stacked every alert on a 320px phone at 100% text, where the words had room.) ---- */
+  @container card (max-width: calc(10rem + max(24px, 1.25rem) + 92px)) {
     .alert:not([data-size="sm"]) > .card__body:has(> .alert__close) {
       grid-template-areas:
         "icon . close"
@@ -141,7 +144,6 @@
         "actions actions actions";
 
       > .ic {
-        --_ic: 1.5rem; /* the size of a line of words, as in the block below */
         grid-area: icon;
         align-self: center;
         margin-block-start: 0;
@@ -157,7 +159,7 @@
       }
     }
   }
-  @container card (max-width: calc(10rem + 68px)) {
+  @container card (max-width: calc(10rem + max(24px, 1.25rem) + 44px)) {
     .alert:not([data-size="sm"]) > .card__body {
       grid-template-columns: auto minmax(0, 1fr) auto;
       grid-template-areas:
@@ -165,11 +167,9 @@
         "main main main"
         "actions actions actions";
 
-      /* here the icon heads the block on a row of its own, above a title that may be 32px at 200% text, so
-         it keeps the size of a line of words (24px at 100%) instead of the chrome cap, and centres on the
-         dismiss circle that shares its row */
+      /* here the icon heads the block on a row of its own, above the title, and centres on the dismiss circle
+         that shares its row; it keeps the size it has beside a title (LARGE TEXT above) */
       > .ic {
-        --_ic: 1.5rem;
         grid-area: icon;
         align-self: center;
         margin-block-start: 0;

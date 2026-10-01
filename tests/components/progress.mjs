@@ -90,15 +90,88 @@ export const tests = [
     },
   },
   {
-    name: 'the track and the meter have the real 2px frame (a boundary that survives forced colours)',
+    name: 'the track and the meter have the real 2px frame (a boundary that survives forced colours), drawn OVER the fill',
     async run({ page, goto, expect }) {
       await goto(PAGE)
-      const w = await page.evaluate(() => [...document.querySelectorAll('.progress__track, .meter, .progress-steps__bar > *')].map((el) => { const cs = getComputedStyle(el); return { width: cs.borderTopWidth, style: cs.borderTopStyle, radius: cs.borderTopLeftRadius } }))
+      // The frame is a pseudo-element with a real border, on top of the fill and with the pill's own radius: a fill
+      // clipped by the frame's inner curve showed a light hairline arc inside the rounded ends of a full bar.
+      const w = await page.evaluate(() => [...document.querySelectorAll('.progress__track, .meter, .progress-steps__bar > *')].map((el) => {
+        const frame = getComputedStyle(el, el.classList.contains('progress__track') ? '::before' : '::after')
+        const fill = el.classList.contains('progress__track') ? null : getComputedStyle(el, '::before')
+        return { width: frame.borderTopWidth, style: frame.borderTopStyle, inset: frame.inset, radius: frame.borderTopLeftRadius, own: getComputedStyle(el).borderTopLeftRadius, z: frame.zIndex, fillZ: fill && fill.zIndex, box: getComputedStyle(el).borderTopWidth }
+      }))
       expect.ok(w.length >= 12, 'framed parts: ' + w.length)
       for (const x of w) {
         expect.equal(x.width, '2px')
         expect.equal(x.style, 'solid')
+        expect.equal(x.inset, '0px', 'the frame covers the whole pill')
+        expect.equal(x.radius, x.own, 'the frame has the pill\'s radius')
+        expect.ok(Number(x.z) >= 1 && (x.fillZ === null || x.fillZ === 'auto'), `the frame is above the fill (${JSON.stringify(x)})`)
+        expect.equal(x.box, '0px', 'the pill itself has no border, so the fill runs to its outer edge under the frame')
       }
+    },
+  },
+  {
+    // Regression: at 200% text the label and value rows switched one by one, so the values zigzagged ("Small, empty 0%"
+    // on one line, "Medium, a quarter / 25%" dropped under it). Rows that share a parent switch together (SG.fit).
+    name: 'label and value rows that sit together switch together: all beside at 100% text, all under at 200% (390px)',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      for (const scale of [100, 200]) {
+        await goto(PAGE)
+        if (scale !== 100) await page.addStyleTag({ content: `html{font-size:${scale}%!important}` })
+        await page.waitForTimeout(300)
+        const groups = await page.evaluate(() => [...document.querySelectorAll('.docs-article [data-fit="beside"], .docs-article [data-fit="under"]')].map((g) => ({
+          fit: g.getAttribute('data-fit'),
+          sizes: g.matches('#sizes ~ .demo .demo__stage'),
+          heads: [...g.querySelectorAll(':scope > * > :is(.progress__head, .progress-steps__text)')].map((h) => {
+            const a = h.firstElementChild.getBoundingClientRect(), b = h.lastElementChild.getBoundingClientRect()
+            return { under: b.top >= a.bottom - 1, start: Math.abs(b.left - a.left) < 1, spills: h.scrollWidth > h.clientWidth + 1 }
+          }),
+        })))
+        const at = `@${scale}%: ${JSON.stringify(groups)}`
+        expect.ok(groups.length >= 6, 'measured groups: ' + at)
+        const sizes = groups.find((g) => g.sizes)
+        expect.ok(sizes && sizes.heads.length === 3, 'the three sizes are one group: ' + at)
+        expect.equal(sizes.fit, scale === 100 ? 'beside' : 'under', `the sizes at ${scale}%`)
+        for (const g of groups) {
+          for (const h of g.heads) {
+            expect.equal(h.under, g.fit === 'under', 'every head in a group has the group\'s layout: ' + at)
+            if (h.under) expect.ok(h.start, 'a dropped value starts under its label: ' + at)
+            expect.ok(!h.spills, 'nothing spills out of a head: ' + at)
+          }
+        }
+      }
+    },
+  },
+  {
+    name: 'a full bar has no seam: the pixels just inside its round end are the fill colour, not the track',
+    async run({ browser, url, expect }) {
+      // At 2x, as a phone draws it: at 1x the antialiased seam is too faint to measure (the old structure peaked at 81
+      // of 765 there, against 237 at 2x; ink is 66).
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
+      const page = await ctx.newPage()
+      await page.goto(`${url}/docs/${PAGE}`, { waitUntil: 'networkidle' })
+      const el = page.locator('.progress[data-size="lg"] .progress__track').first()
+      await el.scrollIntoViewIfNeeded()
+      const box = await el.boundingBox()
+      const png = await page.screenshot({ clip: { x: box.x, y: box.y, width: Math.min(40, box.width), height: box.height } })
+      // Every pixel inside the rounded end, a step in from the outer edge, is dark: a light seam would show as bright pixels.
+      const bright = await page.evaluate(async (b64) => {
+        const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode()
+        const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0)
+        const d = x.getImageData(0, 0, img.width, img.height).data; let n = 0
+        const h = img.height, w = img.width, r = h / 2
+        for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+          const cx = Math.max(r, px + 0.5), dy = py + 0.5 - r, dx = px + 0.5 - cx
+          if (Math.hypot(dx, dy) > r - 5) continue // the antialiased outer edge (2.5 css px at 2x)
+          const i = (py * w + px) * 4
+          if (d[i] + d[i + 1] + d[i + 2] > 150) n++
+        }
+        return n
+      }, png.toString('base64'))
+      await ctx.close()
+      expect.equal(bright, 0, 'light pixels inside the end of a full bar')
     },
   },
   {
@@ -280,7 +353,7 @@ export const tests = [
         const probe = (c, prop) => { const p = document.createElement('i'); p.style.cssText = prop + ':' + c; document.body.appendChild(p); const v = getComputedStyle(p)[prop === 'color' ? 'color' : 'backgroundColor']; p.remove(); return v }
         const m = document.querySelector('#meter ~ .demo .meter')
         return {
-          meterFill: getComputedStyle(m, '::before').backgroundColor, meterTrack: getComputedStyle(m).backgroundColor, meterFrame: getComputedStyle(m).borderTopColor,
+          meterFill: getComputedStyle(m, '::before').backgroundColor, meterTrack: getComputedStyle(m).backgroundColor, meterFrame: getComputedStyle(m, '::after').borderTopColor,
           hi: probe('Highlight', 'background-color'), canvas: probe('Canvas', 'background-color'), text: probe('CanvasText', 'color'),
           arc: getComputedStyle(document.querySelector('.progress-ring__arc')).stroke,
           gray: probe('GrayText', 'color'),

@@ -23,6 +23,10 @@
      <html> and sheet.css turns that into scroll-padding, the same way the dock and app bar keep
      a focused control clear of themselves.
 
+   - THE ACTION ROW  .sheet__actions is one right-aligned row while every pill fits on it, else a stack
+                     of full-width pills (SG.fit writes data-fit="row" | "stack"; sheet.css draws both).
+                     It is measured again when the sheet opens, turns or the reader's text size changes.
+
    There is no drag in the side-panel layout (48em and up): sheet.css sets --_side to 1 there
    and this file reads it, so CSS and JS cannot disagree about which layout is showing.
 
@@ -46,6 +50,9 @@
   function isPanel(sheet) {
     return getComputedStyle(sheet).getPropertyValue('--_side').trim() === '1';
   }
+
+  /* ---- The action row: one row, or a stack of full-width pills -------------------------- */
+  SG.fit.register('.sheet__actions', { steps: ['row', 'stack'], parts: '.btn' });
 
   /* ---- Size: half <-> full ---------------------------------------------------------- */
   function setSize(sheet, size) {

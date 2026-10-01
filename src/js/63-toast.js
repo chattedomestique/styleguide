@@ -388,6 +388,13 @@
   /* ---- Events ----------------------------------------------------------------------------------------- */
   SG.ready(ensureLive);
 
+  /* A message column too narrow for its longest word (a toast in a narrow panel, or 200% text in a small
+     frame): the dismiss circle moves down to the action row, so the words get the width beside the icon
+     instead of breaking inside themselves. SG.fit (05-fit.js) measures it for the whole list, so the toasts
+     of one stack keep one layout: data-fit="row" | "narrow" on .toast-list; toast.css draws both. Without
+     JS the row keeps its layout and a long word may break. */
+  if (SG.fit) SG.fit.register('.toast-list', { steps: ['row', 'narrow'], parts: '.toast__msg' });
+
   document.addEventListener('visibilitychange', function () {
     items.forEach(function (t) { if (document.hidden) pause(t, 'page'); else resume(t, 'page'); });
   });

@@ -70,6 +70,9 @@
     display: none; /* .card says flex; a closed dialog must stay hidden */
     inline-size: min(var(--_w), calc(100% - var(--safe-left) - var(--safe-right) - var(--_room) * 2));
     max-inline-size: none;
+    /* The card's 10rem floor is for shrink-to-fit parents; a dialog has its own width, capped to the screen. At
+       200% text on a 320px phone the floor (320px) won over that cap and the dialog lost its margins. */
+    min-inline-size: 0;
     max-block-size: calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--_room) * 2);
     overscroll-behavior: contain;
 
@@ -226,17 +229,18 @@
      at the bottom, under the thumb. The order is NOT reversed: tab order must match. Full width
      means every label has the whole row, so with two-word labels each pill is one line and the
      stack is one height throughout. A full-width pill centres its label, so it needs side padding
-     only to keep a label that fills the row off the round ends: 16px instead of the Button's 24
-     (--_px) gives a two-word label 16px more before it wraps. Where it still wraps (a preview
-     inside a 320px page at 200% text), the two lines fit inside the pill's nominal height (--ctl,
-     2.75rem), so the stack keeps one height and the pill keeps its round ends. */
+     only to keep a label that fills the row off the round ends: 12px instead of the Button's 24
+     (--_px; the end curve is half the pill's height, so a line 12px in is clear of it) gives a
+     two-word label 24px more before it wraps. That keeps "Delete deck" on one line in a preview
+     inside a 320px page at 200% text, where with 16px it broke into two lines that filled the
+     pill from edge to edge. */
   @container card (max-width: 26rem) {
     .dialog__actions {
       flex-direction: column;
       align-items: stretch;
     }
     .dialog__actions > .btn {
-      --_px: var(--chrome-4);
+      --_px: var(--chrome-3);
       inline-size: 100%;
     }
   }

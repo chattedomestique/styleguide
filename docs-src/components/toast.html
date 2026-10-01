@@ -244,7 +244,7 @@
     <tr><td>Hover, focus, touch-hold</td><td>Each pauses the auto-dismiss timer (WCAG 2.2.1 Timing Adjustable; nothing is lost while reading).</td></tr>
     <tr><td>Touch</td><td>Dismiss and action have a 44&times;44px hit area with 8px between.</td></tr>
     <tr><td>Focus ring</td><td>On the plain (ink) toast the ring is paper and its halo ink, so it follows the surface. On a status tone the page's ring is used.</td></tr>
-    <tr><td>Text size</td><td>The message grows with the reader's text size; the insets, the 24px status icon and the 36px dismiss circle stop at their 100% size, so at 200% the sentence keeps the room. The icon and the dismiss circle stay level with the message's first line at every size, and the action drops under the words, never under the icon.</td></tr>
+    <tr><td>Text size</td><td>The message grows with the reader's text size, and so does the status icon, which leads its first line (1.25 times the message's size, never under 24px: 40px at 200%). The insets and the 36px dismiss circle stop at their 100% size, so at 200% the sentence keeps the room. The icon and the dismiss circle stay level with the message's first line, and the action drops under the words, never under the icon. Where the words beside them would still be narrower than their longest word (a narrow panel, 200% text on a small phone), the dismiss circle moves down to the action row, for every toast of the stack alike, so a word never breaks inside itself.</td></tr>
     <tr><td>Reduced motion</td><td>The rise is replaced by a fade (<code>--move</code> is 0); the exit is a fade too.</td></tr>
     <tr><td>Forced colours</td><td>The toast keeps a <code>CanvasText</code> frame; each button keeps its own border; icons are <code>CanvasText</code>.</td></tr>
   </tbody>
@@ -271,7 +271,7 @@
     var burst = document.getElementById('burst');
     if (burst) burst.addEventListener('click', function () {
       ['Draft saved', 'Photo added', 'Note pinned', 'Reminder set', 'List shared'].forEach(function (m, i) {
-        SG.toast.show({ message: m + ' (' + (i + 1) + ')', status: 'success' });
+        SG.toast.show({ message: m + '\u00a0(' + (i + 1) + ')', status: 'success' }); // a no-break space: the count never sits alone on a line
       });
     });
     var clear = document.getElementById('clear-toasts');

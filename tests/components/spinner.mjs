@@ -134,6 +134,27 @@ export const tests = [
     },
   },
   {
+    // At 200% text a 24px ring beside a 32px label was a second, smaller "working" mark next to the busy Button's (1.1em).
+    name: 'a ring that leads a visible label grows with it (1.15em, never under 24px); a ring on its own keeps its size cap',
+    async run({ page, goto, expect }) {
+      for (const scale of [100, 200]) {
+        await goto('components/spinner.html')
+        if (scale !== 100) await page.addStyleTag({ content: `html{font-size:${scale}%!important}` })
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => {
+          const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+          const labelled = [...document.querySelectorAll('.spinner:not([data-size]) > .spinner__label')].map((l) => l.parentElement.querySelector('.spinner__ring').getBoundingClientRect().width)
+          let demo = document.getElementById('sizes'); while (demo && !demo.matches('.demo')) demo = demo.nextElementSibling
+          const sizes = [...demo.querySelectorAll('.spinner')].map((s) => s.querySelector('.spinner__ring').getBoundingClientRect().width)
+          return { rem, labelled, sizes }
+        })
+        expect.ok(r.labelled.length >= 3, 'labelled spinners: ' + r.labelled.length)
+        for (const w of r.labelled) expect.ok(Math.abs(w - Math.max(24, 1.15 * r.rem)) <= 0.5, `@${scale}%: a labelled ring is ${w}px, expected ${Math.max(24, 1.15 * r.rem)}`)
+        expect.equal(r.sizes.map(Math.round).join(' '), '16 24 40 56', `@${scale}%: the four sizes keep their caps`)
+      }
+    },
+  },
+  {
     name: 'forced colours: track GrayText, arc Highlight, plate Canvas',
     async run({ page, goto, expect }) {
       await goto(PAGE)
