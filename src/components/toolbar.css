@@ -38,6 +38,15 @@
    WHY THE LIST HAS PADDING. overflow-x: auto also clips y. The focus ring (6px), the lift
    (2px) and the hard shadow (4px) all live outside the circle, so the list pads them in
    (WCAG 2.4.7: a ring that is clipped is not visible).
+
+   WHERE THE SCROLL BUTTONS GO. They are for people whose pointer cannot swipe (WCAG 2.5.1), and
+   they matter most exactly where the tools are most crowded, so they are never hidden. Wide
+   enough (18rem of the tray's own width and up): one on each side of the list, level with the
+   tools' circles (not with circle plus label). Narrower (a 320px phone, or large text where
+   every rem doubles): two 44px buttons beside the list would leave one tool showing, so the list
+   takes the whole first row and the two buttons take a second, back at the start and forward at
+   the end, level with the tools' own edges. Either way they sit OUTSIDE the scrolling list's box,
+   so they never cover a tool.
    ========================================================================== */
 
 @layer sg.components {
@@ -46,8 +55,13 @@
     --_ink: var(--tone-ink, var(--ink));
 
     display: flex;
-    align-items: center;
-    gap: var(--space-1);
+    /* wrap, so the narrow rule at the bottom can send the scroll buttons to a row of their own; the list's
+       flex-basis is 0 (below), so on a wide tray everything still fits on one line */
+    flex-wrap: wrap;
+    /* the scroll circles line up with the tools' circles at the top, not with the middle of circle + label */
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0 var(--space-2);
     inline-size: 100%;
     min-inline-size: 0;
     container: toolbar / inline-size;
@@ -66,7 +80,7 @@
   .toolbar__list {
     display: flex;
     align-items: flex-start;
-    flex: 1 1 auto;
+    flex: 1 1 0;
     gap: var(--space-2);
     min-inline-size: 0;
     padding: var(--space-2);
@@ -111,7 +125,7 @@
     user-select: none;
   }
 
-  /* On (a pressed toggle, the checked radio): the circle is filled with a doubled frame (Button),
+  /* On (a pressed toggle, the checked radio): the circle is filled and ringed a second time (Button),
      and the words underline, so "on" is shape and text as well as fill. Underline, not bold: bold
      would change the width and nudge the neighbours. */
   .toolbar__item:has(> :is([aria-pressed="true"], [aria-checked="true"])) .toolbar__label {
@@ -157,13 +171,23 @@
   .toolbar .toolbar__scroll {
     flex: none;
     min-inline-size: 0; /* a small circle is 36px wide; .btn's 44px minimum would stretch it into a pill (the hit area below already reaches 44px) */
+    /* centre the 36px circle on the 44px tool circle beside it: the list's padding plus half the difference */
+    margin-block-start: calc(var(--space-2) + (var(--ctl) - var(--ctl-sm)) / 2);
   }
 
-  /* In a narrow tray (a small phone, or large text, where every rem doubles) two 44px buttons would
-     eat the tools: swiping and arrowing still scroll, so the buttons step aside. */
+  /* In a narrow tray (a small phone, or large text, where every rem doubles) two buttons beside the list
+     would leave one tool showing. The list takes the whole first row (and comes first on screen, as in
+     the DOM order's reading: back, tools, forward stays the order for assistive tech), and the buttons
+     drop to a second row at either end. The 4px above each keeps its 44px hit area 8px clear of the
+     tools' labels; the 8px below and at the sides match the list's own padding. */
   @container toolbar (inline-size < 18rem) {
-    .toolbar__scroll {
-      display: none;
+    .toolbar__list {
+      flex: 1 0 100%;
+      order: -1;
+    }
+    .toolbar .toolbar__scroll {
+      margin-block: var(--space-1) var(--space-2);
+      margin-inline: var(--space-1);
     }
   }
 
