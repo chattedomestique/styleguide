@@ -25,8 +25,17 @@
      · time text [data-player="current"] / ["duration"].
      · one at a time: starting one player pauses the others.
      · clicking the picture of a video toggles play (a convenience; the button is the control).
-     · failure: data-state="error", a plain sentence in .player__status, and the controls become
-       aria-disabled. It never autoplays.
+     · failure: data-state="error", a plain sentence with an icon in .player__status, the controls
+       become aria-disabled, and a "Try again" button ([data-player="retry"], made here if the markup
+       has none) appears under the sentence. Try again reloads the media and gives the controls back;
+       if it had focus, focus moves to Play (the button goes away). It never autoplays. A recording
+       given as <source> children fails without an error on the media element (the error fires on each
+       <source>, and media.error stays null), so the last <source> failing counts as the failure too.
+     · the time: the markup's length stays until the media reports its own (a recording that never
+       loads would otherwise say it is 0:00 long).
+     · one row: SG.fit (05-fit.js) writes the richest layout that fits one line to data-fit on
+       .player__row (full, compact, tight, small, bare: see player.css), and re-checks when the
+       player's width or the reader's text size changes.
    API: SG.player.init(el)
    ========================================================================== */
 (function (SG) {
@@ -71,7 +80,7 @@
       if (SG.scrubber) SG.scrubber.sync(p.scrub);
     }
     if (p.cur) p.cur.textContent = clock(m.currentTime || 0);
-    if (p.dur) p.dur.textContent = clock(d);
+    if (p.dur && (d || m.readyState >= 1)) p.dur.textContent = clock(d); // until the metadata is in, the markup's length stands
     setPressed(p.play, !m.paused && !m.ended);
     setPressed(p.mute, m.muted || m.volume === 0);
   }
@@ -81,20 +90,48 @@
     return Array.prototype.filter.call(m.textTracks || [], function (t) { return t.kind === 'captions' || t.kind === 'subtitles'; });
   }
 
+  /** Every control the person can use to play, except the way out of a failure. */
+  function playControls(p) {
+    return [p.play, p.mute].concat(SG.qsa('.btn[data-player]', p.controls)).filter(function (b) { return b && b.getAttribute('data-player') !== 'retry'; });
+  }
+
   function fail(root) {
     var p = parts(root);
     root.setAttribute('data-state', 'error');
     if (p.status) {
-      // status = an icon and words, never colour alone
+      // status = an icon and words, never colour alone; the words are their own box, so a second line hangs past the icon
       p.status.textContent = '';
       var ic = document.createElement('span');
       ic.className = 'ic ic--circle-alert';
       ic.setAttribute('aria-hidden', 'true');
+      var words = document.createElement('span');
+      words.textContent = 'This recording could not be played. Check your connection and try again.';
       p.status.appendChild(ic);
-      p.status.appendChild(document.createTextNode(' This recording could not be played. Check your connection and try again.'));
+      p.status.appendChild(words);
+      // the sentence says "try again", so there is a button that does it (outside the live region, so it is not read twice)
+      if (!p.controls.querySelector('[data-player="retry"]')) {
+        var b = document.createElement('button');
+        b.className = 'btn';
+        b.type = 'button';
+        b.setAttribute('data-size', 'sm');
+        b.setAttribute('data-player', 'retry');
+        b.textContent = 'Try again';
+        p.status.parentNode.insertBefore(b, p.status.nextSibling);
+      }
     }
-    [p.play, p.mute].concat(SG.qsa('[data-player]', p.controls)).forEach(function (b) { setDisabled(b, true); });
+    playControls(p).forEach(function (b) { setDisabled(b, true); });
     if (p.seek) p.seek.disabled = true;
+  }
+
+  /** Try again: forget the failure, give the controls back and ask the browser for the media once more. */
+  function retry(root) {
+    var p = parts(root);
+    root.removeAttribute('data-state');
+    if (p.status) p.status.textContent = '';
+    playControls(p).forEach(function (b) { setDisabled(b, false); });
+    if (p.seek) p.seek.disabled = false;
+    p.media.load(); // a new request; if it fails again the error event brings the sentence and the button back
+    paint(root, false);
   }
 
   function init(root) {
@@ -136,7 +173,14 @@
       });
     });
     m.addEventListener('ended', function () { SG.announce(title(root) + ' finished'); });
-    m.addEventListener('error', function () { fail(root); });
+    // Failure. Captured, because a <source> that fails fires error on itself (it does not bubble) and the media
+    // element never fires one: when the LAST <source> fails, nothing will play. A <track> that fails is not a
+    // failure of the recording.
+    m.addEventListener('error', function (e) {
+      var t = e.target;
+      var sources = m.querySelectorAll('source');
+      if (t === m || (t.tagName === 'SOURCE' && t === sources[sources.length - 1])) fail(root);
+    }, true);
 
     // the seek bar
     if (p.seek) {
@@ -155,6 +199,13 @@
     p.controls.addEventListener('click', function (e) {
       var b = e.target.closest('.btn');
       if (!b || b.getAttribute('aria-disabled') === 'true') return;
+      if (b.getAttribute('data-player') === 'retry') {
+        var hadFocus = document.activeElement === b;
+        retry(root);
+        if (hadFocus) p.play.focus(); // the button hides with the failure: do not drop a keyboard user at the top of the page
+        SG.announce('Trying ' + title(root) + ' again');
+        return;
+      }
       if (b === p.play) {
         if (m.paused || m.ended) {
           pauseOthers();
@@ -196,6 +247,9 @@
     paint(root, false);
     if (m.error) fail(root);
   }
+
+  /* the row is one line at every size (see player.css, ONE ROW): the richest layout that fits */
+  if (SG.fit) SG.fit.register('.player__row', { steps: ['full', 'compact', 'tight', 'small', 'bare'] });
 
   SG.player = { init: init };
 

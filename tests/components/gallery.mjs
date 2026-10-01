@@ -4,9 +4,11 @@ const GRID = '#basic ~ .demo .gallery'
 const measure = (page) => page.evaluate((sel) => {
   const g = document.querySelector(sel)
   const gr = g.getBoundingClientRect()
-  const cols = getComputedStyle(g).gridTemplateColumns.split(' ').length
   const items = [...g.children].map((li) => { const r = li.getBoundingClientRect(); return { size: li.dataset.size || 'one', w: r.width, h: r.height, x: r.left - gr.left, y: r.top - gr.top } })
-  return { cols, w: gr.width, items, page: document.documentElement.scrollWidth - document.documentElement.clientWidth }
+  // the grid always has four tracks; the columns a person sees are how many single cells fit across it
+  const one = items.find((i) => i.size === 'one')
+  const cols = Math.round(gr.width / one.w)
+  return { cols, w: gr.width, h: gr.height, items, page: document.documentElement.scrollWidth - document.documentElement.clientWidth }
 }, GRID)
 
 export const tests = [
@@ -39,7 +41,7 @@ export const tests = [
     },
   },
   {
-    name: 'below 18rem a span cannot invent a second column: the page never scrolls sideways at 320px',
+    name: 'at 320px a span cannot invent a column: the page never scrolls sideways and every tile fits the grid',
     viewport: { width: 320, height: 700 },
     async run({ page, goto, expect }) {
       await goto('components/gallery.html')
@@ -49,15 +51,30 @@ export const tests = [
     },
   },
   {
-    name: 'at desktop width: more columns, and big spans exactly two of them',
+    name: 'at desktop width: four columns, and big spans exactly two of them',
     viewport: { width: 1280, height: 900 },
     async run({ page, goto, expect }) {
       await goto('components/gallery.html')
       const m = await measure(page)
-      expect.ok(m.cols >= 4, `at least four columns (got ${m.cols})`)
+      expect.equal(m.cols, 4, `four columns (got ${m.cols})`)
       const one = m.items.find((i) => i.size === 'one'), big = m.items.find((i) => i.size === 'big')
       expect.ok(Math.abs(big.w - 2 * one.w) < 1, `big is exactly two cells wide (${big.w} vs ${2 * one.w})`)
       expect.ok(Math.abs(big.h - big.w) < 1, 'and square')
+    },
+  },
+  {
+    name: 'the columns are planned (1, 2 or 4), so the Basic mosaic closes every row: no empty cell at 320, 390, 600, 1024 or 1280px, or at 200% text',
+    async run({ page, goto, expect }) {
+      for (const [w, pct, want] of [[320, 100, 2], [390, 100, 2], [600, 100, 4], [1024, 100, 4], [1280, 100, 4], [390, 200, 1], [1024, 200, 1]]) {
+        await page.setViewportSize({ width: w, height: 900 })
+        await goto('components/gallery.html')
+        if (pct !== 100) { await page.addStyleTag({ content: `html{font-size:${pct}%!important}` }); await page.waitForTimeout(250) }
+        const m = await measure(page)
+        expect.equal(m.cols, want, `${w}px ${pct}%: ${want} column(s) (got ${m.cols})`)
+        // the tiles cover the grid exactly: their areas add up to the grid's (a hole would leave area over)
+        const area = m.items.reduce((a, i) => a + i.w * i.h, 0)
+        expect.ok(Math.abs(area - m.w * m.h) / (m.w * m.h) < 0.01, `${w}px ${pct}%: every row closes (tiles cover ${(100 * area / (m.w * m.h)).toFixed(1)}% of the grid)`)
+      }
     },
   },
   {

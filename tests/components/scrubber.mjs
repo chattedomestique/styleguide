@@ -178,20 +178,23 @@ export const tests = [
     },
   },
   {
-    name: 'the hint and Reset share a line or Reset drops under it whole: its label is never split, at 320px or 200% text',
+    name: 'the hint and Reset share a line (Reset at the end) or Reset drops under it whole and starts under the hint: its label is never split, at 320px or 200% text',
     async run({ page, goto, expect }) {
       await goto('components/scrubber.html')
-      for (const [w, pct] of [[320, 100], [390, 200]]) {
+      for (const [w, pct] of [[320, 100], [390, 200], [320, 200], [1024, 100]]) {
         await page.setViewportSize({ width: w, height: 800 })
         await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
         await page.waitForTimeout(200)
         const r = await page.locator('#dial + p + .demo').evaluate((el) => {
-          const b = el.querySelector('[data-reset]'), hint = el.querySelector('.scrubber__foot > span')
+          const b = el.querySelector('[data-reset]'), hint = el.querySelector('.scrubber__foot > p')
           const lines = (n) => { const tops = []; const wk = document.createTreeWalker(n, NodeFilter.SHOW_TEXT); for (let t = wk.nextNode(); t; t = wk.nextNode()) { if (!t.textContent.trim()) continue; const r = document.createRange(); r.selectNodeContents(t); for (const q of r.getClientRects()) if (q.width > 0 && !tops.some((x) => Math.abs(x - q.top) < 4)) tops.push(q.top) } return tops.length }
           const bb = b.getBoundingClientRect(), foot = el.querySelector('.scrubber__foot').getBoundingClientRect()
-          return { lines: lines(b), h: bb.height, minH: parseFloat(getComputedStyle(b).minHeight), inside: bb.left >= foot.left - 1 && bb.right <= foot.right + 1, hintLines: lines(hint) }
+          const hr = hint.getBoundingClientRect()
+          return { lines: lines(b), h: bb.height, minH: parseFloat(getComputedStyle(b).minHeight), inside: bb.left >= foot.left - 1 && bb.right <= foot.right + 1, hintLines: lines(hint), below: bb.top >= hr.bottom - 1, startGap: bb.left - foot.left, endGap: foot.right - bb.right }
         })
         expect.equal(r.lines, 1, `${w}px ${pct}%: "Reset" is on one line`)
+        if (r.below) expect.ok(r.startGap < 1, `${w}px ${pct}%: alone on its line, Reset starts under the hint (${r.startGap.toFixed(1)}px in), not at the far edge`)
+        else expect.ok(r.endGap < 1, `${w}px ${pct}%: beside the hint, Reset sits at the end (${r.endGap.toFixed(1)}px short)`)
         expect.ok(r.h < r.minH * 1.5, `${w}px ${pct}%: Reset is a one-line pill, not a tall oval (${r.h}px)`)
         expect.ok(r.inside, `${w}px ${pct}%: Reset is inside the row`)
       }
@@ -215,6 +218,86 @@ export const tests = [
       expect.ok(!/ [1-9]\d*px [1-9]\d*px/.test(rest) && !/0px 0px 0px [1-9]/.test(rest), `at rest there is no ring and no offset shadow: ${rest}`)
       const ring = await page.locator('#st-focus').evaluate((el) => { const c = getComputedStyle(el); return c.outlineStyle + ' ' + c.outlineWidth })
       expect.equal(ring, 'solid 3px', 'is-focus draws the ring')
+    },
+  },
+  {
+    name: 'large text: minus, bar and plus stay on one line on a phone, and a readout that drops under its label starts under the label (no indent)',
+    async run({ page, goto, expect }) {
+      let wrapped = 0
+      for (const [w, pct] of [[390, 100], [390, 200], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await goto('components/scrubber.html')
+        if (pct !== 100) await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(250)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.scrubber')].map((sc) => {
+          const label = sc.querySelector('.scrubber__label'), value = sc.querySelector('.scrubber__value')
+          const lr = label && label.getBoundingClientRect(), vr = value && value.getBoundingClientRect()
+          const parts = [...sc.querySelectorAll('.scrubber__row > *')].map((x) => x.getBoundingClientRect()).filter((x) => x.width > 0)
+          const mid = (x) => x.top + x.height / 2
+          return {
+            id: sc.querySelector('input').id, w: sc.getBoundingClientRect().width,
+            under: !!(lr && vr && vr.top >= lr.bottom - 1), indent: lr && vr ? Math.round(vr.left - lr.left) : 0,
+            oneLine: parts.every((x) => Math.abs(mid(x) - mid(parts[0])) < 1),
+          }
+        }))
+        for (const x of r) {
+          if (x.under) { wrapped++; expect.ok(Math.abs(x.indent) <= 1, `${w}px ${pct}% ${x.id}: the readout under its label starts where it starts (indent ${x.indent}px)`) }
+          if (x.w >= 200) expect.ok(x.oneLine, `${w}px ${pct}% ${x.id}: minus, bar and plus share one line in a ${Math.round(x.w)}px scrubber`)
+        }
+      }
+      expect.ok(wrapped > 0, 'at least one readout dropped under its label somewhere in these sizes (so the rule was exercised)')
+    },
+  },
+  {
+    name: 'a panel decides as one: scrubbers that share a parent put every readout beside its label or every one under it (measured), at 390px and 320px, 100% and 200% text',
+    async run({ page, goto, expect }) {
+      let mixedSeen = 0
+      for (const [w, pct] of [[390, 100], [390, 200], [320, 100], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await goto('components/scrubber.html')
+        if (pct !== 100) await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(300) // SG.fit re-measures on the next frame
+        const groups = await page.evaluate(() => {
+          const by = new Map()
+          for (const sc of document.querySelectorAll('.scrubber')) {
+            const l = sc.querySelector('.scrubber__label:not(.sr-only)'), v = sc.querySelector('.scrubber__value')
+            if (!l || !v) continue
+            const lr = l.getBoundingClientRect(), vr = v.getBoundingClientRect()
+            const p = sc.parentElement
+            if (!by.has(p)) by.set(p, { fit: p.dataset.fit, under: [] })
+            by.get(p).under.push(vr.top >= lr.bottom - 1)
+          }
+          return [...by.values()]
+        })
+        for (const g of groups) {
+          expect.ok(g.fit === 'beside' || g.fit === 'under', `${w}px ${pct}%: the panel was measured (data-fit ${g.fit})`)
+          expect.ok(g.under.every((u) => u === g.under[0]), `${w}px ${pct}%: one panel, one layout (${g.under.map((u) => (u ? 'under' : 'beside')).join(', ')})`)
+          if (g.under.length > 1 && g.under[0]) mixedSeen++
+        }
+      }
+      expect.ok(mixedSeen > 0, 'a panel of several scrubbers went under as a whole somewhere in these sizes (so the rule was exercised)')
+    },
+  },
+  {
+    name: 'the ruler thins out: ticks under 4px apart drop the minor ones, and the major ones and the origin stay',
+    async run({ page, goto, expect }) {
+      for (const [w, pct, dense] of [[390, 100, false], [320, 200, true]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await goto('components/scrubber.html')
+        if (pct !== 100) await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(300)
+        const r = await page.evaluate(() => {
+          const sc = document.querySelector('#dk-warm').closest('.scrubber')
+          const ticks = sc.querySelector('.scrubber__ticks')
+          const shown = [...ticks.children].filter((i) => i.getBoundingClientRect().width > 0).map((i) => i.getBoundingClientRect().left)
+          const gaps = shown.slice(1).map((x, k) => x - shown[k])
+          const origin = [...ticks.children][Math.round(((0 - -20) / 40) * (ticks.children.length - 1))]
+          return { dense: ticks.hasAttribute('data-dense'), minGap: Math.min(...gaps), count: shown.length, all: ticks.children.length, origin: origin.getBoundingClientRect().width > 0 && origin.hasAttribute('data-major') }
+        })
+        expect.equal(r.dense, dense, `${w}px ${pct}%: the Warmth ruler is ${dense ? '' : 'not '}thinned (${r.count} of ${r.all} ticks shown)`)
+        expect.ok(r.minGap >= 4, `${w}px ${pct}%: the ticks that show stand at least 4px apart (${r.minGap.toFixed(1)}px)`)
+        expect.ok(r.origin, `${w}px ${pct}%: the origin tick (0) stays`)
+      }
     },
   },
 ]

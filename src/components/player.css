@@ -9,7 +9,7 @@
 
    <div class="player" role="group" aria-labelledby="memo-title" data-skip="5">
      <div class="player__stage">                                  video only
-       <video class="player__media" controls playsinline preload="metadata" poster="…">
+       <video class="player__media" controls playsinline preload="none" poster="…">   nothing loads until Play
          <source src="…" type="video/webm">
        </video>
      </div>
@@ -25,10 +25,10 @@
          <div class="player__transport">
            <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play">
              <span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-           <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds">…arrow, 5…</button>
-           <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds">…5, arrow…</button>
+           <button class="btn" type="button" data-player="back" aria-label="Back 5 seconds">…arrow, <span class="num">5</span></button>
+           <button class="btn" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span>, arrow…</button>
          </div>
-         <div class="player__end"><button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute">…</button></div>
+         <div class="player__end"><button class="btn" data-shape="circle" type="button" data-player="mute" aria-pressed="false" aria-label="Mute">…</button></div>
        </div>
        <p class="player__status" role="status"></p>
      </div>
@@ -46,14 +46,41 @@
    survive any frame, so they would need a scrim; a solid plate under the picture needs nothing
    and never covers it.
 
+   ONE ROW, ONE HEIGHT. Play is the primary circle (56px); every other control in the row (Back,
+   Forward, Mute, Captions) shares one height, 44px (36px in the small layout), all centred on one line. The
+   row is chrome: the circles, the skip pills (their arrow AND their digit, which read as one glyph), their
+   44px targets, the gaps and the player's insets keep their 100% size at 200% text, so the title, the
+   description, the time and the status take the room instead (--chrome-*). A player under 240px wide
+   tightens its insets from 16 to 12px. The row never wraps: src/js/74-player.js measures it (SG.fit) and
+   writes the richest layout that fits one line to data-fit on .player__row:
+     full      Play 56, the skip pills (arrow and number side by side), Mute or Captions
+     compact   Play 56, the skips become 44px circles with the number inside the arrow
+     tight     the same with Play at 44px too
+     small     Play 44, every other control a 36px circle, 8px apart (a small row: a phone mock, a sidebar)
+     bare      Play (56) and Mute only: Back and Forward go, because the seek bar does their job (tap to
+               jump, arrow keys to step) and two rows of transport buttons read as a broken player
+   Without the script there is no row at all (the native controls are the player).
+
+   STATUS. One sentence with an icon when something needs saying: "Buffering…" after a beat, or a
+   failure, in --bad-ink with an icon and words. A wrapped line hangs past the icon (the icon is a
+   column of its own), and a failure offers its way out: a "Try again" button under the sentence.
+
    THE PATTERN (same as button.css): every button is a Button. The seek bar is a Scrubber, so the
    keys, the click-to-jump and the readout are the Scrubber's. The frame is a 2px rectangle.
+
+   PRIVATE  --_pad    the player's side insets (16px, 12px in a narrow player)
+            --_ctl    the height of every control but Play (44px, 36px in the small layout)
+            --_digit  the skip pills' number (chrome: it stops at its 100% size)
+            --_glyph  the number inside a skip circle's arrow (10px: it sits inside the arc, clear of the arrowhead)
    ========================================================================== */
 
 @layer sg.components {
   .player {
     --_bg: var(--tone-bg, var(--paper));
     --_ink: var(--tone-ink, var(--ink));
+    --_pad: var(--chrome-4);
+    --_digit: min(var(--text-md), 16px);
+    --_glyph: min(0.625rem, 10px);
 
     display: flex;
     flex-direction: column;
@@ -69,6 +96,7 @@
 
   /* video: the picture, closed off by a frame-weight rule like a Card's media */
   .player__stage {
+    position: relative;
     aspect-ratio: var(--ratio, 16 / 9);
     background: var(--tone-bg, var(--paper-3));
     border-block-end: var(--bw) solid var(--line);
@@ -78,13 +106,20 @@
     display: block;
     inline-size: 100%;
   }
+  /* A video is painted on whole device pixels. At a fractional position (large text moves the player by
+     fractions of a pixel) it stopped a pixel short of the frame and a hairline of paper showed beside the
+     picture. One thin line past every edge, under the stage's clip, and the picture always meets the frame. */
   .player__stage > .player__media {
-    block-size: 100%;
+    position: absolute;
+    inset: calc(var(--bw-thin) * -1);
+    inline-size: calc(100% + 2 * var(--bw-thin));
+    max-inline-size: none; /* the reset caps media at 100%, which would undo the overlap */
+    block-size: calc(100% + 2 * var(--bw-thin));
     object-fit: cover;
   }
   /* before the script takes the controls off, audio shows the browser's bar: keep it on the frame */
   audio.player__media[controls] {
-    padding: var(--space-3);
+    padding: var(--chrome-3);
     box-sizing: border-box;
   }
   .player__stage[data-tap] {
@@ -93,8 +128,8 @@
 
   .player__head {
     display: grid;
-    gap: var(--space-1);
-    padding: var(--space-4) var(--space-4) 0;
+    gap: var(--chrome-1);
+    padding: var(--chrome-4) var(--_pad) 0;
   }
   .player__title {
     margin: 0;
@@ -103,71 +138,162 @@
     letter-spacing: var(--ls-title);
     overflow-wrap: break-word;
   }
+  /* a sentence or two: balanced, so a short description never ends on one word ("No / sound.") */
   .player__desc {
     margin: 0;
     max-inline-size: none;
     font: var(--type-meta);
     color: var(--tone-ink-soft, var(--ink-soft));
+    text-wrap: balance;
   }
 
-  /* the custom controls: seek bar, then one row of buttons */
+  /* the custom controls: seek bar, the time, one row of buttons, the status */
   .player__controls {
     display: grid;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-4) var(--space-4);
+    /* minmax(0, 1fr): the column is the player's width, never the row's content, so a row that does not fit
+       overflows itself (which the script measures) instead of widening the player under its clip */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--chrome-2);
+    padding: var(--chrome-3) var(--_pad) var(--chrome-4);
   }
+
+  /* A narrow player (in a phone mock, a sidebar, a card) gives its row the 8px it would spend on insets, so it
+     keeps all its controls longer. Under 240px wide, frame included (the container is measured inside the 2px
+     frame). In px: the insets and the row are chrome, they do not grow with the text. */
+  @container player (inline-size < 236px) {
+    .player__head,
+    .player__controls {
+      --_pad: var(--chrome-3);
+    }
+  }
+
+  /* ---- the row ------------------------------------------------------------------------------------- */
   .player__row {
+    --_ctl: var(--chrome-ctl); /* every control but Play */
+    --_apart: var(--chrome-3); /* between the transport group and the end group */
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* until the script has measured it; from then on (data-fit) it is one line */
     align-items: center;
-    gap: var(--space-2) var(--space-3);
+    gap: var(--chrome-2) var(--_apart);
   }
-  /* Play, Back and Forward are one thing: when the row is too narrow for them and Mute, Mute (the .player__end
-     group) drops under them as a unit, and the three never come apart (Forward alone on a second line). */
+  .player__row[data-fit] {
+    flex-wrap: nowrap;
+  }
+  .player__row[data-fit="small"] {
+    --_ctl: var(--chrome-ctl-sm);
+    --_apart: var(--chrome-2);
+  }
+  /* Play, Back and Forward are one group */
   .player__transport {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-2) var(--space-3);
+    gap: var(--chrome-2);
   }
+  /* The targets are chrome too. The Button's --hit is rem: at 200% text a skip pill's 88px target reached
+     22px past its 44px frame, over its neighbour and the time above it. */
   .player__row .btn {
+    --_hit: var(--chrome-hit);
     flex: none;
-  }
-  /* a phone-width card (under 18rem): the primary circle goes 56 -> 44px, the skip pills and the gaps tighten, so
-     Play, Back, Forward and Mute still share a line on a 360px screen (the hit areas stay 44px) */
-  @container player (inline-size < 18rem) {
-    .player__transport {
-      column-gap: var(--space-2);
-    }
-    .player .player__play {
-      --_h: var(--ctl);
-    }
-    .player__row .btn[data-size="sm"]:not([data-shape="circle"]) {
-      --_px: var(--space-2);
-    }
-  }
-  .player__row .btn[data-size="sm"] {
-    --_px: var(--space-3); /* the skip pills: arrow + digit need no more, and it keeps the row on one line on a phone */
-  }
-  .player__row .btn[data-shape="circle"][data-size="sm"] {
-    min-inline-size: 0; /* a small circle is 36px wide; .btn's 44px minimum would make it a pill (the hit area is 44 anyway) */
-  }
-  /* position at one end of the bar, length at the other */
-  .player__time {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-3);
-    margin: 0;
-    max-inline-size: none;
-    font: var(--type-meta);
-    font-variant-numeric: tabular-nums lining-nums;
-    color: var(--tone-ink-soft, var(--ink-soft));
   }
   .player__end {
     display: flex;
     flex: none;
-    gap: var(--space-2);
+    align-items: center;
+    gap: var(--chrome-2);
     margin-inline-start: auto;
+  }
+
+  /* every control but Play: one height at every text size (a circle stays a circle, a pill a pill) */
+  .player__row .btn:not(.player__play) {
+    --_h: var(--_ctl);
+    --_cap: var(--_ctl);
+    --_px: var(--chrome-3);
+    min-inline-size: var(--_ctl); /* the Button's minimum is --hit, which doubles at 200% text */
+  }
+  /* the skip pills: the arrow and the number are one glyph, chrome like an icon (the number is also in the name) */
+  .player__row :is([data-player="back"], [data-player="forward"]) {
+    gap: var(--chrome-1);
+    font-size: var(--_digit);
+  }
+  .player__row :is([data-player="back"], [data-player="forward"]) > .ic {
+    --ic-size: var(--chrome-ic-sm);
+  }
+
+  /* Mute and Captions are toggles: the fill means ON (aria-pressed="true", with the doubled frame). Hovering or
+     focusing one that is off raises its outline without filling it, and a press tints it, so an unmuted button
+     never looks muted under the pointer (selection controls keep the solid fill for "on"). Button.css still
+     fills every secondary button on hover; this keeps the player's toggles honest until it handles
+     aria-pressed itself. Back and Forward are actions and keep the Button's fill on hover. */
+  .player__row .btn[aria-pressed="false"]:not([data-variant="primary"], [aria-disabled="true"]) {
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --fill: 0;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --fill: 0;
+    }
+    &:is(:active, .is-active) {
+      --fill: 0.15;
+    }
+  }
+
+  /* compact, tight, small: the skips are circles too, the number inside the arrow. Lucide's arrows circle the
+     centre, but the arrowhead ends 3px from the middle at the top (top left for Back, top right for Forward):
+     a 12px digit ran into it and read as a 5 with a line through its top. A 10px digit, nudged down and away
+     from the arrowhead, sits inside the arc with a clear gap all round. */
+  .player__row:is([data-fit="compact"], [data-fit="tight"], [data-fit="small"]) :is([data-player="back"], [data-player="forward"]) {
+    --_r: var(--radius-pill);
+    display: inline-grid;
+    place-items: center;
+    inline-size: var(--_ctl);
+    min-inline-size: var(--_ctl);
+    padding: 0;
+    font-size: var(--_glyph);
+    font-weight: 700;
+    line-height: 1;
+
+    & > * {
+      grid-area: 1 / 1;
+    }
+    & > .ic {
+      --ic-size: var(--chrome-ic);
+    }
+    & > .num {
+      translate: 0.08em 0.16em;
+    }
+  }
+  .player__row:is([data-fit="compact"], [data-fit="tight"], [data-fit="small"]) [data-player="forward"] > .num {
+    translate: -0.08em 0.16em;
+  }
+  /* A 36px circle's 44px target hangs 4px past it on each side. At the end of the row that was 4px past the row,
+     which SG.fit measures as overflow (the small layout was refused in a row it fits). The row takes those 4px as
+     padding and gives them back as a negative margin: the circles stay where they were (the last one flush with
+     the time's end above it), and the target hangs inside the row's own box. */
+  .player__row[data-fit="small"] {
+    padding-inline-end: calc(var(--chrome-hit) / 2 - var(--_ctl) / 2);
+    margin-inline-end: calc(var(--_ctl) / 2 - var(--chrome-hit) / 2);
+  }
+  /* tight and small: Play steps down to 44px too (bare has the room for the 56px primary again) */
+  .player__row:is([data-fit="tight"], [data-fit="small"]) .player__play {
+    --_h: var(--chrome-ctl);
+    --_cap: var(--chrome-ctl);
+  }
+  .player__row[data-fit="bare"] :is([data-player="back"], [data-player="forward"]) {
+    display: none;
+  }
+
+  /* position at one end of the bar, length at the other */
+  .player__time {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--chrome-3);
+    margin: 0;
+    max-inline-size: none;
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums lining-nums;
+    white-space: nowrap;
+    color: var(--tone-ink-soft, var(--ink-soft));
   }
 
   /* play / pause: two icons, one shows. The name stays "Play"; aria-pressed is the state. */
@@ -181,12 +307,23 @@
     display: none;
   }
 
-  /* the plain-language state line: empty until something goes wrong */
+  /* ---- the plain-language state line: empty until something needs saying ---------------------------
+     The icon is a column of its own and the words wrap beside it, so a second line hangs past the icon
+     instead of starting under it (the field error does the same). */
   .player__status {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
     margin: 0;
     max-inline-size: none;
     font: var(--type-meta);
     color: var(--tone-ink-soft, var(--ink-soft));
+
+    & > .ic {
+      --ic-size: 1.125rem;
+      flex: none;
+      margin-block-start: calc((1lh - var(--ic-size)) / 2);
+    }
   }
   .player__status:empty {
     display: none;
@@ -194,6 +331,16 @@
   .player[data-state="error"] .player__status {
     color: var(--bad-ink);
     font-weight: 700;
+  }
+
+  /* the way out of a failure, under the sentence and lined up with its words (past the icon). Hidden when there
+     is nothing to try again. */
+  .player [data-player="retry"] {
+    justify-self: start;
+    margin-inline-start: calc(1.125rem + var(--space-2));
+  }
+  .player:not([data-state="error"]) [data-player="retry"] {
+    display: none;
   }
 
   /* a player that cannot play: dashed, the way every unavailable thing is */

@@ -13,7 +13,7 @@
        </div>
      </div>
      <div class="carousel__bar">
-       <p class="carousel__count"><span class="num" data-sg-current>1</span> of <span class="num" data-sg-total>6</span></p>
+       <p class="carousel__count"><span class="num" data-sg-current>1</span><span class="carousel__of"> of </span><span class="num" data-sg-total>6</span></p>
        <div class="carousel__dots" role="group" aria-label="Choose a slide">
          <button class="carousel__dot" type="button" aria-label="Slide 1" aria-current="true"></button> …
        </div>
@@ -33,15 +33,25 @@
            it do what the buttons do). The FRAME wears its ring (:has), drawn outside the clip, in the same
            ink as every other ring; the track's own outline is dropped so it is not doubled inside the photo.
 
-   STATES  aria-current="true" on the dot of the current slide: it fills AND stretches into a pill (a
-           second cue that survives forced colours). aria-disabled on prev / next at the ends (a real
-           aria-disabled, so focus is never lost when the last slide is reached).
-           data-playing="true|false" on the Play button swaps its icon; the NAME changes too
-           ("Pause slide show" / "Start slide show"), which is what a screen reader hears.
+   STATES  The solid fill is kept for the CURRENT dot (aria-current="true"): it fills AND stretches into a pill
+           (a second cue that survives forced colours). Hover draws the dot's 44px cell as a ring (an outline,
+           not a fill, so a hovered dot never looks current); keyboard focus is the ring; pressing tints the dot
+           half way (visible within 100ms on a touch screen, where there is no hover).
+           aria-disabled on prev / next at the ends (a real aria-disabled, so focus is never lost when the
+           last slide is reached). data-playing="true|false" on the Play button swaps its icon; the NAME
+           changes too ("Pause slide show" / "Start slide show"), which is what a screen reader hears.
 
    THE BAR  is paper, not a scrim over the photo: the controls never depend on what the picture looks like.
-            Below 36rem the dots get their own row; six 44px dots fit a 320px phone. Under 17rem wide they are
-            hidden (the count and the buttons stay), because a half-wrapped row of dots reads as a bug.
+            ONE ROW at every size: the count, then the circles at the end (Play, Previous, Next). The circles,
+            the dots and the bar's insets are chrome (--chrome-*): they keep their 100% size at 200% text, so
+            the count keeps the room. When the count and the circles still cannot share the line, the count
+            shortens to "1/6" (the words " of " stay for a screen reader), and in the end it goes; it never
+            wraps onto a line of its own. The script measures this (SG.fit, data-fit on the bar: long | short
+            | none); without the script the whole bar is hidden (no controls that do nothing).
+            Below 40rem the dots get their own row under it, centred; from 40rem they sit between the count
+            and the circles. When their row cannot hold them (six 44px cells on a narrow phone at large
+            text), they are hidden as a group (data-fit="nodots" on the carousel): the count and the buttons
+            do the job, and a half-wrapped row of dots reads as a bug.
    DOTS     are 44px cells that touch (a 12px circle in the middle of each, so the circles sit 32px apart). The
             house wants 8px between targets; six of them with gaps would need 304px and would not fit a 320px
             phone. Touching 44px cells leave no dead zone to mis-tap into, which is what the gap is for.
@@ -98,9 +108,9 @@
   }
 
   .carousel[data-peek] .carousel__track {
-    gap: var(--space-3);
-    padding: var(--space-3);
-    scroll-padding-inline: var(--space-3);
+    gap: var(--chrome-3);
+    padding: var(--chrome-3);
+    scroll-padding-inline: var(--chrome-3);
   }
 
   .carousel__slide {
@@ -124,34 +134,50 @@
     block-size: 100%;
   }
 
-  /* ---- the bar ------------------------------------------------------------------------- */
+  /* ---- the bar: one row (count, then the circles); the dots on their own row below ------------------- */
   .carousel__bar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* only the dots row wraps (it is 100% wide); the count and the circles share the first line */
     align-items: center;
-    gap: var(--space-1) var(--space-3);
-    padding: var(--space-2) var(--space-3);
+    gap: var(--chrome-1) var(--chrome-3);
+    padding: var(--chrome-2) var(--chrome-3);
     border-block-start: var(--bw) solid var(--line);
   }
 
+  /* The count takes what the circles leave. Once the script measures the bar (data-fit) it stays on one line,
+     so "does not fit" is an overflow the script can see, and it shortens instead of wrapping. */
   .carousel__count {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-inline-size: 0;
     font: var(--type-label);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
     font-variant-numeric: tabular-nums lining-nums;
   }
+  .carousel__bar[data-fit] .carousel__count {
+    white-space: nowrap;
+  }
+  /* short: "1/6". The words stay for a screen reader (visually hidden); the slash is drawn and not read. */
+  .carousel__bar[data-fit="short"] .carousel__of,
+  .carousel__bar[data-fit="none"] .carousel__count {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .carousel__bar[data-fit="short"] [data-sg-total]::before {
+    content: "/" / "";
+  }
 
-  /* Play, Previous, Next. At 200 % text on a phone three 88px circles are wider than the bar, so the group
-     may wrap (Play drops under the pair) instead of pushing Next out of the frame. */
+  /* Play, Previous, Next: one group on one line, at the end of the row. Icon-only circles are chrome-capped by
+     the Button (44px, with a 44px target), so three of them and a count fit a 390px phone at 200% text. */
   .carousel__nav {
     display: flex;
-    flex: 0 1 auto;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    min-inline-size: 0;
-    gap: var(--space-2);
+    flex: none;
+    align-items: center;
+    gap: var(--chrome-2);
     margin-inline-start: auto;
   }
 
@@ -160,20 +186,22 @@
     display: flex;
     flex: 1 0 100%;
     flex-wrap: wrap;
+    min-inline-size: 0; /* the row is the bar's width: dots that do not fit overflow it (measured), they never widen the bar */
     justify-content: center;
     /* six 44px dots are 264px; the bar's padding would leave a 320px phone 4px short and wrap the last one */
-    margin-inline: calc(var(--space-1) * -1);
+    margin-inline: calc(var(--chrome-1) * -1);
+  }
+  /* measured: one line of dots, or none at all (never a half-wrapped row) */
+  .carousel[data-fit] .carousel__dots {
+    flex-wrap: nowrap;
+  }
+  .carousel[data-fit="nodots"] .carousel__dots {
+    display: none;
   }
 
-  /* too narrow for a row of 44px dots: the count and the buttons do the job, and a wrapped half-row would not */
-  @container carousel (max-width: 17rem) {
-    .carousel__dots {
-      display: none;
-    }
-  }
-
-  /* wide enough: one row, dots in the middle (count and nav share the rest equally) */
-  @container carousel (min-width: 36rem) {
+  /* wide enough: one row, dots in the middle (count and nav share the rest equally). In rem, so at 200% text the
+     dots only join the row where the count still has the room (the dots and the circles do not grow; the count does) */
+  @container carousel (min-width: 40rem) {
     .carousel__count,
     .carousel__nav {
       flex: 1 1 0;
@@ -204,7 +232,7 @@
     display: inline-block;
   }
 
-  /* ---- a dot: a 44px target around a 12px circle ------------------------------------------ */
+  /* ---- a dot: a 44px target around a 12px circle (chrome: neither grows with the text) ---------------- */
   .carousel__dot {
     --fill: 0;
 
@@ -212,11 +240,12 @@
     display: grid;
     place-items: center;
     flex: none;
-    inline-size: var(--hit);
-    block-size: var(--hit);
+    inline-size: var(--chrome-hit);
+    block-size: var(--chrome-hit);
     margin: 0;
     padding: 0;
-    border: 0;
+    background: transparent;
+    border: var(--bw) solid transparent; /* the cell's own ring, drawn on hover; a real edge for forced colours */
     border-radius: var(--radius-pill);
     cursor: pointer;
     transition: --fill var(--dur-hover) var(--ease-out);
@@ -224,8 +253,8 @@
 
   .carousel__dot::before {
     content: "";
-    inline-size: 0.75rem;
-    block-size: 0.75rem;
+    inline-size: var(--chrome-ic-xs);
+    block-size: var(--chrome-ic-xs);
     background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper));
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-pill);
@@ -236,24 +265,24 @@
     --fill: 1;
   }
   .carousel__dot[aria-current="true"]::before {
-    inline-size: 1.75rem;
+    inline-size: calc(var(--chrome-ic-xs) + var(--chrome-4)); /* 28px */
   }
 
+  /* hover: the cell's ring (an outline, never the fill: a filled dot means "here") */
   @media (hover: hover) {
-    .carousel__dot:is(:hover, .is-hover) {
-      --fill: 1;
+    .carousel__dot:is(:hover, .is-hover):not([aria-current="true"]) {
+      border-color: var(--line);
     }
   }
-  .carousel__dot:is(:focus-visible, .is-focus, :active, .is-active) {
-    --fill: 1;
+  /* pressed: the dot fills half way at once, before the slide has moved (feedback within 100ms on touch) */
+  .carousel__dot:is(:active, .is-active):not([aria-current="true"]) {
+    --fill: 0.5;
+    transition-duration: var(--dur-press);
   }
   /* .is-focus only forces the state on the docs page: a real focus gets the ring from the base layer */
   .carousel__dot.is-focus {
     outline: var(--ring) solid var(--focus);
     outline-offset: var(--ring-gap, var(--ring-offset));
-  }
-  .carousel__dot:active {
-    transition-duration: var(--dur-press);
   }
 
   /* ---- no script, no controls that do nothing -------------------------------------------- */
@@ -284,8 +313,14 @@
     .carousel__dot:is(.is-hover, :focus-visible, .is-focus)::before {
       border-color: Highlight;
     }
+    .carousel__dot.is-hover {
+      border-color: Highlight;
+    }
   }
   @media (forced-colors: active) and (hover: hover) {
+    .carousel__dot:hover {
+      border-color: Highlight;
+    }
     .carousel__dot:hover::before {
       border-color: Highlight;
     }

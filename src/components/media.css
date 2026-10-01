@@ -28,17 +28,34 @@
 
    STATES come from data-state on the figure (an image has no native "loading" or "failed" attribute):
      data-state="loading"   skeleton + spinner (a pulse under reduced motion); aria-busy on the figure
-     data-state="failed"    dashed frame, an icon, words and a "Try again" button. Status = icon + words.
+     data-state="failed"    dashed frame, an icon, words ("Picture didn’t load") and a "Try again" button.
+                            Status = icon + words; a tile under 192px keeps the words and the button only.
    src/js/70-media.js sets both for you from the img's load / error events. Without it the picture simply
    shows; nothing here depends on it.
 
    PARTS  .media__frame (the ratio box) · .media__badge (a corner label on a --scrim-strong plate)
           .media__status (loading / failed) · .media__caption > .media__label .media__title .media__meta
 
+   THE PICTURE COVERS ITS FRAME. The ratio is the frame's SMALLEST height, not a fixed one: when a parent
+   stretches the figure (the slides of a carousel are as tall as the tallest one, whose caption may wrap to
+   three lines at 200% text), the frame row takes the extra height and the picture is cropped to it. The
+   frame never stops short of the caption with a band of empty paper above the rule.
+
+   LARGE TEXT. Captions and titles grow with the reader's text size; the insets around them (caption
+   padding, the status padding), the status icon and the whole badge (its word too: it sits on the
+   picture, and a growing plate would cover it) are chrome and stop at their 100% size (--chrome-*).
+
+   THE FIGURE'S OWN BACKGROUND IS THE LINE COLOUR. With soft corners the 2px frame and a clipped child (an ink
+   caption bar, a dark picture) both anti-alias along the same inner curve, and the figure's background shows
+   through the two half-covered pixels: a light hairline arc inside the corner. A background in the frame's
+   own colour makes those pixels part of the frame. Nothing else ever shows it (the frame and the caption
+   cover the figure), except the gaps of a dashed (failed) frame, which go back to paper.
+
    PRIVATE PROPERTIES
      --_bg / --_bg-ink            what the frame shows before the picture (tone, else --paper-2) and its text
      --_cap-bg / -ink / -soft     caption strip colours (tone, else paper); the bar and over variants swap them
      --_pad                       caption padding, from the figure's width (cqi lives on parts, never on .media)
+     --_badge-text / --_badge-ic  the badge's word and icon, capped at their 100% size (a badge is chrome)
    They are read on the figure because --tone-* are registered inherits:false: a child cannot see them.
 
    FOUNDATION REQUEST  a role for "always-dark ink" would let a filled control sit on a photo in both themes;
@@ -80,18 +97,24 @@
     --_cap-bg: var(--tone-bg, var(--paper));
     --_cap-ink: var(--tone-ink, var(--ink));
     --_cap-soft: var(--tone-ink-soft, var(--ink-soft));
-    --_pad: clamp(var(--space-3), 4cqi, var(--space-4));
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    --_pad: clamp(var(--chrome-3), 4cqi, var(--chrome-4));
+    --_badge-text: min(var(--text-xs), 13px); /* the badge is chrome: see the badge */
+    --_badge-ic: min(0.875rem, 14px);
+    /* the hard shadow and the lift are chrome (4px at every text size): a doubled 8px shadow at 200% text stood
+       out past the focus ring's halo and stepped its corner */
+    --_shadow: calc(var(--lift) * var(--chrome-1)) calc(var(--lift) * var(--chrome-1)) 0 0 var(--line);
 
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto;
+    /* the picture's row takes any height a parent adds (1fr), so a stretched figure never shows a band of
+       paper between the picture and its caption; an unstretched figure is exactly picture + caption */
+    grid-template-rows: 1fr auto;
     min-inline-size: 0;
     isolation: isolate;
     container: media / inline-size;
     color: var(--ink);
-    background: var(--paper);
+    background: var(--line); /* the seam at a soft inner corner takes the frame's colour (see the header) */
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-tile);
     overflow: clip;
@@ -122,6 +145,8 @@
   .media__frame {
     position: relative;
     grid-area: 1 / 1;
+    /* the ratio sets the row's height; stretch then fills the row when a parent made the figure taller */
+    align-self: stretch;
     min-block-size: 0;
     aspect-ratio: var(--ratio, var(--ratio-media));
     color: var(--_bg-ink);
@@ -165,22 +190,27 @@
     aspect-ratio: auto;
   }
 
-  /* ---- badge: a label on the picture, on a plate (never bare text on a photo) ----- */
+  /* ---- badge: a label on the picture, on a plate (never bare text on a photo) -----
+     A badge is chrome, like a badge on an icon (and like the badges a phone's photo library puts on a picture):
+     all of it, its word too, stops at its 100% size. With the word in rem, 200% text made "Favourite" a plate
+     across most of a narrow picture, and the picture is what the person came to see. Its words are short and
+     are read out with the figure; the caption is where text grows. */
   .media__badge {
     position: absolute;
     z-index: 1;
-    inset-block-start: var(--space-2);
-    inset-inline-start: var(--space-2);
+    inset-block-start: var(--chrome-2);
+    inset-inline-start: var(--chrome-2);
     display: inline-flex;
     align-items: center;
-    gap: var(--space-1);
-    min-block-size: 1.5rem;
-    padding-inline: var(--space-2);
+    gap: var(--chrome-1);
+    min-block-size: var(--chrome-ic);
+    padding-inline: var(--chrome-2);
     color: var(--on-media);
     background: var(--scrim-strong);
     border: var(--bw-thin) solid var(--on-media);
     border-radius: var(--radius-pill);
     font: var(--type-label);
+    font-size: var(--_badge-text);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
     font-variant-numeric: tabular-nums;
@@ -188,7 +218,7 @@
   }
 
   .media__badge > .ic {
-    --ic-size: 0.875rem;
+    --ic-size: var(--_badge-ic);
   }
 
   /* ---- caption ---------------------------------------------------------------------- */
@@ -197,7 +227,7 @@
     grid-area: 2 / 1;
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: var(--chrome-1);
     padding: var(--_pad);
     color: var(--_cap-ink);
     background: var(--_cap-bg);
@@ -250,8 +280,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--space-2);
-    padding: var(--space-3);
+    gap: var(--chrome-2);
+    padding: var(--chrome-3);
     color: var(--_bg-ink);
     font: var(--type-meta);
     text-align: center;
@@ -283,8 +313,8 @@
   /* loading: a ring that spins (pulses under reduced motion). Shape + motion, never colour alone. */
   .media[data-state="loading"] .media__status::before {
     content: "";
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
+    inline-size: calc(var(--chrome-ic) + var(--chrome-1)); /* 28px, chrome: it does not grow with the text */
+    block-size: calc(var(--chrome-ic) + var(--chrome-1));
     border: var(--bw) solid currentColor;
     border-inline-end-color: transparent;
     border-radius: var(--radius-pill);
@@ -294,25 +324,30 @@
     display: none;
   }
 
-  /* failed: dashed = not here (the house legend), plus an icon and a sentence and a way out */
+  /* failed: dashed = not here (the house legend), plus an icon and a sentence and a way out. The gaps of the
+     dashes show the figure's background, which is the line colour elsewhere (see the header): paper here, or
+     the dashed frame would read as a solid one. */
   .media[data-state="failed"] {
+    background: var(--paper);
     border-style: dashed;
   }
   .media__status > .ic {
-    --ic-size: 1.75rem;
+    --ic-size: calc(var(--chrome-ic) + var(--chrome-1)); /* 28px, stands alone above the words: chrome */
   }
 
-  /* small tiles: a tighter caption; keep the sentence and the button, drop the icon */
-  @container media (max-width: 12rem) {
+  /* Small tiles: a tighter caption; keep the sentence and the button, drop the icon. In px, not rem: "small" is
+     the tile's size on the screen. At 12rem, 200% text made every figure narrower than 384px "small", so a
+     full-width failed figure lost its icon, and status is always an icon AND words. */
+  @container media (max-width: 192px) {
     .media__caption {
-      padding: var(--space-2);
+      padding: var(--chrome-2);
     }
     .media__title {
       font-size: var(--text-sm);
     }
     .media__status {
-      gap: var(--space-1);
-      padding: var(--space-2);
+      gap: var(--chrome-1);
+      padding: var(--chrome-2);
       font-size: var(--text-xs);
     }
     .media__status > .ic {
@@ -346,8 +381,8 @@
     cursor: pointer;
     overflow-clip-margin: border-box;
     transform: translate(
-      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
-      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+      calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
     );
     transition:
       --lift var(--dur-hover) var(--ease-out),
@@ -394,10 +429,13 @@
     --fill: 1;
   }
 
-  /* the figure wears the focus ring, not the anchor inside it */
+  /* the figure wears the focus ring, not the anchor inside it. The halo (paper, in the ring's offset) goes in
+     front of the hard shadow, as on a Button: without it the 4px shadow poked out between the frame and the
+     3px-offset ring along two sides, and the ring's corner read as a step. */
   .media[data-link]:is(.is-focus, :has(.media__link:focus-visible)) {
     outline: var(--ring) solid var(--focus);
     outline-offset: var(--ring-offset);
+    box-shadow: 0 0 0 var(--ring-offset) var(--focus-halo, var(--paper)), var(--_shadow);
   }
   @supports selector(:has(*)) {
     .media__link:focus-visible {

@@ -202,4 +202,97 @@ export const tests = [
       for (const m of await measure()) if (m.w < 10) expect.ok(!m.covers, `a ${m.w.toFixed(1)}rem-wide figure puts the caption under the picture`)
     },
   },
+  {
+    name: 'the ratios specimen reads in rows: the pictures in a row share one height, and at 200% text there is one per line',
+    async run({ page, goto, expect }) {
+      await goto('components/media.html')
+      const rows = () => page.evaluate(() => [...document.querySelectorAll('#ratios + p + .demo [data-role="ratios"] > div')].map((row) => [...row.children].map((f) => f.querySelector('.media__frame').getBoundingClientRect()).map((r) => ({ h: r.height, top: r.top }))))
+      for (const row of await rows()) {
+        expect.ok(row.every((r) => Math.abs(r.h - row[0].h) < 1), `one height per row (${row.map((r) => r.h.toFixed(1))})`)
+        expect.ok(row.every((r) => Math.abs(r.top - row[0].top) < 1), 'one line per row')
+      }
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(250)
+      const tops = (await rows()).flat().map((r) => Math.round(r.top))
+      expect.equal(new Set(tops).size, tops.length, 'at 200% text every picture has a line of its own')
+    },
+  },
+  {
+    name: 'the figure behind its children is the frame colour (no light seam inside a soft corner); a dashed failed frame keeps paper in its gaps',
+    async run({ page, goto, expect }) {
+      await goto('components/media.html')
+      const r = await page.evaluate(() => {
+        const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+        const soft = document.querySelector('#corners ~ .demo [data-corners="soft"] .media')
+        const failed = document.querySelector('#states ~ .demo .media[data-state="failed"]')
+        return { soft: getComputedStyle(soft).backgroundColor, line: probe('--line'), failed: getComputedStyle(failed).backgroundColor, paper: probe('--paper'), radius: parseFloat(getComputedStyle(soft).borderTopLeftRadius) }
+      })
+      expect.ok(r.radius > 0, 'the soft figure is rounded')
+      expect.equal(r.soft, r.line, 'its background is the line colour, so the anti-aliased inner corner reads as frame')
+      expect.equal(r.failed, r.paper, 'the dashed frame shows paper between its dashes, not a solid line')
+    },
+  },
+  {
+    name: 'a focused linked figure: the paper halo sits in front of the hard shadow, so the ring is not stepped at the corner',
+    async run({ page, goto, expect }) {
+      await goto('components/media.html')
+      const sh = await page.evaluate(() => getComputedStyle(document.querySelector('#link ~ .demo .media.is-focus')).boxShadow)
+      const first = sh.split(/,(?![^(]*\))/)[0].trim() // the first of the comma-separated shadows (commas inside a colour do not split)
+      expect.ok(/ 0px 0px 0px 3px$/.test(first), `the first shadow is the 3px halo in the ring's offset (${sh})`)
+      expect.ok(/4px 4px 0px 0px/.test(sh), `the hard shadow is still there behind it (${sh})`)
+    },
+  },
+  {
+    name: 'a failed figure keeps its icon at 200% text: "small" is a tile under 192px on the screen, not under 12rem',
+    async run({ page, goto, expect }) {
+      await page.setViewportSize({ width: 390, height: 900 })
+      await goto('components/media.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(250)
+      const r = await page.evaluate(() => {
+        const f = document.querySelector('#states ~ .demo .media[data-state="failed"]')
+        return { w: f.getBoundingClientRect().width, icon: getComputedStyle(f.querySelector('.media__status .ic')).display, note: f.querySelector('.media__note').textContent }
+      })
+      expect.ok(r.w > 192, `a full-width figure (${Math.round(r.w)}px)`)
+      expect.ok(r.icon !== 'none', 'keeps its icon: status is an icon and words')
+      expect.equal(r.note, 'Picture didn’t load', 'the one failure sentence the script also writes')
+    },
+  },
+  {
+    name: 'the crop specimen: two columns at most, and every caption chip sits inside its caption with room on both sides (320, 390, 1024px)',
+    async run({ page, goto, expect }) {
+      for (const w of [320, 390, 1024]) {
+        await page.setViewportSize({ width: w, height: 900 })
+        await goto('components/media.html')
+        const r = await page.evaluate(() => [...document.querySelectorAll('#crop ~ .demo [data-role="crop"] .media')].map((f) => {
+          const fr = f.getBoundingClientRect(), c = f.querySelector('.media__caption code').getBoundingClientRect()
+          return { left: Math.round(fr.left), top: Math.round(fr.top), inL: c.left - fr.left, inR: fr.right - c.right }
+        }))
+        const cols = new Set(r.map((x) => x.top)).size === r.length ? 1 : new Set(r.map((x) => x.left)).size
+        expect.ok(cols <= 2, `${w}px: ${cols} column(s), never four in a row`)
+        for (const x of r) expect.ok(x.inL >= 8 && x.inR >= 8, `${w}px: the chip clears the frame (${x.inL.toFixed(1)} / ${x.inR.toFixed(1)}px)`)
+      }
+    },
+  },
+  {
+    name: 'link-figure states: the overlines are real content, the state is named under each figure clear of its ring, and they are three across or one per line (never two and one)',
+    async run({ page, goto, expect }) {
+      for (const w of [390, 1024]) {
+        await page.setViewportSize({ width: w, height: 900 })
+        await goto('components/media.html')
+        const r = await page.evaluate(() => [...document.querySelectorAll('#link ~ .demo [data-role="link-states"] > div')].map((d) => {
+          const f = d.querySelector('.media').getBoundingClientRect(), c = d.querySelector(':scope > .t-meta').getBoundingClientRect()
+          // the row is read from the wrapper: the hovered and focused figures are lifted 2px by design
+          return { label: d.querySelector('.media__label').textContent, state: d.querySelector(':scope > .t-meta').textContent, top: Math.round(d.getBoundingClientRect().top), clear: c.top - (f.bottom + 6) }
+        }))
+        expect.equal(r.length, 3, 'three specimens')
+        for (const x of r) {
+          expect.ok(!/hover|focus|forced|rest/i.test(x.label), `${w}px: the overline "${x.label}" is content, not a state`)
+          expect.ok(x.clear >= 8, `${w}px: "${x.state}" is ${x.clear.toFixed(1)}px clear of the ring`)
+        }
+        const rows = new Set(r.map((x) => x.top)).size
+        expect.ok(rows === 1 || rows === 3, `${w}px: ${rows} row(s): all three in one, or one each`)
+      }
+    },
+  },
 ]

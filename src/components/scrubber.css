@@ -25,7 +25,19 @@
    data-origin    the value the fill/covered ticks start from (default: the minimum)
    data-ticks     dial only: number of divisions (default: one per step, or 20)
    data-major     dial only: every Nth tick is taller (default 5)
-   --scrubber-thumb   the drawn thumb, default 1.75rem. The hit area is the whole 44px bar.
+   --scrubber-thumb   the drawn thumb, default 28px. The hit area is the whole 44px bar.
+
+   LARGE TEXT. The label and the readout are words and grow with the reader's text size. The control is
+   chrome and keeps its 100% size (--chrome-*): the 44px bar, the thumb, the rail, the ticks, the step
+   buttons and the gaps between them. So at 200% text minus, bar and plus still share one line on a phone
+   (only a container under 200px regroups them: the bar on its own line, the buttons under it at either
+   end). When the label and the readout cannot share a line, the readout drops under the label and starts
+   where it starts (it is as wide as its digits, so it is never indented). Scrubbers that share a parent (a
+   tool's panel) decide together, measured by src/js/70-scrubber.js with SG.fit: data-fit="beside" on the
+   parent keeps every readout beside its label, "under" puts every one under it, so one panel never mixes
+   the two. Without the script each head wraps on its own.
+   The ruler drops its minor ticks when they would stand closer than 4px (they ran into a grey bar on a
+   narrow dial at 200% text); the major ticks and the origin stay.
 
    WHY NATIVE. A dragged custom slider needs every key, every pointer path and every
    assistive-tech convention rebuilt by hand; a native range has them all (WCAG 4.1.2,
@@ -45,52 +57,67 @@
 
 @layer sg.components {
   .scrubber {
-    --_thumb: var(--scrubber-thumb, 1.75rem);
+    --_thumb: var(--scrubber-thumb, min(1.75rem, 28px));
     --_from: 0; /* 0..1, set by the script: where the fill / covered ticks start … */
     --_to: 0; /* … and where they end (the thumb) */
 
     display: grid;
     grid-template-columns: minmax(0, 1fr); /* without this the implicit column grows to its widest content and the row overflows its parent */
-    gap: var(--space-2);
+    /* 12px: the focus ring around the bar (2px out, 3px wide) stays more than 8px clear of the label above it */
+    gap: var(--chrome-3);
     min-inline-size: 0;
     container: scrubber / inline-size;
   }
 
-  /* label left, value right */
+  /* label left, value right; when they cannot share a line, the value goes under the label, at the start */
   .scrubber__head {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: 0 var(--space-3);
   }
   .scrubber__label {
     font: var(--type-ctl);
     overflow-wrap: break-word;
   }
+  /* As wide as its digits (no minimum width): a right-aligned number in a 3ch box sat indented when it dropped
+     under its label ("Warmth" / "  -8"). On the label's line the row's space-between puts it at the end;
+     tabular figures keep it from jittering while it changes. */
   .scrubber__value {
-    min-inline-size: 3ch;
     font: var(--type-ctl);
     font-size: var(--text-lg);
     font-variant-numeric: tabular-nums lining-nums;
-    text-align: end;
     white-space: nowrap;
+  }
+  /* A panel decides as one (SG.fit on the scrubbers' parent): beside = one line each (measured: a head that
+     overflows sends the whole panel to "under"); under = every readout under its label, at the start. */
+  :where([data-fit="beside"]) > .scrubber > .scrubber__head {
+    flex-wrap: nowrap;
+  }
+  :where([data-fit="beside"]) > .scrubber > .scrubber__head > .scrubber__label {
+    white-space: nowrap;
+  }
+  :where([data-fit="under"]) > .scrubber > .scrubber__head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .scrubber__row {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--chrome-3);
   }
   .scrubber__row > .btn[data-shape="circle"] {
     flex: none;
     min-inline-size: 0; /* a small circle is 36px wide; .btn's 44px minimum would stretch it into a pill (the hit area still reaches 44px) */
   }
 
-  /* Too narrow for minus, bar and plus on one line (large text doubles every rem, so the buttons alone fill
-     the row): the bar takes the first line and the buttons sit under it, one at each end. The reading order
-     stays minus, bar, plus; only the picture regroups. */
-  @container scrubber (inline-size < 13rem) {
+  /* Too narrow for minus, bar and plus on one line: the bar takes the first line and the buttons sit under it,
+     one at each end (the whole row regroups; it never leaves one button behind). In px, not rem: the buttons, the
+     gaps and a usable bar are chrome, so the width they need does not change with the text size. The reading
+     order stays minus, bar, plus; only the picture regroups. */
+  @container scrubber (inline-size < 200px) {
     .scrubber__row {
       flex-wrap: wrap;
     }
@@ -108,7 +135,7 @@
     position: relative;
     flex: 1 1 auto;
     min-inline-size: 0;
-    block-size: var(--hit);
+    block-size: var(--chrome-hit);
   }
 
   /* ---- plain variant: a rail with a fill inside it ---- */
@@ -133,7 +160,7 @@
     border-radius: var(--radius-pill);
   }
   .scrubber[data-variant="plain"] {
-    --_rail-h: 0.75rem;
+    --_rail-h: min(0.75rem, 12px);
   }
 
   /* ---- dial variant: the ruler. Ticks stand on the travel of the thumb's centre. ---- */
@@ -146,7 +173,7 @@
   .scrubber__ticks > i {
     --p: 0; /* 0..1 along the travel; the script sets it per tick (inline) */
     --_c: clamp(0, calc(min(var(--p) - var(--_from), var(--_to) - var(--p)) * 1000 + 1), 1); /* 1 while the tick is between origin and thumb */
-    --_h: 0.75rem;
+    --_h: min(0.75rem, 12px);
     position: absolute;
     inset-inline-start: calc(var(--p) * 100%);
     inset-block-start: calc(50% - var(--_h) / 2);
@@ -156,7 +183,11 @@
     background: color-mix(in srgb, var(--line) calc(var(--_c) * 100%), var(--line-soft));
   }
   .scrubber__ticks > i[data-major] {
-    --_h: 1.25rem;
+    --_h: min(1.25rem, 20px);
+  }
+  /* too dense to read as ticks (set by the script under 4px apart): only the major ones and the origin stay */
+  .scrubber__ticks[data-dense] > i:not([data-major]) {
+    display: none;
   }
 
   /* ---- the input: transparent, 44px tall, on top of everything ---- */
@@ -168,16 +199,17 @@
        the thumb so the offset shows against its own fill in every palette. */
     --_shadow:
       0 0 0 calc(var(--lift) * var(--bw)) var(--paper),
-      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--lift) * var(--bw)) var(--line);
+      calc(var(--lift) * var(--chrome-1)) calc(var(--lift) * var(--chrome-1)) 0 calc(var(--lift) * var(--bw)) var(--line);
 
     --_edge: 0px; /* the bar has no frame, except in forced colours, where it gets one (see the end of the file) */
+    --ring-gap: var(--ring-offset-in); /* the ring hugs the 44px bar: 2px out, so the label above stays clear of it */
 
     position: relative;
     z-index: 1; /* above the rail, fill and ruler (the fill is a later pseudo-element and would paint over the thumb) */
     box-sizing: border-box;
     display: block;
     inline-size: 100%;
-    block-size: var(--hit);
+    block-size: var(--chrome-hit);
     margin: 0;
     padding: 0;
     color: var(--ink);
@@ -198,12 +230,12 @@
       box-sizing: border-box;
       inline-size: var(--_thumb);
       block-size: var(--_thumb);
-      margin-block-start: calc((var(--hit) - 2 * var(--_edge) - var(--_thumb)) / 2);
+      margin-block-start: calc((var(--chrome-hit) - 2 * var(--_edge) - var(--_thumb)) / 2);
       background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
       border: var(--bw) solid var(--line);
       border-radius: var(--radius-pill);
       box-shadow: var(--_shadow);
-      transform: translate(calc(var(--lift) * var(--space-1) / -2 * var(--move)), calc(var(--lift) * var(--space-1) / -2 * var(--move)));
+      transform: translate(calc(var(--lift) * var(--chrome-1) / -2 * var(--move)), calc(var(--lift) * var(--chrome-1) / -2 * var(--move)));
     }
     &::-moz-range-thumb {
       box-sizing: border-box;
@@ -213,15 +245,15 @@
       border: var(--bw) solid var(--line);
       border-radius: var(--radius-pill);
       box-shadow: var(--_shadow);
-      transform: translate(calc(var(--lift) * var(--space-1) / -2 * var(--move)), calc(var(--lift) * var(--space-1) / -2 * var(--move)));
+      transform: translate(calc(var(--lift) * var(--chrome-1) / -2 * var(--move)), calc(var(--lift) * var(--chrome-1) / -2 * var(--move)));
     }
     &::-webkit-slider-runnable-track {
-      block-size: calc(var(--hit) - 2 * var(--_edge));
+      block-size: calc(var(--chrome-hit) - 2 * var(--_edge));
       background: transparent;
       border: 0;
     }
     &::-moz-range-track {
-      block-size: calc(var(--hit) - 2 * var(--_edge));
+      block-size: calc(var(--chrome-hit) - 2 * var(--_edge));
       background: transparent;
       border: 0;
     }
@@ -274,26 +306,28 @@
     background: var(--ink-faint);
   }
 
-  /* the hint and the Reset button under a dial. The sentence takes what is left and wraps; Reset keeps its one
-     word whole and, when the two cannot share a line (a 250px column, or big text), drops under the sentence at
-     the end instead of squeezing its label into "Res / et" or one letter a line (a pill is for one line). */
+  /* The hint (a <p>, balanced: one sentence never ends on a lone word like "highlights.") and the Reset button
+     under a dial. The sentence takes what is left and wraps; Reset keeps its one word whole and, when the two
+     cannot share a line (a 250px column, or big text), drops under the sentence instead of squeezing its label
+     into "Res / et" (a pill is for one line). On one line the sentence grows and pushes Reset to the end; alone
+     on its own line, nothing pushes it, so it starts under the sentence instead of hanging at the far edge. */
   .scrubber__foot {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2) var(--space-3);
+    gap: var(--chrome-2) var(--chrome-3);
     font: var(--type-meta);
     color: var(--ink-soft);
   }
   .scrubber__foot > :not(.btn) {
     flex: 1 1 9rem;
     min-inline-size: 0;
+    margin: 0;
     overflow-wrap: break-word;
+    text-wrap: balance;
   }
   .scrubber__foot > .btn {
     flex: none;
-    margin-inline-start: auto;
     white-space: nowrap;
     overflow-wrap: normal; /* .btn breaks anywhere; here a short label is never split */
   }
