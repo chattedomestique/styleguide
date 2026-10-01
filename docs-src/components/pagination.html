@@ -1,12 +1,17 @@
 <!--{"title":"Pagination","group":"Components","order":47,"summary":"Move through a long list: Previous, a few numbered pages, Next. Real links, a filled current page, and a short form that fits a 320px phone."}-->
 <style>
+  /* Docs-only, until the shared rule in docs.css changes (proposed in the nav report): a single-token code is an
+     inline box, so it still never breaks after its leading hyphens while it fits a line, and only a token wider
+     than the whole line (data-placement="bottom-end" at 200% text on a phone) wraps inside its box instead of
+     running off the page (WCAG 1.4.10). */
+  .docs-article code.nb { display: inline-block; max-inline-size: 100%; white-space: normal; overflow-wrap: break-word; }
   /* In context: the icon in a row's tile (the card's icon slot) sits in its middle */
   .docs-article .card__tile:has(> .ic) { display: grid; place-items: center; }
   .docs-article .card__tile > .ic { --ic-size: var(--chrome-ic-sm); }
 </style>
 <style>
   /* Docs-only: the docs style every list as prose, unlayered, which beats the component layers. */
-  .docs-article .pagination__list { padding-inline-start: 0; }
+  .docs-article .pagination__list { padding-inline-start: var(--chrome-2); } /* the component's own padding, both sides alike, so the row is centred */
   .docs-article .pagination__list > li { margin: 0; max-inline-size: none; }
 </style>
 
@@ -28,7 +33,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="live">A working pager</h3>
-<p>Previous, the first page, a window of pages around the current one, the last page, Next. Gaps are written <em>…</em> and are not controls. The page you are on is filled <strong>and</strong> ringed a second time (2px, in the line colour: a double edge on a tone fill, a circle 2px larger on ink), and it is marked <code>aria-current="page"</code>; another number only lifts when you point at it. The row is always one row: on a wide screen you see all of it, on a phone the pager drops the words of Previous and Next, then keeps only the first, current and last page (see <a href="#narrow">the short form</a> below). This one re-renders on click so you can walk through all 12; in an app each number is a link to a URL and the browser does the work.</p>
+<p>Previous, the first page, a window of pages around the current one, the last page, Next. Gaps are written <em>…</em> and are not controls. The page you are on is filled <strong>and</strong> its frame doubles (a 2px ring in the surface colour just inside the border, so it is the size of the numbers beside it), and it is marked <code>aria-current="page"</code>; another number only lifts when you point at it. The row is always one row: on a wide screen you see all of it, on a phone the pager drops the words of Previous and Next, then keeps only the first, current and last page (see <a href="#narrow">the short form</a> below). This one re-renders on click so you can walk through all 12; in an app each number is a link to a URL and the browser does the work.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="stack" data-gap="3">
@@ -167,7 +172,7 @@
   <li><strong>Landmark</strong> (<code>&lt;nav class="pagination" aria-label="&hellip; pages"&gt;</code>): a labelled navigation region; its own width decides the form.</li>
   <li><strong>Previous / Next</strong> (<code>pagination__prev</code>, <code>pagination__next</code>): <a href="@/components/button.html">buttons</a> as pills with an arrow, <code>rel="prev"</code> / <code>rel="next"</code>; 44px circles when the row is short of room. Their words are in <code>pagination__label</code>.</li>
   <li><strong>Page</strong> (<code>pagination__page</code>): a circle button with a tabular number, which grows with the text. Its <code>aria-label</code> is "Page N".</li>
-  <li><strong>Current page</strong>: <code>aria-current="page"</code>; filled, with a second 2px ring. The only filled number.</li>
+  <li><strong>Current page</strong>: <code>aria-current="page"</code>; filled, its frame doubled inside (a 2px ring in the surface colour within the border, so it is the size of the numbers beside it). The only filled number.</li>
   <li><strong>Gap</strong> (<code>pagination__gap</code>): <em>&hellip;</em>, <code>aria-hidden</code>, not a control.</li>
   <li><strong>Status</strong> (<code>pagination__status</code>): "Page 5 of 12", shown only in the short form. In the switcher it is the value itself.</li>
 </ol>
@@ -184,7 +189,7 @@
     <tr><td><code>pagination__label</code></td><td>a <code>span</code> inside Previous / Next</td><td>The word; visually hidden but kept in the name in the short form.</td></tr>
     <tr><td><code>pagination__gap</code>, <code>pagination__status</code></td><td>list items</td><td>The gap between page numbers; the "Page N of M" line.</td></tr>
     <tr><td><code>data-variant="switcher"</code></td><td></td><td>Always the short form, with the status as a large value between the two buttons. For months, weeks, decks.</td></tr>
-    <tr><td><code>aria-current="page"</code></td><td>on the current page's link</td><td>Filled + a second 2px ring. Exactly one.</td></tr>
+    <tr><td><code>aria-current="page"</code></td><td>on the current page's link</td><td>Filled + its frame doubled inside. Exactly one.</td></tr>
     <tr><td><code>aria-disabled="true"</code></td><td>on a Previous / Next <code>&lt;button&gt;</code></td><td>Dashed and faint; inert; explain why in <code>aria-describedby</code>.</td></tr>
   </tbody>
 </table></div>

@@ -177,8 +177,8 @@ export const tests = [
         expect.ok(r.over, vw + 'px, ' + text + '%: the tools overflow the tray')
         expect.ok(r.shown && r.beside && r.level, vw + 'px, ' + text + '%: both scroll buttons on the same row, beside the list, level with the tools\' circles: ' + JSON.stringify(r))
         expect.equal(r.circle, 44, vw + 'px, ' + text + '%: the tool circles keep their 100% size')
-        // 44px circles in 60px cells, 36px scroll buttons and 8px gaps: two whole tools on a 320px phone, and two at 200% text
-        // on a 390px phone (the labels are words, so they grow: "Colour" is 84px wide there)
+        // 44px circles in cells of their label + 4px a side (52px at least), 36px scroll buttons: two whole tools on a 320px phone,
+        // and two at 200% text on a 390px phone (the labels are words, so they grow: "Colour" is 84px wide there)
         expect.ok(r.whole >= 2, vw + 'px, ' + text + '%: at least two whole tools beside the buttons: ' + JSON.stringify(r))
         expect.equal(r.broken, 0, vw + 'px, ' + text + '%: no label spills (a word is never broken)')
         const before = await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => el.scrollLeft)
@@ -195,49 +195,47 @@ export const tests = [
     },
   },
   {
-    name: 'whole tools: at rest no tray shows a tool cut at the list\'s edge (no sliver of a circle); the visible tools fill the list; forward brings the next whole tools',
+    name: 'pages of whole tools: at rest and after every press of forward or back, every tool in view is whole and the page fills the list; the pages show every tool once (390, 320, 200% text)',
+    reducedMotion: true,
     async run({ page, goto, expect }) {
-      await goto('components/toolbar.html')
-      for (const [vw, text] of [[390, 100], [320, 100], [390, 200], [320, 200]]) {
-        await page.setViewportSize({ width: vw, height: 700 })
+      const look = (bar) => bar.evaluate((el) => {
+        const list = el.querySelector('.toolbar__list'); const l = list.getBoundingClientRect(); const cs = getComputedStyle(list)
+        const inS = l.left + parseFloat(cs.paddingLeft), inE = l.right - parseFloat(cs.paddingRight)
+        const items = [...list.querySelectorAll('.toolbar__item')].map((i) => ({ n: i.querySelector('.toolbar__label').textContent.trim(), r: i.getBoundingClientRect() })).filter((i) => i.r.right > l.left + 0.5 && i.r.left < l.right - 0.5)
+        const fwd = el.querySelector('[data-dir="forward"]'), back = el.querySelector('[data-dir="back"]')
+        return { names: items.map((i) => i.n), cut: items.filter((i) => i.r.left < inS - 0.5 || i.r.right > inE + 0.5).map((i) => i.n), startGap: items.length ? Math.round(items[0].r.left - inS) : null, endGap: items.length ? Math.round(inE - items[items.length - 1].r.right) : null, fwdEnd: fwd.getAttribute('aria-disabled') === 'true', backEnd: back.getAttribute('aria-disabled') === 'true', hidden: fwd.hidden }
+      })
+      for (const [vw, text, least] of [[390, 100, 3], [320, 100, 2], [390, 200, 2]]) {
+        await page.setViewportSize({ width: vw, height: 800 })
+        await goto('components/toolbar.html')
         await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
-        await page.waitForTimeout(300)
-        const trays = await page.evaluate(() => [...document.querySelectorAll('.docs-article .toolbar')].map((bar) => {
-          const list = bar.querySelector('.toolbar__list'), l = list.getBoundingClientRect()
-          const items = [...list.querySelectorAll('.toolbar__item')].map((i) => i.getBoundingClientRect())
-          const inside = items.filter((r) => r.left >= l.left - 0.5 && r.right <= l.right + 0.5)
-          const cut = items.filter((r) => r.left < l.right - 0.5 && r.right > l.right + 0.5).length
-          const over = list.scrollWidth > list.clientWidth + 1
-          return { label: list.getAttribute('aria-label'), over, whole: inside.length, cut, slack: over && inside.length ? Math.round(l.right - inside[inside.length - 1].right) : 0 }
-        }))
-        const tag = vw + 'px, ' + text + '%: '
-        expect.ok(trays.length >= 5, tag + 'found the trays')
-        for (const t of trays) {
-          expect.equal(t.cut, 0, tag + t.label + ': no tool is cut at the end of the list: ' + JSON.stringify(t))
-          expect.ok(!t.over || t.whole >= 1, tag + t.label + ': at least one whole tool shows: ' + JSON.stringify(t))
-          expect.ok(Math.abs(t.slack) <= 1, tag + t.label + ': the whole tools fill the list (no gap where a tool was cut off): ' + JSON.stringify(t))
-        }
-        if (vw === 390 && text === 100) {
-          const main = trays.find((t) => t.label === 'Photo tools')
-          expect.ok(main && main.whole >= 3, tag + 'a 390px phone shows three whole tools: ' + JSON.stringify(main))
+        await page.waitForTimeout(400)
+        const trays = await page.locator('.docs-article .toolbar').count()
+        expect.ok(trays >= 5, 'found the trays')
+        for (let t = 0; t < trays; t++) {
+          const bar = page.locator('.docs-article .toolbar').nth(t)
+          const label = await bar.locator('.toolbar__list').getAttribute('aria-label')
+          const tag = `${vw}px ${text}% ${label}`
+          let r = await look(bar)
+          if (r.hidden) continue
+          // go to the first page, then walk forward to the end and back again
+          for (let i = 0; i < 9 && !r.backEnd; i++) { await bar.locator('[data-dir="back"]').click(); await page.waitForTimeout(80); r = await look(bar) }
+          const all = await bar.evaluate((el) => [...el.querySelectorAll('.toolbar__label')].map((x) => x.textContent.trim()).join(' '))
+          const seen = []
+          for (let i = 0; i < 12; i++) {
+            expect.ok(r.names.length >= 1 && !r.cut.length, tag + ' page ' + (i + 1) + ': every tool in view is whole: ' + JSON.stringify(r))
+            expect.ok(Math.abs(r.startGap) <= 1 && Math.abs(r.endGap) <= 1, tag + ' page ' + (i + 1) + ': the page fills the list, edge to edge inside its padding: ' + JSON.stringify(r))
+            if (i === 0 && (label === 'Photo tools' || (label === 'Photo tools, editor' && text === 100))) expect.ok(r.names.length >= least, tag + ': the first page shows at least ' + least + ' whole tools: ' + JSON.stringify(r))
+            seen.push(...r.names)
+            if (r.fwdEnd) break
+            await bar.locator('[data-dir="forward"]').click(); await page.waitForTimeout(80); r = await look(bar)
+          }
+          expect.equal(seen.join(' '), all, tag + ': the pages show every tool once, in order')
+          await bar.locator('[data-dir="back"]').click(); await page.waitForTimeout(80)
+          const back = await look(bar)
+          expect.ok(!back.cut.length && Math.abs(back.startGap) <= 1, tag + ': back lands on whole tools too: ' + JSON.stringify(back))
         }
       }
-      // paging: at 100% every cell has the same width, so forward lands exactly on the next whole tools
-      await page.setViewportSize({ width: 390, height: 700 })
-      await page.evaluate(() => { document.documentElement.style.fontSize = '' })
-      await page.waitForTimeout(300)
-      const fwd = page.locator(`${TOOLS} [data-dir="forward"]`)
-      await fwd.scrollIntoViewIfNeeded()
-      await fwd.click()
-      await page.waitForTimeout(800)
-      const p = await page.evaluate((s) => {
-        const list = document.querySelector(s + ' .toolbar__list'), l = list.getBoundingClientRect()
-        const items = [...list.querySelectorAll('.toolbar__item')].map((i) => i.getBoundingClientRect())
-        const first = items.find((r) => r.right > l.left + 1)
-        return { scrolled: list.scrollLeft, startGap: Math.round(first.left - l.left), cut: items.filter((r) => (r.left < l.left - 0.5 && r.right > l.left + 0.5) || (r.left < l.right - 0.5 && r.right > l.right + 0.5)).length }
-      }, TOOLS)
-      expect.ok(p.scrolled > 100, 'forward scrolled: ' + JSON.stringify(p))
-      expect.ok(Math.abs(p.startGap) <= 1 && p.cut === 0, 'forward shows the next whole tools, the first one at the list\'s start: ' + JSON.stringify(p))
     },
   },
   {

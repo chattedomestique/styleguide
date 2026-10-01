@@ -529,4 +529,27 @@ export const tests = [
       expect.ok(b.every((r) => r.lines <= 2 && r.h < 200), '200%: whole words, a compact row (it was a 500px column of letters): ' + JSON.stringify(b))
     },
   },
+  {
+    name: 'in the open dropdown, at 100% and 200% text, every reason and shortcut ends inside the row\'s padding (never on its frame), and a label keeps clear of the rules between rows',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      for (const text of [100, 200]) {
+        await goto('components/menu.html')
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(300)
+        const trig = page.locator('button[aria-haspopup="menu"]', { hasText: 'Deck options' }).first()
+        await trig.scrollIntoViewIfNeeded()
+        await trig.click()
+        await page.waitForTimeout(500)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.menu:popover-open .menu__item')].map((row) => {
+          const rr = row.getBoundingClientRect(); const cs = getComputedStyle(row); const meta = row.querySelector('.menu__meta')
+          const text = [...row.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim()); const rg = document.createRange(); rg.selectNodeContents(text); const lb = rg.getBoundingClientRect()
+          return { row: text.textContent.trim(), fit: row.getAttribute('data-fit'), metaClear: meta ? Math.round(rr.right - meta.getBoundingClientRect().right) : null, pad: parseFloat(cs.paddingRight), above: Math.round(lb.top - rr.top), below: Math.round(rr.bottom - lb.bottom) }
+        }))
+        expect.ok(r.length >= 4, 'the dropdown is open')
+        const bad = r.filter((x) => (x.metaClear !== null && x.metaClear < x.pad - 0.5) || x.above < 8 || x.below < 8)
+        expect.ok(!bad.length, text + '%: every meta ends inside the padding and every label keeps 8px from the rules: ' + JSON.stringify(bad.length ? bad : r))
+      }
+    },
+  },
 ]

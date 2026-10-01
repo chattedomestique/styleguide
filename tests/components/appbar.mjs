@@ -48,8 +48,10 @@ export const tests = [
     },
   },
   {
-    name: 'The editor title is centred on the bar, with the help circle in the end group (never glued to the title)',
+    name: 'The editor title is centred on the bar, with the help circle in the end group (never glued to the title), at 390 and at 320',
     async run({ page, goto, expect }) {
+     for (const w of [390, 320]) {
+      await page.setViewportSize({ width: w, height: 844 })
       await goto('components/appbar.html')
       const r = await page.evaluate(() => {
         const b = document.querySelector('.appbar[data-variant="editor"]'); const t = b.querySelector('.appbar__title'); const br = b.getBoundingClientRect()
@@ -57,18 +59,21 @@ export const tests = [
         const help = b.querySelector('[aria-label^="Help"]').getBoundingClientRect()
         return { off: Math.abs((words.left + words.right) / 2 - (br.left + br.right) / 2), gap: Math.round(help.left - words.right), inEnd: !!b.querySelector('.appbar__end [aria-label^="Help"]') }
       })
-      expect.ok(r.off < 2, 'the words are centred on the bar within 2px: off by ' + r.off)
+      expect.ok(r.off < 2, w + 'px: the words are centred on the bar within 2px: off by ' + r.off)
       expect.ok(r.inEnd, 'help sits in the end group, beside Apply')
-      expect.ok(r.gap >= 16, 'the help circle keeps clear of the words (' + r.gap + 'px)')
+      expect.ok(r.gap >= 16, w + 'px: the help circle keeps clear of the words (' + r.gap + 'px)')
+     }
     },
   },
   {
-    name: 'Search bar: labelled type=search input, 16px text, a 2px frame, 44px tall, in a search form; focus ring on the field',
+    name: 'Search bar: labelled type=search input, 16px text, a 2px frame, 44px tall like the circles beside it, in a search form; focus ring on the field',
     async run({ page, goto, expect }) {
       await goto('components/appbar.html')
       const r = await page.evaluate(() => { const i = document.getElementById('appbar-q'); const cs = getComputedStyle(i); return { type: i.type, label: document.querySelector('label[for="appbar-q"]').textContent.trim(), px: parseFloat(cs.fontSize), h: i.getBoundingClientRect().height, bw: parseFloat(cs.borderTopWidth), form: i.closest('form').getAttribute('role') } })
       expect.equal(r.type, 'search'); expect.equal(r.label, 'Search decks'); expect.equal(r.form, 'search')
       expect.ok(r.px >= 16, 'iOS will not zoom: ' + r.px); expect.ok(r.h >= 44, 'height ' + r.h); expect.equal(r.bw, 2, 'a --bw frame')
+      const circles = await page.evaluate(() => [...document.querySelectorAll('.appbar[data-variant="search"] .btn')].map((b) => Math.round(b.getBoundingClientRect().height)))
+      expect.ok(circles.every((h) => Math.abs(h - r.h) <= 1), 'the circles are the field\'s height: ' + JSON.stringify({ circles, field: r.h }))
       await page.locator('#appbar-q').focus()
       await page.keyboard.type('bones')
       expect.equal(await page.locator('#appbar-q').inputValue(), 'bones', 'typing works')
@@ -214,12 +219,14 @@ export const tests = [
           }
           // visible boxes only: a 36px circle's 44px hit area may reach past an untoned bar's edge, into the gutter
           const over = kids.some((k) => k.left < br.left - 1 || k.right > br.right + 1)
-          return { kind: b.getAttribute('data-variant') || 'standard', h: Math.round(br.height), stacked, sizes: [...new Set(btns.map((x) => Math.round(x.height)))], centres: btns.map((x) => (x.top + x.bottom) / 2), firstLine, word, title, centreOff, over }
+          const field = b.querySelector('.appbar__input')
+          return { kind: b.getAttribute('data-variant') || 'standard', h: Math.round(br.height), stacked, sizes: [...new Set(btns.map((x) => Math.round(x.height)))], centres: btns.map((x) => (x.top + x.bottom) / 2), firstLine, word, title, centreOff, over, field: field ? Math.round(field.getBoundingClientRect().height) : null }
         })
       })
       for (const b of r) {
         expect.ok(!b.stacked, b.kind + ': one row, nothing dropped under anything: ' + JSON.stringify(b))
-        expect.ok(b.sizes.every((h) => h <= 44.5), b.kind + ': the circles keep their 100% size (36px small, 44px default; chrome): ' + b.sizes)
+        if (b.kind === 'search') expect.ok(b.sizes.length === 1 && Math.abs(b.sizes[0] - b.field) <= 1, 'search: the circles are the field\'s height, one height for the row: ' + JSON.stringify(b))
+        else expect.ok(b.sizes.every((h) => h <= 44.5), b.kind + ': the circles keep their 100% size (36px small, 44px default; chrome): ' + b.sizes)
         expect.ok(!b.over, b.kind + ': no sideways overflow')
         if (b.kind === 'standard' || b.kind === 'editor') {
           expect.ok(b.title >= b.word - 1, b.kind + ': the title is at least as wide as its longest word: ' + JSON.stringify(b))

@@ -24,7 +24,7 @@ export const tests = [
     },
   },
   {
-    name: 'Filter chip: on = filled AND a second 2px ring AND a check; its leading icon gives way to the check',
+    name: 'Filter chip: on = filled AND a doubled frame drawn inside AND a check; its leading icon gives way to the check',
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       await page.mouse.move(0, 0)
@@ -34,7 +34,7 @@ export const tests = [
         return { on: c.getAttribute('aria-pressed') === 'true', fill: Number(cs.getPropertyValue('--fill')), shadow: cs.boxShadow, iconShown: getComputedStyle(icon).display !== 'none', check: getComputedStyle(c, '::before').display !== 'none' }
       }), FILTERS)
       const on = r.find((c) => c.on); const off = r.find((c) => !c.on)
-      expect.equal(on.fill, 1, 'on: --fill 1'); expect.ok(/0px 0px 0px 2px/.test(on.shadow), 'on: a second 2px ring: ' + on.shadow); expect.ok(on.check, 'on: check'); expect.ok(!on.iconShown, 'on: leading icon hidden')
+      expect.equal(on.fill, 1, 'on: --fill 1'); expect.ok(/0px 0px 0px 2px inset/.test(on.shadow), 'on: a 2px ring inside the frame: ' + on.shadow); expect.ok(on.check, 'on: check'); expect.ok(!on.iconShown, 'on: leading icon hidden')
       expect.equal(off.fill, 0, 'off: --fill 0'); expect.ok(!off.check, 'off: no check'); expect.ok(off.iconShown, 'off: leading icon shown')
     },
   },
@@ -60,7 +60,7 @@ export const tests = [
       await page.waitForTimeout(400)
       const on = await nums()
       expect.equal(on.fill, 1, 'on: filled'); expect.equal(on.lift, 1, 'on and still hovered: raised as well')
-      expect.ok(/6px 6px 0px 0px/.test(on.shadow) && /0px 0px 0px 4px/.test(on.shadow), 'a raised on chip keeps a surface-coloured gap before its shadow (it does not fuse with it): ' + on.shadow)
+      expect.ok(/6px 6px 0px 0px/.test(on.shadow) && /0px 0px 0px 2px(?! inset)/.test(on.shadow), 'a raised on chip keeps a surface-coloured gap before its shadow (it does not fuse with it): ' + on.shadow)
       const w1 = await chip.evaluate((el) => el.getBoundingClientRect().width)
       expect.ok(Math.abs(w1 - w0) < 1.5, `toggling does not reflow the row: ${w0} -> ${w1}`)
     },
@@ -290,6 +290,48 @@ export const tests = [
     },
   },
   {
+    name: 'An on chip keeps the size of its neighbours: its doubled frame is inside, nothing is drawn outside it at rest; a tone chip that is on has no inner ring',
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      await page.mouse.move(0, 0)
+      const r = await page.evaluate(() => {
+        const outward = (shadow) => [...shadow.matchAll(/(rgba?\([^)]*\)|#\w+)?\s*(-?[\d.]+)px (-?[\d.]+)px ([\d.]+)px (-?[\d.]+)px( inset)?/g)].filter((m) => !m[6] && (Number(m[2]) || Number(m[3]) || Number(m[5]) > 0)).length
+        const rows = [...document.querySelectorAll('.chips')].map((row) => [...row.querySelectorAll(':scope > .chip, :scope > li.chip')].filter((c) => c.offsetParent && !c.matches('.is-hover, .is-focus, .is-active, [data-kind="input"]')))
+        const bad = []
+        for (const chips of rows) {
+          const hs = new Set(chips.map((c) => Math.round(c.getBoundingClientRect().height)))
+          if (hs.size > 1 && chips.every((c) => !c.closest('[data-size]') && c.getAttribute('data-size') === chips[0].getAttribute('data-size'))) bad.push('heights ' + [...hs] + ' in ' + chips.map((c) => c.textContent.trim()).join('/'))
+          for (const c of chips) if ((c.matches('[aria-pressed="true"], [aria-checked="true"]') || c.querySelector(':scope > .chip__input:checked')) && outward(getComputedStyle(c).boxShadow)) bad.push('outer ring on ' + c.textContent.trim() + ': ' + getComputedStyle(c).boxShadow)
+        }
+        const tone = [...document.querySelectorAll('.chip[data-variant="tone"]')].find((c) => c.matches('[aria-pressed="true"], :has(> .chip__input:checked)'))
+        return { bad, tone: tone ? getComputedStyle(tone).boxShadow : null, toneCheck: tone ? getComputedStyle(tone, '::before').display : null }
+      })
+      expect.ok(!r.bad.length, 'every chip in a row is one height and an on chip draws nothing outside its frame: ' + JSON.stringify(r.bad))
+      expect.ok(r.tone && !/[1-9][\d.]*px inset/.test(r.tone), 'a tone chip that is on keeps a single frame: ' + r.tone)
+      expect.ok(r.toneCheck !== 'none', 'and shows its check')
+    },
+  },
+  {
+    name: 'At 200% text the leading icon and the check grow with the label (1.15em); the remove glyph of an input chip is 20px drawn',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => {
+          const icon = [...document.querySelectorAll('.chip > .chip__icon, .chip > .ic')].find((i) => i.getBoundingClientRect().width > 0); const chip = icon.closest('.chip')
+          const on = document.querySelector('.chip[aria-pressed="true"]')
+          const rm = document.querySelector('.chip__remove > .ic')
+          return { font: parseFloat(getComputedStyle(chip).fontSize), icon: icon.getBoundingClientRect().width, check: parseFloat(getComputedStyle(on, '::before').width), onFont: parseFloat(getComputedStyle(on).fontSize), remove: rm.getBoundingClientRect().width }
+        })
+        expect.ok(Math.abs(r.icon - r.font * 1.15) < 1, text + '%: the leading icon is 1.15em of its label: ' + JSON.stringify(r))
+        expect.ok(Math.abs(r.check - r.onFont * 1.15) < 1, text + '%: the check is 1.15em of its label: ' + JSON.stringify(r))
+        expect.ok(r.remove >= 19.5 && r.remove <= 20.5, text + '%: the remove glyph is 20px (its own control, chrome): ' + JSON.stringify(r))
+      }
+    },
+  },
+  {
     name: 'The activity filters narrow the list and announce the count (docs demo of sg:chip-toggle)',
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
@@ -365,6 +407,23 @@ export const tests = [
       expect.ok(!r.more, 'the row is not marked data-more any more (nothing draws it)')
       expect.ok(r.toFrame <= 1, 'the row runs to the frame of the stage: ' + r.toFrame)
       expect.equal(r.cut, 1, 'one chip is cut by the frame: it peeks in, so the row reads as going on')
+    },
+  },
+  {
+    name: 'Scrolling row: at rest the chip at the edge is cut near its middle (30-60% of it shows, at least 24px) at 390, 320 and 200% text',
+    async run({ page, goto, expect }) {
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await goto('components/chip.html')
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(400)
+        const r = await page.locator('#scroll + p + .demo .chips.scroller').evaluate((el) => {
+          const row = el.getBoundingClientRect()
+          const c = [...el.querySelectorAll('.chip')].map((x) => ({ n: x.textContent.trim(), b: x.getBoundingClientRect() })).find((x) => x.b.left < row.right && x.b.right > row.right + 0.5)
+          return c ? { n: c.n, v: Math.round(row.right - c.b.left), w: Math.round(c.b.width), frac: Math.round((row.right - c.b.left) / c.b.width * 100) / 100 } : null
+        })
+        expect.ok(r && r.frac >= 0.3 && r.frac <= 0.6 && r.v >= 24, `${w}px ${text}%: the cut chip shows 30-60% of itself: ` + JSON.stringify(r))
+      }
     },
   },
 ]

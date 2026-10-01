@@ -19,9 +19,13 @@
    data-variant   tone: fill from data-tone="N" on the chip itself (as Button)
 
    STATE is ARIA or native, never a class: aria-pressed / aria-checked / :checked (on), aria-expanded,
-   :disabled / aria-disabled.  ON is never the fill alone: filled + a second 2px ring + a CHECK mask
+   :disabled / aria-disabled.  ON is never the fill alone: filled + a doubled frame + a CHECK mask
    appears in front of the label (drawn by ::before from the owner's --icon-check, so nobody can forget it).
    A leading icon (.chip__icon) gives its place to the check, so the chip does not jump when toggled.
+   The doubled frame is drawn INSIDE the border (a 2px ring in the surface colour between the frame and the
+   fill), so an on chip keeps the size of its neighbours: a ring outside made it 4px larger, taller than the
+   chips in its row and 2px past the row's start. A tone chip has no inner ring: on its tone fill the check is
+   the cue, and a ring there read as a heavy black frame.
 
    PRESSABLE, SO IT FOLLOWS BUTTON: 2px frame, pill, --lift / --fill, hard shadow when it can be pressed.
    THE FILL MEANS ON. A row of chips is a row of states, so the solid fill is kept for a chip that is on:
@@ -29,30 +33,38 @@
      hover     --lift 1 (raised, with its hard shadow), no fill: a mouse over a chip must not look like "on"
      focus     --lift 1 and the ring
      pressed   --lift 0 and a light tint (--fill 0.15), visible within 100ms; an on chip lightens (0.85)
-     on        --fill 1 + a second ring + a check; hovered, it also lifts
+     on        --fill 1 + the doubled frame + a check; hovered, it also lifts
    This holds for action and "more" chips too: next to filters, any filled chip would read as on.
    An INPUT chip holds a value rather than invites a press, so it is flat (no shadow, no hover); only its
    remove button acts, and that fills rather than lifts (a shadow would leave the chip).
 
    The row pads 8px when it scrolls, because overflow clips rings and shadows (WCAG 2.4.7). The chip that
-   peeks in at the edge says the row goes on. (A 1px rule on that edge used to say it as well; beside a cut
-   chip it read as a stray fence line, so it is gone.) In a scrolling row a chip never shrinks (flex: none):
-   a nowrap flex row would otherwise squeeze every chip to one letter a line before it let the row scroll.
+   peeks in at the edge says the row goes on, so where it is cut is not left to luck: at rest the script
+   (42-chip.js) changes every chip's side padding by the same small amount (--_grow on the row) until the
+   chip at the edge shows between 30% and 60% of itself (a chip missing only its round end read as clipped, a
+   sliver as a stray bracket), or tightens a row that misses by a few pixels until it fits. (A 1px rule on
+   that edge used to say "more" as well; beside a cut chip it read as a stray fence line, so it is gone.) In a
+   scrolling row a chip never shrinks (flex: none): a nowrap flex row would otherwise squeeze every chip to one
+   letter a line before it let the row scroll.
 
-   LARGE TEXT. The words grow with the reader's text size; the chrome does not (the --chrome-* caps): the
-   side padding, the gap, the leading icon and the check stay at their 100% size, so at 200% text a label
-   keeps the room and holds one line wherever the row allows.
+   LARGE TEXT. The words grow with the reader's text size, and so do the leading icon and the check, which
+   sit in the line of words (1.15em: a capped glyph was a speck beside 28px words). The chrome does not grow
+   (the --chrome-* caps): the side padding, the gap, the 44px target, and the remove button of an input chip
+   (its own control: a 24px circle with a 20px glyph and a 44px target). So at 200% text a label keeps the room and holds one
+   line wherever the row allows.
    A PILL IS FOR ONE LINE. The radius is half of ONE line's height (--_h), not the 999px pill, so a label
    that wraps (a long name in a narrow row) makes a soft rectangle, never an oval. Words break only at word
    boundaries unless a single word is wider than the whole row.
 
    Private properties (--_*): --_rest-bg --_rest-ink --_on-bg --_on-ink --_h --_px --_selw --_gap --_halo --_select
-   --_shadow --_glyph --_glyph-size
+   --_shadow --_glyph --_glyph-size --_grow (set by the script on a scrolling row)
    ========================================================================== */
 
 @layer sg.components {
   /* ---- Row ------------------------------------------------------------------------------ */
   .chips {
+    --_grow: 0px; /* the script sets it (inline) on a scrolling row: what every chip's side padding changes by */
+
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -94,17 +106,16 @@
     --_h: var(--ctl-sm);
     --_px: var(--chrome-4); /* chrome: the side padding stops at its 100% size, the label takes the room */
     /* As Button: a FILLED chip that is raised (on + hover) would fuse with its own hard shadow, so the lift opens
-       a gap in the surface colour (--_gap grows with --lift x --fill) outside the second ring (--_selw), and the
-       shadow moves out by the same amount so it keeps its 4px. */
+       a gap in the surface colour (--_gap grows with --lift x --fill) outside the frame, and the shadow moves out
+       by the same amount so it keeps its 4px. The doubled frame of an on chip (--_selw) is drawn inside. */
     --_selw: 0px;
     --_gap: calc(var(--lift) * var(--fill) * var(--bw));
-    --_halo: 0 0 0 calc(var(--_selw) + var(--_gap)) var(--focus-halo, var(--paper));
+    --_halo: 0 0 0 var(--_gap) var(--focus-halo, var(--paper));
     --_shadow: calc(var(--lift) * var(--space-1) + var(--_gap)) calc(var(--lift) * var(--space-1) + var(--_gap)) 0 0 var(--line);
-    --_select: 0 0 0 var(--_selw) var(--line);
+    --_select: inset 0 0 0 var(--_selw) var(--paper);
     --_glyph: var(--icon-check);
-    /* the leading icon and the check: 16px, growing with the words only up to the 20px icon cap, so at 200% text
-       a glyph still reads beside the label without taking the room the label needs */
-    --_glyph-size: min(1rem, var(--chrome-ic-sm));
+    /* the leading icon and the check sit in the line of words, so they grow with it (as Button's "+ Add funds") */
+    --_glyph-size: 1.15em;
 
     position: relative;
     display: inline-flex;
@@ -115,7 +126,8 @@
     max-inline-size: 100%;
     margin: 0;
     padding-block: var(--chrome-1);
-    padding-inline: var(--_px);
+    /* --_grow: set on a scrolling row by the script, so the chip at its edge is cut near its middle */
+    padding-inline: calc(var(--_px) + var(--_grow, 0px) / 2);
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
     background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
     border: var(--bw) solid var(--line);
@@ -211,12 +223,17 @@
       transition-duration: var(--dur-press);
     }
 
-    /* ON: filled, a second ring, and a check appears */
+    /* ON: filled, the doubled frame (inside), and a check appears. A tone chip keeps a single frame: the check
+       is the cue on its tone fill. */
     &:is([aria-pressed="true"], [aria-checked="true"], [aria-current="true"]),
     &:has(> .chip__input:checked) {
       --fill: 1;
       --_selw: var(--bw);
       --_glyph: var(--icon-check);
+
+      &[data-variant="tone"] {
+        --_selw: 0px;
+      }
 
       &::before {
         display: block;
@@ -298,9 +315,10 @@
     flex: none;
     display: grid;
     place-items: center;
-    /* chrome: a 28px circle (the small control less 8px) inside the chip at every text size */
-    inline-size: calc(var(--chrome-ctl-sm) - var(--chrome-2));
-    block-size: calc(var(--chrome-ctl-sm) - var(--chrome-2));
+    /* chrome: a 24px circle (the small control less 12px) inside the chip at every text size, so an input chip
+       is as tall as the chips beside it (36px: a 28px circle made it 40) */
+    inline-size: calc(var(--chrome-ctl-sm) - var(--chrome-3));
+    block-size: calc(var(--chrome-ctl-sm) - var(--chrome-3));
     margin: 0;
     padding: 0;
     color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--_rest-ink, var(--ink)));
@@ -311,7 +329,7 @@
     transition: --fill var(--dur-hover) var(--ease-out);
 
     & > .ic {
-      --ic-size: min(0.875rem, var(--chrome-4)); /* 14px, up to 16px in its 28px circle */
+      --ic-size: var(--chrome-ic-sm); /* 20px in its 24px circle: an icon-only control's glyph, at every text size */
     }
     &::after {
       content: "";

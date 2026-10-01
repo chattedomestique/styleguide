@@ -88,8 +88,10 @@
     --focus: var(--_ink); /* the ring follows the surface */
 
     position: fixed;
-    /* the gap to the screen edge is chrome: the page gutter at normal text, never more than 16px when the text grows */
-    inset-inline: max(min(var(--gutter), var(--chrome-4)), var(--safe-left)) max(min(var(--gutter), var(--chrome-4)), var(--safe-right));
+    /* the page gutter (itself capped) plus 8px, so the floating pill sits INSIDE the content column at every
+       text size: at the gutter its round ends met the side frames of the cards scrolling under it, and those
+       frames poked out beside the curves */
+    inset-inline: max(calc(var(--gutter) + var(--chrome-2)), var(--safe-left)) max(calc(var(--gutter) + var(--chrome-2)), var(--safe-right));
     inset-block-end: calc(var(--safe-bottom) + var(--_gap));
     z-index: var(--z-dock);
     max-inline-size: 28rem;
@@ -328,7 +330,11 @@
     margin: 0;
     padding: 0;
     clip-path: inset(50%);
-    overflow-wrap: break-word;
+    /* the hidden word's own layout, never painted: tiny and on one line, so it stays inside its cell at any text
+       size (at 200% it wrapped into three lines below the circle and past the bottom of a phone frame) */
+    font-size: 0.0625rem;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   /* An icon on its own is a circle of the dock's one cell size: equal circles, evenly spaced. */

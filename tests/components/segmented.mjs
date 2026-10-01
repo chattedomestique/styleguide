@@ -81,17 +81,31 @@ export const tests = [
     },
   },
   {
-    name: 'Focus ring is drawn on the visible label (3px ring with a paper halo)',
+    name: 'Focus ring is drawn on the visible label, INSIDE the chosen cell in the thumb\'s ink, clear of the track\'s frame',
     async run({ page, goto, expect }) {
       await goto('components/segmented.html')
       await page.locator('input[name="seg-basic"][value="bank"]').focus()
       await page.keyboard.press('ArrowRight')
+      await page.waitForTimeout(300)
       const ring = await page.evaluate(() => {
-        const cs = getComputedStyle(document.activeElement.nextElementSibling)
-        return { outline: cs.outlineStyle, w: parseFloat(cs.outlineWidth), shadow: cs.boxShadow }
+        const label = document.activeElement.nextElementSibling; const cs = getComputedStyle(label)
+        return { outline: cs.outlineStyle, w: parseFloat(cs.outlineWidth), off: parseFloat(cs.outlineOffset), color: cs.outlineColor, ink: cs.color }
       })
       expect.equal(ring.outline, 'solid', 'outline on the label'); expect.ok(ring.w >= 3, 'outline is 3px')
-      expect.ok(ring.shadow && ring.shadow !== 'none', 'the paper halo that keeps the ring visible on the thumb: ' + ring.shadow)
+      expect.ok(ring.off <= -(ring.w + 2), 'drawn inside the cell, 2px in from its frame (it never reaches the track\'s frame): ' + JSON.stringify(ring))
+      expect.equal(ring.color, ring.ink, 'in the colour of the words on the thumb, so it shows on the fill: ' + JSON.stringify(ring))
+    },
+  },
+  {
+    name: 'An icon beside a word grows with it (1.1em) at 100% and 200% text',
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => { const ic = document.querySelector('.segmented__label > .ic'); return { ic: ic.getBoundingClientRect().width, font: parseFloat(getComputedStyle(ic.parentElement).fontSize) } })
+        expect.ok(Math.abs(r.ic - r.font * 1.1) < 1, text + '%: the icon is 1.1em of its word: ' + JSON.stringify(r))
+      }
     },
   },
   {

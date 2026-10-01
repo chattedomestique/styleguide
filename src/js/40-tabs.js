@@ -15,15 +15,24 @@
    - the chosen tab is scrolled into view inside an overflowing tablist
    - an overflowing tablist is marked data-more="start", "end" or "start end" while tabs are scrolled out
      of view on that side, and its optional scroll buttons (.tabs__scroll[data-dir="back|forward"] in the
-     same .tabs__bar, written hidden in the markup) are shown while it overflows, aria-disabled at the end
-     they cannot go past, and scroll the list by one list's width when pressed (smoothly unless
-     SG.motion.reduced()). They are tabindex -1: arrow keys already bring the focused tab into view, and the
+     same .tabs__bar, written hidden in the markup) are shown while it overflows and aria-disabled at the end
+     they cannot go past. They are tabindex -1: arrow keys already bring the focused tab into view, and the
      tablist stays one tab stop. They stay in the accessibility tree.
-   - whole tabs beside scroll buttons: while such a list overflows, every tab grows by the same amount
-     (--_grow on the list) so the tabs that fit at the start fill it exactly. A tab sliced beside the forward
-     button read as a stray bracket; the button already says there is more. Re-measured when the list or a
-     tab changes size (rotation, text size, fonts). A list without scroll buttons keeps its cut tab: that one
-     is the cue, at the scroller's edge.
+   - pages beside the scroll buttons: while such a list overflows, its tabs are cut into pages, each the run
+     of whole tabs that fits the list. The blank after a page's last tab becomes that tab's end margin
+     (--_tail), so the next page starts a padding's width outside the list: at every page every tab in view is whole (a
+     tab sliced beside a scroll button read as a stray bracket, and paging by a fixed width left slivers at
+     both edges). The first tab of each page is marked data-sg-page (a snap point, so a swipe lands on a page
+     too); a scroll button goes one page (smoothly unless SG.motion.reduced()), and the page that holds the
+     focused or chosen tab is brought into view. Tabs keep their own widths (only when one is wider than the
+     list do they all tighten, by at most 4px a side). Re-measured when the list or a tab changes size
+     (rotation, text size, fonts), staying on the page in view.
+   - a deliberate cut in a list WITHOUT scroll buttons: it scrolls freely and the tab cut at its edge is the
+     cue, so where the cut falls must not be luck (a 6px sliver read as a stray bracket, a pill missing only
+     its round end read as clipped, a whole tab in the end padding touched the frame). Every tab changes width
+     by the same small amount (--_grow on the list): a row that misses by a little is tightened until it fits
+     whole (each side padding loses at most 4px); otherwise the cut tab is brought to between 30% and 60% of
+     itself, at least 24px, at rest.
    - data-hash on .tabs keeps location.hash in step with the chosen panel
      (history.replaceState, so arrow keys do not flood the Back button) and opens the
      panel named by the hash on load and on hashchange, including a hash that points at
@@ -34,6 +43,7 @@
 
    API
      SG.tabs.select(tabElement)        choose a tab programmatically (moves no focus)
+     SG.tabs.page(list, step)          go one page forward (1) or back (-1) in a paged tablist
      SG.watchMore(element)             keep data-more current on any horizontally scrolling row (no CSS draws it any more;
                                        it is a hook for an app that wants to)
 
@@ -71,10 +81,10 @@
     if (delta) scroller.scrollBy({ left: delta, behavior: SG.motion.reduced() ? 'auto' : 'smooth' });
   };
   function reveal(tab, list) {
-    // Beside visible scroll buttons the buttons are the cue: bring the tab in just clear of the edge (the list's
-    // own padding holds its ring) and leave no sliver of the next one. Otherwise 24px of the neighbour shows.
-    var pad = buttonsShown(list) ? parseFloat(getComputedStyle(list).paddingInlineEnd) || 0 : 24;
-    SG.revealInline(tab, list, pad);
+    // A paged list (beside scroll buttons) shows the tab's whole page; a free list scrolls just enough, leaving
+    // 24px of the neighbour showing.
+    if (list.hasAttribute('data-sg-paged')) { goPage(list, pageOf(tab), SG.motion.reduced() ? 'auto' : 'smooth'); return; }
+    SG.revealInline(tab, list, 24);
   }
   function buttonsShown(list) {
     var bar = list.parentElement;
@@ -123,42 +133,155 @@
   function watch(list) {
     if (list.getAttribute('aria-orientation') === 'vertical') return;
     SG.watchMore(list);
-    var bar = list.parentElement;
-    if (!bar || !bar.classList.contains('tabs__bar') || !bar.querySelector(':scope > .tabs__scroll') || list.hasAttribute('data-sg-whole')) return;
-    list.setAttribute('data-sg-whole', '');
-    fitWhole(list);
+    if (list.hasAttribute('data-sg-fit')) return;
+    list.setAttribute('data-sg-fit', '');
+    fit(list);
     if (window.ResizeObserver) {
       var ro = new ResizeObserver(function () { later(list); });
       ro.observe(list);
       tabsOf(list).forEach(function (t) { ro.observe(t); });
     }
   }
+  function hasButtons(list) {
+    var bar = list.parentElement;
+    return !!(bar && bar.classList.contains('tabs__bar') && bar.querySelector(':scope > .tabs__scroll'));
+  }
+  function fit(list) {
+    if (hasButtons(list)) paginate(list);
+    else cut(list);
+  }
 
-  /** Whole tabs: with the natural widths, which tabs fit whole from the start of the list? Every tab then grows
-      by the same amount so those fill it exactly (scroll coordinates, so it holds while scrolled and in RTL). */
-  function fitWhole(list) {
+  /* ---- A deliberate cut (no scroll buttons) ---------------------------------------------------------------
+     Every tab changes width by the same amount, --_grow (half of it on each side): first, a row that misses by a
+     little fits whole by tightening each tab's side padding by up to 4px (to 12px, the small tab's padding;
+     a tab sitting in the list's end padding touched the frame); otherwise the smallest change that cuts the
+     tab at the edge between 30% and 60% of itself, and at least 24px of it (its round start and a letter or
+     two: clearly a tab that goes on, never a sliver or a pill missing only its end). Measured at rest (scrolled
+     to the start), in content coordinates, so it holds in right-to-left too. */
+  var SHRINK = -8;
+  var GROW = 64;
+  function cut(list) {
     list.style.removeProperty('--_grow');
-    measure(list);
-    if (!buttonsShown(list)) return;
+    if (list.scrollWidth <= list.clientWidth + 1) return;
+    var g = geometry(list);
+    var edge = g.box.width - g.padS; // the clipping edge at rest
+    var items = tabsOf(list).map(function (t) { return { s: startOf(t, g), w: t.getBoundingClientRect().width }; });
+    function at(grow) { // the first tab that is not whole inside the list's padding when every tab is `grow` wider
+      for (var i = 0; i < items.length; i++) {
+        var s = items[i].s + i * grow;
+        var w = items[i].w + grow;
+        if (s + w > g.room + 0.5) return { v: edge - s, w: w };
+      }
+      return null;
+    }
+    var chosen = null;
+    if (!at(SHRINK)) {
+      // it fits once tightened: tighten as little as possible
+      for (var f = 0; f >= SHRINK; f -= 0.5) if (!at(f)) { chosen = f; break; }
+    } else {
+      // the smallest change, either way, that gives a deliberate cut
+      for (var d = 0; d <= GROW && chosen === null; d += 0.5) {
+        [d, -d].some(function (grow) {
+          if (grow < SHRINK) return false;
+          var c = at(grow);
+          if (c && c.v >= Math.max(24, 0.3 * c.w) && c.v <= 0.6 * c.w) { chosen = grow; return true; }
+          return false;
+        });
+      }
+    }
+    if (chosen) list.style.setProperty('--_grow', chosen + 'px');
+  }
+
+  /* ---- Pages ---------------------------------------------------------------------------------------------
+     Geometry in scroll coordinates measured from the start of the list's content, so it holds while scrolled
+     and in right-to-left (where scrollLeft runs negative). */
+  function geometry(list) {
     var cs = getComputedStyle(list);
-    var rtl = cs.direction === 'rtl';
+    var box = list.getBoundingClientRect(); // the box, not clientWidth: clientWidth is rounded to a whole pixel
     var padS = parseFloat(cs.paddingInlineStart) || 0;
-    var box = list.getBoundingClientRect();
-    // the box, not clientWidth: clientWidth is rounded to a whole pixel, and the 0.1px it drops showed as a hairline
-    var room = box.width - padS - (parseFloat(cs.paddingInlineEnd) || 0);
-    var pos = Math.abs(list.scrollLeft);
-    var n = 0;
-    var end = 0;
-    tabsOf(list).forEach(function (t) {
-      var r = t.getBoundingClientRect();
-      var e = (rtl ? box.right - r.left : r.right - box.left) - padS + pos;
-      if (e <= room + 0.5 && e > end) { n++; end = e; }
+    var padE = parseFloat(cs.paddingInlineEnd) || 0;
+    return { rtl: cs.direction === 'rtl', box: box, padS: padS, padE: padE, room: box.width - padS - padE, gap: parseFloat(cs.columnGap) || 0, pos: Math.abs(list.scrollLeft) };
+  }
+  function startOf(el, g) {
+    var r = el.getBoundingClientRect();
+    return (g.rtl ? g.box.right - r.right : r.left - g.box.left) - g.padS + g.pos;
+  }
+  function pagesOf(list) {
+    return tabsOf(list).filter(function (t) { return t.hasAttribute('data-sg-page'); });
+  }
+  /** The first tab of the page that holds `tab`. */
+  function pageOf(tab) {
+    var list = tab.closest('[role="tablist"]');
+    var first = null;
+    tabsOf(list).some(function (t) {
+      if (t.hasAttribute('data-sg-page')) first = t;
+      return t === tab;
     });
-    // a hair more than the exact share: the next tab then starts just past the clipped edge, never 0.2px inside it
-    // (an antialiased hairline of its frame read as a stray rule beside the forward button)
-    var grow = n ? Math.ceil(((room - end) / n + 0.05) * 100) / 100 : 0;
-    if (grow > 0) list.style.setProperty('--_grow', grow + 'px');
+    return first || tab;
+  }
+  /** The page in view: the page start nearest the scroll position. */
+  function current(list) {
+    var g = geometry(list);
+    var best = null;
+    var dist = Infinity;
+    pagesOf(list).forEach(function (t) {
+      var d = Math.abs(startOf(t, g) - g.pos);
+      if (d < dist) { dist = d; best = t; }
+    });
+    return best;
+  }
+  function goPage(list, first, behavior) {
+    if (!first) return;
+    var g = geometry(list);
+    var s = Math.max(0, startOf(first, g));
+    if (Math.abs(s - g.pos) < 0.5) return;
+    list.scrollTo({ left: g.rtl ? -s : s, behavior: behavior || 'auto' });
+  }
+  /** One page forward (step 1) or back (-1). */
+  function page(list, step) {
+    var pages = pagesOf(list);
+    var i = pages.indexOf(current(list));
+    var to = pages[Math.min(pages.length - 1, Math.max(0, i + step))];
+    goPage(list, to, SG.motion.reduced() ? 'auto' : 'smooth');
+  }
+
+  /** Cut the tabs into pages that fit the list whole (see the header). Runs on init and whenever a size changes;
+      it stays on the page in view (or, the first time, on the chosen tab's page). */
+  function paginate(list) {
+    var tabs = tabsOf(list);
+    var was = list.hasAttribute('data-sg-paged');
+    var anchor = was ? current(list) : tabs.filter(function (t) { return t.getAttribute('aria-selected') === 'true'; })[0];
+    list.style.removeProperty('--_grow');
+    tabs.forEach(function (t) { t.style.removeProperty('--_tail'); t.removeAttribute('data-sg-page'); });
+    list.removeAttribute('data-sg-paged');
+    measure(list); // with the tabs in a plain row: does it overflow, so the buttons show?
+    if (!buttonsShown(list)) return;
+    var g = geometry(list);
+    // a tab wider than the list could never be whole: tighten every tab a little (at most 4px a side) first
+    var widest = Math.max.apply(null, tabs.map(function (t) { return t.getBoundingClientRect().width; }));
+    if (widest > g.room + 0.5) {
+      list.style.setProperty('--_grow', Math.max(SHRINK, Math.floor((g.room - widest) * 2) / 2) + 'px');
+      g = geometry(list);
+    }
+    var pages = [];
+    var cur = null;
+    tabs.forEach(function (t) {
+      var s = startOf(t, g);
+      var e = s + t.getBoundingClientRect().width;
+      if (cur && e - cur.s <= g.room + 0.5) { cur.last = t; cur.e = e; } else { cur = { first: t, last: t, s: s, e: e }; pages.push(cur); }
+    });
+    // Between two pages lies the list's padding on BOTH sides, not just the gap: a page's last tab then ends a
+    // padding's width before the clipped edge when the next page is in view, so its second ring, its halo and its
+    // shadow stay out of sight too (a chosen tab's 2px ring left a sliver at the start edge).
+    var between = g.padS + g.padE - g.gap;
+    pages.forEach(function (p, i) {
+      p.first.setAttribute('data-sg-page', '');
+      var tail = Math.ceil((g.room - (p.e - p.s) + (i < pages.length - 1 ? between : 0)) * 100) / 100;
+      if (tail > 0) p.last.style.setProperty('--_tail', tail + 'px');
+    });
+    list.setAttribute('data-sg-paged', '');
     measure(list);
+    if (anchor) goPage(list, pageOf(anchor), 'auto');
   }
   // one re-fit per list per frame, outside the ResizeObserver callback (it changes the sizes it watches)
   var queued = [];
@@ -168,7 +291,7 @@
     if (queued.length === 1) requestAnimationFrame(function () {
       var lists = queued;
       queued = [];
-      lists.forEach(fitWhole);
+      lists.forEach(fit);
     });
   }
   // scroll does not bubble, so one capturing listener on the document serves every watched row
@@ -270,12 +393,7 @@
     var btn = e.target.closest && e.target.closest('.tabs__bar > .tabs__scroll');
     if (!btn || btn.getAttribute('aria-disabled') === 'true') return;
     var list = btn.parentElement.querySelector(':scope > [role="tablist"]');
-    if (!list) return;
-    var cs = getComputedStyle(list);
-    var dir = (btn.getAttribute('data-dir') === 'back' ? -1 : 1) * (cs.direction === 'rtl' ? -1 : 1);
-    // one list's width (inside its padding) and one gap: the next whole tabs start where the list starts
-    var page = list.getBoundingClientRect().width - (parseFloat(cs.paddingInlineStart) || 0) - (parseFloat(cs.paddingInlineEnd) || 0) + (parseFloat(cs.columnGap) || 0);
-    list.scrollBy({ left: dir * page, behavior: SG.motion.reduced() ? 'auto' : 'smooth' });
+    if (list && list.hasAttribute('data-sg-paged')) page(list, btn.getAttribute('data-dir') === 'back' ? -1 : 1);
   });
 
   document.addEventListener('keydown', function (e) {
@@ -295,7 +413,7 @@
 
   window.addEventListener('hashchange', fromHash);
 
-  SG.tabs = { select: select, init: init };
+  SG.tabs = { select: select, init: init, page: page };
 
   SG.ready(function () {
     init(document);

@@ -24,7 +24,10 @@
               between unequal neighbours: the two sides are columns of the same width (the wider one's).
               <button class="btn" …>×</button> <h1 class="appbar__title">Edit card</h1>
               <div class="appbar__end"><button … aria-label="Help: …">?</button><button … data-variant="primary">✓</button></div>
-   search     back | search field | add. The field is a real <input type="search"> with a name.
+   search     back | search field | add. The field is a real <input type="search"> with a name. One height for
+              the row: the field is 44px (a target a finger can hit), so the circles here are the default 44px
+              too, and at large text, where the field grows with its words (its insets do not), the circles grow
+              with it (--_field-h), so a pill and a circle of different sizes never share the bar.
 
    A BAR IS A FRAME, NOT A BUTTON: flat (no shadow), a 2px rule under it, the title an uppercase bar
    label (--type-label; "uppercase is structure") except in the greeting, which is a sentence.
@@ -50,7 +53,7 @@
    (a preview frame) publishes on the frame, not on <html>.
 
    Private properties (--_*): --_bg --_ink --_ink-soft --_h (height of the controls in the row)
-   --_side (the editor's side columns: as wide as its wider cluster of circles)
+   --_side (the editor's side columns: as wide as its wider cluster of circles) --_field-h (the search row's one height)
    ========================================================================== */
 
 @layer sg.components {
@@ -171,14 +174,16 @@
 
   /* ---- Editor: cancel | title | help, apply -------------------------------------------------------
      Three columns. The two sides are the same width (the wider cluster's: --_side counts the circles in the end
-     group), so the title is centred on the bar itself, never pushed off-centre by the extra help circle, and a
-     help button never sits glued to the words. */
+     group), so the title is centred on the bar itself, never pushed off-centre by the extra help circle. 16px
+     between the title's column and the sides: on a 320px phone the centred words otherwise came within 9px of
+     the help circle and read as glued to it; now the title wraps a line sooner instead. */
   .appbar[data-variant="editor"] {
     --_side: var(--_h);
 
     display: grid;
     grid-template-columns: minmax(var(--_side), 1fr) minmax(0, auto) minmax(var(--_side), 1fr);
     align-items: start;
+    column-gap: var(--chrome-4);
 
     &:has(> :last-child > :nth-child(2)) {
       --_side: calc(2 * var(--_h) + var(--chrome-2));
@@ -198,9 +203,18 @@
     }
   }
 
-  /* ---- Search: back | field | add: one block in the middle, so the circles are centred on it -------------- */
+  /* ---- Search: back | field | add: one block in the middle, so the circles are centred on it --------------
+     One height (--_field-h): the field's line and its 4px insets (chrome), never under 44px, and the circles
+     take it too. */
   .appbar[data-variant="search"] {
+    --_field-h: max(var(--chrome-ctl), calc(var(--text-md) * var(--lh-snug) + 2 * var(--chrome-1) + 2 * var(--bw)));
+
     align-items: center;
+
+    & .btn {
+      --_h: var(--_field-h);
+      --_cap: var(--_field-h);
+    }
   }
   .appbar__search {
     --ic-size: var(--chrome-ic-sm); /* the field's leading glyph is chrome, like the field's padding */
@@ -222,15 +236,16 @@
   .appbar__input {
     inline-size: 100%;
     min-inline-size: 0;
-    min-block-size: var(--chrome-ctl); /* 44px; the words grow it from there */
+    min-block-size: var(--_field-h, var(--chrome-ctl)); /* 44px; the words grow it from there (their insets do not) */
     margin: 0;
-    padding-block: var(--chrome-2);
+    padding-block: var(--chrome-1);
     padding-inline: calc(var(--chrome-3) + var(--ic-size) + var(--chrome-2)) var(--chrome-3);
     color: var(--ink);
     background: var(--paper);
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-ctl);
     font: var(--type-body); /* 16px: iOS does not zoom the page on focus */
+    line-height: var(--lh-snug);
     appearance: none;
     -webkit-appearance: none;
   }

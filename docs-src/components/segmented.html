@@ -1,4 +1,11 @@
 <!--{"title":"Segmented control","group":"Components","order":43,"summary":"Pick one of two to four equal options: a pill track with native radios. Sizes, icons, a sliding thumb, tone."}-->
+<style>
+  /* Docs-only, until the shared rule in docs.css changes (proposed in the nav report): a single-token code is an
+     inline box, so it still never breaks after its leading hyphens while it fits a line, and only a token wider
+     than the whole line (data-placement="bottom-end" at 200% text on a phone) wraps inside its box instead of
+     running off the page (WCAG 1.4.10). */
+  .docs-article code.nb { display: inline-block; max-inline-size: 100%; white-space: normal; overflow-wrap: break-word; }
+</style>
 <h1>Segmented control</h1>
 <p class="lede">A segmented control sets one value out of a few that are equally likely: <em>Weekly | Monthly</em>, <em>Bank account | Transactions</em>. It is a pill track with the chosen option filled in.</p>
 
@@ -114,16 +121,27 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>The solid fill is kept for the chosen option. Hover draws the option's own frame (an outline, because a tint would move the text's contrast); a press tints it at once, before the radio has flipped; the chosen one is filled and ringed a second time; keyboard focus rings the chosen option, which is where a radio group's focus always lands; an unavailable one is dashed and skipped by the arrow keys. The <code>is-*</code> classes on the label only force a state for this page.</p>
+<p>The solid fill is kept for the chosen option. Hover draws the option's own frame (an outline, because a tint would move the text's contrast); a press tints it at once, before the radio has flipped; the chosen one is filled, with a frame of its own; keyboard focus rings the chosen option from inside (where a radio group's focus always lands), in the colour of the thumb's words, so it never runs into the track's frame; an unavailable one is dashed and skipped by the arrow keys. Each state is shown in a track of its own here, beside a plain option at rest. The <code>is-*</code> classes on the label only force a state for this page.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="5">
-      <fieldset class="segmented" data-block>
-        <legend class="sr-only">Forced states</legend>
-        <label class="segmented__opt"><input type="radio" name="seg-state-x" value="hover"><span class="segmented__label is-hover">Hover</span></label>
-        <label class="segmented__opt"><input type="radio" name="seg-state-x" value="pressed"><span class="segmented__label is-active">Pressed</span></label>
-        <label class="segmented__opt"><input type="radio" name="seg-state-x" value="on" checked><span class="segmented__label">On</span></label>
-      </fieldset>
+      <div class="cluster" data-gap="4">
+        <fieldset class="segmented">
+          <legend class="sr-only">Hover specimen</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-state-h" value="rest"><span class="segmented__label">Rest</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-h" value="hover"><span class="segmented__label is-hover">Hover</span></label>
+        </fieldset>
+        <fieldset class="segmented">
+          <legend class="sr-only">Pressed specimen</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-state-p" value="pressed"><span class="segmented__label is-active">Pressed</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-p" value="rest"><span class="segmented__label">Rest</span></label>
+        </fieldset>
+        <fieldset class="segmented">
+          <legend class="sr-only">Chosen specimen</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-state-o" value="on" checked><span class="segmented__label">On</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-o" value="rest"><span class="segmented__label">Rest</span></label>
+        </fieldset>
+      </div>
       <div class="stack" data-gap="3">
         <fieldset class="segmented" data-block aria-describedby="seg-why">
           <legend class="sr-only">Remind me by</legend>
@@ -144,7 +162,7 @@
     <tr><td>Hover (pointer only)</td><td>the option's own 2px frame</td></tr>
     <tr><td>Pressed</td><td>a light tint (<code>--fill</code> 0.15), within 100ms</td></tr>
     <tr><td>Chosen</td><td>filled, with a frame of its own (<code>--fill</code> 1)</td></tr>
-    <tr><td>Keyboard focus</td><td>the 3px ring around the chosen option, inside the track</td></tr>
+    <tr><td>Keyboard focus</td><td>a 3px ring inside the chosen option, 2px in from its frame, in the thumb's ink (the focus ink on an empty option)</td></tr>
     <tr><td>Unavailable</td><td>dashed frame, faint ink</td></tr>
   </tbody>
 </table></div>
@@ -196,7 +214,7 @@
   <li><strong>Option</strong> (<code>.segmented__opt</code>): a <code>&lt;label&gt;</code> holding a native radio. Equal width.</li>
   <li><strong>Radio</strong>: invisible, covering the option and stretching to 44px tall. All keyboard and form behaviour is the browser's.</li>
   <li><strong>Label</strong> (<code>.segmented__label</code>): the visible cell. Its fill follows <code>--fill</code> (0 empty, 0.15 pressed, 1 chosen). Optional icon, then the word, side by side.</li>
-  <li><strong>Chosen cue</strong>: a filled pill with a second 2px ring inside the track. The ring is the line colour, so it shows as an edge on a tone or a pale accent and merges with an ink fill. The weight does not change, so the row cannot reflow. Never colour alone.</li>
+  <li><strong>Chosen cue</strong>: a filled pill with a 2px frame of its own inside the track. The frame is the line colour, so it shows as an edge on a tone or a pale accent and merges with an ink fill. The weight does not change, so the row cannot reflow. Never colour alone.</li>
   <li><strong>Thumb</strong> (optional, <code>data-indicator="slide"</code>): one pill that glides between options.</li>
 </ol>
 
@@ -227,7 +245,7 @@
     <tr><td><kbd>Space</kbd></td><td>Chooses the focused option (when none is chosen).</td></tr>
     <tr><td>Screen reader</td><td>"Show, group. Bank account, radio button, 1 of 2, selected." The legend names the group.</td></tr>
     <tr><td>Touch</td><td>Each option is at least 44&times;44px, even in the small size, and the whole cell taps, not only the word.</td></tr>
-    <tr><td>Zoom / text size</td><td>The words grow with the text; the track's padding, the side padding and the icon stop at their 100% size. The options stay in one row of equal cells while their whole labels fit (the side padding also eases down to 8px on a narrow screen). When they cannot, the control changes as a whole, measured by <code>src/js/44-segmented.js</code>: every option on a line of its own, or two rows of two for four options. Never a ragged 2 + 1, and a word is never broken unless it is wider than the whole control. The track keeps the corner of one row, so a stacked control is a soft rectangle, never an oval. Without JavaScript the cells wrap onto more rows instead.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the text, and so does an icon beside a word (1.1em); the track's padding and the side padding stop at their 100% size. The options stay in one row of equal cells while their whole labels fit (the side padding also eases down to 8px on a narrow screen). When they cannot, the control changes as a whole, measured by <code>src/js/44-segmented.js</code>: every option on a line of its own, or two rows of two for four options. Never a ragged 2 + 1, and a word is never broken unless it is wider than the whole control. The track keeps the corner of one row, so a stacked control is a soft rectangle, never an oval. Without JavaScript the cells wrap onto more rows instead.</td></tr>
     <tr><td>Reduced motion</td><td>The colour change stays; the sliding thumb becomes a fade.</td></tr>
     <tr><td>Forced colours</td><td>The track and every option keep a border; the chosen option is <code>Highlight</code> with a 4px frame; the ring is a 4px <code>Highlight</code> outline.</td></tr>
   </tbody>

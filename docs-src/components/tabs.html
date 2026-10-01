@@ -1,17 +1,25 @@
 <!--{"title":"Tabs","group":"Components","order":41,"summary":"Switch between panels on the same screen: pill or underline, scrolling, vertical. Roving tabindex, automatic or manual activation."}-->
 <style>
+  /* Docs-only, until the shared rule in docs.css changes (proposed in the nav report): a single-token code is an
+     inline box, so it still never breaks after its leading hyphens while it fits a line, and only a token wider
+     than the whole line (data-placement="bottom-end" at 200% text on a phone) wraps inside its box instead of
+     running off the page (WCAG 1.4.10). */
+  .docs-article code.nb { display: inline-block; max-inline-size: 100%; white-space: normal; overflow-wrap: break-word; }
   /* State specimens: 16px apart, so a lift, a shadow and a ring never touch the next tab */
-  .docs-article .tabs-specimens .tabs__list { gap: var(--space-4); }
+  .docs-article .tabs-specimens .tabs__list { gap: var(--space-4); margin-inline: 0; }
   .docs-article .tabs-specimens > .t-meta { margin-block-start: var(--space-2); }
   /* A row of tabs with nothing beside it runs to the stage's edge, as it would run to a phone's edge: the tab cut
-     off there reads as "more", not as a pill sliced short of the frame (S4). The padding keeps the tabs in line
-     with the content and the rings inside. */
-  .docs-article .demo__stage > .tabs > .tabs__bar > .tabs__list:only-child:not([aria-orientation="vertical"]) {
-    margin-inline: calc(var(--chrome-5) * -1); padding-inline: var(--chrome-5); scroll-padding-inline: var(--chrome-5);
+     off there reads as "more", not as a pill sliced short of the frame (S4). The bar runs to the edge (so the
+     underline variant's divider does too) and the list's padding keeps the tabs in line with the content and
+     the rings inside. */
+  .docs-article .demo__stage > .tabs:not([data-overflow="wrap"]) > .tabs__bar:has(> .tabs__list:only-child:not([aria-orientation="vertical"])) {
+    margin-inline: calc(var(--chrome-5) * -1);
+    & > .tabs__list { margin-inline: 0; padding-inline: var(--chrome-5); scroll-padding-inline: var(--chrome-5); }
   }
   @media (max-width: 40em) {
-    .docs-article .demo__stage > .tabs > .tabs__bar > .tabs__list:only-child:not([aria-orientation="vertical"]) {
-      margin-inline: calc(var(--chrome-3) * -1); padding-inline: var(--chrome-3); scroll-padding-inline: var(--chrome-3);
+    .docs-article .demo__stage > .tabs:not([data-overflow="wrap"]) > .tabs__bar:has(> .tabs__list:only-child:not([aria-orientation="vertical"])) {
+      margin-inline: calc(var(--chrome-3) * -1);
+      & > .tabs__list { padding-inline: var(--chrome-3); scroll-padding-inline: var(--chrome-3); }
     }
   }
   /* In context: the shape drawn in a row's tile (the card's icon slot) sits in its middle */
@@ -48,7 +56,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="pill">Pill (default)</h3>
-<p>A row of pills. The chosen tab is filled <strong>and</strong> ringed a second time (2px, in the line colour: a double edge on a tone fill, a pill 2px larger on ink), so it never depends on the accent being dark. The fill is kept for the chosen tab: hover and keyboard focus raise a tab with the same hard shadow a <a href="@/components/button.html">button</a> has, and a press tints it, but only the chosen one is solid. Click, or Tab in and use the arrow keys.</p>
+<p>A row of pills. The chosen tab is filled <strong>and</strong> its frame doubles (a 2px ring in the surface colour just inside the border, so it stays the size of the tabs beside it), so it never depends on the accent being dark. The fill is kept for the chosen tab: hover and keyboard focus raise a tab with the same hard shadow a <a href="@/components/button.html">button</a> has, and a press tints it, but only the chosen one is solid. Click, or Tab in and use the arrow keys. When large text or a narrow screen leaves no room for every tab, the row scrolls and runs to the edge of the panel; the tab cut at that edge says there is more, and it is cut near its middle on purpose (the tabs change width a little, all by the same amount, until it is), never a sliver and never just its end. A row that misses by a few pixels is tightened to fit instead.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="tabs">
@@ -124,19 +132,19 @@
 </div>
 
 <h3 id="action">With an action beside the tabs</h3>
-<p>An action that is not a tab sits outside the tablist, in the bar. It is a real <a href="@/components/button.html">button</a> with its own name. When large text leaves no room for every tab, the list scrolls and its scroll buttons appear on either side of it (see below), so the action stays where it is and the hidden tabs are one press away.</p>
+<p>An action that is not a tab sits outside the tablist, in the bar. It is a real <a href="@/components/button.html">button</a> with its own name. Everything in one bar is one height: these tabs are small, so the action and the scroll buttons are small too (<code>data-size="sm"</code>: 36px drawn, 44px target), and at large text they all grow with the words together. When large text leaves no room for every tab, the list pages and its scroll buttons appear on either side of it (see below), so the action stays where it is and the hidden tabs are one press away.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="tabs" data-block data-size="sm">
       <div class="tabs__bar">
-        <button class="btn tabs__scroll" data-shape="circle" type="button" data-dir="back" aria-label="Scroll tabs back" hidden><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+        <button class="btn tabs__scroll" data-shape="circle" data-size="sm" type="button" data-dir="back" aria-label="Scroll tabs back" hidden><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
         <div class="tabs__list" role="tablist" aria-label="Tasks">
           <button class="tabs__tab" role="tab" type="button" id="tabs-ac-t1" aria-selected="true" aria-controls="tabs-ac-p1">Today</button>
           <button class="tabs__tab" role="tab" type="button" id="tabs-ac-t2" aria-selected="false" aria-controls="tabs-ac-p2" tabindex="-1">Soon</button>
           <button class="tabs__tab" role="tab" type="button" id="tabs-ac-t3" aria-selected="false" aria-controls="tabs-ac-p3" tabindex="-1">All</button>
         </div>
-        <button class="btn tabs__scroll" data-shape="circle" type="button" data-dir="forward" aria-label="Scroll tabs forward" hidden><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
-        <button class="btn" data-shape="circle" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
+        <button class="btn tabs__scroll" data-shape="circle" data-size="sm" type="button" data-dir="forward" aria-label="Scroll tabs forward" hidden><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+        <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
       </div>
       <div class="tabs__panel" role="tabpanel" id="tabs-ac-p1" aria-labelledby="tabs-ac-t1" tabindex="0">
         <p>3 tasks. Next up: Call the dentist, 10:30.</p>
@@ -152,7 +160,7 @@
 </div>
 
 <h3 id="overflow">When there are too many to fit</h3>
-<p>The tablist scrolls sideways. Scrolling is native (touch, trackpad), and moving focus with the arrow keys scrolls the tab fully into view. Without buttons, the tab cut off at the edge says the list goes on, so let such a row run to the edge of the screen or panel; but where the cut falls is luck (a tab can end exactly at the edge, or leave a sliver that looks like a stray bracket). So write the two scroll buttons, <code>tabs__scroll</code>, hidden, on either side of the list: the script shows them while the list overflows, dims the one that cannot go further (<code>aria-disabled</code>, so the row never jumps), and each press brings the next tabs in. Beside the buttons the tabs in view are whole: they widen evenly to fill the list, and the buttons say the rest. They are for a pointer that cannot swipe; keyboard users have the arrow keys, so the buttons are not tab stops. Nothing is hidden behind a menu.</p>
+<p>The tablist scrolls sideways. Write the two scroll buttons, <code>tabs__scroll</code>, hidden, on either side of the list: the script shows them while the list overflows and dims the one that cannot go further (<code>aria-disabled</code>, so the row never jumps). Beside them the tabs are cut into <em>pages</em>: each page is the run of tabs that fits whole, and the next page starts just past the edge, so at every page every tab in view is whole and nothing is sliced beside a button. The tabs keep their own widths; what a page does not fill stays empty, and the forward button says there is more. A press goes one page, a swipe snaps to one, and moving focus with the arrow keys brings the focused tab's page into view. The buttons are for a pointer that cannot swipe; keyboard users have the arrow keys, so the buttons are not tab stops. Nothing is hidden behind a menu. Without the buttons a row simply scrolls (swipe, trackpad, arrow keys): let it run to the edge of the screen or panel, never stop short of a frame, and the script changes its tabs' widths a little, all by the same amount, until the tab cut at that edge shows about half of itself at rest, so the cut reads as "more" and never as a stray sliver or a sliced end (a row that misses by a few pixels is tightened to fit).</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="tabs">
@@ -163,7 +171,7 @@
           <button class="tabs__tab" role="tab" type="button" id="tabs-ov-t2" aria-selected="false" aria-controls="tabs-ov-p2" tabindex="-1">Income</button>
           <button class="tabs__tab" role="tab" type="button" id="tabs-ov-t3" aria-selected="false" aria-controls="tabs-ov-p3" tabindex="-1">Spending</button>
           <button class="tabs__tab" role="tab" type="button" id="tabs-ov-t4" aria-selected="false" aria-controls="tabs-ov-p4" tabindex="-1">Savings</button>
-          <button class="tabs__tab" role="tab" type="button" id="tabs-ov-t5" aria-selected="false" aria-controls="tabs-ov-p5" tabindex="-1">Investments</button>
+          <button class="tabs__tab" role="tab" type="button" id="tabs-ov-t5" aria-selected="false" aria-controls="tabs-ov-p5" tabindex="-1">Bills</button>
           <button class="tabs__tab" role="tab" type="button" id="tabs-ov-t6" aria-selected="false" aria-controls="tabs-ov-p6" tabindex="-1">Reports</button>
           <button class="tabs__tab" role="tab" type="button" id="tabs-ov-t7" aria-selected="false" aria-controls="tabs-ov-p7" tabindex="-1">Settings</button>
         </div>
@@ -173,7 +181,7 @@
       <div class="tabs__panel" role="tabpanel" id="tabs-ov-p2" aria-labelledby="tabs-ov-t2" tabindex="0" hidden><p>Salary and two freelance invoices: <span class="num">$4,150.00</span>.</p></div>
       <div class="tabs__panel" role="tabpanel" id="tabs-ov-p3" aria-labelledby="tabs-ov-t3" tabindex="0" hidden><p>Groceries lead at <span class="num">$412.60</span>, then Transport.</p></div>
       <div class="tabs__panel" role="tabpanel" id="tabs-ov-p4" aria-labelledby="tabs-ov-t4" tabindex="0" hidden><p>Emergency fund is 72% of the way to 3&nbsp;months.</p></div>
-      <div class="tabs__panel" role="tabpanel" id="tabs-ov-p5" aria-labelledby="tabs-ov-t5" tabindex="0" hidden><p>Index fund, <span class="num">$9,880</span>. Next deposit on the 1st.</p></div>
+      <div class="tabs__panel" role="tabpanel" id="tabs-ov-p5" aria-labelledby="tabs-ov-t5" tabindex="0" hidden><p>Three bills due this week: rent, power and phone, <span class="num">$1,284.20</span> in all.</p></div>
       <div class="tabs__panel" role="tabpanel" id="tabs-ov-p6" aria-labelledby="tabs-ov-t6" tabindex="0" hidden><p>September statement is ready to download.</p></div>
       <div class="tabs__panel" role="tabpanel" id="tabs-ov-p7" aria-labelledby="tabs-ov-t7" tabindex="0" hidden><p>Currency, categories and export.</p></div>
     </div>
@@ -254,7 +262,7 @@
           <button class="tabs__tab" role="tab" type="button" id="tabs-st-t6" aria-selected="false" aria-disabled="true" aria-describedby="tabs-st-why" tabindex="-1">Unavailable</button>
         </div>
       </div>
-      <p class="t-meta" id="tabs-st-why">Enterprise needs a team plan.</p>
+      <p class="t-meta" id="tabs-st-why">Unavailable: this view needs a team plan.</p>
     </div>
   </div>
 </div>
@@ -266,7 +274,7 @@
     <tr><td>Hover (pointer only)</td><td>raised with its hard shadow (<code>--lift</code> 1), not filled</td><td>a 1px bar</td></tr>
     <tr><td>Keyboard focus</td><td>raised and ringed</td><td>ringed</td></tr>
     <tr><td>Pressed</td><td>sunk with a light tint (<code>--fill</code> 0.15)</td><td>a 1px bar</td></tr>
-    <tr><td>Selected</td><td>filled and ringed a second time (raised too while hovered)</td><td>full ink and a 2px bar</td></tr>
+    <tr><td>Selected</td><td>filled, its frame doubled inside (raised too while hovered; pressed again, it lightens to <code>--fill</code> 0.85 and stays chosen)</td><td>full ink and a 2px bar</td></tr>
     <tr><td>Unavailable</td><td>dashed frame, faint ink</td><td>faint ink</td></tr>
   </tbody>
 </table></div>
@@ -280,7 +288,7 @@
         <div class="stack" data-gap="4">
           <div class="cluster" data-justify="between">
             <div>
-              <p class="t-label">Deck · 12 cards</p>
+              <p class="t-label">Deck ·&nbsp;12 cards</p>
               <p class="t-title">Shapes</p>
             </div>
             <a class="btn" data-variant="primary" data-size="sm" href="#context">Study</a>
@@ -317,11 +325,11 @@
 
 <h2 id="anatomy">Anatomy</h2>
 <ol>
-  <li><strong>Bar</strong> (<code>.tabs__bar</code>): the tablist and, optionally, its two scroll buttons and one action that is not a tab. In the underline variant it carries the 1px divider.</li>
+  <li><strong>Bar</strong> (<code>.tabs__bar</code>): the tablist and, optionally, its two scroll buttons and one action that is not a tab. One height for all of them: 44px (36 small) at normal text; at large text the label plus 8px above and below, and the circles grow with it. In the underline variant it carries the 1px divider.</li>
   <li><strong>Tablist</strong> (<code>.tabs__list</code>, <code>role="tablist"</code>): scrolls sideways when the tabs overflow. 8px of padding keeps rings and shadows from being clipped; a matching negative margin keeps alignment.</li>
-  <li><strong>Scroll buttons</strong> (<code>.tabs__scroll</code>, optional): circle <a href="@/components/button.html">buttons</a> with a chevron, 44px like the tabs beside them (one row, one height), one each side of the list, shown only while it overflows; the one at an end is <code>aria-disabled</code>.</li>
+  <li><strong>Scroll buttons</strong> (<code>.tabs__scroll</code>, optional): circle <a href="@/components/button.html">buttons</a> with a chevron, the height of the tabs beside them (one row, one height), one each side of the list, shown only while it overflows; the one at an end is <code>aria-disabled</code>. While they show, the tabs page: every tab in view is whole.</li>
   <li><strong>Tab</strong> (<code>.tabs__tab</code>, <code>role="tab"</code>): a pill with a 2px frame, 44px tall (36px with <code>data-size="sm"</code>), 16px of side padding (12px small), hit area always 44px. Label in sentence case, semibold; an optional icon before it.</li>
-  <li><strong>Chosen cue</strong>: pill is filled and ringed a second time; underline is a 2px bar and full ink. Never colour alone. The fill means chosen and nothing else.</li>
+  <li><strong>Chosen cue</strong>: pill is filled and its frame doubles inside (a 2px ring in the surface colour between the border and the fill); underline is a 2px bar and full ink. Never colour alone. The fill means chosen and nothing else.</li>
   <li><strong>Panel</strong> (<code>.tabs__panel</code>, <code>role="tabpanel"</code>): one visible at a time, <code>tabindex="0"</code> so a keyboard user can reach it when it holds nothing focusable. Fades in; under reduced motion it is a plain fade with no travel.</li>
 </ol>
 
@@ -332,7 +340,7 @@
   <tbody>
     <tr><td><code>class="tabs"</code></td><td></td><td>The root. Wraps the bar and the panels.</td></tr>
     <tr><td><code>tabs__bar</code>, <code>tabs__list</code>, <code>tabs__tab</code>, <code>tabs__panel</code></td><td></td><td>Parts. The list is <code>role="tablist"</code> with an <code>aria-label</code>; each tab is a <code>&lt;button role="tab" type="button"&gt;</code>.</td></tr>
-    <tr><td><code>tabs__scroll</code></td><td>a <code>.btn</code> circle in the bar with <code>data-dir="back|forward"</code>, <code>hidden</code></td><td>Optional scroll buttons, one before and one after the list. The script shows them while the list overflows, dims the one at an end, and widens the tabs in view evenly so they are whole.</td></tr>
+    <tr><td><code>tabs__scroll</code></td><td>a <code>.btn</code> circle in the bar with <code>data-dir="back|forward"</code>, <code>hidden</code> (and <code>data-size="sm"</code> in a small bar)</td><td>Optional scroll buttons, one before and one after the list. The script shows them while the list overflows, dims the one at an end, and cuts the tabs into pages of whole tabs; each press goes one page.</td></tr>
     <tr><td><code>data-variant</code></td><td><code>underline</code> (default: pill)</td><td>Flat text tabs over a divider.</td></tr>
     <tr><td><code>data-size</code></td><td><code>sm</code> (36) (default 44)</td><td>Drawn height. The hit area is always 44.</td></tr>
     <tr><td><code>data-block</code></td><td></td><td>Tabs share the row equally (never narrower than their label).</td></tr>
@@ -344,6 +352,7 @@
     <tr><td><code>aria-disabled="true"</code></td><td></td><td>Dashed frame, faint ink; skipped by the arrow keys. Give a reason in <code>aria-describedby</code>.</td></tr>
     <tr><td><code>sg:tab</code> event</td><td><code>detail { tab, panel, index, previous }</code></td><td>Bubbles from the tab after a change.</td></tr>
     <tr><td><code>SG.tabs.select(tab)</code>, <code>SG.tabs.init(root)</code></td><td></td><td>Choose a tab in code (focus does not move); re-initialise after adding tabs.</td></tr>
+    <tr><td><code>SG.tabs.page(list, step)</code></td><td><code>1</code> | <code>-1</code></td><td>Go one page forward or back in a list that is paging beside its scroll buttons (what the buttons do).</td></tr>
   </tbody>
 </table></div>
 <p>The markup is complete without the script (the first tab is selected and its panel shown); the script adds clicks, the roving tabindex, the keys and <code>hidden</code> on the inactive panels.</p>
@@ -360,9 +369,9 @@
     <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last enabled tab.</td></tr>
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Select the focused tab (manual activation).</td></tr>
     <tr><td>Screen reader</td><td>"Overview, tab, selected, 1 of 3", inside a tablist named by <code>aria-label</code>; the panel is named by its tab (<code>aria-labelledby</code>). Inactive panels are <code>hidden</code>, so they are not read.</td></tr>
-    <tr><td>Touch and pointer</td><td>44&times;44px hit area on every tab. A tablist that overflows scrolls by touch, and its scroll buttons scroll it for a pointer that cannot swipe (WCAG 2.5.1); no gesture is required to reach a tab.</td></tr>
-    <tr><td>Zoom / text size</td><td>The words grow with the text; the side padding, the gaps and the 44px targets do not. At 200% text and at 320px a row that no longer fits scrolls sideways instead of clipping or wrapping, with the scroll buttons (or, without them, a tab cut at the screen's edge) to say so, and the focused tab is scrolled fully into view. A label in a vertical list wraps at its spaces and keeps the one-line corner (a soft rectangle, never an oval).</td></tr>
-    <tr><td>Reduced motion</td><td>No lift travel and no panel travel; the fill change and a short fade stay. Scrolling a tab into view is instant.</td></tr>
+    <tr><td>Touch and pointer</td><td>44&times;44px hit area on every tab. A tablist that overflows scrolls by touch (a swipe snaps to a page), and its scroll buttons page it for a pointer that cannot swipe (WCAG 2.5.1); no gesture is required to reach a tab.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the text; the side padding, the insets, the gaps and the 44px targets do not, and the whole bar keeps one height. At 200% text and at 320px a row that no longer fits pages beside its scroll buttons instead of clipping or wrapping, every tab in view whole, and the focused tab's page is brought into view. A label in a vertical list wraps at its spaces and keeps the one-line corner (a soft rectangle, never an oval).</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel and no panel travel; the fill change and a short fade stay. Paging and scrolling a tab into view are instant.</td></tr>
     <tr><td>Forced colours</td><td>Frames become <code>ButtonText</code>; raised and focused tabs get a 4px <code>Highlight</code> outline; the chosen pill gets a 4px frame, the chosen underline a 4px <code>Highlight</code> bar.</td></tr>
   </tbody>
 </table></div>
@@ -373,7 +382,7 @@
 </ul>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--line</code>, <code>--line-soft</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--radius-ctl</code>, <code>--ctl</code>, <code>--ctl-sm</code>, <code>--chrome-hit</code>, <code>--chrome-1</code> to <code>--chrome-5</code>, <code>--type-ctl</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--move</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-4</code>, <code>--space-6</code>.</p>
+<p><code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--ink-faint</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--line</code>, <code>--line-soft</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--radius-ctl</code>, <code>--chrome-ctl</code>, <code>--chrome-ctl-sm</code>, <code>--chrome-hit</code>, <code>--text-md</code>, <code>--text-sm</code>, <code>--chrome-1</code> to <code>--chrome-5</code>, <code>--type-ctl</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--move</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-4</code>, <code>--space-6</code>.</p>
 
 <h2 id="related">Related</h2>
 <ul>

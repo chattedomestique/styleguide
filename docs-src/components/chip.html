@@ -10,7 +10,7 @@
   .docs-article .demo__stage > .chips.scroller { margin-inline: calc(var(--chrome-5) * -1); padding-inline: var(--chrome-5); scroll-padding-inline: var(--chrome-5); }
   @media (max-width: 40em) { .docs-article .demo__stage > .chips.scroller { margin-inline: calc(var(--chrome-3) * -1); padding-inline: var(--chrome-3); scroll-padding-inline: var(--chrome-3); } }
   /* State specimens: 16px apart, so a lift, a shadow and a ring never touch the next chip */
-  .docs-article .chips.chip-specimens { gap: var(--space-4); }
+  .docs-article .chips.chip-specimens { gap: var(--space-4); padding-inline: var(--space-2); }
   /* In context: the icon in a row's tile (the card's icon slot) sits in its middle */
   .docs-article .card__tile:has(> .ic) { display: grid; place-items: center; }
   .docs-article .card__tile > .ic { --ic-size: var(--chrome-ic-sm); }
@@ -48,7 +48,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="filter">Filter chips</h3>
-<p>Each is a toggle button. <strong>On</strong>, a chip is filled, ringed a second time (2px, in the line colour), and a check takes the place of its icon, so it is never told apart by colour alone. The fill means on and nothing else: a pointer over a chip raises it, a press tints it, but only an on chip is solid. The check is drawn by the chip itself; you only write the label. <code>data-sg-chips</code> on the row turns on the toggling, and your app listens for <code>sg:chip-toggle</code>.</p>
+<p>Each is a toggle button. <strong>On</strong>, a chip is filled, its frame doubles (a 2px ring in the surface colour just inside the border, so it keeps the size of the chips beside it), and a check takes the place of its icon, so it is never told apart by colour alone. The fill means on and nothing else: a pointer over a chip raises it, a press tints it, but only an on chip is solid. The check is drawn by the chip itself; you only write the label. <code>data-sg-chips</code> on the row turns on the toggling, and your app listens for <code>sg:chip-toggle</code>.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="chips" role="group" aria-label="Filter by category" data-sg-chips>
@@ -143,7 +143,7 @@
 </div>
 
 <h3 id="scroll">One scrolling line</h3>
-<p>A wrapping row is the safest default, because nothing is hidden. When vertical space is tight, add the <code>scroller</code> class: the row scrolls sideways, and the chip cut off at the edge says there is more. Let the row run to the edge of the screen (<code>bleed</code> inside an <code>.app</code> column; this stage does the same), so the cut is made by the frame and reads as "more this way", not as a pill sliced inside the layout. Tab through it and each focused chip scrolls fully into view. Name the row so it can be found.</p>
+<p>A wrapping row is the safest default, because nothing is hidden. When vertical space is tight, add the <code>scroller</code> class: the row scrolls sideways, and the chip cut off at the edge says there is more. Let the row run to the edge of the screen (<code>bleed</code> inside an <code>.app</code> column; this stage does the same), so the cut is made by the frame and reads as "more this way", not as a pill sliced inside the layout. Where the cut falls is not left to luck: at rest the chips' side padding changes a little, all by the same amount, until the chip at the edge shows about half of itself (never a sliver, never a chip missing only its round end). Tab through it and each focused chip scrolls fully into view. Name the row so it can be found.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="chips scroller" role="group" aria-label="Filter by month" data-sg-chips>
@@ -193,7 +193,7 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>The look follows ARIA and native attributes. The solid fill is kept for <em>on</em>: hover and keyboard focus raise a chip with its hard shadow, a press sinks it with a light tint, and only an on chip is filled (and ringed, and checked). The <code>is-*</code> classes only force a state for this page.</p>
+<p>The look follows ARIA and native attributes. The solid fill is kept for <em>on</em>: hover and keyboard focus raise a chip with its hard shadow, a press sinks it with a light tint, and only an on chip is filled (with its doubled frame and its check). The <code>is-*</code> classes only force a state for this page.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="4">
@@ -219,7 +219,7 @@
     <tr><td>Hover (pointer only)</td><td>1, hard shadow</td><td>0</td><td>the shadow</td></tr>
     <tr><td>Keyboard focus</td><td>1, hard shadow</td><td>as it was</td><td>the 3px ring</td></tr>
     <tr><td>Pressed</td><td>0</td><td>0.15, a light tint (0.85 on an on chip)</td><td>it sinks</td></tr>
-    <tr><td>On</td><td>0 (1 while hovered)</td><td>1</td><td>a second 2px ring and the check</td></tr>
+    <tr><td>On</td><td>0 (1 while hovered)</td><td>1</td><td>the doubled frame, drawn inside (a tone chip: a single frame), and the check</td></tr>
     <tr><td>Disabled, unavailable</td><td>0</td><td>0</td><td>dashed frame, faint ink; unavailable says why</td></tr>
   </tbody>
 </table></div>
@@ -241,9 +241,9 @@
             <button class="chip" type="button" aria-pressed="false" data-cat="move"><span class="ic ic--car chip__icon" aria-hidden="true"></span>Transport</button>
           </div>
           <div class="stack" data-gap="2">
-            <article class="card card--row" data-cat="shop"><span class="card__tile" aria-hidden="true"><span class="ic ic--shopping-bag" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Sports outlet</p><p class="card__meta">Shopping · 8 April</p></div><p class="card__trail num">−$134.00</p></article>
-            <article class="card card--row" data-cat="food"><span class="card__tile" aria-hidden="true"><span class="ic ic--utensils" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Harbour café</p><p class="card__meta">Food &amp; drink · 8 April</p></div><p class="card__trail num">−$9.40</p></article>
-            <article class="card card--row" data-cat="move"><span class="card__tile" aria-hidden="true"><span class="ic ic--car" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Car share</p><p class="card__meta">Transport · 7 April</p></div><p class="card__trail num">−$24.00</p></article>
+            <article class="card card--row" data-cat="shop"><span class="card__tile" aria-hidden="true"><span class="ic ic--shopping-bag" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Sports outlet</p><p class="card__meta">Shopping ·&nbsp;8&nbsp;April</p></div><p class="card__trail num">−$134.00</p></article>
+            <article class="card card--row" data-cat="food"><span class="card__tile" aria-hidden="true"><span class="ic ic--utensils" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Harbour café</p><p class="card__meta">Food &amp; drink ·&nbsp;8&nbsp;April</p></div><p class="card__trail num">−$9.40</p></article>
+            <article class="card card--row" data-cat="move"><span class="card__tile" aria-hidden="true"><span class="ic ic--car" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Car share</p><p class="card__meta">Transport ·&nbsp;7&nbsp;April</p></div><p class="card__trail num">−$24.00</p></article>
           </div>
         </div>
       </div>
@@ -254,12 +254,13 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Frame</strong>: a pill with a 2px <code>--line</code> border, 36px tall (44px with <code>data-size="lg"</code>), 16px of side padding (24px when large). The border is always there, so forced-colours mode still draws an edge.</li>
-  <li><strong>Leading icon</strong> (optional, <code>chip__icon</code>): 16px, decorative, beside the first line of the label. It gives its place to the check when the chip is on, so the chip does not change width.</li>
-  <li><strong>Check</strong>: a mask the chip draws in front of the label when on. The second cue after the fill and the second ring. A "more" chip shows a plus, or a minus when open.</li>
+  <li><strong>Leading icon</strong> (optional, <code>chip__icon</code>): 1.15em of the label (16px at normal text, growing with the words), decorative, beside the first line of the label. It gives its place to the check when the chip is on, so the chip does not change width.</li>
+  <li><strong>Check</strong>: a mask the chip draws in front of the label when on, the size of the icon it replaces. With the fill and the doubled frame it is the third cue; on a tone fill, where a second ring read as a heavy black frame, the check is the cue. A "more" chip shows a plus, or a minus when open.</li>
+  <li><strong>Doubled frame</strong> (on): a 2px ring in the surface colour inside the border, between the frame and the fill. Drawn inside, so an on chip is exactly as big as its neighbours.</li>
   <li><strong>Label</strong>: 14px semibold, sentence case. It never changes when the chip is pressed.</li>
   <li><strong>Fill</strong>: solid only when the chip is on. A press shows as a light tint.</li>
   <li><strong>Hard shadow</strong>: only when it can be pressed (hover, focus). An input chip is flat.</li>
-  <li><strong>Remove button</strong> (<code>chip__remove</code>, input chips only): its own 44px target, named with what it removes.</li>
+  <li><strong>Remove button</strong> (<code>chip__remove</code>, input chips only): a 24px circle with a 20px glyph inside the chip, at every text size (it is its own control), with its own 44px target, named with what it removes.</li>
   <li><strong>Hit area</strong>: an invisible <code>::after</code> that guarantees 44&times;44px.</li>
 </ol>
 
@@ -294,7 +295,7 @@
     <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>On a focused remove button: removes the chip.</td></tr>
     <tr><td>Screen reader</td><td>"Food and drink, toggle button, pressed". Choice: "Medium, radio button, 2 of 4". Remove: "Remove Anna Kim, button". Disclosure: "4 more, button, collapsed". After a removal: "Anna Kim removed. 2 left."</td></tr>
     <tr><td>Touch</td><td>44&times;44px targets, at least 8px between chips. A scrolling row can be swiped, and every chip is also reachable with Tab.</td></tr>
-    <tr><td>Zoom / text size</td><td>The label grows with the text; the side padding, the gap, the icon and the check stop at their 100% size, so at 200% text a label keeps the room and holds one line wherever the row allows. A label too long for the row wraps at its spaces, beside its icon, and the corner stays the one-line radius, so a wrapped chip is a soft rectangle and never an oval. A word never breaks unless it alone is wider than the row. A wrapping row never scrolls sideways; in a scrolling row a chip keeps its whole label (it does not shrink).</td></tr>
+    <tr><td>Zoom / text size</td><td>The label grows with the text, and so do the leading icon and the check, which sit in its line; the side padding, the gap, the 44px target and an input chip's remove button stop at their 100% size, so at 200% text a label keeps the room and holds one line wherever the row allows. A label too long for the row wraps at its spaces, beside its icon, and the corner stays the one-line radius, so a wrapped chip is a soft rectangle and never an oval. A word never breaks unless it alone is wider than the row. A wrapping row never scrolls sideways; in a scrolling row a chip keeps its whole label (it does not shrink).</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the fill and frame change stay.</td></tr>
     <tr><td>Forced colours</td><td>Every chip keeps its border; raised and focused chips get a 4px <code>Highlight</code> outline; an on chip gets a 4px frame and keeps its check.</td></tr>
   </tbody>

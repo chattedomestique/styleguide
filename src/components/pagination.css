@@ -36,8 +36,9 @@
    button.css); Previous and Next as circles are chrome (44px, a 20px arrow), and so are the row's gaps.
    RIGHT-TO-LEFT: the arrows mirror.
 
-   CURRENT PAGE is filled AND ringed a second time (the .btn "on" look, as a pressed toggle: a 2px ring in the line colour), and the
-   status line says it in words. Never colour alone. Numbers are tabular. The fill means current, so another
+   CURRENT PAGE is filled AND its frame doubles: a 2px ring in the surface colour just inside the border (the
+   .btn "on" look draws that ring outside, which made the current circle 4px larger than the numbers beside
+   it), and the status line says it in words. Never colour alone. Numbers are tabular. The fill means current, so another
    page number only lifts on hover (and tints when pressed): a pointer over "6" must not make it look like the
    page you are on. Previous and Next are actions and keep Button's fill on hover.
    Links throughout; the only script is the layout measure.
@@ -45,8 +46,8 @@
    data-variant="switcher" is the same parts, always in the short form, for a value that is not a page
    number (a month): see the docs.
 
-   Private properties: none of its own; it sets the .btn ones (--_selw, --_h, --_cap) for the current page and
-   the circles.
+   Private properties: --_status-w (set by the script: the room of the status's longest form); it also sets the
+   .btn ones (--_selw, --_select, --_halo, --_h, --_cap) for the current page and the circles.
    ========================================================================== */
 
 @layer sg.components {
@@ -86,10 +87,12 @@
     }
   }
 
-  /* the page you are on: filled, and ringed a second time (as a pressed toggle) */
+  /* the page you are on: filled, and its frame doubled inside, so it is the size of the numbers beside it */
   .pagination .btn[aria-current="page"] {
     --fill: 1;
     --_selw: var(--bw);
+    --_select: inset 0 0 0 var(--bw) var(--paper);
+    --_halo: 0 0 0 calc(var(--lift) * var(--fill) * var(--bw)) var(--focus-halo, var(--paper)); /* Button's gap, outside the frame */
   }
   /* the fill means "you are here": another page number lifts on hover and tints when pressed, it never fills */
   .pagination .pagination__page .btn:not([aria-current="page"]) {
@@ -115,6 +118,8 @@
 
   /* the short form of the current position; shown only when there is no room for the numbers */
   .pagination__status {
+    --_status-w: auto; /* the script sets it (inline) in the short form: the room of the longest form */
+
     display: none;
     font: var(--type-ctl);
     font-variant-numeric: tabular-nums lining-nums;
@@ -187,6 +192,13 @@
       display: block;
       flex: 0 1 auto;
       min-inline-size: 0;
+      /* the room of its longest form (47-pagination.js): pagers of one list share a width and a height */
+      inline-size: var(--_status-w);
+
+      &[data-lines="2"] {
+        align-content: center; /* a block box: its words still wrap at the box, they are not a flex item's floor */
+        min-block-size: 2lh;
+      }
     }
     & .pagination__list {
       gap: var(--chrome-4);
@@ -257,6 +269,10 @@
       flex: 1 1 auto;
       min-inline-size: 0;
       font: var(--type-title);
+      /* A display value: on a narrow phone it shrinks to hold one line between the arrows ("September 2026" is
+         7.5em wide; the arrows, the gaps and the padding are 128px of chrome) instead of wrapping, but never below
+         the reader's body size, so at large text it wraps rather than shrinks. */
+      font-size: max(var(--text-md), min(var(--text-xl), calc((100cqi - 2 * var(--chrome-ctl) - 2 * var(--chrome-3) - 2 * var(--chrome-2)) / 7.5)));
       text-align: center;
       white-space: normal;
       overflow-wrap: break-word;

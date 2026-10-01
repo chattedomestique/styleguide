@@ -33,7 +33,7 @@
    pattern replaces "lift" with the cell's own frame on hover. THE FILL MEANS CHOSEN:
      rest      no frame, no fill
      hover     the cell's own 2px frame (pointer only)
-     focus     the ring, on the chosen cell (where a radio group's focus lands)
+     focus     the ring, inside the chosen cell (where a radio group's focus lands), in the thumb's ink
      pressed   a light tint (--fill 0.15) at once, before the radio has flipped (feedback inside 100ms)
      chosen    the filled thumb with a frame of its own
    Everything else is Button's: pill, 2px frame, --fill animated by ONE transition.
@@ -53,8 +53,8 @@
      grid    four options only: two rows of two equal cells
      stack   every option on a line of its own, full width; a label too long for that wraps at its spaces
    While data-fit is set the labels do not wrap (nowrap), so "does not fit" shows up as overflow. The words
-   grow with the reader's text; the chrome (the track's padding, the cells' side padding, the icon) stops at
-   its 100% size (--chrome-*). The side padding also eases down to 8px on a narrow screen (4vw: 12.8px at
+   grow with the reader's text, and so does an icon beside a word (1.1em: it is part of the line); the chrome
+   (the track's padding, the cells' side padding) stops at its 100% size (--chrome-*). The side padding also eases down to 8px on a narrow screen (4vw: 12.8px at
    320), so two or three whole labels still share a row in a 288px column. Without JS there is no data-fit:
    the cells wrap onto more rows of equal cells instead (whole labels first). A word is never broken
    unless it is wider than the whole control.
@@ -179,7 +179,7 @@
     transition: --fill var(--dur-hover) var(--ease-out);
 
     & > .ic {
-      --ic-size: min(1.125rem, var(--chrome-ic-sm)); /* beside the word, growing with it only to the 20px icon cap */
+      --ic-size: 1.1em; /* it sits in the line of words, so it grows with them (a capped icon was a speck at 200%) */
     }
   }
 
@@ -207,14 +207,14 @@
     --fill: 1;
   }
 
-  /* focus: the ring belongs on the visible label, not the invisible radio. The track pads 4px, so the
-     ring sits at the small offset: halo + ring then end just inside the track's own frame. */
+  /* focus: the ring belongs on the visible label, not the invisible radio. It is drawn INSIDE the cell, 2px in
+     from its frame, in the colour of what it sits on: the thumb's ink on the chosen cell (where a radio group's
+     focus lands), the focus ink on an empty one (the ring follows the surface). Outside, it ran into the
+     track's own frame at the ends (the track pads only 4px) and read as one heavy black cap. */
   .segmented__opt > input:focus-visible + .segmented__label,
   .segmented__label.is-focus {
-    --focus-shadow: 0 0 0 var(--ring-offset-in) var(--paper);
-    outline: var(--ring) solid var(--focus);
-    outline-offset: var(--ring-offset-in);
-    box-shadow: var(--focus-shadow);
+    outline: var(--ring) solid color-mix(in srgb, var(--_thumb-ink) calc(var(--fill) * 100%), var(--focus));
+    outline-offset: calc((var(--bw) + var(--ring-offset-in) + var(--ring)) * -1);
   }
 
   /* unavailable: dashed = not here. A chosen-but-disabled option keeps its weight and a recessed fill. */

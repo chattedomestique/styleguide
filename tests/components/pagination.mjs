@@ -26,14 +26,15 @@ export const tests = [
     },
   },
   {
-    name: 'The current page is filled AND ringed a second time; the others are outlines',
+    name: 'The current page is filled AND its frame doubles (inside); the others are outlines',
     viewport: WIDE,
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
       await page.mouse.move(0, 0)
       const r = await page.evaluate((sel) => [...document.querySelectorAll(sel + ' .pagination__page .btn')].map((b) => { const cs = getComputedStyle(b); return { cur: b.getAttribute('aria-current') === 'page', fill: Number(cs.getPropertyValue('--fill')), shadow: cs.boxShadow, tab: cs.fontVariantNumeric } }), LIVE)
       const cur = r.find((b) => b.cur); const other = r.filter((b) => !b.cur)
-      expect.equal(cur.fill, 1, 'current: --fill 1'); expect.ok(/0px 0px 0px 2px/.test(cur.shadow), 'current: second 2px ring: ' + cur.shadow)
+      expect.equal(cur.fill, 1, 'current: --fill 1'); expect.ok(/0px 0px 0px 2px inset/.test(cur.shadow), 'current: its frame doubles inside (a 2px inset ring): ' + cur.shadow)
+      expect.ok(!/0px 0px 0px [1-9][\d.]*px(?! inset)/.test(cur.shadow), 'current: nothing drawn outside its frame, so it is the size of the numbers beside it: ' + cur.shadow)
       expect.ok(other.every((b) => b.fill === 0 && !/0px 0px 0px 2px/.test(b.shadow)), 'others: outline, one frame')
       expect.ok(cur.tab.includes('tabular-nums'), 'numbers are tabular')
     },
@@ -234,6 +235,33 @@ export const tests = [
       const a = await t(); expect.ok(a.l === 'none' && a.r === 'none', 'LTR: not flipped')
       await page.evaluate(() => document.documentElement.setAttribute('dir', 'rtl'))
       const b = await t(); expect.ok(b.l === 'matrix(-1, 0, 0, 1, 0, 0)' && b.r === 'matrix(-1, 0, 0, 1, 0, 0)', 'RTL: mirrored ' + JSON.stringify(b))
+    },
+  },
+  {
+    name: 'Pagers of one list share a height and line up their arrows (the status keeps the room of "Page 88 of 88"); every pager is centred in its frame; the month holds one line at 320',
+    async run({ page, goto, expect }) {
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await goto('components/pagination.html')
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await settle(page)
+        const r = await page.evaluate(() => {
+          const navs = [...document.querySelectorAll('#ends ~ .demo')][0].querySelectorAll('.pagination')
+          const ends = [...navs].map((n) => { const a = n.querySelector('.pagination__prev .btn').getBoundingClientRect(); const b = n.querySelector('.pagination__next .btn').getBoundingClientRect(); return { h: Math.round(n.getBoundingClientRect().height), prev: Math.round(a.left), next: Math.round(b.left) } })
+          const centred = [...document.querySelectorAll('.docs-article .pagination')].map((n) => {
+            const nr = n.getBoundingClientRect(); const kids = [...n.querySelector('.pagination__list').children].filter((k) => getComputedStyle(k).display !== 'none').map((k) => k.getBoundingClientRect())
+            return { label: n.getAttribute('aria-label'), off: Math.round((kids[0].left - nr.left) - (nr.right - kids[kids.length - 1].right)) }
+          })
+          const month = document.querySelector('#pg-month .pagination__status'); const lines = Math.round(month.getBoundingClientRect().height / parseFloat(getComputedStyle(month).lineHeight))
+          return { ends, centred, monthLines: lines, monthFont: parseFloat(getComputedStyle(month).fontSize) }
+        })
+        const tag = w + 'px ' + text + '%'
+        expect.ok(r.ends.length === 2 && r.ends[0].h === r.ends[1].h, tag + ': the first and the last page\'s pagers are one height: ' + JSON.stringify(r.ends))
+        expect.ok(Math.abs(r.ends[0].prev - r.ends[1].prev) <= 1 && Math.abs(r.ends[0].next - r.ends[1].next) <= 1, tag + ': their arrows line up: ' + JSON.stringify(r.ends))
+        expect.ok(r.centred.every((c) => Math.abs(c.off) <= 1), tag + ': every pager is centred in its frame: ' + JSON.stringify(r.centred.filter((c) => Math.abs(c.off) > 1)))
+        if (text === 100) expect.ok(r.monthLines === 1, tag + ': "January 2026" holds one line between the arrows: ' + JSON.stringify(r))
+        expect.ok(r.monthFont >= 16 * text / 100 - 0.5, tag + ': the month never drops below the reader\'s body size: ' + r.monthFont)
+      }
     },
   },
 ]

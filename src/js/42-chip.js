@@ -29,7 +29,12 @@
      When a chip takes focus inside a horizontally scrolling row, the row scrolls so the whole
      chip shows, with a sliver of the next one. Browsers leave a partly visible chip where it
      is, which cuts its focus ring in half. Uses SG.revealInline (40-tabs.js), which honours
-     SG.motion.reduced(). The chip that peeks in at the edge is the sign that the row goes on.
+     SG.motion.reduced(). The chip that peeks in at the edge is the sign that the row goes on,
+     so where it is cut is not luck: at rest every chip's side padding changes by the same small
+     amount (--_grow on the row, half a side) until that chip shows between 30% and 60% of
+     itself and at least 24px (never a sliver, never a chip missing only its round end); a row
+     that misses by a few pixels is tightened (at most 4px a side) until it fits. Re-measured
+     when the row or a chip changes size (rotation, text size, fonts).
    ========================================================================== */
 (function (SG) {
   'use strict';
@@ -127,5 +132,71 @@
     if (item.parentElement === row) SG.revealInline(item, row, 24);
   });
 
-  SG.chips = { toggle: toggle, disclose: disclose };
+  /* ---- scrolling row: a deliberate cut at rest -------------------------------------------------------------- */
+  var SHRINK = -8;
+  var GROW = 48;
+  function cut(row) {
+    row.style.removeProperty('--_grow');
+    if (row.scrollWidth <= row.clientWidth + 1) return;
+    var cs = getComputedStyle(row);
+    var rtl = cs.direction === 'rtl';
+    var box = row.getBoundingClientRect();
+    var padS = parseFloat(cs.paddingInlineStart) || 0;
+    var room = box.width - padS - (parseFloat(cs.paddingInlineEnd) || 0);
+    var edge = box.width - padS; // the clipping edge at rest, in content coordinates
+    var pos = Math.abs(row.scrollLeft);
+    var items = SG.qsa('.chip', row).filter(function (c) { return c.getClientRects().length; }).map(function (c) {
+      var r = c.getBoundingClientRect();
+      return { s: (rtl ? box.right - r.right : r.left - box.left) - padS + pos, w: r.width };
+    });
+    function at(grow) { // the first chip that is not whole inside the row's padding when every chip is `grow` wider
+      for (var i = 0; i < items.length; i++) {
+        var s = items[i].s + i * grow;
+        var w = items[i].w + grow;
+        if (s + w > room + 0.5) return { v: edge - s, w: w };
+      }
+      return null;
+    }
+    var chosen = null;
+    if (!at(SHRINK)) {
+      for (var f = 0; f >= SHRINK; f -= 0.5) if (!at(f)) { chosen = f; break; }
+    } else {
+      for (var d = 0; d <= GROW && chosen === null; d += 0.5) {
+        [d, -d].some(function (grow) {
+          if (grow < SHRINK) return false;
+          var c = at(grow);
+          if (c && c.v >= Math.max(24, 0.3 * c.w) && c.v <= 0.6 * c.w) { chosen = grow; return true; }
+          return false;
+        });
+      }
+    }
+    if (chosen) row.style.setProperty('--_grow', chosen + 'px');
+  }
+  // one re-fit per row per frame, outside the ResizeObserver callback (it changes the sizes it watches)
+  var queued = [];
+  function later(row) {
+    if (queued.indexOf(row) > -1) return;
+    queued.push(row);
+    if (queued.length === 1) requestAnimationFrame(function () {
+      var rows = queued;
+      queued = [];
+      rows.forEach(cut);
+    });
+  }
+  function watch(row) {
+    if (row.hasAttribute('data-sg-cut')) return;
+    row.setAttribute('data-sg-cut', '');
+    cut(row);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(function () { later(row); });
+      ro.observe(row);
+      SG.qsa('.chip', row).forEach(function (c) { ro.observe(c); });
+    }
+  }
+  SG.ready(function () { SG.qsa('.chips.scroller').forEach(watch); });
+  if (document.fonts && document.fonts.addEventListener) {
+    document.fonts.addEventListener('loadingdone', function () { SG.qsa('.chips.scroller').forEach(later); });
+  }
+
+  SG.chips = { toggle: toggle, disclose: disclose, fit: cut };
 })((window.SG = window.SG || {}));

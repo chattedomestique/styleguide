@@ -146,6 +146,9 @@
     border-block-start: var(--bw-thin) solid transparent;
     border-radius: 0;
     font: var(--type-ctl);
+    /* a reading line-height, not the control's 1: a label that wraps, or a 32px label at 200% text, keeps its
+       leading clear of the rules between rows (with line-height 1 it nearly touched them) */
+    line-height: var(--lh-snug);
     text-align: start;
     text-decoration: none;
     cursor: pointer;
@@ -232,14 +235,17 @@
   }
 
   /* A row with a reason or a shortcut, measured (SG.fit in 63-menu.js): "inline" keeps the reason at the end of
-     the row's line, and the row does not wrap while it is measured, so a reason that does not fit shows up as
-     overflow; "stack" puts it under the label, aligned with the label's start (a value that drops under its
-     label starts where the label starts, never at the far edge). */
+     the row's line, and the row does not wrap while it is measured. The reason is the one part that may give:
+     when the row is short of room it shrinks below its words, so they overflow IT, where the measure sees them
+     (a row that only ran into its own end padding did not overflow, and "After review" sat 4px from the frame
+     at 200% text). "stack" then puts it under the label, aligned with the label's start (a value that drops
+     under its label starts where the label starts, never at the far edge). */
   .menu__item[data-fit="inline"] {
     white-space: nowrap;
 
     & > .menu__meta {
-      flex: none;
+      flex: 0 1 auto;
+      min-inline-size: 0;
     }
   }
   .menu__item[data-fit="stack"] {
