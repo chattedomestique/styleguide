@@ -119,18 +119,25 @@
   outline-offset: -2px;
 }
 @media (min-width: 80em) { .docs-main { grid-template-columns: minmax(0, 52rem) 13rem; justify-content: center; } }
-.docs-article { min-inline-size: 0; max-inline-size: 52rem; }
+/* The article is a container so the title can be sized from its column, not the viewport: the sidebar and the table of
+   contents take a different share at every width, and a viewport-sized title broke inside a word ("ACCORDIO / N") at
+   1024 to 1366. 9.6cqi fits the widest title word ("Contributing", 10.1em in the expanded face) with a little to spare. */
+.docs-article { min-inline-size: 0; max-inline-size: 52rem; container: article / inline-size; }
 .docs-article > * + * { margin-block-start: var(--space-4); }
 .docs-crumb { margin: 0; color: var(--ink-soft); }
 
 /* poster-scale title, like the owner's sheet ("CARDS"): expanded, 900, uppercase, sized to fit */
 .docs-article h1 {
-  font: 900 expanded clamp(2.25rem, 0.8rem + 8.5vw, 6.5rem) / 0.9 var(--font-sans);
+  font: 900 expanded clamp(1.5rem, 9.6cqi, 6.5rem) / 0.9 var(--font-sans);
   letter-spacing: var(--ls-display);
   text-transform: uppercase;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: balance;
 }
+/* Big text in a phone column (200% text on a 390px phone leaves about 10rem): the expanded face is too wide for the
+   longest title words, so the face narrows in steps instead of the word breaking. In rem, so it follows the text size. */
+@container article (max-width: 16rem) { .docs-article h1 { font-stretch: 100%; } }
+@container article (max-width: 11rem) { .docs-article h1 { font-stretch: 72%; } }
 .docs-article h2 {
   margin-block-start: var(--space-8);
   padding-block-start: var(--space-4);
@@ -140,7 +147,9 @@
   scroll-margin-block-start: calc(var(--appbar-h) + var(--space-4));
 }
 .docs-article h3 { margin-block-start: var(--space-6); font: var(--type-title); scroll-margin-block-start: calc(var(--appbar-h) + var(--space-4)); }
-.docs-article p, .docs-article li { max-inline-size: var(--measure); }
+/* Prose only. Unlayered, this would beat the layered component rules inside a demo (a divider's rule stopping short of its
+   buttons, a player's end time floating mid-bar). */
+.docs-article :is(p, li):not(:is(.demo, .phone) *) { max-inline-size: var(--measure); }
 .docs-article ul, .docs-article ol { padding-inline-start: var(--space-5); }
 .docs-article li + li { margin-block-start: var(--space-1); }
 .docs-article .lede { max-inline-size: 38rem; color: var(--ink-soft); font: 400 var(--text-lg) / 1.4 var(--font-sans); }
@@ -155,6 +164,8 @@
 /* ---- Demo: a framed specimen with its markup underneath (like the owner's MARKUP bar) ---- */
 .demo { border: var(--bw) solid var(--line); background: var(--canvas); overflow: clip; }
 .demo__stage { padding: var(--space-5); background: var(--demo-bg, var(--canvas)); container-type: inline-size; }
+/* Padding is in rem, so at 200% text it ate more than half of a phone's width and left a 150px mock. Tighter below 40em. */
+@media (max-width: 40em) { .demo__stage { padding: var(--space-3); } .phone__screen { padding: var(--space-3); } }
 .demo[data-bg="paper"] .demo__stage { --demo-bg: var(--paper); }
 .demo[data-bg="ink"] .demo__stage { --demo-bg: var(--ink); color: var(--paper); }
 .demo[data-bg="media"] .demo__stage { --demo-bg: var(--tone-2); }
@@ -214,6 +225,8 @@ html { --appbar-h: calc(2.75rem + var(--safe-top)); }
 /* ---- Tables ------------------------------------------------------------------------------ */
 .table-wrap { overflow-x: auto; border: var(--bw) solid var(--line); }
 .table-wrap:focus-visible { outline-offset: 0; }
+.table-hint[hidden] { display: none; }
+.table-hint { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-1) 0 0; max-inline-size: none; font: var(--type-meta); color: var(--ink-soft); }
 .docs-table { inline-size: 100%; min-inline-size: 32rem; border-collapse: collapse; font-size: var(--text-sm); }
 .docs-table th, .docs-table td { padding: var(--space-2) var(--space-3); border-block-end: var(--bw-thin) solid var(--line); text-align: start; vertical-align: top; }
 .docs-table th { background: var(--ink); color: var(--paper); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; white-space: nowrap; }
@@ -276,3 +289,17 @@ html { --appbar-h: calc(2.75rem + var(--safe-top)); }
 
 /* a box you can resize to watch a card answer to its own width (owner's "container sizing" demo) */
 .resize-box { resize: inline; overflow: auto; inline-size: min(100%, 26rem); min-inline-size: min(12rem, 100%); max-inline-size: 100%; padding: var(--space-3); border: var(--bw) dashed var(--line); }
+
+/* ---- Overview: the start path and the generated page index ---------------------------------------------------------- */
+.docs-article .docs-steps, .docs-article .docs-index { margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.docs-steps { counter-reset: step; display: grid; gap: var(--space-2); }
+.docs-steps li { max-inline-size: none; margin: 0; counter-increment: step; }
+.docs-index { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--space-2); }
+.docs-index li { max-inline-size: none; margin: 0; }
+.docs-article .docs-index li + li, .docs-article .docs-steps li + li { margin-block-start: 0; }
+.docs-steps a, .docs-index a { display: flex; flex-direction: column; gap: var(--space-1); block-size: 100%; min-block-size: var(--hit); padding: var(--space-3) var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink); text-decoration: none; }
+.docs-steps a::before { content: counter(step, decimal-leading-zero); font: var(--type-label); letter-spacing: var(--ls-label); color: var(--ink-soft); }
+.docs-steps strong, .docs-index strong { font: 700 var(--text-md) / 1.2 var(--font-sans); overflow-wrap: break-word; }
+.docs-steps span, .docs-index span { color: var(--ink-soft); font: var(--type-meta); overflow-wrap: break-word; }
+@media (hover: hover) { .docs-steps a:hover, .docs-index a:hover { border-color: var(--ink); } }
+.docs-article h3 + .docs-index { margin-block-end: var(--space-4); }

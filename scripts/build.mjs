@@ -351,6 +351,75 @@ function parsePage(file) {
   return { meta, body: src, path, out: path + '.html' }
 }
 
+// Element families by `order` band (CLAUDE.md "Adding an element"): the overview groups the component list by them.
+const FAMILIES = [
+  ['Actions', 10, 19], ['Forms', 20, 39], ['Selection and navigation', 40, 59], ['Surfaces', 60, 79],
+  ['Overlays and feedback', 80, 99], ['Data', 100, 119], ['Media and tools', 120, 139],
+]
+
+/** {{index:Group}} in a page: a link to every page of that group with its one-line summary (components by family), generated so it never goes stale. */
+function renderIndex(group, pages, page, root) {
+  const items = pages.filter((p) => p.meta.group === group && p !== page)
+  if (!items.length) { fail(`${page.out}: {{index:${group}}} but there are no pages in that group`); return '' }
+  const li = (p) => `<li><a href="${root}${p.out}"><strong>${esc(p.meta.title)}</strong><span>${esc(p.meta.summary)}</span></a></li>`
+  if (group !== 'Components') return `<ul class="docs-index" role="list">${items.map(li).join('')}</ul>`
+  const used = new Set()
+  const sections = FAMILIES.map(([name, lo, hi]) => {
+    const inBand = items.filter((p) => (p.meta.order ?? 999) >= lo && (p.meta.order ?? 999) <= hi)
+    inBand.forEach((p) => used.add(p))
+    return inBand.length ? `<h3>${esc(name)}</h3>\n<ul class="docs-index" role="list">${inBand.map(li).join('')}</ul>` : ''
+  })
+  const rest = items.filter((p) => !used.has(p))
+  if (rest.length) sections.push(`<h3>More</h3>\n<ul class="docs-index" role="list">${rest.map(li).join('')}</ul>`)
+  return sections.filter(Boolean).join('\n')
+}
+
+/**
+ * Docs tables on a phone. A table of words (an API, a keyboard list) is wider than 390px, so its last column, the one
+ * that says what the thing DOES, sat off-screen behind a sideways scroll nobody knew about. Every plain `.docs-table`
+ * whose header and body line up gets `data-stack`, a `data-label` on each cell and the table ARIA roles (display: block
+ * would otherwise strip the table semantics in some browsers); docs.css turns the rows into labelled blocks below 40em.
+ * Left alone: tables already marked data-stack / data-nostack, tables with row or column spans, tables with more than
+ * six columns (they read as a table and scroll, with a cue from docs.js), and any whose rows do not match the header.
+ */
+function stackDocsTables(html) {
+  const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+  return html.replace(/<table\b[^>]*\bclass="[^"]*\bdocs-table\b[^"]*"[^>]*>[\s\S]*?<\/table>/g, (t) => {
+    const open = t.match(/^<table\b[^>]*>/)[0]
+    if (/\bdata-(no)?stack\b/.test(open) || /\b(rowspan|colspan)=/.test(t)) return t
+    const head = t.match(/<thead\b[^>]*>([\s\S]*?)<\/thead>/)
+    if (!head) return t
+    const labels = [...head[1].matchAll(/<th\b[^>]*>([\s\S]*?)<\/th>/g)].map((m) => text(m[1]))
+    if (labels.length < 2 || labels.length > 6 || labels.some((l) => !l)) return t
+    const afterHead = t.slice(t.indexOf('</thead>') + 8)
+    const rows = [...afterHead.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/g)]
+    if (!rows.length) return t
+    for (const r of rows) if ([...r[1].matchAll(/<t[dh]\b/g)].length !== labels.length) return t
+    const esc2 = (x) => x.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    const addAttrs = (tag, attrs) => tag.replace(/^<(\w+)/, (m, n) => `<${n}${attrs}`)
+    // head
+    let newHead = head[0]
+      .replace(/<thead\b/, '<thead role="rowgroup" data-allow-clip')
+      .replace(/<tr\b/g, '<tr role="row"')
+      .replace(/<th\b(?![^>]*\brole=)/g, '<th role="columnheader"')
+    // body
+    const newAfter = afterHead
+      .replace(/<tbody\b/, '<tbody role="rowgroup"')
+      .replace(/<tr\b[^>]*>[\s\S]*?<\/tr>/g, (row) => {
+        let i = 0
+        return row
+          .replace(/^<tr\b/, '<tr role="row"')
+          .replace(/<(td|th)\b([^>]*)>/g, (m, tag, attrs) => {
+            const label = esc2(labels[i++] ?? '')
+            const role = tag === 'th' ? 'rowheader' : 'cell'
+            return `<${tag}${/\brole=/.test(attrs) ? '' : ` role="${role}"`}${/\bdata-label=/.test(attrs) ? '' : ` data-label="${label}"`}${attrs}>`
+          })
+      })
+    const newOpen = open.replace(/^<table\b/, '<table data-stack' + (/\brole=/.test(open) ? '' : ' role="table"'))
+    return newOpen + t.slice(open.length, t.indexOf(head[0])) + newHead + newAfter
+  })
+}
+
 function buildDocs() {
   const layoutFile = join(ROOT, 'docs-src', '_layout.html')
   if (!existsSync(layoutFile)) return
@@ -393,6 +462,9 @@ function buildDocs() {
       const grid = `<ul class="icon-grid" role="list">${[...iconClasses()].sort().map((id) => `<li><span class="ic ic--${id}" aria-hidden="true"></span><code>${id}</code></li>`).join('')}</ul>`
       page.body = page.body.replace('{{icon-grid}}', grid)
     }
+
+    page.body = page.body.replace(/\{\{index:([A-Za-z]+)\}\}/g, (_, g) => renderIndex(g, pages, page, root))
+    page.body = stackDocsTables(page.body)
 
     let html = layout
       .replaceAll('{{title}}', esc(page.meta.title))

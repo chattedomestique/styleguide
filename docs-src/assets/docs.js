@@ -142,22 +142,43 @@
     });
   }
 
-  /* Scroll tables that overflow are keyboard-scrollable regions (WCAG 1.4.10 / 2.1.1). */
-  function buildTables() {
-    // Code blocks can scroll sideways: make them keyboard-reachable (WCAG 2.1.1) and named.
-    $$('pre').forEach(function (pre) {
-      if (!pre.hasAttribute('tabindex')) pre.setAttribute('tabindex', '0');
-      if (!pre.hasAttribute('role')) pre.setAttribute('role', 'region');
-      if (!pre.hasAttribute('aria-label')) pre.setAttribute('aria-label', 'Code sample');
-    });
-    $$('.table-wrap').forEach(function (w) {
-      if (!w.hasAttribute('tabindex')) w.setAttribute('tabindex', '0');
-      if (!w.hasAttribute('role')) w.setAttribute('role', 'region');
-      if (!w.hasAttribute('aria-label')) {
-        var cap = $('caption', w);
-        w.setAttribute('aria-label', cap ? cap.textContent.trim() : 'Table');
+  /* Anything that scrolls sideways is a keyboard-reachable, named region (WCAG 1.4.10 / 2.1.1), and ONLY when it scrolls: a tab
+     stop on a table that fits is noise. Tables that do scroll get a visible cue ("Scrolls sideways"), because a clipped last
+     column with no sign of more is how the key content of a table goes unread. Re-checked when the width or the text size
+     changes, since both decide whether it fits. Most docs tables stack on a phone (the build marks them data-stack) and never need this. */
+  function refreshScrollers() {
+    $$('pre, .table-wrap').forEach(function (el) {
+      var scrolls = el.scrollWidth > el.clientWidth + 1;
+      var own = el.hasAttribute('data-sg-scroller');
+      if (scrolls) {
+        if (!el.hasAttribute('tabindex')) { el.setAttribute('tabindex', '0'); el.setAttribute('data-sg-scroller', ''); }
+        if (!el.hasAttribute('role')) { el.setAttribute('role', 'region'); el.setAttribute('data-sg-scroller', ''); }
+        if (!el.hasAttribute('aria-label')) {
+          var cap = el.classList.contains('table-wrap') ? $('caption', el) : null;
+          el.setAttribute('aria-label', el.tagName === 'PRE' ? 'Code sample' : (cap ? cap.textContent.trim() : 'Table'));
+        }
+      } else if (own) {
+        el.removeAttribute('tabindex'); el.removeAttribute('role'); el.removeAttribute('aria-label'); el.removeAttribute('data-sg-scroller');
+      }
+      if (el.classList.contains('table-wrap')) {
+        var hint = el.nextElementSibling && el.nextElementSibling.classList.contains('table-hint') ? el.nextElementSibling : null;
+        if (scrolls && !hint) {
+          hint = document.createElement('p');
+          hint.className = 'table-hint';
+          hint.setAttribute('aria-hidden', 'true');
+          hint.innerHTML = icon('chevrons-left-right') + 'Scrolls sideways';
+          el.parentNode.insertBefore(hint, el.nextSibling);
+        }
+        if (hint) hint.hidden = !scrolls;
       }
     });
+  }
+
+  function buildTables() {
+    refreshScrollers();
+    var t;
+    window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(refreshScrollers, 150); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshScrollers);
   }
 
   SG.ready(function () {
