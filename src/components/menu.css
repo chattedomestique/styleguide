@@ -95,11 +95,15 @@
     }
   }
 
-  /* Not in the top layer: a static preview. */
+  /* Not in the top layer: a static preview. Its width is its container's, not the viewport's: the viewport-based
+     minimum above is right for the real popover (it floats over the page) and wrong for a preview inside a
+     narrower frame, where it ran past the frame and was clipped (the row's right edge and its meta text). */
   [popover].menu[data-inline] {
     position: relative;
     inset: auto;
     display: block;
+    min-inline-size: 0;
+    max-inline-size: 100%;
     margin: 0;
     opacity: 1;
     transform: none;
@@ -215,7 +219,12 @@
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--ink-soft));
     font: var(--type-meta);
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+    /* may wrap at its spaces ("After / review") and shrink: a nowrap reason ("After review") ran past the row's
+       padding into the dashed frame of an unavailable row on a narrow screen. A shortcut ("Ctrl+S") has no
+       space to break at, so it stays whole. */
+    min-inline-size: 0;
+    text-align: end;
+    overflow-wrap: break-word;
   }
   .menu__item[aria-disabled="true"] > .menu__meta {
     color: var(--ink-faint);

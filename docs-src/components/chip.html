@@ -39,7 +39,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="filter">Filter chips</h3>
-<p>Each is a toggle button. <strong>On</strong>, a chip is filled, its frame doubles, and a check takes the place of its icon, so it is never told apart by colour alone. The check is drawn by the chip itself; you only write the label. <code>data-sg-chips</code> on the row turns on the toggling, and your app listens for <code>sg:chip-toggle</code>.</p>
+<p>Each is a toggle button. <strong>On</strong>, a chip is filled, ringed a second time (2px, in the line colour), and a check takes the place of its icon, so it is never told apart by colour alone. The check is drawn by the chip itself; you only write the label. <code>data-sg-chips</code> on the row turns on the toggling, and your app listens for <code>sg:chip-toggle</code>.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="chips" role="group" aria-label="Filter by category" data-sg-chips>
@@ -134,7 +134,7 @@
 </div>
 
 <h3 id="scroll">One scrolling line</h3>
-<p>A wrapping row is the safest default, because nothing is hidden. When vertical space is tight, add the <code>scroller</code> class: the row scrolls sideways and the chip that peeks in at the edge shows there is more. Tab through it and each focused chip scrolls fully into view. Name the row so it can be found.</p>
+<p>A wrapping row is the safest default, because nothing is hidden. When vertical space is tight, add the <code>scroller</code> class: the row scrolls sideways, and it says there is more two ways: a chip that peeks in at the edge, and a 1px rule on any edge that hides chips (a cut can fall cleanly between two chips, and then nothing would peek). Tab through it and each focused chip scrolls fully into view. Name the row so it can be found.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="chips scroller" role="group" aria-label="Filter by month" data-sg-chips>
@@ -153,15 +153,15 @@
 </div>
 
 <h3 id="sizes">Sizes and tone</h3>
-<p>Medium is drawn at 36px, large at 44px. Both have a 44px hit area, so two wrapped rows never overlap their targets. <code>data-variant="tone"</code> takes the fill from <code>data-tone</code> on the chip itself, as a <a href="@/components/button.html">button</a> does.</p>
+<p>Medium is drawn at 36px, large at 44px. Both have a 44px hit area, so two wrapped rows never overlap their targets. From the left: a medium chip, two large ones, then two toned. <code>data-variant="tone"</code> takes the fill from <code>data-tone</code> on the chip itself, as a <a href="@/components/button.html">button</a> does.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="chips" role="group" aria-label="Sizes and tone" data-sg-chips>
-      <button class="chip" type="button" aria-pressed="true">Medium</button>
-      <button class="chip" data-size="lg" type="button" aria-pressed="false">Large</button>
-      <button class="chip" data-size="lg" type="button" aria-pressed="true">Large, on</button>
-      <button class="chip" data-variant="tone" data-tone="4" type="button" aria-pressed="false">Tone 4</button>
-      <button class="chip" data-variant="tone" data-tone="3" type="button" aria-pressed="true">Tone 3, on</button>
+      <button class="chip" type="button" aria-pressed="true">Due today</button>
+      <button class="chip" data-size="lg" type="button" aria-pressed="false">New cards</button>
+      <button class="chip" data-size="lg" type="button" aria-pressed="true">Learning</button>
+      <button class="chip" data-variant="tone" data-tone="4" type="button" aria-pressed="false">Spanish</button>
+      <button class="chip" data-variant="tone" data-tone="3" type="button" aria-pressed="true">French</button>
     </div>
   </div>
 </div>
@@ -194,7 +194,7 @@
             <p class="t-title">Activity</p>
             <p class="t-meta num" id="chip-tx-count">3 of 3</p>
           </div>
-          <div class="chips scroller" role="group" aria-label="Filter by category" data-sg-chips>
+          <div class="chips" role="group" aria-label="Filter by category" data-sg-chips>
             <button class="chip" type="button" aria-pressed="false" data-cat="food"><span class="ic ic--utensils chip__icon" aria-hidden="true"></span>Food &amp; drink</button>
             <button class="chip" type="button" aria-pressed="false" data-cat="shop"><span class="ic ic--shopping-bag chip__icon" aria-hidden="true"></span>Shopping</button>
             <button class="chip" type="button" aria-pressed="false" data-cat="move"><span class="ic ic--car chip__icon" aria-hidden="true"></span>Transport</button>
@@ -214,7 +214,7 @@
 <ol>
   <li><strong>Frame</strong>: a pill with a 2px <code>--line</code> border, 36px tall (44px with <code>data-size="lg"</code>). The border is always there, so forced-colours mode still draws an edge.</li>
   <li><strong>Leading icon</strong> (optional, <code>chip__icon</code>): 16px, decorative. It gives its place to the check when the chip is on, so the chip does not change width.</li>
-  <li><strong>Check</strong>: a mask the chip draws in front of the label when on. The second cue after the fill and the doubled frame. A "more" chip shows a plus, or a minus when open.</li>
+  <li><strong>Check</strong>: a mask the chip draws in front of the label when on. The second cue after the fill and the second ring. A "more" chip shows a plus, or a minus when open.</li>
   <li><strong>Label</strong>: 14px semibold, sentence case. It never changes when the chip is pressed.</li>
   <li><strong>Hard shadow</strong>: only when it can be pressed (hover, focus). An input chip is flat.</li>
   <li><strong>Remove button</strong> (<code>chip__remove</code>, input chips only): its own 44px target, named with what it removes.</li>
@@ -252,7 +252,7 @@
     <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>On a focused remove button: removes the chip.</td></tr>
     <tr><td>Screen reader</td><td>"Food and drink, toggle button, pressed". Choice: "Medium, radio button, 2 of 4". Remove: "Remove Anna Kim, button". Disclosure: "4 more, button, collapsed". After a removal: "Anna Kim removed. 2 left."</td></tr>
     <tr><td>Touch</td><td>44&times;44px targets, at least 8px between chips. A scrolling row can be swiped, and every chip is also reachable with Tab.</td></tr>
-    <tr><td>Zoom / text size</td><td>Rem throughout. A long label wraps inside the chip; a wrapping row never scrolls sideways.</td></tr>
+    <tr><td>Zoom / text size</td><td>Rem throughout. A long label wraps at its spaces inside the chip, and the corner stays the one-line radius, so a wrapped chip is a soft rectangle and never an oval. A wrapping row never scrolls sideways; in a scrolling row a chip keeps its whole label (it does not shrink).</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the fill and frame change stay.</td></tr>
     <tr><td>Forced colours</td><td>Every chip keeps its border; raised and focused chips get a 4px <code>Highlight</code> outline; an on chip gets a 4px frame and keeps its check.</td></tr>
   </tbody>

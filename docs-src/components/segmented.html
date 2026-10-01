@@ -57,20 +57,22 @@
 </div>
 
 <h3 id="sizes">Sizes and full width</h3>
-<p>Small is 40px tall, medium 48, large 56. Every option keeps a 44px hit area. <code>data-block</code> spans the container, which is what you want on a phone.</p>
+<p>Small is 40px tall, medium 48, large 56. Every option keeps a 44px hit area. A control is as wide as its options need; <code>data-block</code> spans the container, which is what you want on a phone.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="4">
-      <fieldset class="segmented" data-size="sm">
-        <legend class="sr-only">Small</legend>
-        <label class="segmented__opt"><input type="radio" name="seg-sm" value="a" checked><span class="segmented__label">Small</span></label>
-        <label class="segmented__opt"><input type="radio" name="seg-sm" value="b"><span class="segmented__label">Control</span></label>
-      </fieldset>
-      <fieldset class="segmented" data-size="lg">
-        <legend class="sr-only">Large</legend>
-        <label class="segmented__opt"><input type="radio" name="seg-lg" value="a"><span class="segmented__label">Large</span></label>
-        <label class="segmented__opt"><input type="radio" name="seg-lg" value="b" checked><span class="segmented__label">Control</span></label>
-      </fieldset>
+      <div class="cluster" data-gap="4">
+        <fieldset class="segmented" data-size="sm">
+          <legend class="sr-only">Reminder frequency</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-sm" value="daily" checked><span class="segmented__label">Daily</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-sm" value="weekly"><span class="segmented__label">Weekly</span></label>
+        </fieldset>
+        <fieldset class="segmented" data-size="lg">
+          <legend class="sr-only">Study by</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-lg" value="cards"><span class="segmented__label">Cards</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-lg" value="decks" checked><span class="segmented__label">Decks</span></label>
+        </fieldset>
+      </div>
       <fieldset class="segmented" data-block>
         <legend class="sr-only">Full width</legend>
         <label class="segmented__opt"><input type="radio" name="seg-block" value="income" checked><span class="segmented__label">Income</span></label>
@@ -112,7 +114,7 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Hover draws the option's own frame (an outline, because a tint would move the text's contrast); the chosen one is filled and framed; an unavailable one is dashed and skipped by the arrow keys. The <code>is-*</code> classes on the label only force a state for this page.</p>
+<p>Hover draws the option's own frame (an outline, because a tint would move the text's contrast); the chosen one is filled and ringed a second time; an unavailable one is dashed and skipped by the arrow keys. The <code>is-*</code> classes on the label only force a state for this page.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="4">
@@ -180,7 +182,7 @@
   <li><strong>Option</strong> (<code>.segmented__opt</code>): a <code>&lt;label&gt;</code> holding a native radio. Equal width.</li>
   <li><strong>Radio</strong>: invisible, covering the option and stretching to 44px tall. All keyboard and form behaviour is the browser's.</li>
   <li><strong>Label</strong> (<code>.segmented__label</code>): the visible cell. Its fill follows <code>--fill</code> (0 empty, 1 chosen). Optional icon, then the word.</li>
-  <li><strong>Chosen cue</strong>: a filled pill with a frame of its own inside the track (a second ring). The weight does not change, so the row cannot reflow. Never colour alone.</li>
+  <li><strong>Chosen cue</strong>: a filled pill with a second 2px ring inside the track. The ring is the line colour, so it shows as an edge on a tone or a pale accent and merges with an ink fill. The weight does not change, so the row cannot reflow. Never colour alone.</li>
   <li><strong>Thumb</strong> (optional, <code>data-indicator="slide"</code>): one pill that glides between options.</li>
 </ol>
 
@@ -210,7 +212,7 @@
     <tr><td><kbd>Space</kbd></td><td>Chooses the focused option (when none is chosen).</td></tr>
     <tr><td>Screen reader</td><td>"Show, group. Bank account, radio button, 1 of 2, selected." The legend names the group.</td></tr>
     <tr><td>Touch</td><td>Each option is at least 44&times;44px, even in the small size, and the whole cell taps, not only the word.</td></tr>
-    <tr><td>Zoom / text size</td><td>At 200% text and at 320px the options wrap onto more rows, whole labels first; nothing clips or scrolls sideways. The sliding thumb stays on one row, so give it short labels (a label wider than its cell breaks as a last resort).</td></tr>
+    <tr><td>Zoom / text size</td><td>The options stay in one row of equal cells while their whole labels fit; the side padding eases from its nominal size down to 8px on a narrow screen, so two or three whole labels still share a 288px column. At 200% text, or in a column too narrow for whole labels, the options wrap onto more rows (whole labels first); a word is never broken unless it is wider than the whole control, and nothing clips or scrolls sideways. The track keeps the corner of one row, so a wrapped control is a soft rectangle, never an oval. The sliding thumb stays on one row of equal columns, so give it short labels (a label wider than its cell breaks as a last resort).</td></tr>
     <tr><td>Reduced motion</td><td>The colour change stays; the sliding thumb becomes a fade.</td></tr>
     <tr><td>Forced colours</td><td>The track and every option keep a border; the chosen option is <code>Highlight</code> with a 4px frame; the ring is a 4px <code>Highlight</code> outline.</td></tr>
   </tbody>

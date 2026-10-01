@@ -29,7 +29,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="pill">Pill (default)</h3>
-<p>A row of pills. The chosen tab is filled <strong>and</strong> its frame doubles, so it never depends on the accent being dark. Hover and keyboard focus raise a tab with the same hard shadow a <a href="@/components/button.html">button</a> has. Click, or Tab in and use the arrow keys.</p>
+<p>A row of pills. The chosen tab is filled <strong>and</strong> ringed a second time (2px, in the line colour: a double edge on a tone fill, a pill 2px larger on ink), so it never depends on the accent being dark. Hover and keyboard focus raise a tab with the same hard shadow a <a href="@/components/button.html">button</a> has. Click, or Tab in and use the arrow keys.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="tabs">
@@ -131,7 +131,7 @@
 </div>
 
 <h3 id="overflow">When there are too many to fit</h3>
-<p>The tablist scrolls sideways. The next tab peeks in as the cue, scrolling is native (touch, trackpad), and moving focus with the arrow keys scrolls the tab fully into view. Nothing is hidden behind a menu.</p>
+<p>The tablist scrolls sideways. Scrolling is native (touch, trackpad), and moving focus with the arrow keys scrolls the tab fully into view. Where the cut falls is luck: a tab can end exactly at the edge and nothing peeks in. So the list also draws a 1px rule on any edge that hides tabs (the script marks it <code>data-more</code>); a tab that peeks in covers the rule, a clean cut shows it, and either way there is a sign that the list goes on. Nothing is hidden behind a menu.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="tabs">
@@ -285,7 +285,7 @@
   <li><strong>Bar</strong> (<code>.tabs__bar</code>): the tablist and, optionally, one action that is not a tab. In the underline variant it carries the 1px divider.</li>
   <li><strong>Tablist</strong> (<code>.tabs__list</code>, <code>role="tablist"</code>): scrolls sideways when the tabs overflow. 8px of padding keeps rings and shadows from being clipped; a matching negative margin keeps alignment.</li>
   <li><strong>Tab</strong> (<code>.tabs__tab</code>, <code>role="tab"</code>): a pill with a 2px frame, 44px tall (36px with <code>data-size="sm"</code>), hit area always 44px. Label in sentence case, semibold; an optional icon before it.</li>
-  <li><strong>Chosen cue</strong>: pill is filled and the frame doubles; underline is a 2px bar and full ink. Never colour alone.</li>
+  <li><strong>Chosen cue</strong>: pill is filled and ringed a second time; underline is a 2px bar and full ink. Never colour alone.</li>
   <li><strong>Panel</strong> (<code>.tabs__panel</code>, <code>role="tabpanel"</code>): one visible at a time, <code>tabindex="0"</code> so a keyboard user can reach it when it holds nothing focusable. Fades in; under reduced motion it is a plain fade with no travel.</li>
 </ol>
 
@@ -324,7 +324,7 @@
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Select the focused tab (manual activation).</td></tr>
     <tr><td>Screen reader</td><td>"Overview, tab, selected, 1 of 3", inside a tablist named by <code>aria-label</code>; the panel is named by its tab (<code>aria-labelledby</code>). Inactive panels are <code>hidden</code>, so they are not read.</td></tr>
     <tr><td>Touch</td><td>44&times;44px hit area on every tab. A tablist that overflows scrolls by touch; no gesture is required to reach a tab.</td></tr>
-    <tr><td>Zoom / text size</td><td>Sizes are rem. At 200% text and at 320px the list scrolls sideways instead of clipping, and the focused tab is scrolled fully into view.</td></tr>
+    <tr><td>Zoom / text size</td><td>Sizes are rem. At 200% text and at 320px the list scrolls sideways instead of clipping, an edge that hides tabs draws a 1px rule, and the focused tab is scrolled fully into view. A label in a vertical list wraps at its spaces and keeps the one-line corner (a soft rectangle, never an oval).</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel and no panel travel; the fill change and a short fade stay. Scrolling a tab into view is instant.</td></tr>
     <tr><td>Forced colours</td><td>Frames become <code>ButtonText</code>; raised and focused tabs get a 4px <code>Highlight</code> outline; the chosen pill gets a 4px frame, the chosen underline a 4px <code>Highlight</code> bar.</td></tr>
   </tbody>

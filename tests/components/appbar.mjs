@@ -103,6 +103,26 @@ export const tests = [
     },
   },
   {
+    name: 'A sticky bar in a column-flex frame never shrinks: at 320px a wrapped end action stays inside the rule, clear of the first row',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await goto('components/appbar.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(250) // 41-bars.js re-measures on resize
+        const r = await page.evaluate((sel) => {
+          const f = document.querySelector(sel); const b = f.querySelector('.appbar'); const bb = b.getBoundingClientRect()
+          const row = f.querySelector('.card__list li').getBoundingClientRect()
+          return { shrink: getComputedStyle(b).flexShrink, bar: bb.height, below: Math.max(...[...b.children].map((c) => c.getBoundingClientRect().bottom)) - bb.bottom, row: row.top - bb.bottom, pub: parseFloat(f.style.getPropertyValue('--appbar-h')) }
+        }, FRAME)
+        expect.equal(r.shrink, '0', text + '%: flex-shrink')
+        expect.ok(r.below <= 0, text + '%: every control sits inside the bar (hangs ' + r.below + 'px below it)')
+        expect.ok(r.row >= -1, text + '%: the first row starts below the bar (' + r.row + 'px)')
+        expect.ok(r.pub >= r.bar - 1, text + '%: --appbar-h ' + r.pub + ' covers the ' + r.bar + 'px bar')
+      }
+    },
+  },
+  {
     name: 'Tabbing through a scrolling list never leaves a row behind the sticky bar',
     async run({ page, goto, expect }) {
       await goto('components/appbar.html')

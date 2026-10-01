@@ -3,6 +3,9 @@
 // OWN width. The live pager in the docs re-renders, moves focus to the results and announces.
 const status = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r([...document.querySelectorAll('[role="status"]')].map((e) => e.textContent).join('|'))))))
 const LIVE = '#pg-live'
+// The live pager and the Markup / First-and-last demos sit in a frame at least 42rem wide (so they show the numbers on
+// every screen); the short form is shown by the resizable box in "Narrow: the short form", which starts at 16rem.
+const SHORT = '#narrow ~ .demo .resize-box .pagination'
 const WIDE = { width: 1024, height: 900 }
 
 export const tests = [
@@ -23,7 +26,7 @@ export const tests = [
     },
   },
   {
-    name: 'The current page is filled AND its frame doubles; the others are outlines',
+    name: 'The current page is filled AND ringed a second time; the others are outlines',
     viewport: WIDE,
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
@@ -84,12 +87,13 @@ export const tests = [
     name: 'Narrow (390px): the numbers give way to "Page N of M"; Previous and Next are 44px circles that keep their names',
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
+      // was asserted on the live pager; that demo now keeps a 42rem frame on every screen, so the narrow box is the subject
       const r = await page.evaluate((sel) => {
         const nav = document.querySelector(sel)
         const d = (s) => getComputedStyle(nav.querySelector(s)).display
         const b = nav.querySelector('.pagination__next .btn'); const br = b.getBoundingClientRect(); const labelEl = nav.querySelector('.pagination__next .pagination__label')
         return { page: d('.pagination__page'), gap: d('.pagination__gap'), status: d('.pagination__status'), statusText: nav.querySelector('.pagination__status').textContent, w: Math.round(br.width), h: Math.round(br.height), labelIn: (() => { const rg = document.createRange(); rg.selectNodeContents(labelEl); return [...rg.getClientRects()].every((q) => q.left >= br.left - 1 && q.right <= br.right + 1) })(), clip: getComputedStyle(labelEl).clipPath, abs: getComputedStyle(labelEl).position, name: b.textContent.trim() }
-      }, LIVE)
+      }, SHORT)
       expect.equal(r.page, 'none'); expect.equal(r.gap, 'none'); expect.equal(r.status, 'block'); expect.equal(r.statusText, 'Page 5 of 12')
       expect.ok(r.w >= 44 && r.h >= 44 && r.w <= 46, `Next is a ${r.w}x${r.h} circle`); expect.ok(r.clip === 'inset(50%)' && r.abs === 'absolute', 'its word is visually hidden (painted nowhere, takes no room)'); expect.ok(r.labelIn, 'and laid out inside the circle, not past it'); expect.equal(r.name, 'Next', 'but still its name')
     },
@@ -102,7 +106,7 @@ export const tests = [
       const r = await page.evaluate(() => {
         const box = document.querySelector('#narrow ~ .demo .resize-box'); const nav = box.querySelector('.pagination')
         const d = () => getComputedStyle(nav.querySelector('.pagination__status')).display
-        const wide = d(); box.style.inlineSize = '20rem'; const narrow = d(); return { wide, narrow }
+        box.style.inlineSize = '44rem'; const wide = d(); box.style.inlineSize = '20rem'; const narrow = d(); return { wide, narrow }
       })
       expect.equal(r.wide, 'none', 'roomy box: numbers'); expect.equal(r.narrow, 'block', 'narrow box on the same screen: short form')
     },
@@ -147,7 +151,7 @@ export const tests = [
     },
   },
   {
-    name: 'Large text: the status line never prints under a button; under 16rem of the nav\'s own width it takes a row above the two circles',
+    name: 'Large text: the status line never prints under a button; under 13rem of the nav\'s own width it takes a row above the two circles',
     viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await goto('components/pagination.html')
@@ -168,6 +172,26 @@ export const tests = [
       expect.ok(narrow.above, 'stacked: the status sits above the two circles')
       const mid = await measure(640)      // 20rem at 200%: one row
       expect.ok(!mid.hit && !mid.overflow && !mid.clipped, 'one row: the status is between the circles, not under them: ' + JSON.stringify(mid))
+    },
+  },
+  {
+    name: 'A 320px phone at normal text keeps ONE row: Previous, the status, Next; the status takes its own row only under 13rem',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await goto('components/pagination.html')
+      const measure = (w) => page.evaluate((w) => {
+        const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:' + w + 'px;background:var(--canvas)'
+        host.innerHTML = '<nav class="pagination" aria-label="fx"><ul class="pagination__list" role="list"><li class="pagination__prev"><a class="btn" href="#fx"><span class="ic ic--arrow-left" aria-hidden="true"></span><span class="pagination__label">Previous</span></a></li><li class="pagination__page"><a class="btn" data-shape="circle" href="#fx" aria-label="Page 1">1</a></li><li class="pagination__status">Page 5 of 12</li><li class="pagination__next"><a class="btn" href="#fx"><span class="pagination__label">Next</span><span class="ic ic--arrow-right" aria-hidden="true"></span></a></li></ul></nav>'
+        document.body.appendChild(host)
+        const sr = host.querySelector('.pagination__status').getBoundingClientRect()
+        const [a, b] = [host.querySelector('.pagination__prev .btn'), host.querySelector('.pagination__next .btn')].map((e) => e.getBoundingClientRect())
+        const out = { between: sr.left >= a.right - 1 && sr.right <= b.left + 1, sameRow: Math.abs(a.top - b.top) < 2 && Math.abs(a.top - sr.top) < a.height, apart: Math.round(b.left - a.right), overflow: host.scrollWidth > w }
+        host.remove(); return out
+      }, w)
+      const phone = await measure(236)   // 14.75rem: what the docs demos give a 320px screen
+      expect.ok(phone.between && phone.sameRow && !phone.overflow, 'at 236px (14.75rem) the status sits between the two circles on one row: ' + JSON.stringify(phone))
+      const tiny = await measure(190)    // 11.9rem: stacked
+      expect.ok(!tiny.between && !tiny.overflow, 'at 190px (11.9rem) it takes its own row: ' + JSON.stringify(tiny))
     },
   },
   {

@@ -61,6 +61,10 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
+    /* never shrink: in a column flex parent (.app, a phone frame) an explicit min-block-size lets the bar
+       squash to one row while its wrapped content is two, so the end action hangs below the rule and over
+       the first row of the list, and --appbar-h under-reports (WCAG 1.4.10, 2.4.11) */
+    flex: none;
     min-block-size: calc(var(--_h) + 2 * var(--space-2));
     padding-block: var(--space-2);
     color: var(--_ink);

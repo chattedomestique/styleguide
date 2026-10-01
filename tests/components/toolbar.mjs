@@ -141,6 +141,67 @@ export const tests = [
     },
   },
   {
+    name: 'a wide tray: the scroll buttons sit beside the list, level with the tools\' circles, and never cover a tool',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const r = await page.evaluate((s) => {
+        const bar = document.querySelector(s), list = bar.querySelector('.toolbar__list')
+        const back = bar.querySelector('[data-dir="back"]').getBoundingClientRect(), fwd = bar.querySelector('[data-dir="forward"]').getBoundingClientRect()
+        const l = list.getBoundingClientRect(), c = document.getElementById('t1-crop').getBoundingClientRect()
+        return { tray: Math.round(bar.getBoundingClientRect().width), dy: Math.round(Math.abs((back.top + back.bottom) / 2 - (c.top + c.bottom) / 2)), dyF: Math.round(Math.abs((fwd.top + fwd.bottom) / 2 - (c.top + c.bottom) / 2)), clearBack: back.right <= l.left + 0.5, clearFwd: fwd.left >= l.right - 0.5 }
+      }, TOOLS)
+      expect.ok(r.tray >= 288, 'a 390px phone gives the tray at least 18rem: ' + r.tray)
+      expect.ok(r.dy <= 1 && r.dyF <= 1, 'the scroll circles are level with the tool circles, not with circle + label: ' + JSON.stringify(r))
+      expect.ok(r.clearBack && r.clearFwd, 'both sit outside the list box: ' + JSON.stringify(r))
+    },
+  },
+  {
+    name: 'a narrow tray (320px; 200% text on a 390px phone) keeps the scroll buttons: they drop to a row under the list, at either end, and still scroll it',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      // the two required conditions: 320px wide, and 200% text on a 390px phone
+      for (const [vw, text] of [[320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: vw, height: 700 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(250)
+        const r = await page.evaluate((s) => {
+          const bar = document.querySelector(s), list = bar.querySelector('.toolbar__list')
+          const back = bar.querySelector('[data-dir="back"]'), fwd = bar.querySelector('[data-dir="forward"]')
+          const l = list.getBoundingClientRect(), b = back.getBoundingClientRect(), f = fwd.getBoundingClientRect(), t = bar.getBoundingClientRect()
+          return { over: list.scrollWidth > list.clientWidth, shown: getComputedStyle(back).display !== 'none' && getComputedStyle(fwd).display !== 'none' && !back.hidden && !fwd.hidden,
+            below: b.top >= l.bottom - 0.5 && f.top >= l.bottom - 0.5, ends: Math.round(b.left - t.left) < Math.round(t.right - b.right) && Math.round(t.right - f.right) < Math.round(f.left - t.left), inside: b.bottom <= t.bottom && f.bottom <= t.bottom && b.left >= t.left && f.right <= t.right,
+            rem: Math.round(t.width / parseFloat(getComputedStyle(document.documentElement).fontSize) * 10) / 10 }
+        }, TOOLS)
+        expect.ok(r.over, vw + 'px, ' + text + '%: the tools overflow the tray')
+        expect.ok(r.shown, vw + 'px, ' + text + '%: both scroll buttons are shown (tray ' + r.rem + 'rem wide)')
+        expect.ok(r.below && r.ends && r.inside, vw + 'px, ' + text + '%: on a row under the list, back at the start, forward at the end, inside the tray: ' + JSON.stringify(r))
+        const before = await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => el.scrollLeft)
+        const fwd = page.locator(`${TOOLS} [data-dir="forward"]`)
+        await fwd.scrollIntoViewIfNeeded()
+        await fwd.click()
+        await page.waitForTimeout(700)
+        const after = await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => el.scrollLeft)
+        expect.ok(after > before + 20, vw + 'px, ' + text + '%: forward scrolls the list (' + before + ' to ' + after + ')')
+        await page.locator(`${TOOLS} [data-dir="back"]`).click()
+        await page.waitForTimeout(700)
+        await page.locator(`${TOOLS} .toolbar__list`).evaluate((el) => { el.scrollLeft = 0 })
+      }
+    },
+  },
+  {
+    name: 'every tray that overflows has its scroll buttons: the Toggles tray too',
+    async run({ page, goto, expect }) {
+      await goto('components/toolbar.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('.toolbar')].map((bar) => {
+        const list = bar.querySelector('.toolbar__list'); const btns = bar.querySelectorAll('.toolbar__scroll')
+        return { label: list.getAttribute('aria-label'), over: list.scrollWidth > list.clientWidth + 1, buttons: btns.length, shown: [...btns].every((b) => !b.hidden) }
+      }))
+      expect.ok(r.length >= 5, 'found the trays')
+      expect.ok(r.every((t) => t.buttons === 2), 'every tray has a back and a forward button: ' + JSON.stringify(r.filter((t) => t.buttons !== 2)))
+      expect.ok(r.every((t) => t.over === t.shown), 'a tray shows the buttons exactly when it overflows: ' + JSON.stringify(r))
+    },
+  },
+  {
     name: 'hovering the label lifts the circle as if it were pressed',
     async run({ page, goto, expect }) {
       await goto('components/toolbar.html')

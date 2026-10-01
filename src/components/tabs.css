@@ -29,21 +29,26 @@
 
    PRESSABLE, SO IT FOLLOWS BUTTON. The pill variant is a .btn by another name: 2px frame,
    pill, --lift / --fill, hard shadow when it can be pressed. SELECTED comes from
-   aria-selected and is never colour alone: filled AND the frame doubles (as a pressed
-   toggle button). The weight stays 600 for every tab on purpose: a heavier selected tab
-   is wider, and the whole row would shuffle sideways each time you choose.
+   aria-selected and is never colour alone: filled AND ringed a second time (as a pressed
+   toggle button). The second ring is 2px in the line colour: a double edge on a tone fill, and on
+   an ink fill a pill 2px larger all round. The weight stays 600 for every tab on purpose: a heavier
+   selected tab is wider, and the whole row would shuffle sideways each time you choose.
    The underline variant is flat by design (a bar is not a thing you lift): the selected
    tab has a 2px bar and full ink, a hovered one a 1px bar. Forced colours: the bar
    becomes a Highlight border, pills get a 4px frame.
 
-   OVERFLOW. The tablist scrolls sideways when the tabs do not fit; the next tab is left
-   partly visible as the cue, scrolling is native, and the script keeps the chosen tab in
-   view. overflow clips outlines and shadows, so the list pads 8px on every side (the
-   3px ring + 3px offset + the lifted shadow) and a matching negative margin keeps the tabs
-   aligned with the content around them (WCAG 2.4.7).
+   OVERFLOW. The tablist scrolls sideways when the tabs do not fit, scrolling is native, and the
+   script keeps the chosen tab in view. Where the cut falls is luck (a tab can end exactly at the edge
+   and nothing peeks in), so the script also marks the list data-more="start end" while tabs are hidden
+   on that side and the list draws a 1px rule on that edge: a tab that peeks in covers it, a clean cut
+   shows it, either way "there is more" is on screen. overflow clips outlines and shadows, so the list
+   pads 8px on every side (the 3px ring + 3px offset + the lifted shadow) and a matching negative
+   margin keeps the tabs aligned with the content around them (WCAG 2.4.7). That margin stops at the
+   side where an action follows, so the clipped tab never touches the action's ring.
 
    Private properties (--_*): --_rest-bg --_rest-ink --_on-bg --_on-ink --_h --_px
    --_reach (how far the hard shadow reaches; 0 for the flat underline) --_select --_shadow
+   --_more-start / --_more-end (the overflow cue) --_dir
    ========================================================================== */
 
 @layer sg.components {
@@ -60,6 +65,10 @@
   }
 
   .tabs__list {
+    --_more-start: 0 0 0 0 transparent;
+    --_more-end: 0 0 0 0 transparent;
+    --_dir: 1;
+
     display: flex;
     flex: 1 1 auto;
     gap: var(--space-2);
@@ -70,9 +79,29 @@
     overscroll-behavior-x: contain;
     scroll-padding-inline: var(--space-4);
     scrollbar-width: none;
+    box-shadow: var(--_more-start), var(--_more-end);
 
     &::-webkit-scrollbar {
       display: none;
+    }
+    &:dir(rtl) {
+      --_dir: -1;
+    }
+
+    /* A trailing action: the list's negative margin would eat the gap, so the clipped tab would touch the
+       action's ring. Keep the gap on the side the action is on. */
+    &:not(:last-child) {
+      margin-inline-end: 0;
+    }
+
+    /* The overflow cue (see OVERFLOW above): 40-tabs.js writes data-more="start", "end" or "start end" while
+       tabs are scrolled out of view on that side. A 1px inset rule on the list's own edge does not scroll with
+       the tabs; a tab that peeks in is painted over it. Physical offsets, flipped for right-to-left. */
+    &[data-more~="start"] {
+      --_more-start: inset calc(var(--bw-thin) * var(--_dir)) 0 0 0 var(--line);
+    }
+    &[data-more~="end"] {
+      --_more-end: inset calc(var(--bw-thin) * var(--_dir) * -1) 0 0 0 var(--line);
     }
   }
 
@@ -127,7 +156,14 @@
       inset-inline: min(0px, calc((100% - var(--hit)) / 2));
     }
 
-    &:focus-visible {
+    /* The ring. :focus-visible gets its outline and --focus-shadow from the base layer, which only knows the
+       pseudo-class, so the docs-only .is-focus draws the same ring here: the States demo must be able to show focus. */
+    &.is-focus:not(:focus-visible) {
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+    }
+    &:is(:focus-visible, .is-focus) {
       box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
     }
 
@@ -150,7 +186,7 @@
       transition-duration: var(--dur-press);
     }
 
-    /* chosen: filled, and the frame doubles, so it does not depend on the accent being dark */
+    /* chosen: filled and ringed a second time, so it does not depend on the accent being dark */
     &[aria-selected="true"] {
       --fill: 1;
       --_select: 0 0 0 var(--bw) var(--line);
@@ -217,11 +253,13 @@
       border-color: transparent;
       border-radius: var(--radius-ctl);
 
+      /* The bar's offsets are measured from the tab's PADDING box, 2px inside its transparent border, so the
+         border is added back: the bar then ends exactly where the 1px divider ends and covers it. */
       &::before {
         content: "";
         position: absolute;
         inset-inline: 0;
-        inset-block-end: calc(var(--bw-thin) * -1);
+        inset-block-end: calc((var(--bw) + var(--bw-thin)) * -1);
         block-size: var(--_bar);
         background: var(--line);
         opacity: var(--fill);
@@ -263,20 +301,26 @@
 
   /* ---- Vertical ---------------------------------------------------------------------------------
      Tabs stack at the start, the panel sits beside them. No container query: flex-wrap drops the
-     panel underneath when there is not room for both. */
+     panel underneath when there is not room for both. The column is as wide as its longest label (up to
+     15rem), never the full width: when the panel drops underneath, a full-width column would put the
+     selected bar and its divider far to the right of the words they belong to.
+     A label here may wrap (a long name in a narrow column), and a pill is for ONE line: the radius is
+     capped at half a one-line tab, so a wrapped tab is a soft rectangle, not an oval. */
   .tabs__list[aria-orientation="vertical"] {
     flex-direction: column;
     gap: var(--space-2);
     margin: 0;
     padding: 0;
     overflow: visible;
+    box-shadow: none;
 
     & > .tabs__tab {
       justify-content: flex-start;
       inline-size: 100%;
+      border-radius: calc(var(--_h) / 2);
       text-align: start;
       white-space: normal;
-      overflow-wrap: anywhere;
+      overflow-wrap: break-word;
     }
   }
   @supports selector(:has(a)) {
@@ -287,7 +331,7 @@
       gap: var(--space-4) var(--space-6);
 
       & > .tabs__bar {
-        flex: 1 1 10rem;
+        flex: 0 1 auto;
         max-inline-size: 15rem;
       }
       & > .tabs__panel {
@@ -304,9 +348,15 @@
     gap: var(--space-1);
     margin-block-end: 0;
 
+    /* the label keeps 16px from the divider, and the bar sits ON the divider: flush with its outer edge
+       (the tab's own 2px transparent border is added back to the offset, as in the horizontal bar) */
+    & > .tabs__tab {
+      padding-inline-end: var(--space-4);
+      border-radius: var(--radius-ctl);
+    }
     & > .tabs__tab::before {
       inset-block: 0;
-      inset-inline: auto calc(var(--bw-thin) * -1);
+      inset-inline: auto calc((var(--bw) + var(--bw-thin)) * -1);
       inline-size: var(--_bar);
       block-size: auto;
     }
@@ -315,6 +365,13 @@
   /* ---- Forced colours --------------------------------------------------------------------------
      Fills, shadows and pseudo-element backgrounds vanish, so chosen / raised get a heavier line. */
   @media (forced-colors: active) {
+    /* shadows are removed, so the overflow cue becomes a real 1px border on the edge that hides tabs */
+    .tabs__list[data-more~="start"] {
+      border-inline-start: var(--bw-thin) solid CanvasText;
+    }
+    .tabs__list[data-more~="end"] {
+      border-inline-end: var(--bw-thin) solid CanvasText;
+    }
     .tabs__tab {
       border-color: ButtonText;
 

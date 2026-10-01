@@ -24,7 +24,7 @@ export const tests = [
     },
   },
   {
-    name: 'Filter chip: on = filled AND the frame doubles AND a check; its leading icon gives way to the check',
+    name: 'Filter chip: on = filled AND a second 2px ring AND a check; its leading icon gives way to the check',
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
       await page.mouse.move(0, 0)
@@ -259,6 +259,71 @@ export const tests = [
       expect.ok((await status(page)).includes('1 transaction shown'))
       await page.locator('#chip-tx .chip', { hasText: 'Transport' }).click()
       expect.equal(await page.locator('#chip-tx article:not([hidden])').count(), 3, 'none on = all shown')
+    },
+  },
+  {
+    name: 'The States demo can show focus: the forced .is-focus chip draws the same ring (outline and halo) as a keyboard-focused one',
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      const sel = '#states + p + .demo .chip.is-focus'
+      const read = () => page.locator('#states + p + .demo .chip[data-probe]').evaluate((el) => { const cs = getComputedStyle(el); return { w: cs.outlineWidth, st: cs.outlineStyle, off: cs.outlineOffset, shadow: cs.boxShadow } })
+      await page.locator(sel).evaluate((el) => el.setAttribute('data-probe', ''))
+      await page.locator('#states + p + .demo .chip[data-probe]').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(450)
+      const forced = await read()
+      expect.equal(forced.st, 'solid', 'a ring is drawn'); expect.equal(forced.w, '3px', 'the 3px ring'); expect.ok(/0px 0px 0px 3px/.test(forced.shadow), 'with its halo: ' + forced.shadow)
+      await page.locator('#states + p + .demo .chip[data-probe]').evaluate((el) => el.classList.remove('is-focus'))
+      await page.keyboard.press('Tab')
+      await page.locator('#states + p + .demo .chip[data-probe]').focus()
+      await page.waitForTimeout(450)
+      expect.equal(JSON.stringify(forced), JSON.stringify(await read()), 'forced and real focus look the same')
+    },
+  },
+  {
+    name: 'A scrolling row never squeezes its chips: at 200% text every chip keeps one line and its whole word, and the row scrolls instead',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      await page.waitForTimeout(200)
+      const r = await page.evaluate(() => { const row = document.querySelector('#scroll + p + .demo .chips.scroller'); const chips = [...row.querySelectorAll('.chip')]; const h = chips.map((c) => Math.round(c.getBoundingClientRect().height)); return { over: row.scrollWidth > row.clientWidth, heights: [...new Set(h)], shrink: getComputedStyle(chips[0]).flexShrink, broken: chips.filter((c) => c.scrollWidth > c.clientWidth + 1).length } })
+      expect.ok(r.over, 'the row scrolls sideways'); expect.equal(r.shrink, '0', 'chips do not shrink')
+      expect.equal(r.heights.length, 1, 'every chip is one line tall (a squeezed chip breaks its word): ' + JSON.stringify(r)); expect.equal(r.broken, 0, 'no chip spills its text')
+    },
+  },
+  {
+    name: 'A pill is for one line: a chip whose label wraps keeps the one-line corner (a soft rectangle), not an oval',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      const r = await page.evaluate(() => {
+        const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:6rem'
+        host.innerHTML = '<div class="chips"><button class="chip" type="button" aria-pressed="false">Spanish irregular verbs</button><button class="chip" type="button" aria-pressed="false">Tea</button></div>'
+        document.body.appendChild(host)
+        const [a, b] = [...host.querySelectorAll('.chip')]
+        const out = { wrappedH: Math.round(a.getBoundingClientRect().height), wrappedR: parseFloat(getComputedStyle(a).borderTopLeftRadius), oneH: Math.round(b.getBoundingClientRect().height), oneR: parseFloat(getComputedStyle(b).borderTopLeftRadius) }
+        host.remove(); return out
+      })
+      expect.ok(r.wrappedH > r.oneH + 10, 'the long label wrapped to more lines: ' + JSON.stringify(r))
+      expect.ok(r.oneR * 2 >= r.oneH - 1, 'a one-line chip is a full pill: ' + JSON.stringify(r))
+      expect.ok(r.wrappedR * 2 < r.wrappedH - 8, 'a wrapped chip is NOT an oval (radius stays the one-line half-height): ' + JSON.stringify(r))
+    },
+  },
+  {
+    name: 'Scrolling row cue: the row marks the edges that hide chips (data-more) and draws a rule there; a row that fits has none',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await goto('components/chip.html')
+      const ROW = '#scroll + p + .demo .chips.scroller'
+      const read = () => page.locator(ROW).evaluate((el) => ({ more: el.getAttribute('data-more'), shadow: getComputedStyle(el).boxShadow }))
+      await page.locator(ROW).scrollIntoViewIfNeeded()
+      const a = await read()
+      expect.equal(a.more, 'end', 'at the start only the end hides chips'); expect.ok(/inset/.test(a.shadow), 'and draws its rule: ' + a.shadow)
+      await page.locator(ROW).evaluate((el) => { el.scrollLeft = el.scrollWidth })
+      await page.waitForTimeout(100)
+      expect.equal((await read()).more, 'start', 'at the end only the start does')
+      const fits = await page.evaluate(() => [...document.querySelectorAll('.chips.scroller')].filter((l) => l.scrollWidth <= l.clientWidth + 1).every((l) => !l.hasAttribute('data-more')))
+      expect.ok(fits, 'a row that fits shows no cue')
     },
   },
 ]

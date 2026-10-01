@@ -48,8 +48,12 @@
 
    LARGE TEXT (WCAG 1.4.4). Every cell keeps at least its longest WORD and a 44px target; cells share the
    width equally when there is room. When the cells cannot all fit on one row at 200% text they wrap onto a
-   second row, and the dock keeps the corner radius of ONE row so it does not balloon into an egg. The
-   alternative (shrinking cells below their words) made neighbouring labels print over each other.
+   second row. A pill is for ONE row: the dock's radius is half the height of a single row (cell + padding +
+   frame), not the 999px pill, so a wrapped dock is a rectangle with that corner and never an egg, and every
+   cell (itself a pill of the same row height) nests in the curve with nothing poking out. A cell keeps 4px
+   (plus its 2px edge) at its sides so a word on the bottom row stays clear of the corner; more would push
+   five destinations at 320px onto two rows. The alternative (shrinking cells below
+   their words) made neighbouring labels print over each other.
    RIGHT-TO-LEFT: arrows (.ic--arrow-left|right) inside a dock mirror.
 
    Private properties (--_*): --_bg --_ink --_cur-bg --_cur-ink --_gap --_pad --_item-h
@@ -85,7 +89,7 @@
     color: var(--_ink);
     background: var(--_bg);
     border: var(--bw) solid var(--line);
-    border-radius: var(--radius-pill);
+    border-radius: calc((var(--_item-h) + 2 * (var(--_pad) + var(--bw))) / 2);
     /* A keyline in the canvas colour: separates the dock from whatever scrolls under it (an ink card
        under an ink dock would otherwise fuse into one odd silhouette). */
     outline: var(--bw) solid var(--canvas);
@@ -184,7 +188,7 @@
     min-inline-size: var(--hit);
     min-block-size: var(--_item-h);
     margin: 0;
-    padding: var(--space-1) 0;
+    padding: var(--space-1);
     color: color-mix(in srgb, var(--_cur-ink) calc(var(--fill) * 100%), var(--_ink));
     /* No background of its own: the fill is the ::before below. A cell that painted the dock's colour over
        itself at rest covered the dock's frame wherever a wrapped row reached a rounded corner. */

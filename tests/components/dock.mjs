@@ -227,8 +227,10 @@ export const tests = [
     name: 'The floating dock is a pill with a 2px frame; the bar variant is a rectangle with a rule on top',
     async run({ page, goto, expect }) {
       await goto('components/dock.html')
-      const r = await page.evaluate(() => { const f = getComputedStyle(document.querySelector('nav.dock[aria-label="Main"]')); const b = getComputedStyle(document.querySelector('nav.dock[data-variant="bar"]')); return { fr: parseFloat(f.borderTopLeftRadius), fw: parseFloat(f.borderTopWidth), br: parseFloat(b.borderTopLeftRadius), bt: parseFloat(b.borderTopWidth), bb: parseFloat(b.borderBottomWidth) } })
-      expect.ok(r.fr >= 100, 'floating: a pill'); expect.equal(r.fw, 2, 'floating: 2px frame')
+      const r = await page.evaluate(() => { const f = getComputedStyle(document.querySelector('nav.dock[aria-label="Main"]')); const b = getComputedStyle(document.querySelector('nav.dock[data-variant="bar"]')); return { fr: parseFloat(f.borderTopLeftRadius), fh: document.querySelector('nav.dock[aria-label="Main"]').getBoundingClientRect().height, fw: parseFloat(f.borderTopWidth), br: parseFloat(b.borderTopLeftRadius), bt: parseFloat(b.borderTopWidth), bb: parseFloat(b.borderBottomWidth) } })
+      // a pill is a radius of at least half the height (it was asserted as >= 100px when the radius was 999px; the radius is now
+      // half of ONE row, so a one-row dock is still a pill, and a wrapped one is a rectangle with that corner: see the large-text test)
+      expect.ok(r.fr * 2 >= r.fh - 1, 'floating: a pill (radius ' + r.fr + ' on a ' + r.fh + 'px tall dock)'); expect.equal(r.fw, 2, 'floating: 2px frame')
       expect.equal(r.br, 0, 'bar: rectangular'); expect.equal(r.bt, 2, 'bar: 2px rule above'); expect.equal(r.bb, 0, 'bar: no rule below')
     },
   },
@@ -248,6 +250,44 @@ export const tests = [
       await goto('components/dock.html')
       const r = await page.evaluate(() => { const l = document.querySelector('nav.dock[data-compact] [aria-current] .dock__label'); return { name: getComputedStyle(l).animationName, move: getComputedStyle(document.documentElement).getPropertyValue('--move').trim() } })
       expect.equal(r.move, '0', '--move is 0'); expect.equal(r.name, 'dock-label-in', 'still a fade')
+    },
+  },
+  {
+    name: 'Large text (200% at 390px): a wrapped dock keeps the radius of ONE row (a rectangle, not an egg), and every word and cell corner stays inside the curve',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/dock.html')
+      const r = await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%'
+        const host = document.createElement('div')
+        host.style.cssText = 'position:absolute;inset-inline-start:32px;inset-block-start:0;inline-size:326px'
+        const item = (i, w, cur) => '<li><a class="dock__item" href="#fx"' + (cur ? ' aria-current="page"' : '') + '><span class="ic ic--' + i + '" aria-hidden="true"></span><span class="dock__label">' + w + '</span></a></li>'
+        host.innerHTML = '<nav class="dock" data-position="static" aria-label="fx"><ul class="dock__list" role="list">' + item('book-open', 'Study', true) + item('layers', 'Decks') + item('chart-column', 'Stats') + item('user', 'Profile') + '</ul></nav>'
+        document.body.appendChild(host)
+        const dock = host.querySelector('.dock'); const d = dock.getBoundingClientRect(); const cs = getComputedStyle(dock)
+        const R = parseFloat(cs.borderTopLeftRadius)
+        // is the point inside the dock's rounded rectangle?
+        const inside = (x, y) => {
+          const cx = x < d.left + R ? d.left + R : x > d.right - R ? d.right - R : x
+          const cy = y < d.top + R ? d.top + R : y > d.bottom - R ? d.bottom - R : y
+          return Math.hypot(x - cx, y - cy) <= R + 0.5
+        }
+        const pts = []
+        for (const i of host.querySelectorAll('.dock__item')) {
+          const ir = i.getBoundingClientRect(); const rr = ir.height / 2
+          // the 45-degree point of each of the cell's four corner arcs, and the corners of its word
+          for (const [ax, ay] of [[ir.left + rr, ir.top + rr], [ir.right - rr, ir.top + rr], [ir.left + rr, ir.bottom - rr], [ir.right - rr, ir.bottom - rr]]) pts.push(['cell', ax + (ax < ir.left + ir.width / 2 ? -1 : 1) * rr * Math.SQRT1_2, ay + (ay < ir.top + ir.height / 2 ? -1 : 1) * rr * Math.SQRT1_2])
+          const rg = document.createRange(); rg.selectNodeContents(i.querySelector('.dock__label')); const t = rg.getBoundingClientRect()
+          for (const [x, y] of [[t.left, t.top], [t.right, t.top], [t.left, t.bottom], [t.right, t.bottom]]) pts.push(['word', x, y])
+        }
+        const outside = pts.filter(([k, x, y]) => !inside(x, y)).map(([k, x, y]) => k + '@' + Math.round(x) + ',' + Math.round(y))
+        const out = { R: Math.round(R), h: Math.round(d.height), rows: new Set([...host.querySelectorAll('.dock__item')].map((x) => Math.round(x.getBoundingClientRect().top))).size, outside }
+        host.remove(); document.documentElement.style.fontSize = ''
+        return out
+      })
+      expect.ok(r.rows >= 2, 'the dock wraps to two rows at 200% (rows: ' + r.rows + ')')
+      expect.ok(r.R * 2 < r.h - 20, 'two rows tall, so the corner (' + r.R + 'px) is NOT half the height (' + r.h + 'px): a rectangle, not an egg')
+      expect.equal(r.outside.length, 0, 'nothing pokes out of the dock\'s curve: ' + r.outside.join(' '))
     },
   },
   {
