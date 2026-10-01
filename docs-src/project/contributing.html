@@ -1,7 +1,8 @@
 <!--{"title":"Contributing","group":"Project","order":4,"summary":"How to add the next example screens: the gate pipeline, the prompt to give an agent, the pull request checklist, and how to add a palette, a tone, an icon or a corner style."}-->
 <style>
   /* A long title in the expanded 900 face does not fit the docs h1 size ("Contributing" is twelve letters):
-     fit it to the column, never break it mid-word. The Project pages share one size so they read as a group. */
+     size it to the column so it stays on one line at normal text size (at 200% text it wraps rather than clips).
+     The Project pages share one size so they read as a group. */
   .docs-article h1 { font-size: clamp(1.5rem, calc((100vw - 2.5rem) / 10.4), 4rem); }
   /* The sticky docs bar must not cover a focused link (WCAG 2.4.11). The foundation keeps focus clear of sticky chrome with
      scroll-padding on <html> that reads --appbar-h, but the docs set --appbar-h on <body>, where <html> cannot see it. */
@@ -65,7 +66,7 @@
   <li><strong>Add script only if HTML and CSS cannot do it.</strong> <code>src/js/NN-name.js</code> (name it after its element, and the build's manifest attaches it to that element), an IIFE on <code>window.SG</code>, event delegation on <code>data-sg-*</code> hooks, progressive enhancement, <code>SG.announce()</code> for changes that move no focus, <code>SG.motion.reduced()</code> before animating from script.</li>
   <li><strong>Write the spec</strong> in <code>tests/components/name.mjs</code>: keyboard, ARIA flips, focus return, and the <code>--lift</code> and <code>--fill</code> states. Follow the WAI-ARIA Authoring Practices pattern exactly; <a href="@/accessibility/patterns.html">Patterns</a> lists which element follows which, and <a href="@/accessibility/testing.html#spec">Testing</a> shows how to write the spec.</li>
   <li><strong>Verify, then look.</strong>
-    <pre class="t-mono" aria-label="Commands to verify a new element"><code>npm run build
+    <pre class="t-mono prompt" tabindex="-1" aria-label="Commands to verify a new element"><code>npm run build
 npm run lint
 node tests/components.mjs name
 npm run test:a11y -- --pages components/name.html
@@ -76,7 +77,7 @@ node tests/screenshots.mjs components/name.html --width 390 --theme dark --palet
 
 <h2 id="prompt">The prompt to give an agent</h2>
 <p>Paste this, and attach the screens. The square brackets are for you to fill in; everything else is the job as the repository defines it. It asks for the same thing every time, so the results can be compared.</p>
-<pre class="prompt" aria-label="The prompt to give an agent"><code>You are adding what is shown in the attached example screen(s) to the style guide in this repository. Work on a branch and commit as you go. Do not push or open a pull request until I say so.
+<pre class="prompt" tabindex="-1" aria-label="The prompt to give an agent"><code>You are adding what is shown in the attached example screen(s) to the style guide in this repository. Work on a branch and commit as you go. Do not push or open a pull request until I say so.
 
 READ FIRST, completely, before you change anything:
 - CLAUDE.md (the rules, the commands, the pipeline) and STYLE.md (the exact values and the reasons). They are law.
@@ -114,6 +115,7 @@ Rules that catch people out:
 
 STEP 4. VERIFY, THEN LOOK AT IT.
 npm run build, npm run lint, npm run test:lint, node tests/components.mjs name, npm run test:a11y -- --pages components/name.html, and npm run test:contrast if you touched a colour. Then run node tests/screenshots.mjs on every page you made at 320, 390 and 1024 pixels, light and dark, in the default, mint and wire palettes, square and soft corners, and open the images. Fix what looks wrong, not only what fails. Do not silence a failing check: fix the cause, or change the rule with the reason written down.
+When the checks are green, run npm run build one last time and commit the regenerated dist/ and docs/ with your source. CI runs npm run build:check and fails when they are stale.
 
 STEP 5. REPORT, plainly.
 - What you built: class names, data attributes, docs pages.
@@ -125,7 +127,7 @@ STEP 5. REPORT, plainly.
 
 <h2 id="checklist">Pull request checklist</h2>
 <p>Put this in the description of every pull request that adds or changes an element, and tick what is true. Anything you could not do goes in the description in words, not as a silent blank.</p>
-<pre class="prompt" aria-label="The pull request checklist, as text to paste"><code>- [ ] npm run build was run, and the generated dist/ and docs/ are committed with the source (npm run build:check passes; CI runs it)
+<pre class="prompt" tabindex="-1" aria-label="The pull request checklist, as text to paste"><code>- [ ] npm run build was run, and the generated dist/ and docs/ are committed with the source (npm run build:check passes; CI runs it)
 - [ ] npm run lint has no errors; each warning and each lint-allow waiver is explained
 - [ ] npm run test:lint passes (add a case to tests/lint-cases.json when you add a lint rule)
 - [ ] npm run test:contrast passes (required if a colour, a tone or a palette changed)
@@ -182,7 +184,7 @@ STEP 5. REPORT, plainly.
 </ol>
 
 <h3 id="add-token">A token or a role</h3>
-<p>Declare it in <code>src/tokens/</code> with a comment saying what it is for, document it in <code>STYLE.md</code> section 2, and, if it is a colour pair, add it to <code>PAIRS</code> in <code>tests/contrast.mjs</code>. A role that is used as text or as a boundary and is not listed there is unverified. The lint's drift check fails if <code>CLAUDE.md</code>, <code>STYLE.md</code> or <code>README.md</code> name a token or class that does not exist.</p>
+<p>Declare it in <code>src/tokens/</code> with a comment saying what it is for, document it in <code>STYLE.md</code> section 2, and, if it is a colour pair, add a line for it in <code>buildPairs()</code> in <code>tests/contrast.mjs</code> (a pair read inside a tone goes in <code>TONE_PAIRS</code>). A role that is used as text or as a boundary and is not listed there is unverified. The lint's drift check fails if <code>CLAUDE.md</code>, <code>STYLE.md</code> or <code>README.md</code> name a token or class that does not exist.</p>
 
 <h2 id="waivers">When the lint is wrong</h2>
 <p>Do not silence a failing check. Fix the cause, or change the rule with the reason written down. If a line is legitimately outside a rule, waive that one line with a reason the next reader can judge: <code>/* lint-allow rule: why */</code> on the line or the one above, or <code>lint-allow-file</code> for a whole file (<code>&lt;!-- lint-allow-file colour: why --&gt;</code> in a docs page). Every run lists the waivers it honoured, so an exception is allowed and never invisible.</p>
