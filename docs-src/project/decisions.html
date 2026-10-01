@@ -1,13 +1,29 @@
 <!--{"title":"Decisions","group":"Project","order":2,"summary":"The choices still waiting for the owner, and the ones taken by default so work could go on: what the guide does now, why, and which file to change to reverse each."}-->
 <style>
   /* one decision = a Card holding Now / Why / To reverse: stacked on a phone, label beside text once the card is wide enough */
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
   .decision { display: grid; gap: var(--space-4) var(--space-5); margin: 0; }
   .decision > div { min-inline-size: 0; }
   @container card (min-width: 34rem) {
     .decision > div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); column-gap: var(--space-5); }
   }
   .decision dt { margin: 0 0 var(--space-1); color: var(--card-ink-soft, var(--ink-soft)); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
-  .decision dd { margin: 0; font: var(--type-body); overflow-wrap: anywhere; }
+  .decision dd { margin: 0; font: var(--type-body); overflow-wrap: break-word; } /* words break only when one alone is wider than the line */
   .decision dd > :is(ol, ul) { margin: 0; padding-inline-start: var(--space-5); }
   .decision dd > p { margin: 0; }
   .decision dd > * + * { margin-block-start: var(--space-2); }
@@ -45,6 +61,11 @@
     <tr><td><a href="#generated">Generated files are committed</a></td><td>Taken</td><td><code>dist/</code> and <code>docs/</code> are in git</td></tr>
     <tr><td><a href="#ci">Continuous integration</a></td><td>Taken</td><td>A workflow runs the gate on every pull request</td></tr>
     <tr><td><a href="#one-look">One look</a></td><td>Taken</td><td>No second surface style</td></tr>
+    <tr><td><a href="#chrome-caps">Chrome caps</a></td><td>Taken</td><td>Words grow with the text; insets, icon-only controls and targets stop at 100%</td></tr>
+    <tr><td><a href="#selection">Selection controls</a></td><td>Taken</td><td>The solid fill means selected; hover only raises</td></tr>
+    <tr><td><a href="#one-row">Bars stay one row</a></td><td>Taken</td><td>A whole-row switch, measured by <code>SG.fit</code></td></tr>
+    <tr><td><a href="#break-word">Words break only when they must</a></td><td>Taken</td><td><code><span data-f="nw">overflow-wrap:</span> <span data-f="nw">break-word</span></code>; <code>anywhere</code> fails the lint</td></tr>
+    <tr><td><a href="#pill-radius">A two-line pill keeps its ends</a></td><td>Taken</td><td>The radius is half the nominal height</td></tr>
   </tbody>
 </table></div>
 
@@ -59,8 +80,8 @@
       <div><dt>Why</dt><dd>The owner's committed CSS is square, so square is the default. Most of the reference screens are soft and two are hard-edged, so the guide ships both and lets each app choose.</dd></div>
       <div><dt>To reverse</dt><dd>
         <ol>
-          <li>In <code>src/tokens/30-corners.css</code> move <code>:root</code> from the square block to the soft block, and put the square block second: when both match <code>&lt;html&gt;</code>, the later one wins. Keep <code>[data-corners="square"]</code> so an app can still pick it. (<code>00-foundation.css</code> also declares the three roles, but <code>30-corners.css</code> comes later in the same layer and overrides it.)</li>
-          <li>In <code>src/js/10-prefs.js</code> change <code>DEFAULT_VALUE.corners</code> to <code>'soft'</code>. Without this, choosing Square in the appearance panel removes the attribute and leaves soft switched on.</li>
+          <li>In <code>src/<wbr>tokens/<wbr>30-corners.css</code> move <code>:root</code> from the square block to the soft block, and put the square block second: when both match <code>&lt;html&gt;</code>, the later one wins. Keep <code>[data-corners="square"]</code> so an app can still pick it. (<code>00-foundation.css</code> also declares the three roles, but <code>30-corners.css</code> comes later in the same layer and overrides it.)</li>
+          <li>In <code>src/<wbr>js/<wbr>10-prefs.js</code> change <code>DEFAULT_VALUE.corners</code> to <code>'soft'</code>. Without this, choosing Square in the appearance panel removes the attribute and leaves soft switched on.</li>
           <li>Rebuild, and look at Card, Dock and Sheet.</li>
           <li>Run <code>node tests/components.mjs</code> after the build. Seven specs read a radius with no attribute set and expect zero, so they fail once soft is the default: Card, Choice, List, Menu, Slider, Stepper and Tooltip. In each assertion, set <code>data-corners="square"</code> on <code>&lt;html&gt;</code> first, then read the radius.</li>
           <li>Change the words "square (default)" in the <a href="@/foundations/shape.html">Shape</a> page, <code>STYLE.md</code>, <code>CLAUDE.md</code> and <code>README.md</code>.</li>
@@ -78,8 +99,8 @@
       <div><dt>Now</dt><dd>The owner's sheet kept motion closed so it stayed a wireframe. Here it is open: hover, focus and pressed animate <code>--lift</code> and <code>--fill</code> with one transition, sheets and toasts arrive, a spinner turns. Every translate is multiplied by <code>--move</code>, and reduced motion means gentler, never instant. See <a href="@/foundations/motion.html">Motion</a>.</dd></div>
       <div><dt>Why</dt><dd>A control that cannot answer your finger, a sheet that cannot slide and a spinner that cannot spin are not finished elements. The order of the pipeline still holds for anything new: structure and states first, then colour, then motion.</dd></div>
       <div><dt>To reverse</dt><dd>
-        <p>The switch is <code>gates.motion</code>, which defaults to <code>true</code>, in <code>checkCss</code> in <code>tests/lib/rules.mjs</code>. Set it to <code>false</code> and the lint fails every <code>transition</code>, <code>animation</code>, <code>@keyframes</code>, <code>scroll-behavior: smooth</code> and <code>view-transition-name</code> it finds, which is the list of what to strip.</p>
-        <p><code>tests/lint.selftest.mjs</code> proves the switch works. <code>src/tokens/60-motion.css</code> can stay; it is only numbers.</p>
+        <p>The switch is <code>gates.motion</code>, which defaults to <code>true</code>, in <code>checkCss</code> in <code>tests/<wbr>lib/<wbr>rules.mjs</code>. Set it to <code>false</code> and the lint fails every <code>transition</code>, <code>animation</code>, <code>@keyframes</code>, <code><span data-f="nw">scroll-behavior:</span> smooth</code> and <code>view-transition-name</code> it finds, which is the list of what to strip.</p>
+        <p><code>tests/<wbr>lint.selftest.mjs</code> proves the switch works. <code>src/<wbr>tokens/<wbr>60-motion.css</code> can stay; it is only numbers.</p>
       </dd></div>
     </dl>
   </div>
@@ -90,7 +111,7 @@
     <p class="card__eyebrow">Open · one exception to "flat"</p>
     <h3 class="card__title">The scrim is the one translucency</h3>
     <dl class="decision">
-      <div><dt>Now</dt><dd><code>--scrim</code> (black at 60%), <code>--scrim-strong</code> (black at 75%) and <code>--on-media</code> (white) in <code>src/tokens/10-color.css</code>. They are the only colours in <code>src/tokens/</code> with an alpha channel. They dim the page behind a modal Dialog and Sheet and behind the phone form of Menu, dim the content under a Spinner overlay, and sit under text and controls on a photo in Media.</dd></div>
+      <div><dt>Now</dt><dd><code>--scrim</code> (black at 60%), <code>--scrim-strong</code> (black at 75%) and <code>--on-media</code> (white) in <code>src/<wbr>tokens/<wbr>10-color.css</code>. They are the only colours in <code>src/tokens/</code> with an alpha channel. They dim the page behind a modal Dialog and Sheet and behind the phone form of Menu, dim the content under a Spinner overlay, and sit under text and controls on a photo in Media.</dd></div>
       <div><dt>Why</dt><dd>A modal backdrop and text over a photo cannot be flat: without a plate, contrast depends on what the photo happens to be. Rule 2 allows this one exception and names it. <code>npm run test:contrast</code> checks white on the scrim over a white photo, the worst case, at 4.5:1.</dd></div>
       <div><dt>To reverse</dt><dd>Components read the roles, so the two values are the only place to change. Make them opaque, for example <code>var(--ink)</code>, and the page behind a dialog is hidden instead of dimmed; the contrast check keeps covering them. Then delete the exception from rule 2 in <code>STYLE.md</code> and <code>CLAUDE.md</code>.</dd></div>
     </dl>
@@ -114,7 +135,7 @@
     <p class="card__eyebrow">Open · nothing declared</p>
     <h3 class="card__title">A licence for the code</h3>
     <dl class="decision">
-      <div><dt>Now</dt><dd>Archivo is under the SIL Open Font Licence 1.1 (<code>src/fonts/OFL-Archivo.txt</code>). The Lucide icons are under ISC (<code>src/icons/LICENSE-lucide.txt</code>). The repository's own code has no licence file.</dd></div>
+      <div><dt>Now</dt><dd>Archivo is under the SIL Open Font Licence 1.1 (<code>src/<wbr>fonts/<wbr>OFL-Archivo.txt</code>). The Lucide icons are under ISC (<code>src/<wbr>icons/<wbr>LICENSE-lucide.txt</code>). The repository's own code has no licence file.</dd></div>
       <div><dt>Why</dt><dd>Choosing one is the owner's call and depends on whether the guide is shared.</dd></div>
       <div><dt>To reverse</dt><dd>Add a <code>LICENSE</code> file at the root before the repository is shared, and name it in <code>README.md</code> under Credits and licences.</dd></div>
     </dl>
@@ -138,12 +159,12 @@
     <p class="card__eyebrow">Open · small, none blocks</p>
     <h3 class="card__title">Small things left</h3>
     <ul>
-      <li>A lint for a pressable that forgets to reset <code>--lift</code> and <code>--fill</code>. They inherit, so a button inside a hovered card would draw as pressed; each pressable in the guide resets them by hand (the first two lines of <code>.btn</code> in <code>src/components/button.css</code>), but no written rule says so yet.</li>
+      <li>A lint for a pressable that forgets to reset <code>--lift</code> and <code>--fill</code>. They inherit, so a button inside a hovered card would draw as pressed; each pressable in the guide resets them by hand (the first two lines of <code>.btn</code> in <code>src/<wbr>components/<wbr>button.css</code>), but no written rule says so yet.</li>
       <li>Numbers written in prose in the docs are not checked against the CSS. Names are (the drift lint); values are not.</li>
       <li>Magic numbers that are not tokens yet, such as the notch card's 4.5rem.</li>
       <li>The portrait card's animated flip. The faces are static and the answer simply appears, which is also what reduced motion gets. The owner's app has the recipe (perspective on the parent, backfaces hidden, <code>--ease-flip</code>); how it should move here is a motion decision that has not been made. See <a href="@/components/card.html">Card</a>.</li>
       <li>No mono, one-bit theme. <code>data-palette="wire"</code> and higher contrast are the nearest, and <a href="@/project/references.html#r-1bit">References</a> says what was and was not taken from the repository that has one.</li>
-      <li>Fonts: Archivo is in three subsets (Latin, Latin extended, Vietnamese). Cyrillic, Greek, Arabic, Hebrew, Indic and CJK fall back glyph by glyph to the next family, which has no width axis. Add a subset in <code>src/tokens/50-fonts.css</code> when an app needs one.</li>
+      <li>Fonts: Archivo is in three subsets (Latin, Latin extended, Vietnamese). Cyrillic, Greek, Arabic, Hebrew, Indic and CJK fall back glyph by glyph to the next family, which has no width axis. Add a subset in <code>src/<wbr>tokens/<wbr>50-fonts.css</code> when an app needs one.</li>
     </ul>
   </div>
 </article>
@@ -155,9 +176,9 @@
     <p class="card__eyebrow">Taken · old name kept</p>
     <h3 class="card__title">Card: study became portrait</h3>
     <dl class="decision">
-      <div><dt>Now</dt><dd><code>.card--portrait</code> is the tall 5:7 card (<code>--ratio-portrait</code>) and <code>.card__hero</code> is its big subject. The owner's names, <code>.card--study</code> and <code>.card__answer</code>, are aliases and keep working. <code>tests/components/card.mjs</code> has a test that the old name still does.</dd></div>
+      <div><dt>Now</dt><dd><code>.card--portrait</code> is the tall 5:7 card (<code>--ratio-portrait</code>) and <code>.card__hero</code> is its big subject. The owner's names, <code>.card--study</code> and <code>.card__answer</code>, are aliases and keep working. <code>tests/<wbr>components/<wbr>card.mjs</code> has a test that the old name still does.</dd></div>
       <div><dt>Why</dt><dd>"Study" is one app's word. A shared foundation should not carry a product's vocabulary, and a ticket or a poster is the same card.</dd></div>
-      <div><dt>To reverse</dt><dd>To make <code>study</code> the name again, swap the names in the two <code>:is(…)</code> lists and the <code>.card__hero</code> rule in <code>src/components/card.css</code>, in the Card page, and in the spec. To drop the aliases, delete <code>.card--study</code> and <code>.card__answer</code> from those places. An app that still uses the old names breaks the day the alias goes.</dd></div>
+      <div><dt>To reverse</dt><dd>To make <code>study</code> the name again, swap the names in the two <code>:is(…)</code> lists and the <code>.card__hero</code> rule in <code>src/<wbr>components/<wbr>card.css</code>, in the Card page, and in the spec. To drop the aliases, delete <code>.card--study</code> and <code>.card__answer</code> from those places. An app that still uses the old names breaks the day the alias goes.</dd></div>
     </dl>
   </div>
 </article>
@@ -167,11 +188,11 @@
     <p class="card__eyebrow">Taken · the owner's font</p>
     <h3 class="card__title">Archivo, not Manrope</h3>
     <dl class="decision">
-      <div><dt>Now</dt><dd>Archivo Variable, self-hosted: weight 100 to 900, width 62% to 125%. One family does the work of two: expanded for the display line, normal for reading, condensed for labels. The stack is <code>"Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif</code>.</dd></div>
-      <div><dt>Why</dt><dd>The first draft of this repository used Manrope. Manrope is on the owner's own banned-default list: the lint refuses a default font as the first family of any <code>--font-*</code> (<code>BAD_FONTS</code> in <code>tests/lib/rules.mjs</code>). The owner's sheet uses Archivo, and its width axis is what makes a second family unnecessary.</dd></div>
+      <div><dt>Now</dt><dd>Archivo Variable, self-hosted: weight 100 to 900, width 62% to 125%. One family does the work of two: expanded for the display line, normal for reading, condensed for labels. The stack is <code>"Archivo", "Helvetica Neue", Helvetica, Arial, <span data-f="nw">sans-serif</span></code>.</dd></div>
+      <div><dt>Why</dt><dd>The first draft of this repository used Manrope. Manrope is on the owner's own banned-default list: the lint refuses a default font as the first family of any <code>--font-*</code> (<code>BAD_FONTS</code> in <code>tests/<wbr>lib/<wbr>rules.mjs</code>). The owner's sheet uses Archivo, and its width axis is what makes a second family unnecessary.</dd></div>
       <div><dt>To reverse</dt><dd>
         <ul>
-          <li>Change <code>--font-sans</code> in <code>src/tokens/00-foundation.css</code>, the <code>@font-face</code> blocks in <code>src/tokens/50-fonts.css</code> and the files in <code>src/fonts/</code>.</li>
+          <li>Change <code>--font-sans</code> in <code>src/<wbr>tokens/<wbr>00-foundation.css</code>, the <code>@font-face</code> blocks in <code>src/<wbr>tokens/<wbr>50-fonts.css</code> and the files in <code>src/fonts/</code>.</li>
           <li>A family with no width axis ignores the <code>expanded</code>, <code>condensed</code> and <code>semi-expanded</code> keywords in <code>--type-display</code>, <code>--type-label</code> and <code>--type-figure</code>, so the three voices become one. Pick a second family for labels, or accept it.</li>
           <li>Anything on the banned list also has to come off <code>BAD_FONTS</code>, and that is a decision to write down here.</li>
         </ul>
@@ -187,7 +208,7 @@
     <dl class="decision">
       <div><dt>Now</dt><dd>With no <code>data-palette</code>, colour is neutral greys with an ink accent: black on light, white on dark. The six tone slots carry the Flashcards hues (yellow, blue, coral, green, violet, orange) as pastels. In higher contrast the accent collapses to ink. <code>mint</code>, <code>periwinkle</code>, <code>sand</code>, <code>cream</code> and <code>wire</code> are one attribute away.</dd></div>
       <div><dt>Why</dt><dd>The guide serves many apps, so no brand colour is baked in. Colour is a swap (rule 6) and the wireframe stage was already grey.</dd></div>
-      <div><dt>To reverse</dt><dd>To give every app an accent, set the <code>--k-accent-*</code> knobs in the <code>:root</code> block of <code>src/tokens/10-color.css</code>; to make a palette the default, copy its block from <code>src/tokens/40-palettes.css</code> into <code>:root</code>. Run <code>npm run test:contrast</code>: the lightness gaps are what keep the pairs legible, so keep them.</dd></div>
+      <div><dt>To reverse</dt><dd>To give every app an accent, set the <code>--k-accent-*</code> knobs in the <code>:root</code> block of <code>src/<wbr>tokens/<wbr>10-color.css</code>; to make a palette the default, copy its block from <code>src/<wbr>tokens/<wbr>40-palettes.css</code> into <code>:root</code>. Run <code>npm run test:contrast</code>: the lightness gaps are what keep the pairs legible, so keep them.</dd></div>
     </dl>
   </div>
 </article>
@@ -199,7 +220,7 @@
     <dl class="decision">
       <div><dt>Now</dt><dd>WCAG 2.2 AA is the floor everywhere. The defaults are higher: <code>--ink</code> and <code>--ink-soft</code> at 7:1, frames and the focus ring at 3:1, placeholder text at 4.5:1, every target 44px (<code>--hit</code>) with 8px between targets. AA asks for 24px.</dd></div>
       <div><dt>Why</dt><dd>The hit-target token is the owner's. Apps built on the guide are used on phones, often one-handed, so the bar is set where it is cheap to meet and expensive to miss: the reader pays for a miss.</dd></div>
-      <div><dt>To reverse</dt><dd>Loosening it is not recommended. If you must, the gaps are the <code>--k-*</code> lightness knobs in <code>src/tokens/10-color.css</code>, the minimums are the numbers in <code>buildPairs()</code> in <code>tests/contrast.mjs</code>, and the size is <code>--hit</code> in <code>src/tokens/00-foundation.css</code>. Change the test and the docs in the same pull request as the knob.</dd></div>
+      <div><dt>To reverse</dt><dd>Loosening it is not recommended. If you must, the gaps are the <code>--k-*</code> lightness knobs in <code>src/<wbr>tokens/<wbr>10-color.css</code>, the minimums are the numbers in <code>buildPairs()</code> in <code>tests/<wbr>contrast.mjs</code>, and the size is <code>--hit</code> in <code>src/<wbr>tokens/<wbr>00-foundation.css</code>. Change the test and the docs in the same pull request as the knob.</dd></div>
     </dl>
   </div>
 </article>
@@ -211,7 +232,7 @@
     <dl class="decision">
       <div><dt>Now</dt><dd>The order is <code>sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities</code>. <code>.sr-only</code> and <code>.num</code> live in <code>sg.utilities</code>, so they beat a component's <code>position</code> and <code>font</code>.</dd></div>
       <div><dt>Why</dt><dd>In the owner's original the wireframe layer sat above the components and erased a disabled notch card's silhouette: a placeholder must never override a real element. The audit called it out (finding M8).</dd></div>
-      <div><dt>To reverse</dt><dd>Change <code>LAYER_ORDER</code> in <code>scripts/build.mjs</code>. Each source file opens its own <code>@layer sg.x</code> block, and the build fails on an unknown layer name.</dd></div>
+      <div><dt>To reverse</dt><dd>Change <code>LAYER_ORDER</code> in <code>scripts/<wbr>build.mjs</code>. Each source file opens its own <code>@layer sg.x</code> block, and the build fails on an unknown layer name.</dd></div>
     </dl>
   </div>
 </article>
@@ -223,7 +244,7 @@
     <dl class="decision">
       <div><dt>Now</dt><dd><code>dist/</code> and <code>docs/</code> are built by <code>npm run build</code> and committed. Nobody edits them by hand. <code>npm run build:check</code> fails when they are stale, and CI runs it.</dd></div>
       <div><dt>Why</dt><dd>An app copies files out of <code>dist/</code> with no build step, and GitHub Pages serves <code>docs/</code> as it is.</dd></div>
-      <div><dt>To reverse</dt><dd>Add <code>dist/</code> and <code>docs/</code> to <code>.gitignore</code>, remove them from git, drop the <code>build:check</code> step from <code>.github/workflows/ci.yml</code>, and build on release instead. Apps then have to build the guide themselves or take it from a release.</dd></div>
+      <div><dt>To reverse</dt><dd>Add <code>dist/</code> and <code>docs/</code> to <code>.gitignore</code>, remove them from git, drop the <code>build:check</code> step from <code>.github/<wbr>workflows/<wbr>ci.yml</code>, and build on release instead. Apps then have to build the guide themselves or take it from a release.</dd></div>
     </dl>
   </div>
 </article>
@@ -233,7 +254,7 @@
     <p class="card__eyebrow">Taken · so the gate is not voluntary</p>
     <h3 class="card__title">CI runs the gate</h3>
     <dl class="decision">
-      <div><dt>Now</dt><dd><code>.github/workflows/ci.yml</code> runs on every push to main and every pull request. A first job runs the lint, the lint self-test and <code>npm run build:check</code>. A second builds, then runs the contrast matrix, the component specs and the accessibility gate in Chromium. A pull request runs two appearances of the accessibility gate per page; a push to main runs all five.</dd></div>
+      <div><dt>Now</dt><dd><code>.github/<wbr>workflows/<wbr>ci.yml</code> runs on every push to main and every pull request. A first job runs the lint, the lint self-test and <code>npm run build:check</code>. A second builds, then runs the contrast matrix, the component specs and the accessibility gate in Chromium. A pull request runs two appearances of the accessibility gate per page; a push to main runs all five.</dd></div>
       <div><dt>Why</dt><dd>The audit found that enforcement was voluntary: a check nobody runs protects nothing. The fast checks run first, so a stale <code>dist/</code> or a colour literal is reported before the slow browser tests start.</dd></div>
       <div><dt>To reverse</dt><dd>Delete the workflow, or change <code>--quick</code> in its accessibility step to run all five appearances on pull requests too (slower). Nothing else depends on it. <a href="@/accessibility/testing.html">Testing</a> describes each command.</dd></div>
     </dl>
@@ -247,7 +268,68 @@
     <dl class="decision">
       <div><dt>Now</dt><dd>There is one look. <code>data-corners</code> is the only switch that changes shape, and it changes three radius roles and nothing else. There is no <code>data-surface</code>.</dd></div>
       <div><dt>Why</dt><dd>The first draft had three surface styles and soft, blurred shadows. A reference screen even proposed a hard surface as a token set beside a soft one. The owner's sheet has one look, rules 1 and 2 forbid a soft shadow, and every extra style doubles what must be tested. The first draft was replaced rather than patched.</dd></div>
-      <div><dt>To reverse</dt><dd>Add an attribute with its own block of role overrides, in the manner of <code>src/tokens/30-corners.css</code>, and a row for it in the appearance panel in <code>docs-src/assets/docs.js</code>. The lint would still refuse blur and blurred shadows in it: to allow those you would be changing rule 2, which is the owner's.</dd></div>
+      <div><dt>To reverse</dt><dd>Add an attribute with its own block of role overrides, in the manner of <code>src/<wbr>tokens/<wbr>30-corners.css</code>, and a row for it in the appearance panel in <code>docs-src/<wbr>assets/<wbr>docs.js</code>. The lint would still refuse blur and blurred shadows in it: to allow those you would be changing rule 2, which is the owner's.</dd></div>
     </dl>
   </div>
 </article>
+
+<article class="card" id="chrome-caps">
+  <div class="card__body">
+    <p class="card__eyebrow">Taken · words grow, chrome does not</p>
+    <h3 class="card__title">Chrome caps</h3>
+    <dl class="decision">
+      <div><dt>Now</dt><dd>Words and the space between the blocks of a layout are <code>rem</code> and grow with the reader's text size, and so does an icon inside a line of words (sized in <code>em</code> beside a label that is not body size, so it tracks the label). The chrome stops at its 100% size: the insets of controls and containers, icon-only controls and their 44px targets, the slots that hold them, leading pictures, badges and the frames of pictures. The tokens are <code>--chrome-1</code> to <code>--chrome-6</code> and the <code>--chrome-ic</code>, <code>--chrome-box</code>, <code>--chrome-ctl</code> and <code>--chrome-hit</code> families in <code>src/<wbr>tokens/<wbr>00-foundation.css</code>, each the smaller of a rem size and its px size, and <code>--gutter</code> is capped at both ends. The list is on <a href="@/foundations/space.html#chrome">Space</a>.</dd></div>
+      <div><dt>Why</dt><dd>At 200% text, rem chrome ate a phone: the dock's five circles grew to 112px and could not fit one row, two 88px circles beside a title left it a few letters a line, and a button's 48px of side padding pushed its own label onto two lines. iOS and Android grow the words, not the icons or the insets, and people who set large text expect that. Browser zoom still scales everything, so nothing is lost for people who zoom.</dd></div>
+      <div><dt>To reverse</dt><dd>Point the <code>--chrome-*</code> tokens back at their rem values (<code><span data-f="nw">--chrome-4:</span> <span data-f="nw">var(--space-4)</span></code> and so on) in <code>src/<wbr>tokens/<wbr>00-foundation.css</code>. No component changes. Then review every element at 390px with 200% text: the defects above come back.</dd></div>
+    </dl>
+  </div>
+</article>
+
+<article class="card" id="selection">
+  <div class="card__body">
+    <p class="card__eyebrow">Taken · the fill means selected</p>
+    <h3 class="card__title">Selection controls do not fill on hover</h3>
+    <dl class="decision">
+      <div><dt>Now</dt><dd>An element that can be selected, on or current (chip, tab, segmented option, toggle button, dock item, tile, swatch, calendar day and the others listed on <a href="@/foundations/interaction.html#selection">Interaction</a>) uses the same two numbers as everything else, with different values: rest 0 and 0, hover and keyboard focus <code><span data-f="nw">--lift:</span> 1</code> with <code><span data-f="nw">--fill:</span> 0</code>, pressed <code><span data-f="nw">--lift:</span> 0</code> with a light tint (<code><span data-f="nw">--fill:</span> 0.15</code>), selected <code><span data-f="nw">--fill:</span> 1</code> plus a second cue (a doubled frame, a check, an underline or a heavier weight), selected and hovered 1 and 1. Action buttons keep the owner's states: they fill on hover.</dd></div>
+      <div><dt>Why</dt><dd>With one recipe for everything, hover, focus, pressed and selected were the same solid pill. A mouse passing over an unselected chip made it look selected, and a keyboard user could not tell the focused option from the chosen one. Filling is what pressing an action does, so it may preview it; for a selection control the fill is the state itself.</dd></div>
+      <div><dt>To reverse</dt><dd>Set <code><span data-f="nw">--fill:</span> 1</code> in the hover and focus rules of each selection control's CSS (<code>src/<wbr>components/<wbr>button.css</code> for toggles, and the chip, tabs, segmented and dock files), and change the numbers the specs assert in <code>tests/<wbr>components/</code>. Update the States table on Interaction.</dd></div>
+    </dl>
+  </div>
+</article>
+
+<article class="card" id="one-row">
+  <div class="card__body">
+    <p class="card__eyebrow">Taken · switch as a whole</p>
+    <h3 class="card__title">Bars and control rows never wrap raggedly</h3>
+    <dl class="decision">
+      <div><dt>Now</dt><dd>A bar or a row of controls is one row at every size: <code>[lead] [text that may wrap] [actions]</code>, with chrome-sized icon controls. When the row truly cannot fit, it switches as a whole: icons only, a short form, every item on a line of its own, or a scroller with a clear cue. Never two and a lonely third. Where CSS cannot know whether the row fits, <code>SG.fit</code> (<code>src/js/05-fit.js</code>, part of the core script) measures it: it tries the element's layouts richest first and writes the first that fits to <code>data-fit</code>. The dock, the segmented control and the pager use it; <a href="@/foundations/layout.html#fit">Layout</a> shows how to register one.</dd></div>
+      <div><dt>Why</dt><dd>A wrapped bar reads as a grid of buttons, not as one control; a lonely item on a second row reads as a mistake, and a label broken mid-word says nothing. The owner found exactly this on a phone with large text: the dock's pill and circle at different sizes, and a button's label wrapped with its icon stranded at the far edge.</dd></div>
+      <div><dt>To reverse</dt><dd>Remove a component's <code>SG.fit.register</code> call (its script in <code>src/js/</code>) and the <code>data-fit</code> rules in its CSS: the element falls back to its no-script CSS, which wraps or scrolls. To drop the helper itself, delete <code>src/js/05-fit.js</code> after every registration is gone.</dd></div>
+    </dl>
+  </div>
+</article>
+
+<article class="card" id="break-word">
+  <div class="card__body">
+    <p class="card__eyebrow">Taken · a lint rule</p>
+    <h3 class="card__title">Words break only when they must</h3>
+    <dl class="decision">
+      <div><dt>Now</dt><dd>Text uses <code><span data-f="nw">overflow-wrap:</span> <span data-f="nw">break-word</span></code>: words wrap between words, and a word breaks inside itself only when it alone is wider than the line. <code>.break</code> adds <code><span data-f="nw">min-inline-size:</span> 0</code> for the flex or grid item that may hold such a word. The lint fails <code><span data-f="nw">overflow-wrap:</span> anywhere</code> outside the tokens (rule <code>wrap</code>, with two self-test cases); a code token or a URL may waive it on its line with <code>/* <span data-f="nw">lint-allow</span> wrap: why */</code>. Running text uses <code><span data-f="nw">text-wrap:</span> pretty</code>.</dd></div>
+      <div><dt>Why</dt><dd><code>anywhere</code> makes an element's smallest width one letter. In a flex or grid row that let an item shrink below its longest word, and the words shattered at 200% text: "Shopp / ing", "Accou / nt", "Befo / re it". With <code>break-word</code> an item cannot be squeezed below its longest word, so a row that does not fit shows up as a layout to fix rather than as broken words.</dd></div>
+      <div><dt>To reverse</dt><dd>Delete the <code>wrap</code> check in <code>tests/<wbr>lib/<wbr>rules.mjs</code> and its two cases in <code>tests/<wbr>lint-cases.json</code>. Every row that relied on <code>break-word</code> holding its words whole would then need its own <code>min-inline-size</code>.</dd></div>
+    </dl>
+  </div>
+</article>
+
+<article class="card" id="pill-radius">
+  <div class="card__body">
+    <p class="card__eyebrow">Taken · the pill keeps its ends</p>
+    <h3 class="card__title">A two-line pill keeps its end curve</h3>
+    <dl class="decision">
+      <div><dt>Now</dt><dd>A button's radius is half its nominal height (<code><span data-f="nw">--_r:</span> min(var(--radius-pill), <span data-f="nw">calc(var(--_h)</span> / 2))</code> in <code>src/<wbr>components/<wbr>button.css</code>), not 999px. A label that must take two lines grows the button taller and keeps the same rounded ends, so it is still a pill. A circle that holds an icon is a square box at every size. No component turns a button into a rectangle when it is narrow.</dd></div>
+      <div><dt>Why</dt><dd>With <code>999px</code> a two-line button became an oval, and the fixes that turned it into a rectangle broke rule 3 (rectangles hold, circles act): a pressable thing looked like a container. Half the nominal height keeps the shape of a pill at any height. Labels are still written short enough to stay on one line where the copy allows.</dd></div>
+      <div><dt>To reverse</dt><dd>Set <code>--_r</code> back to <code>var(<span data-f="nw">--radius-pill</span>)</code> in <code>src/<wbr>components/<wbr>button.css</code>; a wrapped label then draws an oval again.</dd></div>
+    </dl>
+  </div>
+</article>
+

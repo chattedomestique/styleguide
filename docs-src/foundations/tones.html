@@ -1,48 +1,71 @@
 <!--{"title":"Tones","group":"Foundations","order":11,"summary":"Six slots, an ink tone, four status tones and a bold emphasis: five guaranteed-contrast roles per element, from one hue, for rhythm and never for meaning."}-->
 <style>
   /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
-  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--space-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
-  .docs-table td:first-child code { white-space: nowrap; }
-  .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
-  .docs-table th[scope="colgroup"] { background: var(--paper-3); color: var(--ink); }
-  #tone-roles td:nth-child(2) { min-inline-size: 18rem; }
-  #tone-knobs td code { white-space: nowrap; }
-  #tone-knobs td:nth-child(4) { min-inline-size: 18rem; }
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #tone-roles td:nth-child(2) { min-inline-size: 18rem; }
+    #tone-knobs td code { white-space: nowrap; }
+    #tone-knobs td:nth-child(4) { min-inline-size: 18rem; }
+  }
+  /* these tables do not stack (a table of numbers scrolls sideways on a phone), so their columns keep their widths */
+  .docs-table:not([data-stack]) td:first-child code { white-space: nowrap; }
   #tone-floors td:nth-child(2) { min-inline-size: 11rem; }
   #tone-floors td:nth-child(3) { min-inline-size: 12rem; }
   #dead-zone-table td:first-child { white-space: nowrap; }
+  .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+  .docs-table th[scope="colgroup"] { background: var(--paper-3); color: var(--ink); }
 
   /* An element that paints itself from a tone. The copies below are the pattern from the page:
      --tone-* cannot be read by a child, so the toned element copies what its children need. */
-  .docs-article [data-f="anatomy"] { --_soft: var(--tone-ink-soft); --_fill: var(--tone-fill); --_on-fill: var(--tone-on-fill); display: grid; gap: var(--space-3); padding: var(--space-5); border: var(--bw) solid var(--line); background: var(--tone-bg); color: var(--tone-ink); }
+  .docs-article [data-f="anatomy"] { --_soft: var(--tone-ink-soft); --_fill: var(--tone-fill); --_on-fill: var(--tone-on-fill); display: grid; gap: var(--space-3); padding: var(--chrome-5); border: var(--bw) solid var(--line); background: var(--tone-bg); color: var(--tone-ink); }
   .docs-article [data-f="anatomy"] > * { margin: 0; max-inline-size: none; }
   .docs-article [data-f="anatomy"] code { padding: 0; border: 0; background: none; color: inherit; }
   .docs-article [data-f="anatomy"] > div { display: grid; gap: var(--space-1); }
   .docs-article [data-f="a-cap"] { font: var(--type-meta); color: var(--_soft); }
   .docs-article [data-f="a-title"] { font: var(--type-title); }
   .docs-article [data-f="a-soft"] { color: var(--_soft); }
-  .docs-article [data-f="a-pill"] { justify-self: start; display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: var(--ctl-sm); padding-inline: var(--space-4); border: var(--bw) solid var(--tone-ink); border-radius: var(--radius-pill); background: var(--_fill); color: var(--_on-fill); font: var(--type-ctl); }
+  .docs-article [data-f="a-pill"] { justify-self: start; display: inline-flex; align-items: center; gap: var(--chrome-2); min-block-size: var(--ctl-sm); padding-inline: var(--chrome-4); border: var(--bw) solid var(--tone-ink); border-radius: var(--radius-pill); background: var(--_fill); color: var(--_on-fill); font: var(--type-ctl); }
   .docs-article [data-f="read"] { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; font: var(--type-meta); }
   .docs-article [data-f="read"] li { display: flex; align-items: flex-start; gap: var(--space-2); max-inline-size: none; margin: 0; }
   .docs-article [data-f="read"] .ic { margin-block-start: 0.125rem; }
   .docs-article [data-f="read"] b { font-variant-numeric: tabular-nums lining-nums; }
 
-  .docs-article [data-f="probe"] { display: grid; gap: var(--space-3); padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--tone-bg); color: var(--tone-ink); }
+  .docs-article [data-f="probe"] { display: grid; gap: var(--space-3); padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--tone-bg); color: var(--tone-ink); }
   .docs-article [data-f="probe"] p { margin: 0; max-inline-size: none; }
   .docs-article [data-f="probe"] code { color: inherit; }
-  .docs-article [data-f="probe"] > div { padding: var(--space-3); border: var(--bw) dashed var(--tone-ink); }
+  .docs-article [data-f="probe"] > div { padding: var(--chrome-3); border: var(--bw) dashed var(--tone-ink); }
   .docs-article [data-f="probe"] output { font-weight: 700; }
 
-  .docs-article [data-f="island"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--space-4); border: var(--bw) solid var(--line); }
+  .docs-article [data-f="island"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--chrome-4); border: var(--bw) solid var(--line); }
   .docs-article [data-f="island"] > p { margin: 0; max-inline-size: none; }
-  .docs-article [data-f="statuses"] .card__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-lg); }
+  /* the status icon sits beside the first line of its title, also when a large text size wraps the title */
+  .docs-article [data-f="statuses"] .card__title { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-lg); }
+  .docs-article [data-f="statuses"] .card__title > .ic { flex: none; margin-block-start: calc((1lh - var(--ic-size, 1.25rem)) / 2); }
   .docs-article [data-f="swatch"] { display: inline-block; inline-size: 2.75rem; block-size: 1.5rem; border: var(--bw-thin) solid var(--line); background: var(--sw, transparent); vertical-align: middle; }
   /* Card derives its soft ink with a 72% mix, which on a bold tone measures about 4.2:1. --tone-ink-soft is the tested value (5.7:1). */
   .docs-article .card[data-emphasis="bold"] { --card-ink-soft: var(--tone-ink-soft); }
   .docs-article .card__list { padding-inline-start: 0; }
   .docs-article .card__list > li { max-inline-size: none; }
   .docs-article .card__list > li + li { margin-block-start: 0; }
-  .docs-article [data-f="statuses"] .card__tile { display: grid; place-items: center; }
+  .docs-article .card__tile:has(> .ic) { display: grid; place-items: center; } /* a tile holds a real icon */
   .docs-article [data-f="stack-note"] { margin: 0; }
 </style>
 
@@ -119,13 +142,13 @@
   <caption class="sr-only">Roles a tone exposes</caption>
   <thead><tr><th>Role</th><th>What it is</th><th>Floor</th></tr></thead>
   <tbody>
-    <tr><td><code>--tone-bg</code></td><td>The fill. A pastel by default; a saturated mid-dark with <code>data-emphasis="bold"</code>; the ink for <code>data-tone="ink"</code>.</td><td></td></tr>
+    <tr><td><code>--tone-bg</code></td><td>The fill. A pastel by default; a saturated mid-dark with <code>data-emphasis="bold"</code>; the ink for <code>data-tone="ink"</code>.</td><td>The surface the others are measured on</td></tr>
     <tr><td><code>--tone-ink</code></td><td>Text and icons on the fill.</td><td>7:1 (6.5:1 bold)</td></tr>
     <tr><td><code>--tone-ink-soft</code></td><td>Secondary text on the fill. A mix of the ink and the fill (72% ink), so it stays on-hue.</td><td>4.5:1</td></tr>
     <tr><td><code>--tone-fill</code></td><td>A solid pill or bar that sits <em>on</em> the tone: a button, a meter, a tag. Darker than the fill in light, lighter in dark.</td><td>3:1 against the fill</td></tr>
     <tr><td><code>--tone-on-fill</code></td><td>Text and icons drawn on <code>--tone-fill</code>.</td><td>4.5:1</td></tr>
     <tr><td><code>--tone-1</code> to <code>--tone-6</code>, <code>--on-tone-1</code> to <code>--on-tone-6</code></td><td>The owner's direct slot tokens: the pastel fill and its ink for a slot, readable anywhere (they are plain, inherited colours). Use them for a swatch or a tile that is not itself toned. <code>.card__media</code> falls back to <code>--tone-1</code>.</td><td>7:1</td></tr>
-    <tr><td><code>--tone-h-1</code> to <code>--tone-h-6</code>, <code>--tone-c-1</code> to <code>--tone-c-6</code></td><td>The hue and vividness of each slot. A palette sets these; nothing else should.</td><td></td></tr>
+    <tr><td><code>--tone-h-1</code> to <code>--tone-h-6</code>, <code>--tone-c-1</code> to <code>--tone-c-6</code></td><td>The hue and vividness of each slot. A palette sets these; nothing else should.</td><td>None: numbers, not colours</td></tr>
   </tbody>
 </table></div>
 <p>The anatomy of one tone, with the roles named on the element that uses them:</p>
@@ -164,7 +187,7 @@
 </div>
 <p>What follows for you:</p>
 <ul>
-  <li><strong>Read a tone on the toned element.</strong> A component that wants a tone colour reads it with a fallback, on the element that has <code>data-tone</code>: <code>--card-bg: var(--tone-bg, var(--paper))</code>.</li>
+  <li><strong>Read a tone on the toned element.</strong> A component that wants a tone colour reads it with a fallback, on the element that has <code>data-tone</code>: <code><span data-f="nw">--card-bg:</span> <span data-f="nw">var(--tone-bg,</span> <span data-f="nw">var(--paper))</span></code>.</li>
   <li><strong>Pass it down by copying.</strong> A custom property holding <code>var(--tone-bg)</code> is resolved where it is declared and then inherits as a normal value, so a component copies what its children need into a private property (<code>--card-ink-soft</code>, <code>--_fill</code>) on the toned element. The specimens on this page do exactly that.</li>
   <li><strong>A toned thing inside a toned thing needs its own <code>data-tone</code>.</strong> A tone button inside a tone card is <code>&lt;button class="btn" data-variant="tone" data-tone="3"&gt;</code>: the button reads its own tone, not the card's.</li>
   <li><strong><code>--tone-line</code> is registered but no tone sets it yet.</strong> Frames use <code>--line</code> (see <a href="#inside">Inside a toned card</a>).</li>
@@ -188,7 +211,7 @@
     <tr><td>Pastel, light</td><td><code>--k-tone-l</code> 0.93 (0.96 higher contrast)</td><td><code>--k-tone-ink-l</code> 0.3 (0.2)</td><td>A very light fill with dark ink is 7:1 or more whatever the hue and chroma (the header of <code>20-tones.css</code> records it as measured over the sRGB gamut), so a palette cannot break it. The test checks the real palettes.</td></tr>
     <tr><td>Pastel, dark</td><td><code>--k-tone-d</code> 0.27 (0.2)</td><td><code>--k-tone-ink-d</code> 0.95 (1)</td><td>The mirror of light.</td></tr>
     <tr><td>Bold</td><td><code>--k-tone-b-l</code> 0.44 (0.38)</td><td><code>--k-tone-b-ink</code> 0.985</td><td>A saturated mid-dark fill with near-white ink. The same in light and dark. At least 6.5:1.</td></tr>
-    <tr><td>Fill pill</td><td><code>--k-tone-fill-l</code> 0.34 (0.24), <code>--k-tone-fill-d</code> 0.82 (0.9)</td><td><code>--k-tone-on-fill-l</code> 0.97, <code>--k-tone-on-fill-d</code> 0.2</td><td>A pill that is clearly darker (light) or lighter (dark) than the fill, with its own label colour.</td></tr>
+    <tr><td>Fill pill</td><td><code>--k-tone-fill-l</code> 0.34 (0.24), <code>--k-tone-fill-d</code> 0.82 (0.9)</td><td><code><span data-f="nw">--k-</span>tone-on-fill-l</code> 0.97, <code><span data-f="nw">--k-</span>tone-on-fill-d</code> 0.2</td><td>A pill that is clearly darker (light) or lighter (dark) than the fill, with its own label colour.</td></tr>
   </tbody>
 </table></div>
 <p>The <code>wire</code> palette steps the six pastel fills down from 0.94 to 0.8 (light) so slots are told apart by value alone, and darkens the ink to 0.2 to keep the gap.</p>
@@ -234,13 +257,13 @@
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
   <div>
     <strong>Card's soft ink on a bold tone</strong>
-    <p><code>card.css</code> derives <code>--card-ink-soft</code> as a 72% mix of ink and fill. That equals <code>--tone-ink-soft</code> on a pastel, but on a bold tone it measures about 4.2:1, under the 4.5:1 floor, where <code>--tone-ink-soft</code> measures 5.7:1. Until Card reads the tone's own value, add <code>.card[data-emphasis="bold"] { --card-ink-soft: var(--tone-ink-soft); }</code> to your app CSS. The specimens on this page already do.</p>
+    <p><code>card.css</code> derives <code>--card-ink-soft</code> as a 72% mix of ink and fill. That equals <code>--tone-ink-soft</code> on a pastel, but on a bold tone it measures about 4.2:1, under the 4.5:1 floor, where <code>--tone-ink-soft</code> measures 5.7:1. Until Card reads the tone's own value, add <code>.card[data-emphasis="bold"] { <span data-f="nw">--card-ink-soft:</span> var(--tone-ink-soft); }</code> to your app CSS. The specimens on this page already do.</p>
   </div>
 </div>
 <p>The ink tone has no bold form: it is already the strongest fill there is.</p>
 
 <h2 id="ink">The ink tone</h2>
-<p><code>data-tone="ink"</code> is the inverted tone: an ink fill with paper text, and a paper pill (<code>--tone-fill: var(--paper)</code>, <code>--tone-on-fill: var(--ink)</code>). It is the one tone that does not depend on the palette. A card swaps its bar for paper on this tone, and its focus ring follows the surface, because an ink ring on an ink card would vanish.</p>
+<p><code>data-tone="ink"</code> is the inverted tone: an ink fill with paper text, and a paper pill (<code><span data-f="nw">--tone-fill:</span> <span data-f="nw">var(--paper)</span></code>, <code><span data-f="nw">--tone-on-fill:</span> <span data-f="nw">var(--ink)</span></code>). It is the one tone that does not depend on the palette. A card swaps its bar for paper on this tone, and its focus ring follows the surface, because an ink ring on an ink card would vanish.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div class="grid" style="--grid-min: 15rem">
@@ -294,7 +317,7 @@
       </article>
       <article class="card" data-tone="info" data-check>
         <div class="card__body">
-          <p class="card__title"><span class="ic ic--info" aria-hidden="true"></span>Synced 2 min ago</p>
+          <p class="card__title"><span class="ic ic--info" aria-hidden="true"></span>Synced 2&nbsp;min ago</p>
           <p class="card__text">Changes from your phone are here.</p>
           <p class="card__meta" data-read></p>
         </div>
@@ -321,7 +344,6 @@
           <p class="card__title">Numbers to twenty</p>
           <div class="cluster">
             <button class="btn" data-variant="primary" data-size="sm" type="button">Start</button>
-            <button class="btn" data-size="sm" type="button">Preview</button>
             <button class="btn" data-variant="tone" data-tone="1" data-size="sm" type="button">Share</button>
           </div>
         </div>
@@ -359,7 +381,7 @@
 </div>
 
 <h2 id="guarantees">What is guaranteed, and against what</h2>
-<p>The floors are what <code>tests/contrast.mjs</code> enforces on every tone (six slots, ink, four statuses), pastel and bold, in both themes, both contrast modes and all six palettes. The measured columns are the lowest ratio across all of those, as <em>light / dark</em>. Measured on 2026-09-30; <code>node tests/contrast.mjs --all</code> prints every pair.</p>
+<p>The floors are what <code>tests/<wbr>contrast.mjs</code> enforces on every tone (six slots, ink, four statuses), pastel and bold, in both themes, both contrast modes and all six palettes. The measured columns are the lowest ratio across all of those, as <em>light / dark</em>. Measured on 2026-09-30; <code>node tests/contrast.mjs <span data-f="nw">--all</span></code> prints every pair.</p>
 <div class="table-wrap"><table class="docs-table" id="tone-floors">
   <caption class="sr-only">Tone contrast floors and the worst ratios measured</caption>
   <thead><tr><th>Pair</th><th>Variant</th><th>Used for</th><th class="num">Floor</th><th class="num">Worst, light / dark</th><th class="num">Worst, higher contrast</th></tr></thead>
@@ -399,15 +421,15 @@
     <div class="grid" style="--grid-min: 16rem">
       <div class="stack" data-gap="3">
         <p class="t-label">Do: rhythm</p>
-        <article class="card card--row" data-tone="1"><span class="card__tile wf-media" aria-hidden="true"></span><div class="card__main"><p class="card__title">Circle</p><p class="card__meta">Card 01</p></div><div class="card__trail"><p>Known</p></div></article>
-        <article class="card card--row" data-tone="2"><span class="card__tile wf-media" aria-hidden="true"></span><div class="card__main"><p class="card__title">Triangle</p><p class="card__meta">Card 03</p></div><div class="card__trail"><p>New</p></div></article>
-        <article class="card card--row" data-tone="3"><span class="card__tile wf-media" aria-hidden="true"></span><div class="card__main"><p class="card__title">Star</p><p class="card__meta">Card 05</p></div><div class="card__trail"><p>Known</p></div></article>
+        <article class="card card--row" data-tone="1"><span class="card__tile" aria-hidden="true"><span class="ic ic--circle" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Circle</p><p class="card__meta">Card 01</p></div><div class="card__trail"><p>Known</p></div></article>
+        <article class="card card--row" data-tone="2"><span class="card__tile" aria-hidden="true"><span class="ic ic--square" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Square</p><p class="card__meta">Card 02</p></div><div class="card__trail"><p>New</p></div></article>
+        <article class="card card--row" data-tone="3"><span class="card__tile" aria-hidden="true"><span class="ic ic--star" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Star</p><p class="card__meta">Card 05</p></div><div class="card__trail"><p>Known</p></div></article>
       </div>
       <div class="stack" data-gap="3" data-f="statuses">
         <p class="t-label">Do: status</p>
         <article class="card card--row" data-tone="bad"><span class="card__tile" aria-hidden="true"><span class="ic ic--circle-x" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Payment failed</p><p class="card__meta">Try another card</p></div></article>
         <p class="t-label">Don't: a colour nobody explained</p>
-        <article class="card card--row" data-tone="3"><span class="card__tile" aria-hidden="true"></span><div class="card__main"><p class="card__title">Gym plan</p><p class="card__meta">Membership</p></div></article>
+        <article class="card card--row" data-tone="3"><span class="card__tile" aria-hidden="true"><span class="ic ic--calendar" aria-hidden="true"></span></span><div class="card__main"><p class="card__title">Gym plan</p><p class="card__meta">Renews on 1&nbsp;November</p></div></article>
       </div>
     </div>
   </div>
@@ -416,7 +438,7 @@
 <h2 id="add">Add a tone</h2>
 <ul>
   <li><strong>A different hue for a slot:</strong> in a palette block, set <code>--tone-h-N</code> and <code>--tone-c-N</code> (hue and vividness). Contrast cannot change, because it does not come from them.</li>
-  <li><strong>A new status tone:</strong> add a <code>--hue-*</code> in <code>20-tones.css</code>, a selector that sets <code>--th</code> and <code>--tc</code> and includes it in the status <code>:is()</code> list, and add its name to <code>TONES</code> in <code>tests/contrast.mjs</code>. Run <code>npm run test:contrast</code>.</li>
+  <li><strong>A new status tone:</strong> add a <code>--hue-*</code> in <code>20-tones.css</code>, a selector that sets <code>--th</code> and <code>--tc</code> and includes it in the status <code>:is()</code> list, and add its name to <code>TONES</code> in <code>tests/<wbr>lib/<wbr>rules.mjs</code>, the lint's list of valid values. The contrast matrix finds the new tone in the built CSS by itself: run <code>npm run build</code> and <code>npm run test:contrast</code>.</li>
   <li><strong>A seventh slot:</strong> don't. Six is the owner's number, and a palette can only tell six apart.</li>
 </ul>
 

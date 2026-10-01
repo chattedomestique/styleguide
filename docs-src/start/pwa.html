@@ -1,4 +1,22 @@
 <!--{"title":"PWA","group":"Start","order":4,"summary":"Make an app installable and offline: the manifest and its icons (maskable too), standalone display and safe areas, theme-color per scheme, a service worker that updates without surprises, the offline state, and install prompts. Run in Chromium; not on a device."}-->
+<style>
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+</style>
 <h1>PWA</h1>
 <p class="lede">An installed app has no browser around it: nothing to go back, nothing to refresh, no address to tell you where you are. This page makes an app on the guide installable, lets it start offline, and says what it looks like when the connection goes.</p>
 
@@ -18,7 +36,7 @@
     <tr role="row"><td role="cell" data-label="Browser">Firefox</td><td role="cell" data-label="What it needs">No manifest-based install on desktop. Firefox for Android adds a browser-badged shortcut, not an installed app. Treat Firefox as a browser, not an app host.</td><td role="cell" data-label="Source">MDN, from the research.</td></tr>
   </tbody>
 </table></div>
-<p>Lighthouse's PWA category is deprecated; Chrome's own page says so. Check installability in DevTools (<em>Application</em>, then <em>Manifest</em>), not with a score. The research behind this page is in <code>references/standards/standards-platform.md</code>.</p>
+<p>Lighthouse's PWA category is deprecated; Chrome's own page says so. Check installability in DevTools (<em>Application</em>, then <em>Manifest</em>), not with a score. The research behind this page is in <code>references/<wbr>standards/<wbr>standards-platform.md</code>.</p>
 
 <h2 id="manifest">The manifest</h2>
 <p>One JSON file, linked from the head. This is the one the example app ships; Chromium parsed it with no errors, and asked whether the page could be installed it reported one problem, <code>in-incognito</code>, which is the test browser's profile, not the app.</p>
@@ -45,7 +63,7 @@
   <caption class="sr-only">The manifest members used and what each does</caption>
   <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Member</th><th role="columnheader">Value</th><th role="columnheader">Why</th></tr></thead>
   <tbody role="rowgroup">
-    <tr role="row"><td role="cell" data-label="Member"><code>id</code></td><td role="cell" data-label="Value"><code>"/tasks/"</code></td><td role="cell" data-label="Why">The app's identity, resolved against the origin. Make it unique <em>per app</em>: several apps on one origin, such as <code>user.github.io/tasks/</code> and <code>user.github.io/decks/</code>, would otherwise be one app to the browser. Without it the identity falls back to <code>start_url</code>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Member"><code>id</code></td><td role="cell" data-label="Value"><code>"/tasks/"</code></td><td role="cell" data-label="Why">The app's identity, resolved against the origin. Make it unique <em>per app</em>: several apps on one origin, such as <code>user.github.io/<wbr>tasks/</code> and <code>user.github.io/<wbr>decks/</code>, would otherwise be one app to the browser. Without it the identity falls back to <code>start_url</code>.</td></tr>
     <tr role="row"><td role="cell" data-label="Member"><code>name</code>, <code>short_name</code></td><td role="cell" data-label="Value"><code>"Tasks"</code></td><td role="cell" data-label="Why">The name in the install dialog, and under the icon. <code>short_name</code> is the one that has to fit under the icon.</td></tr>
     <tr role="row"><td role="cell" data-label="Member"><code>description</code></td><td role="cell" data-label="Value">One sentence</td><td role="cell" data-label="Why">Shown in Chrome's richer install dialog.</td></tr>
     <tr role="row"><td role="cell" data-label="Member"><code>start_url</code>, <code>scope</code></td><td role="cell" data-label="Value"><code>"./?source=pwa"</code>, <code>"./"</code></td><td role="cell" data-label="Why">Relative, so the same file works under any base path. <code>?source=pwa</code> lets you tell, in analytics, a launch as an app from a visit. <code>scope</code> decides which URLs belong to the app.</td></tr>
@@ -135,14 +153,14 @@ await browser.close()</pre>
 <ul>
   <li><strong>A way back on every screen but the first</strong>: the <a href="@/components/appbar.html">App bar</a>'s named back control, or a <a href="@/components/breadcrumb.html">Breadcrumb</a>. Nothing important may be reachable only by an edge swipe, which collides with the system's back gesture.</li>
   <li><strong>A way to refresh</strong>: a visible control, or pull-to-refresh with a button beside it (every gesture has a tap equivalent).</li>
-  <li><strong>Know you are installed</strong> when it matters: <code>matchMedia('(display-mode: standalone)').matches</code>, or <code>navigator.standalone === true</code> on iOS. Use it to hide "Install" and, in CSS, <code>@media (display-mode: standalone)</code> to hide an "Open in browser" link.</li>
+  <li><strong>Know you are installed</strong> when it matters: <code>matchMedia('(display-mode: standalone)').matches</code>, or <code>navigator.standalone === true</code> on iOS. Use it to hide "Install" and, in CSS, <code>@media <span data-f="nw">(display-mode:</span> standalone)</code> to hide an "Open in browser" link.</li>
   <li><strong>Do not lock orientation</strong>, and keep the dock and the app bar in <code>--dock-h</code> and <code>--appbar-h</code> so focus is never hidden behind them (WCAG 2.4.11).</li>
 </ul>
-<p>The shell does what it can without a device. <code>viewport-fit=cover</code> makes <code>env(safe-area-inset-*)</code> real; <code>.app</code> pads the left and right by <code>max(var(--gutter), var(--safe-left))</code> and its right twin (landscape phones have side insets), <code>.safe-top</code> and <code>.safe-bottom</code> are there for bars and docks, and everything full-height uses <code>100dvh</code>, never <code>vh</code>. <strong>Nothing in the shell depends on the top inset being non-zero</strong>, for the reason in the next box.</p>
+<p>The shell does what it can without a device. <code>viewport-fit=cover</code> makes <code>env(safe-area-inset-*)</code> real; <code>.app</code> pads the left and right by <code>max(var(<span data-f="nw">--gutter</span>), var(<span data-f="nw">--safe-left</span>))</code> and its right twin (landscape phones have side insets), <code>.safe-top</code> and <code>.safe-bottom</code> are there for bars and docks, and everything full-height uses <code>100dvh</code>, never <code>vh</code>. <strong>Nothing in the shell depends on the top inset being non-zero</strong>, for the reason in the next box.</p>
 <div class="note" data-kind="warn">
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
   <div><strong>iOS may report a safe area of 0 and still draw a system strip</strong><p>WebKit bug 301994 ("Status bar remains visible in fullscreen mode in Home Screen web apps") began on iOS 26.1, when a reporter found that <code>env(safe-area-inset-top)</code> now returned 0. Reporters said 26.2 fixed it; on 21 July 2026 one measured it again on iOS 26.5.2: <code>screen.height</code> 874 against <code>innerHeight</code> and <code>100dvh</code> of 812, a 62&nbsp;px gap "drawn by the system above the web layer and unreachable by any DOM element", and a strip colour taken from the page background that updates only when the app is relaunched. An Apple engineer confirmed it on iOS 27 beta and reopened the bug on 5 August 2026. Status when checked on 30 September 2026: <strong>reopened</strong>, last changed 28 August.</p>
-<p>What to do: set the page background (<code>html { background: var(--canvas) }</code> is already in the guide), so the strip matches; do not assume the viewport is as tall as the screen; use a flex column, not <code>position: fixed</code> full-height layers; do not use <code>apple-mobile-web-app-status-bar-style: black-translucent</code> on a light page (community reports say it forces white glyphs, which is not documented by Apple). <strong>None of this was tested on a device.</strong></p></div>
+<p>What to do: set the page background (<code>html { background: <span data-f="nw">var(--canvas)</span> }</code> is already in the guide), so the strip matches; do not assume the viewport is as tall as the screen; use a flex column, not <code>position: fixed</code> full-height layers; do not use <code>apple-mobile-web-app-status-bar-style: black-translucent</code> on a light page (community reports say it forces white glyphs, which is not documented by Apple). <strong>None of this was tested on a device.</strong></p></div>
 </div>
 
 <h2 id="theme-color">theme-color per colour scheme</h2>
@@ -293,7 +311,7 @@ self.addEventListener('fetch', (event) =&gt; {
 <ul>
   <li>First load installs the worker; the next load is controlled by it, and the shell cache held the nine precached files.</li>
   <li>With the network switched off, a reload rendered the page, with its font; so did <code>/?utm=1</code>.</li>
-  <li>After editing <code>index.html</code> and bumping <code>VERSION</code>, <code>registration.update()</code> found a waiting worker while the page still showed the old version, and the toast appeared. Pressing <em>Reload</em> made exactly one reload, the page showed the new version, and <code>caches.keys()</code> was <code>["runtime", "shell-v2"]</code>: the old shell cache was gone.</li>
+  <li>After editing <code>index.html</code> and bumping <code>VERSION</code>, <code>registration.update()</code> found a waiting worker while the page still showed the old version, and the toast appeared. Pressing <em>Reload</em> made exactly one reload, the page showed the new version, and <code>caches.keys()</code> was <code>["runtime", <span data-f="nw">"shell-v2"]</span></code>: the old shell cache was gone.</li>
 </ul>
 <h3 id="sw-rules">Rules that keep it from biting</h3>
 <ul>
@@ -337,7 +355,7 @@ self.addEventListener('fetch', (event) =&gt; {
           <li>Renew the library card</li>
           <li>Plan Saturday&rsquo;s long run</li>
         </ul>
-        <button class="btn" type="button" id="demo-toggle" aria-pressed="false">Simulate offline</button>
+        <button class="btn" type="button" id="demo-toggle" aria-pressed="false">Go offline</button>
       </div>
     </div>
   </div>
@@ -430,7 +448,7 @@ function sync() {
 </div>
 <ul>
   <li><strong>Stash the event</strong> and call <code>prompt()</code> from the person's click; the browser refuses to show it from anywhere else.</li>
-  <li><strong>Hide everything when installed</strong>: <code>display-mode: standalone</code> or <code>navigator.standalone</code>, and the <code>appinstalled</code> event.</li>
+  <li><strong>Hide everything when installed</strong>: <code><span data-f="nw">display-mode:</span> standalone</code> or <code>navigator.standalone</code>, and the <code>appinstalled</code> event.</li>
   <li><strong>The handler was exercised with a synthetic event</strong> that has the same shape (<code>prompt()</code>, <code>userChoice</code>): the button appeared, the click called <code>prompt()</code> and hid the button, an iPhone user agent showed the instructions, and standalone mode showed neither. <strong>The browser's own event was not fired</strong>: headless Chromium does not raise it, so the real prompt was never seen.</li>
   <li>Instructions for iOS are user-agent sniffing, which is fragile. iPadOS reports itself as a Mac, hence the touch-point check. Keep the text short and in Settings.</li>
 </ul>

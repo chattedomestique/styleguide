@@ -44,16 +44,17 @@ Never edit `dist/` or `docs/` by hand. Edit `src/` and `docs-src/`, then `npm ru
 |---|---|
 | `npm run build` | generate `dist/` and `docs/` (`--allow-broken-links` while pages are unfinished) |
 | `npm run lint` | the owner's gate, rebuilt on a CSS tokenizer and extended (see `STYLE.md` §5): undefined tokens, colour literals (incl. named colours and `data:` URIs) outside `src/tokens`, AI tells, literal line widths and radii, layering, unknown classes in docs and JS, a11y hygiene, ungated `:hover`, placeholder copy |
-| `npm run test:lint` | replays the tooling audit's 146 violations and 34 legitimate snippets against the lint (`tests/lint-cases.json`); add a case whenever you add a rule |
+| `npm run test:lint` | replays the tooling audit's cases against the lint (`tests/lint-cases.json`): today 112 of 136 violations caught and 34 of 34 legitimate snippets passed (the 24 misses only a render can judge). Add a case whenever you add a rule |
 | `npm run test:contrast` | every colour role pair × 2 themes × 2 contrast modes × 6 palettes (× 6 tone slots + ink + 4 status, pastel and bold), resolved by a real browser |
 | `npm run test:components` | keyboard / ARIA / focus / state specs in `tests/components/` |
 | `npm run test:a11y -- --pages a.html,b.html` | axe + focus walk + target sizes + reflow at 320 and 200 % text + forced colours on those docs pages (`--quick` for 2 appearances); `data-allow-clip` on a demo marks text that is cut on purpose (truncation, a failure shown as a warning) |
 | `node tests/screenshots.mjs components/x.html --theme dark --palette mint --corners soft --width 390` | look at it. `--matrix` for the grid, `--selector '#examples'` to crop |
+| `node tests/design.mjs --pages components/x.html --crops` | the design-integrity probe: ovals, wrapped labels, broken words, ragged bars, one row at two heights, icons far from labels. A report in `test-results/design.json` for a person to judge, not a gate (`--conditions phone,large` to narrow it) |
 | `npm run new:component -- name --order 45` | scaffold CSS + docs page + test spec |
 | `npm test` | everything above, in order |
 | `npm run status` | regenerate `docs-src/project/status.html` (the Status page) from the gates: builds, runs the lint, the component specs and the a11y gate on every component page, and writes each element's findings into its row. Takes about an hour (all five appearances); `npm run status -- --quick` runs two, about 20 minutes, to look at, not to commit. Not part of `npm test`. Rendering from logs you already have is described in the header of `scripts/status.mjs` |
 
-**You must look at screenshots.** Green tests do not prove it looks right. Review at 320, 390 and 1024 px, light and dark, `default` / `mint` / `wire` palettes, square and soft corners. Fix what looks wrong, not only what fails.
+**You must look at screenshots.** Green tests do not prove it looks right. Review at 320, 390 and 1024 px, at 390 px with 200 % text, light and dark, `default` / `mint` / `wire` palettes, square and soft corners. The bar is "a careful product designer would ship this screen". Fix what looks wrong, not only what fails.
 
 ## The system in 60 seconds
 
@@ -70,14 +71,14 @@ Six independent switches, all `data-*` attributes on `<html>` (or on any element
 
 Colour is built in three steps: **knobs** (`--k-*`, plain numbers: OKLCH lightness / chroma / hue) → **roles** (`--canvas --paper --paper-2 --paper-3 --ink --ink-soft --ink-mute --ink-faint --line --line-soft --focus --accent --on-accent --accent-ink --accent-soft --on-accent-soft --ok-ink --warn-ink --bad-ink --info-ink --scrim --on-media`, derived with `light-dark(oklch(…))`) → **components** (read roles only). Components never know which palette, corner style or theme is active.
 
-Interaction is two registered numbers: `--lift` (0 flat, 1 raised: the hard shadow and the 2px move) and `--fill` (0 outline, 1 filled). Every state only sets them; one `transition` animates both. See `src/components/button.css`.
+Interaction is two registered numbers: `--lift` (0 flat, 1 raised: the hard shadow and the 2px move) and `--fill` (0 outline, 1 filled). Every state only sets them; one `transition` animates both. See `src/components/button.css`. An action fills on hover; a selection control keeps the fill for "selected" (golden rule 2).
 
 Cascade layers, lowest to highest: `sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities` (the wireframe kit sits BELOW components so a placeholder can never override a real element; utilities sit last so `.sr-only` and `.num` win over a component's `position` and `font:`). Every source file opens its own `@layer sg.x { }`. An app's unlayered CSS always wins, so apps override without `!important`.
 
 ## Golden rules (beyond the seven above)
 
 1. **Roles, not literals.** In `src/components`, `src/layout`, `src/base`, `src/wire`: no hex/rgb/oklch literals, no `px` font sizes; border widths from `--bw / --bw-thin / --bw-heavy / --ring`; radii only `--radius-card | -tile | -ctl | -pill`. Missing a role? Add it to `src/tokens` with a comment and a line in `tests/contrast.mjs`; do not inline a colour.
-2. **State comes from ARIA and native attributes**, never classes: `aria-selected|pressed|current|expanded|checked|busy|disabled`, `:disabled`, `[hidden]`. The `.is-*` classes exist only to force a state for docs and tests.
+2. **State comes from ARIA and native attributes**, never classes: `aria-selected|pressed|current|expanded|checked|busy|disabled`, `:disabled`, `[hidden]`. The `.is-*` classes exist only to force a state for docs and tests. **Selection controls** (chip, tab, segmented option, toggle, dock item, tile, swatch, calendar day…) keep the solid fill for selected / on / current: hover and focus only lift (`--lift: 1; --fill: 0`), pressed tints (`--lift: 0; --fill: 0.15`), selected is `--fill: 1` plus its structural cue, selected + hover is 1 / 1. Actions (a `.btn` without `aria-pressed`) keep the owner's fill-on-hover. A hovered chip must never look selected.
 3. **Never colour-only.** Selected / on / error / status always has a second cue: shape, weight, border, icon or text. Status = icon + words. Tones carry rhythm, never meaning.
 4. **Text contrast**: `--ink` and `--ink-soft` ≥ 7:1; `--ink-mute` ≥ 4.5:1 is the floor; `--ink-faint` is 3:1 and never carries text that matters. On a tone use `--tone-ink`, `--tone-ink-soft`, `--tone-on-fill`; on the accent `--on-accent`. Never `opacity` on text. Never text on a photo without a scrim or a solid plate.
 5. **Non-text contrast ≥ 3:1**: frames use `--line`; decoration that must stay quiet uses `--line-soft`.
@@ -87,13 +88,14 @@ Cascade layers, lowest to highest: `sg.reset, sg.tokens, sg.base, sg.layout, sg.
 9. **Focus**: the ring is `var(--ring) solid var(--focus)` at `--ring-offset`, plus a paper halo so it shows on any background. Inside something that clips (a card), use `--ring-gap: var(--ring-offset-in)`. A component that sets its own `box-shadow` keeps it: `box-shadow: var(--focus-shadow), <own>`. Sticky chrome sets `--appbar-h` / `--dock-h` so focus is never hidden (2.4.11). On an ink surface the ring follows the surface (an ink ring on an ink card vanishes).
 10. **Motion** is `transform` + `opacity` + the two registered numbers. Multiply travel by `--move`, so reduced motion becomes a plain fill change, never "instant" and never bouncing. Loading uses `var(--anim-spin)`. Nothing flashes > 3×/s. Anything that moves > 5 s (marquee, autoplay) has a visible pause control.
 11. **Forced colours**: keep a real border on every control and card (shadows and fills vanish); hover / focus / selected get a `--bw-heavy` `Highlight` outline or border.
-12. **Text size**: everything in `rem`; layouts survive 200 % text and 320 px width (container queries inside components, `minmax(min(100%, …), 1fr)` grids, em-based media queries only for the app shell). Long words wrap (`overflow-wrap`).
+12. **Text size: words grow, chrome stops.** Words and the space between blocks are `rem` (`--space-*`) and grow with the reader's text; an icon inside a line of words grows with its label (`em`, e.g. `--ic-size: 1.15em`). The insets of controls and containers, icon-only controls and their 44 px targets, the slots that hold them, leading pictures, badges and picture frames stop at their 100 % size (`--chrome-*`, see the Space page). Layouts survive 200 % text and 320 px width (container queries inside components, `minmax(min(100%, …), 1fr)` grids, em-based media queries only for the app shell). Words wrap between words (`overflow-wrap: break-word`); never `overflow-wrap: anywhere`, which makes min-content one letter and shatters words in flex and grid rows (lint rule `wrap`). Numbers never break mid-number.
 13. **Symbols are masks**: `<span class="ic ic--plus" aria-hidden="true"></span>`. Never text arrows / checks / emoji for UI. A control whose only content is an icon gets the `aria-label`.
 14. **Hover is gated** with `@media (hover: hover)`; press feedback is visible within 100 ms.
 15. **Logical properties** (`margin-inline`, `inset-block-start`, …) so RTL works.
 16. **Tabular numerals** for money, time, counters (`.num`). Format with `Intl`; true minus `−` (U+2212).
 17. **Native first**: `<button>`, `<a>`, `<dialog>`, `popover`, `<details>`, `<input type=range>`, `<progress>`, `<meter>`. Custom roles only where no native element exists, following the ARIA pattern exactly.
 18. **Comments explain why**, name the bug a rule prevents, cite the WCAG SC. Keep each file's header true when code changes.
+19. **A bar or control row never wraps raggedly.** One row at every size, `[lead] [text that may wrap] [actions]`, with chrome-capped icon controls, all one height. When it truly cannot fit it switches as a whole (icons only, the short form, one item per line, or a scroller with a clear cue), measured with `SG.fit` (`src/js/05-fit.js`) when CSS cannot know. Never 2 + 1, never a lonely item on a second row.
 
 ## Adding an element: the pipeline
 
@@ -108,7 +110,7 @@ The owner's sheet moves every element through gates, in order. Do not skip ahead
 | 4 Motion | One transition; reduced motion = gentler | spec passes with `reducedMotion` |
 | 5 Freeze | Docs complete, a11y gate green, screenshots reviewed | definition of done below |
 
-The status table lives in `STYLE.md` §6 (the owner's copy); the Status docs page is generated from the gates by `npm run status`. Update §6 when an element moves.
+The status table lives in `STYLE.md` §6 (the owner's copy); the Status docs page is generated from the gates by `npm run status`, and its "Screenshots" field from `docs-src/project/visual-review.json`, which a person keeps by hand after looking. Passing checks are never "done" on their own. Update §6 when an element moves.
 
 1. `npm run new:component -- <name> --order <n>`. Orders: actions 10–19 · forms 20–39 · selection & navigation 40–59 · surfaces 60–79 · overlays & feedback 80–99 · data 100–119 · media & tools 120–139.
 2. Copy the **structure** of `src/components/button.css`: `--lift` / `--fill`, private `--_*` properties, variants via `data-*`, states via ARIA, `@layer sg.components`, hit area, focus, hover gate, forced colours, reduced motion.
@@ -129,7 +131,8 @@ The status table lives in `STYLE.md` §6 (the owner's copy); the Status docs pag
 - [ ] Reduced motion: no travel, nothing instant, nothing bouncing
 - [ ] Docs page complete, links / anchors resolve, demos are real markup
 - [ ] Spec passes; a11y gate passes for the page in all appearances
-- [ ] Screenshots reviewed (any visual flaw fixed, not waived)
+- [ ] Looks right at 390 px at 100 % AND 200 % text: equal heights in a row, no lonely item, no word broken inside, icons beside their labels
+- [ ] Screenshots reviewed (any visual flaw fixed, not waived), and its entry in `docs-src/project/visual-review.json` updated
 
 ## Docs page format
 

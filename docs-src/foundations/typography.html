@@ -1,27 +1,49 @@
 <!--{"title":"Typography","group":"Foundations","order":12,"summary":"One family, three widths: Archivo Variable, the six type styles, the rem size scale, container-relative sizes, numerals, case and wrapping."}-->
 <style>
   /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
-  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--space-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
-  .docs-table td:first-child code { white-space: nowrap; }
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #styles-table td:nth-child(n+2) { min-inline-size: 9rem; }
+    #styles-table td:last-child { min-inline-size: 14rem; }
+    #scale-table td:nth-child(2) { min-inline-size: 15rem; }
+    #scale-table td:nth-child(3) { min-inline-size: 8rem; }
+  }
   .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
-  #styles-table td:nth-child(n+2) { min-inline-size: 9rem; }
-  #styles-table td:last-child { min-inline-size: 14rem; }
-  #scale-table td:nth-child(2) { min-inline-size: 15rem; }
-  #scale-table td:nth-child(3) { min-inline-size: 8rem; }
 
   /* minmax(0, 1fr) and min-inline-size: 0: a grid track is as wide as its widest item's min-content, so one caption or a 136px "GO" widened the whole list past a 320px screen at 200% text */
   .docs-article [data-f="specs"] { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; list-style: none; border: var(--bw) solid var(--line); background: var(--paper); }
-  .docs-article [data-f="specs"] > li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); min-inline-size: 0; max-inline-size: none; margin: 0; padding: var(--space-4) var(--space-3); } /* inline padding is the tight one: at 200% text on 320px the 48px word "Numbers" needs 200px */
+  .docs-article [data-f="specs"] > li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); min-inline-size: 0; max-inline-size: none; margin: 0; padding: var(--chrome-4) var(--chrome-3); } /* chrome insets: at 200% text on 320px the 48px word "Numbers" needs 200px */
   .docs-article [data-f="specs"] > li + li { margin: 0; border-block-start: var(--bw-thin) solid var(--line); }
   .docs-article [data-f="specs"] p { margin: 0; max-inline-size: none; overflow-wrap: break-word; }
   .docs-article [data-f="cap"] { font: var(--type-meta); color: var(--ink-soft); }
-  /* each identifier is one atomic chip: it moves to the next line whole, and only when it is wider than the line does it break, at its hyphens first */
+  /* each identifier is one atomic chip: it moves to the next line whole, and only when it is wider than the line
+     does it break. A code token may split anywhere (the one case the wrap rule allows); words never do. */
   .docs-article [data-f="cap"] code { display: inline-block; max-inline-size: 100%; overflow-wrap: anywhere; }
 
-  .docs-article [data-f="widths"] { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-  .docs-article [data-f="widths"] li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); max-inline-size: none; margin: 0; padding: var(--space-3) var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  /* a container, so the specimen line is sized from the list's width: a display line shrinks to fit its box
+     instead of breaking a word (at 200% text, "Streak" set expanded is wider than a phone's column) */
+  .docs-article [data-f="widths"] { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; container-type: inline-size; }
+  .docs-article [data-f="widths"] li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); max-inline-size: none; margin: 0; padding: var(--chrome-3) var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); }
   .docs-article [data-f="widths"] li + li { margin: 0; }
-  .docs-article [data-f="widths"] strong { font-weight: 700; font-size: var(--text-2xl); line-height: var(--lh-tight); overflow-wrap: anywhere; }
+  .docs-article [data-f="widths"] strong { font-weight: 700; font-size: min(var(--text-2xl), 12cqi); line-height: var(--lh-tight); overflow-wrap: break-word; }
 
   .docs-article [data-f="lab"] { display: grid; gap: var(--space-4); }
   .docs-article [data-f="controls"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--space-4); }
@@ -29,10 +51,12 @@
   .docs-article [data-f="lab"] label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
   .docs-article [data-f="lab"] output { font-variant-numeric: tabular-nums lining-nums; }
   .docs-article [data-f="lab"] input[type="range"] { inline-size: 100%; block-size: var(--hit); margin: 0; border: var(--bw) solid transparent; }
-  .docs-article [data-f="lab-sample"] { margin: 0; padding: var(--space-5); border: var(--bw) solid var(--line); background: var(--paper); font-family: var(--font-sans); font-size: var(--text-2xl); line-height: var(--lh-tight); font-weight: var(--_w, 600); font-stretch: var(--_s, 100%); overflow-wrap: anywhere; }
+  /* the sample shrinks with the stage (cqi) rather than break "Numbers" at 200% text and full width */
+  .docs-article [data-f="lab-sample"] { margin: 0; padding: var(--chrome-5); border: var(--bw) solid var(--line); background: var(--paper); font-family: var(--font-sans); font-size: min(var(--text-2xl), 11cqi); line-height: var(--lh-tight); font-weight: var(--_w, 600); font-stretch: var(--_s, 100%); overflow-wrap: break-word; }
 
   .docs-article [data-f="nums"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--space-3); }
-  .docs-article [data-f="nums"] > div { padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="nums"] > div { padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="nums"] p.num { white-space: nowrap; } /* an amount is one unit: it never breaks */
   .docs-article [data-f="nums"] p { margin: 0; max-inline-size: none; text-align: end; }
   .docs-article [data-f="nums"] p:not(.t-label) { font-size: var(--text-lg); }
   .docs-article [data-f="nums"] p.t-label { text-align: start; margin-block-end: var(--space-2); }
@@ -41,18 +65,23 @@
   .docs-article [data-f="wrap"] > div { min-inline-size: 0; }
   .docs-article [data-f="wrap"] .t-label { margin: 0 0 var(--space-2); color: var(--ink-soft); }
   /* a flex row is where overflow-wrap: break-word fails: the item's min-content is still the whole word */
-  .docs-article [data-f="box"] { display: flex; inline-size: 9rem; max-inline-size: 100%; padding: var(--space-3); overflow: clip; border: var(--bw) dashed var(--line); }
+  /* the box is measured in characters of its own text, so the long word breaks into even lines at any text size
+     (a box in rem left one lonely "t" on a third line at 200%) */
+  .docs-article [data-f="box"] { display: flex; inline-size: calc(12ch + 2 * var(--chrome-3)); max-inline-size: 100%; padding: var(--chrome-3); overflow: clip; border: var(--bw) dashed var(--line); }
   .docs-article [data-f="box"] p { margin: 0; max-inline-size: none; }
   .docs-article [data-f="sizes"] { margin-block-start: var(--space-3); }
+  /* the width buttons: one row when they fit, one per line when they do not (never two and a lonely third) */
+  .docs-article [data-f="boxw"] { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  @container (max-width: 15rem) { .docs-article [data-f="boxw"] { flex-direction: column; align-items: stretch; } }
 </style>
 
 <h1>Typography</h1>
-<p class="lede">One family, three widths, six styles. Archivo's width axis does the job a second typeface normally does: expanded for posters, normal for reading, condensed for labels. Everything is in <code>rem</code>, so it follows the size the reader chose.</p>
+<p class="lede">One family, three widths, six styles. Archivo's width axis does the job a second typeface normally does: expanded for posters, normal for reading, condensed for labels. Every size is in <code>rem</code>, so the words follow the size the reader chose.</p>
 
 <h2 id="family">Archivo Variable</h2>
-<p><code>--font-sans</code> is <code>"Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif</code>. One self-hosted file, <code>src/fonts/archivo-latin-var.woff2</code>, is variable on both axes: weight 100 to 900 and width 62% to 125%. It is declared in <code>50-fonts.css</code> with <code>font-display: swap</code>, so text shows immediately in the fallback and swaps when the font arrives. Licence: SIL OFL 1.1 (<code>src/fonts/OFL-Archivo.txt</code>).</p>
+<p><code>--font-sans</code> is <code>"Archivo", "Helvetica Neue", Helvetica, Arial, <span data-f="nw">sans-serif</span></code>. One self-hosted file, <code>src/<wbr>fonts/<wbr>archivo-latin-var.woff2</code>, is variable on both axes: weight 100 to 900 and width 62% to 125%. It is declared in <code>50-fonts.css</code> with <code><span data-f="nw">font-display:</span> swap</code>, so text shows immediately in the fallback and swaps when the font arrives. Licence: SIL OFL 1.1 (<code>src/<wbr>fonts/<wbr>OFL-Archivo.txt</code>).</p>
 <ul>
-  <li><strong>Why self-hosted.</strong> No third-party request on first load, it works offline in an installed PWA, and from <code>file://</code>. Copy the <code>fonts/</code> folder next to <code>styleguide.css</code>; the <code>@font-face</code> points at <code>fonts/archivo-latin-var.woff2</code>.</li>
+  <li><strong>Why self-hosted.</strong> No third-party request on first load, it works offline in an installed PWA, and from <code>file://</code>. Copy the <code>fonts/</code> folder next to <code>styleguide.css</code>; the <code>@font-face</code> points at <code>fonts/<wbr>archivo-latin-var.woff2</code>.</li>
   <li><strong>Latin subset.</strong> It includes the true minus (U+2212), the euro sign and the tabular figures. It does <em>not</em> include check marks, left and right arrows, or the signs for at most, at least and approximately. Draw those as <a href="@/foundations/icons.html">icons</a>; <code>npm run lint</code> warns on the glyphs it knows are missing. For another script, add its subset as a second <code>@font-face</code> with its own <code>unicode-range</code>.</li>
   <li><strong><code>--font-mono</code></strong> is the system monospace stack, for code in docs and apps. It is the only other family, and it never appears in the product UI.</li>
 </ul>
@@ -85,7 +114,7 @@
 </div>
 
 <h2 id="styles">The six type styles</h2>
-<p>Each style is a whole <code>font</code> shorthand, so weight, width, size, line-height and family travel together. Write <code>font: var(--type-title)</code>, or use the <code>.t-*</code> class, which adds what the shorthand cannot carry: tracking (<code>letter-spacing</code>), case and wrapping.</p>
+<p>Each style is a whole <code>font</code> shorthand, so weight, width, size, line-height and family travel together. Write <code>font: var(<span data-f="nw">--type-title</span>)</code>, or use the <code>.t-*</code> class, which adds what the shorthand cannot carry: tracking (<code>letter-spacing</code>), case and wrapping.</p>
 <ul data-f="specs" role="list">
   <li>
     <p data-f="cap"><code>.t-display</code> · <code>--type-display</code> · uppercase</p>
@@ -146,13 +175,13 @@
     <tr><td><code>--text-4xl</code></td><td><code>clamp(4.25rem, 1rem + 15vw, 15rem)</code> (68 to 240px)</td><td><span style="font-size: var(--text-4xl)" data-tok="--text-4xl">Aa</span></td><td class="num" data-now></td></tr>
   </tbody>
 </table></div>
-<p>Two more rules keep the scale honest. Sizes are never written in <code>px</code> (lint fails it), and the root is never resized: no <code>html { font-size: … }</code>. The reader's setting is the scale.</p>
+<p>Two more rules keep the scale honest. Sizes are never written in <code>px</code> (lint fails it), and the root is never resized: no <code>html { <span data-f="nw">font-size:</span> … }</code>. The reader's setting is the scale.</p>
 
 <h3 id="cqi">Inside a card, the card's width decides</h3>
-<p>A card can sit in a one-column phone layout or a four-column desk grid, and the viewport cannot tell which. So type inside a card is sized from the card's own width with <code>cqi</code> (1% of the container's inline size): <code>.card__title</code> is <code>clamp(1.375rem, 8cqi, 2rem)</code>, <code>.card__figure</code> is <code>clamp(3rem, 27cqi, 6.5rem)</code>, <code>.card__hero</code> is <code>clamp(2.25rem, 17cqi, 3.75rem)</code>, and the card's padding <code>clamp(1rem, 5cqi, 1.5rem)</code>. Narrow the box below; the card answers to its own width, not the window's.</p>
+<p>A card can sit in a one-column phone layout or a four-column desk grid, and the viewport cannot tell which. So type inside a card is sized from the card's own width with <code>cqi</code> (1% of the container's inline size): <code>.card__title</code> is <code>clamp(1.375rem, 8cqi, 2rem)</code>, and the big figure and the portrait card's hero are bounded by <code>cqi</code> too, so a number or a long word shrinks with a narrow card instead of breaking. The card's inset is chrome: <code>--card-pad</code> is <code>clamp(var(--chrome-4), 5cqi, <span data-f="nw">var(--chrome-5))</span></code>, 16 to 24px at any text size. The exact sizes are on the <a href="@/components/card.html">Card</a> page. Narrow the box below; the card answers to its own width, not the window's.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="cluster" role="group" aria-label="Width of the box below" id="cq-buttons">
+    <div data-f="boxw" role="group" aria-label="Width of the box below" id="cq-buttons">
       <button class="btn" data-size="sm" type="button" data-w="14rem" aria-pressed="false">Narrow</button>
       <button class="btn" data-size="sm" type="button" data-w="20rem" aria-pressed="false">Medium</button>
       <button class="btn" data-size="sm" type="button" data-w="100%" aria-pressed="true">Wide</button>
@@ -178,7 +207,7 @@
 </div>
 
 <h2 id="numerals">Numerals</h2>
-<p>Money, time and counters use tabular figures, so columns line up and a ticking number does not jitter. <code>.num</code> does it (<code>font-variant-numeric: tabular-nums lining-nums</code>), and <code>.t-meta</code> and <code>.t-figure</code> already include it. Archivo's default figures are proportional: in the first column below a 1 is narrower than an 8.</p>
+<p>Money, time and counters use tabular figures, so columns line up and a ticking number does not jitter. <code>.num</code> does it (<code>font-variant-numeric: <span data-f="nw">tabular-nums</span> <span data-f="nw">lining-nums</span></code>), and <code>.t-meta</code> and <code>.t-figure</code> already include it. Archivo's default figures are proportional: in the first column below a 1 is narrower than an 8.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div data-f="nums">
@@ -225,8 +254,12 @@
 
 <h2 id="wrapping">Wrapping, line length and long words</h2>
 <ul>
-  <li><strong>Titles balance, body text is pretty-wrapped.</strong> <code>.t-title</code> and the <code>h1</code> to <code>h3</code> defaults use <code>text-wrap: balance</code>; <code>.t-body</code> uses <code>pretty</code>, which avoids a last line of one word.</li>
-  <li><strong>Long words wrap.</strong> The reset gives headings, paragraphs and list items <code>overflow-wrap: break-word</code>. In a flex or grid row the item's minimum width is still the whole word, so a long word is clipped or overflows (first box below). Add <code>.break</code> (<code>overflow-wrap: anywhere</code> with hyphenation). <code>.card__hero</code> already does.</li>
+  <li><strong>Words wrap between words.</strong> The reset gives headings, paragraphs and list items <code><span data-f="nw">overflow-wrap:</span> <span data-f="nw">break-word</span></code>: a word breaks inside itself only when it alone is wider than the line, such as a long compound or an address.</li>
+  <li><strong>Never <code><span data-f="nw">overflow-wrap:</span> anywhere</code> on text in a layout.</strong> It makes an element's smallest width one letter, so a flex or grid item shrinks below its longest word and every word in it can shatter ("Shopp / ing", "Accou / nt"). The lint fails it (rule <code>wrap</code>). A code token or a URL that may split anywhere waives it on its line with <code>/* <span data-f="nw">lint-allow</span> wrap: why */</code>.</li>
+  <li><strong>In a flex or grid row</strong> an item is never narrower than its longest word, so a word longer than the row overflows (the first box below). Where one word can be that long, add <code>.break</code>: the item may shrink (<code><span data-f="nw">min-inline-size:</span> 0</code>) and the word breaks only then. Where every word fits but the row does not, change the layout instead: stack the row, shorten the label, or let the row <a href="@/foundations/layout.html#fit">switch as a whole</a>.</li>
+  <li><strong>Running text is pretty-wrapped; titles are balanced.</strong> Paragraphs, list items, definitions, captions and quotes use <code><span data-f="nw">text-wrap:</span> pretty</code>, which avoids a last line of one short word. <code>.t-title</code> and the <code>h1</code> to <code>h3</code> defaults use <code><span data-f="nw">text-wrap:</span> balance</code>.</li>
+  <li><strong>Long title words may hyphenate.</strong> The display line, the text slots of a card and <code>.break</code> set <code>hyphens: auto</code>, which uses the page's <code>lang</code>. An honest limit: Chromium on Linux, where this guide's tests and screenshots run, has no hyphenation dictionaries, so a screenshot shows a plain break where a phone shows a hyphen. Do not lean on it: when a title would have to break, give it the room (one column instead of two) or a shorter word.</li>
+  <li><strong>Numbers never break.</strong> An amount, a time or a count is one unit: give its own element <code><span data-f="nw">white-space:</span> nowrap</code>. A big figure shrinks to fit its box (a size bounded by <code>cqi</code>) instead of wrapping. Body text keeps its full size.</li>
   <li><strong>Truncate on purpose only.</strong> <code>.truncate</code> is one line with an ellipsis, <code>.clamp-2</code> is two lines. Anything truncated needs its full text available somewhere else.</li>
   <li><strong>Measure.</strong> <code>--measure</code> is 62ch, the widest a paragraph gets; <code>.prose</code> applies it and spaces its children. <code>.card__text</code> stops at 40ch.</li>
 </ul>
@@ -244,19 +277,20 @@
 
 <h2 id="scaling">Text size scaling</h2>
 <ul>
-  <li>Every size, line height and spacing that depends on text is in <code>rem</code>. Browser text size, browser zoom and (on Android) font scale all work, and layouts are tested with text at 200% and width at 320px by <code>npm run test:a11y</code>.</li>
-  <li>On iOS, <code>base</code> asks for Dynamic Type through <code>font: -apple-system-body</code> behind <code>@supports</code>, and pins desktop Safari back to 100%. <strong>That is unverified on a device.</strong> If it misbehaves in your app, delete the two <code>@supports</code> blocks in <code>src/base/10-base.css</code>; everything is still in <code>rem</code>.</li>
-  <li>Controls grow with their text: heights are <code>min-block-size</code> in <code>rem</code>, and labels wrap instead of clipping.</li>
+  <li>Every text size, line height and space between blocks is in <code>rem</code>. Browser text size, browser zoom and (on Android) font scale all work, and layouts are tested with text at 200% and width at 320px by <code>npm run test:a11y</code>.</li>
+  <li>The chrome around the words does not grow with them: the insets of controls and containers, icon-only controls and their targets stop at their 100% size (<a href="@/foundations/space.html#chrome">chrome caps</a>), so at 200% text the words get the width. Browser zoom still scales all of it.</li>
+  <li>On iOS, <code>base</code> asks for Dynamic Type through <code>font: -apple-system-body</code> behind <code>@supports</code>, and pins desktop Safari back to 100%. <strong>That is unverified on a device.</strong> If it misbehaves in your app, delete the two <code>@supports</code> blocks in <code>src/<wbr>base/<wbr>10-base.css</code>; everything is still in <code>rem</code>.</li>
+  <li>Controls grow with their text: heights are <code>min-block-size</code> in <code>rem</code>, and a label that cannot fit wraps beside its icon instead of clipping. Write labels short enough to stay on one line at 200% text where you can.</li>
 </ul>
 
 <h2 id="change">Change the typeface</h2>
-<p>The typeface is one token and one <code>@font-face</code>. Add the new face's file and <code>@font-face</code> to <code>src/tokens/50-fonts.css</code> and point <code>--font-sans</code> at it in <code>00-foundation.css</code>; nothing in a component names a family. Three things to know: <code>npm run lint</code> rejects a default as the first family (Inter, Roboto, Arial, system-ui and a short list of others: "a default, not a choice") and any <code>font-family</code> that is not a token; a face without a width axis ignores <code>expanded</code> and <code>condensed</code>, so the display, label and figure styles lose the width they depend on and need their tokens reworked; and the glyphs you need (true minus, tabular figures) must be in the new subset.</p>
+<p>The typeface is one token and one <code>@font-face</code>. Add the new face's file and <code>@font-face</code> to <code>src/<wbr>tokens/<wbr>50-fonts.css</code> and point <code>--font-sans</code> at it in <code>00-foundation.css</code>; nothing in a component names a family. Three things to know: <code>npm run lint</code> rejects a default as the first family (Inter, Roboto, Arial, system-ui and a short list of others: "a default, not a choice") and any <code>font-family</code> that is not a token; a face without a width axis ignores <code>expanded</code> and <code>condensed</code>, so the display, label and figure styles lose the width they depend on and need their tokens reworked; and the glyphs you need (true minus, tabular figures) must be in the new subset.</p>
 
 <h2 id="rules">Do and don't</h2>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
-    <div><strong>Do</strong><p>Reach for a style first: <code>font: var(--type-title)</code> or <code>.t-title</code>. Use <code>.num</code> on anything that counts or adds up. Size with <code>rem</code> and <code>cqi</code>.</p></div>
+    <div><strong>Do</strong><p>Reach for a style first: <code>font: var(<span data-f="nw">--type-title</span>)</code> or <code>.t-title</code>. Use <code>.num</code> on anything that counts or adds up. Size with <code>rem</code> and <code>cqi</code>.</p></div>
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>

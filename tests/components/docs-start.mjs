@@ -269,7 +269,10 @@ export const tests = [
     },
   },
   {
-    name: 'Testing: the axe rules the page says do not run are exactly the ones the gate\'s options skip, and the counts match',
+    // The tags decide which rules run, so "90 of 105" holds on every page; what each rule finds depends on the page, so the
+    // page only says "about half" for the Button page and this checks that loosely. The build marks a one-word code token
+    // <code class="nb"> (it must not break after its leading hyphens), so the rule names are read with or without the class.
+    name: 'Testing: the axe rules the page says never run are exactly the ones the gate\'s options skip, and the counts match',
     async run({ page, goto, expect }) {
       const { default: axe } = await import('axe-core')
       await goto('components/button.html')
@@ -277,13 +280,16 @@ export const tests = [
       const r = await page.evaluate(async () => {
         const res = await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] } })
         const ran = new Set([...res.passes, ...res.inapplicable, ...res.incomplete, ...res.violations].map((x) => x.id))
-        return { ran: [...ran], all: axe.getRules().map((x) => x.ruleId), passed: res.passes.length, inapplicable: res.inapplicable.length }
+        return { ran: [...ran], all: axe.getRules().map((x) => x.ruleId), passed: res.passes.map((x) => x.id), inapplicable: res.inapplicable.length }
       })
       const para = unescape(readFileSync(join(ROOT, 'docs', 'accessibility', 'testing.html'), 'utf8').match(/<p>The gate runs axe-core[\s\S]*?<\/p>/)[0])
-      const printed = [...para.slice(para.indexOf('did not run:')).matchAll(/<code>([a-z-]+)<\/code>/g)].map((m) => m[1]).sort()
+      const printed = [...para.slice(para.indexOf('never run:')).matchAll(/<code(?: class="nb")?>([a-z-]+)<\/code>/g)].map((m) => m[1]).sort()
       const skipped = r.all.filter((id) => !r.ran.includes(id)).sort()
-      expect.equal(JSON.stringify(printed), JSON.stringify(skipped), `rules not run (axe ${axe.version})`)
-      expect.ok(para.includes(`${r.ran.length} of axe's ${r.all.length} rules ran: ${r.passed} found something to check and passed, and ${r.inapplicable} had nothing to judge`), `the counts: ${r.ran.length} of ${r.all.length}, ${r.passed} passed, ${r.inapplicable} inapplicable`)
+      expect.equal(JSON.stringify(printed), JSON.stringify(skipped), `rules that never run (axe ${axe.version})`)
+      expect.ok(para.includes(`the same ${r.ran.length} of axe's ${r.all.length} rules run on every page`), `the counts: ${r.ran.length} of ${r.all.length}`)
+      const share = r.passed.length / r.ran.length
+      expect.ok(share > 0.35 && share < 0.65, `"about half" found something on the Button page: ${r.passed.length} of ${r.ran.length}`)
+      expect.ok(r.passed.includes('color-contrast'), 'colour contrast is among the rules that found something and passed')
       expect.ok(para.includes(`(${axe.version} when this was written)`), `the axe version on the page is ${axe.version}`)
     },
   },

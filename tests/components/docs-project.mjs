@@ -160,7 +160,8 @@ export const tests = [
     name: 'Decisions: the corners recipe names every step that was needed when it was tried: the tokens, the pref default, and the specs that read a radius with no attribute',
     async run({ expect }) {
       const html = read('docs-src/project/decisions.html')
-      const recipe = html.slice(html.indexOf('id="corners"'), html.indexOf('id="motion"'))
+      // <wbr> marks where a long path may break on a phone; it is not part of the name
+      const recipe = html.slice(html.indexOf('id="corners"'), html.indexOf('id="motion"')).replace(/<wbr>/g, '')
       for (const part of ['src/tokens/30-corners.css', 'src/js/10-prefs.js', 'DEFAULT_VALUE.corners', 'tests/components.mjs']) expect.ok(recipe.includes(part), `the recipe mentions ${part}`)
       // The specs the recipe lists must be the specs that break: each one reads a radius with the attribute removed or never set.
       const named = ['card', 'choice', 'list', 'menu', 'slider', 'stepper', 'tooltip'].filter((n) => existsSync(join(ROOT, `tests/components/${n}.mjs`)))
