@@ -21,8 +21,16 @@
 
    data-weight     thin (default) | frame
    data-quiet      --line-soft. Decoration only: never the only thing that marks a boundary.
-   data-align      center (default) | start | end       where a labelled divider puts its label
+   data-align      center (default) | start | end       where a labelled divider puts its label. Aligned to a side,
+                                                        a label that cannot keep its rule beside it takes the rule
+                                                        under it (start) or over it (end), full width.
    data-orientation  horizontal (default) | vertical    vertical needs a row to stretch in (flex or grid)
+
+   A ROW WITH VERTICAL RULES never wraps: a wrapped row put a rule at the start or the end of a line
+   ("| Settings"), where it separates nothing. src/js/48-divider.js measures the row (SG.fit) and writes
+   data-fit on it: "row" keeps everything on one line; "stack" turns the row into a column and lays the
+   rules flat between the items. Either way a rule only ever sits between two items. Without JS the row
+   wraps as it did.
    ========================================================================== */
 
 @layer sg.components {
@@ -71,6 +79,18 @@
       &[data-align="end"]::after {
         display: none;
       }
+      /* ...and when the label cannot keep that rule beside it (a long label at large text), the rule goes on its own
+         line, full width, under a start label or over an end label. Squeezed onto one line, the label wrapped in a
+         box as wide as the row ("STUDYING / WITH YOU" in a 275px box), and the rule was a 40px stub at the far end,
+         detached from the words. */
+      &:is([data-align="start"], [data-align="end"]) {
+        flex-wrap: wrap;
+        row-gap: var(--space-2);
+      }
+      &[data-align="end"] {
+        justify-content: flex-end;
+        text-align: end;
+      }
     }
 
     /* vertical: a rule between siblings in a row */
@@ -81,6 +101,31 @@
       min-block-size: 1.5rem;
       border: 0;
       border-inline-start: var(--_w) solid var(--_c);
+    }
+  }
+
+  /* the row that holds vertical rules (whatever flex row it is), measured by 48-divider.js: one line, its items
+     whole, so a row that does not fit shows up as overflow ... */
+  [data-fit="row"]:has(> .divider[data-orientation="vertical"]) {
+    flex-wrap: nowrap;
+
+    & > :not(.divider) {
+      flex: none;
+      white-space: nowrap;
+    }
+  }
+  /* ... or a column, with the rules lying flat between the items */
+  [data-fit="stack"]:has(> .divider[data-orientation="vertical"]) {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+
+    & > .divider[data-orientation="vertical"] {
+      align-self: stretch;
+      inline-size: auto;
+      min-block-size: 0;
+      border-inline-start: 0;
+      border-block-start: var(--_w) solid var(--_c);
     }
   }
 

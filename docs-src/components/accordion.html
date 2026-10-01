@@ -1,5 +1,8 @@
 <!--{"title":"Accordion","group":"Components","order":68,"summary":"Sections that fold away, built on native details and summary: one open at a time or many, as rows or as Card panels."}-->
 <style>
+  /* docs only, until docs.css bounds it on every page: at 200% text on a phone the section heading "Accessibility"
+     (48px, expanded) was wider than the column and broke inside the word. It shrinks with the column instead. */
+  .docs-article h2 { font-size: min(var(--text-xl), 12.5cqi); }
   /* docs only: the article's list styles must not indent or re-space the specimens */
   .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
   .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
@@ -81,18 +84,18 @@
 </div>
 
 <h2 id="panels">Panels</h2>
-<p>With <code>data-variant="panels"</code> each item is a Card panel of its own: framed, and the bar is always there, closed or open. Use it when the sections are the content (a dashboard of groups), not a list of questions. <code>data-tone</code> on an item tints its body; the ink tone flips the bar to paper, as on the card.</p>
+<p>With <code>data-variant</code> set to <code>panels</code> each item is a Card panel of its own: framed, and the bar is always there, closed or open. Use it when the sections are the content (a dashboard of groups), not a list of questions. <code>data-tone</code> on an item tints its body; the ink tone flips the bar to paper, as on the card.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="accordion" data-variant="panels">
       <details class="accordion__item" data-tone="1" name="panels-decks" open>
-        <summary class="accordion__head"><span class="accordion__title">Decks · 4</span></summary>
+        <summary class="accordion__head"><span class="accordion__title">Decks&nbsp;·&nbsp;4</span></summary>
         <div class="accordion__body">
           <p>Shapes, Colours, Numbers to twenty and Farm animals. Eleven cards are due today.</p>
         </div>
       </details>
       <details class="accordion__item" data-tone="2" name="panels-decks">
-        <summary class="accordion__head"><span class="accordion__title">Shared with me · 2</span></summary>
+        <summary class="accordion__head"><span class="accordion__title">Shared with me&nbsp;·&nbsp;2</span></summary>
         <div class="accordion__body">
           <p>Spanish: travel, from Maya. Geography capitals, from Jonas.</p>
         </div>
@@ -111,8 +114,8 @@
 <p>A head is a pressable thing, so its states only set <code>--fill</code>: a tint of the head's own text colour laid over its fill. It never lifts, because it lives inside a frame. <code>open</code> is the native attribute; the control and the bar both follow it. The <code>is-*</code> classes below only force a state for this page.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 16rem">
-      <div>
+    <div class="grid" style="--grid-min: 16rem; --grid-gap: var(--space-5)">
+      <div class="stack" data-gap="3">
         <div class="accordion">
           <details class="accordion__item">
             <summary class="accordion__head"><span class="accordion__title">Closed</span></summary>
@@ -121,7 +124,7 @@
         </div>
         <p class="t-meta"><b>Rest.</b> Paper, a + control.</p>
       </div>
-      <div>
+      <div class="stack" data-gap="3">
         <div class="accordion">
           <details class="accordion__item" open>
             <summary class="accordion__head"><span class="accordion__title">Open</span></summary>
@@ -130,7 +133,7 @@
         </div>
         <p class="t-meta"><b>Open.</b> Inverted bar, − control.</p>
       </div>
-      <div>
+      <div class="stack" data-gap="3">
         <div class="accordion">
           <details class="accordion__item">
             <summary class="accordion__head is-hover"><span class="accordion__title">Hover</span></summary>
@@ -139,7 +142,7 @@
         </div>
         <p class="t-meta"><b>Hover.</b> A 12% tint of the text colour.</p>
       </div>
-      <div>
+      <div class="stack" data-gap="3">
         <div class="accordion">
           <details class="accordion__item">
             <summary class="accordion__head is-focus"><span class="accordion__title">Focus</span></summary>
@@ -148,7 +151,7 @@
         </div>
         <p class="t-meta"><b>Focus.</b> Same tint, plus a 3px ring inside the head.</p>
       </div>
-      <div>
+      <div class="stack" data-gap="3">
         <div class="accordion">
           <details class="accordion__item">
             <summary class="accordion__head is-active"><span class="accordion__title">Pressed</span></summary>
@@ -157,7 +160,7 @@
         </div>
         <p class="t-meta"><b>Pressed.</b> A deeper tint, straight away.</p>
       </div>
-      <div>
+      <div class="stack" data-gap="3">
         <div class="accordion">
           <details class="accordion__item">
             <summary class="accordion__head" aria-disabled="true" aria-describedby="why-locked"><span class="accordion__title">Streak history, after 3 days of study</span></summary>
@@ -192,7 +195,7 @@
               <summary class="accordion__head"><span class="accordion__title">Account</span></summary>
               <div class="accordion__body" data-flush>
                 <ul class="list" role="list">
-                  <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Email</span></span><span class="list__trail"><span class="list__value">maya@example.com</span></span></a></li>
+                  <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Email</span></span><span class="list__trail"><span class="list__value">maya@<wbr>example.com</span></span></a></li>
                 </ul>
               </div>
             </details>
@@ -210,10 +213,10 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Frame</strong>: <code>.accordion</code>, 2px <code>--line</code>, <code>--radius-card</code>. Items are separated by 1px rules. In <code>panels</code> each item has its own frame.</li>
-  <li><strong>Head</strong>: the <code>&lt;summary&gt;</code>. At least 56px tall, the whole row is the target. Closed it is paper; open it is the bar (<code>--ink</code> fill, <code>--paper</code> text), as on the card.</li>
-  <li><strong>Control</strong>: a 20px square with a 2px frame (<code>--radius-ctl</code>) holding a 12px + or −, drawn by <code>::before</code> and <code>::after</code>, so there is nothing to forget in the markup.</li>
+  <li><strong>Head</strong>: the <code>&lt;summary&gt;</code>. At least 56px tall, the whole row is the target, inset 16px at the sides at any text size. Closed it is paper; open it is the bar (<code>--ink</code> fill, <code>--paper</code> text), as on the card.</li>
+  <li><strong>Control</strong>: a 20px square with a 2px frame (<code>--radius-ctl</code>) holding a 12px + or −, drawn by <code>::before</code> and <code>::after</code>, so there is nothing to forget in the markup. It keeps that size at any text size.</li>
   <li><strong>Title</strong>: <code>--type-ctl</code>, wraps; write the heading, not a sentence.</li>
-  <li><strong>Body</strong>: <code>--type-body</code> with 16px padding, at most <code>--measure</code> wide. <code>data-flush</code> removes the padding for a list or a grid.</li>
+  <li><strong>Body</strong>: <code>--type-body</code> with 16px padding, at most <code>--measure</code> wide. <code>data-flush</code> removes the padding for a list or a grid; a List's rows are inset 16px too, so their text lines up with the heads.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -242,7 +245,7 @@
     <tr><td>Screen reader</td><td>The head is a focusable disclosure control named by its text, with an expanded or collapsed state; Chromium exposes exactly that. Nothing is added in script, so the state always matches what you see. VoiceOver, TalkBack and NVDA are not verified.</td></tr>
     <tr><td>Colour</td><td>Open is an inverted bar, a − sign and the native expanded state; closed is paper and a + sign. None of it is colour.</td></tr>
     <tr><td>Touch</td><td>The whole head is the target, at least 56px tall. No gesture is involved.</td></tr>
-    <tr><td>Zoom / text size</td><td>Heads grow and wrap at 200% text; the control stays 20px.</td></tr>
+    <tr><td>Zoom / text size</td><td>Titles grow and wrap between words at 200% text; the control, the 56px floor and the 16px insets keep their size, so the words keep the width.</td></tr>
     <tr><td>Reduced motion</td><td>Opening fades the body in and drops it 8px. Reduced motion removes the drop and keeps the fade. Closing is instant.</td></tr>
     <tr><td>Forced colours</td><td>Frames become <code>CanvasText</code>; the open head gets a 4px line under it and the − sign; hover and focus get a 4px <code>Highlight</code> outline inside the head.</td></tr>
   </tbody>

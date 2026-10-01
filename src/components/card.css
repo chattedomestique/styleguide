@@ -25,6 +25,24 @@
    · forced-colours hover, focus and selected are three different cues, none shifts layout
    · notch and stack mirror in right-to-left text
    · study -> portrait (old names kept as aliases); secondary text is an explicit 7:1 role
+   Changes from the visual pass at 390px with 100% and 200% text (each one a defect seen in a screenshot):
+   · the frame is drawn OVER the content (.card::after), so soft corners show no hairline arc
+     where an ink bar or a picture meets the rounded frame
+   · a square card stops being square when it is wide (a full-width square on a phone was a
+     tall, mostly empty box): wider than 14rem it is as tall as its content; cards in one row
+     share one height
+   · chrome stops at its 100% size (padding of the row and ghost cards, the link card's height
+     floor), so 200% text keeps the width for the words
+   · the ghost card keeps its words beside the + circle, and puts them under it only when a word
+     cannot fit beside it; the row card keeps its tile beside the title at 200%
+   · the rows of a panel list switch layout together (src/js/47-card.js)
+   · the portrait's word shrinks to fit the card instead of breaking inside a word
+   · a foot link is a 44px target across too ("Invite" was 34px wide), and a row card's single
+     icon-only control stays at the end of the row when its words drop
+   · panel list rows have chrome insets above and below (8px): 44px at 100%, and at 200% text the
+     words no longer fill the row from rule to rule
+   · an eyebrow or meta line of short facts (data-facts, one <span> each) draws the dots between
+     facts and never starts or ends a wrapped line with one; a wrapped eyebrow is balanced
    ========================================================================== */
 
 @layer sg.components {
@@ -65,7 +83,27 @@
     border: var(--bw) solid var(--card-line);
     border-radius: var(--card-radius);
     overflow: clip;
+    /* the clip reaches the frame's OUTER edge, so a part that runs edge to edge (a bar, a picture, a row)
+       is cut by the same curve as the frame painted over it (see ::after) */
+    overflow-clip-margin: border-box;
     box-shadow: var(--shadow-select), var(--shadow-lift), var(--shadow-stack);
+  }
+
+  /* THE FRAME, PAINTED OVER THE CONTENT. In soft corners an edge-to-edge part (an ink bar, a picture, an
+     inverted row) used to be clipped at the frame's INNER curve while the border was anti-aliased along
+     that same curve: the card's own fill showed through the two half-covered edges as a hairline arc inside
+     each corner (light on a dark bar, dark on a light one). Now the content is clipped at the outer edge and
+     this copy of the border lies on top of it, so the inner edge of the frame always sits over solid
+     content. It inherits every border longhand, so dashed, faint, toned and forced-colours frames follow.
+     Where overflow-clip-margin is not supported (Safari) the copy is clipped away and the card's own border
+     shows, exactly as before. */
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--bw) * -1);
+    border: inherit;
+    border-radius: inherit;
+    pointer-events: none;
   }
 
   /* a <button class="card"> is shrink-to-fit, and a container has no intrinsic width */
@@ -235,6 +273,7 @@
   .card__eyebrow {
     font: var(--type-meta);
     color: var(--card-ink-soft);
+    text-wrap: balance; /* a short label: when a narrow card wraps it, two even lines, never "Learned so / far" */
   }
 
   .card__title {
@@ -254,13 +293,44 @@
     font: var(--type-meta);
     font-variant-numeric: tabular-nums;
     color: var(--card-ink-soft);
+    text-wrap: balance; /* a meta line is one short sentence: when it wraps, two even lines, never "… nine / to go." */
   }
 
+  /* FACTS. An eyebrow or a meta line made of short facts ("Deck · 12 cards", "48 cards · 3 people studying") is
+     written one <span> per fact, with data-facts on the line. The dot is drawn in the gap before each fact, and a
+     fact that starts a line puts its dot outside the line's start edge, where the line clips it: a wrapped line
+     never starts or ends with a dot. (As text, the dot either ended the first line or started the second, where
+     it read as a bullet: "48 cards / · 3 people studying".) A fact stays whole while it fits a line and wraps
+     inside itself only when it alone is wider than the line. The dot is decoration ("" for assistive tech); the
+     facts are read as words. Text only: the clip would cut a focus ring. */
+  :is(.card__eyebrow, .card__meta)[data-facts] {
+    --_sep: 0.8em; /* a space, the dot and a space, as in running text */
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--_sep);
+    overflow-x: clip; /* both inline edges, so it is right in either direction; the block axis stays visible */
+
+    & > * {
+      position: relative;
+      min-inline-size: 0;
+    }
+    & > * + *::before {
+      content: "·" / "";
+      position: absolute;
+      inset-inline-start: calc(var(--_sep) * -1);
+      inline-size: var(--_sep);
+      text-align: center;
+    }
+  }
+
+  /* A number never breaks inside itself: it stays on one line and shrinks with the card instead. 22cqi fits six
+     characters ("12,480" is 3.4em of this face) in any card; at 27cqi a full-width card broke it after the comma. */
   .card__figure {
     font: var(--type-figure);
-    font-size: clamp(1.75rem, 27cqi, 6.5rem);
+    font-size: min(clamp(1.75rem, 27cqi, 6.5rem), 22cqi);
     letter-spacing: var(--ls-figure);
     font-variant-numeric: tabular-nums lining-nums;
+    white-space: nowrap;
   }
 
   .card__figure > small {
@@ -287,12 +357,23 @@
 
   /* a 44px target inside a 44px foot: the negative margin gives the padding back */
   .card__foot :is(a, button):not(.btn) {
+    position: relative; /* holds the hit area below; also lifts it above a stretched card link */
     display: inline-flex;
     align-items: center;
     min-block-size: var(--chrome-hit);
     margin-block: calc(var(--space-2) * -1);
     text-decoration-thickness: var(--bw-thin);
     text-underline-offset: 0.2em;
+  }
+
+  /* ...and 44px wide: a short word ("Start", "Invite") is narrower than a fingertip. An invisible
+     ::after grows the target to 44px and never shrinks a longer one (the button.css pattern;
+     WCAG 2.5.8, and the guide's 44px default). */
+  .card__foot :is(a, button):not(.btn)::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
   }
 
   @media (hover: hover) {
@@ -318,7 +399,15 @@
   /* a list of links, ruled. Used in panels. The whole row is the target: the link's ::after is
      stretched over it (one tab stop, one name), the row inverts on hover, focus and press, and the
      ring sits inside the row because the card clips. The inversion uses the bar's colours, which
-     are the card's inverse on every tone. */
+     are the card's inverse on every tone.
+     The rows' text starts where the bar's label starts (both are inset by --card-pad), so the list
+     resets the indent a list would otherwise bring. */
+  .card__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
   .card__list > li {
     --fill: 0;
     position: relative;
@@ -326,9 +415,11 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0 var(--space-3);
+    gap: 0 var(--chrome-3); /* chrome: the gap inside a row stops at its 100% size */
     min-block-size: var(--chrome-hit);
-    padding-inline: var(--card-pad);
+    /* chrome insets above and below, as on a List row: at 100% the row is still 44px (8 + 24 + 8), and at 200% text
+       its words keep 8px from the rules instead of filling the row edge to edge ("Numbers to / twenty") */
+    padding: var(--chrome-2) var(--card-pad);
     font: var(--type-body);
     font-variant-numeric: tabular-nums;
     color: color-mix(in srgb, var(--card-bar-ink) calc(var(--fill) * 100%), var(--card-ink));
@@ -340,12 +431,12 @@
     border-block-start: 0;
   }
 
+  /* the target is the whole row (its ::after), so the link needs no height of its own */
   .card__list a {
     display: flex;
     align-items: center;
     flex: 1 1 auto;
     min-inline-size: 0;
-    min-block-size: var(--chrome-hit);
     color: inherit;
     text-decoration: none;
   }
@@ -354,6 +445,41 @@
     content: "";
     position: absolute;
     inset: 0;
+  }
+
+  /* ONE LAYOUT FOR THE WHOLE LIST. Row by row, a value that did not fit beside its link dropped under it
+     while its neighbours kept theirs beside ("Colours 8" inline, "Numbers to twenty / 20" stacked): a
+     ragged list. src/js/47-card.js measures the list (SG.fit) and writes data-fit on it:
+       row     every count beside its link; the link's words wrap beside it (one line per row is measured,
+               so a word that cannot fit shows up as overflow)
+       stack   every count under its link, aligned with the link's first letter
+     Without JS there is no data-fit and each row wraps on its own (the rule above). */
+  .card__list[data-fit] > li {
+    flex-wrap: nowrap;
+  }
+
+  /* the link may get narrow, its words may not: a row that cannot hold the link's longest word beside its
+     count shows as overflow of the link, which src/js/47-card.js measures, and the list stacks. (A row
+     that overflowed as a whole by less than its end padding did not change scrollWidth.) */
+  .card__list[data-fit="row"] a {
+    min-inline-size: 0;
+    overflow-wrap: normal;
+  }
+
+  /* beside its link a count is one piece: "12 cards" never folds into "12" / "cards" next to the title */
+  .card__list[data-fit="row"] > li > :not(a) {
+    white-space: nowrap;
+  }
+
+  .card__list[data-fit="stack"] > li {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .card__list[data-fit="stack"] a {
+    flex: none;
   }
 
   .card__list > li:is(.is-hover, .is-focus, :active, :has(> a:focus-visible)) {
@@ -392,13 +518,30 @@
     }
   }
 
-  /* a square card, for grids of stats and decks: first part up top, last at the bottom */
+  /* a square card, for grids of stats and decks: first part up top, last at the bottom.
+     Square while it is narrow (two or more to a row); a WIDE one (wider than 14rem: alone on a phone's row,
+     or a wide cell) is as tall as its content. Square, it was a ~330px box with one number floating in it,
+     and capped at 224px it still spread "Streak / 4 / Best is nine." over a 270 x 224 box at 320px. The
+     square is the body's MINIMUM height: 100cqi is the card's own width (the card is the body's container),
+     so a card is exactly square, and its content can always grow it further, so nothing is ever clipped.
+     The cap is chrome (it does not grow with text): at 200% text a card is never a 448px box. Grid items
+     stretch, so square cards in one row share one height.
+     (It was aspect-ratio: 1 / 1. A ratio-sized grid item keeps its own height in a row, an explicit
+     min-content is read through the ratio and clips, and a stretched one takes its width from its
+     height: in a 322px cell it was a 224px square with a gap beside it.) */
   .card--square {
-    aspect-ratio: 1 / 1;
+    --_square-max: min(14rem, 224px);
   }
 
-  .card--square .card__body {
+  .card--square > .card__body {
     justify-content: space-between;
+    min-block-size: min(100cqi, var(--_square-max));
+  }
+
+  @container card (inline-size > 14rem) {
+    .card--square > .card__body {
+      min-block-size: 0;
+    }
   }
 
   /* action: the round slot. Decorative on a link card, a real button in a notch. */
@@ -431,8 +574,10 @@
     }
   }
 
-  /* tile: the square slot at the head of a row. */
+  /* tile: the square slot at the head of a row, holding one icon (centred, chrome-sized like the slot). */
   .card__tile {
+    display: grid;
+    place-items: center;
     inline-size: var(--chrome-hit);
     block-size: var(--chrome-hit);
     flex: none;
@@ -442,18 +587,25 @@
     overflow: clip;
   }
 
+  .card__tile > .ic {
+    --ic-size: var(--chrome-ic);
+  }
+
   /* --- variant: row ----------------------------------------------------------
      Icon tile, title and a short meta line, value on the right. Below 18rem the
-     value drops under the title; below 12rem everything stacks. The card can't re-template itself from its
-     own container, but its children can move between grid cells. */
+     value drops under the title, aligned with it (an icon-only control stays at the end); below 8rem
+     everything stacks. The card can't re-template
+     itself from its own container, but its children can move between grid cells. The tile, the padding and
+     the gap beside the tile are chrome (they stop at their 100% size), so at 200% text the tile stays beside
+     the title: it used to stack above it at 12rem, which 200% text on a phone always is. */
 
   .card--row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: var(--space-3);
+    column-gap: var(--chrome-3);
     row-gap: var(--space-1);
-    padding: var(--space-3);
+    padding: var(--chrome-3);
   }
 
   .card__main {
@@ -470,8 +622,12 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Only words drop: a trail that is a single icon-only control (a circle button) or a single icon stays at the
+     end of the row at every width but the cramped one, as a list's chevron does. */
   @container card (inline-size <= 18rem) {
-    .card--row .card__trail {
+    /* :where() keeps this at the specificity of the cramped rule below, so that one still wins there
+       (with the :not() counted, a narrow card put its value ABOVE its title) */
+    .card--row .card__trail:where(:not(:has(> :is(.btn[data-shape="circle"], .ic):only-child))) {
       grid-column: 2;
       grid-row: 2;
       text-align: start;
@@ -480,12 +636,17 @@
     .card--row .card__tile {
       grid-row: span 2;
     }
+
+    .card--row:where(:has(> .card__trail > :is(.btn[data-shape="circle"], .ic):only-child)) .card__tile {
+      grid-row: auto; /* the trail stays on the title's row, so the tile has no second row to span */
+    }
   }
 
-  /* Cramped (200 % text in a narrow column: the tile, padding and gaps alone use the width and the title
-     column collapses to nothing, cutting text off; WCAG 1.4.4 / 1.4.10). Every part takes a full-width row.
-     Spanning 1 / -1 also covers the two gaps the empty side tracks would otherwise keep. */
-  @container card (inline-size <= 12rem) {
+  /* Cramped (large text in a really narrow column: the tile and the gap alone would leave the title a few
+     letters a line; WCAG 1.4.4 / 1.4.10). Every part takes a full-width row. Spanning 1 / -1 also covers the
+     two gaps the empty side tracks would otherwise keep. 8rem: at 200% text that is 256px, narrower than any
+     phone column, so on a phone the tile stays beside the title. */
+  @container card (inline-size <= 8rem) {
     .card--row .card__tile,
     .card--row .card__main,
     .card--row .card__trail {
@@ -502,19 +663,23 @@
      above it (position: relative; z-index: 1). */
 
   .card--link {
+    /* the card's clip reaches its outer edge (overflow-clip-margin on .card), so the stretched link's
+       ::after covers the 2px border too and a click on the very edge follows the link (Safari ignores
+       overflow-clip-margin: a 2px dead band) */
+    --_link-min: min(11rem, 176px);
     cursor: pointer;
-    /* let the stretched link's ::after reach over the 2px border, or a click on
-       the very edge of the card does nothing (Safari ignores this: 2px dead band) */
-    overflow-clip-margin: border-box;
     transform: translate(
       calc(var(--lift) * var(--space-1) / -2 * var(--move)),
       calc(var(--lift) * var(--space-1) / -2 * var(--move))
     );
   }
 
+  /* The floor keeps the eyebrow up top and the title at the foot of a short card. It is a proportion of the
+     card, not a size for words: it stops at its 100% size, because at 200% text the words fill the card
+     themselves and a 352px floor left a tall, mostly empty box. */
   .card--link .card__body {
     justify-content: space-between;
-    min-block-size: 11rem;
+    min-block-size: var(--_link-min);
   }
 
   .card__link {
@@ -542,13 +707,18 @@
      An empty slot that asks to be filled. Dashed = nothing here yet. The card
      itself is the anchor or button. */
 
+  /* The words stay BESIDE the + circle and wrap there; only when a single word cannot fit beside it does the
+     row wrap, putting the words under the circle (flex-wrap, and the title's automatic minimum is its
+     longest word). It used to squeeze the words to "Add / a / shap / e" at 200% text. The padding and the
+     gap are chrome: they stop at their 100% size. */
   .card--ghost {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     inline-size: 100%; /* a <button> is shrink-to-fit and a container has no intrinsic width: it would collapse to a sliver */
     text-align: start;
-    gap: var(--space-3);
-    padding: var(--space-4);
+    gap: var(--chrome-3);
+    padding: var(--chrome-4);
     color: var(--card-ink-soft);
     background: transparent;
     border-style: dashed;
@@ -557,11 +727,10 @@
   }
 
   .card--ghost .card__title {
+    flex: 1 1 0;
+    min-inline-size: auto; /* the longest word: what decides when the words go under the circle */
+    max-inline-size: 100%; /* a word wider than the whole card still breaks rather than spill */
     font-size: var(--text-lg);
-  }
-
-  .card--ghost > * {
-    min-inline-size: 0;
   }
 
   /* --- variant: stack --------------------------------------------------------
@@ -578,6 +747,9 @@
       calc(var(--stack) * 2) calc(var(--stack) * 2) 0 var(--bw) var(--card-line);
     margin-inline-end: calc(var(--stack) * 2 + var(--bw));
     margin-block-end: calc(var(--stack) * 2 + var(--bw));
+    /* the floor leaves room for that margin: at 200% text 10rem is wider than a phone column, and a floor of
+       100% pushed the sheets out of the column, where the stage clipped them */
+    min-inline-size: min(10rem, 100% - var(--stack) * 2 - var(--bw));
   }
 
   /* --- variant: notch --------------------------------------------------------
@@ -667,12 +839,16 @@
 
   :is(.card--portrait, .card--study) .card__foot {
     justify-content: center;
+    text-align: center; /* a hint that wraps (large text) stays centred under the centred subject */
     border-block-start: 0;
   }
 
   :is(.card__hero, .card__answer) {
     font: var(--type-title);
-    font-size: clamp(1.75rem, 12cqi, 3.75rem);
+    /* A display word, sized by the card: it grows with the reader's text size until it would no longer fit
+       the card, then stops (14cqi fits a thirteen-letter word of this face). At 200% text the 3.5rem floor
+       made "Parallelogram" 316px wide in a 275px stage, and the word broke inside itself. */
+    font-size: min(clamp(1.75rem, 12cqi, 3.75rem), 14cqi);
     font-stretch: 85%; /* a long word in the deck's own vocabulary ("Parallelogram") has to fit one line */
     font-weight: 700;
     letter-spacing: var(--ls-title);

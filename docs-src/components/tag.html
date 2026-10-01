@@ -1,4 +1,9 @@
 <!--{"title":"Tag","group":"Components","order":62,"summary":"A small pill that names a kind, a status or a priority. Read, never pressed. Replaces the wireframe .wf-pill."}-->
+<style>
+  /* docs only, until docs.css bounds it on every page: at 200% text on a phone the section heading "Accessibility"
+     (48px, expanded) was wider than the column and broke inside the word. It shrinks with the column instead. */
+  .docs-article h2 { font-size: min(var(--text-xl), 12.5cqi); }
+</style>
 <h1>Tag</h1>
 <p class="lede">A tag names something: what kind of thing this is, where it stands, how much it matters. You read it; you do not press it. It is the real version of the wireframe's <code>.wf-pill</code>.</p>
 
@@ -47,10 +52,10 @@
     <span class="tag" data-tone="ok">Synced</span>
     <span class="tag" data-tone="warn">Due tomorrow</span>
     <span class="tag" data-tone="bad">Sync failed</span>
-    <span class="tag" data-tone="info">12 new cards</span>
+    <span class="tag" data-tone="info">12&nbsp;new cards</span>
     <span class="tag" data-tone="ok" data-variant="solid">Paid</span>
     <span class="tag" data-tone="bad" data-variant="solid">Overdue</span>
-    <span class="tag" data-tone="warn"><span class="ic ic--clock" aria-hidden="true"></span>Expires in 2 days</span>
+    <span class="tag" data-tone="warn"><span class="ic ic--clock" aria-hidden="true"></span>Expires in 2&nbsp;days</span>
   </div>
 </div>
 <div class="note" data-kind="a11y">
@@ -72,7 +77,7 @@
 </div>
 
 <h3 id="sizes">Sizes</h3>
-<p>Small (20px), medium (24px, the default) and large (32px). A tag is never pressed, so it is allowed to be under 44px. Heights are minimums in rem: at 200% text a tag grows and its words wrap.</p>
+<p>Small (20px), medium (24px, the default) and large (32px). A tag is never pressed, so it is allowed to be under 44px. Heights are minimums in rem, and the side padding stops at its 100% size, so at 200% text a short label still holds one line; a long one wraps between words, with its symbol beside the first line.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <span class="tag" data-size="sm" data-tone="1">Streak 4</span>
@@ -109,7 +114,7 @@
       <article class="card" data-tone="3">
         <div class="card__body">
           <div class="cluster">
-            <span class="tag" data-size="sm">Deck · 20 cards</span>
+            <span class="tag" data-size="sm">Deck&nbsp;·&nbsp;20&nbsp;cards</span>
             <span class="tag" data-size="sm" data-tone="ok">Known</span>
           </div>
           <p class="card__title">Numbers to twenty</p>
@@ -124,7 +129,7 @@
             <span class="tag" data-size="sm" data-tone="warn">Needs review</span>
           </div>
           <p class="card__title">Electric bill</p>
-          <p class="card__meta">−$62.40 · due 14 October</p>
+          <p class="card__meta" data-facts><span>−$62.40</span> <span>due 14&nbsp;October</span></p>
         </div>
         <footer class="card__foot"><span>Priority</span><span class="tag" data-priority="medium" data-size="sm">Medium</span></footer>
       </article>
@@ -136,7 +141,7 @@
 <ol>
   <li><strong>Pill</strong>: <code>--radius-pill</code>, a 1px frame in the text colour (<code>--bw-thin</code>). The frame is a real border, so forced-colours mode still draws the tag.</li>
   <li><strong>Symbol</strong> (status and priority): a 1.125em mask in the text colour, drawn before the words.</li>
-  <li><strong>Words</strong>: <code>--type-meta</code> at weight 600, sentence case, tabular figures. They wrap rather than spill at large text.</li>
+  <li><strong>Words</strong>: <code>--type-meta</code> at weight 600, sentence case, tabular figures. They wrap between words rather than spill at large text. A label with a separator is one unit: put a no-break space (<code>&amp;nbsp;</code>) on both sides of the dot and between a number and its unit, so "Deck · 20 cards" never splits at the dot.</li>
   <li><strong>Fill</strong>: <code>--tone-bg</code> (soft), <code>--tone-fill</code> (solid) or none (outline). Neutral is <code>--paper</code>.</li>
 </ol>
 

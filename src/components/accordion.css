@@ -28,7 +28,8 @@
    sign AND the native expanded state; no colour is involved (wire palette and forced
    colours keep all three). A head is a pressable thing, so hover / focus / press only
    SET --fill (a tint of the text colour over the bar) and ONE transition animates it;
-   the head never lifts, because it lives inside a frame.
+   the head never lifts, because it lives inside a frame. As on the card, the frame is painted over
+   the content (::after), so a bar under a soft corner shows no hairline of the page colour.
 
    MOTION is opacity and a short drop, via ::details-content, only while OPENING; closing
    is instant so nothing has to wait for an exit. --move turns the drop into a plain fade.
@@ -36,9 +37,12 @@
    DISABLED: aria-disabled="true" on the <summary> (keeps it focusable, so its reason can
    be read). SG.guard blocks Enter and Space; the pointer is blocked here.
 
-   NARROW. The accordion is a size container: in a narrow one (a narrow card, or 200% text on a phone, about
-   12rem) the head and the body give some of their side padding back, in rem, so the title keeps room for
-   whole words. Words wrap between words and are cut only when one cannot fit a line of its own.
+   SIZES. The control (a 20px box holding a 12px sign), the head's 56px floor and the insets of the head
+   and the body are chrome: they stop at their 100% size, so at 200% text the title keeps the width for
+   its words. Head and body share one 16px side inset, and so does a List placed in a flush body, so the
+   text of an open item's rows lines up with the titles of the closed items. Words wrap between words and
+   are cut only when one cannot fit a line of its own. (The insets used to be rem, tightened again by
+   container queries at large text: the + slot and its padding took 88px of a 311px head.)
 
    PRIVATE PROPERTIES (--_*) are set on the item and read by the head, so the open state,
    the panels variant and a tone each change a few of them and nothing else.
@@ -49,13 +53,28 @@
     --_bar-bg: var(--ink);
     --_bar-ink: var(--paper);
 
+    position: relative; /* holds the frame drawn over the content (below) */
     display: block;
     color: var(--ink);
     background: var(--paper);
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-card);
     overflow: clip; /* a focus ring on a head is drawn INSIDE it (see below), so nothing is cut */
-    container: accordion / inline-size; /* the head's padding follows the accordion's own width (see the end of the file) */
+    overflow-clip-margin: border-box;
+  }
+
+  /* THE FRAME IS DRAWN OVER THE CONTENT, as on the card. In soft corners an open head (the bar) under a
+     rounded frame showed a hairline arc of the page colour inside the corner: the content was clipped
+     on the frame's inner curve and the border drawn on its outer one, and the two anti-aliased edges
+     let the background through. Now the content runs under the frame to its outer edge
+     (overflow-clip-margin) and the frame is painted on top of it, on one curve. */
+  :is(.accordion:not([data-variant="panels"]), .accordion[data-variant="panels"] > .accordion__item)::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--bw) * -1);
+    border: inherit;
+    border-radius: inherit;
+    pointer-events: none;
   }
 
   .accordion__item {
@@ -87,14 +106,15 @@
   .accordion__head {
     --fill: 0;
     --_tint: color-mix(in srgb, var(--_head-ink) 12%, var(--_head-bg));
+    --_head-min: min(3.5rem, 56px); /* chrome: a 56px target, which does not grow with text (the title does) */
 
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: var(--space-3);
-    min-block-size: 3.5rem;
-    padding: var(--space-2) var(--space-4);
+    column-gap: var(--chrome-3);
+    min-block-size: var(--_head-min);
+    padding: var(--chrome-2) var(--chrome-4);
     color: var(--_head-ink);
     background: color-mix(in srgb, var(--_tint) calc(var(--fill) * 100%), var(--_head-bg));
     font: var(--type-ctl);
@@ -118,15 +138,15 @@
       place-self: center;
     }
     &::before {
-      inline-size: 1.25rem;
-      block-size: 1.25rem;
+      inline-size: var(--chrome-box);
+      block-size: var(--chrome-box);
       border: var(--bw) solid currentColor;
       border-radius: var(--radius-ctl);
     }
     &::after {
       --_ic: var(--icon-plus);
-      inline-size: 0.75rem;
-      block-size: 0.75rem;
+      inline-size: var(--chrome-ic-xs);
+      block-size: var(--chrome-ic-xs);
       background: currentColor;
       mask: var(--_ic) center / contain no-repeat;
     }
@@ -171,7 +191,7 @@
   }
 
   .accordion__body {
-    padding: var(--space-4) var(--space-4) var(--space-5);
+    padding: var(--chrome-4) var(--chrome-4) var(--chrome-5);
     font: var(--type-body);
     overflow-wrap: break-word;
 
@@ -221,30 +241,11 @@
       --_head-bg: var(--_bar-bg);
       --_head-ink: var(--_bar-ink);
 
+      position: relative; /* holds its frame, drawn over the content */
       border: var(--bw) solid var(--line);
       border-radius: var(--radius-card);
       overflow: clip;
-    }
-  }
-
-  /* ---- a narrow accordion (a narrow card, or 200% text on a phone): the head and the body give their
-     side padding back, or the title keeps three letters of a line and every word is cut. rem, so
-     bigger text trips it exactly when it should. ---- */
-  @container accordion (max-width: 20rem) {
-    .accordion__head {
-      column-gap: var(--space-2);
-      padding-inline: var(--space-3);
-    }
-    .accordion__body {
-      padding-inline: var(--space-3);
-    }
-  }
-  @container accordion (max-width: 12rem) {
-    .accordion__head {
-      padding-inline: var(--space-2);
-    }
-    .accordion__body {
-      padding-inline: var(--space-2);
+      overflow-clip-margin: border-box;
     }
   }
 

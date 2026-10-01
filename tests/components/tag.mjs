@@ -114,4 +114,34 @@ export const tests = [
       expect.ok(fails.length === 0, `contrast failures: ${fails.slice(0, 6).join(' | ')}`)
     },
   },
+  {
+    name: 'at 200% text on a phone a tag wraps only when it fills its line, and an icon stays beside the first line of words',
+    async run({ page, goto, expect }) {
+      await goto('components/tag.html')
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.addStyleTag({ content: 'html{font-size:200%}' })
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.tag')].filter((t) => t.offsetParent).map((t) => {
+          const text = [...t.childNodes].filter((n) => n.nodeType === 3 && n.data.trim())
+          const rg = document.createRange()
+          rg.setStartBefore(text[0]); rg.setEndAfter(text[text.length - 1])
+          const rects = [...rg.getClientRects()].filter((q) => q.width > 1)
+          const lines = new Set(rects.map((q) => Math.round(q.top))).size
+          const parent = t.parentElement.getBoundingClientRect(), pcs = getComputedStyle(t.parentElement)
+          const room = parent.width - parseFloat(pcs.paddingLeft) - parseFloat(pcs.paddingRight)
+          const ic = t.querySelector(':scope > .ic')?.getBoundingClientRect()
+          const first = rects[0]
+          return {
+            label: t.textContent.trim(), lines, full: t.getBoundingClientRect().width >= room - 1,
+            iconBeside: !ic || (ic.right <= first.left + 1 && Math.abs((ic.top + ic.bottom) / 2 - (first.top + first.bottom) / 2) <= 2),
+          }
+        }))
+        for (const x of r) {
+          expect.ok(x.lines === 1 || x.full, `${w}px: "${x.label}" wraps (${x.lines} lines) only when it fills its line`)
+          expect.ok(x.iconBeside, `${w}px: "${x.label}": the icon sits beside the first line of words`)
+        }
+      }
+    },
+  },
 ]

@@ -56,7 +56,7 @@ export const tests = [
       }, SET)
       expect.equal(r.tag, 'FIELDSET', 'a native fieldset')
       expect.equal(r.legend, 'Backdrop', 'the legend names the choice')
-      expect.equal(r.out.length, 10, 'ten swatches')
+      expect.equal(r.out.length, 12, 'twelve swatches')
       expect.ok(r.out.every((o) => o.name.length > 0 && o.labelText === o.name), 'each label is exactly its visible name')
     },
   },
@@ -125,20 +125,25 @@ export const tests = [
     },
   },
   {
-    name: 'the chip lifts on hover and on keyboard focus the same way; the focus ring sits outside the selection ring',
+    name: 'the chip lifts on hover and on keyboard focus the same way, a press tints the option; the focus ring sits outside the selection ring',
     async run({ page, goto, expect }) {
       await goto('components/swatch.html')
       const opt = page.locator(`${SET} input[value="sage"]`).locator('xpath=..')
       await opt.scrollIntoViewIfNeeded()
       const lift = () => opt.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--lift')))
+      const bg = () => opt.evaluate((el) => getComputedStyle(el).backgroundColor)
       await page.waitForTimeout(60)
       expect.equal(await lift(), 0, 'rest')
+      const restBg = await bg()
       await opt.hover()
       await page.waitForTimeout(400)
       expect.equal(await lift(), 1, 'hover lifts')
+      expect.equal(await bg(), restBg, 'hover does not tint')
       await page.mouse.down()
       await page.waitForTimeout(300)
       expect.equal(await lift(), 0, 'pressed sinks')
+      const downBg = await bg()
+      expect.ok(downBg !== restBg, `pressed: the option takes a tint, so a tap shows (rest ${restBg}, pressed ${downBg})`)
       await page.mouse.up()
       await page.mouse.move(0, 0)
       await page.keyboard.press('Tab')
@@ -202,6 +207,64 @@ export const tests = [
       await goto('components/swatch.html')
       const cut = await page.evaluate(brokenWords, '.swatch-set__name')
       expect.equal(cut.join(', '), '', 'words split across lines')
+    },
+  },
+  {
+    name: 'at 200% text on a phone the set is at least two to a row, and no name is cut inside a word',
+    async run({ page, goto, expect }) {
+      await goto('components/swatch.html')
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(150)
+      const r = await page.evaluate(() => [...document.querySelectorAll('.swatch-set__list')].filter((l) => l.offsetParent).map((l) => {
+        const tops = [...l.children].map((o) => Math.round(o.getBoundingClientRect().top))
+        return { n: l.children.length, perRow: tops.filter((t) => t === tops[0]).length }
+      }))
+      for (const x of r) expect.ok(x.perRow >= Math.min(2, x.n), `a set of ${x.n} shows ${x.perRow} to a row`)
+      const cut = await page.evaluate(brokenWords, '.swatch-set__name')
+      expect.equal(cut.join(', '), '', 'words split across lines')
+    },
+  },
+  {
+    name: 'a set comes out in even rows: never five to a row, and four, six or eight colours never leave a short last row',
+    async run({ page, goto, expect }) {
+      await goto('components/swatch.html')
+      for (const [w, text] of [[320, 100], [390, 100], [1024, 100], [390, 200], [1024, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(150)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.swatch-set__list')].filter((l) => l.offsetParent).map((l) => {
+          const rows = new Map()
+          for (const o of l.children) { const k = Math.round(o.getBoundingClientRect().top); rows.set(k, (rows.get(k) || 0) + 1) }
+          return { n: l.children.length, counts: [...rows.values()] }
+        }))
+        for (const x of r) {
+          expect.ok(x.counts.every((c) => c === x.counts[0]), `${w}px ${text}%: a set of ${x.n} in rows of ${x.counts.join(' + ')}`)
+          expect.ok(x.counts[0] !== 5, `${w}px ${text}%: never five to a row`)
+        }
+      }
+    },
+  },
+  {
+    name: 'every name sits 8px or more under what its chip paints: the focus ring around a chosen chip, the lift and its shadow (390px, 320px, 200% text)',
+    async run({ page, goto, expect }) {
+      await goto('components/swatch.html')
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => [...document.querySelector('#states ~ .demo').querySelectorAll('.swatch-set__opt')].map((o) => {
+          const chip = o.querySelector('.swatch-set__chip'), cs = getComputedStyle(chip), b = chip.getBoundingClientRect()
+          let below = 0
+          if (cs.outlineStyle !== 'none') below = parseFloat(cs.outlineOffset) + parseFloat(cs.outlineWidth)
+          for (const m of cs.boxShadow.matchAll(/(-?[\d.]+)px (-?[\d.]+)px ([\d.]+)px (-?[\d.]+)px/g)) { const [, y, , sp] = m.slice(1).map(Number); below = Math.max(below, sp + y) }
+          const ring = getComputedStyle(chip, '::after')
+          if (ring.display !== 'none') below = Math.max(below, -parseFloat(ring.bottom)) // the selection ring, 6px out
+          const name = o.querySelector('.swatch-set__name')
+          return { t: name.textContent.trim(), clear: name.getBoundingClientRect().top - (b.bottom + below) }
+        }))
+        expect.equal(r.length, 8, `${w}px ${text}%: eight specimens`)
+        for (const x of r) expect.ok(x.clear >= 8, `${w}px ${text}%: "${x.t}" is ${x.clear.toFixed(1)}px under what its chip paints`)
+      }
     },
   },
 ]

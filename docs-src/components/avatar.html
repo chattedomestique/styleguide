@@ -1,10 +1,15 @@
 <!--{"title":"Avatar","group":"Components","order":64,"summary":"A person as a circle: a photo or their initials, five sizes, a presence dot that is never colour alone, and the overlapping stack."}-->
 <style>
+  /* docs only, until docs.css bounds it on every page: at 200% text on a phone the section heading "Accessibility"
+     (48px, expanded) was wider than the column and broke inside the word. It shrinks with the column instead. */
+  .docs-article h2 { font-size: min(var(--text-xl), 12.5cqi); }
   /* docs only: the article's list styles must not indent or re-space the specimens */
   .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
   .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
   /* one avatar with its state named under it (this page only; roles and tokens only) */
-  .av-state { display: grid; justify-items: center; align-content: start; gap: var(--space-2); text-align: center; }
+  .av-state { display: grid; justify-items: center; align-content: start; gap: var(--space-4); text-align: center; } /* the caption clears the lift, the 4px shadow and the ring by 8px or more */
+  /* a contact sheet of samples: four to a row at every width and text size (avatars do not grow with text, so neither does the sheet) */
+  .av-sheet { display: grid; grid-template-columns: repeat(4, auto); justify-content: start; gap: var(--chrome-3) var(--chrome-4); }
 </style>
 <h1>Avatar</h1>
 <p class="lede">A person, a team or an app, as a circle. A photo when there is one, their initials when there is not. In this guide circles are the shape of things that act, so an avatar stays a plain circle until it is a link or a button; then it raises like every other pressable circle.</p>
@@ -13,7 +18,7 @@
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
-    <div><strong>Do</strong><p>Name it. If the person's name is written beside the avatar, hide the avatar (<code>aria-hidden="true"</code>). If not, it is an image with their name as its label.</p></div>
+    <div><strong>Do</strong><p>Name it. If the person's name is written beside the avatar, hide the avatar (<code>aria-hidden</code>). If not, it is an image with their name as its label.</p></div>
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
@@ -23,45 +28,47 @@
 
 <h2 id="photo">Photo or initials</h2>
 <p>The initials are the avatar; the photo is an <code>&lt;img alt=""&gt;</code> laid over them. If the photo fails to load, a few lines of script (<code>src/js/30-avatar.js</code>) hide it and the initials show. The name lives on the avatar, so nothing about what a screen reader says depends on the photo.</p>
-<div class="demo" data-layout="row">
+<div class="demo">
   <div class="demo__stage">
-    <span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span>
-    <span class="avatar" role="img" aria-label="Jonas Berg">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span>
-    <span class="avatar" role="img" aria-label="Priya Nair">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span>
-    <span class="avatar" role="img" aria-label="Sam Castillo">SC<img src="@/assets/surfaces/avatar-sam.svg" alt=""></span>
-    <span class="avatar" role="img" aria-label="Ines Duarte">ID</span>
-    <span class="avatar" data-tone="1" role="img" aria-label="Tomás Reyes">TR</span>
-    <span class="avatar" data-tone="2" role="img" aria-label="Aiko Mori">AM</span>
-    <span class="avatar" data-tone="3" role="img" aria-label="Lena Fischer">LF</span>
-    <span class="avatar" data-tone="4" role="img" aria-label="Omar Haddad">OH</span>
-    <span class="avatar" data-tone="ink" role="img" aria-label="Wallet app">W</span>
+    <div class="av-sheet">
+      <span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span>
+      <span class="avatar" role="img" aria-label="Jonas Berg">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span>
+      <span class="avatar" role="img" aria-label="Priya Nair">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span>
+      <span class="avatar" role="img" aria-label="Sam Castillo">SC<img src="@/assets/surfaces/avatar-sam.svg" alt=""></span>
+      <span class="avatar" role="img" aria-label="Ines Duarte">ID</span>
+      <span class="avatar" data-tone="1" role="img" aria-label="Tomás Reyes">TR</span>
+      <span class="avatar" data-tone="2" role="img" aria-label="Aiko Mori">AM</span>
+      <span class="avatar" data-tone="3" role="img" aria-label="Lena Fischer">LF</span>
+      <span class="avatar" data-tone="4" role="img" aria-label="Omar Haddad">OH</span>
+      <span class="avatar" data-tone="5" role="img" aria-label="Kofi Mensah">KM</span>
+      <span class="avatar" data-tone="6" role="img" aria-label="Elif Yilmaz">EY</span>
+      <span class="avatar" data-tone="ink" role="img" aria-label="Wallet app">W</span>
+    </div>
   </div>
 </div>
 <p class="t-meta">With no photo, <code>data-tone</code> picks the field behind the initials. Choose it from the person's id (not their name, and not at random) so they keep the same colour everywhere. It is identity, never meaning.</p>
 
 <h3 id="named">When the name is already on the page</h3>
-<p>Next to a visible name the avatar is decoration. Hide it, or the name is read twice.</p>
+<p>Next to a visible name the avatar is decoration. Hide it, or the name is read twice. A <a href="@/components/list.html">List</a> row is the usual place: the avatar keeps the lead slot and the name stays beside it at any text size.</p>
 <div class="demo">
   <div class="demo__stage">
-    <div class="cluster" data-gap="3">
-      <span class="avatar" aria-hidden="true">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span>
-      <div>
-        <p><strong>Maya Okafor</strong></p>
-        <p class="t-meta">Owner · joined March</p>
-      </div>
-    </div>
+    <ul class="list" role="list">
+      <li><div class="list__row"><span class="list__lead"><span class="avatar" aria-hidden="true">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span></span><span class="list__main"><span class="list__title">Maya Okafor</span><span class="list__meta" data-facts><span>Owner</span> <span>joined March</span></span></span></div></li>
+    </ul>
   </div>
 </div>
 
 <h2 id="sizes">Sizes</h2>
-<p>Five steps: 28, 36, 44 (the default), 64 and 96px. They are rem, so they grow with text size and the initials stay inside the circle at 200%.</p>
-<div class="demo" data-layout="row">
+<p>Five steps: 28, 36, 44 (the default), 64 and 96px. An avatar is a picture, not a line of text, so it keeps its size when the reader's text grows (like an icon in a tab bar), and the initials are sized from the circle: they keep their proportion, a name beside the avatar keeps its room, and a stack stays one row. At 28px the two letters are set a little narrower, so they clear the frame.</p>
+<div class="demo">
   <div class="demo__stage">
-    <span class="avatar" data-size="xs" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
-    <span class="avatar" data-size="sm" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
-    <span class="avatar" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
-    <span class="avatar" data-size="lg" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
-    <span class="avatar" data-size="xl" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span>
+    <div class="cluster" style="--cluster-gap: var(--chrome-2)">
+      <span class="avatar" data-size="xs" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
+      <span class="avatar" data-size="sm" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
+      <span class="avatar" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
+      <span class="avatar" data-size="lg" data-tone="1" role="img" aria-label="Maya Okafor">MO</span>
+      <span class="avatar" data-size="xl" role="img" aria-label="Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span>
+    </div>
   </div>
 </div>
 
@@ -69,25 +76,27 @@
 <p>A dot on the circle's corner says whether someone is around. Each state has its own <strong>shape</strong>, so it reads without colour: a filled circle is online, a filled diamond is away, a filled square is busy and an empty ring is offline. The state also goes into the avatar's name, because a dot has no text of its own. Presence starts at the 36px size; a 28px circle cannot carry four legible shapes.</p>
 <div class="demo">
   <div class="demo__stage">
-    <ul class="stack" role="list" data-gap="3">
-      <li class="cluster" data-gap="4"><span class="avatar" data-presence="online" role="img" aria-label="Maya Okafor, online">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span><span><strong>Online</strong><br><span class="t-meta">Filled circle</span></span></li>
-      <li class="cluster" data-gap="4"><span class="avatar" data-presence="away" role="img" aria-label="Jonas Berg, away">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span><span><strong>Away</strong><br><span class="t-meta">Filled diamond</span></span></li>
-      <li class="cluster" data-gap="4"><span class="avatar" data-presence="busy" role="img" aria-label="Priya Nair, busy">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span><span><strong>Busy</strong><br><span class="t-meta">Filled square</span></span></li>
-      <li class="cluster" data-gap="4"><span class="avatar" data-presence="offline" data-tone="3" role="img" aria-label="Lena Fischer, offline">LF</span><span><strong>Offline</strong><br><span class="t-meta">Empty ring</span></span></li>
+    <ul class="list" role="list">
+      <li><div class="list__row"><span class="list__lead"><span class="avatar" data-presence="online" role="img" aria-label="Maya Okafor, online">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></span></span><span class="list__main"><span class="list__title">Online</span><span class="list__meta">Filled circle</span></span></div></li>
+      <li><div class="list__row"><span class="list__lead"><span class="avatar" data-presence="away" role="img" aria-label="Jonas Berg, away">JB<img src="@/assets/surfaces/avatar-jonas.svg" alt=""></span></span><span class="list__main"><span class="list__title">Away</span><span class="list__meta">Filled diamond</span></span></div></li>
+      <li><div class="list__row"><span class="list__lead"><span class="avatar" data-presence="busy" role="img" aria-label="Priya Nair, busy">PN<img src="@/assets/surfaces/avatar-priya.svg" alt=""></span></span><span class="list__main"><span class="list__title">Busy</span><span class="list__meta">Filled square</span></span></div></li>
+      <li><div class="list__row"><span class="list__lead"><span class="avatar" data-presence="offline" data-tone="3" role="img" aria-label="Lena Fischer, offline">LF</span></span><span class="list__main"><span class="list__title">Offline</span><span class="list__meta">Empty ring</span></span></div></li>
     </ul>
   </div>
 </div>
-<div class="demo" data-layout="row">
+<div class="demo">
   <div class="demo__stage">
-    <span class="avatar" data-size="sm" data-presence="online" data-tone="2" role="img" aria-label="Aiko Mori, online">AM</span>
-    <span class="avatar" data-presence="away" data-tone="2" role="img" aria-label="Aiko Mori, away">AM</span>
-    <span class="avatar" data-size="lg" data-presence="busy" data-tone="2" role="img" aria-label="Aiko Mori, busy">AM</span>
-    <span class="avatar" data-size="xl" data-presence="offline" data-tone="2" role="img" aria-label="Aiko Mori, offline">AM</span>
+    <div class="cluster" style="--cluster-gap: var(--chrome-3)">
+      <span class="avatar" data-size="sm" data-presence="online" data-tone="2" role="img" aria-label="Aiko Mori, online">AM</span>
+      <span class="avatar" data-presence="away" data-tone="2" role="img" aria-label="Aiko Mori, away">AM</span>
+      <span class="avatar" data-size="lg" data-presence="busy" data-tone="2" role="img" aria-label="Aiko Mori, busy">AM</span>
+      <span class="avatar" data-size="xl" data-presence="offline" data-tone="2" role="img" aria-label="Aiko Mori, offline">AM</span>
+    </div>
   </div>
 </div>
 
 <h2 id="pressable">Pressable</h2>
-<p>An avatar that goes somewhere (your profile) or does something (switch account) is an <code>&lt;a&gt;</code> or a <code>&lt;button&gt;</code> with the same class. It then behaves like every pressable circle: a hard shadow when it can be pressed, sinking when it is, and a 44&times;44px hit area even at 28px. It needs an <code>aria-label</code> that says what pressing does, not just who it shows.</p>
+<p>An avatar that goes somewhere (your profile) or does something (switch account) is an <code>&lt;a&gt;</code> or a <code>&lt;button&gt;</code> with the same class. It then behaves like every pressable circle: it raises with a hard shadow when it can be pressed, takes a light tint while it is pressed, and has a 44&times;44px hit area even at 28px. It is never filled with a solid colour, because that would wipe out the person's colour or photo. It needs an <code>aria-label</code> that says what pressing does, not just who it shows.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <a class="avatar" href="#" aria-label="Your profile, Maya Okafor">MO<img src="@/assets/surfaces/avatar-maya.svg" alt=""></a>
@@ -95,16 +104,16 @@
     <button class="avatar" type="button" data-size="sm" data-tone="3" aria-label="Open Lena Fischer's card">LF</button>
   </div>
 </div>
-<p class="t-meta">The states, one under another name. Hover and keyboard focus are the same state (raised, filled with the accent), focus adds the ring; pressing sinks it back onto the page with the fill kept; the current one doubles its frame; an unavailable one is dashed and faint.</p>
+<p class="t-meta">The states, each with its name under it. Hover and keyboard focus raise the circle with its hard shadow and keep its colour; focus adds the ring. Pressing puts it back onto the page with a 16% tint (the photo darkens as much), so a tap shows at once. The current one doubles its frame; a disabled one is dashed and faint.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 5rem">
+    <div class="grid" style="--grid-min: 4.5rem; --grid-gap: var(--space-4) var(--chrome-4)">
       <div class="av-state"><a class="avatar" href="#" data-tone="2" aria-label="Rest: Aiko Mori">AM</a><span class="t-meta">Rest</span></div>
       <div class="av-state"><a class="avatar is-hover" href="#" data-tone="2" aria-label="Hover: Aiko Mori">AM</a><span class="t-meta">Hover</span></div>
       <div class="av-state"><a class="avatar is-focus" href="#" data-tone="2" aria-label="Focus: Aiko Mori">AM</a><span class="t-meta">Focus</span></div>
       <div class="av-state"><a class="avatar is-active" href="#" data-tone="2" aria-label="Pressed: Aiko Mori">AM</a><span class="t-meta">Pressed</span></div>
       <div class="av-state"><a class="avatar" href="#" data-tone="2" aria-current="true" aria-label="Current: Aiko Mori">AM</a><span class="t-meta">Current</span></div>
-      <div class="av-state"><button class="avatar" type="button" aria-disabled="true" aria-label="Unavailable: Ines Duarte">ID</button><span class="t-meta">Unavailable</span></div>
+      <div class="av-state"><button class="avatar" type="button" aria-disabled="true" aria-label="Disabled: Ines Duarte">ID</button><span class="t-meta">Disabled</span></div>
     </div>
   </div>
 </div>
@@ -121,7 +130,7 @@
     </ul>
   </div>
 </div>
-<p class="t-meta">Sizes are set once, on the stack: <code>data-size</code> on the list. Overlap is 22% of the diameter, so two letters stay legible from 44px up; at 36px and below use photos or a single letter, as in the first row below.</p>
+<p class="t-meta">Sizes are set once, on the stack: <code>data-size</code> on the list. Overlap is 22% of the diameter, so two letters stay legible from 44px up; at 36px and below use photos or a single letter, as in the first row below. A stack is one row at every text size: its circles keep their size, so keep it to three or four faces and a count.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="4">
@@ -163,7 +172,7 @@
         <div class="card__body">
           <p class="card__eyebrow">Shared deck</p>
           <p class="card__title">Spanish: travel</p>
-          <p class="card__meta">48 cards · 3 people studying</p>
+          <p class="card__meta" data-facts><span>48&nbsp;cards</span> <span>3&nbsp;people studying</span></p>
         </div>
         <footer class="card__foot">
           <ul class="avatar-stack" data-size="sm" role="list" aria-label="Studying: Maya, Jonas and Priya">
@@ -193,10 +202,11 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Circle</strong>: <code>--radius-pill</code> with a 2px frame (<code>--line</code>). The frame is real, so forced-colours mode still draws it.</li>
-  <li><strong>Initials</strong>: <code>--type-ctl</code>, semi-expanded, sized to the circle in rem. On <code>--paper-2</code> or the tone.</li>
+  <li><strong>Initials</strong>: <code>--type-ctl</code>, semi-expanded (semi-condensed at 28px), sized from the circle: about 36% of its diameter. On <code>--paper-2</code> or the tone.</li>
   <li><strong>Photo</strong> (optional): <code>&lt;img alt=""&gt;</code>, <code>object-fit: cover</code>, laid over the initials. No background of its own.</li>
   <li><strong>Presence dot</strong> (optional): a 2px-framed shape on the lower corner, with a paper halo. Shape carries the state; colour only backs it up.</li>
   <li><strong>Hit area</strong> (pressable only): an invisible <code>::after</code> that guarantees 44&times;44px.</li>
+  <li><strong>Hard shadow</strong> (pressable only): 4px, zero blur, when it is raised (hover, focus). It means "you can press this".</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -205,13 +215,13 @@
   <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
     <tr><td><code>class="avatar"</code></td><td></td><td>The circle. A <code>&lt;span&gt;</code> when it only shows someone; an <code>&lt;a&gt;</code> or <code>&lt;button&gt;</code> when it acts.</td></tr>
-    <tr><td><code>data-size</code></td><td><code>xs</code> 28, <code>sm</code> 36, <code>lg</code> 64, <code>xl</code> 96 (default 44)</td><td>On an avatar or on its stack.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>xs</code> 28, <code>sm</code> 36, <code>lg</code> 64, <code>xl</code> 96 (default 44)</td><td>On an avatar or on its stack. Pixels at any text size (the initials follow the circle).</td></tr>
     <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code></td><td>The field behind the initials. Identity colour; never meaning.</td></tr>
     <tr><td><code>data-presence</code></td><td><code>online</code>, <code>away</code>, <code>busy</code>, <code>offline</code></td><td>The dot and its shape. Also say it in the <code>aria-label</code>.</td></tr>
     <tr><td><code>data-overflow</code></td><td></td><td>The "+3" that closes a stack: ink fill, paper text.</td></tr>
-    <tr><td><code>aria-current="true"</code> / <code>aria-pressed="true"</code></td><td></td><td>Pressable avatars: the frame doubles.</td></tr>
+    <tr><td><code>aria-current="true"</code> / <code>aria-pressed="true"</code></td><td></td><td>Pressable avatars: the frame doubles; the colour or photo stays.</td></tr>
     <tr><td><code>aria-disabled="true"</code></td><td></td><td>Pressable avatars: dashed frame, faint ink.</td></tr>
-    <tr><td><code>class="avatar-stack"</code></td><td></td><td>A <code>&lt;ul role="list"&gt;</code> of <code>&lt;li&gt;</code> avatars, overlapping by 22% of the diameter. Needs an <code>aria-label</code>.</td></tr>
+    <tr><td><code>class="avatar-stack"</code></td><td></td><td>A <code>&lt;ul role="list"&gt;</code> of <code>&lt;li&gt;</code> avatars, overlapping by 22% of the diameter, in one row. Needs an <code>aria-label</code>.</td></tr>
   </tbody>
 </table></div>
 
@@ -225,11 +235,11 @@
     <tr><td>Screen reader</td><td>"Maya Okafor, image", or "Your profile, link". The presence state is in the name. A stack reads as "Shared with Maya, Jonas, Priya and 3 more, list, 4 items".</td></tr>
     <tr><td>Colour</td><td>Presence is a shape (circle, diamond, square, ring) and a word in the name. The field colour is identity, not meaning.</td></tr>
     <tr><td>Touch</td><td>Pressable avatars keep a 44&times;44px hit area at every size. Stack items are not pressable; the overflow button is.</td></tr>
-    <tr><td>Zoom / text size</td><td>Sizes and initials are rem. The photo is cropped, never stretched.</td></tr>
-    <tr><td>Reduced motion</td><td>No travel on press; the fill and shadow change stays.</td></tr>
+    <tr><td>Zoom / text size</td><td>An avatar is a picture: at 200% text it keeps its size and its initials (browser zoom still scales it), so the name beside it keeps its room and a stack stays one row. The photo is cropped, never stretched.</td></tr>
+    <tr><td>Reduced motion</td><td>No travel when it raises or sinks; the shadow and the pressed tint still show.</td></tr>
     <tr><td>Forced colours</td><td>The frame becomes <code>CanvasText</code>; presence shapes repaint in system colours (offline stays empty); pressable avatars get a 4px <code>Highlight</code> outline.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--ok-ink</code>, <code>--warn-ink</code>, <code>--bad-ink</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--radius-ctl</code>, <code>--hit</code>, <code>--type-ctl</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--ok-ink</code>, <code>--warn-ink</code>, <code>--bad-ink</code>, <code>--bw</code>, <code>--radius-pill</code>, <code>--radius-ctl</code>, <code>--chrome-ctl</code>, <code>--chrome-ctl-sm</code>, <code>--chrome-hit</code>, <code>--type-ctl</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>
