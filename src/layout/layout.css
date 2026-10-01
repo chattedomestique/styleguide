@@ -64,16 +64,29 @@
   :where(.cluster[data-justify="end"]) { --cluster-justify: flex-end; }
   :where(.cluster[data-justify="center"]) { --cluster-justify: center; }
 
-  /* One row: start item grows, end item hugs (title + action, label + value). */
+  /* One row: start item grows, end item hugs (title + action, label + value).
+     The start item has a floor (6rem) and may shrink to it; the end item keeps its own width and,
+     when the two no longer fit side by side, DROPS UNDER the start item as a unit, flush to the
+     end. Without the wrap the two overlapped at 200% text: the start item shrank to nothing, its
+     one-word label ("Salary") spilled across the amount, and the amount broke after its minus
+     sign (WCAG 1.4.4 / 1.4.10). A start item that is a long sentence still wraps beside the end
+     item while 6rem is left for it. */
   :where(.split) {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
   }
   :where(.split > :first-child) {
     min-inline-size: 0;
-    flex: 1 1 auto;
+    flex: 1 1 6rem;
+    overflow-wrap: break-word;
+  }
+  :where(.split > :last-child:not(:first-child)) {
+    flex: none;
+    max-inline-size: 100%;
+    margin-inline-start: auto;
   }
 
   /* Responsive grid with no media queries: as many columns as fit --grid-min. */
