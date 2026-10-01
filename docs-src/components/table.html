@@ -77,19 +77,20 @@
           </tbody>
         </table>
       </div>
+      <p class="tbl__hint">Scroll sideways for more columns.</p>
       <p class="t-meta" data-sg-count aria-live="polite">None selected</p>
     </div>
   </div>
 </div>
 
 <h3 id="empty">Empty</h3>
-<p>Say why there is nothing and what to do. The header stays, so the columns people would get are still visible.</p>
+<p>Say why there is nothing and what to do. The header stays, so the columns people would get are still visible. Put the sentence in a <code>.tbl__empty-msg</code> inside the cell: the cell spans the whole table, and on a phone that is wider than the screen, so a bare sentence would be centred over the part you have to scroll to. In the wrapper it is as wide as the visible region and stays in view while the table scrolls.</p>
 <div class="demo" id="demo-empty">
   <div class="demo__stage">
     <div class="tbl">
       <p class="tbl__title" id="tbl-empty">Reviews this week</p>
       <div class="tbl__scroll" role="region" aria-labelledby="tbl-empty" tabindex="0">
-        <table class="tbl__table" aria-labelledby="tbl-empty" style="--tbl-min: 24rem">
+        <table class="tbl__table" aria-labelledby="tbl-empty" style="--tbl-min: 20rem">
           <thead>
             <tr>
               <th scope="col">Deck</th>
@@ -98,10 +99,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr class="tbl__empty"><td colspan="3">No reviews yet this week. Open a deck and answer five cards to start one.</td></tr>
+            <tr class="tbl__empty"><td colspan="3"><p class="tbl__empty-msg">No reviews yet this week. Open a deck and answer five cards to start one.</p></td></tr>
           </tbody>
         </table>
       </div>
+      <p class="tbl__hint">Scroll sideways for more columns.</p>
     </div>
   </div>
 </div>
@@ -145,13 +147,13 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Hover, focus and pressed set <code>--fill</code> on a sort button (the ink bar becomes paper and the ring goes inset, in ink); a sorted header gets its arrow and an underline; a checked row gets a wash, a filled box with a check, and <code>aria-selected</code>. The <code>is-*</code> classes only force a state for this page.</p>
+<p>Hover and focus set <code>--fill</code> on a sort button (the ink bar becomes paper); focus adds the 3px ring, drawn inset in ink; pressed sinks one step further, to a grey between paper and ink, straight away. A sorted header gets its arrow and an underline; a checked row gets a wash, a filled box with a check, and <code>aria-selected</code>. The <code>is-*</code> classes only force a state for this page.</p>
 <div class="demo" id="demo-states">
   <div class="demo__stage">
     <div class="tbl" data-select>
       <p class="tbl__title" id="tbl-states">Sort button and row states</p>
       <div class="tbl__scroll" role="region" aria-labelledby="tbl-states" tabindex="0">
-        <table class="tbl__table" aria-labelledby="tbl-states" style="--tbl-min: 60rem">
+        <table class="tbl__table" aria-labelledby="tbl-states" style="--tbl-min: 44rem">
           <thead>
             <tr>
               <th scope="col"><label class="tbl__check"><input type="checkbox" aria-label="Select all states"><span class="tbl__box" aria-hidden="true"></span></label></th>
@@ -164,11 +166,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td><label class="tbl__check"><input type="checkbox" aria-label="Select the unselected row"><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Unselected</th><td>Plain row</td><td>Paper</td><td>1px rule below</td><td data-align="end">1</td><td data-align="end">2</td></tr>
+            <tr><td><label class="tbl__check"><input type="checkbox" aria-label="Select the unselected row"><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Default</th><td>Plain row</td><td>Paper</td><td>1px rule below</td><td data-align="end">1</td><td data-align="end">2</td></tr>
             <tr aria-selected="true"><td><label class="tbl__check"><input type="checkbox" aria-label="Select the selected row" checked><span class="tbl__box" aria-hidden="true"></span></label></td><th scope="row">Selected</th><td>Wash</td><td>Checked box</td><td>aria-selected</td><td data-align="end">3</td><td data-align="end">4</td></tr>
           </tbody>
         </table>
       </div>
+      <p class="tbl__hint">Scroll sideways for more columns.</p>
     </div>
   </div>
 </div>
@@ -203,6 +206,7 @@
     <tr><td><code>tr[aria-selected="true"]</code></td><td></td><td>Selected row wash. Set by <code>SG.table</code> from the checkbox.</td></tr>
     <tr><td><code>[data-sg-count]</code></td><td>inside <code>.tbl</code></td><td>Receives "2 of 4 selected". Make it <code>aria-live="polite"</code>.</td></tr>
     <tr><td><code>.tbl__empty</code></td><td>a <code>tr</code> with one <code>td colspan</code></td><td>The empty row.</td></tr>
+    <tr><td><code>.tbl__empty-msg</code></td><td>a <code>p</code> in that cell</td><td>The sentence. As wide as the visible region and sticky at its start edge, so it is never half off-screen.</td></tr>
     <tr><td><code>sg-table-sort</code></td><td>event, cancelable</td><td><code>detail.column</code>, <code>detail.direction</code>. <code>preventDefault()</code> to sort on the server; <code>aria-sort</code> still updates.</td></tr>
     <tr><td><code>sg-table-select</code></td><td>event</td><td><code>detail.count</code>, <code>detail.total</code>, <code>detail.rows</code>.</td></tr>
     <tr><td><code>SG.table.sort(table, i, dir)</code></td><td>function</td><td>Sort programmatically. <code>SG.table.selected(table)</code> returns the selected rows; <code>SG.table.init(scope)</code> measures the overflow hint for tables you add later (sorting and selection work on any table without it).</td></tr>
