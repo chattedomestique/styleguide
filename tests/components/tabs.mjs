@@ -297,4 +297,72 @@ export const tests = [
       expect.ok(r.every((t) => t.h >= 43.5 && t.w >= 43.5), 'all tabs are at least 44x44 including the hit area: ' + JSON.stringify(r.filter((t) => t.h < 43.5 || t.w < 43.5)))
     },
   },
+  {
+    name: 'The States demo can show focus: the forced .is-focus tab draws the same ring (outline and halo) as a keyboard-focused one',
+    async run({ page, goto, expect }) {
+      await goto('components/tabs.html')
+      const read = () => page.evaluate(() => { const cs = getComputedStyle(document.getElementById('tabs-st-t3')); return { w: cs.outlineWidth, st: cs.outlineStyle, off: cs.outlineOffset, shadow: cs.boxShadow, lift: cs.getPropertyValue('--lift').trim() } })
+      await page.locator('#tabs-st-t3').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(450)
+      const forced = await read()
+      expect.equal(forced.st, 'solid', 'a ring is drawn'); expect.equal(forced.w, '3px', 'the 3px ring'); expect.ok(/0px 0px 0px 3px/.test(forced.shadow), 'with its halo: ' + forced.shadow)
+      await page.evaluate(() => { document.getElementById('tabs-st-t3').classList.remove('is-focus') })
+      await page.keyboard.press('Tab')
+      await page.locator('#tabs-st-t3').focus()
+      await page.waitForTimeout(450)
+      const real = await read()
+      expect.equal(JSON.stringify(forced), JSON.stringify(real), 'forced and real focus look the same')
+    },
+  },
+  {
+    name: 'Overflow cue: a tablist that hides tabs says so (data-more), whatever the cut, and the cue follows the scroll',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await goto('components/tabs.html')
+      const LIST = '#overflow + p + .demo .tabs__list'
+      const read = () => page.locator(LIST).evaluate((el) => ({ more: el.getAttribute('data-more'), shadow: getComputedStyle(el).boxShadow, over: el.scrollWidth > el.clientWidth + 1 }))
+      await page.locator(LIST).scrollIntoViewIfNeeded()
+      const a = await read()
+      expect.ok(a.over, 'seven tabs overflow a 320px phone')
+      expect.equal(a.more, 'end', 'at the start only the end hides tabs')
+      expect.ok(/inset/.test(a.shadow) && a.shadow.includes('-1px'), 'and the end edge draws its 1px rule: ' + a.shadow)
+      await page.locator(LIST).evaluate((el) => { el.scrollLeft = 120 })
+      await page.waitForTimeout(100)
+      expect.equal((await read()).more, 'start end', 'in the middle both edges hide tabs')
+      await page.locator(LIST).evaluate((el) => { el.scrollLeft = el.scrollWidth })
+      await page.waitForTimeout(100)
+      expect.equal((await read()).more, 'start', 'at the end only the start does')
+      const fits = await page.evaluate(() => [...document.querySelectorAll('.tabs__list[role="tablist"]:not([aria-orientation="vertical"])')].filter((l) => l.scrollWidth <= l.clientWidth + 1).every((l) => !l.hasAttribute('data-more')))
+      expect.ok(fits, 'a list that fits shows no cue')
+    },
+  },
+  {
+    name: 'A tablist with an action beside it keeps a gap before the action, so the clipped tab never touches it',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await goto('components/tabs.html')
+      const r = await page.evaluate(() => { const bar = document.querySelector('#action + p + .demo .tabs__bar'); const l = bar.querySelector('.tabs__list').getBoundingClientRect(); const a = bar.querySelector('.btn').getBoundingClientRect(); return { gap: Math.round(a.left - l.right), cs: getComputedStyle(bar.querySelector('.tabs__list')).marginInlineEnd } })
+      expect.ok(r.gap >= 12, 'the list ends at least 12px before the action (it was 4px: the list\'s negative margin ate the gap): ' + JSON.stringify(r))
+    },
+  },
+  {
+    name: 'Underline: the selected bar sits ON the divider (flush with its outer edge), horizontal and vertical',
+    async run({ page, goto, expect }) {
+      await goto('components/tabs.html')
+      const h = await page.evaluate(() => { const t = document.querySelector('#underline + p + .demo .tabs__tab[aria-selected="true"]'); const bar = t.closest('.tabs__bar'); const tr = t.getBoundingClientRect(); const br = bar.getBoundingClientRect(); const cs = getComputedStyle(t, '::before'); const bw = parseFloat(getComputedStyle(t).borderBottomWidth); return { barBottom: tr.bottom - bw - parseFloat(cs.bottom), divider: br.bottom, h: parseFloat(cs.height) } })
+      expect.ok(Math.abs(h.barBottom - h.divider) <= 0.5 && h.h === 2, 'horizontal: the 2px bar ends where the divider ends: ' + JSON.stringify(h))
+      const v = await page.evaluate(() => { const t = document.querySelector('#vertical + p + .demo .tabs__tab[aria-selected="true"]'); const bar = t.closest('.tabs__bar'); const tr = t.getBoundingClientRect(); const br = bar.getBoundingClientRect(); const cs = getComputedStyle(t, '::before'); const bw = parseFloat(getComputedStyle(t).borderRightWidth); return { barRight: tr.right - bw - parseFloat(cs.right), divider: br.right, w: parseFloat(cs.width) } })
+      expect.ok(Math.abs(v.barRight - v.divider) <= 0.5 && v.w === 2, 'vertical: the 2px bar ends where the divider ends: ' + JSON.stringify(v))
+    },
+  },
+  {
+    name: 'Vertical tabs hug their labels: when the panel drops underneath the column is not full width, so the bar stays by the words',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/tabs.html')
+      const r = await page.evaluate(() => { const root = document.querySelector('#vertical + p + .demo .tabs'); const bar = root.querySelector('.tabs__bar').getBoundingClientRect(); const panel = root.querySelector('.tabs__panel:not([hidden])').getBoundingClientRect(); const widest = Math.max(...[...root.querySelectorAll('.tabs__tab')].map((t) => { const rg = document.createRange(); rg.selectNodeContents(t); return rg.getBoundingClientRect().width })); return { bar: Math.round(bar.width), root: Math.round(root.getBoundingClientRect().width), widest: Math.round(widest), under: panel.top >= bar.bottom - 1 } })
+      expect.ok(r.under, 'on a phone the panel is underneath: ' + JSON.stringify(r))
+      expect.ok(r.bar <= r.widest + 16 + 8, 'the column is the widest label plus its 16px, not the full row: ' + JSON.stringify(r))
+    },
+  },
 ]

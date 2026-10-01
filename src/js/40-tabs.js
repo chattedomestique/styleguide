@@ -13,6 +13,9 @@
      on .tabs to only move focus and select with Enter / Space.
    - hidden follows selection: inactive panels get the hidden attribute
    - the chosen tab is scrolled into view inside an overflowing tablist
+   - an overflowing tablist is marked data-more="start", "end" or "start end" while tabs are scrolled out
+     of view on that side; tabs.css draws a rule on that edge, so "there is more" never depends on where
+     the cut happens to fall
    - data-hash on .tabs keeps location.hash in step with the chosen panel
      (history.replaceState, so arrow keys do not flood the Back button) and opens the
      panel named by the hash on load and on hashchange, including a hash that points at
@@ -23,6 +26,7 @@
 
    API
      SG.tabs.select(tabElement)        choose a tab programmatically (moves no focus)
+     SG.watchMore(element)             keep data-more current on any horizontally scrolling row (the chip row uses it)
 
    Not handled here: adding or removing tabs. Re-run SG.tabs.init(root) after you do.
    ========================================================================== */
@@ -60,6 +64,39 @@
   function reveal(tab, list) {
     SG.revealInline(tab, list, 24);
   }
+
+  /** Which edges of a scrolling horizontal row hide something: data-more="start", "end" or "start end" (absent when
+      everything shows). The distance from the start edge is taken as an absolute value, so it is right in
+      right-to-left too (scrollLeft goes negative there). tabs.css and chip.css draw the cue from it. */
+  function measure(el) {
+    var max = el.scrollWidth - el.clientWidth;
+    var pos = Math.abs(el.scrollLeft);
+    var more = [];
+    if (max > 1 && pos > 1) more.push('start');
+    if (max > 1 && pos < max - 1) more.push('end');
+    if (more.length) el.setAttribute('data-more', more.join(' '));
+    else el.removeAttribute('data-more');
+  }
+  /** Keep data-more current on a scrolling row: now, when the row or one of its children changes size (width, text
+      size, fonts), and on scroll. Shared with the chip row (42-chip.js). Safe to call twice. */
+  SG.watchMore = function (el) {
+    if (!el || el.hasAttribute('data-sg-watch')) return;
+    el.setAttribute('data-sg-watch', '');
+    measure(el);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(function () { measure(el); });
+      ro.observe(el);
+      Array.prototype.forEach.call(el.children, function (c) { ro.observe(c); });
+    }
+  };
+  function watch(list) {
+    if (list.getAttribute('aria-orientation') !== 'vertical') SG.watchMore(list);
+  }
+  // scroll does not bubble, so one capturing listener on the document serves every watched row
+  document.addEventListener('scroll', function (e) {
+    var t = e.target;
+    if (t && t.nodeType === 1 && t.hasAttribute('data-sg-watch')) measure(t);
+  }, { capture: true, passive: true });
 
   function syncHash(tab) {
     var root = tab.closest('.tabs');
@@ -126,6 +163,7 @@
         var chosen = tabs.filter(function (t) { return t.getAttribute('aria-selected') === 'true' && enabled(t); })[0]
           || tabs.filter(enabled)[0];
         if (chosen) select(chosen, { silent: true });
+        watch(list);
       });
     });
   }

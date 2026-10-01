@@ -19,7 +19,7 @@
    data-variant   tone: fill from data-tone="N" on the chip itself (as Button)
 
    STATE is ARIA or native, never a class: aria-pressed / aria-checked / :checked (on), aria-expanded,
-   :disabled / aria-disabled.  ON is never the fill alone: filled + the frame doubles + a CHECK mask
+   :disabled / aria-disabled.  ON is never the fill alone: filled + a second 2px ring + a CHECK mask
    appears in front of the label (drawn by ::before from the owner's --icon-check, so nobody can forget it).
    A leading icon (.chip__icon) gives its place to the check, so the chip does not jump when toggled.
 
@@ -27,9 +27,17 @@
    An INPUT chip holds a value rather than invites a press, so it is flat (no shadow, no hover); only its
    remove button acts, and that fills rather than lifts (a shadow would leave the chip).
 
-   The row pads 8px when it scrolls, because overflow clips rings and shadows (WCAG 2.4.7).
+   The row pads 8px when it scrolls, because overflow clips rings and shadows (WCAG 2.4.7), and it draws a 1px
+   rule on an edge that hides chips (data-more, written by 42-chip.js), so a cut that falls cleanly between two
+   chips still says the row goes on. In a scrolling row a chip never shrinks (flex: none): a nowrap flex row
+   would otherwise squeeze every chip to one letter a line before it let the row scroll.
+
+   A PILL IS FOR ONE LINE. The radius is half of ONE line's height (--_h), not the 999px pill, so a label
+   that wraps (large text, a long name in a narrow row) makes a soft rectangle, never an oval. Words break
+   only at word boundaries unless a single token is wider than the whole row.
 
    Private properties (--_*): --_rest-bg --_rest-ink --_on-bg --_on-ink --_h --_px --_select --_shadow --_glyph
+   --_more-start / --_more-end / --_dir (the scrolling row's overflow cue)
    ========================================================================== */
 
 @layer sg.components {
@@ -47,9 +55,31 @@
     /* One scrolling line. overflow clips outlines and shadows, so the line keeps 8px of room on
        every side and a negative margin hands the space back to the layout. */
     &.scroller {
+      --_more-start: 0 0 0 0 transparent;
+      --_more-end: 0 0 0 0 transparent;
+      --_dir: 1;
+
       flex-wrap: nowrap;
       padding-block: var(--space-2);
       scroll-padding-inline: var(--space-4);
+      box-shadow: var(--_more-start), var(--_more-end);
+
+      & > * {
+        flex: none;
+      }
+      &:dir(rtl) {
+        --_dir: -1;
+      }
+
+      /* The overflow cue: 42-chip.js (SG.watchMore) writes data-more="start", "end" or "start end" while chips
+         are scrolled out of view on that side. A 1px inset rule on the row's own edge does not scroll with the
+         chips; a chip that peeks in is painted over it, a clean cut shows it. Same cue as the tablist. */
+      &[data-more~="start"] {
+        --_more-start: inset calc(var(--bw-thin) * var(--_dir)) 0 0 0 var(--line);
+      }
+      &[data-more~="end"] {
+        --_more-end: inset calc(var(--bw-thin) * var(--_dir) * -1) 0 0 0 var(--line);
+      }
     }
     &.scroller:not(.bleed) {
       padding-inline: var(--space-2);
@@ -87,12 +117,17 @@
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
     background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
     border: var(--bw) solid var(--line);
-    border-radius: var(--radius-pill);
+    border-radius: calc(var(--_h) / 2);
     box-shadow: var(--_select), var(--_shadow);
     font: var(--type-ctl);
     font-size: var(--text-sm);
     text-align: start;
     text-decoration: none;
+    /* Words wrap at their spaces first; "anywhere" only matters for a chip that is ALONE on a line and still wider
+       than the row (a long name, 200% text in a narrow phone): it may shrink to the row and break the word there, which
+       beats a label that spills out of its chip and out of the screen (WCAG 1.4.10). A chip never shrinks to
+       one letter otherwise: a wrapping row moves whole chips to the next line, and a scrolling row keeps them whole
+       (flex: none). */
     overflow-wrap: anywhere;
     cursor: pointer;
     user-select: none;
@@ -136,7 +171,14 @@
       --_on-ink: var(--tone-on-fill);
     }
 
-    &:focus-visible {
+    /* The ring. :focus-visible gets its outline and --focus-shadow from the base layer, which only knows the
+       pseudo-class, so the docs-only .is-focus draws the same ring here: the States demo must be able to show focus. */
+    &.is-focus:not(:focus-visible) {
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+    }
+    &:is(:focus-visible, .is-focus) {
       box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
     }
 
@@ -169,7 +211,7 @@
       transition-duration: var(--dur-press);
     }
 
-    /* ON: filled, the frame doubles, and a check appears */
+    /* ON: filled, a second ring, and a check appears */
     &:is([aria-pressed="true"], [aria-checked="true"], [aria-current="true"]),
     &:has(> .chip__input:checked) {
       --fill: 1;
@@ -308,6 +350,13 @@
      Fills and shadows vanish: the edge stays, raised and on get a heavier line, and the masks (which ARE
      backgrounds) need a system colour or they disappear. */
   @media (forced-colors: active) {
+    /* shadows are removed, so the scrolling row's overflow cue becomes a real 1px border on the edge that hides chips */
+    .chips.scroller[data-more~="start"] {
+      border-inline-start: var(--bw-thin) solid CanvasText;
+    }
+    .chips.scroller[data-more~="end"] {
+      border-inline-end: var(--bw-thin) solid CanvasText;
+    }
     .chip {
       border-color: ButtonText;
 
