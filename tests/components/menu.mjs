@@ -478,4 +478,25 @@ export const tests = [
       expect.equal(await page.locator('#mb-actions .menu__chevron').evaluate((e) => getComputedStyle(e).rotate), '0deg', 'no turn')
     },
   },
+  {
+    name: 'Row-state previews (data-inline) are as wide as their frame, not the viewport, and an unavailable row\'s reason wraps instead of running into its dashed frame',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await goto('components/menu.html')
+      for (const [vw, text] of [[320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: vw, height: 700 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => {
+          const stage = document.querySelector('#states + p + .demo .demo__stage'); const sr = stage.getBoundingClientRect()
+          return [...stage.querySelectorAll('.menu[data-inline]')].map((m) => {
+            const mr = m.getBoundingClientRect(); const row = m.querySelector('[aria-disabled="true"]'); const rr = row.getBoundingClientRect(); const meta = row.querySelector('.menu__meta').getBoundingClientRect()
+            return { menuInside: mr.right <= sr.right + 0.5 && mr.left >= sr.left - 0.5, metaInside: meta.right <= rr.right - 3, pad: parseFloat(getComputedStyle(row).paddingInlineEnd) }
+          })
+        })
+        expect.ok(r.length === 2 && r.every((x) => x.menuInside), vw + 'px, ' + text + '%: both previews sit inside the stage: ' + JSON.stringify(r))
+        if (text === 100) expect.ok(r.every((x) => x.metaInside), vw + 'px: the reason ends inside the row\'s padding, clear of the dashed frame: ' + JSON.stringify(r))
+      }
+    },
+  },
 ]
