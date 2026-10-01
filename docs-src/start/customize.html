@@ -7,17 +7,17 @@
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <style>
-      .btn.cta { min-inline-size: 11rem; font-weight: 800; }
+      .btn.cta { min-inline-size: min(11rem, 100%); font-weight: 800; }
     
 </style>
     <button class="btn" type="button">Guide default</button>
-    <button class="btn cta" type="button">Overridden</button>
+    <button class="btn cta" type="button">Your style</button>
   </div>
 </div>
 <p>Two ways to write your CSS, in one file linked <em>after</em> <code>styleguide.css</code>:</p>
 <pre aria-label="Overriding with unlayered CSS or with a named layer">/* Plain, unlayered CSS beats every sg.* layer, at any specificity. */
 .btn.cta {
-  min-inline-size: 11rem;
+  min-inline-size: min(11rem, 100%);
   font-weight: 800;
 }
 
@@ -25,7 +25,7 @@
    so that &quot;app&quot; sits above the guide's layers. */
 @layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities, app;
 @layer app {
-  .btn.cta { min-inline-size: 11rem; }
+  .btn.cta { min-inline-size: min(11rem, 100%); }
 }</pre>
 <ul>
   <li><strong>Unlayered</strong> is the simplest and the strongest. It beat the guide even as <code>:where(.cta)</code>, at zero specificity (checked).</li>
@@ -122,7 +122,7 @@
     </div>
   </div>
 </div>
-<p>These are live islands: the block above is loaded on this page. Theme, palette and corners work on any element. <code>data-contrast</code> and <code>data-motion</code> are the exception: they only work on <code>&lt;html&gt;</code>, so set them there.</p>
+<p>These are live islands: the block above is loaded on this page. Theme, palette, corners and contrast work on any element. <code>data-motion</code> is the exception: it only works on <code>&lt;html&gt;</code>, so set it there.</p>
 
 <h3 id="avoid-root">Write it inside the guide's layer, and not on :root</h3>
 <p>Two habits break contrast without any warning.</p>
@@ -132,9 +132,9 @@
 </ol>
 <pre aria-label="Avoid setting knobs on root">/* Avoid: beats every palette, including the ones your users pick. */
 :root { --k-accent-h: 30; }</pre>
-<div class="note" data-kind="warn">
-  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
-  <div><strong>A palette on an island does not get the higher-contrast boost</strong><p>Higher contrast collapses the accent to ink only where the palette and the contrast mode are on the same element (the page). A region that sets its own palette inside a higher-contrast page keeps that palette's accent lightness. The built-in <code>periwinkle</code> measured 6.60:1 for text on its accent in that case, and clay 6.53:1, both under the 7:1 that higher contrast promises; the matrix only tests palettes on the page. Put the palette on <code>&lt;html&gt;</code>, or choose an accent with at least 7:1 to start with (Mint's 0.42 fill measured 7.45:1).</p></div>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div><strong>A palette on an island gets the higher-contrast boost too</strong><p>The guide repeats its higher-contrast knobs for every <code>[data-palette]</code> inside a higher-contrast page, so a region with its own palette still collapses its accent to ink. Checked: text on the accent measured 18.39:1 for <code>periwinkle</code> and 18.49:1 for clay inside a <code>data-contrast="more"</code> page, where an island once kept 6.60:1. That holds for a palette written inside <code>@layer sg.tokens</code>, as above. Written unlayered, a palette beats the repeat (see the first habit above).</p></div>
 </div>
 
 <h3 id="verify-palette">Check the contrast of your palette</h3>
@@ -143,10 +143,10 @@
   <li><strong>If the palette lives in the guide</strong> (best when more than one app will use it): paste the block into <code>src/tokens/40-palettes.css</code>, add the name to <code>PALETTES</code> at the top of <code>tests/contrast.mjs</code> and to the docs switcher, then <code>npm run build &amp;&amp; npm run test:contrast</code>.</li>
   <li><strong>If it lives in your app:</strong> link your file in <code>tests/fixtures/contrast.html</code> after the guide's link (the test serves the repository root, so the file must be reachable from it), add the name to <code>PALETTES</code>, and run the same commands.</li>
 </ol>
-<p>Both routes were run with the clay block above in a scratch copy of the repository. It passes:</p>
-<pre aria-label="Contrast matrix output when a palette passes">All 6300 contrast checks passed across 28 theme/contrast/palette combinations.</pre>
+<p>Both routes were run with the clay block above in a scratch copy of the repository. Clay is a seventh palette, so the matrix runs 28 combinations instead of 24, and 26 island ones instead of 22. It passes:</p>
+<pre aria-label="Contrast matrix output when a palette passes">All 12150 contrast checks passed across 28 theme/contrast/palette combinations, plus 26 island combinations.</pre>
 <p>A failure names the pair, the worst case and the colours. This is clay with <code>--k-accent-fill-l</code> raised from 0.48 to 0.62, a "dead zone" where neither white nor black text reaches 4.5:1:</p>
-<pre aria-label="Contrast matrix output for a failing palette">1 of 6300 checks FAILED, in 1 distinct pairs:
+<pre aria-label="Contrast matrix output for a failing palette">1 of 12150 checks FAILED, in 1 distinct pairs:
 
   x --on-accent on --accent (text on accent fill) needs 4.5
       worst 3.62:1 in light/off/clay (#fff8f1 on #c56a3e); 1 combos, e.g. light/off/clay</pre>

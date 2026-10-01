@@ -11,12 +11,14 @@
   #scale-table td:nth-child(2) { min-inline-size: 15rem; }
   #scale-table td:nth-child(3) { min-inline-size: 8rem; }
 
-  .docs-article [data-f="specs"] { display: grid; margin: 0; padding: 0; list-style: none; border: var(--bw) solid var(--line); background: var(--paper); }
-  .docs-article [data-f="specs"] > li { display: grid; gap: var(--space-3); max-inline-size: none; margin: 0; padding: var(--space-4); }
+  /* minmax(0, 1fr) and min-inline-size: 0: a grid track is as wide as its widest item's min-content, so one caption or a 136px "GO" widened the whole list past a 320px screen at 200% text */
+  .docs-article [data-f="specs"] { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; list-style: none; border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="specs"] > li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); min-inline-size: 0; max-inline-size: none; margin: 0; padding: var(--space-4) var(--space-3); } /* inline padding is the tight one: at 200% text on 320px the 48px word "Numbers" needs 200px */
   .docs-article [data-f="specs"] > li + li { margin: 0; border-block-start: var(--bw-thin) solid var(--line); }
-  .docs-article [data-f="specs"] p { margin: 0; max-inline-size: none; }
+  .docs-article [data-f="specs"] p { margin: 0; max-inline-size: none; overflow-wrap: break-word; }
   .docs-article [data-f="cap"] { font: var(--type-meta); color: var(--ink-soft); }
-  .docs-article [data-f="cap"] code { white-space: nowrap; }
+  /* each identifier is one atomic chip: it moves to the next line whole, and only when it is wider than the line does it break, at its hyphens first */
+  .docs-article [data-f="cap"] code { display: inline-block; max-inline-size: 100%; overflow-wrap: anywhere; }
 
   .docs-article [data-f="widths"] { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
   .docs-article [data-f="widths"] li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); max-inline-size: none; margin: 0; padding: var(--space-3) var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
@@ -210,7 +212,7 @@
 </table></div>
 
 <h2 id="case">Case and tracking are CSS</h2>
-<p>Uppercase is structure: the display line, bar labels, index numbers. Everything you read is sentence case. Write the natural case in the HTML and let <code>text-transform</code> do the rest: <code>.t-display</code> and <code>.t-label</code> uppercase themselves. Typed capitals get copied as shouting, read as the translator saw them, and ignore the language: <code>text-transform</code> follows the page's language, so Turkish <em>i</em> becomes a dotted capital, which typed capitals get wrong</p>
+<p>Uppercase is structure: the display line, bar labels, index numbers. Everything you read is sentence case. Write the natural case in the HTML and let <code>text-transform</code> do the rest: <code>.t-display</code> and <code>.t-label</code> uppercase themselves. Typed capitals get copied as shouting, read as the translator saw them, and ignore the language: <code>text-transform</code> follows the page's language, so Turkish <em>i</em> becomes a dotted capital, which typed capitals get wrong.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>

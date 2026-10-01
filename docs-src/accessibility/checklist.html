@@ -8,7 +8,7 @@
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
   <div><strong>What the checks do and do not prove</strong><p>Every automated check runs in Chromium on Linux against the guide's own pages. None has run in Safari or Firefox, on a phone, or with a screen reader. The checks prove the guide's parts; your app needs its own pass (<a href="@/accessibility/manual.html">Manual</a>).</p></div>
 </div>
-<div class="table-wrap"><table class="docs-table" data-stack role="table">
+<div class="table-wrap"><table class="docs-table ck-legend" data-stack role="table">
   <caption class="sr-only">Meaning of each value in the Checked by column</caption>
   <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Checked by</th><th role="columnheader">What it is</th><th role="columnheader">Rows</th></tr></thead>
   <tbody role="rowgroup">
@@ -119,7 +119,7 @@
   </div>
 </div>
 <h3 id="numbers">Measured: the worst case in the whole matrix</h3>
-<p>The lowest ratio found for each pair across both themes, all six palettes, and normal and higher contrast, from <code>npm run test:contrast -- --all</code> on the 5,400 checks of this version (0.2.0). Colours are read as 8-bit sRGB, so a display's own profile is not in these numbers. A number in brackets is the floor in higher contrast.</p>
+<p>The lowest ratio found for each pair across both themes, all six palettes, and normal and higher contrast, from <code>npm run test:contrast -- --all</code> on this version (0.2.0); <a href="@/accessibility/testing.html#matrix">Testing</a> says what the matrix covers and how many checks it runs. Colours are read as 8-bit sRGB, so a display's own profile is not in these numbers. A number in brackets is the floor in higher contrast.</p>
 <div class="table-wrap"><table class="docs-table" data-stack role="table">
   <caption class="sr-only">The lowest measured contrast ratio for each role pair, with where it occurs</caption>
   <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Pair</th><th role="columnheader">Floor</th><th role="columnheader">Lowest, normal contrast</th><th role="columnheader">Lowest, higher contrast</th></tr></thead>
@@ -329,6 +329,9 @@
 .docs-article .ck-by li,
 .docs-article .ck-by li + li { margin: 0; }
 .docs-article .ck-by li[data-kind="manual"] { border: var(--bw) dashed var(--line); font-weight: 700; }
+/* A tag never wraps, so the first column of the legend needs room for the longest one ("component spec"); without a floor the table
+   auto-layout gave it 113px and the tag ran under the next cell's code chip. */
+.ck-legend td:first-child { min-inline-size: 11rem; }
 .ck-table td > p { margin: 0; }
 .ck-table td > p + p { margin-block-start: var(--space-2); }
 .ck-note { margin: 0; color: var(--ink-soft); font: var(--type-meta); }
