@@ -179,13 +179,16 @@
 </div>
 
 <h3 id="states">States</h3>
-<p>Rest, raised (hover), focus, pressed, checked, mixed, invalid and disabled. The forced-state classes are docs-only.</p>
+<p>Rest, raised (hover), focus, pressed, checked, mixed, invalid and disabled. The forced-state classes (<code>is-hover</code>, <code>is-focus</code>, <code>is-active</code>) are docs-only; "Mixed" is set in script, because <code>indeterminate</code> is a property.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="2">
       <label class="choice"><input type="checkbox" name="st-a"><span class="choice__label">Unchecked</span></label>
       <label class="choice is-hover"><input type="checkbox" name="st-h"><span class="choice__label">Unchecked, raised</span></label>
+      <label class="choice is-focus"><input type="checkbox" name="st-f"><span class="choice__label">Focus</span></label>
+      <label class="choice is-active"><input type="checkbox" name="st-p"><span class="choice__label">Pressed, back to flat</span></label>
       <label class="choice"><input type="checkbox" name="st-b" checked><span class="choice__label">Checked</span></label>
+      <label class="choice"><input type="checkbox" name="st-m" data-demo-mixed><span class="choice__label">Mixed</span></label>
       <label class="choice"><input type="checkbox" name="st-c" aria-invalid="true" aria-describedby="st-c-msg"><span class="choice__label">Invalid</span></label>
       <p class="field__error" id="st-c-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Tick the box to accept the terms</span></p>
       <label class="choice"><input type="checkbox" name="st-d" disabled><span class="choice__label">Disabled</span></label>
@@ -194,6 +197,11 @@
     </div>
   </div>
 </div>
+
+<script>
+  /* docs demo only: indeterminate is a property, so the "Mixed" specimen is set here */
+  document.querySelector('[data-demo-mixed]').indeterminate = true;
+</script>
 
 <h3 id="in-context">In context: reminders</h3>
 <div class="demo" data-nocode>
@@ -232,7 +240,7 @@
   <li><strong>Label</strong> (<code>.choice__label</code>): 16&nbsp;px, optionally with a <code>.choice__hint</code>.</li>
   <li><strong>Group</strong> (<code>fieldset</code> + <code>legend</code>, then <code>.choice-group</code>): 8&nbsp;px between rows.</li>
   <li><strong>Card</strong> (<code>.card.choice-card</code>): the input covers the card; the mark sits in the top corner at the end side.</li>
-  <li><strong>Segmented</strong> (<code>.choice-group[data-variant="segmented"]</code>): a pill track with the ring on it; segments are the labels.</li>
+  <li><strong>Segmented</strong> (<code>.choice-group[data-variant="segmented"]</code>): a pill track with the ring on it; segments are the labels. If the segments do not fit on one row they wrap, and a wrapped track is a rounded rectangle, not an oval (its radius is half of ONE row).</li>
 </ol>
 
 <h2 id="api">API</h2>

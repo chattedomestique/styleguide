@@ -227,4 +227,16 @@ export const tests = [
       expect.ok(r.actLeft < 120, `the notch action moved to the left edge (${Math.round(r.actLeft)}px from it)`)
     },
   },
+  {
+    name: 'state specimens: the ring and the hard shadow of a specimen clear its caption (at least 12px between them)',
+    async run({ page, goto, expect }) {
+      await goto('components/card.html')
+      const r = await page.evaluate(() => [...document.querySelector('#parts ~ .demo').querySelectorAll('.card')].map((c) => {
+        const cap = c.parentElement.querySelector('.t-meta')
+        return { cls: c.className, gap: cap.getBoundingClientRect().top - c.getBoundingClientRect().bottom }
+      }))
+      expect.ok(r.length >= 6, 'six specimens')
+      for (const s of r) expect.ok(s.gap >= 12, `"${s.cls}": ${s.gap}px between the specimen and its caption (the ring is 3px + 3px offset, the shadow 4px)`)
+    },
+  },
 ]

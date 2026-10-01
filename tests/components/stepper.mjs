@@ -233,4 +233,14 @@ export const tests = [
       expect.ok(r.input <= r.card, 'the number field stays inside the card: ' + JSON.stringify(r))
     },
   },
+  {
+    name: 'the Large and disabled demo shows both steppers at the same size',
+    async run({ page, goto, expect }) {
+      await goto('components/stepper.html')
+      const sizes = await page.evaluate(() => [...document.querySelector('#large ~ .demo').querySelectorAll('.stepper')].map((s) => ({ size: s.dataset.size, h: s.getBoundingClientRect().height })))
+      expect.equal(sizes.length, 2, 'two steppers')
+      expect.equal(sizes[0].size, sizes[1].size, 'the same data-size')
+      expect.ok(Math.abs(sizes[0].h - sizes[1].h) <= 1, `the same height (${sizes[0].h}px, ${sizes[1].h}px)`)
+    },
+  },
 ]

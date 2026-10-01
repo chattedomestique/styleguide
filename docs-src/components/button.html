@@ -15,14 +15,14 @@
 </div>
 
 <h2 id="variants">Variants</h2>
-<p>The default is an outline that fills on hover. Primary is filled with the accent at rest. Tone borrows the colours of the tone it sits in; with <code>data-tone="bad"</code> it is a danger button.</p>
+<p>The default is an outline that fills on hover. Primary is filled with the accent at rest. Tone borrows the colours of the tone it sits in: a pastel tone (<em>Share deck</em>), or the ink tone (<em>Study offline</em>). A button that destroys something takes the <code>bad</code> status tone <strong>and</strong> says so in a second way, an icon and the word <em>Delete</em>, because colour never carries meaning alone: in the wire palette the pink is gone and the trash can is still there.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
-    <button class="btn" type="button">Secondary</button>
-    <button class="btn" data-variant="primary" type="button">Primary</button>
-    <button class="btn" data-variant="tone" data-tone="3" type="button">Tone 3</button>
-    <button class="btn" data-variant="tone" data-tone="bad" type="button">Delete deck</button>
-    <button class="btn" data-variant="tone" data-tone="ink" type="button">Ink tone</button>
+    <button class="btn" type="button">Skip card</button>
+    <button class="btn" data-variant="primary" type="button">Start review</button>
+    <button class="btn" data-variant="tone" data-tone="2" type="button">Share deck</button>
+    <button class="btn" data-variant="tone" data-tone="bad" type="button"><span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck</button>
+    <button class="btn" data-variant="tone" data-tone="ink" type="button">Study offline</button>
   </div>
 </div>
 
@@ -86,7 +86,7 @@
 <ol>
   <li><strong>Frame</strong>: <code>--bw</code> (2px) in <code>--line</code>. A real border always exists, so forced-colours mode (which deletes fills and shadows) still shows the control.</li>
   <li><strong>Fill</strong>: <code>--fill</code> mixes the resting colours toward the accent. Rest 0 (outline), hover/pressed 1.</li>
-  <li><strong>Hard shadow</strong>: appears with <code>--lift</code> (4px, zero blur) when the button can be pressed; pressing sinks it back. A shadow means "you can press this".</li>
+  <li><strong>Hard shadow</strong>: appears with <code>--lift</code> (4px, zero blur) when the button can be pressed; pressing sinks it back. A shadow means "you can press this". On a filled button a 2px gap in the surface colour separates the fill from the shadow, so the two do not fuse into one lump.</li>
   <li><strong>Label</strong>: sentence case, semibold, verb first, 1&ndash;3 words.</li>
   <li><strong>Icon</strong> (optional): 20px mask, decorative when a label is present.</li>
   <li><strong>Hit area</strong>: an invisible <code>::after</code> that guarantees 44&times;44px.</li>
@@ -117,7 +117,7 @@
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activates. Native <code>&lt;button&gt;</code> gives this for free; never use a <code>&lt;div&gt;</code>.</td></tr>
     <tr><td>Screen reader</td><td>"Label, button". Toggles add pressed / not pressed; busy adds busy; <code>aria-disabled</code> adds unavailable.</td></tr>
     <tr><td>Touch</td><td>44&times;44px minimum hit area. No gesture required.</td></tr>
-    <tr><td>Zoom / text size</td><td>Heights and padding are rem; labels wrap rather than clip at 200% text.</td></tr>
+    <tr><td>Zoom / text size</td><td>Heights and padding are rem; labels wrap between words rather than clip at 200% text, a row of buttons wraps the whole button before it squeezes a label, and a tall wrapped button stays a rounded rectangle (the pill radius is half of one line, not an oval).</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the fill change stays. The spinner pulses instead of rotating.</td></tr>
     <tr><td>Forced colours</td><td>The frame becomes <code>ButtonText</code>; raised and focus get a 4px <code>Highlight</code> outline; on gets a 4px frame.</td></tr>
   </tbody>
