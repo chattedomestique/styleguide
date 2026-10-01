@@ -120,8 +120,8 @@
     &[data-presence]::before {
       content: "";
       position: absolute;
-      inset-block-end: calc(var(--_dot) * -0.1);
-      inset-inline-end: calc(var(--_dot) * -0.1);
+      inset-block-end: calc(var(--_dot) * -0.25); /* the dot's centre sits just outside the rim, so it stays clear of the initials at 36px and 44px */
+      inset-inline-end: calc(var(--_dot) * -0.25);
       inline-size: var(--_dot);
       block-size: var(--_dot);
       background: var(--paper);
@@ -175,8 +175,12 @@
       inset-inline: min(0px, calc((100% - var(--hit)) / 2));
     }
 
-    &:focus-visible {
-      box-shadow: var(--focus-shadow), var(--_shadow);
+    /* the ring: the base rule draws it for a real :focus-visible; written out here so .is-focus (how the
+       docs SHOW the state) draws the very same ring, halo and lift */
+    &:is(:focus-visible, .is-focus) {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--focus-shadow, 0 0 0 var(--ring-offset) var(--focus-halo, var(--paper))), var(--_shadow);
     }
 
     @media (hover: hover) {
