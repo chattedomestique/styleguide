@@ -167,6 +167,37 @@ async function runCombo({ theme, contrast, palette, pairs, tonePairs, tones, use
   return out
 }
 
+/** Resolve roles on a scope: the page itself, or an island with its own palette inside a page with another one. */
+async function snapshotScope({ theme, rootPalette, islandPalette, roles }) {
+  const root = document.documentElement
+  root.setAttribute('data-theme', theme)
+  root.removeAttribute('data-contrast')
+  if (rootPalette === 'default') root.removeAttribute('data-palette')
+  else root.setAttribute('data-palette', rootPalette)
+  let scope = root
+  if (islandPalette) {
+    scope = document.createElement('div')
+    scope.setAttribute('data-palette', islandPalette)
+    root.appendChild(scope)
+  }
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = 1
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  const snap = {}
+  for (const name of roles) {
+    scope.style.color = `var(${name})`
+    const css = getComputedStyle(scope).color
+    ctx.clearRect(0, 0, 1, 1)
+    ctx.fillStyle = '#000'
+    ctx.fillStyle = css
+    ctx.fillRect(0, 0, 1, 1)
+    snap[name] = Array.from(ctx.getImageData(0, 0, 1, 1).data).join(',')
+  }
+  scope.style.color = ''
+  if (islandPalette) scope.remove()
+  return snap
+}
+
 /** Resolve every role to rgb for media-vs-attribute equality check. */
 async function snapshotRoles({ theme, palette, attr, roles }) {
   const root = document.documentElement
@@ -224,6 +255,26 @@ try {
       if (!ok || SHOW_ALL) (ok ? console.log : () => {})(`  ok   ${r.ratio.toFixed(2).padStart(6)}  ${r.key}  ${r.fg} on ${r.bg}`)
       if (!ok) failures.push(r)
     }
+  }
+
+  // Isolation. An island that names a palette must look exactly like a page with that palette, whatever palette the page has:
+  // the palette blocks are self-contained (they start from the defaults), so an island labelled "default" or "sand" never
+  // shows the page's mint accent.
+  const isolation = []
+  const ISOLATION_ROLES = [...new Set([...roles, ...[1, 2, 3, 4, 5, 6].map((n) => `--tone-${n}`)])]
+  for (const theme of THEMES) for (const island of PALETTES) {
+    const alone = await page.evaluate(snapshotScope, { theme, rootPalette: island, islandPalette: null, roles: ISOLATION_ROLES })
+    for (const outer of ['mint', 'periwinkle', 'cream', 'wire', 'default'].filter((p) => p !== island)) {
+      const inside = await page.evaluate(snapshotScope, { theme, rootPalette: outer, islandPalette: island, roles: ISOLATION_ROLES })
+      checked++
+      const diff = ISOLATION_ROLES.filter((r) => alone[r] !== inside[r])
+      if (diff.length) isolation.push(`${theme}: island "${island}" inside a "${outer}" page differs from a "${island}" page in ${diff.length} roles, e.g. ${diff.slice(0, 3).map((r) => `${r} ${alone[r]} vs ${inside[r]}`).join('; ')}`)
+    }
+  }
+  if (isolation.length) {
+    console.log(`\n${isolation.length} palette isolation failures (an island inherits the page's palette):`)
+    isolation.slice(0, 15).forEach((m) => console.log('  x ' + m))
+    failures.push(...isolation.map((m) => ({ key: 'isolation', fg: '-', bg: '-', what: m, ratio: 0, min: 1, fgHex: '', bgHex: '' })))
   }
 
   // The OS preference (prefers-contrast: more) must produce exactly what data-contrast="more" produces.

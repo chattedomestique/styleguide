@@ -25,7 +25,10 @@
    ========================================================================== */
 
 @layer sg.tokens {
-  :root {
+  /* Also on every [data-palette]: a palette island starts from these and applies only what its palette changes
+     (see the knobs in 10-color.css). */
+  :root,
+  [data-palette] {
     /* the six slots: hue and vividness. Palettes override these. */
     --tone-h-1: 95;  --tone-c-1: 0.17;
     --tone-h-2: 262; --tone-c-2: 0.15;
@@ -150,7 +153,8 @@
 
   /* ---- Higher contrast: deepen pastel text, push fills apart (identical blocks; linted) -- */
   @media (prefers-contrast: more) {
-    :root:not([data-contrast="off"]) {
+    :root:not([data-contrast="off"]),
+    :root:not([data-contrast="off"]) [data-palette] {
       --k-tone-l: 0.96;
       --k-tone-d: 0.2;
       --k-tone-ink-l: 0.2;
@@ -163,7 +167,9 @@
       --k-tone-b-soft: 1;
     }
   }
-  :root[data-contrast="more"] {
+  :root[data-contrast="more"],
+  [data-contrast="more"][data-contrast="more"],
+  :root[data-contrast="more"] [data-palette] {
     --k-tone-l: 0.96;
     --k-tone-d: 0.2;
     --k-tone-ink-l: 0.2;

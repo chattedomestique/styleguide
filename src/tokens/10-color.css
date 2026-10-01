@@ -32,10 +32,18 @@
    ========================================================================== */
 
 @layer sg.tokens {
-  /* ---- Knobs: defaults = the "default" palette (neutral greys, ink accent) ---- */
   :root {
     color-scheme: light dark;
+  }
 
+  /* ---- Knobs: defaults = the "default" palette (neutral greys, ink accent) ----
+     Declared on every [data-palette] too, so a palette block is SELF-CONTAINED: an island that names a palette
+     starts from these defaults and applies only what its palette changes, instead of inheriting the page's
+     palette (a "sand" island inside a mint page kept mint's accent). The palette blocks come later in the same
+     layer with the same specificity, so they still win. The higher-contrast blocks below re-assert their
+     knobs on islands. tests/contrast.mjs compares an island with a page of the same palette. */
+  :root,
+  [data-palette] {
     --k-neutral-h: 95;
     --k-neutral-c: 0; /* chroma of paper-2/3, ink… */
     --k-canvas-c-l: 0; /* extra tint on the canvas, light */
