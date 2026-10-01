@@ -50,6 +50,13 @@
      aria-disabled="true"      faint ink, blocked
    Only --fill is set; there is no --lift, because a row lives inside a frame and does not raise.
 
+   REFLOW (WCAG 1.4.4, 1.4.10). The row wraps instead of squeezing: .list__main keeps 6rem and, when the
+   trail does not fit beside it, the trail DROPS UNDER it as a unit, flush to the end. Words stay whole:
+   they wrap between words and are cut only when a word cannot fit a line of its own, so a Tag ("Synced"),
+   a short button label ("Connect") and an amount ("−$1,204.50") are never split letter by letter. The
+   list is a size container: in a narrow one (200% text on a phone is about 12rem) the row's side padding
+   and gap tighten, in rem, so the trail has room to stay whole.
+
    INSIDE A CARD. A list reads the card's own --card-ink, --card-ink-soft and --card-bg when it
    is inside one, so the same markup is right in a plain card, a toned card and an inverted one.
 
@@ -68,6 +75,7 @@
     padding: 0;
     color: var(--_ink);
     list-style: none;
+    container: list / inline-size; /* the row's padding follows the list's own width, not the screen's */
 
     & > li + li {
       border-block-start: var(--bw-thin) solid var(--_rule);
@@ -138,14 +146,14 @@
   .list__title {
     font: var(--type-ctl);
     line-height: var(--lh-snug);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .list__meta {
     color: var(--_row-soft);
     font: var(--type-meta);
     font-variant-numeric: tabular-nums;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .list__trail {
@@ -158,10 +166,17 @@
   }
 
   .list__value {
+    min-inline-size: 0; /* a flex item is as wide as its longest word unless told otherwise: an email or a long value must be able to break to fit the row */
     font: var(--type-body);
     font-variant-numeric: tabular-nums lining-nums;
     text-align: end;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+  }
+
+  /* a control in the trail keeps its label in whole words, and never outgrows the row */
+  .list__trail > :is(.btn, .tag) {
+    max-inline-size: 100%;
+    overflow-wrap: break-word;
   }
 
   /* the standard "goes somewhere" mark, drawn here so it needs no icon file (Lucide chevron-right, 2px square caps) */
@@ -203,10 +218,12 @@
       pointer-events: none;
     }
 
-    /* the ring is drawn inside the row: the list clips, and the row is edge to edge */
-    &:focus-visible {
+    /* the ring is drawn inside the row: the list clips, and the row is edge to edge. Written out
+       (not left to the base rule) so .is-focus, which the docs use to SHOW the state, draws it too. */
+    &:is(:focus-visible, .is-focus) {
       --ring-gap: calc(var(--ring) * -1);
-      outline-color: var(--_row-ink);
+      outline: var(--ring) solid var(--_row-ink);
+      outline-offset: var(--ring-gap);
     }
 
     @media (hover: hover) {
@@ -319,6 +336,28 @@
     .kv[data-layout="rows"] dd {
       text-align: start;
       margin-inline-start: 0;
+    }
+  }
+
+  /* ---- a narrow list (a narrow card, or 200% text on a phone): the row gives its padding back so the
+     trail (a tag, a short button, an amount) fits beside or under the title WHOLE. rem, so bigger text
+     trips it exactly when it should. ---- */
+  @container list (max-width: 20rem) {
+    .list__row {
+      column-gap: var(--space-2);
+    }
+  }
+  @container list (max-width: 12rem) {
+    .list__row {
+      padding-inline: var(--space-2);
+    }
+    .list__trail {
+      gap: var(--space-1); /* a value and its chevron: a time like 18:00 stays one piece */
+    }
+  }
+  @container list (max-width: 8rem) {
+    .list__row {
+      padding-inline: var(--space-1); /* 200% text on a phone, inside a card inside a frame: an amount like −$1,204.50 still fits whole */
     }
   }
 

@@ -31,6 +31,12 @@
    --_glyph-* are mask drawings on the 24 grid with the guide's 2px square-cap
    stroke (the bundled icons.css is optional, so the tag cannot depend on it).
 
+   WRAPPING (WCAG 1.4.4, 1.4.10). A tag is a short label and stays ONE LINE where it can. Where it cannot
+   (a narrow card, 200% text on a phone) it wraps between WORDS ("Due" / "tomorrow"), never inside one; if
+   the glyph and the word do not fit side by side, the word drops under the glyph, centred. A word is cut
+   only when it cannot fit a line of its own. The corners stay at half the one-line height, so a tag that
+   wraps is a rounded rectangle, never an oval.
+
    CONTRAST is by construction: --tone-ink on --tone-bg (7:1), --tone-on-fill on
    --tone-fill (4.5:1) for solid, --ink on --paper for neutral.
    ========================================================================== */
@@ -57,7 +63,9 @@
     --_glyph-low: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 14h6v8H2z'/%3E%3Cpath d='M10 9h4v12h-4zM17 3h4v18h-4z' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E");
 
     display: inline-flex;
+    flex-wrap: wrap; /* in a row too narrow for glyph + word, the word drops UNDER the glyph instead of being cut letter by letter */
     align-items: center;
+    align-content: center;
     justify-content: center;
     flex-shrink: 0; /* beside other content in a row, the OTHER content gives way; max-inline-size still stops it outgrowing the row */
     gap: var(--space-1);
@@ -68,13 +76,20 @@
     color: var(--_ink);
     background: var(--_bg);
     border: var(--_bw) solid var(--_line);
-    border-radius: var(--radius-pill);
+    /* A pill is for ONE line. Half the tag's minimum height plus a little is at least half the height of
+       a one-line tag (the radius is clamped to the box), so a single line is still a full pill; a tag that
+       wraps at 200% text keeps these corners, a rounded rectangle, instead of becoming an oval. */
+    border-radius: calc(var(--_h) / 2 + var(--space-1));
     font: var(--type-meta);
     font-size: var(--_fs);
     font-weight: 600;
     font-variant-numeric: tabular-nums lining-nums;
     text-align: center;
-    overflow-wrap: anywhere; /* a long tag wraps at 200% text rather than spilling out of its card */
+    text-wrap: balance;
+    /* Words stay whole: the tag wraps BETWEEN words ("Due" / "tomorrow"), and a word is cut only when
+       it cannot fit a line of its own. `anywhere` also shrinks the tag's min-content to one letter,
+       which let a parent squeeze "Synced" into "Synce / d" (WCAG 1.4.4). */
+    overflow-wrap: break-word;
     cursor: default;
 
     /* the glyph: status tones and priorities draw one unless the author put an .ic inside */

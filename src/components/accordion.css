@@ -36,6 +36,10 @@
    DISABLED: aria-disabled="true" on the <summary> (keeps it focusable, so its reason can
    be read). SG.guard blocks Enter and Space; the pointer is blocked here.
 
+   NARROW. The accordion is a size container: in a narrow one (a narrow card, or 200% text on a phone, about
+   12rem) the head and the body give some of their side padding back, in rem, so the title keeps room for
+   whole words. Words wrap between words and are cut only when one cannot fit a line of its own.
+
    PRIVATE PROPERTIES (--_*) are set on the item and read by the head, so the open state,
    the panels variant and a tone each change a few of them and nothing else.
    ========================================================================== */
@@ -51,6 +55,7 @@
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-card);
     overflow: clip; /* a focus ring on a head is drawn INSIDE it (see below), so nothing is cut */
+    container: accordion / inline-size; /* the head's padding follows the accordion's own width (see the end of the file) */
   }
 
   .accordion__item {
@@ -94,7 +99,7 @@
     background: color-mix(in srgb, var(--_tint) calc(var(--fill) * 100%), var(--_head-bg));
     font: var(--type-ctl);
     line-height: var(--lh-snug);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word; /* words wrap between words; one is cut only when it cannot fit a line alone */
     list-style: none;
     cursor: pointer;
     user-select: none;
@@ -130,10 +135,11 @@
     }
 
     /* the ring fits inside the head (the frame clips) and follows the head's own ink,
-       which is paper on a bar */
-    &:focus-visible {
+       which is paper on a bar. Written out so .is-focus (the docs' way to show the state) draws it too. */
+    &:is(:focus-visible, .is-focus) {
       --ring-gap: calc(var(--ring) * -1);
-      outline-color: var(--_head-ink);
+      outline: var(--ring) solid var(--_head-ink);
+      outline-offset: var(--ring-gap);
     }
 
     @media (hover: hover) {
@@ -218,6 +224,27 @@
       border: var(--bw) solid var(--line);
       border-radius: var(--radius-card);
       overflow: clip;
+    }
+  }
+
+  /* ---- a narrow accordion (a narrow card, or 200% text on a phone): the head and the body give their
+     side padding back, or the title keeps three letters of a line and every word is cut. rem, so
+     bigger text trips it exactly when it should. ---- */
+  @container accordion (max-width: 20rem) {
+    .accordion__head {
+      column-gap: var(--space-2);
+      padding-inline: var(--space-3);
+    }
+    .accordion__body {
+      padding-inline: var(--space-3);
+    }
+  }
+  @container accordion (max-width: 12rem) {
+    .accordion__head {
+      padding-inline: var(--space-2);
+    }
+    .accordion__body {
+      padding-inline: var(--space-2);
     }
   }
 
