@@ -73,4 +73,20 @@ export const tests = [
       expect.equal(levels.join(), '3,4,4', 'h3 then h4, h4')
     },
   },
+  {
+    name: 'no demo needs the dev-only wireframe kit: a copy-pasted recipe works with the shipped CSS',
+    async run({ page, goto, expect }) {
+      await goto('components/stat.html')
+      const n = await page.evaluate(() => document.querySelectorAll('.demo [class*="wf-"]').length)
+      expect.equal(n, 0, 'no .wf-* class in a demo')
+    },
+  },
+  {
+    name: 'two stats sit side by side at phone width: a stat is not a full-width square',
+    async run({ page, goto, expect }) {
+      await goto('components/stat.html')
+      const r = await page.evaluate(() => { const g = document.querySelector('#recipe ~ .demo .grid'); const c = [...g.children].map((e) => e.getBoundingClientRect()); return { first: c[0].top, second: c[1].top } })
+      expect.ok(Math.abs(r.first - r.second) <= 1, 'the first two stats share a row')
+    },
+  },
 ]
