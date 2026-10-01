@@ -51,6 +51,7 @@ Never edit `dist/` or `docs/` by hand. Edit `src/` and `docs-src/`, then `npm ru
 | `node tests/screenshots.mjs components/x.html --theme dark --palette mint --corners soft --width 390` | look at it. `--matrix` for the grid, `--selector '#examples'` to crop |
 | `npm run new:component -- name --order 45` | scaffold CSS + docs page + test spec |
 | `npm test` | everything above, in order |
+| `npm run status` | regenerate `docs-src/project/status.html` (the Status page) from the gates: builds, runs the lint, the component specs and the a11y gate on every component page, and writes each element's findings into its row. Takes about an hour (all five appearances); `npm run status -- --quick` runs two, about 20 minutes, to look at, not to commit. Not part of `npm test`. Rendering from logs you already have is described in the header of `scripts/status.mjs` |
 
 **You must look at screenshots.** Green tests do not prove it looks right. Review at 320, 390 and 1024 px, light and dark, `default` / `mint` / `wire` palettes, square and soft corners. Fix what looks wrong, not only what fails.
 
