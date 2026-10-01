@@ -163,7 +163,12 @@
   .scrubber__input {
     --lift: 0;
     --fill: 0;
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    /* The raised thumb is filled with the accent, which is ink in the default, wire and higher-contrast looks, and an
+       ink hard shadow against an ink fill is one lumpy blob. A paper gap (it grows with --lift) stands the shadow off
+       the thumb so the offset shows against its own fill in every palette. */
+    --_shadow:
+      0 0 0 calc(var(--lift) * var(--bw)) var(--paper),
+      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--lift) * var(--bw)) var(--line);
 
     --_edge: 0px; /* the bar has no frame, except in forced colours, where it gets one (see the end of the file) */
 
@@ -232,6 +237,12 @@
       --lift: 1;
       --fill: 1;
     }
+    /* .is-focus forces the state on the docs page: it has to draw the ring a real keyboard focus gets */
+    &.is-focus:not(:disabled) {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+    }
     /* dragging: the thumb sinks onto the bar, the fill stays. After hover so it wins. */
     &:is(:active, .is-active):not(:disabled) {
       --lift: 0;
@@ -243,7 +254,7 @@
     &:disabled {
       --lift: 0;
       --fill: 0;
-      --_shadow: 0 0 0 0 transparent;
+      --_shadow: 0 0 0 0 transparent, 0 0 0 0 transparent;
       cursor: not-allowed;
     }
     &:disabled::-webkit-slider-thumb {
@@ -263,14 +274,28 @@
     background: var(--ink-faint);
   }
 
-  /* the reset link-button under a dial: dashed while there is nothing to reset */
+  /* the hint and the Reset button under a dial. The sentence takes what is left and wraps; Reset keeps its one
+     word whole and, when the two cannot share a line (a 250px column, or big text), drops under the sentence at
+     the end instead of squeezing its label into "Res / et" or one letter a line (a pill is for one line). */
   .scrubber__foot {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
     font: var(--type-meta);
     color: var(--ink-soft);
+  }
+  .scrubber__foot > :not(.btn) {
+    flex: 1 1 9rem;
+    min-inline-size: 0;
+    overflow-wrap: break-word;
+  }
+  .scrubber__foot > .btn {
+    flex: none;
+    margin-inline-start: auto;
+    white-space: nowrap;
+    overflow-wrap: normal; /* .btn breaks anywhere; here a short label is never split */
   }
 
   /* forced colours: backgrounds are deleted, so the ruler, the fill and the thumb get system colours */

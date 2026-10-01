@@ -5,6 +5,12 @@
   /* docs scaffolding only: a calendar wants its width, so keep the stage padding small on phones */
   .demo__stage:has(> .cal) { padding: var(--space-3); }
   .demo__stage:has(> .cal) > .cal { max-inline-size: 26rem; }
+  /* the states demo: each specimen is a day with its name under it, in a wrapping grid. (Names in the same seven columns
+     as the days touched at 320px and overprinted at 200% text.) Only the arrangement changes; every day is the real .cal__day. */
+  .cal-specimens, .cal-specimens tbody { display: block; }
+  .cal-specimens tr { display: grid; grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr)); gap: var(--space-4) var(--space-1); padding: var(--space-3); }
+  .cal-specimens tbody td { display: grid; justify-items: center; align-content: start; row-gap: var(--space-2); block-size: auto; padding: 0; }
+  .cal-specimens .t-meta { text-align: center; overflow-wrap: break-word; }
   /* the docs article styles bare lists; the calendar's list is its own layout */
   .demo .cal__list { padding: 0; }
   .demo .cal__event { margin: 0; }
@@ -841,30 +847,21 @@
 <div class="demo" id="demo-states" data-nocode>
   <div class="demo__stage">
     <div class="cal" style="max-inline-size: 26rem">
-      <table class="cal__grid" role="grid" aria-label="Day states, one specimen of each">
-        <tbody>
-          <tr>
-            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">14</span><span class="cal__pips"></span></button></td>
-            <td><button class="cal__day is-hover" type="button" tabindex="-1"><span class="cal__num">15</span><span class="cal__pips"></span></button></td>
-            <td><button class="cal__day is-focus" type="button" tabindex="-1"><span class="cal__num">16</span><span class="cal__pips"></span></button></td>
-            <td><button class="cal__day is-active" type="button" tabindex="-1"><span class="cal__num">17</span><span class="cal__pips"></span></button></td>
-            <td><button class="cal__day" aria-current="date" type="button" tabindex="-1"><span class="cal__num">18</span><span class="cal__pips"></span></button></td>
-            <td aria-selected="true"><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">19</span><span class="cal__pips"></span></button></td>
-            <td aria-selected="true"><button class="cal__day" aria-current="date" type="button" tabindex="-1"><span class="cal__num">20</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
-          </tr>
-          <tr>
-            <td class="t-meta">Rest</td><td class="t-meta">Hover</td><td class="t-meta">Focus</td><td class="t-meta">Press</td><td class="t-meta">Today</td><td class="t-meta">Chosen</td><td class="t-meta">Both</td>
-          </tr>
-          <tr>
-            <td><button class="cal__day" data-outside type="button" tabindex="-1"><span class="cal__num">28</span><span class="cal__pips"></span></button></td>
-            <td><button class="cal__day" aria-disabled="true" type="button" tabindex="-1"><span class="cal__num">29</span><span class="cal__pips"></span></button></td>
-            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">30</span><span class="cal__pips"><i class="cal__pip"></i></span></button></td>
-            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">1</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
-            <td><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">2</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i><i class="cal__pip"></i></span></button></td>
-            <td></td><td></td>
-          </tr>
-          <tr>
-            <td class="t-meta">Other</td><td class="t-meta">Off</td><td class="t-meta">One</td><td class="t-meta">Two</td><td class="t-meta">3+</td><td></td><td></td>
+      <table class="cal__grid cal-specimens" role="grid" aria-label="Day states, one specimen of each">
+        <tbody role="rowgroup">
+          <tr role="row">
+            <td role="gridcell"><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">14</span><span class="cal__pips"></span></button><span class="t-meta">Rest</span></td>
+            <td role="gridcell"><button class="cal__day is-hover" type="button" tabindex="-1"><span class="cal__num">15</span><span class="cal__pips"></span></button><span class="t-meta">Hover</span></td>
+            <td role="gridcell"><button class="cal__day is-focus" type="button" tabindex="-1"><span class="cal__num">16</span><span class="cal__pips"></span></button><span class="t-meta">Focus</span></td>
+            <td role="gridcell"><button class="cal__day is-active" type="button" tabindex="-1"><span class="cal__num">17</span><span class="cal__pips"></span></button><span class="t-meta">Press</span></td>
+            <td role="gridcell"><button class="cal__day" aria-current="date" type="button" tabindex="-1"><span class="cal__num">18</span><span class="cal__pips"></span></button><span class="t-meta">Today</span></td>
+            <td role="gridcell" aria-selected="true"><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">19</span><span class="cal__pips"></span></button><span class="t-meta">Chosen</span></td>
+            <td role="gridcell" aria-selected="true"><button class="cal__day" aria-current="date" type="button" tabindex="-1"><span class="cal__num">20</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i></span></button><span class="t-meta">Both</span></td>
+            <td role="gridcell"><button class="cal__day" data-outside type="button" tabindex="-1"><span class="cal__num">28</span><span class="cal__pips"></span></button><span class="t-meta">Other</span></td>
+            <td role="gridcell"><button class="cal__day" aria-disabled="true" type="button" tabindex="-1"><span class="cal__num">29</span><span class="cal__pips"></span></button><span class="t-meta">Off</span></td>
+            <td role="gridcell"><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">30</span><span class="cal__pips"><i class="cal__pip"></i></span></button><span class="t-meta">One</span></td>
+            <td role="gridcell"><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">1</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i></span></button><span class="t-meta">Two</span></td>
+            <td role="gridcell"><button class="cal__day" type="button" tabindex="-1"><span class="cal__num">2</span><span class="cal__pips"><i class="cal__pip"></i><i class="cal__pip"></i><i class="cal__pip"></i></span></button><span class="t-meta">3+</span></td>
           </tr>
         </tbody>
       </table>
@@ -914,7 +911,7 @@
     <tr><td><kbd>PageUp</kbd> / <kbd>PageDown</kbd></td><td>The same day in the previous or next month (week view: a week). With <kbd>Shift</kbd>: a year (week view: a month).</td></tr>
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Choose the day; its events are read out.</td></tr>
     <tr><td>Screen reader</td><td>A grid with column headers (full names via <code>abbr</code>). A day reads "Wednesday 30 September 2026, today, 2 events"; the chosen cell is "selected". Paging announces the new month. The markers are hidden because the count is in the name and the list below is text.</td></tr>
-    <tr><td>Touch</td><td>Every day has a full-cell hit area, 44px tall (about 47px wide at 390px; 40 to 43px at 320px, still over the 24px floor). Paging is a button, not a swipe.</td></tr>
+    <tr><td>Touch</td><td>Every day has a full-cell hit area: 44px tall in the month, taller in the week strip, and a seventh of the calendar wide (about 47px on a 390px screen, 40 to 43px on 320px with 16px gutters). Seven columns need a 308px container to reach 44px each, so a smaller container (a phone-sized mock on this site, a narrow pane) gets narrower cells, over the 24px floor down to about 11rem. The cells touch, so there is no dead zone between two days to mis-tap into (the Carousel's dots do the same). Paging is a button, not a swipe.</td></tr>
     <tr><td>Zoom / text size</td><td>Sizes are rem and the circle shrinks to the column, so 200% text keeps seven columns; weekday names drop to one letter below 15rem.</td></tr>
     <tr><td>Reduced motion</td><td>The only motion is a day's lift on hover and focus, multiplied by <code>--move</code>; it becomes a frame appearing. Paging is instant.</td></tr>
     <tr><td>Forced colours</td><td>Every day keeps a <code>ButtonText</code> frame, the chosen day a 4px one, focus a 4px <code>Highlight</code> outline; today is still underlined; markers use <code>CanvasText</code>.</td></tr>

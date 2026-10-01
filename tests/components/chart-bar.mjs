@@ -278,4 +278,20 @@ export const tests = [
       expect.equal(r.selBorder, 4, 'selected bar has the heavy frame')
     },
   },
+  {
+    name: 'Hover, Press and Chosen look different even where the accent is ink: the hover shadow and the chosen frame stand off behind a paper gap',
+    async run({ page, goto, expect }) {
+      await goto('components/chart-bar.html')
+      const shadows = await page.locator('#demo-states').evaluate((el) => {
+        const col = (name) => [...el.querySelectorAll('.bars__col')].find((c) => c.querySelector('.bars__label').textContent.trim() === name)
+        const s = (name) => getComputedStyle(col(name).querySelector('.bars__bar')).boxShadow
+        return { rest: s('Rest'), hover: s('Hover'), press: s('Press'), chosen: s('Chosen') }
+      })
+      const set = new Set([shadows.hover, shadows.press, shadows.chosen])
+      expect.equal(set.size, 3, `three different shadows: ${JSON.stringify(shadows)}`)
+      expect.ok(/4px 4px 0px 2px/.test(shadows.hover) && /0px 0px 0px 2px/.test(shadows.hover), 'hover: a paper ring and an offset line shadow beyond it')
+      expect.ok(/0px 0px 0px 4px/.test(shadows.chosen) && /0px 0px 0px 2px/.test(shadows.chosen), 'chosen: a gap ring, then a second line (the frame really doubles)')
+      expect.ok(!/ [1-9]\d*px [1-9]\d*px/.test(shadows.press), 'press: sunk, no offset shadow')
+    },
+  },
 ]

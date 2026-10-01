@@ -14,7 +14,9 @@
   </div>
 </div>
 
-<h2 id="audio">Audio</h2>
+<h2 id="examples">Examples</h2>
+
+<h3 id="audio">Audio</h3>
 <p>The media element has <code>controls</code> and the custom row is <code>hidden</code>; on load the script flips them. Press Play: the circle fills and its frame doubles, the icon becomes Pause, and the seek bar follows. Its name is still "Play".</p>
 <div class="demo">
   <div class="demo__stage">
@@ -31,9 +33,11 @@
         </div>
         <p class="player__time num" aria-hidden="true"><span data-player="current">0:00</span><span data-player="duration">0:12</span></p>
         <div class="player__row">
-          <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-          <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-          <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          <div class="player__transport">
+            <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+            <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+            <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          </div>
           <div class="player__end">
             <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
           </div>
@@ -44,7 +48,7 @@
   </div>
 </div>
 
-<h2 id="video">Video</h2>
+<h3 id="video">Video</h3>
 <p>The picture sits above the controls and is closed off by a frame-weight rule, like a Card's media. Clicking it plays and pauses (a pointer convenience; the button is the control). This clip is silent, so there is no Mute, and its caption track says so. With real speech, add a real <code>&lt;track kind="captions"&gt;</code>: the native controls carry the captions switch, so when they go, the Player brings it back as the Captions button, shown only when the media has captions.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -66,9 +70,11 @@
         </div>
         <p class="player__time num" aria-hidden="true"><span data-player="current">0:00</span><span data-player="duration">0:08</span></p>
         <div class="player__row">
-          <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-          <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-          <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          <div class="player__transport">
+            <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+            <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+            <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          </div>
           <div class="player__end">
             <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="captions" aria-pressed="false" aria-label="Captions" hidden><span class="ic ic--captions" aria-hidden="true"></span></button>
           </div>
@@ -79,7 +85,7 @@
   </div>
 </div>
 
-<h2 id="states">States</h2>
+<h3 id="states">States</h3>
 <p>Playing and muted are <code>aria-pressed</code>: filled and a doubled frame. Buffering is written in the status line after a beat, never by making Play inert. A failure is a dashed frame and a plain sentence with an icon, and the controls go <code>aria-disabled</code>.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
@@ -92,9 +98,11 @@
         </div>
           <p class="player__time num" aria-hidden="true"><span data-player="current">0:05</span><span data-player="duration">0:12</span></p>
           <div class="player__row">
-            <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="true" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-            <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-            <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            <div class="player__transport">
+              <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="true" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+              <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+              <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            </div>
             <div class="player__end">
               <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="true" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
             </div>
@@ -111,9 +119,11 @@
         </div>
           <p class="player__time num" aria-hidden="true"><span data-player="current">0:07</span><span data-player="duration">0:12</span></p>
           <div class="player__row">
-            <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="true" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-            <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-            <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            <div class="player__transport">
+              <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="true" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+              <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+              <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            </div>
             <div class="player__end">
               <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
             </div>
@@ -130,9 +140,11 @@
         </div>
           <p class="player__time num" aria-hidden="true"><span data-player="current">0:00</span><span data-player="duration">0:12</span></p>
           <div class="player__row">
-            <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-disabled="true" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-            <button class="btn" data-size="sm" type="button" data-player="back" aria-disabled="true" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-            <button class="btn" data-size="sm" type="button" data-player="forward" aria-disabled="true" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            <div class="player__transport">
+              <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-disabled="true" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+              <button class="btn" data-size="sm" type="button" data-player="back" aria-disabled="true" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+              <button class="btn" data-size="sm" type="button" data-player="forward" aria-disabled="true" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+            </div>
             <div class="player__end">
               <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-disabled="true" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
             </div>
@@ -143,7 +155,7 @@
   </div>
 </div>
 
-<h2 id="dark">On a dark stage</h2>
+<h3 id="dark">On a dark stage</h3>
 <p>A player on an editor's dark surface is an island like anything else: <code>data-theme="dark"</code>.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
@@ -160,9 +172,11 @@
         </div>
         <p class="player__time num" aria-hidden="true"><span data-player="current">0:00</span><span data-player="duration">0:12</span></p>
         <div class="player__row">
-          <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-          <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-          <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          <div class="player__transport">
+            <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+            <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+            <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          </div>
           <div class="player__end">
             <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute"><span class="ic ic--volume-2" aria-hidden="true"></span><span class="ic ic--volume-x" aria-hidden="true"></span></button>
           </div>
@@ -173,7 +187,7 @@
   </div>
 </div>
 
-<h2 id="context">In context</h2>
+<h3 id="context">In context</h3>
 <p>A recording screen on a phone: the clip, what it is, and the controls under it.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
@@ -198,9 +212,11 @@
         </div>
             <p class="player__time num" aria-hidden="true"><span data-player="current">0:00</span><span data-player="duration">0:08</span></p>
             <div class="player__row">
-              <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-              <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
-              <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+              <div class="player__transport">
+                <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play"><span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+                <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds"><span class="ic ic--rotate-ccw" aria-hidden="true"></span><span class="num">5</span></button>
+                <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds"><span class="num">5</span><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+              </div>
               <div class="player__end">
                 <button class="btn" data-shape="circle" data-size="sm" type="button" data-player="captions" aria-pressed="false" aria-label="Captions" hidden><span class="ic ic--captions" aria-hidden="true"></span></button>
               </div>
@@ -220,6 +236,7 @@
   <li><strong>Head</strong> (<code>.player__head</code>): title and a sentence about what is in it. The description is the media element's <code>aria-describedby</code>.</li>
   <li><strong>Media</strong> (<code>.player__media</code>): the native element. Keeps <code>controls</code> until the script takes over.</li>
   <li><strong>Seek bar</strong>: a <a href="@/components/scrubber.html">Scrubber</a> (<code>data-variant="plain"</code>, <code>data-format="time"</code>). Its label is visually hidden.</li>
+  <li><strong>Transport</strong> (<code>.player__transport</code>, inside <code>.player__row</code>): Play, Back and Forward as one group. When the row is too narrow for them and Mute, Mute (<code>.player__end</code>) drops under the group, so the three never come apart. Under 18rem wide the circle goes from 56 to 44px and the pills tighten.</li>
   <li><strong>Play</strong> (<code>.player__play</code>): the large primary circle. Two icons, one shows.</li>
   <li><strong>Back and Forward</strong> (<code>data-player="back|forward"</code>): small pills with the arrow and the number of seconds they jump (<code>data-skip</code>). The digit is visible and is in the name ("Back 5 seconds"), so the label matches.</li>
   <li><strong>Time</strong> (<code>.player__time</code>): position and length, tabular, <code>aria-hidden</code> (the seek bar says it).</li>

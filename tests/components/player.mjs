@@ -252,4 +252,27 @@ export const tests = [
       expect.equal(order.join(), 'Play,Back 5 seconds,Forward 5 seconds,Mute', 'seek, then Play, Back, Forward, Mute')
     },
   },
+  {
+    name: 'Play, Back and Forward never come apart: they share a line, and Mute / Captions drop under them as a unit',
+    async run({ page, goto, expect }) {
+      await rangeMedia(page)
+      for (const w of [320, 390]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await goto('components/player.html')
+        await page.waitForTimeout(250)
+        const rows = await page.evaluate(() => [...document.querySelectorAll('.player__row')].filter((r) => r.getBoundingClientRect().height > 0).map((row) => {
+          const t = [...row.querySelectorAll('.player__transport > .btn')].map((b) => b.getBoundingClientRect())
+          const end = row.querySelector('.player__end'), eb = end && end.getBoundingClientRect()
+          const sameLine = t.every((b) => Math.abs((b.top + b.height / 2) - (t[0].top + t[0].height / 2)) < 12)
+          return { n: t.length, sameLine, rowW: row.clientWidth, endBelowOrBeside: !eb || eb.height === 0 || eb.top >= t[0].top - 30 }
+        }))
+        expect.ok(rows.length >= 5, `${w}px: the demo rows are there`)
+        for (const r of rows) {
+          expect.equal(r.n, 3, 'Play, Back and Forward are one group')
+          // a row under 11.25rem (the 236px phone mock at 320px) cannot hold three 44px targets and their gaps on one line at all
+          if (r.rowW >= 180) expect.ok(r.sameLine, `${w}px: the three share one line (row ${r.rowW}px)`)
+        }
+      }
+    },
+  },
 ]

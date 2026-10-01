@@ -14,7 +14,9 @@
   </div>
 </div>
 
-<h2 id="dial">Dial</h2>
+<h2 id="examples">Examples</h2>
+
+<h3 id="dial">Dial</h3>
 <p>The default. Ticks mark the scale, the ones between the origin and the thumb are darker, and the value is written out top right. <code>data-origin</code> says where the fill starts: for exposure it is <code>0</code>, the middle, so the darker ticks grow left or right from it.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -38,7 +40,7 @@
   </div>
 </div>
 
-<h2 id="plain">Plain</h2>
+<h3 id="plain">Plain</h3>
 <p>For a value that only grows from the start, like strength or progress, and for seek bars: a rail with a fill inside it and the thumb on top. The <a href="@/components/player.html">Player</a> uses this one.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -58,7 +60,7 @@
   </div>
 </div>
 
-<h2 id="formats">Readouts</h2>
+<h3 id="formats">Readouts</h3>
 <p><code>data-format</code> decides how the number is written, for the eye and for <code>aria-valuetext</code>. Negative numbers use the true minus (U+2212), never a hyphen. Add <code>data-unit</code> for a suffix. Register your own with <code>SG.scrubber.formatters.name = function (value, input) { return { text, spoken } }</code>.</p>
 <div class="table-wrap"><table class="docs-table">
   <caption class="sr-only">Scrubber readout formats</caption>
@@ -71,8 +73,8 @@
   </tbody>
 </table></div>
 
-<h2 id="states">States</h2>
-<p>The thumb is a circle you press, so it follows the button: flat at rest, raised with a hard shadow and an accent fill when it can be pressed, sunk while you drag. Step buttons at either end are <code>aria-disabled</code>, not <code>disabled</code>, so focus stays where it is when the last step lands. The <code>is-*</code> classes only force a state for this page.</p>
+<h3 id="states">States</h3>
+<p>The thumb is a circle you press, so it follows the button: flat at rest, raised with a hard shadow and an accent fill when it can be pressed, sunk while you drag. Step buttons at either end are <code>aria-disabled</code>, not <code>disabled</code>, so focus stays where it is when the last step lands. The <code>is-*</code> classes only force a state for this page (the Focus specimen is out of the tab order, since its ring is always drawn; the others are live sliders).</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="scrubber" data-format="percent">
@@ -85,7 +87,7 @@
     </div>
     <div class="scrubber" data-format="percent">
       <div class="scrubber__head"><label class="scrubber__label" for="st-focus">Focus</label><output class="scrubber__value" for="st-focus" aria-live="off">40%</output></div>
-      <div class="scrubber__row"><div class="scrubber__track"><input class="scrubber__input is-focus" id="st-focus" type="range" min="0" max="100" value="40"></div></div>
+      <div class="scrubber__row"><div class="scrubber__track"><input class="scrubber__input is-focus" id="st-focus" type="range" min="0" max="100" value="40" tabindex="-1"></div></div>
     </div>
     <div class="scrubber" data-format="percent">
       <div class="scrubber__head"><label class="scrubber__label" for="st-active">Dragging</label><output class="scrubber__value" for="st-active" aria-live="off">40%</output></div>
@@ -110,7 +112,7 @@
   </div>
 </div>
 
-<h2 id="dark">On a dark stage</h2>
+<h3 id="dark">On a dark stage</h3>
 <p>Pro editors live on a dark surface so the photo is the brightest thing on screen. Put <code>data-theme="dark"</code> on the tray: it is an island, every role is re-derived, and the ring, ticks and thumb follow it with no extra code.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
@@ -130,7 +132,7 @@
   </div>
 </div>
 
-<h2 id="context">In context</h2>
+<h3 id="context">In context</h3>
 <p>The Light tool of a photo editor: the picture stays put, the tray holds the dials, and Cancel and Apply sit in the same two places on every tool.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">

@@ -177,4 +177,44 @@ export const tests = [
       expect.equal(await page.evaluate(() => window.__c), 0, 'no change fires')
     },
   },
+  {
+    name: 'the hint and Reset share a line or Reset drops under it whole: its label is never split, at 320px or 200% text',
+    async run({ page, goto, expect }) {
+      await goto('components/scrubber.html')
+      for (const [w, pct] of [[320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.addStyleTag({ content: `html{font-size:${pct}%!important}` })
+        await page.waitForTimeout(200)
+        const r = await page.locator('#dial + p + .demo').evaluate((el) => {
+          const b = el.querySelector('[data-reset]'), hint = el.querySelector('.scrubber__foot > span')
+          const lines = (n) => { const tops = []; const wk = document.createTreeWalker(n, NodeFilter.SHOW_TEXT); for (let t = wk.nextNode(); t; t = wk.nextNode()) { if (!t.textContent.trim()) continue; const r = document.createRange(); r.selectNodeContents(t); for (const q of r.getClientRects()) if (q.width > 0 && !tops.some((x) => Math.abs(x - q.top) < 4)) tops.push(q.top) } return tops.length }
+          const bb = b.getBoundingClientRect(), foot = el.querySelector('.scrubber__foot').getBoundingClientRect()
+          return { lines: lines(b), h: bb.height, minH: parseFloat(getComputedStyle(b).minHeight), inside: bb.left >= foot.left - 1 && bb.right <= foot.right + 1, hintLines: lines(hint) }
+        })
+        expect.equal(r.lines, 1, `${w}px ${pct}%: "Reset" is on one line`)
+        expect.ok(r.h < r.minH * 1.5, `${w}px ${pct}%: Reset is a one-line pill, not a tall oval (${r.h}px)`)
+        expect.ok(r.inside, `${w}px ${pct}%: Reset is inside the row`)
+      }
+    },
+  },
+  {
+    name: 'a raised thumb stands its hard shadow off behind a paper gap, and the forced Focus specimen draws the ring',
+    async run({ page, goto, expect }) {
+      await goto('components/scrubber.html')
+      // the thumb is a pseudo-element the page cannot read, so read the shadow it is given (--_shadow on the input) and let a probe resolve it to px
+      const shadow = (sel) => page.locator(sel).evaluate((el) => {
+        const probe = document.createElement('div')
+        probe.style.cssText = 'position:fixed;inline-size:1px;block-size:1px;box-shadow:' + getComputedStyle(el).getPropertyValue('--_shadow')
+        el.after(probe)
+        const v = getComputedStyle(probe).boxShadow
+        probe.remove()
+        return v
+      })
+      const hover = await shadow('#st-hover'), rest = await shadow('#st-rest')
+      expect.ok(/0px 0px 0px 2px/.test(hover) && /4px 4px 0px 2px/.test(hover), `a paper ring (0 0 0 2px) under an offset line shadow (4px 4px 0 2px): ${hover}`)
+      expect.ok(!/ [1-9]\d*px [1-9]\d*px/.test(rest) && !/0px 0px 0px [1-9]/.test(rest), `at rest there is no ring and no offset shadow: ${rest}`)
+      const ring = await page.locator('#st-focus').evaluate((el) => { const c = getComputedStyle(el); return c.outlineStyle + ' ' + c.outlineWidth })
+      expect.equal(ring, 'solid 3px', 'is-focus draws the ring')
+    },
+  },
 ]

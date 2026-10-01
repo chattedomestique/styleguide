@@ -22,7 +22,9 @@
   </div>
 </div>
 
-<h2 id="basic">Basic</h2>
+<h2 id="examples">Examples</h2>
+
+<h3 id="basic">Basic</h3>
 <p>A gallery is a <code>.card-grid</code> with the <code>.gallery</code> class. Each cell is an <code>&lt;li&gt;</code>; its <code>data-size</code> says how many cells it takes. Every tile fills its cell, and the picture is cropped to it: set the focal point with <code>--pos</code> on the <code>img</code> when the subject is off-centre. Tap a tile, and it goes where the app sends it (there is no lightbox here).</p>
 <div class="demo">
   <div class="demo__stage">
@@ -98,7 +100,7 @@
 </table></div>
 <p class="t-meta">The columns are as many 8rem cells as fit (<code>--card-min</code> on the card grid, set to 8rem). At 390px that is two; on a desktop it is five or six.</p>
 
-<h2 id="tiled">Tiled</h2>
+<h3 id="tiled">Tiled</h3>
 <p>The card grid's tiled variant drops the gap and lets neighbouring tiles share their 2px frames, so the gallery reads as one ruled sheet. Corners go square inside it, as they do for cards.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -122,7 +124,7 @@
   </div>
 </div>
 
-<h2 id="states">States</h2>
+<h3 id="states">States</h3>
 <p>A tile that is still loading or has failed keeps its cell, so the gallery never reflows under you (the cell grows only when large text needs more room than it gives, because words are never cut off). In a small tile the failed message drops the icon and keeps the sentence and the button. See <a href="@/components/media.html#states">Media</a> for what sets them.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -147,15 +149,15 @@
   </div>
 </div>
 
-<h2 id="context">In context</h2>
+<h3 id="context">In context</h3>
 <p>A week in pictures. The count is a card in the grid, not a heading above it, because it belongs with the photos.</p>
 <div class="phone">
   <div class="phone__screen stack" data-gap="4">
     <div class="stack" data-gap="1">
       <p class="t-label">Field notes</p>
-      <h3 class="t-title">This week, in eight pictures</h3>
+      <h3 class="t-title">This week, in five pictures</h3>
     </div>
-    <ul class="card-grid gallery" role="list" aria-label="This week, six photos">
+    <ul class="card-grid gallery" role="list" aria-label="This week, five photos and a streak">
       <li data-size="big">
         <figure class="media" data-caption="over" data-link>
           <div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div>
@@ -222,7 +224,7 @@
   <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
   <tbody>
     <tr><td><kbd>Tab</kbd></td><td>One stop per linked tile, in DOM order. The focus ring goes around the whole tile, and a neighbour's frame never covers it.</td></tr>
-    <tr><td>Screen reader</td><td>"This week, eight photos, list, 8 items." Each tile: the link's text, and the picture's alt. Give a picture that is the only content of a link an alt that says where it goes ("Open photo: morning bread").</td></tr>
+    <tr><td>Screen reader</td><td>"This week, eight photos and a count, list, 9 items." Each tile: the link's text, and the picture's alt. Give a picture that is the only content of a link an alt that says where it goes ("Open photo: morning bread").</td></tr>
     <tr><td>Reading order</td><td>The DOM order. <code>dense</code> packing can place a later small tile beside an earlier big one, so do not use a gallery for a sequence (WCAG 1.3.2).</td></tr>
     <tr><td>Touch</td><td>A linked tile's hit area is the whole tile; the smallest is about 128px.</td></tr>
     <tr><td>Zoom / text size</td><td>Cells are fractions of the container, captions are rem and wrap. At 320px wide a gallery is two columns (one, if narrower than the smallest cell).</td></tr>

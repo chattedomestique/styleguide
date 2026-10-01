@@ -171,4 +171,35 @@ export const tests = [
       expect.equal(r.loaded, 0, 'loaded pictures carry no state')
     },
   },
+  {
+    name: 'a picture inside its own link fills the frame like any other (a gallery tile of just a photo)',
+    async run({ page, goto, expect }) {
+      await goto('components/gallery.html')
+      const r = await page.evaluate(() => [...document.querySelectorAll('#context ~ .phone .media__frame > .media__link > img')].map((img) => {
+        const f = img.closest('.media__frame').getBoundingClientRect(), b = img.getBoundingClientRect()
+        return { dh: Math.abs(f.height - b.height), dw: Math.abs(f.width - b.width), pos: getComputedStyle(img).position }
+      }))
+      expect.ok(r.length >= 4, 'four linked photos in the gallery in context')
+      for (const x of r) {
+        expect.equal(x.pos, 'absolute', 'placed to fill the frame')
+        expect.ok(x.dh < 1 && x.dw < 1, `fills its frame (off by ${x.dw.toFixed(1)} x ${x.dh.toFixed(1)}px)`)
+      }
+    },
+  },
+  {
+    name: 'an over caption becomes the plain strip under the picture when the figure is under 10rem wide, so large text cannot hide the picture',
+    async run({ page, goto, expect }) {
+      await goto('components/media.html')
+      const measure = () => page.evaluate(() => [...document.querySelectorAll('.media[data-caption="over"]')].filter((m) => !m.closest('.gallery')).map((m) => {
+        const f = m.querySelector('.media__frame').getBoundingClientRect(), c = m.querySelector('.media__caption').getBoundingClientRect()
+        return { w: m.getBoundingClientRect().width / parseFloat(getComputedStyle(document.documentElement).fontSize), covers: c.top < f.bottom - 1, share: Math.max(0, f.bottom - c.top) / f.height }
+      }))
+      const normal = await measure()
+      expect.ok(normal.length >= 1, 'an over figure in the demos')
+      for (const m of normal) expect.ok(m.w >= 10 ? m.covers : true, 'at normal size a wide figure keeps the plate over the picture')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(250)
+      for (const m of await measure()) if (m.w < 10) expect.ok(!m.covers, `a ${m.w.toFixed(1)}rem-wide figure puts the caption under the picture`)
+    },
+  },
 ]

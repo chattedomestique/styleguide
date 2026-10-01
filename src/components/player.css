@@ -22,10 +22,12 @@
        <div class="scrubber" data-variant="plain" data-format="time">…the seek bar, a Scrubber…</div>
        <p class="player__time num" aria-hidden="true"><span data-player="current">0:00</span><span data-player="duration">0:12</span></p>
        <div class="player__row">
-         <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play">
-           <span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
-         <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds">…arrow, 5…</button>
-         <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds">…5, arrow…</button>
+         <div class="player__transport">
+           <button class="btn player__play" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-pressed="false" aria-label="Play">
+             <span class="ic ic--play" aria-hidden="true"></span><span class="ic ic--pause" aria-hidden="true"></span></button>
+           <button class="btn" data-size="sm" type="button" data-player="back" aria-label="Back 5 seconds">…arrow, 5…</button>
+           <button class="btn" data-size="sm" type="button" data-player="forward" aria-label="Forward 5 seconds">…5, arrow…</button>
+         </div>
          <div class="player__end"><button class="btn" data-shape="circle" data-size="sm" type="button" data-player="mute" aria-pressed="false" aria-label="Mute">…</button></div>
        </div>
        <p class="player__status" role="status"></p>
@@ -120,8 +122,29 @@
     align-items: center;
     gap: var(--space-2) var(--space-3);
   }
+  /* Play, Back and Forward are one thing: when the row is too narrow for them and Mute, Mute (the .player__end
+     group) drops under them as a unit, and the three never come apart (Forward alone on a second line). */
+  .player__transport {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
   .player__row .btn {
     flex: none;
+  }
+  /* a phone-width card (under 18rem): the primary circle goes 56 -> 44px, the skip pills and the gaps tighten, so
+     Play, Back, Forward and Mute still share a line on a 360px screen (the hit areas stay 44px) */
+  @container player (inline-size < 18rem) {
+    .player__transport {
+      column-gap: var(--space-2);
+    }
+    .player .player__play {
+      --_h: var(--ctl);
+    }
+    .player__row .btn[data-size="sm"]:not([data-shape="circle"]) {
+      --_px: var(--space-2);
+    }
   }
   .player__row .btn[data-size="sm"] {
     --_px: var(--space-3); /* the skip pills: arrow + digit need no more, and it keeps the row on one line on a phone */

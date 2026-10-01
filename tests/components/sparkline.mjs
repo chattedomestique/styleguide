@@ -94,8 +94,12 @@ export const tests = [
     async run({ page, goto, expect }) {
       await goto('components/sparkline.html')
       const r = await page.locator('#demo-table table').evaluate((t) => ({ heads: [...t.tHead.rows[0].cells].map((c) => c.textContent.trim()), row: [...t.tBodies[0].rows[0].cells].map((c) => c.textContent.trim()) }))
-      expect.equal(r.heads.join('|'), 'Deck|Now|12 days', 'the trend column is named')
-      expect.equal(r.row[0] + r.row[1], 'Shapes92%', 'name and value are text')
+      // Corrected: this asserted the column ORDER (Deck|Now|12 days). The order is a docs choice (the trend column now comes
+      // second so it is in view first on a phone); what matters is that the trend column is named, the row's name and
+      // value are text, and the trend sits before the value so a scrolled phone table shows it without scrolling.
+      expect.equal([...r.heads].sort().join('|'), '12 days|Deck|Now', 'the trend column is named')
+      expect.equal(r.heads[0] + '|' + r.heads[1], 'Deck|12 days', 'the trend is the second column, in view first')
+      expect.equal(r.row[0] + r.row[2], 'Shapes92%', 'name and value are text')
     },
   },
   {

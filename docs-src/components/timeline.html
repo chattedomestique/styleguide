@@ -1,4 +1,12 @@
 <!--{"title":"Timeline","group":"Components","order":133,"summary":"Clips along time with a playhead: a keyboard-operable track where every drag has a button or a key."}-->
+<style>
+  /* the clip-states demo: a real clip is placed in time (--start, --dur), but here the point is the five looks side by
+     side, so each clip takes a cell of a wrapping grid and nothing hides off to the right of a scroller. */
+  .clip-states .timeline__scroll { display: block; }
+  .clip-states .timeline__body { inline-size: auto; }
+  .clip-states .timeline__track { display: grid; grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr)); gap: var(--space-4) var(--space-3); block-size: auto; }
+  .clip-states .timeline__clip { position: relative; inset: auto; inline-size: auto; block-size: 4rem; }
+</style>
 <h1>Timeline</h1>
 <p class="lede">A timeline shows clips laid out along time, and a playhead that says where you are. It is the most drag-heavy screen in an editor, so every drag here has a button or a key that does the same thing: the playhead is a slider, the ruler is a place to click, and splitting and trimming are buttons that act at the playhead.</p>
 
@@ -14,7 +22,9 @@
   </div>
 </div>
 
-<h2 id="editor">Editor</h2>
+<h2 id="examples">Examples</h2>
+
+<h3 id="editor">Editor</h3>
 <p>Live: click a clip or press <kbd>Enter</kbd> on it to select it, move the playhead into it, then Split or Trim. The buttons say why they are unavailable when they are. Two tracks here: video clips, and one audio clip with a waveform.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -70,14 +80,14 @@
   </div>
 </div>
 
-<h2 id="playhead">The playhead</h2>
+<h3 id="playhead">The playhead</h3>
 <p>The head is a circle with a line through every track, and it is a <code>role="slider"</code>: <kbd>Left</kbd> and <kbd>Right</kbd> move it one step (<code>data-step</code> on <code>.timeline</code>, default one second), <kbd>PageUp</kbd> and <kbd>PageDown</kbd> ten steps, <kbd>Home</kbd> and <kbd>End</kbd> the ends. Its value is spoken as "0:30 of 1:24". Dragging is an enhancement: the same move is a click on the ruler (or empty track), and the round buttons by the time readout nudge it one step for anyone who cannot drag or press keys.</p>
 
-<h2 id="clips">Clips</h2>
-<p>A track is a listbox and a clip is an option: a name, a length, and a selected state. The selected clip is filled and its frame doubles, so selection is never just a darker tone. <kbd>Left</kbd> and <kbd>Right</kbd> move focus between clips; <kbd>Enter</kbd> or <kbd>Space</kbd> selects. The tone on a clip is rhythm only (video blue, audio green here); it does not mean anything.</p>
+<h3 id="clips">Clips</h3>
+<p>A track is a listbox and a clip is an option: a name, a length, and a selected state. The selected clip is filled and its frame doubles, so selection is never just a darker tone (compare Selected with Rest, the first two below). <kbd>Left</kbd> and <kbd>Right</kbd> move focus between clips; <kbd>Enter</kbd> or <kbd>Space</kbd> selects. The tone on a clip is rhythm only (video blue, audio green here); it does not mean anything.</p>
 <div class="demo">
   <div class="demo__stage">
-    <div class="timeline" role="group" aria-label="Clip states">
+    <div class="timeline clip-states" role="group" aria-label="Clip states">
       <div class="timeline__scroll">
         <div class="timeline__body" style="--total: 56">
           <div class="timeline__track" role="listbox" aria-label="Clip states" aria-orientation="horizontal">
@@ -85,20 +95,20 @@
             <span class="timeline__name">Rest</span>
             <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
           </div>
-          <div class="timeline__clip is-hover" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 8; --dur: 7">
+          <div class="timeline__clip" role="option" aria-selected="true" tabindex="-1" data-tone="2" style="--start: 8; --dur: 7">
+            <span class="timeline__name">Selected</span>
+            <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
+          </div>
+          <div class="timeline__clip is-hover" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 16; --dur: 7">
             <span class="timeline__name">Hover</span>
             <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
           </div>
-          <div class="timeline__clip is-focus" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 16; --dur: 7">
+          <div class="timeline__clip is-focus" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 24; --dur: 7">
             <span class="timeline__name">Focus</span>
             <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
           </div>
-          <div class="timeline__clip is-active" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 24; --dur: 7">
+          <div class="timeline__clip is-active" role="option" aria-selected="false" tabindex="-1" data-tone="2" style="--start: 32; --dur: 7">
             <span class="timeline__name">Pressed</span>
-            <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
-          </div>
-          <div class="timeline__clip" role="option" aria-selected="true" tabindex="-1" data-tone="2" style="--start: 32; --dur: 7">
-            <span class="timeline__name">Selected</span>
             <span class="timeline__dur num" aria-hidden="true">0:07</span><span class="sr-only">, 7 seconds</span>
           </div>
           </div>
@@ -108,10 +118,10 @@
   </div>
 </div>
 
-<h2 id="waveform">Waveform</h2>
+<h3 id="waveform">Waveform</h3>
 <p>The waveform is a flat silhouette of stepped bars: one SVG <code>&lt;path&gt;</code>, <code>aria-hidden</code>, filled with the clip's own ink so it is always readable on the clip. Give the <code>&lt;svg&gt;</code> <code>data-peaks</code>: one digit from 0 to 9 per second of the <em>source</em>. The script draws as many 3px bars as fit the clip, taking the loudest digit under each, and only the part of the source the clip shows, so a split or a trim cuts the waveform where it cuts the clip, and zoom never stretches a bar. A picture of sound is not the sound, so the same facts are written as text in <code>aria-describedby</code>: <em>loud for the first 20 seconds, quiet from 0:20 to 0:55, then fairly loud to the end</em>. No gradient, no fade.</p>
 
-<h2 id="dark">On a dark stage</h2>
+<h3 id="dark">On a dark stage</h3>
 <p>Editors are dark so the picture leads. <code>data-theme="dark"</code> on the timeline makes it an island; the playhead line keeps a hard paper edge so it shows on the dark selected clip too.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
@@ -167,7 +177,7 @@
   </div>
 </div>
 
-<h2 id="context">In context</h2>
+<h3 id="context">In context</h3>
 <p>A phone-sized edit screen: the preview above, the timeline below it, and the same Cancel and Apply circles every tool uses.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">

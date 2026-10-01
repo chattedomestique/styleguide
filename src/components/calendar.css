@@ -27,6 +27,13 @@
    The day is drawn as a circle of at most 2.5rem but its hit area is the whole 44px-tall cell
    (the ::after from button.css), so dense rows still give every day a full target.
 
+   TARGETS  Seven columns are 44px wide only in a container of 308px or more (a 390px phone with gutters is
+   358px, a 320px one is 288px: 41px). Narrower, the cells shrink with the container, above the WCAG 2.5.8 floor
+   of 24px down to about 10.5rem. Neighbouring cells touch: a gap would take the width the targets need, and
+   touching cells leave no dead zone to mis-tap into (the Carousel's dots are the same). The drawn circle is
+   narrower than its cell by the doubled frame (2 x --bw), so a chosen day's frame and its focus ring are never
+   painted under the neighbour.
+
    CONTAINER QUERIES  Weekday names: "Mon" while each column is wide enough, one letter below
    15rem (rem, so 200% text switches sooner). Week view: same.
 
@@ -146,8 +153,15 @@
   .cal__day {
     --lift: 0;
     --fill: 0;
-    --_d: min(100%, 2.5rem);
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    /* never wider than the column MINUS the doubled frame (--_select is a --bw spread outside the circle): at the full
+       column width the chosen day's outer frame ran under its neighbour, which then painted over it and the focus ring */
+    --_d: min(calc(100% - 2 * var(--bw)), 2.5rem);
+    /* The hard shadow of a FILLED day (the chosen one; accent = ink in the default looks) would merge with its fill into
+       a blob, so as --fill rises a paper gap opens between them. An unfilled day (paper inside, ink frame) keeps the
+       plain shadow it always had: both the gap and the extra spread are scaled by --fill. */
+    --_shadow:
+      0 0 0 calc(var(--lift) * var(--fill) * var(--bw)) var(--paper),
+      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--lift) * var(--fill) * var(--bw)) var(--line);
     --_select: 0 0 0 0 transparent;
 
     position: relative;
@@ -190,8 +204,10 @@
       inset-inline: min(0px, calc((100% - 100cqi / 7) / 2));
     }
 
+    /* The doubled frame goes ABOVE the paper halo, or on the chosen day the halo (3px) hides it (2px) and "chosen"
+       loses its second cue exactly when the day is focused. */
     &:focus-visible {
-      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+      box-shadow: var(--_select), var(--focus-shadow), var(--_shadow);
     }
 
     @media (hover: hover) {
@@ -203,6 +219,15 @@
     &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
       --lift: 1;
       border-color: var(--line);
+      /* the ring must not be overpainted: every day has an opaque paper background and later days paint over earlier ones */
+      z-index: 1;
+    }
+    /* .is-focus forces the state on the docs page: it has to show the ring a real focus gets, or "Focus" looks like "Hover" */
+    &.is-focus:not([aria-disabled="true"]) {
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--_select), var(--focus-shadow), var(--_shadow);
     }
     &:is(:active, .is-active):not([aria-disabled="true"]) {
       --lift: 0;
@@ -277,7 +302,7 @@
   }
 
   .cal[data-view="week"] .cal__day {
-    --_d: min(100%, 3rem);
+    --_d: min(calc(100% - 2 * var(--bw)), 3rem);
     grid-template-rows: auto auto 0.25rem;
     aspect-ratio: auto;
     min-block-size: 4.5rem;

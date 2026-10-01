@@ -18,7 +18,8 @@
    data-ratio     1:1 | 4:3 (default) | 3:2 | 16:9 | 21:9 | 3:4 | 4:5 | free (the file's own shape)
                   Also works on .carousel / .filmstrip: the ratio is inherited through --ratio.
    data-caption   plain (default: paper strip) | bar (solid ink bar, paper text) | over (a --scrim-strong
-                  plate over the bottom of the picture). Text NEVER sits on a bare photo (1.4.3).
+                  plate over the bottom of the picture; below 10rem wide it becomes the plain strip under the
+                  picture, so large text cannot hide the picture). Text NEVER sits on a bare photo (1.4.3).
    data-fit       cover (default) | contain (letterboxed on --paper-2: logos, product shots)
    data-fill      fill the height the parent gives it (gallery tiles); the ratio is ignored
    data-tone      1…6 | ink | ok | … : the colour behind the picture while it loads, and the caption strip
@@ -131,6 +132,7 @@
   /* absolutely placed: the ratio alone sizes the frame, so a picture's own size can never stretch a
      grid row (gallery) or fight the ratio. `free` switches back to normal flow below. */
   .media__frame > :is(img, video, canvas, svg, iframe),
+  .media__frame > .media__link > :is(img, video, canvas, svg, iframe),
   .media__frame picture > img {
     position: absolute;
     inset: 0;
@@ -143,11 +145,13 @@
   .media__frame > picture {
     display: contents;
   }
-  .media[data-fit="contain"] .media__frame > :is(img, video, picture > img) {
+  .media[data-fit="contain"] .media__frame > :is(img, video, picture > img),
+  .media[data-fit="contain"] .media__frame > .media__link > img {
     object-fit: contain;
   }
 
   :where([data-ratio="free"]) .media__frame > :is(img, video, svg),
+  :where([data-ratio="free"]) .media__frame > .media__link > :is(img, video, svg),
   :where([data-ratio="free"]) .media__frame picture > img {
     position: static;
     block-size: auto;
@@ -271,6 +275,7 @@
     display: flex;
   }
   .media:is([data-state="loading"], [data-state="failed"]) .media__frame > :is(img, video, canvas, svg, iframe),
+  .media:is([data-state="loading"], [data-state="failed"]) .media__frame > .media__link > :is(img, video, canvas, svg, iframe),
   .media:is([data-state="loading"], [data-state="failed"]) .media__frame picture > img {
     opacity: 0;
   }
@@ -312,6 +317,25 @@
     }
     .media__status > .ic {
       display: none;
+    }
+  }
+
+  /* over → plain, when the plate would swallow the picture. The plate is sized by the TEXT (rem) and the
+     picture by the figure's width, so the share of the picture the plate hides is set by the figure's width
+     in rem: a 4:3 picture 10rem wide is 7.5rem tall under a title and a line of meta that need about 3.5rem.
+     Below 10rem (a phone at 200 % text: a carousel slide is 7rem wide, so the plate hid all but a strip of the
+     harbour) the caption drops below the picture as the plain strip, and the picture keeps its ratio. Same
+     answer as the bar: a caption is text first, and text never wins by covering what it describes. (A gallery
+     tile is excepted: its cell sets the size and crops the picture to it.) */
+  @container media (max-width: 10rem) {
+    /* not in a gallery: there the cell is the size and the picture is cropped to it, so the plate is a part of the cell
+       and a caption strip would take half of a 7rem tile */
+    .media[data-caption="over"]:not(:where(.gallery *)) > .media__caption {
+      grid-area: 2 / 1;
+      color: var(--_cap-ink);
+      background: var(--_cap-bg);
+      border-block-start: var(--bw) solid var(--line);
+      --_cap-soft: var(--tone-ink-soft, var(--ink-soft));
     }
   }
 
