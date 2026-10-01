@@ -15,7 +15,9 @@
 </div>
 <p>Tag or Chip: if tapping it should do something, it is a chip. If it only tells you something, it is a tag.</p>
 
-<h2 id="variants">Variants</h2>
+<h2 id="examples">Examples</h2>
+
+<h3 id="variants">Variants</h3>
 <p>A tag is a pill with a thin frame (1px; the 2px frame is for what you press). The default is paper with ink text. <code>data-tone</code> gives it a tone, which is for rhythm across a screen, never for meaning.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
@@ -38,7 +40,7 @@
   </div>
 </div>
 
-<h2 id="status">Status: a symbol and words</h2>
+<h3 id="status">Status: a symbol and words</h3>
 <p>The four status tones are <code>ok</code>, <code>warn</code>, <code>bad</code> and <code>info</code>. A tag in one of them draws its own symbol (check, warning, cross, info) before the words, so the colour is never the only thing that says <em>done</em> or <em>failed</em>. To use a different symbol, put your own <code>&lt;span class="ic"&gt;</code> inside and the built-in one steps aside.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
@@ -56,7 +58,7 @@
   <div><strong>Not colour alone</strong><p>Switch the palette to <em>Wire</em> in Appearance: every status still reads, by its symbol and its words. That is the test.</p></div>
 </div>
 
-<h2 id="priority">Priority: bars, words and weight</h2>
+<h3 id="priority">Priority: bars, words and weight</h3>
 <p>Priority is an order, and an order needs more than a hue. <code>data-priority</code> draws three rising bars (all filled, two, one) in front of the word, and changes the weight of the tag: <em>high</em> is solid, <em>medium</em> gets the heavier 2px frame, <em>low</em> is outline. Add a tone to colour it, or leave it neutral.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
@@ -69,7 +71,7 @@
   </div>
 </div>
 
-<h2 id="sizes">Sizes</h2>
+<h3 id="sizes">Sizes</h3>
 <p>Small (20px), medium (24px, the default) and large (32px). A tag is never pressed, so it is allowed to be under 44px. Heights are minimums in rem: at 200% text a tag grows and its words wrap.</p>
 <div class="demo" data-layout="row">
   <div class="demo__stage">
@@ -82,10 +84,24 @@
   </div>
 </div>
 
-<h2 id="states">States</h2>
+<h3 id="states">States</h3>
 <p>A tag has none, on purpose. No hover, no focus, no pressed, no disabled: those all say "this is a control", and a tag is not one. The cursor stays an arrow (inside a link or a button it takes that element's pointer), it casts no shadow, and it is not a tab stop. It is the same pill in square and soft corners, because a pill is what a tag is. If a tag starts needing a state, it has become a <a href="@/components/chip.html">Chip</a>.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <div class="cluster" data-corners="square">
+      <span class="tag" data-tone="ok">Synced</span>
+      <span class="tag" data-priority="medium">Medium</span>
+      <span class="tag">Square corners</span>
+    </div>
+    <div class="cluster" data-corners="soft">
+      <span class="tag" data-tone="ok">Synced</span>
+      <span class="tag" data-priority="medium">Medium</span>
+      <span class="tag">Soft corners</span>
+    </div>
+  </div>
+</div>
 
-<h2 id="context">In context</h2>
+<h3 id="context">In context</h3>
 <p>On a card, tags sit under the eyebrow or in the foot. On a toned card the default tag stays paper with ink text, so it reads on any tone. In a list row the trail is the place for one.</p>
 <div class="demo">
   <div class="demo__stage">
@@ -99,7 +115,7 @@
           <p class="card__title">Numbers to twenty</p>
           <p class="card__meta">Last studied yesterday. Eleven known, nine to go.</p>
         </div>
-        <footer class="card__foot"><span>Next review</span><span class="tag" data-priority="high" data-size="sm">Today</span></footer>
+        <footer class="card__foot"><span>Next review</span><span class="tag" data-size="sm"><span class="ic ic--calendar" aria-hidden="true"></span>Today</span></footer>
       </article>
       <article class="card">
         <div class="card__body">
@@ -155,3 +171,10 @@
 
 <h2 id="tokens">Tokens used</h2>
 <p><code>--paper</code>, <code>--ink</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-pill</code>, <code>--type-meta</code>, <code>--text-xs</code>, <code>--text-sm</code>, <code>--text-md</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>.</p>
+
+<h2 id="related">Related</h2>
+<ul>
+  <li><a href="@/components/chip.html">Chip</a>: the small pill you press (a filter, a choice, a removable value).</li>
+  <li><a href="@/components/card.html">Card</a>: where tags usually sit, under the eyebrow or in the foot.</li>
+  <li><a href="@/components/list.html">List</a>: a tag in the trail of a row.</li>
+</ul>
