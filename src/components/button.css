@@ -12,10 +12,20 @@
    <button class="btn" data-variant="tone" data-tone="3">…      filled with the tone's pill colours
    <button class="btn" data-shape="circle" aria-label="Add"><span class="ic ic--plus" aria-hidden="true"></span></button>
 
-   data-variant   secondary (default) | primary | tone (+ data-tone="bad" for a danger button)
+   data-variant   secondary (default) | primary | tone (+ data-tone="bad" for a danger button: with an icon and a
+                  verb that says what is lost, because the tone is never the only cue)
    data-size      sm (36, hit area still 44) | md (44, default) | lg (56)
    data-shape     pill (default) | circle (square box, one icon, aria-label required)
    data-block     full width
+
+   WRAPPING. A label wraps at word boundaries (overflow-wrap: break-word) and never breaks inside a word
+   unless the word alone is wider than the row. The button is never wider than its row (max-inline-size),
+   so a flex row of buttons wraps the BUTTON to its own line before it squeezes a label. In a narrow
+   container (under 12rem: a phone at 200% text, a docs stage) the side padding drops to --space-3 so the
+   words keep the room, and a word that still does not fit is broken rather than spilling out of the pill.
+   The pill radius is HALF THE NOMINAL HEIGHT, not 999px: a label that wraps to two or three lines makes a
+   rounded rectangle, not an oval (rectangles hold, circles act). A circle (data-shape) is a square box,
+   so it keeps the full pill radius.
 
    STATES come from ARIA and native attributes, never classes:
      :disabled / aria-disabled="true"   dashed frame, faint ink, no shadow, no hover
@@ -46,8 +56,17 @@
     --_on-ink: var(--on-accent);
     --_h: var(--ctl);
     --_px: var(--space-5);
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
-    --_select: 0 0 0 0 transparent;
+    --_r: min(var(--radius-pill), calc(var(--_h) / 2));
+    /* A FILLED button that is raised would fuse with its own hard shadow (an ink fill beside an ink shadow
+       is one lump). So the lift opens a gap in the colour of the surface: a ring that grows with
+       --lift x --fill (outline buttons keep the owner's flush shadow), and the shadow moves out by the
+       same amount so it keeps its 4px. --_selw is the width of the doubled "on" frame, which the gap must
+       clear. */
+    --_selw: 0px;
+    --_gap: calc(var(--lift) * var(--fill) * var(--bw));
+    --_halo: 0 0 0 calc(var(--_selw) + var(--_gap)) var(--focus-halo, var(--paper));
+    --_shadow: calc(var(--lift) * var(--space-1) + var(--_gap)) calc(var(--lift) * var(--space-1) + var(--_gap)) 0 0 var(--line);
+    --_select: 0 0 0 var(--_selw) var(--line);
 
     position: relative;
     display: inline-flex;
@@ -56,16 +75,19 @@
     gap: var(--space-2);
     min-block-size: var(--_h);
     min-inline-size: var(--hit);
-    padding: 0 var(--_px);
+    max-inline-size: 100%; /* clamps the flex min-content too: the row wraps the button, the button never overflows it */
+    /* vertical padding only matters once a label wraps past two lines (one or two fit inside --_h):
+       the lines then keep clear of the frame and of the rounded ends */
+    padding: var(--space-1) var(--_px);
     margin: 0;
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
     background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
     border: var(--bw) solid var(--line);
-    border-radius: var(--radius-pill);
-    box-shadow: var(--_select), var(--_shadow);
+    border-radius: var(--_r);
+    box-shadow: var(--_select), var(--_halo), var(--_shadow);
     font: var(--type-ctl);
     text-wrap: balance; /* a long label wraps (and the button grows) rather than being clipped at large text */
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word; /* words first: "anywhere" lets the button shrink below its longest word and shatter it */
     text-align: center;
     text-decoration: none;
     cursor: pointer;
@@ -87,8 +109,10 @@
       inset-inline: min(0px, calc((100% - var(--hit)) / 2));
     }
 
-    &:focus-visible {
-      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+    /* .is-focus (docs and tests) draws the very same ring: the base layer gives it the outline and
+       --focus-shadow, this keeps the button's own shadow beside it */
+    &:is(:focus-visible, .is-focus) {
+      box-shadow: var(--focus-shadow), var(--_select), var(--_halo), var(--_shadow);
     }
 
     /* raised: where a pointer can hover, and always on keyboard focus (same lift, so both match) */
@@ -113,7 +137,7 @@
     /* on: filled, and the frame doubles, so "on" does not depend on the accent being dark */
     &[aria-pressed="true"] {
       --fill: 1;
-      --_select: 0 0 0 var(--bw) var(--line);
+      --_selw: var(--bw);
     }
 
     /* working */
@@ -140,6 +164,7 @@
       --_rest-bg: transparent;
       --_rest-ink: var(--ink-faint);
       --_shadow: 0 0 0 0 transparent;
+      --_halo: 0 0 0 0 transparent;
       color: var(--ink-faint);
       background: transparent;
       border-color: var(--ink-faint);
@@ -178,8 +203,23 @@
 
     /* ---- shape: a circle is a square box holding one icon ---- */
     &[data-shape="circle"] {
+      --_r: var(--radius-pill);
       inline-size: var(--_h);
       padding: 0;
+    }
+
+    /* A narrow row (a docs stage, a phone at 200% text): keep the words' room, not the padding's. And since a word
+       can now be wider than the row itself, the last resort is to break it: text that spills out of the pill is
+       clipped by whatever frames it, which is worse than a broken word. (Words still wrap at spaces first; this
+       only changes what a single over-long word does, and a button that is alone on its line is never squeezed.) */
+    @container (max-width: 12rem) {
+      padding-inline: min(var(--_px), var(--space-3));
+      overflow-wrap: anywhere;
+    }
+    /* Narrower still (under 6rem: 320 px wide at 200% text), an icon and a label cannot share a line: the label drops
+       under the icon and keeps the whole row, instead of being squeezed to a few letters beside it. */
+    @container (max-width: 6rem) {
+      flex-wrap: wrap;
     }
   }
 

@@ -197,4 +197,21 @@ export const tests = [
       expect.equal(r.slot, 'dashed', 'slot')
     },
   },
+  {
+    name: 'listbox: option text is centred in its 44px row, the chosen bar spans the frame, and a name wider than the box ends in an ellipsis',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const measure = () => page.evaluate(() => {
+        const sel = document.querySelector('#sel-list')
+        const wrap = sel.closest('.select').getBoundingClientRect()
+        const o = sel.querySelector('option:checked'), cs = getComputedStyle(o), b = o.getBoundingClientRect()
+        return { h: b.height, pt: parseFloat(cs.paddingTop), pb: parseFloat(cs.paddingBottom), lh: parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2, left: b.left - wrap.left, right: wrap.right - b.right, textOverflow: cs.textOverflow, overflow: cs.overflow, rem: parseFloat(getComputedStyle(document.documentElement).fontSize) }
+      })
+      const r = await measure()
+      expect.ok(r.h >= r.rem * 2.75 - 0.5, `the row is at least 44px (got ${r.h}px)`)
+      expect.ok(Math.abs(r.pt - r.pb) <= 1 && r.pt > 4, `the line is centred: ${r.pt}px above, ${r.pb}px below (an <option> does not centre itself)`)
+      expect.ok(r.left <= 8 && r.right <= 8, `the chosen bar spans the frame (${r.left}px / ${r.right}px from it), it does not float inside it`)
+      expect.equal(r.textOverflow, 'ellipsis', 'a name too wide for the box gets an ellipsis, not a hard cut under the frame')
+    },
+  },
 ]

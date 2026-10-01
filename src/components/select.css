@@ -45,13 +45,18 @@
   .select {
     --lift: 0;
     --fill: 0;
-    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    /* A raised select with its end slot FILLED (ink) would fuse with its ink shadow into one lump, like a
+       filled button does (see button.css): the lift opens a gap in the surface colour, and the shadow moves
+       out by the same amount so it keeps its 4px. */
+    --_gap: calc(var(--lift) * var(--fill) * var(--bw));
+    --_halo: 0 0 0 var(--_gap) var(--focus-halo, var(--paper));
+    --_shadow: calc(var(--lift) * var(--space-1) + var(--_gap)) calc(var(--lift) * var(--space-1) + var(--_gap)) 0 0 var(--line);
 
     position: relative;
     display: block;
     isolation: isolate;
     min-block-size: var(--_h);
-    box-shadow: var(--_inset), var(--_shadow);
+    box-shadow: var(--_inset), var(--_halo), var(--_shadow);
     transform: translate(
       calc(var(--lift) * var(--space-1) / -2 * var(--move)),
       calc(var(--lift) * var(--space-1) / -2 * var(--move))
@@ -155,6 +160,7 @@
       --lift: 0;
       --fill: 0;
       --_shadow: 0 0 0 0 transparent;
+      --_halo: 0 0 0 0 transparent;
 
       &::before {
         border-style: dashed;
@@ -174,12 +180,20 @@
         display: none;
       }
       > select {
-        padding-block: var(--space-2);
-        padding-inline: calc(var(--_px) - 2 * var(--_bw));
+        /* edge to edge: the chosen option's bar spans the frame, and the TEXT keeps the inset every other
+           field has (so "Colours" lines up with a closed select's value). A bar floating 12px inside the
+           frame with the text a further 8px in looked like a rendering fault. */
+        padding: 0;
         cursor: default;
         option {
+          /* min-block-size alone leaves the text at the TOP of a 44px row (an <option> does not centre its
+             line), so the row's height comes from padding: half of what the line leaves free, each side */
           min-block-size: var(--hit);
-          padding-inline: var(--space-2);
+          padding-block: calc((var(--hit) - 1lh) / 2);
+          padding-inline: calc(var(--_px) - 2 * var(--_bw));
+          /* an option cannot wrap: a name wider than the box ends in an ellipsis, not under the frame */
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         /* The chosen option(s). The solid paper fill set on every option above also erases the
            platform's own "selected" grey, so without this rule a list that is not focused shows NO
@@ -200,10 +214,11 @@
       outline: 0;
       box-shadow: none;
     }
-    .select:has(> select:focus-visible) {
+    /* .is-focus (docs and tests) draws the same ring as a real focus */
+    .select:is(.is-focus, :has(> select:focus-visible)) {
       outline: var(--ring) solid var(--focus);
       outline-offset: var(--ring-gap, var(--ring-offset));
-      box-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper), var(--_inset), var(--_shadow);
+      box-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper), var(--_inset), var(--_halo), var(--_shadow);
     }
   }
 
@@ -226,7 +241,7 @@
         background-color: ButtonText;
       }
     }
-    .select:has(> select:focus-visible) {
+    .select:is(.is-focus, :has(> select:focus-visible)) {
       outline: var(--bw-heavy) solid Highlight;
       outline-offset: 0;
     }

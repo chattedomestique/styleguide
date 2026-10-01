@@ -265,6 +265,12 @@
     &:is(.is-focus, :has(> input:focus-visible)) {
       --lift: 1;
     }
+    /* a forced focus (the docs' specimen, the specs) draws the same ring round the track as a real one */
+    &.is-focus > input::before {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-offset);
+      box-shadow: 0 0 0 var(--ring-offset) var(--paper), var(--_shadow);
+    }
     &:is(:active, .is-active):not(:has(> input:disabled)) {
       --lift: 0;
       transition-duration: var(--dur-press);
@@ -311,6 +317,9 @@
       &:disabled::after {
         background-color: GrayText;
       }
+    }
+    .switch.is-focus > input::before {
+      outline: var(--bw-heavy) solid Highlight;
     }
     .switch:has(> input:disabled) {
       color: GrayText;

@@ -193,10 +193,11 @@ export const tests = [
         const gc = getComputedStyle(g)
         const sel = g.querySelector('.choice:has(input:checked)'); const un = g.querySelector('.choice:not(:has(input:checked))')
         const sc = getComputedStyle(sel), uc = getComputedStyle(un)
-        return { ring: gc.outlineStyle, rw: parseFloat(gc.outlineWidth), trackRadius: gc.borderTopLeftRadius, selBorder: sc.borderTopColor, unBorder: uc.borderTopColor, selW: sc.borderTopWidth, selBg: sc.backgroundColor, unBg: uc.backgroundColor, selInk: sc.color, unInk: uc.color, h: sel.querySelector('input').getBoundingClientRect().height }
+        return { ring: gc.outlineStyle, rw: parseFloat(gc.outlineWidth), trackRadius: gc.borderTopLeftRadius, trackH: g.getBoundingClientRect().height, selBorder: sc.borderTopColor, unBorder: uc.borderTopColor, selW: sc.borderTopWidth, selBg: sc.backgroundColor, unBg: uc.backgroundColor, selInk: sc.color, unInk: uc.color, h: sel.querySelector('input').getBoundingClientRect().height }
       })
       expect.ok(info.ring !== 'none' && info.rw >= 3, 'the track wears the 3px ring')
-      expect.ok(parseFloat(info.trackRadius) >= 100, 'a pill track: ' + info.trackRadius)
+      // one row: the radius is half the track's height, i.e. a full pill (it is no longer 999px, so that a wrapped track stays a rounded rectangle: see the 320px spec below)
+      expect.ok(parseFloat(info.trackRadius) >= info.trackH / 2 - 0.5, 'a pill track: radius ' + info.trackRadius + ' in a box ' + info.trackH + 'px tall')
       expect.equal(info.selW, '2px', 'the selected segment has its own 2px frame')
       expect.ok(info.selBorder !== info.unBorder, 'which the others do not show')
       expect.ok(info.selBg !== info.unBg && info.selInk !== info.unInk, 'fill and text flip')
@@ -298,6 +299,60 @@ export const tests = [
       })
       expect.ok(r.rows >= 2, 'this width wraps the four segments: ' + r.rows + ' row(s)')
       expect.equal(r.overlap, 0, 'no two segment hit areas overlap')
+    },
+  },
+  {
+    name: 'segmented wrapped onto two rows (320 px): the track is a rounded rectangle, not an oval; segment corners sit inside its corners; unselected segments paint nothing over its frame',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const r = await page.evaluate(() => {
+        const g = document.querySelector('[data-variant=segmented]:has(input[name=sg-range])')
+        const gs = getComputedStyle(g), box = g.getBoundingClientRect()
+        const segs = [...g.children].map((c) => { const cs = getComputedStyle(c); return { r: parseFloat(cs.borderTopLeftRadius), bg: cs.backgroundColor, checked: c.querySelector('input').checked } })
+        return { h: box.height, radius: parseFloat(gs.borderTopLeftRadius), pad: parseFloat(gs.paddingTop), bw: parseFloat(gs.borderTopWidth), segs }
+      })
+      expect.ok(r.h > 80, 'this width wraps to two rows (' + r.h + 'px tall)')
+      expect.ok(r.radius < r.h / 2 - 8, `a wrapped track is a rounded rectangle: radius ${r.radius}px in a ${r.h}px box`)
+      for (const s of r.segs) {
+        expect.ok(Math.abs(s.r - (r.radius - r.pad - r.bw)) <= 1, `a segment's corner is concentric with the track's (${s.r}px vs ${r.radius - r.pad - r.bw}px)`)
+        if (!s.checked) expect.equal(s.bg, 'rgba(0, 0, 0, 0)', 'an unselected segment paints nothing over the track and its frame')
+      }
+    },
+  },
+  {
+    name: 'choice card in a narrow card (200% text): the corner mark moves above the title and the title gets the whole width; in a wide card the mark stays beside it',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const measure = () => page.evaluate(() => {
+        const card = document.querySelector('.choice-card:has(input[name=cc-extra])')
+        const body = card.querySelector('.card__body'), first = body.firstElementChild
+        const cs = getComputedStyle(first), bs = getComputedStyle(body)
+        const content = body.clientWidth - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight)
+        return { padEnd: parseFloat(cs.paddingRight), titleW: first.getBoundingClientRect().width, content, cardW: card.getBoundingClientRect().width, rem: parseFloat(getComputedStyle(document.documentElement).fontSize) }
+      })
+      const wide = await measure()
+      expect.ok(wide.cardW > wide.rem * 12, `a wide card (${Math.round(wide.cardW)}px): the mark is beside the title`)
+      expect.ok(wide.padEnd > 0, 'the title keeps clear of the mark')
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+      const narrow = await measure()
+      expect.ok(narrow.cardW <= narrow.rem * 12, `a narrow card (${Math.round(narrow.cardW)}px = ${(narrow.cardW / narrow.rem).toFixed(1)}rem)`)
+      expect.equal(narrow.padEnd, 0, 'the title no longer reserves a column for the mark')
+      expect.ok(narrow.titleW >= narrow.content - 1, `the title has the whole width (${Math.round(narrow.titleW)} of ${Math.round(narrow.content)}px)`)
+    },
+  },
+  {
+    name: 'a forced .is-focus specimen draws the same ring round the box as real keyboard focus',
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const forced = await pseudo(page, '#states ~ .demo .choice.is-focus > input', '::before', ['outlineStyle', 'outlineWidth', 'outlineOffset'])
+      expect.equal(forced.outlineStyle, 'solid', 'the forced focus specimen has a ring')
+      await page.keyboard.press('Tab')
+      await page.locator('#states ~ .demo input[name=st-a]').focus()
+      const real = await pseudo(page, '#states ~ .demo input[name=st-a]', '::before', ['outlineStyle', 'outlineWidth', 'outlineOffset'])
+      expect.equal(forced.outlineStyle, real.outlineStyle, 'same style as real focus')
+      expect.equal(forced.outlineWidth, real.outlineWidth, 'same width as real focus')
+      expect.equal(forced.outlineOffset, real.outlineOffset, 'same offset as real focus')
     },
   },
 ]

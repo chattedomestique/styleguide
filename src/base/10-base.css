@@ -160,7 +160,16 @@
     outline: var(--ring) solid var(--focus);
     outline-offset: var(--ring-gap, var(--ring-offset));
   }
-  :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"]):focus-visible {
+  /* The same ring for a FORCED focus (.is-focus: the docs' state specimens and the specs), on the
+     controls that can really take focus. A specimen that shows no ring teaches nothing about the most
+     important state. Zero specificity, so a component that draws its own still wins. A range input is left
+     out: its focus is drawn on the thumb by its component (slider, scrubber), and the a11y gate tells
+     "is a ring drawn?" for a range by comparing it focused and not, which a forced ring would hide. */
+  :where(:is(a, button, input:not([type="range"]), select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"]).is-focus) {
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-gap, var(--ring-offset));
+  }
+  :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"]):is(:focus-visible, .is-focus:not([type="range"])) {
     --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
     box-shadow: var(--focus-shadow);
   }
@@ -213,7 +222,8 @@
      The browser replaces colours with the reader's palette and deletes shadows and
      backgrounds. Structure lives in real borders and outlines, not shadows. */
   @media (forced-colors: active) {
-    :where(:focus-visible) {
+    :where(:focus-visible),
+    :where(:is(a, button, input:not([type="range"]), select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"]).is-focus) {
       outline: var(--bw-heavy) solid Highlight;
       outline-offset: var(--ring-gap, var(--ring-offset));
       box-shadow: none;

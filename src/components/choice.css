@@ -188,7 +188,9 @@
       /* Centre the first line on the 44 px row, whatever the text size. */
       padding-block: calc((var(--hit) - 1lh) / 2);
       font: var(--type-body);
-      overflow-wrap: anywhere;
+      /* between words first: "anywhere" also shrinks a .choice's min-content to one letter, so an inline
+         group squeezed its options (and their words) instead of wrapping them onto the next row */
+      overflow-wrap: break-word;
     }
     .choice__hint {
       display: block;
@@ -204,6 +206,12 @@
     }
     &:is(.is-focus, :has(> input:focus-visible)) {
       --lift: 1;
+    }
+    /* a forced focus (the docs' specimen, the specs) draws the same ring round the box as a real one */
+    &.is-focus > input::before {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-offset);
+      box-shadow: 0 0 0 var(--ring-offset) var(--paper), var(--_inset), var(--_shadow);
     }
     /* Press: back onto the surface, starting on the first frame (130 ms). After hover so it wins. */
     &:is(:active, .is-active):not(:has(> input:disabled)) {
@@ -353,6 +361,15 @@
     .card__body > :first-child {
       padding-inline-end: calc(var(--_mark) + var(--space-3));
     }
+    /* In a narrow card (under 12rem: a phone at 200% text, where the card is about 7rem) the title cannot share
+       its line with the mark: it was left about 5rem and shattered ("Offli / ne / dec / ks"). The mark keeps its
+       corner and the first line starts BELOW it, so the words get the whole width. */
+    @container card (inline-size <= 12rem) {
+      .card__body > :first-child {
+        padding-inline-end: 0;
+        margin-block-start: calc(var(--_mark) + var(--space-2));
+      }
+    }
 
     /* raised where a pointer can hover, and on keyboard focus */
     @media (hover: hover) {
@@ -425,10 +442,17 @@
     color: var(--ink);
     background: var(--paper);
     border: var(--bw) solid var(--line);
-    border-radius: var(--radius-pill);
+    /* A pill is for ONE row. The radius is half the one-row height (segment + padding + frame), not 999px, so a
+       track that wraps to a second row (320 px wide, or 200% text) stays a rounded rectangle and not an oval;
+       and each segment's radius is the track's minus the padding and the frame, so a segment's corner sits
+       exactly inside the track's and never paints over its frame. */
+    --_seg-r: min(var(--radius-pill), calc(var(--ctl-sm) / 2));
+    border-radius: min(var(--radius-pill), calc(var(--ctl-sm) / 2 + var(--space-1) + var(--bw)));
 
     > .choice {
-      --_seg-bg: var(--paper);
+      /* transparent, not --paper: the track already supplies the paper, and a second paper layer is what painted
+         over the track's frame at its curved corners */
+      --_seg-bg: transparent;
       --_seg-ink: var(--ink);
       --_seg-line: transparent;
 
@@ -445,7 +469,7 @@
       color: var(--_seg-ink);
       background: var(--_seg-bg);
       border: var(--bw) solid var(--_seg-line);
-      border-radius: var(--radius-pill);
+      border-radius: var(--_seg-r);
       text-align: center;
 
       /* the input covers the segment and reaches 44 px tall */
@@ -456,7 +480,7 @@
         inset-inline: calc(var(--bw) * -1);
         inline-size: auto;
         block-size: auto;
-        border-radius: var(--radius-pill);
+        border-radius: var(--_seg-r);
         &::before,
         &::after {
           content: none;
@@ -525,6 +549,9 @@
       &:disabled::after {
         background-color: GrayText;
       }
+    }
+    .choice.is-focus > input::before {
+      outline: var(--bw-heavy) solid Highlight;
     }
     .choice:has(> input:disabled) {
       color: GrayText;
