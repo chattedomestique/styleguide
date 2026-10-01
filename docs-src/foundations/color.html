@@ -276,7 +276,7 @@
 <p class="t-meta">The photo here is the worst case, pure white. White on <code>--scrim</code> over it measures 5.74:1 and on <code>--scrim-strong</code> 10.37:1, both over the 4.5:1 floor. A swatch cannot rate a translucent colour, so the contrast test does it by compositing over white.</p>
 
 <h2 id="floors">What is guaranteed, and against what</h2>
-<p>The floor columns are what <code>tests/contrast.mjs</code> enforces for every theme, both contrast modes and all six palettes. The measured columns are the lowest ratio across those six palettes, as <em>light / dark</em>. A floor is a promise; a measured value is a fact about today's knobs and moves if you change them. Measured on 2026-09-30, 3,576 checks, all passing; <code>node tests/contrast.mjs --all</code> prints every pair.</p>
+<p>The floor columns are what <code>tests/contrast.mjs</code> enforces for every theme, both contrast modes and all six palettes. The measured columns are the lowest ratio across those six palettes, as <em>light / dark</em>. A floor is a promise; a measured value is a fact about today's knobs and moves if you change them. Measured on 2026-09-30, all passing; <code>node tests/contrast.mjs --all</code> prints every pair.</p>
 <div class="table-wrap"><table class="docs-table" id="floors-table">
   <caption class="sr-only">Contrast floors enforced by the test and the worst ratios measured</caption>
   <thead><tr><th>Text or shape</th><th>Against</th><th>Used for</th><th class="num">Floor</th><th class="num">Floor, higher contrast</th><th class="num">Worst, light / dark</th><th class="num">Worst, higher contrast</th></tr></thead>
@@ -373,11 +373,11 @@
   </tbody>
 </table></div>
 <p>Two rules keep the tier trustworthy. First, the OS query block and the <code>data-contrast="more"</code> block in each token file are copies of each other, and <code>tests/lint.mjs</code> fails if they differ. Second, <code>tests/contrast.mjs</code> renders each palette with the media query and with the attribute and fails if any role differs. <code>data-contrast="off"</code> is honoured by the CSS (it ignores the OS request), but <code>SG.prefs</code> and the Appearance panel only offer <em>System</em> and <em>More</em>.</p>
-<div class="note" data-kind="warn">
-  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
   <div>
-    <strong>Higher contrast is page-wide, not an island</strong>
-    <p>The knob overrides are declared on <code>:root</code> only, so <code>&lt;div data-contrast="more"&gt;</code> changes nothing (measured: <code>--k-ink-l</code> stays 0.2 inside it). Theme, palette and corners can be islands; contrast and motion cannot.</p>
+    <strong>Higher contrast reaches islands</strong>
+    <p>A region can ask for more contrast with <code>&lt;div data-contrast="more"&gt;</code> on a normal page (measured: <code>--k-ink-l</code> goes from 0.2 to 0.1 inside it), and a palette island inside a higher-contrast page gets the boost as well, because the knob block is repeated for <code>[data-palette]</code>. <code>tests/contrast.mjs</code> checks both cases. Motion is the exception: <code>data-motion</code> works on <code>&lt;html&gt;</code> only.</p>
   </div>
 </div>
 <div class="demo" data-nocode>
@@ -416,72 +416,72 @@
   <div class="demo__stage">
     <div data-f="pals">
       <div data-f="pair">
-        <div data-f="island" data-palette="default" data-theme="light">
+        <div data-f="island" data-palette="default" data-theme="light" data-corners="square">
           <p class="t-label">Default, light</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
-        <div data-f="island" data-palette="default" data-theme="dark">
+        <div data-f="island" data-palette="default" data-theme="dark" data-corners="square">
           <p class="t-label">Default, dark</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
       </div>
       <div data-f="pair">
-        <div data-f="island" data-palette="mint" data-theme="light">
+        <div data-f="island" data-palette="mint" data-theme="light" data-corners="square">
           <p class="t-label">Mint, light</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
-        <div data-f="island" data-palette="mint" data-theme="dark">
+        <div data-f="island" data-palette="mint" data-theme="dark" data-corners="square">
           <p class="t-label">Mint, dark</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
       </div>
       <div data-f="pair">
-        <div data-f="island" data-palette="periwinkle" data-theme="light">
+        <div data-f="island" data-palette="periwinkle" data-theme="light" data-corners="square">
           <p class="t-label">Periwinkle, light</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
-        <div data-f="island" data-palette="periwinkle" data-theme="dark">
+        <div data-f="island" data-palette="periwinkle" data-theme="dark" data-corners="square">
           <p class="t-label">Periwinkle, dark</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
       </div>
       <div data-f="pair">
-        <div data-f="island" data-palette="sand" data-theme="light">
+        <div data-f="island" data-palette="sand" data-theme="light" data-corners="square">
           <p class="t-label">Sand, light</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
-        <div data-f="island" data-palette="sand" data-theme="dark">
+        <div data-f="island" data-palette="sand" data-theme="dark" data-corners="square">
           <p class="t-label">Sand, dark</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
       </div>
       <div data-f="pair">
-        <div data-f="island" data-palette="cream" data-theme="light">
+        <div data-f="island" data-palette="cream" data-theme="light" data-corners="square">
           <p class="t-label">Cream, light</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
-        <div data-f="island" data-palette="cream" data-theme="dark">
+        <div data-f="island" data-palette="cream" data-theme="dark" data-corners="square">
           <p class="t-label">Cream, dark</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
       </div>
       <div data-f="pair">
-        <div data-f="island" data-palette="wire" data-theme="light">
+        <div data-f="island" data-palette="wire" data-theme="light" data-corners="square">
           <p class="t-label">Wire, light</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
         </div>
-        <div data-f="island" data-palette="wire" data-theme="dark">
+        <div data-f="island" data-palette="wire" data-theme="dark" data-corners="square">
           <p class="t-label">Wire, dark</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
@@ -494,7 +494,7 @@
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
   <div>
     <strong>Islands layer on the page; they do not reset it</strong>
-    <p>A palette block sets only the knobs it lists, so an island keeps every other knob from the nearest ancestor. A <code>mint</code> island inside a <code>wire</code> page keeps wire's stepped tone lightness and grey status chroma, because mint does not set them; a <code>data-palette="default"</code> island inside a mint page is still mint, because the default has no block to reset to; and an island inside a higher-contrast page keeps its own accent, because the collapse to ink happens in knobs the palette overrides. Use island palettes for a region that differs from a default page, not to undo another palette.</p>
+    <p>A palette block sets only the knobs it lists, so an island keeps every other knob from the nearest ancestor. A <code>mint</code> island inside a <code>wire</code> page keeps wire's stepped tone lightness and grey status chroma, because mint does not set them; a <code>data-palette="default"</code> island inside a mint page is still mint, because the default has no block to reset to. Corner style layers the same way: an island on a soft page has soft corners unless it sets <code>data-corners="square"</code>, which the islands here do. Use island palettes for a region that differs from a default page, not to undo another palette.</p>
   </div>
 </div>
 <div class="table-wrap"><table class="docs-table" id="pal-table">
@@ -539,12 +539,12 @@
         </fieldset>
       </div>
       <div data-f="pair" id="lab-islands">
-        <div data-f="island" data-palette="lab" data-theme="light" id="lab-light">
+        <div data-f="island" data-palette="lab" data-theme="light" data-corners="square" id="lab-light">
           <p class="t-label">Your palette, light</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <ul data-f="read" role="list" data-read></ul>
         </div>
-        <div data-f="island" data-palette="lab" data-theme="dark" id="lab-dark">
+        <div data-f="island" data-palette="lab" data-theme="dark" data-corners="square" id="lab-dark">
           <p class="t-label">Your palette, dark</p>
           <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
           <ul data-f="read" role="list" data-read></ul>
@@ -565,7 +565,7 @@
 </ol>
 <div class="demo" data-layout="row" data-nocode>
   <div class="demo__stage">
-    <div data-f="island" data-palette="cream" data-theme="light">
+    <div data-f="island" data-palette="cream" data-theme="light" data-corners="square">
       <p class="t-label">Cream, light</p>
       <div class="cluster">
         <button class="btn" data-variant="primary" type="button">Save deck</button>

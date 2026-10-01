@@ -319,11 +319,11 @@ self.addEventListener('fetch', (event) =&gt; {
     <tr role="row"><td role="cell" data-label="Element"><a href="@/components/toast.html">Toast</a></td><td role="cell" data-label="Shows">"Back online. 2 changes synced."</td><td role="cell" data-label="When">At the moment it changes back. Passing, so it does not repeat the banner.</td></tr>
   </tbody>
 </table></div>
-<p>Press the button to simulate the connection going and coming back. The banner appears and is announced once, politely; coming back is a toast.</p>
+<p>Press the button to simulate the connection going and coming back. The banner appears inside the phone and is announced once, politely. Coming back is a toast: the real <a href="@/components/toast.html">Toast</a> is pinned to the bottom of the window, not the bottom of the phone, so look there after the second press.</p>
 <div class="demo" data-layout="stack">
   <div class="demo__stage">
     <div class="phone">
-      <div class="phone__screen stack" data-gap="3">
+      <div class="phone__screen phone__screen--fit stack" data-gap="3">
         <p class="t-label">Tasks</p>
         <p class="t-title">Today</p>
         <div class="card alert" data-tone="warn" data-size="sm" id="demo-offline" hidden>
@@ -446,6 +446,8 @@ function sync() {
 </ul>
 <p>The scripts to run on a phone are on the <a href="@/accessibility/manual.html">Manual</a> page.</p>
 <style>
+/* The offline demo is short: the phone screen need not reserve 30rem of empty space under the button. */
+.phone__screen--fit { min-block-size: 0; }
 /* Schematic of a maskable icon. The square is the file, the dashed circle is the safe zone
    (a circle whose diameter is 80% of the side), the solid square is a mark that fits inside it. */
 .safezone { position: relative; inline-size: 12rem; max-inline-size: 100%; aspect-ratio: 1; flex: 0 1 auto; border: var(--bw) solid var(--line); background: var(--paper-2); }

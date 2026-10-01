@@ -28,7 +28,9 @@
   .docs-article .card__list > li { max-inline-size: none; }
   .docs-article .card__list > li + li { margin-block-start: 0; }
   .docs-article [data-f="ratios"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--space-3); }
-  .docs-article [data-f="ratios"] > div { max-inline-size: 14rem; }
+  .docs-article [data-f="ratios"] > div { min-inline-size: 0; }
+  /* A card that holds only a picture: the picture's own 2px divider would sit on the card's 2px frame and draw a 4px bottom edge. There is no body to close off, so drop it here. */
+  .docs-article [data-f="ratios"] .card__media { border-block-end: 0; }
   .docs-article [data-f="ratios"] p { margin: 0 0 var(--space-2); max-inline-size: none; }
 </style>
 
