@@ -1,0 +1,223 @@
+/*! styleguide v0.2.0 - element: button. Needs core.css. Generated from src/components/button.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Button  (layer: sg.components)              *** THE REFERENCE COMPONENT ***
+   --------------------------------------------------------------------------
+   Every other element copies this file's structure. Read it once.
+
+   A button is something you PRESS, so by the house rules it gets what pressable
+   things get: a 2px frame, a pill or circle shape, and a hard shadow that appears
+   when it can be pressed (hover / focus) and sinks away when it is.
+
+   <button class="btn">Add funds</button>                       secondary (outline; fills on hover)
+   <button class="btn" data-variant="primary">Start</button>    filled with the accent
+   <button class="btn" data-variant="tone" data-tone="3">…      filled with the tone's pill colours
+   <button class="btn" data-shape="circle" aria-label="Add"><span class="ic ic--plus" aria-hidden="true"></span></button>
+
+   data-variant   secondary (default) | primary | tone (+ data-tone="bad" for a danger button)
+   data-size      sm (36, hit area still 44) | md (44, default) | lg (56)
+   data-shape     pill (default) | circle (square box, one icon, aria-label required)
+   data-block     full width
+
+   STATES come from ARIA and native attributes, never classes:
+     :disabled / aria-disabled="true"   dashed frame, faint ink, no shadow, no hover
+     aria-pressed="true"                on: filled AND the frame doubles (a second cue that survives pale accents)
+     aria-busy="true"                   working: spinner (a pulse under reduced motion), ignores taps
+   The .is-hover / .is-focus / .is-active classes force a state for docs and tests; not API.
+
+   THE PATTERN (copy it)
+   1. Two registered numbers drive interaction: --lift (geometry) and --fill (colour).
+      Every state just sets them; ONE transition animates both (gate 4).
+   2. Private properties (--_*) hold what variants change; the base rule consumes them.
+   3. Colours are ROLES only. Radii are roles. Lines are --bw / --bw-thin.
+   4. Hit area: a ::after that grows to --hit (44px) when the drawn size is smaller.
+   5. Focus: the base ring + halo. A component that draws its own shadow keeps it:
+      box-shadow: var(--focus-shadow), <own shadow>.
+   6. Travel is multiplied by --move, so reduced motion becomes a plain fill change.
+   7. A real border always exists, so forced-colours (which deletes shadows and fills)
+      still shows the control.
+   ========================================================================== */
+
+@layer sg.components {
+  .btn {
+    --lift: 0;
+    --fill: 0;
+    --_rest-bg: var(--paper);
+    --_rest-ink: var(--ink);
+    --_on-bg: var(--accent);
+    --_on-ink: var(--on-accent);
+    --_h: var(--ctl);
+    --_px: var(--space-5);
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    --_select: 0 0 0 0 transparent;
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-block-size: var(--_h);
+    min-inline-size: var(--hit);
+    padding: 0 var(--_px);
+    margin: 0;
+    color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
+    background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--_select), var(--_shadow);
+    font: var(--type-ctl);
+    text-wrap: balance; /* a long label wraps (and the button grows) rather than being clipped at large text */
+    overflow-wrap: anywhere;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* hit area */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), var(--_select), var(--_shadow);
+    }
+
+    /* raised: where a pointer can hover, and always on keyboard focus (same lift, so both match) */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+      --lift: 1;
+      --fill: 1;
+    }
+
+    /* pressed: back onto the surface, the fill stays. After hover so it wins. */
+    &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* on: filled, and the frame doubles, so "on" does not depend on the accent being dark */
+    &[aria-pressed="true"] {
+      --fill: 1;
+      --_select: 0 0 0 var(--bw) var(--line);
+    }
+
+    /* working */
+    &[aria-busy="true"] {
+      cursor: progress;
+      pointer-events: none;
+      &::before {
+        content: "";
+        inline-size: 1.1em;
+        block-size: 1.1em;
+        flex: none;
+        border: var(--bw) solid currentColor;
+        border-inline-end-color: transparent;
+        border-radius: var(--radius-pill);
+        animation: var(--anim-spin);
+      }
+    }
+
+    /* unavailable: dashed = not here. Faint, not opacity. */
+    &:disabled,
+    &[aria-disabled="true"] {
+      --lift: 0;
+      --fill: 0;
+      --_rest-bg: transparent;
+      --_rest-ink: var(--ink-faint);
+      --_shadow: 0 0 0 0 transparent;
+      color: var(--ink-faint);
+      background: transparent;
+      border-color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+    &[aria-disabled="true"] {
+      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
+    }
+
+    /* ---- variants ---- */
+    &[data-variant="primary"] {
+      --fill: 1;
+    }
+    &[data-variant="tone"] {
+      --_rest-bg: var(--tone-bg);
+      --_rest-ink: var(--tone-ink);
+      --_on-bg: var(--tone-fill);
+      --_on-ink: var(--tone-on-fill);
+    }
+    /* ---- sizes ---- */
+    &[data-size="sm"] {
+      --_h: var(--ctl-sm);
+      --_px: var(--space-4);
+      font-size: var(--text-sm);
+    }
+    &[data-size="lg"] {
+      --_h: var(--ctl-lg);
+      --_px: var(--space-6);
+      font-size: var(--text-lg);
+    }
+    &[data-block] {
+      display: flex;
+      inline-size: 100%;
+    }
+
+    /* ---- shape: a circle is a square box holding one icon ---- */
+    &[data-shape="circle"] {
+      inline-size: var(--_h);
+      padding: 0;
+    }
+  }
+
+  /* forced colours: fills and shadows vanish, so raised/on get a heavier line instead */
+  @media (forced-colors: active) {
+    .btn {
+      border-color: ButtonText;
+      &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &[aria-pressed="true"] {
+        border-width: var(--bw-heavy);
+      }
+      &:disabled,
+      &[aria-disabled="true"] {
+        color: GrayText;
+        border-color: GrayText;
+      }
+    }
+  }
+
+  /* shared keyframes for loading */
+  @keyframes sg-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes sg-pulse {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}

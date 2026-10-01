@@ -1,0 +1,200 @@
+<!--{"title":"Contributing","group":"Project","order":4,"summary":"How to add the next example screens: the gate pipeline, the prompt to give an agent, the pull request checklist, and how to add a palette, a tone, an icon or a corner style."}-->
+<style>
+  /* A long title in the expanded 900 face does not fit the docs h1 size ("Contributing" is twelve letters):
+     size it to the column so it stays on one line at normal text size (at 200% text it wraps rather than clips).
+     The Project pages share one size so they read as a group. */
+  .docs-article h1 { font-size: clamp(1.5rem, calc((100vw - 2.5rem) / 10.4), 4rem); }
+  /* The sticky docs bar must not cover a focused link (WCAG 2.4.11). The foundation keeps focus clear of sticky chrome with
+     scroll-padding on <html> that reads --appbar-h, but the docs set --appbar-h on <body>, where <html> cannot see it. */
+  html { --appbar-h: calc(2.75rem + var(--safe-top)); }
+  /* a long word in a note (a file name, a token) must wrap at 200% text, not push the note wider than the screen */
+  .docs-article .note > div { min-inline-size: 0; }
+  .docs-article .note strong:first-child { overflow-wrap: anywhere; }
+  /* the agent prompt and the checklist are text to copy: wrap, never scroll sideways */
+  .prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--text-sm); }
+  /* Docs-only: a table of words becomes stacked rows on a phone. Each cell carries its column name (data-label)
+     and the table keeps its ARIA roles, because display: block would otherwise strip the table semantics in
+     some browsers. The same pattern as the Start and Accessibility pages. */
+  @media (max-width: 40em) {
+    .docs-table[data-stack] { min-inline-size: 0; }
+    .docs-table[data-stack],
+    .docs-table[data-stack] tbody,
+    .docs-table[data-stack] tr,
+    .docs-table[data-stack] td { display: block; }
+    .docs-table[data-stack] thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: clip; white-space: nowrap; }
+    .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
+    .docs-table[data-stack] tr:last-child { border-block-end: 0; }
+    .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
+    .docs-table[data-stack] td:first-child { font-weight: 700; }
+    .docs-table[data-stack] td:first-child::before { display: none; }
+    .docs-table[data-stack] td::before { content: attr(data-label); display: block; color: var(--ink-soft); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  }
+</style>
+<h1>Contributing</h1>
+<p class="lede">The guide grows one element at a time, from example screens the owner sends. This page is the whole routine: how a screen becomes an element, the words to hand an agent, what a pull request must show, and the four small extensions (a palette, a tone, an icon, a corner style) that need no new element.</p>
+
+<h2 id="loop">The loop</h2>
+<ol>
+  <li><strong>A screen arrives.</strong> An image, or pasted HTML and CSS. A link that cannot be opened (a login wall, a 403) does not count; see <a href="@/project/references.html#codepen">References</a>.</li>
+  <li><strong>It is analysed, not copied.</strong> Measure it, list its parts, compute its contrast, and write the notes to <code>references/screens/</code>.</li>
+  <li><strong>Each idea is sorted:</strong> already covered by an existing element (use that), worth a new element (build it), or left behind (say why). The rules in <a href="@/project/references.html#reasons">Why things were left behind</a> decide most of it.</li>
+  <li><strong>A new element goes through the gates, in order.</strong> Colour before structure hides layout problems.</li>
+  <li><strong>The pull request shows its evidence,</strong> and updates Status, Changelog and References.</li>
+</ol>
+<p>Before anything else, read <code>CLAUDE.md</code> (the rules and the commands) and <code>STYLE.md</code> (the exact values and their reasons). They are law; this page only orders the work.</p>
+
+<h2 id="gates">The gates</h2>
+<p>The owner's sheet moves every element through six gates. Do not skip ahead. The table is the same one <code>CLAUDE.md</code> carries; <a href="@/project/status.html">Status</a> records where each element stands, and the <a href="@/accessibility/checklist.html#done">Checklist</a> is the definition of done for one element.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The six gates: the question each asks and when it is closed</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Gate</th><th role="columnheader">Question</th><th role="columnheader">Closed when</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Gate">0 Brief</td><td role="cell" data-label="Question">What is it for, who presses it, what is the one idea?</td><td role="cell" data-label="Closed when">One sentence, at the top of the docs page.</td></tr>
+    <tr role="row"><td role="cell" data-label="Gate">1 Wireframe</td><td role="cell" data-label="Question">Does the structure work in <code>data-palette="wire"</code>?</td><td role="cell" data-label="Closed when">The squint test passes: colour is not hiding a layout problem.</td></tr>
+    <tr role="row"><td role="cell" data-label="Gate">2 States</td><td role="cell" data-label="Question">Rest, hover, focus, pressed, selected, disabled, busy, error: all defined?</td><td role="cell" data-label="Closed when">Every state sets <code>--lift</code> and <code>--fill</code>, and nothing else.</td></tr>
+    <tr role="row"><td role="cell" data-label="Gate">3 Colour</td><td role="cell" data-label="Question">Roles only, tones, contrast verified?</td><td role="cell" data-label="Closed when"><code>npm run lint</code> and <code>npm run test:contrast</code> are green.</td></tr>
+    <tr role="row"><td role="cell" data-label="Gate">4 Motion</td><td role="cell" data-label="Question">One transition; is reduced motion gentler?</td><td role="cell" data-label="Closed when">The spec passes with <code>reducedMotion</code>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Gate">5 Freeze</td><td role="cell" data-label="Question">Is it finished?</td><td role="cell" data-label="Closed when">Docs complete, the accessibility gate green, screenshots reviewed, and the owner has signed it off.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="steps">Step by step</h2>
+<ol>
+  <li><strong>Scaffold.</strong> <code>npm run new:component -- name --order 45</code> writes the CSS, the docs page and a spec stub, and refuses to overwrite anything. Orders are ranges: actions 10 to 19, forms 20 to 39, selection and navigation 40 to 59, surfaces 60 to 79, overlays and feedback 80 to 99, data 100 to 119, media and tools 120 to 139.</li>
+  <li><strong>Copy the structure of <code>src/components/button.css</code>.</strong> <code>--lift</code> and <code>--fill</code>, private <code>--_*</code> properties, variants through <code>data-*</code>, states through ARIA, <code>@layer sg.components</code>, the hit area, the focus ring, the hover gate, forced colours, reduced motion. Build on Card for containers instead of a parallel surface. If the element reads another element's private properties, as Select does Input's, the build records that in <code>dist/elements/manifest.json</code> as <code>buildsOn</code>, so say so in the file header.</li>
+  <li><strong>Write real HTML in the docs demos.</strong> The "Markup" disclosure is read from the live demo, so the page cannot drift. Include when to use (do and don't), every variant and size, every state, an example in context, the anatomy, an API table, a keyboard and screen-reader table, and the tokens used. Copy comes from an app: decks, wallets, tasks, streaks.</li>
+  <li><strong>Add script only if HTML and CSS cannot do it.</strong> <code>src/js/NN-name.js</code> (name it after its element, and the build's manifest attaches it to that element), an IIFE on <code>window.SG</code>, event delegation on <code>data-sg-*</code> hooks, progressive enhancement, <code>SG.announce()</code> for changes that move no focus, <code>SG.motion.reduced()</code> before animating from script.</li>
+  <li><strong>Write the spec</strong> in <code>tests/components/name.mjs</code>: keyboard, ARIA flips, focus return, and the <code>--lift</code> and <code>--fill</code> states. Follow the WAI-ARIA Authoring Practices pattern exactly; <a href="@/accessibility/patterns.html">Patterns</a> lists which element follows which, and <a href="@/accessibility/testing.html#spec">Testing</a> shows how to write the spec.</li>
+  <li><strong>Verify, then look.</strong>
+    <pre class="t-mono prompt" tabindex="-1" aria-label="Commands to verify a new element"><code>npm run build
+npm run lint
+node tests/components.mjs name
+npm run test:a11y -- --pages components/name.html
+node tests/screenshots.mjs components/name.html --width 390 --theme dark --palette mint --corners soft</code></pre>
+    Green tests do not prove it looks right. Open the screenshots at 320, 390 and 1024 pixels, light and dark, in the <code>default</code>, <code>mint</code> and <code>wire</code> palettes, with square and soft corners (<code>--matrix</code> renders the grid, <code>--selector '#examples'</code> crops). Fix what looks wrong, not only what fails. What each command can and cannot catch is on <a href="@/accessibility/testing.html">Testing</a>.</li>
+  <li><strong>Move the status.</strong> Update the table in <a href="@/project/status.html">Status</a> and in <code>STYLE.md</code> section 6, and add a line to the <a href="@/project/changelog.html">Changelog</a> and <code>STYLE.md</code> section 8.</li>
+</ol>
+
+<h2 id="prompt">The prompt to give an agent</h2>
+<p>Paste this, and attach the screens. The square brackets are for you to fill in; everything else is the job as the repository defines it. It asks for the same thing every time, so the results can be compared.</p>
+<pre class="prompt" tabindex="-1" aria-label="The prompt to give an agent"><code>You are adding what is shown in the attached example screen(s) to the style guide in this repository. Work on a branch and commit as you go. Do not push or open a pull request until I say so.
+
+READ FIRST, completely, before you change anything:
+- CLAUDE.md (the rules, the commands, the pipeline) and STYLE.md (the exact values and the reasons). They are law.
+- src/components/button.css, docs-src/components/button.html and tests/components/button.mjs: the reference element. Copy its structure. Then src/components/card.css, the owner's original.
+- docs-src/project/decisions.html: what is settled and what is still open. Do not reopen a settled one without saying why.
+- docs-src/components/: the elements that exist. Reuse before you invent.
+
+THE SCREEN(S)
+[Attach the images, or paste the HTML and CSS. If a link could not be opened, say so and ask me for the source. Never guess from a title.]
+What it is for: [the app and one line about it]
+What I like: [...]
+What to avoid: [...]
+
+STEP 1. ANALYSE. DO NOT COPY.
+Save the notes as references/screens/imgN-short-name.md (N is the next free number). Include: an inventory of every screen and element; the palette, sampled from pixels (say which values are estimates); the contrast of every text, icon and boundary pair, computed with the WCAG formula; radii, borders, shadows, spacing, sizes and touch targets; the type; each component's anatomy and states; what is generic and what is one-off decoration; every accessibility problem; and what you could not measure.
+Do not copy their colours, radii, shadows, gradients or copy. Mockups usually fail contrast and break the seven rules. Take the idea and the anatomy, and build it from roles and the owner's vocabulary.
+
+STEP 2. SORT THE IDEAS.
+For each idea write one line: already covered by an existing element (name it), new element (name it, with the owner's short style of naming), or left behind (and the reason). Do not invent a second way to do something the sheet already decided: no second type family, no third line weight, no fourth radius.
+
+STEP 3. BUILD EACH NEW ELEMENT THROUGH THE GATES, IN ORDER.
+npm run new:component -- name --order N (actions 10-19, forms 20-39, selection and navigation 40-59, surfaces 60-79, overlays and feedback 80-99, data 100-119, media and tools 120-139).
+Gate 0 brief: one sentence on the docs page. Gate 1 wireframe: it works with data-palette="wire". Gate 2 states: rest, hover, focus, pressed, selected, disabled, busy, error, each only setting --lift and --fill. Gate 3 colour: roles only. Gate 4 motion: one transition, travel multiplied by --move, reduced motion gentler and never instant. Gate 5 freeze: docs complete, accessibility gate green, screenshots reviewed.
+Rules that catch people out:
+- Only src/tokens contains a colour literal. Radii are only --radius-card, --radius-tile, --radius-ctl and --radius-pill. Line widths are --bw, --bw-thin, --bw-heavy or --ring.
+- State comes from ARIA and native attributes, never from classes. The is-* classes only force a state in the docs and the specs.
+- A shadow is hard-edged and means "you can press this". Nothing else gets one. No gradients, no blur, no text-shadow, no !important, no transition: all.
+- Never colour alone: selected, on, error and status always have a second cue. Never opacity on text.
+- Every tappable thing has a 44px hit area (the ::after pattern in button.css), 8px between targets. Every icon-only control has an aria-label. Every gesture has a click or key equivalent.
+- Native elements first. Roving tabindex, Esc and focus return as in the WAI-ARIA Authoring Practices.
+- rem for sizes, logical properties for direction, hover gated by @media (hover: hover), symbols as icon masks and never text glyphs or emoji.
+- Copy in the docs comes from an app (decks, wallets, tasks, streaks), never placeholder text.
+- If a role or token is missing, add it in src/tokens with a comment and a line in tests/contrast.mjs. Do not inline a colour.
+- Never edit dist/ or docs/ by hand. Run npm run build.
+
+STEP 4. VERIFY, THEN LOOK AT IT.
+npm run build, npm run lint, npm run test:lint, node tests/components.mjs name, npm run test:a11y -- --pages components/name.html, and npm run test:contrast if you touched a colour. Then run node tests/screenshots.mjs on every page you made at 320, 390 and 1024 pixels, light and dark, in the default, mint and wire palettes, square and soft corners, and open the images. Fix what looks wrong, not only what fails. Do not silence a failing check: fix the cause, or change the rule with the reason written down.
+When the checks are green, run npm run build one last time and commit the regenerated dist/ and docs/ with your source. CI runs npm run build:check and fails when they are stale.
+
+STEP 5. REPORT, plainly.
+- What you built: class names, data attributes, docs pages.
+- The exact commands you ran and what each printed at the end.
+- What is untested or weak. Tests run in Chromium only; say so, and say what a person still has to try on a real phone.
+- What you took from the screens and what you left behind and why. Add it to docs-src/project/references.html.
+- Status and Changelog: update docs-src/project/status.html, docs-src/project/changelog.html, and STYLE.md sections 6 and 8.
+- Anything you needed in src/tokens, src/base, src/layout or scripts that you did not change, as a request.</code></pre>
+
+<h2 id="checklist">Pull request checklist</h2>
+<p>Put this in the description of every pull request that adds or changes an element, and tick what is true. Anything you could not do goes in the description in words, not as a silent blank.</p>
+<pre class="prompt" tabindex="-1" aria-label="The pull request checklist, as text to paste"><code>- [ ] npm run build was run, and the generated dist/ and docs/ are committed with the source (npm run build:check passes; CI runs it)
+- [ ] npm run lint has no errors; each warning and each lint-allow waiver is explained
+- [ ] npm run test:lint passes (add a case to tests/lint-cases.json when you add a lint rule)
+- [ ] npm run test:contrast passes (required if a colour, a tone or a palette changed)
+- [ ] The spec in tests/components/ passes, and covers keyboard, ARIA flips, focus return and --lift / --fill
+- [ ] npm run test:a11y passes for each new page in all five appearances (CI runs two on a pull request, so run the rest yourself)
+- [ ] Screenshots reviewed at 320, 390 and 1024 px; light and dark; default, mint and wire; square and soft corners; high contrast
+- [ ] Squint test: it reads in data-palette="wire". Cover the logo: it could not be any product.
+- [ ] Roles only, no literals; no !important, gradients, blur or transition: all
+- [ ] Looks right in square and soft corners with no corner-specific code
+- [ ] 320 px and 200% text do not clip or scroll sideways
+- [ ] Keyboard follows the WAI-ARIA pattern; focus ring visible on tones and on ink; Esc and focus return for overlays
+- [ ] Names, roles and states exposed; icon-only controls labelled; a live region for changes with no focus move
+- [ ] Targets 44 px or more with 8 px between; every gesture has a tap or key equivalent
+- [ ] State is never colour alone; a real border exists for forced colours
+- [ ] Reduced motion: no travel, nothing instant, nothing bouncing
+- [ ] Docs page complete: when to use, variants, states, in context, anatomy, API, keyboard and screen reader, tokens; links and anchors resolve
+- [ ] References updated (what was taken, what was left behind and why), if the work came from a new screen
+- [ ] Status updated (Project page and STYLE.md section 6) and Changelog updated (Project page and STYLE.md section 8)
+- [ ] Anything not tested, and every known limit, is written in this description</code></pre>
+
+<h2 id="adding">Adding things</h2>
+<p>These four extensions need no new element. Each one ends with the build, the gate and a look.</p>
+
+<h3 id="add-palette">A palette</h3>
+<ol>
+  <li>In <code>src/tokens/40-palettes.css</code>, copy a block such as <code>[data-palette="mint"]</code> and rename it. It sets knobs only, never a colour: <code>--k-neutral-h</code> and <code>--k-neutral-c</code> (the grey's tint), <code>--k-canvas-l</code> and the canvas chroma, <code>--k-accent-h</code> and <code>--k-accent-c</code>, and a hue and vividness for each of the six tone slots (<code>--tone-h-1</code>, <code>--tone-c-1</code>, and so on up to 6).</li>
+  <li>A light accent, like cream's yellow, needs dark text on it: set a dark <code>--k-on-accent-*</code> and <code>--k-accent-ink-*</code>.</li>
+  <li>Add the name to <code>PALETTES</code> in <code>tests/contrast.mjs</code> and to <code>OPTIONS.palette</code> in <code>docs-src/assets/docs.js</code>, so the appearance panel offers it. The <a href="@/foundations/color.html">Colour</a> page lists the palettes; add it there too.</li>
+  <li><code>npm run build && npm run test:contrast</code>. <a href="@/start/customize.html#palette">Customize</a> walks through a worked palette that passes the matrix. Every pair is checked in a real browser in every theme and contrast mode. Lightness gaps are fixed by the shared knobs, so a palette that only moves hue and chroma cannot break contrast; if it does, the knobs are wrong, not the test. Then screenshot a few pages with <code>--palette name</code>.</li>
+</ol>
+
+<h3 id="add-tone">A tone</h3>
+<p>The six numbered slots are the API and stay six: a palette decides each slot's hue, which is the first bullet here.</p>
+<ul>
+  <li><strong>A slot's hue.</strong> Set <code>--tone-h-N</code> (hue) and <code>--tone-c-N</code> (vividness, 0 is grey) inside a palette block. The pastel fill, its text and its soft text are derived, and each pair clears 7:1; the text on the solid pill clears 4.5:1.</li>
+  <li><strong>A new status tone</strong> (beyond <code>ok</code>, <code>warn</code>, <code>bad</code> and <code>info</code>). In <code>src/tokens/20-tones.css</code> add a <code>--hue-name</code> beside <code>--hue-ok</code>, add a <code>[data-tone]</code> rule for your name that sets <code>--th</code> and <code>--tc</code>, copying the four beside it, and add the selector to the <code>:is(…)</code> list that computes <code>--tone-bg</code> and <code>--tone-ink</code>. Add the name to <code>TONES</code> in <code>tests/lib/rules.mjs</code>, or the lint will call your new value a typo. <code>tests/contrast.mjs</code> reads tones from the built CSS, so run <code>npm run build</code> first and it is tested. Status always carries an icon or words as well as the colour, so <a href="@/components/tag.html">Tag</a> needs a symbol for it.</li>
+  <li><strong>Tones carry rhythm, never meaning.</strong> A tone alone must not say "error".</li>
+</ul>
+<p>The roles and their maths are on <a href="@/foundations/tones.html">Tones</a>.</p>
+
+<h3 id="add-icon">An icon</h3>
+<ol>
+  <li>Drop a 24 by 24 stroke SVG in <code>src/icons/</code>. The file name is the id: <code>bell.svg</code> becomes <code>ic--bell</code>. The <code>viewBox</code> must be <code>0 0 24 24</code> (the build refuses anything else), and the drawing is stroke-only: the build re-strokes every icon at 2px with square caps, so the file's own stroke settings do not matter. Lucide icons (ISC) are welcome; keep <code>src/icons/LICENSE-lucide.txt</code> beside them.</li>
+  <li>Use it as <code>&lt;span class="ic ic--bell" aria-hidden="true"&gt;&lt;/span&gt;</code>. The build fails on any page that uses an icon class with no file behind it, which is the typo check. Size it with <code>--ic-size</code>.</li>
+  <li><code>npm run build</code> writes it into <code>dist/icons.css</code>. The owner's five drawings (arrow, plus, minus, close, check) are in the main bundle; every other icon needs <code>icons.css</code>.</li>
+  <li>An icon never replaces a word. A control whose only content is an icon gets an <code>aria-label</code> on the control, not on the icon. See <a href="@/foundations/icons.html">Icons</a>.</li>
+</ol>
+
+<h3 id="add-corners">A corner style</h3>
+<ol>
+  <li>In <code>src/tokens/30-corners.css</code> add a block such as <code>[data-corners="name"]</code> that sets the three roles and nothing else: <code>--radius-card</code>, <code>--radius-tile</code> and <code>--radius-ctl</code>. Circles and pills stay <code>--radius-pill</code>. Components must not change, and the lint refuses any radius that is not a role.</li>
+  <li>Add the value to <code>OPTIONS.corners</code> in <code>docs-src/assets/docs.js</code> so the appearance panel offers it.</li>
+  <li>Look at Card, Dock, Sheet, Field and Tabs with <code>--corners name</code>. Watch for a focus ring clipped by a large radius, and remember one shape gesture per card: round it or notch it, never both. The notch card stays square.</li>
+</ol>
+
+<h3 id="add-token">A token or a role</h3>
+<p>Declare it in <code>src/tokens/</code> with a comment saying what it is for, document it in <code>STYLE.md</code> section 2, and, if it is a colour pair, add a line for it in <code>buildPairs()</code> in <code>tests/contrast.mjs</code> (a pair read inside a tone goes in <code>TONE_PAIRS</code>). A role that is used as text or as a boundary and is not listed there is unverified. The lint's drift check fails if <code>CLAUDE.md</code>, <code>STYLE.md</code> or <code>README.md</code> name a token or class that does not exist.</p>
+
+<h2 id="waivers">When the lint is wrong</h2>
+<p>Do not silence a failing check. Fix the cause, or change the rule with the reason written down. If a line is legitimately outside a rule, waive that one line with a reason the next reader can judge: <code>/* lint-allow rule: why */</code> on the line or the one above, or <code>lint-allow-file</code> for a whole file (<code>&lt;!-- lint-allow-file colour: why --&gt;</code> in a docs page). Every run lists the waivers it honoured, so an exception is allowed and never invisible.</p>
+
+<h2 id="dont">Do not</h2>
+<ul>
+  <li>Do not edit <code>dist/</code> or <code>docs/</code> by hand. Edit <code>src/</code> and <code>docs-src/</code>, then run the build.</li>
+  <li>Do not add runtime dependencies or a bundler. <code>package.json</code> holds dev tooling only.</li>
+  <li>Do not use <code>!important</code> (except <code>[hidden]</code> and <code>.sr-only</code>), <code>transition: all</code>, <code>outline: none</code> without a replacement, a <code>tabindex</code> above zero, <code>user-scalable=no</code>, a <code>div</code> with <code>role="button"</code>, gradients, blur or <code>text-shadow</code>.</li>
+  <li>Do not copy CSS from a reference design. Copy the idea, and build it from roles.</li>
+  <li>Do not invent a second way to do something the owner's sheet already decided.</li>
+  <li>Do not claim what was not tested. Tests run in Chromium only; say so.</li>
+</ul>

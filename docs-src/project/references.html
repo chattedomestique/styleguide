@@ -1,0 +1,481 @@
+<!--{"title":"References","group":"Project","order":3,"summary":"For each reference screen and repository the owner supplied: what idea was taken, what was left behind and why, and what could not be read."}-->
+<style>
+  /* A long title in the expanded 900 face does not fit the docs h1 size ("Contributing" is twelve letters):
+     size it to the column so it stays on one line at normal text size (at 200% text it wraps rather than clips).
+     The Project pages share one size so they read as a group. */
+  .docs-article h1 { font-size: clamp(1.5rem, calc((100vw - 2.5rem) / 10.4), 4rem); }
+  /* The sticky docs bar must not cover a focused link (WCAG 2.4.11). The foundation keeps focus clear of sticky chrome with
+     scroll-padding on <html> that reads --appbar-h, but the docs set --appbar-h on <body>, where <html> cannot see it. */
+  html { --appbar-h: calc(2.75rem + var(--safe-top)); }
+  /* a long word in a note (a file name, a token) must wrap at 200% text, not push the note wider than the screen */
+  .docs-article .note > div { min-inline-size: 0; }
+  .docs-article .note strong:first-child { overflow-wrap: anywhere; }
+  /* Docs-only: a table of words becomes stacked rows on a phone. Each cell carries its column name (data-label)
+     and the table keeps its ARIA roles, because display: block would otherwise strip the table semantics in
+     some browsers. The same pattern as the Start and Accessibility pages. */
+  @media (max-width: 40em) {
+    .docs-table[data-stack] { min-inline-size: 0; }
+    .docs-table[data-stack],
+    .docs-table[data-stack] tbody,
+    .docs-table[data-stack] tr,
+    .docs-table[data-stack] td { display: block; }
+    .docs-table[data-stack] thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: clip; white-space: nowrap; }
+    .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
+    .docs-table[data-stack] tr:last-child { border-block-end: 0; }
+    .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
+    .docs-table[data-stack] td:first-child { font-weight: 700; }
+    .docs-table[data-stack] td:first-child::before { display: none; }
+    .docs-table[data-stack] td::before { content: attr(data-label); display: block; color: var(--ink-soft); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  }
+</style>
+<h1>References</h1>
+<p class="lede">Nine screens and three repositories shaped this guide. For each one this page says what idea was taken, what was left behind and why, and where the idea lives now. Nothing was copied from anyone else's work: no artwork, no copy and no code. The Flashcards app and its style sheet are the owner's own work, and the sheet is the base.</p>
+
+<h2 id="how">How they were used</h2>
+<p>Every reference was treated the same way. Measure the real thing (sizes, spacing, radii, colours sampled from pixels), list its parts and their states, compute its contrast with the WCAG formula, and then decide, idea by idea, whether the idea survives the seven rules. What survived was rebuilt from roles and the owner's vocabulary, so it looks drawn by the same hand as Card and Button.</p>
+<p>The full notes are in <code>references/screens/</code> (nine screens, plus <code>1bit-ui.md</code> and <code>ui-ux-pro-max.md</code>), <code>references/audit/</code> (including the audit of the Flashcards app) and <code>references/standards/</code>. They are working notes, not documentation.</p>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div>
+    <strong>How far to trust the numbers</strong>
+    <p>The screens are compressed mockups between 473 and 1600 pixels wide. Flat fills were sampled exactly. Thin text and strokes are anti-aliased toward their background, so a measured text contrast is a lower bound, and hover, focus, pressed and disabled states are never drawn: anything the notes say about them is a recommendation. The figures quoted below are the measured ones; the notes say which are estimates.</p>
+  </div>
+</div>
+
+<h3 id="reasons">Why things were left behind</h3>
+<p>The same handful of reasons recur. Each one is a rule of the guide, and where a machine can check it, a check runs.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">What the references did that the guide does not, and the rule that says so</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">What the mockups did</th><th role="columnheader">What the guide does instead</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="What the mockups did">Muted greys and white-on-pastel text at 1.3:1 to 4:1.</td><td role="cell" data-label="What the guide does instead">Text is 7:1 (<code>--ink</code>, <code>--ink-soft</code>); 4.5:1 is the floor (<code>--ink-mute</code>). Every tone has its own computed text colours (<code>--tone-ink</code>, <code>--tone-ink-soft</code>, <code>--tone-on-fill</code>).</td></tr>
+    <tr role="row"><td role="cell" data-label="What the mockups did">Secondary text drawn with transparency.</td><td role="cell" data-label="What the guide does instead">Never <code>opacity</code> on text; soft ink is an explicit, verified colour role.</td></tr>
+    <tr role="row"><td role="cell" data-label="What the mockups did">Gradients, blur, glass, glow and soft shadows.</td><td role="cell" data-label="What the guide does instead">Flat (rule 2). A shadow is hard-edged and means "you can press this". The lint fails the others.</td></tr>
+    <tr role="row"><td role="cell" data-label="What the mockups did">A state told by colour alone: a darker month, a hue per category, red for urgency.</td><td role="cell" data-label="What the guide does instead">A second cue always: a filled shape with a doubled frame, a check, an underline, a symbol and words. Tones carry rhythm, never meaning.</td></tr>
+    <tr role="row"><td role="cell" data-label="What the mockups did">Icon-only controls and icons as decoration.</td><td role="cell" data-label="What the guide does instead">Every icon-only control has a name; symbols are masks, not text glyphs or emoji; no tinted circle behind an icon (rule 7).</td></tr>
+    <tr role="row"><td role="cell" data-label="What the mockups did">Drag-only or swipe-only interactions: slide to confirm, trim handles, a dial.</td><td role="cell" data-label="What the guide does instead">Every gesture has a button or a key that does the same thing (WCAG 2.5.7).</td></tr>
+    <tr role="row"><td role="cell" data-label="What the mockups did">Targets of 7px to 38px, text of 9px to 11px.</td><td role="cell" data-label="What the guide does instead">44px targets with a hit area even when the drawing is smaller; text in <code>rem</code> that survives 200% and a 320px screen.</td></tr>
+    <tr role="row"><td role="cell" data-label="What the mockups did">Fixed-size rows and frames that clip at large text.</td><td role="cell" data-label="What the guide does instead">Rows and labels wrap; the accessibility gate looks for text cut off by a frame.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="glance">At a glance</h2>
+<div class="table-wrap" tabindex="-1"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Each reference, what it mostly contributed, and where that lives</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Reference</th><th role="columnheader">Mostly gave</th><th role="columnheader">Lives in</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-1">1 · Mint wallet</a></td><td role="cell" data-label="Mostly gave">Ink on tint, a floating dock, chips, a sheet, a month chart</td><td role="cell" data-label="Lives in"><a href="@/components/dock.html">Dock</a>, <a href="@/components/chip.html">Chip</a>, <a href="@/components/sheet.html">Sheet</a>, <a href="@/components/chart-bar.html">Bar chart</a>, <a href="@/components/list.html">List</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-2">2 · Mint colour cards</a></td><td role="cell" data-label="Mostly gave">A vivid and a soft step per hue, each with its own text; a round keypad</td><td role="cell" data-label="Lives in"><a href="@/foundations/tones.html">Tones</a>, <a href="@/components/keypad.html">Keypad</a>, <a href="@/components/segmented.html">Segmented control</a>, <a href="@/components/avatar.html">Avatar</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-3">3 · Window panels</a></td><td role="cell" data-label="Mostly gave">A titled panel, caption tiles, a ticker</td><td role="cell" data-label="Lives in"><a href="@/components/card.html">Card</a>, <a href="@/components/tile.html">Tile</a>, <a href="@/components/marquee.html">Marquee</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-4">4 · Warm calendar</a></td><td role="cell" data-label="Mostly gave">A tonal ramp per hue; days as tonal cards with hour columns</td><td role="cell" data-label="Lives in"><a href="@/foundations/tones.html">Tones</a>, <a href="@/components/agenda.html">Agenda</a>, <a href="@/components/pagination.html">Pagination</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-5">5 · Bold calendar</a></td><td role="cell" data-label="Mostly gave">Saturated fills with their own text; month grid; search bar</td><td role="cell" data-label="Lives in"><a href="@/foundations/tones.html">Tones</a> (bold), <a href="@/components/calendar.html">Calendar</a>, <a href="@/components/appbar.html">App bar</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-6">6 · Photo editor</a></td><td role="cell" data-label="Mostly gave">A dark stage, a labelled tool tray, an editor bar, a dial, a filmstrip</td><td role="cell" data-label="Lives in"><a href="@/components/toolbar.html">Toolbar</a>, <a href="@/components/scrubber.html">Scrubber</a>, <a href="@/components/filmstrip.html">Filmstrip</a>, <a href="@/components/appbar.html">App bar</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-7">7 · Video editor</a></td><td role="cell" data-label="Mostly gave">Clips along time with a playhead; one accent</td><td role="cell" data-label="Lives in"><a href="@/components/timeline.html">Timeline</a>, <a href="@/components/player.html">Player</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-8">8 · Editorial film app</a></td><td role="cell" data-label="Mostly gave">Type-led screens, a caption bar, label-over-value pairs, swatches</td><td role="cell" data-label="Lives in"><a href="@/foundations/typography.html">Typography</a>, <a href="@/components/media.html">Media</a>, <a href="@/components/list.html">List</a>, <a href="@/components/swatch.html">Swatch</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-9">9 · Pastel bento</a></td><td role="cell" data-label="Mostly gave">Tonal blocks, one circle button in three weights, a sliding segmented thumb</td><td role="cell" data-label="Lives in"><a href="@/components/gallery.html">Gallery</a>, <a href="@/components/segmented.html">Segmented control</a>, <a href="@/components/tag.html">Tag</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-1bit">1bit-ui</a></td><td role="cell" data-label="Mostly gave">The inversion model; native elements under custom skins</td><td role="cell" data-label="Lives in"><a href="@/components/switch.html">Switch</a>, <a href="@/components/choice.html">Choice</a>, <a href="@/components/dialog.html">Dialog</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-uxpro">ui-ux-pro-max-skill</a></td><td role="cell" data-label="Mostly gave">Token layers; chart fallbacks; the idea of a browser audit</td><td role="cell" data-label="Lives in"><a href="@/foundations/color.html">Colour</a>, <a href="@/components/chart-bar.html">Bar chart</a></td></tr>
+    <tr role="row"><td role="cell" data-label="Reference"><a href="#r-flashcards">The Flashcards app</a></td><td role="cell" data-label="Mostly gave">The role names, the motion vocabulary, the habit of commenting why</td><td role="cell" data-label="Lives in"><a href="@/foundations/motion.html">Motion</a>, <a href="@/foundations/color.html">Colour</a></td></tr>
+  </tbody>
+</table></div>
+<p>The palettes name their sources in <code>src/tokens/40-palettes.css</code>: <code>mint</code> is the wallet and fintech screens, <code>periwinkle</code> the editor and habits screens, <code>sand</code> the calendar screens, <code>cream</code> the original Flashcards app, and <code>wire</code> the wireframe stage. They are palettes, not brands: the default is neutral.</p>
+
+<h2 id="screens">The nine screens</h2>
+
+<h3 id="r-1">1 · Mint wallet</h3>
+<p class="t-meta">Two phones: a home screen (greeting, balance in an ink card, action circles, a floating dock, filter chips, a month chart) and a category sheet with a list of spending. The mockup is titled Nishar. Notes: <code>references/screens/img1-mint-fintech.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>One big tabular figure as the hierarchy, with a small line of meaning: the <a href="@/components/stat.html">Stat</a> recipe on the owner's Card, and <code>data-tone="ink"</code> for the ink island that holds the primary action.</li>
+        <li>A grouped list: a leading mark, a name over a detail, an amount at the end, a labelled divider naming each group. <a href="@/components/list.html">List</a> and <a href="@/components/divider.html">Divider</a>. The sign of an amount is a true minus, not a colour.</li>
+        <li>A floating pill dock with the current place filled: <a href="@/components/dock.html">Dock</a>.</li>
+        <li>A row of filter chips that scrolls, with the next chip peeking in: <a href="@/components/chip.html">Chip</a>, one scrolling line.</li>
+        <li>A month bar chart with one bar emphasised: <a href="@/components/chart-bar.html">Bar chart</a>.</li>
+        <li>A bottom sheet with a grabber: <a href="@/components/sheet.html">Sheet</a>. The grabber is a real button.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>Secondary text at 2.3:1 to 4.4:1, including "Monthly expenses" at 2.36:1. Soft ink is 7:1 here.</li>
+        <li>Mint-on-mint hairlines, chips and bars at 1.28:1, and a selected month told only by a slightly darker tint. The selected bar has four cues.</li>
+        <li>A solid glyph on a tinted disc as the leading mark of every row. There is no circle behind an icon in this guide.</li>
+        <li>Only the current dock item showing its word. In the guide every dock item shows its word by default. Compact mode, an opt-in, shows the word only for the current item and keeps every other word in the link's accessible name.</li>
+        <li>A chart with no values, axis, legend or text alternative. The bar chart prints its values and offers the data as a table.</li>
+        <li>A sheet closed only by its grabber (a 1.6:1 picture), a last row hidden under the dock, and 76pt rows that clip at large text.</li>
+        <li>Mint as a brand, the light 300-weight numerals at small sizes, and the wallet content.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-2">2 · Mint colour cards</h3>
+<p class="t-meta">Three phones on a mint canvas: sending money with a keypad, a home screen of colour cards, and a transaction list. Flat fills, white outlined surfaces, one near-black ink. Notes: <code>references/screens/img2-mint-colour-cards.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>One tinted canvas, outlined paper surfaces and a single ink, so a boundary never depends on a fill: the role system (<code>--canvas</code>, <code>--paper</code>, <code>--ink</code>) and the 2px frame.</li>
+        <li>A vivid and a soft step per hue, each with its own readable text: the tones, <code>--tone-bg</code>, <code>--tone-fill</code> and <code>--tone-on-fill</code>, and <code>data-emphasis="bold"</code>. See <a href="@/foundations/tones.html">Tones</a>.</li>
+        <li>A round numeric keypad in the order every phone uses, with gaps between keys: <a href="@/components/keypad.html">Keypad</a>.</li>
+        <li>A segmented control with a filled chosen option: <a href="@/components/segmented.html">Segmented control</a>.</li>
+        <li>An overlapping stack of avatars with a closing "+3": <a href="@/components/avatar.html">Avatar</a>. The owner's Card already has the stacked deck and the notch that the balance card uses.</li>
+        <li>Rows with a leading mark, a title and subtitle, and a trailing amount: <a href="@/components/list.html">List</a>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>White text on green (2.83:1), on orange (2.00:1) and on lilac (4.06:1). Each tone computes its own text.</li>
+        <li>Slide to confirm. It is drag-only, which fails WCAG 2.5.7, and no such element exists. The Keypad keeps the idea of a deliberate confirmation: an ordinary button that stays unavailable, with its reason readable, until there is an amount.</li>
+        <li>Colour as meaning: chip and card hues that do not map to a category, and a trend told by a small arrow and a colour. A status tag carries a symbol and words.</li>
+        <li>The staggered key offsets and the 1-8, 9, 0 digit order, and keys that touch.</li>
+        <li>Unlabelled dock circles, a "+" with no outline (1.63:1), three different oranges and four purples.</li>
+        <li>Mixed number and date formats ("8,82%", "-$160,000,32"). Numbers go through <code>Intl</code>.</li>
+        <li>The mock lighting, the bezel, the card-network logo.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-3">3 · Window panels</h3>
+<p class="t-meta">A hard-edged, zero-radius launcher: an ink frame holding bordered panels, each with a title bar and one square control, a ticker above and a giant wordmark below. The mockup is titled MEOWIOM. Notes: <code>references/screens/img3-meowiom-panels.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>A titled panel whose bar is the inverse of its body, with one control slot. The owner's <a href="@/components/card.html">Card</a> panel already is this: <code>.card__bar</code>, <code>.card__label</code> and a <code>.card__ctl</code> that is a named button with <code>aria-expanded</code> and a 44px target. <code>data-tone="ink"</code> flips the polarity.</li>
+        <li>A hairline-ruled list of links: <code>.card__list</code> and <a href="@/components/list.html">List</a>.</li>
+        <li>A field of colour whose name always sits on a solid bar, never on the picture: the caption variant of <a href="@/components/tile.html">Tile</a>.</li>
+        <li>A ticker strip, made safe: <a href="@/components/marquee.html">Marquee</a> has a Pause button that is always visible, and is static when paused or when motion is reduced. Its ink band is the look of this screen.</li>
+        <li>Short, bold, uppercase labels, with positive tracking: <code>--type-label</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>A second "hard surface" style, proposed in the notes as a token set beside a soft one. There is one look; see <a href="@/project/decisions.html#one-look">Decisions</a>.</li>
+        <li>The retro bevel, and a keyline gutter made from a background colour, which forced-colours mode erases. Structure here is borders.</li>
+        <li>Square controls that are empty and look like unchecked boxes, a ghost control at 1.31:1, and 26px targets.</li>
+        <li>A ticker with clipped letters and no pause (WCAG 2.2.2).</li>
+        <li>All-caps paragraphs at 14px with tight tracking. Only labels are uppercase; what you read is sentence case.</li>
+        <li>Desktop scale, and an indigo field that only just clears 3:1 against ink.</li>
+        <li>The pixel artwork, the wordmark, the copy.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-4">4 · Warm calendar</h3>
+<p class="t-meta">Two screens of a calendar and task app on a warm grey: Today (a huge date, a world clock, tonal task cards) and Calendar (a month switcher and full-width day cards with hour columns). Credited in the image to sajon.co. Notes: <code>references/screens/img4-calendar-warm.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>A ramp of roles per hue (surface, text, a solid pill, the pill's text) generated from a lightness recipe that clears 7:1 for every hue. The method is the screen's; the numbers are the guide's own (pastel at lightness 0.92 or more, text at 0.39 or less). <a href="@/foundations/tones.html">Tones</a>.</li>
+        <li>Days as tonal cards with hour columns, with overlapping events side by side: <a href="@/components/agenda.html">Agenda</a>.</li>
+        <li>A previous and next pair around one value, the month: the switcher variant of <a href="@/components/pagination.html">Pagination</a>.</li>
+        <li>A huge numeral over a tiny label: <code>.card__figure</code> with <code>.card__eyebrow</code>.</li>
+        <li>A duration or status badge: <a href="@/components/tag.html">Tag</a>.</li>
+        <li>The next card peeking in as a scroll cue: <a href="@/components/carousel.html">Carousel</a> with <code>data-peek</code>, and the chip row.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>Neighbouring months at 1.78:1 that were tappable controls, pill outlines at 1.7:1 to 2.2:1, and a round "+" at 1.25:1. A control keeps a 3:1 frame; an unavailable one is dashed, faint and explained.</li>
+        <li>A teal tone with its text under-inked (4.37:1). Every tone is measured in every theme, contrast mode and palette.</li>
+        <li>A card's tone as the only hint of its category. Tones carry rhythm only.</li>
+        <li>13px event labels in fixed sizes and dates like "13.12 DEC".</li>
+        <li>The main "+" only at the top right, out of reach of a thumb. The Dock has an optional round centre action.</li>
+        <li>No dark variant: pastel surfaces with dark text have to be re-derived for dark, and the tones are.</li>
+        <li>The typos in the mockup's copy, the hues' names, the bezel.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-5">5 · Bold calendar</h3>
+<p class="t-meta">Three screens: Today, a month list and a year grid, on a warm stone page with full-width cards each flooded with one muted colour. Credited in the image to uiux.aditya. Notes: <code>references/screens/img5-calendar-bold.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>Neutral paper and near-black ink, with colour kept for identity. The default palette is neutral, and <code>data-emphasis="bold"</code> is the saturated fill with light text.</li>
+        <li>Every fill with its own pre-checked text colour. The mockup itself switches to dark text on its citron card; here that is done for every tone.</li>
+        <li>A pill group with a filled chosen option and outlined others: <a href="@/components/segmented.html">Segmented control</a> and <a href="@/components/chip.html">Chip</a>, with a doubled frame as the second cue.</li>
+        <li>A round outlined icon button, drawn smaller than its target: <a href="@/components/button.html">Button</a>, circle, small, with a 44px hit area.</li>
+        <li>A month as a grid you can cross, and a week as a strip: <a href="@/components/calendar.html">Calendar</a>. There is no year view.</li>
+        <li>A greeting with a small line over a large name, and a bar with back, search and add: the greeting and search variants of <a href="@/components/appbar.html">App bar</a>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>White text on periwinkle (2.42:1), sage (1.94:1) and citron (1.78:1), and on vermilion and teal at 3.97:1.</li>
+        <li>Secondary text as translucent white, measured at 1.4:1 to 3.4:1. No text is ever drawn with transparency here.</li>
+        <li>Text of 9px to 12px, and calendar cells at a 23.5px pitch.</li>
+        <li>Colour per weekday or month with no legend, and a tinted Sunday. The calendar marks today and the chosen day by shape, and event markers are also text.</li>
+        <li>A palette of named hues such as maroon and vermilion. There are six unnamed slots, and a palette decides their hues.</li>
+        <li>Three strengths of translucent chip overlay. The scrim is the one translucency.</li>
+        <li>A month changed only by swiping, and a home indicator drawn over content. Arrow keys and buttons change the month; safe-area insets keep content clear.</li>
+        <li>Emoji in a heading and times written with a full stop.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-6">6 · Dark photo editor</h3>
+<p class="t-meta">Three phone screens of a greyscale photo editor where the picture is the brightest thing: a tool tray, a backdrop tool with a dial and a carousel of thumbnails, and a lighting tool with a drag handle. Notes: <code>references/screens/img6-dark-photo-editor.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>A content-first dark stage. Dark is a theme island (<code>data-theme="dark"</code> on the tray or the stage) and every role, the focus ring included, follows it.</li>
+        <li>A tray of round tools with their names underneath: <a href="@/components/toolbar.html">Toolbar</a>, one tab stop, arrow keys, and scroll buttons when the tools overflow. Undo and Redo are named buttons in its history row.</li>
+        <li>Cancel at one end, apply at the other, the title between, the same on every tool: the editor variant of <a href="@/components/appbar.html">App bar</a>.</li>
+        <li>A carousel of thumbnails where exactly one is chosen: <a href="@/components/filmstrip.html">Filmstrip</a>, native radio buttons.</li>
+        <li>A tick-mark dial for a value: <a href="@/components/scrubber.html">Scrubber</a>, with the value written out and a minus and plus button.</li>
+        <li>Controls and captions over a photo on a scrim plate: <code>--scrim-strong</code> with <code>--on-media</code> in <a href="@/components/media.html">Media</a>, so their contrast does not depend on the photo.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>Inactive chip text at 1.8:1, and tool labels at 10px and 1.7:1 to 5:1. Every tool has a word, and soft ink is 7:1.</li>
+        <li>Bare icons and white floating buttons on pale photos (1.5:1 to 1.7:1).</li>
+        <li>A dial and an overlay handle you can only drag. Both have buttons and keys (WCAG 2.5.7), and the dial shows its number.</li>
+        <li>A disabled button drawn at 33% opacity, which reads as missing. Unavailable is a dashed frame and a reason: "Redo: nothing to redo yet."</li>
+        <li>Fill steps of 1.2:1 with no focus cue, and a selected thumbnail told only by a thin ring. The ring is 3px and follows the surface; a chosen swatch has a check, a second ring and an underlined name.</li>
+        <li>Chrome with no accent at all: the guide keeps one "press this" colour, which is ink in the default palette.</li>
+        <li>The charcoal gradient page with its soft shadow, the portraits, the tool names.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-7">7 · Dark video editor</h3>
+<p class="t-meta">Three phone screens of a dark video editor with a single violet accent: a timeline with clips and a white playhead, a filter strip, a curve editor. Notes: <code>references/screens/img7-dark-video-editor.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>Clips laid along time, with one line crossing every track for the playhead: <a href="@/components/timeline.html">Timeline</a>. The playhead is a slider, clips are a listbox, and Split and Trim are buttons that act at the playhead.</li>
+        <li>An icon over a caption in a row of actions: <a href="@/components/toolbar.html">Toolbar</a>.</li>
+        <li>One accent for the primary action and for selection, with a second cue on selection: the accent role, and a doubled frame.</li>
+        <li>Timecode in tabular figures, current over total: <a href="@/components/player.html">Player</a> and the time format of <a href="@/components/scrubber.html">Scrubber</a>, which speaks "0:12 of 0:25".</li>
+        <li>Horizontal rows where the last item peeks in: the scrolling <a href="@/components/chip.html">Chip</a> row.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>The accent-to-pink gradient, gradient fades of media into the interface, glows and drop shadows. The waveform is flat stepped bars, with no gradient and no fade.</li>
+        <li>A white header over a pale photo (1.64:1). Text never sits on a bare photo.</li>
+        <li>Captions at 2.0:1 to 3.2:1 and at 9px to 11px.</li>
+        <li>An unlabelled dot for "more" and icon-only tools. Names are shown, and the tray scrolls with labelled buttons.</li>
+        <li>An active preset told by the colour of its glyph alone.</li>
+        <li>Trim handles, playhead, curve nodes, dial and reorder that only drag, at 7px to 23px. Each has a button or a key, at 44px.</li>
+        <li>A waveform with no text alternative. The timeline describes it in words.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-8">8 · Editorial film app</h3>
+<p class="t-meta">A type-driven, hard-edged film photo app: a huge extended uppercase headline, a monospace data face, black caption bars under photos, a floating dock. The mockup is titled BINSOO. Notes: <code>references/screens/img8-binsoo-editorial.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>Screens led by one extended, black-weight, uppercase line: <code>--type-display</code>, one per page, from the owner's sheet. The notes matched this headline to Archivo at its wide setting.</li>
+        <li>A solid bar carrying the caption under a photo: <code>data-caption="bar"</code> on <a href="@/components/media.html">Media</a>, and the caption variant of <a href="@/components/tile.html">Tile</a>.</li>
+        <li>A label over a value in columns: the key / value grid in <a href="@/components/list.html">List</a>.</li>
+        <li>A strip of colours with their names: <a href="@/components/swatch.html">Swatch</a>.</li>
+        <li>Three tiers of action, icon, outline and solid: the circle, secondary and primary <a href="@/components/button.html">Button</a>.</li>
+        <li>A floating pill as the only rounded thing on a square page: the floating <a href="@/components/dock.html">Dock</a>. Square corners are the default.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>Masonry. <a href="@/components/gallery.html">Gallery</a> packs square cells on one grid, so the DOM order is the reading order and nothing is measured in script.</li>
+        <li>A second, monospace family for data. There is one family; tabular figures (<code>.num</code>) cover data, and <code>--font-mono</code> is for code only.</li>
+        <li>An icon-only dock with no current state, 1.32:1 against the black caption bars and covering the tile captions above it.</li>
+        <li>1px to 1.5px icon strokes, and a hamburger and back arrow below target size. Icons are 2px strokes at 44px targets.</li>
+        <li>A third key / value column cut off mid-word with no scroll cue. The grid wraps.</li>
+        <li>Swatches told apart by colour alone, and a 1.17:1 hairline as the only outline.</li>
+        <li>Text typed in capitals, and a decorative full stop after the headline. Case is applied in CSS (rule 4); decoration goes (rule 7).</li>
+        <li>A contour drawing running through the headline letters, the wordmark, the copy.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-9">9 · Pastel bento</h3>
+<p class="t-meta">Two phones on a periwinkle page: a habits and productivity app in pastel blocks with a big score headline, a dock, a segmented toggle, a list row and a photo card with overlays. Notes: <code>references/screens/img9-pastel-bento.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>Blocks of different sizes on one grid with a small gutter: <a href="@/components/gallery.html">Gallery</a> on the card grid, and tonal <a href="@/components/card.html">Cards</a>.</li>
+        <li>One circle button in three weights and a size ladder: <a href="@/components/button.html">Button</a>, secondary, primary and tone, in three sizes.</li>
+        <li>A pill with an icon and a label: <a href="@/components/chip.html">Chip</a>.</li>
+        <li>A two-option toggle with a thumb that glides: <code>data-indicator="slide"</code> on <a href="@/components/segmented.html">Segmented control</a>, which fades instead under reduced motion.</li>
+        <li>A giant numeral for "what matters here", with its value also in text: the Card figure and <a href="@/components/progress.html">Progress</a>.</li>
+        <li>A greeting with a bell and an avatar: the greeting <a href="@/components/appbar.html">App bar</a>, whose bell names its count.</li>
+        <li>Text and avatars over a photo on a plate: the <code>over</code> caption of <a href="@/components/media.html">Media</a>.</li>
+        <li>Status with an icon, words and a shape: the status tones and <a href="@/components/tag.html">Tag</a>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>Emoji as content and structure: a wave inside a heading, a trophy as a chip's icon. Symbols are masks, and a screen reader would read the emoji aloud in the middle of the sentence.</li>
+        <li>Secondary text as transparent ink at 1.8:1 to 3.4:1, and the "8" in "7/8" faded to 1.82:1 so that the score read as "7/".</li>
+        <li>White circle buttons on near-white (1.08:1). Every circle has a 2px frame.</li>
+        <li>The same red for "High" priority and for "Growth". Priority is bars and words; status is a symbol and words.</li>
+        <li>Frosted, blurred chips over a photo. A scrim plate that keeps the text at 4.5:1 replaces them, and blur is banned.</li>
+        <li>Targets of 22px to 38px, and light 300-weight text at 13px to 18px.</li>
+        <li>A dock of four abstract icons with no words, and fixed-height stacking that cannot survive 200% text.</li>
+        <li>The pastel hues as a mandatory palette, the stock avatars, the copy.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h2 id="repos">The three repositories</h2>
+
+<h3 id="r-1bit">jcontini/1bit-ui</h3>
+<p class="t-meta">A Svelte 5 component library in a strict two-colour, one-bit look: 15 components and about 22 tokens. Notes: <code>references/screens/1bit-ui.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>Two primitives, paper and ink, where dark is a swap and a state is an inversion plus a second cue: <code>data-tone="ink"</code>, and a chosen chip or option filled with a doubled frame and a check.</li>
+        <li>A border width as a token used by every part, with a lint for literals. The owner's <code>--bw</code>, <code>--bw-thin</code> and <code>--bw-heavy</code> already were this, and the lint refuses a literal width.</li>
+        <li>Native elements under a custom skin: <a href="@/components/switch.html">Switch</a> is a checkbox with <code>role="switch"</code>, <a href="@/components/choice.html">Choice</a> a checkbox or radio, <a href="@/components/slider.html">Slider</a> a range input.</li>
+        <li>A toggle that shows both words, On and Off, so it is not colour alone: the Switch row.</li>
+        <li>A window made real: a heading, a named control, and the native <code>&lt;dialog&gt;</code> for the modal: <a href="@/components/dialog.html">Dialog</a>.</li>
+        <li>A pattern is never the only cue. A disabled card is dashed and hatched and faint, and chart segments carry a tone, a pattern and a printed value.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>The framework: Svelte runes and scoped styles. This guide is HTML, CSS and plain scripts, with no build step for apps.</li>
+        <li>Its green-grey pair (5.77:1 against black), and <code>opacity</code> for muted, disabled and placeholder states, which measured 2.7:1 to 4:1.</li>
+        <li>Missing focus: four of its seven form controls show no keyboard focus, and its modal does not manage focus. Removing an outline with no replacement is a lint error here.</li>
+        <li>Dithered patterns behind text (half the glyph pixels are lost on the 50% checker) and patterns with their colours baked into data URIs.</li>
+        <li>The bitmap font: it is crisp only at whole device pixel ratios and fights text zoom. Archivo scales.</li>
+        <li>Text glyphs as icons, fixed pixel sizes, no breakpoints (the demo is 660px wide at least), and clip-path corners that cut off focus rings.</li>
+        <li>Its packaging: an absolute font URL, fonts outside the package, no licence file.</li>
+        <li>A one-bit theme was not built. <code>data-palette="wire"</code> and higher contrast are the nearest; see <a href="@/project/decisions.html#small">Decisions</a>.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-uxpro">nextlevelbuilder/ui-ux-pro-max-skill</h3>
+<p class="t-meta">A retrieval tool over CSV knowledge bases (88 styles, 192 palettes, 74 font pairings, about 170 prose rules) with a generator for design-system files. Notes: <code>references/screens/ui-ux-pro-max.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>Three layers of tokens, from raw values to meaning to component: knobs, then roles, then components. See <a href="@/foundations/color.html">Colour</a>.</li>
+        <li>The WCAG 2.2 rows as acceptance criteria: the reflow, focus, target-size and forced-colours checks in the accessibility gate each name the success criterion they answer.</li>
+        <li>A browser audit at several widths, which is what <code>tests/a11y.mjs</code> does at 320, 390 and 1280 pixels.</li>
+        <li>A text summary behind every chart, and the data as a table where there is one: <a href="@/components/chart-bar.html">Bar chart</a> keeps its table one disclosure away, and <a href="@/components/donut.html">Donut chart</a> labels its ring with every part and the total.</li>
+        <li>The rule that a "+N more" chip must be operable, and that chip collections wrap: <a href="@/components/chip.html">Chip</a>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>Its generated component CSS: a focus ring of <code>outline: none</code> plus a 12.5%-alpha shadow (about 1.25:1), an input border at 1.23:1, <code>transition: all</code>, and a hard-coded white modal over a blurred backdrop.</li>
+        <li>Its palettes as they are: none of 173 border colours reaches 3:1 (the median is 1.22:1), and every palette is single-mode.</li>
+        <li>Neumorphism, glassmorphism and claymorphism, soft blurred shadows, and the hover-lift on cards.</li>
+        <li>Landing-page patterns for app screens, such as testimonial carousels for a habit tracker.</li>
+        <li>Fonts pulled from a CDN with <code>@import</code>, GSAP, and icons that are React imports. The fonts here are self-hosted, so the guide works offline.</li>
+        <li>Touch targets of 24px, which two of its own rows disagree about.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="r-flashcards">chattedomestique/flashcards</h3>
+<p class="t-meta">The owner's own Flashcards app, audited as a de facto style guide before the Flashcards style sheet v0.1 arrived. The sheet is the base now, and it wins wherever the two differ. Notes: <code>references/audit/flashcards-app-audit.md</code>.</p>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Taken</strong>
+      <ul>
+        <li>The role names (<code>--canvas</code>, <code>--paper</code>, <code>--ink</code>, <code>--ink-soft</code>) and the six numbered tone slots. The values were re-derived from knobs, so that every pair holds 7:1 in both themes.</li>
+        <li>The motion vocabulary: 130ms to press, 520ms to move, an out curve to arrive, a sharper one to leave, and a strong in-out curve for a flip. See <a href="@/foundations/motion.html">Motion</a>.</li>
+        <li>"Reduced motion means gentler, not instant", as a written principle that the tests check.</li>
+        <li>The platform basics: <code>viewport-fit=cover</code>, all four safe-area insets, <code>color-scheme</code>, a skip link and a <code>[hidden]</code> that components cannot override.</li>
+        <li>A live region for what changes without moving focus: <code>SG.announce()</code>.</li>
+        <li>Comments that name the bug a rule prevents.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Left behind</strong>
+      <ul>
+        <li>The dotted canvas. It carries no information, so it goes (rule 7).</li>
+        <li>One 26px radius and one large hard shadow on everything. There are three radius roles, and only pressable things cast a shadow.</li>
+        <li>An interaction model that axe cannot see: nothing focusable, swipe-only flipping with no tap alternative, and an empty front face in the accessibility tree. Every gesture has a button, and the portrait card's reveal is one.</li>
+        <li>Principles its own code contradicted (the press invariant, "only transform and opacity", the reduced-motion flip). Here the specs measure them.</li>
+        <li>A spring easing with overshoot. There are no springs.</li>
+        <li>The animated 3D flip. The recipe is written into the Card page and the faces are static: the answer appears, and how it should move is a motion decision that has not been made.</li>
+        <li>Relying on <code>overflow-clip-margin</code> to show a hard shadow. Safari ignores it. Where the guide still uses it, such as the link card's 2px band, the limit is written down in <code>STYLE.md</code>.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<p>A fourth repository of the owner's, <code>chattedomestique/glyphs</code>, was also checked. It holds a one-line README and nothing else, so nothing was taken from it.</p>
+
+<h2 id="codepen">The link that could not be read</h2>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div>
+    <strong>A CodePen, not read</strong>
+    <p>The owner shared a CodePen link. Every request to it was answered with a Cloudflare "Attention Required" page (HTTP 403), so its HTML and CSS were never seen. <strong>Nothing in the guide was taken from it</strong>, and nothing was guessed about it. If it matters, paste its HTML and CSS into a session; it will be analysed the way the others were. The <a href="@/project/contributing.html#prompt">prompt on the Contributing page</a> says how.</p>
+  </div>
+</div>
