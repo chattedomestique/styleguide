@@ -31,7 +31,7 @@ export const tests = [
         await page.keyboard.press('Tab')
         seen.push(await page.evaluate(() => document.activeElement.textContent.trim()))
       }
-      expect.equal(seen.join('|'), 'Merchant|Category|Date|Amount', 'sort buttons in DOM order (Method is not sortable)')
+      expect.equal(seen.join('|'), 'Name|Amount|Category|Date', 'sort buttons in DOM order (Method is not sortable)')
     },
   },
   {
@@ -48,7 +48,7 @@ export const tests = [
         const first = [...t.tBodies[0].rows].map((tr) => tr.cells[0].textContent.trim())
         return { heads, first }
       }, TX)
-      expect.equal(r.heads.join(','), ',,,,ascending', 'only Amount is sorted; Date lost its initial aria-sort')
+      expect.equal(r.heads.join(','), ',ascending,,,', 'only Amount is sorted; Date lost its initial aria-sort')
       expect.equal(r.first[0], 'Tech store', 'the most negative amount comes first when ascending')
     },
   },
@@ -76,10 +76,10 @@ export const tests = [
       await goto('components/table.html')
       await page.evaluate((sel) => { document.querySelector(sel + ' table').addEventListener('sg-table-sort', (e) => e.preventDefault()) }, TX)
       const before = await page.evaluate((sel) => document.querySelector(sel + ' tbody').textContent, TX)
-      await page.locator(`${TX} .tbl__sort`, { hasText: 'Merchant' }).click()
+      await page.locator(`${TX} .tbl__sort`, { hasText: 'Name' }).click()
       const after = await page.evaluate((sel) => document.querySelector(sel + ' tbody').textContent, TX)
       expect.equal(after, before, 'rows untouched')
-      await expect.attr(page, `${TX} th:has(.tbl__sort:text("Merchant"))`, 'aria-sort', 'ascending', 'aria-sort still follows')
+      await expect.attr(page, `${TX} th:has(.tbl__sort:text("Name"))`, 'aria-sort', 'ascending', 'aria-sort still follows')
     },
   },
   {
@@ -153,7 +153,7 @@ export const tests = [
     name: 'hover and keyboard focus fill a sort button the same way',
     async run({ page, goto, expect }) {
       await goto('components/table.html')
-      const b = page.locator(`${TX} .tbl__sort`, { hasText: 'Merchant' })
+      const b = page.locator(`${TX} .tbl__sort`, { hasText: 'Name' })
       const fill = () => b.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
       await page.waitForTimeout(50)
       expect.equal(await fill(), 0, 'rest: --fill 0')
@@ -264,6 +264,10 @@ export const tests = [
     viewport: { width: 320, height: 640 },
     async run({ page, goto, expect }) {
       await goto('components/table.html')
+      // 200% text: the three headers are then wider than the region (the table no longer has a rem floor that
+      // made it overflow at 100% too)
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(300)
       const r = await page.locator('#demo-empty .tbl__scroll').evaluate((region) => {
         const msg = region.querySelector('.tbl__empty-msg').getBoundingClientRect()
         const box = region.getBoundingClientRect()
@@ -302,11 +306,19 @@ export const tests = [
     },
   },
   {
-    name: 'at 200% text no row name breaks inside a word, and the hint arrow is horizontal, text-sized and on the first line',
+    name: 'at 200% text no row name breaks inside a word (at 390 and 320px), and the hint arrow is horizontal, text-sized and on the first line',
     async run({ page, goto, expect }) {
       await goto('components/table.html')
       await page.addStyleTag({ content: 'html{font-size:200%!important}' })
-      await page.waitForTimeout(300)
+      await page.setViewportSize({ width: 320, height: 900 })
+      await page.waitForTimeout(400)
+      const narrow = await page.evaluate(() => {
+        const lines = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); const tops = []; for (const q of rg.getClientRects()) if (q.width > 0 && !tops.some((y) => Math.abs(y - q.top) < 4)) tops.push(q.top); return tops.length }
+        return [...document.querySelectorAll('.demo .tbl tbody th')].map((th) => ({ text: th.textContent.trim(), lines: lines(th), words: th.textContent.trim().split(/\s+/).length, over: th.scrollWidth > th.clientWidth + 1 })).filter((n) => n.lines > n.words || n.over).map((n) => n.text)
+      })
+      expect.equal(narrow.join(', '), '', '320px: no name is broken inside a word or runs out of its cell')
+      await page.setViewportSize({ width: 390, height: 900 })
+      await page.waitForTimeout(400)
       const r = await page.evaluate(() => {
         const lines = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); const tops = []; for (const q of rg.getClientRects()) if (q.width > 0 && !tops.some((y) => Math.abs(y - q.top) < 4)) tops.push(q.top); return tops.length }
         const names = [...document.querySelectorAll('.demo .tbl tbody th')].map((th) => ({ text: th.textContent.trim(), lines: lines(th), words: th.textContent.trim().split(/\s+/).length }))
@@ -328,6 +340,89 @@ export const tests = [
       })
       expect.equal(r.bg, r.bar, 'empty: the box shows the bar through it')
       expect.ok(r.frame !== r.bar, `its frame is the contrasting colour (${r.frame} on ${r.bar})`)
+    },
+  },
+  {
+    name: 'at 200% text the name column stays sticky, takes at most two thirds of the region, and the next column shows values',
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(400)
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 900 })
+        await page.waitForTimeout(300)
+        const r = await page.evaluate(() => ['#demo-tx', '#demo-select', '#demo-phone'].map((id) => {
+          const wrap = document.querySelector(id + ' .tbl'), region = wrap.querySelector('.tbl__scroll'), t = region.querySelector('table')
+          const box = region.getBoundingClientRect()
+          const sel = wrap.hasAttribute('data-select') ? 1 : 0
+          const nameCell = t.tBodies[0].rows[0].cells[sel]
+          const stickyEnd = nameCell.getBoundingClientRect().right
+          const sticky = getComputedStyle(nameCell).position
+          // the first scrolling column: how much of it shows, and does any value's text show in that slice?
+          const col = sel + 1
+          let shows = 0
+          for (const tr of t.tBodies[0].rows) {
+            const rg = document.createRange(); rg.selectNodeContents(tr.cells[col])
+            const q = rg.getBoundingClientRect()
+            if (q.width > 0 && q.left < box.right - 6) shows++
+          }
+          // the cap is two thirds of the region, unless the column's longest word is wider (a word is never broken)
+          const nameW = nameCell.getBoundingClientRect().width, floor = parseFloat(getComputedStyle(wrap).getPropertyValue('--_name-min')) || 0
+          const cap = Math.max(0.66 * wrap.getBoundingClientRect().width - (sel ? 44 : 0), floor)
+          const head = t.tHead.rows[0].cells[sel].getBoundingClientRect().width
+          return { id, sticky, share: (stickyEnd - box.left) / box.width, within: nameW <= Math.max(cap, head) + 1, nameW, cap, shows, rows: t.tBodies[0].rows.length }
+        }))
+        for (const x of r) {
+          expect.equal(x.sticky, 'sticky', `${w}px ${x.id}: the name column stays put`)
+          expect.ok(x.within, `${w}px ${x.id}: the name column (${x.nameW.toFixed(0)}px) keeps to two thirds of the region, or to its longest word (${x.cap.toFixed(0)}px)`)
+          expect.ok(x.share <= 0.8, `${w}px ${x.id}: the sticky part leaves a fifth of the region or more (${(x.share * 100).toFixed(0)}%)`)
+          expect.ok(x.shows === x.rows, `${w}px ${x.id}: every row shows part of its value beside the name (${x.shows}/${x.rows})`)
+        }
+      }
+    },
+  },
+  {
+    name: 'while there is more to the end the frame is open on that side, and it closes at the end',
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      const read = () => page.evaluate(() => {
+        const wrap = document.querySelector('#demo-tx .tbl'), region = wrap.querySelector('.tbl__scroll')
+        return { more: wrap.hasAttribute('data-more'), end: getComputedStyle(region).borderInlineEndWidth, start: getComputedStyle(region).borderInlineStartWidth, max: region.scrollWidth - region.clientWidth }
+      })
+      const a = await read()
+      expect.ok(a.more, 'data-more while the table runs past the edge')
+      expect.equal(a.end, '0px', 'no closing line at the end')
+      expect.equal(a.start, '2px', 'the start edge keeps its frame')
+      await page.locator('#demo-tx .tbl__scroll').evaluate((el) => { el.scrollLeft = el.scrollWidth })
+      await page.waitForTimeout(200)
+      const b = await read()
+      expect.ok(!b.more, 'at the end: no data-more')
+      expect.equal(b.end, '2px', 'at the end the frame closes')
+      expect.ok(Math.abs(b.max - a.max) <= 1, `the scroll range is the same open or closed (${a.max} vs ${b.max}), so nothing flickers`)
+    },
+  },
+  {
+    name: 'while the region scrolls, a number column wider than its values starts them at its start; the values still line up at their end',
+    async run({ page, goto, expect }) {
+      await goto('components/table.html')
+      const read = () => page.evaluate(() => {
+        const t = document.querySelector('#demo-select table')
+        const th = t.tHead.rows[0].cells[3] // Due today
+        const cells = [...t.tBodies[0].rows].map((tr) => tr.cells[3])
+        const ends = cells.map((c) => { const rg = document.createRange(); rg.selectNodeContents(c); return rg.getBoundingClientRect().right })
+        const starts = cells.map((c) => { const rg = document.createRange(); rg.selectNodeContents(c); return rg.getBoundingClientRect().left - c.getBoundingClientRect().left })
+        const cellEnd = cells[0].getBoundingClientRect().right
+        return { lead: th.hasAttribute('data-lead'), spread: Math.max(...ends) - Math.min(...ends), first: Math.min(...starts), gapToEnd: cellEnd - Math.max(...ends) }
+      })
+      const a = await read()
+      expect.ok(a.lead, 'the header is marked data-lead while the region scrolls')
+      expect.ok(a.spread < 1, `the values end on one line (spread ${a.spread.toFixed(1)}px), so digits line up`)
+      expect.ok(a.first <= 16, `the widest value starts at the column's start (${a.first.toFixed(0)}px in)`)
+      await page.setViewportSize({ width: 1280, height: 900 })
+      await page.waitForTimeout(300)
+      const b = await read()
+      expect.ok(!b.lead, 'a table that fits keeps the usual right-aligned numbers')
+      expect.ok(b.gapToEnd <= 16, `values sit at the column's end (${b.gapToEnd.toFixed(0)}px from it)`)
     },
   },
 ]

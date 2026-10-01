@@ -28,7 +28,7 @@
    </div>
 
    TIME IS A LENGTH. --pps (length per second) turns seconds into width: a clip starts at
-   calc(var(--start) * var(--pps)) and is calc(var(--dur) * var(--pps)) long, the body is
+   calc(var(--start) * var(--pps)) (its margin in the track's one cell) and is calc(var(--dur) * var(--pps)) long, the body is
    calc(var(--total) * var(--pps)) wide, the playhead sits at calc(var(--t) * var(--pps)). Zoom
    changes one number (--_zoom). The numbers live in inline custom properties so the markup
    is the model and the layout works before any script runs. Time runs left to right in every
@@ -45,7 +45,8 @@
    ":30"). The labels are to the right of their tick, so the head and a label can only meet vertically, never sideways.
 
    WHY THE PADDING. The scroller (overflow-x) clips y, and the focus ring (6px), the lift (2px) and the
-   hard shadow (4px) all sit outside the clips and the head, so the scroller pads them in (WCAG 2.4.7).
+   hard shadow (4px) all sit outside the clips and the head, so the scroller pads them in (WCAG 2.4.7). Under the
+   last track the padding is the 8px the tracks keep between them, so it reads as the same air, not a lane.
 
    THE PATTERN (same as button.css): --lift / --fill on the clip and the head, one transition,
    travel x --move, hover gated, forced colours get a real border and a heavier frame.
@@ -80,7 +81,7 @@
        words    the same, words only: the word says it, the icon was the second cue      a phone
        icons    the same, icons only (36px circles): the word stays in the button's name  200% text
        stack    [time] over [three tool circles] [zoom]                     a phone mock
-       tall     [time] over [tools] over [zoom]                             the narrowest
+       tall     [time] over [tools] over [zoom], every group from the start the narrowest
      The tools are three EQUAL cells, so the row reads as one toolbar: pills with words, circles with icons
      only. Without the script there is no data-fit: the groups wrap as whole groups and each tool stays a
      whole pill. */
@@ -125,7 +126,7 @@
     grid-template-areas:
       "time time"
       "tools tools"
-      ". zoom";
+      "zoom zoom"; /* each group on its own line, all from the start: zoom alone at the end of a third line read as a stray pair */
   }
   .timeline__bar[data-fit] > .timeline__time {
     grid-area: time;
@@ -280,6 +281,7 @@
     max-inline-size: none;
     min-inline-size: 0;
     overflow-wrap: break-word;
+    text-wrap: pretty; /* the script keeps "at 0:12" together (no-break space); this keeps a last line from being one word */
     padding: var(--chrome-2) var(--chrome-3);
     font: var(--type-meta);
     border-block-end: var(--bw-thin) solid var(--line);
@@ -290,12 +292,12 @@
     position: relative; /* the offsetParent of the body, so the script's x positions are measured from here */
     display: flex; /* a flex container includes its end padding in the scrollable area */
     padding: var(--chrome-3);
+    padding-block-end: var(--chrome-2); /* the same 8px as between the tracks: 12px under the last track read as an empty lane */
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-padding-inline: var(--chrome-4);
   }
   .timeline__body {
-    --_track-h: 4rem; /* a clip holds its name and its length: words, so this grows with the text */
     --_head: calc(var(--chrome-ctl-sm) - var(--chrome-2)); /* the playhead's head is a handle: 28px at every text size */
     --_ruler-h: calc(var(--_head) + 1.75rem); /* the head sits in the top of it and the labels in the bottom, so neither covers the other */
 
@@ -303,7 +305,7 @@
     display: grid;
     flex: none;
     inline-size: calc(var(--total) * var(--pps));
-    gap: var(--space-2);
+    gap: var(--chrome-2); /* ruler, tracks and the frame below are spaced alike, so the last gap reads as air, not a lane */
     align-content: start;
     padding-block-start: var(--chrome-1); /* room above the head for its ring */
   }
@@ -328,8 +330,11 @@
     block-size: var(--chrome-2);
     background: var(--line-soft);
   }
-  /* a label sits on a plate above the playhead's line (z 3), so the line breaks behind a number instead of
-     striking through it ("0:5|2") - the same move as the value plates in a bar chart with a reference line */
+  /* A label sits on a plate above the playhead's line (z 3), so the line never strikes through a number ("0:5|2").
+     The one label the line would run through moves to the other side of its tick (the script sets data-flip): left
+     there, its plate broke the line under the head, and the label right under the head ("0:10") read as the time
+     while the playhead was at 0:12. Flipped, it ends at its tick, the line runs whole from the head to the last
+     track, and the number still belongs to its tick. */
   .timeline__ruler > span {
     position: absolute;
     z-index: 4;
@@ -339,14 +344,19 @@
     background: var(--_bg);
     white-space: nowrap;
   }
+  .timeline__ruler > span[data-flip] {
+    translate: calc(-100% - var(--space-1) * 2) 0; /* from just after its tick to just before it */
+  }
 
-  /* ---- tracks and clips ---- */
+  /* ---- tracks and clips ----
+     Every clip of a track sits in the track's one grid cell, placed in time by its start (margin) and as long as it
+     lasts: the track is as tall as its tallest clip's words. A fixed 4rem track doubled at 200% text while the words
+     inside did not need it, and a clip read as a hollow box with its name and length 50px apart. */
   .timeline__track {
     position: relative;
-    block-size: var(--_track-h);
-  }
-  .timeline__track[data-kind="audio"] {
-    --_track-h: 4.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-block-size: var(--chrome-hit);
   }
 
   .timeline__clip {
@@ -365,14 +375,15 @@
     --_ink-now: color-mix(in srgb, var(--tone-on-fill, var(--paper)) calc(var(--fill) * 100%), var(--tone-ink, var(--ink)));
     --_wave: var(--_ink-now);
 
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: calc(var(--start) * var(--pps));
+    position: relative;
+    grid-area: 1 / 1;
+    justify-self: start;
+    margin-inline-start: calc(var(--start) * var(--pps));
     inline-size: calc(var(--dur) * var(--pps) - var(--space-1));
     min-inline-size: var(--chrome-hit);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: var(--chrome-1);
     padding: var(--chrome-2);
     color: var(--_ink-now);
@@ -465,7 +476,7 @@
   .timeline__clip[data-kind="audio"] {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
     align-items: start;
     gap: var(--chrome-1) var(--chrome-3);
   }
@@ -484,8 +495,7 @@
   .timeline__wave {
     display: block;
     inline-size: 100%;
-    block-size: 100%;
-    min-block-size: 0;
+    block-size: var(--chrome-6); /* a picture of the sound, not words: 32px at every text size */
     fill: var(--_wave);
   }
 

@@ -1,0 +1,13 @@
+/* ==========================================================================
+   SG legend: a row legend is one line of keys, or one key per line
+   --------------------------------------------------------------------------
+   A legend under a chart (.legend[data-layout="row"]) reads as one line while every key fits on it. When
+   they do not (a narrow phone, 200% text), it switches AS A WHOLE to one key per line: wrapping left one key
+   alone on a second line ("Food, Transport" over "Shopping"), and a 2 + 1 row reads as a mistake. SG.fit
+   (05-fit.js) measures it and writes data-fit="row" or "stack"; legend.css draws both. Without this script
+   there is no data-fit and the row wraps.
+   ========================================================================== */
+(function (SG) {
+  'use strict';
+  if (SG.fit) SG.fit.register('.legend[data-layout="row"]', { steps: ['row', 'stack'] });
+})((window.SG = window.SG || {}));

@@ -17,7 +17,10 @@
 
    STATES, each with a cue that is not colour:
      today       [aria-current="date"]   a 2px ring AND the numeral underlined and heavy
-     chosen      td[aria-selected=true]  filled with the accent, a doubled frame AND paper numerals
+     chosen      td[aria-selected=true]  filled with the accent, a doubled frame (its frame, a paper gap, then the
+                                          fill: drawn inward, so it is no bigger than today's ring) AND paper numerals;
+                                          in a narrow grid, where the circle is barely bigger than its numeral, a
+                                          heavier numeral replaces the inner frame
      events      markers under the day   one to three small squares; the count is also in the
                                           day's accessible name and in the list below
      outside     [data-outside]          the neighbouring months' days: soft ink, regular weight
@@ -33,8 +36,10 @@
    358px, a 320px one is 288px: 41px). Narrower, the cells shrink with the container, above the WCAG 2.5.8 floor
    of 24px down to about 10.5rem. Neighbouring cells touch: a gap would take the width the targets need, and
    touching cells leave no dead zone to mis-tap into (the Carousel's dots are the same). The drawn circle is
-   narrower than its cell by the doubled frame (2 x --bw), so a chosen day's frame and its focus ring are never
-   painted under the neighbour.
+   4px narrower than its cell, and every marker (today's ring, the chosen disc, a hovered day) has that one outer
+   size: two neighbouring markers always keep 4px between them. The chosen day's second frame is drawn INSIDE it;
+   drawn outside it made the chosen disc 4px bigger than today's ring in the same row, and at 200% text the two
+   came within 2px of each other.
 
    CONTAINER QUERIES  Weekday names: "Mon" while each column is wide enough, one letter below
    15rem (rem, so 200% text switches sooner). Week view: same. Below 17.5rem (a column under 2.5em: 200%
@@ -49,7 +54,7 @@
 
    WEEK VIEW  Seven pills of at least 44px. When the calendar is narrower than that (a phone at 200% text,
    or a phone mock), the strip scrolls sideways with snap instead of squeezing the days, and the chosen day is
-   scrolled into view; the cut day at the frame's edge says there is more.
+   scrolled into view; the cut day at the frame's edge says there is more (at both edges once it has scrolled).
 
    FOUNDATION REQUESTS  none.
    ========================================================================== */
@@ -104,10 +109,12 @@
     overflow: clip;
   }
 
-  .cal__grid thead th:first-child {
+  /* The bar sits under the month head, inside the frame: square. Only when an app hides the head is the bar the
+     card's first row, and then it follows the frame's inner curve (rounded under the head it showed dark notches). */
+  .cal__head[hidden] + .cal__scroll .cal__grid thead th:first-child {
     border-start-start-radius: var(--_r);
   }
-  .cal__grid thead th:last-child {
+  .cal__head[hidden] + .cal__scroll .cal__grid thead th:last-child {
     border-start-end-radius: var(--_r);
   }
 
@@ -156,9 +163,9 @@
   .cal__day {
     --lift: 0;
     --fill: 0;
-    /* never wider than the column MINUS the doubled frame (--_select is a --bw spread outside the circle): at the full
-       column width the chosen day's outer frame ran under its neighbour, which then painted over it and the focus ring */
-    --_d: min(calc(100% - 2 * var(--bw)), 2.5rem);
+    /* 4px narrower than the column (2px a side), so two neighbouring markers never come closer than 4px; nothing is
+       drawn outside the circle at rest (the chosen day's second frame is inset), so this is every marker's outer size */
+    --_d: min(calc(100% - var(--chrome-1)), 2.5rem);
     /* The hard shadow of a FILLED day (the chosen one; accent = ink in the default looks) would merge with its fill into
        a blob, so as --fill rises a paper gap opens between them. An unfilled day (paper inside, ink frame) keeps the
        plain shadow it always had: both the gap and the extra spread are scaled by --fill. */
@@ -271,11 +278,13 @@
     text-underline-offset: 0.12em;
   }
 
-  /* chosen: filled, and the frame doubles. It stays filled while it is pressed. */
+  /* chosen: filled, and the frame doubles INWARD: the ink frame, a paper gap, then the fill. Inward, so the chosen
+     disc is exactly as big as today's ring (an outer spread made it 4px bigger, and in the default looks, where the
+     accent is ink, it showed only as size, never as a second frame). It stays filled while it is pressed. */
   td[aria-selected="true"] > .cal__day,
   td[aria-selected="true"] > .cal__day:is(:active, .is-active) {
     --fill: 1;
-    --_select: 0 0 0 var(--bw) var(--line);
+    --_select: inset 0 0 0 var(--bw) var(--paper);
     border-color: var(--line);
   }
 
@@ -306,14 +315,26 @@
     .cal__num {
       font-stretch: 75%;
     }
+    /* Here the circle is barely bigger than its numeral (and today's underline and the markers sit inside it too):
+       the inset second frame would cut into the numeral, so the chosen day says "chosen" with its fill, its frame
+       and a heavier numeral instead. The week's tall pills keep the doubled frame: they have the room. */
+    .cal:not([data-view="week"]) td[aria-selected="true"] > .cal__day {
+      --_select: 0 0 0 0 transparent;
+      font-weight: 800;
+    }
   }
 
   /* narrowest (under about 1.3em a column: 200% text on a 320px phone): the extra-condensed width, and the
      circle holds the numeral alone. The markers sit just under it, still inside the 44px row, and today keeps
-     its ring and weight (an underline has no room left inside so small a circle). Still a circle, not a capsule. */
+     its ring and weight (an underline has no room left inside so small a circle). Still a circle, not a capsule.
+     The numeral is also bounded by its circle (cqi), as a figure is by its box: in the narrowest grids a 28px "30"
+     filled today's ring edge to edge. In a 288px calendar (a 320px phone at 200%) that bound is still 27px. */
   @container cal (max-width: 9rem) {
     .cal:not([data-view="week"]) .cal__num {
       font-stretch: 62.5%;
+    }
+    .cal:not([data-view="week"]) .cal__day {
+      font-size: min(0.875rem, 9.5cqi);
     }
     .cal:not([data-view="week"]) .cal__day {
       grid-template-rows: auto;
@@ -323,6 +344,10 @@
       inset-block-start: calc(100% + var(--chrome-1) / 2);
       inset-inline: 0;
       justify-content: center;
+    }
+    /* under the circle the markers sit on paper, so the chosen day's are ink, not the paper of its numeral */
+    .cal:not([data-view="week"]) td[aria-selected="true"] .cal__pips {
+      color: var(--ink);
     }
     .cal:not([data-view="week"]) .cal__day[aria-current="date"] .cal__num {
       text-decoration: none;
@@ -338,10 +363,14 @@
   /* seven pills of at least 44px; narrower than that, the strip scrolls with snap instead of squeezing.
      SG.calendar sets --_strip then: the days are sized so the strip shows whole days and HALF of the next,
      because half a day at the edge reads as "more", where a sliver of a few pixels read as the week's end. */
+  /* Scrolled, a day's start snaps 3/4 of a day in from the edge (scroll-padding): with k and a half days in view,
+     that leaves three quarters of a day at BOTH edges, so the strip says "more" on each side. At the start of the
+     week the strip rests at 0 (whole days from the edge, half a day at the end). */
   .cal[data-view="week"] .cal__scroll {
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: calc(var(--_strip) / 7 * 0.75);
   }
   /* a strip that ends the calendar is clipped to the frame's inner curve: square, the cut day at the edge
      painted over the soft corner's arc */
@@ -372,7 +401,7 @@
   }
 
   .cal[data-view="week"] .cal__day {
-    --_d: min(calc(100% - 2 * var(--bw)), 3rem);
+    --_d: min(calc(100% - var(--chrome-1)), 3rem); /* the same 4px between neighbours as the month */
     grid-template-rows: auto auto var(--chrome-1);
     aspect-ratio: auto;
     min-block-size: calc(var(--chrome-6) * 2.25); /* 72px: the pill's shape is chrome; its words make it taller when they need to */

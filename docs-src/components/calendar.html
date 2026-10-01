@@ -34,7 +34,7 @@
 <h2 id="examples">Examples</h2>
 
 <h3 id="month">Month</h3>
-<p>Today (30 September here, pinned with <code>data-today</code> so this page does not change with the date) has a ring and an underlined numeral. The chosen day, the 2nd, is filled and its frame doubles. The squares under a numeral count events up to three; the day's name says the count in words and the list below says what they are. Days of the neighbouring months are quieter, not faint, because they are real buttons. Try the arrow keys, <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>PageUp</kbd> and <kbd>PageDown</kbd>.</p>
+<p>Today (30 September here, pinned with <code>data-today</code> so this page does not change with the date) has a ring and an underlined numeral. The chosen day, the 2nd, is filled and its frame doubles inward (its frame, a paper gap, then the fill), so it is exactly as big as today's ring and every marker in a row has one size. The squares under a numeral count events up to three; the day's name says the count in words and the list below says what they are. Days of the neighbouring months are quieter, not faint, because they are real buttons. Try the arrow keys, <kbd>Home</kbd>, <kbd>End</kbd>, <kbd>PageUp</kbd> and <kbd>PageDown</kbd>.</p>
 <div class="demo" id="demo-month">
   <div class="demo__stage" data-code="&lt;div class=&quot;cal&quot; data-sg-calendar data-value=&quot;2026-10-02&quot; data-today=&quot;2026-09-30&quot; data-first-day=&quot;1&quot; data-locale=&quot;en-GB&quot;&gt;
   &lt;script type=&quot;application/json&quot; data-sg-events&gt;
@@ -853,7 +853,7 @@
     <tr><td>Hover</td><td>1</td><td>0</td><td>A ring appears and the day lifts 2px with its hard shadow.</td></tr>
     <tr><td>Focus</td><td>1</td><td>0</td><td>The same, and the focus ring.</td></tr>
     <tr><td>Pressed</td><td>0</td><td>0.15</td><td>Back on the surface, tinted with 15% of the accent.</td></tr>
-    <tr><td>Chosen</td><td>0 (1 on hover)</td><td>1</td><td>Filled, frame doubled, paper numeral.</td></tr>
+    <tr><td>Chosen</td><td>0 (1 on hover)</td><td>1</td><td>Filled, frame doubled inward, paper numeral. In a narrow grid (200% text on a phone) the circle is barely bigger than its numeral, so a heavier numeral replaces the inner frame.</td></tr>
     <tr><td>Off</td><td>0</td><td>0</td><td>Faint numeral struck through, no frame, no lift.</td></tr>
   </tbody>
 </table></div>
@@ -889,7 +889,7 @@
   <li><strong>Weekday bar</strong> (<code>thead</code>): the ink bar with uppercase names. <code>abbr</code> carries the long name; below 15rem wide, one letter.</li>
   <li><strong>Day</strong> (<code>.cal__day</code>): a circle of up to 2.5rem inside a 44px-tall cell; the hit area is the whole cell. Its name is the full date. In narrow columns (200% text on a phone) the numerals take Archivo's condensed width, so two digits stay inside their circle at full size.</li>
   <li><strong>Today</strong>: a 2px ring and an underlined, heavy numeral.</li>
-  <li><strong>Chosen day</strong> (<code>td[aria-selected=<wbr>"true"]</code>): filled with the accent, frame doubled, numeral in paper.</li>
+  <li><strong>Chosen day</strong> (<code>td[aria-selected=<wbr>"true"]</code>): filled with the accent, frame doubled inward, numeral in paper. The same outer size as today's ring; neighbouring markers keep 4px between them.</li>
   <li><strong>Markers</strong> (<code>.cal__pips</code>): one to three 4px squares under the numeral (just under the circle when the column is very narrow). Decorative.</li>
   <li><strong>Events</strong> (<code>.cal__events</code>): the chosen day's title and a list of time + title, as text, each row in its tone. The times share one column, so the titles line up; in a narrow calendar every time sits over its title.</li>
 </ol>

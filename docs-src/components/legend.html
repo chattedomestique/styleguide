@@ -9,6 +9,9 @@
      before the word (chrome: 8px at any text size). A tag has its own gap, so a mark there adds none. */
   #demo-marks .mark { display: inline-block; flex: none; inline-size: 1.25rem; block-size: 1.25rem; vertical-align: -0.25em; }
   #demo-marks th .mark { margin-inline-end: var(--chrome-2); }
+  /* a mark belongs to its word: the table's name column may wrap between words, and a line may break after an
+     inline box, so the mark and its one-word category are kept on one line together */
+  #demo-marks th { white-space: nowrap; }
   #demo-marks .t-meta { margin: 0; }
 </style>
 <h1>Legend</h1>
@@ -48,7 +51,7 @@
 </div>
 
 <h3 id="row">Row, under a chart</h3>
-<p>Items flow and wrap. No values: the chart prints them.</p>
+<p>One line of keys under the chart while they all fit on it; when they do not (a narrow phone, or big text), every key takes its own line, all at once, so a key is never left alone on a second line. No values: the chart prints them. The same category keeps the same key on every chart and table: Shopping is tone 4 here, in the table below and in the stacked bar chart.</p>
 <div class="demo" id="demo-row">
   <div class="demo__stage">
     <ul class="legend" role="list" data-layout="row">
@@ -87,7 +90,7 @@
             <tbody>
               <tr><th scope="row"><span class="mark" data-tone="2" aria-hidden="true"></span>Food</th><td data-align="end">$284</td></tr>
               <tr><th scope="row"><span class="mark" data-tone="3" aria-hidden="true"></span>Transport</th><td data-align="end">$152</td></tr>
-              <tr><th scope="row"><span class="mark" data-tone="5" aria-hidden="true"></span>Shopping</th><td data-align="end">$96</td></tr>
+              <tr><th scope="row"><span class="mark" data-tone="4" aria-hidden="true"></span>Shopping</th><td data-align="end">$96</td></tr>
             </tbody>
           </table>
         </div>
@@ -116,7 +119,7 @@
   <thead><tr><th>Hook</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
     <tr><td><code>.legend</code></td><td><code>ul role="list"</code></td><td>The list. A grid of key, label, value, share; each item is a subgrid row.</td></tr>
-    <tr><td><code>data-layout</code></td><td><code>stack</code> (default), <code>row</code></td><td>Rows with aligned columns, or a wrapping line.</td></tr>
+    <tr><td><code>data-layout</code></td><td><code>stack</code> (default), <code>row</code></td><td>Rows with aligned columns, or one line of keys. A row legend is measured (<code>SG.fit</code> writes <code>data-fit="row"</code> or <code>"stack"</code>): one line while every key fits, else one key per line, as a whole. Without the script it wraps.</td></tr>
     <tr><td><code>.legend__item</code></td><td><code>li</code></td><td>One series.</td></tr>
     <tr><td><code>.legend__key</code></td><td><code>data-tone="1"</code> to <code>"6"</code>, <code>aria-hidden="true"</code></td><td>The swatch: tone + pattern.</td></tr>
     <tr><td><code>.mark</code></td><td><code>data-tone</code></td><td>The same swatch for use outside a legend.</td></tr>

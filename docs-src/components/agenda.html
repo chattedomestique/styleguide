@@ -2,9 +2,10 @@
 <style>
   /* docs scaffolding only: keep the class names in the API tables whole */
   .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
-  /* docs scaffolding only: the docs article styles bare lists and h3/h4; an agenda is its own layout */
-  .demo :is(.agenda, .agenda__slots, .agenda__events, .agenda-day__hours) { padding: 0; }
-  .demo .agenda-day__events { padding: 0 0 0 var(--chrome-2); }
+  /* docs scaffolding only: the docs article pads bare lists; an agenda's lists keep the component's own padding
+     (revert-layer drops this page's unlayered rules for them, the article's included). A fixed value here outranked
+     the component's own reset when the lanes stack, and the stacked events sat 8px in from the day's title. */
+  .demo :is(.agenda, .agenda__slots, .agenda__events, .agenda-day__hours, .agenda-day__events) { padding: revert-layer; }
   /* only the article's space between list items goes: an event's own 2px end margin (the gap between
      back-to-back events) is the component's */
   .demo :is(.agenda, .agenda-day) li { margin-block-start: 0; max-inline-size: none; }
@@ -118,7 +119,7 @@
 </div>
 
 <h3 id="states">Event states</h3>
-<p>A chip is a link, so it lifts on hover and on keyboard focus (same lift), and sinks when pressed. The day card itself is not pressable, so it never lifts. The <code>is-*</code> classes only force a state for this page.</p>
+<p>A chip is a link, so it lifts on hover and on keyboard focus (same lift). Pressed, it lies flat and its fill takes 12% of its own ink at once, so a tap on a phone shows straight away (the words keep 7:1 on the tint). The day card itself is not pressable, so it never lifts. The <code>is-*</code> classes only force a state for this page.</p>
 <div class="demo" id="demo-states">
   <div class="demo__stage">
     <ol class="agenda" role="list">

@@ -80,19 +80,22 @@ export const tests = [
     },
   },
   {
-    name: 'a chip lifts on hover and on keyboard focus the same way, and sinks when pressed',
+    name: 'a chip lifts on hover and on keyboard focus the same way; pressed, it lies flat with a visible tint',
     async run({ page, goto, expect }) {
       await goto('components/agenda.html')
       const a = page.locator(`${DAYS} .agenda__event`).first()
       const lift = () => a.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--lift')))
+      const bg = () => a.evaluate((el) => getComputedStyle(el).backgroundColor)
       await page.waitForTimeout(50)
       expect.equal(await lift(), 0, 'rest')
+      const rest = await bg()
       await a.hover()
       await page.waitForTimeout(400)
       expect.equal(await lift(), 1, 'hover')
       await page.mouse.down()
       await page.waitForTimeout(300)
       expect.equal(await lift(), 0, 'pressed')
+      expect.ok((await bg()) !== rest, `a press changes the chip at once (${rest} -> ${await bg()}): flat at rest, it had nothing else to show`)
       await page.mouse.up()
       await page.mouse.move(0, 0)
       await page.keyboard.press('Tab')

@@ -16,7 +16,9 @@
    </ul>
 
    data-layout   stack (default): rows, with value and share in aligned columns
-                 row: items flow and wrap in a line under a chart
+                 row: one line of keys under a chart. Measured by SG.fit (src/js/71-legend.js): data-fit="row"
+                 while every key fits on the line, else data-fit="stack", one key per line AS A WHOLE (a row
+                 that wrapped 2 + 1 left "Shopping" alone on a second line). Without the script it wraps.
    The key is decorative (aria-hidden): the label names the series and the value is text, so a
    screen reader hears "Food, $284, 22%". The swatch only has to match the chart visually.
 
@@ -121,6 +123,19 @@
   .legend[data-layout="row"] .legend__value,
   .legend[data-layout="row"] .legend__share {
     margin-inline-start: var(--space-1);
+  }
+
+  /* measured: one unwrapped line (so "does not fit" is overflow the script can see), or one key per line */
+  .legend[data-layout="row"][data-fit="row"] {
+    flex-wrap: nowrap;
+  }
+  .legend[data-layout="row"][data-fit="row"] .legend__item {
+    flex: none;
+    white-space: nowrap;
+  }
+  .legend[data-layout="row"][data-fit="stack"] {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   /* the swatch keeps a system-colour edge and pattern when forced colours deletes fills

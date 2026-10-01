@@ -420,11 +420,11 @@
   <li><strong>Title</strong> (<code>.bars__title</code>): the figcaption. Names the chart and labels the radio group.</li>
   <li><strong>Readout</strong> (<code>.bars__readout</code>): an <code>&lt;output&gt;</code> that repeats the selected bar as a sentence. Its height is reserved.</li>
   <li><strong>Plot</strong> (<code>.bars__plot</code>): a grid of two rows, track and label. Each column is a subgrid, so tracks are one height and labels line up.</li>
-  <li><strong>Track</strong> (<code>.bars__track</code>): holds the value and the bar, and draws the 2px baseline. The bar grows out of the baseline: one line, not two.</li>
+  <li><strong>Track</strong> (<code>.bars__track</code>): holds the value and the bar, and draws the 2px baseline. The bar grows out of the baseline: one line, not two. On its side, the tracks draw one axis down the whole plot; stacked under their labels (200% text in a narrow card), each bar closes its own edge instead.</li>
   <li><strong>Bar</strong> (<code>.bars__bar</code>, or <code>.bars__stack</code> of <code>.bars__seg</code>): a tone, a pattern and a 2px frame. Its size is <code>--v</code>.</li>
   <li><strong>Value</strong> (<code>.bars__value</code>): at the bar's cap, tabular figures, rounded for the eye. The exact number is in the readout and the table.</li>
   <li><strong>Axis label</strong> (<code>.bars__label</code>): uppercase structure. Inverted on the selected bar.</li>
-  <li><strong>Reference line</strong> (<code>data-ref</code>, <code>--ref</code>) and its <strong>note</strong> (<code>.bars__note</code>): a dashed line is only allowed if something says what it is.</li>
+  <li><strong>Reference line</strong> (<code>data-ref</code>, <code>--ref</code>) and its <strong>note</strong> (<code>.bars__note</code>): a dashed line is only allowed if something says what it is. It is one line in every layout; the note's dashed key stays beside the first line of its words.</li>
   <li><strong>Data</strong> (<code>.bars__data</code>): a <code>&lt;details&gt;</code> holding a <a href="@/components/table.html">Table</a> of the same numbers.</li>
 </ol>
 <p>Drawing the data: <code>SG.chart<wbr>.scale(<wbr>[18.5, 42, 27.3])</code> returns the <code>--v</code> values (0 to 1, against the largest by default).</p>
@@ -461,7 +461,7 @@
     <tr><td>Screen reader</td><td>Interactive: "Spending by day, radio group", then "Thursday: $62.40, the highest day, radio button, 4 of 7, checked". Static: one image whose label is the headline ("Spending by day ... Highest Thursday at $62.40 ..."). Either way the table carries every number.</td></tr>
     <tr><td>Colour</td><td>Never the only cue (WCAG 1.4.1). Series differ by pattern and by the legend; selection is fill, doubled frame, heavy value and inverted label. The 2px frame carries the 3:1 boundary the pale tone cannot (1.4.11).</td></tr>
     <tr><td>Touch</td><td>A whole column is the target (about 47px wide at 390px, the full plot height). Selecting is a tap: no drag, no hover-only tooltip. The value is printed, not revealed on hover.</td></tr>
-    <tr><td>Zoom / text size</td><td>All sizes are rem. The layout flips to horizontal when seven labels would not fit, so nothing collides at 320px or 200% text. A day's label that fills its column takes Archivo's extra-condensed width (SG.chart measures the labels), so it stays whole and never touches the chosen day's plate.</td></tr>
+    <tr><td>Zoom / text size</td><td>All sizes are rem. The layout flips to horizontal when seven labels would not fit, so nothing collides at 320px or 200% text. A day's label that fills its column takes Archivo's extra-condensed width (SG.chart measures the labels), so it stays whole and never touches the chosen day's plate. Stacked under their labels, the bars keep one unbroken average line behind the labels, and the data summary wraps into two even lines.</td></tr>
     <tr><td>Reduced motion</td><td>The only motion is the bar lifting on hover or focus; the travel is multiplied by <code>--move</code>, so it becomes the hard shadow appearing in place, and the press tint is a plain colour change. Nothing draws itself in.</td></tr>
     <tr><td>Forced colours</td><td>Fills and shadows vanish; frames become <code>CanvasText</code>, patterns stay (they are drawn with a system colour), the selected bar gets a 4px frame and the selected label a 4px box, focus a 4px <code>Highlight</code>.</td></tr>
   </tbody>

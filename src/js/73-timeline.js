@@ -85,6 +85,7 @@
     p.head.setAttribute('aria-valuetext', clock(t) + ' of ' + clock(max));
     if (p.readout) p.readout.textContent = clock(t);
     refresh(root);
+    fitLabels(root); // the label the line now runs through is hidden, the one it left is shown again
     if (!opts || !opts.keepScroll) reveal(root);
     root.dispatchEvent(new CustomEvent('sg:timeline-seek', { bubbles: true, detail: { time: t } }));
   }
@@ -128,9 +129,10 @@
     } else {
       var start = getNum(clip, '--start'), end = start + getNum(clip, '--dur');
       can = t > start + 1e-6 && t < end - 1e-6;
+      // no-break spaces keep "at 0:12" and "0:22 to 0:52" whole, so a time never ends the sentence alone on a line
       msg = can
-        ? 'Split and trim act on “' + clipName(clip) + '” at ' + clock(t) + '.'
-        : 'Move the playhead inside “' + clipName(clip) + '” (' + clock(start) + ' to ' + clock(end) + ') to split or trim it.';
+        ? 'Split and trim act on “' + clipName(clip) + '” at\u00a0' + clock(t) + '.'
+        : 'Move the playhead inside “' + clipName(clip) + '” (' + clock(start) + '\u00a0to\u00a0' + clock(end) + ') to split or trim it.';
     }
     ['split', 'trim-start', 'trim-end'].forEach(function (a) { setDisabled(button(root, a), !can); });
     if (p.hint && p.hint.textContent !== msg) p.hint.textContent = msg;
@@ -250,8 +252,11 @@
     fitLabels(root);
   }
 
-  /** A ruler number the scroller cuts ("0:4" of 0:40) reads as another number: hide it until it is whole. The ruler
-      is aria-hidden and its ticks stay, so nothing is lost. And a clip whose start is scrolled away is marked
+  /** A ruler number the scroller cuts ("0:4" of 0:40) reads as another number: hide it until it is whole. The number
+      the playhead's line runs through moves to the other side of its tick (data-flip): on its plate it broke the line
+      under the head, and sat right under the head ("0:10" while the playhead was at 0:12). Flipped, it ends at its
+      tick, before the line, so the line runs whole and the number still reads as its tick's. The ruler is aria-hidden
+      and its ticks stay, so nothing is lost. And a clip whose start is scrolled away is marked
       data-cut with how much of it is in view (--_seen), so its pinned name shows how it starts, cut with an ellipsis
       (pinned but wider than what was left of "Harbour at dawn", it showed only "dawn"). Runs on scroll, resize and
       after the ruler is drawn. */
@@ -259,9 +264,19 @@
     var p = parts(root);
     if (!p.scroll || !p.ruler) return;
     var box = p.scroll.getBoundingClientRect();
+    var line = p.playhead ? p.playhead.getBoundingClientRect().left : null;
+    var gap = 0.25 * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16); // --space-1, as in the CSS
+    var bw = 2;
     SG.qsa('span', p.ruler).forEach(function (s) {
-      var r = s.getBoundingClientRect();
-      s.style.visibility = r.left >= box.left - 0.5 && r.right <= box.right + 0.5 ? '' : 'hidden';
+      var tick = s.previousElementSibling;
+      if (!tick) return;
+      // where the label sits beside its tick, measured from the tick (a translate does not move offsetWidth)
+      var at = tick.getBoundingClientRect().left, w = s.offsetWidth;
+      var left = at + gap, right = left + w;
+      var flip = line !== null && line > left - bw && line < right + bw;
+      if (flip) { right = at - gap; left = right - w; }
+      s.toggleAttribute('data-flip', flip);
+      s.style.visibility = left >= box.left - 0.5 && right <= box.right + 0.5 ? '' : 'hidden';
     });
     SG.qsa('.timeline__clip', p.scroll).forEach(function (c) {
       var r = c.getBoundingClientRect();

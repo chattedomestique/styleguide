@@ -39,6 +39,7 @@
    fitStrip() sizes the days (each 44px or more) so the box shows whole days and half of the next, the box
    scrolls sideways with snap, and reveal() keeps the chosen day (or the focusable one) in view, without
    moving the page. Half a day at the edge says "more"; a sliver of a few pixels looked like the week's end.
+   Scrolled, the strip rests with three quarters of a day at both edges, so the days before are "more" too.
 
    WHAT A SCREEN READER HEARS  Each day is a button named with its full date from Intl:
    "Wednesday 30 September 2026, today, 2 events". The chosen day is aria-selected on its cell.
@@ -195,7 +196,10 @@
     if (st.view === 'month') return fmt(st, { month: 'long', year: 'numeric' }).format(st.cursor);
     var a = startOfWeek(st.cursor, st.first), b = addDays(a, 6);
     var f = fmt(st, { day: 'numeric', month: 'short', year: 'numeric' });
-    return typeof f.formatRange === 'function' ? f.formatRange(a, b) : f.format(a) + ' – ' + f.format(b);
+    var s = typeof f.formatRange === 'function' ? f.formatRange(a, b) : f.format(a) + ' – ' + f.format(b);
+    // each date stays whole ("28 Sept", "4 Oct 2026") and the range breaks only at its dash: at 200% text the
+    // title came out as "28" / "Sept –" / "4 Oct" / "2026"
+    return s.replace(/ /g, '\u00a0').replace(/\u00a0([\u2013\u2014-])\u00a0/g, ' $1 ');
   }
 
   /** Redraw the parts that change; the buttons in the head are never replaced, so focus on them survives paging. */
@@ -234,17 +238,21 @@
     box.style.setProperty('--_strip', Math.floor((7 * w) / (k + 0.5)) + 'px');
   }
 
-  /** A strip that scrolls: bring the chosen day (else the tab stop) into view by moving the strip only, never the page. */
+  /** A strip that scrolls: bring the chosen day (else the tab stop) into view by moving the strip only, never the page.
+      Scrolled, the strip rests with three quarters of a day showing at BOTH edges (the CSS snaps a day's start to
+      3/4 of a day in from the edge): resting on a whole day at the start edge, nothing said the week went on
+      to the left. At the start of the week it shows whole days from the edge and half a day at the end. */
   function reveal(el) {
     fitStrip(el);
     var box = el.querySelector('.cal__scroll');
     if (!box || box.scrollWidth <= box.clientWidth + 1) return;
     var day = el.querySelector('td[aria-selected="true"] > .cal__day') || el.querySelector('.cal__day[tabindex="0"]');
     if (!day) return;
-    // move by whole days: the strip snaps to a day's edge, and a smaller step would snap straight back
     var a = box.getBoundingClientRect(), b = day.parentNode.getBoundingClientRect(), c = b.width || 1;
-    if (b.right > a.right + 0.5) box.scrollLeft += Math.ceil((b.right - a.right - 0.5) / c) * c;
-    else if (b.left < a.left - 0.5) box.scrollLeft -= Math.ceil((a.left - b.left - 0.5) / c) * c;
+    if (b.left >= a.left - 0.5 && b.right <= a.right + 0.5) return; // already whole and in view
+    var rtl = getComputedStyle(box).direction === 'rtl';
+    // put the day's start edge 3/4 of a day in from the strip's start edge: a snap position, so it stays there
+    box.scrollLeft += rtl ? b.right - (a.right - 0.75 * c) : b.left - (a.left + 0.75 * c);
   }
 
   function build(el) {

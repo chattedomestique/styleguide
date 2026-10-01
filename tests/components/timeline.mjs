@@ -178,7 +178,7 @@ export const tests = [
     async run({ page, goto, expect }) {
       await goto('components/timeline.html')
       expect.equal(await btn(page, 'split').getAttribute('aria-disabled'), null, 'available: the playhead is inside the selected clip')
-      expect.ok(/Split and trim act on .Lighthouse. at 0:30/.test(await hint(page)), `hint says what will happen (${await hint(page)})`)
+      expect.ok(/Split and trim act on .Lighthouse. at\u00a00:30/.test(await hint(page)), `hint says what will happen, the time kept with "at" by a no-break space (${await hint(page)})`)
       await btn(page, 'split').click()
       const c = await clips(page)
       expect.equal(c.length, 4, 'four clips now')
@@ -221,7 +221,7 @@ export const tests = [
       await page.locator('#tl1-head').focus()
       await page.keyboard.press('Home')
       for (const a of ['split', 'trim-start', 'trim-end']) expect.equal(await btn(page, a).getAttribute('aria-disabled'), 'true', `${a} unavailable`)
-      expect.ok(/Move the playhead inside .Lighthouse. \(0:22 to 0:52\)/.test(await hint(page)), `the hint explains (${await hint(page)})`)
+      expect.ok(/Move the playhead inside .Lighthouse. \(0:22\u00a0to\u00a00:52\)/.test(await hint(page)), `the hint explains, the times kept together (${await hint(page)})`)
       expect.equal(await btn(page, 'split').getAttribute('aria-describedby'), 'tl1-hint', 'the button is described by it')
       await btn(page, 'split').focus()
       await page.keyboard.press('Enter')
@@ -456,6 +456,89 @@ export const tests = [
       expect.ok(r.start && r.end, 'its name starts inside the scroller and ends inside the clip')
       expect.ok(r.ellipsis === 'ellipsis' && r.wrap === 'nowrap', 'one line with an ellipsis')
       expect.ok(r.truncated, 'the name is longer than the part in view, so the ellipsis shows')
+    },
+  },
+  {
+    name: 'the playhead line runs whole from the head to the last track: no ruler number sits on it, wherever it is',
+    async run({ page, goto, expect }) {
+      await goto('components/timeline.html')
+      const onLine = (sel) => page.evaluate((sel) => {
+        const t = document.querySelector(sel)
+        const x = t.querySelector('.timeline__playhead').getBoundingClientRect().left
+        return [...t.querySelectorAll('.timeline__ruler > span')].filter((s) => getComputedStyle(s).visibility !== 'hidden').filter((s) => { const b = s.getBoundingClientRect(); return x > b.left - 1 && x < b.right + 1 }).map((s) => s.textContent)
+      }, sel)
+      expect.equal((await onLine('#dark + p + .demo .timeline')).join(), '', 'dark stage at load: the line crosses no number')
+      await page.locator('#tl1-head').scrollIntoViewIfNeeded()
+      await page.locator('#tl1-head').focus()
+      await page.keyboard.press('Home')
+      const hits = []
+      for (let i = 0; i < 40; i++) {
+        await page.keyboard.press('ArrowRight')
+        await page.waitForTimeout(30)
+        const h = await onLine(root)
+        if (h.length) hits.push(i + 1 + 's: ' + h.join())
+      }
+      expect.equal(hits.join(' | '), '', 'no number on the line at any second from 0:01 to 0:40')
+      // the number the line would cross is still shown, on the other side of its tick
+      const flipped = await page.evaluate(() => [...document.querySelectorAll('#editor + p + .demo .timeline__ruler > span[data-flip]')].map((s) => { const b = s.getBoundingClientRect(), tick = s.previousElementSibling.getBoundingClientRect(); return { shown: getComputedStyle(s).visibility !== 'hidden', before: b.right <= tick.left + 0.5 } }))
+      expect.ok(flipped.every((f) => f.before), 'a flipped number ends before its tick')
+    },
+  },
+  {
+    name: 'a clip is as tall as its words: at 200% text the name and the length sit together, no hollow middle',
+    async run({ page, goto, expect }) {
+      await goto('components/timeline.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(400)
+      const r = await page.evaluate(() => [...document.querySelectorAll('#editor + p + .demo .timeline__clip:not([data-kind])')].map((c) => {
+        const n = c.querySelector('.timeline__name').getBoundingClientRect(), d = c.querySelector('.timeline__dur').getBoundingClientRect(), b = c.getBoundingClientRect()
+        return { between: d.top - n.bottom, below: b.bottom - d.bottom }
+      }))
+      for (const x of r) {
+        expect.ok(x.between <= 6, `the length follows the name (${x.between.toFixed(1)}px between)`)
+        expect.ok(x.below <= 12, `and the clip ends after its padding (${x.below.toFixed(1)}px below the length)`)
+      }
+    },
+  },
+  {
+    name: 'under the last track is the same air as between the tracks, not an empty lane',
+    async run({ page, goto, expect }) {
+      await goto('components/timeline.html')
+      const r = await page.evaluate(() => {
+        const t = document.querySelector('#editor + p + .demo .timeline')
+        const tracks = [...t.querySelectorAll('.timeline__track')].map((x) => x.getBoundingClientRect())
+        const sc = t.querySelector('.timeline__scroll').getBoundingClientRect()
+        const bw = parseFloat(getComputedStyle(t).borderBottomWidth)
+        return { between: tracks[1].top - tracks[0].bottom, below: t.getBoundingClientRect().bottom - bw - tracks[tracks.length - 1].bottom }
+      })
+      expect.ok(Math.abs(r.below - r.between) <= 1, `below the last track ${r.below}px, between tracks ${r.between}px`)
+    },
+  },
+  {
+    name: 'when the bar takes three lines, every group starts at the start (zoom is not a stray pair at the end)',
+    viewport: { width: 320, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto('components/timeline.html')
+      const r = await page.locator('#context + p + .demo .timeline').evaluate((t) => {
+        const bar = t.querySelector('.timeline__bar')
+        const first = (sel) => t.querySelector(sel).getBoundingClientRect().left
+        return { fit: bar.dataset.fit, time: first('.timeline__time .btn'), tools: first('.timeline__actions .btn'), zoom: first('.timeline__zoom .btn') }
+      })
+      expect.equal(r.fit, 'tall', 'the phone mock at 320px takes three lines')
+      expect.ok(Math.abs(r.zoom - r.tools) < 1 && Math.abs(r.tools - r.time) < 1, `time ${r.time}, tools ${r.tools}, zoom ${r.zoom}: one start edge`)
+    },
+  },
+  {
+    name: 'the clip states keep clear of each other: shadows and rings never come within 8px of the next clip',
+    async run({ page, goto, expect }) {
+      await goto('components/timeline.html')
+      const r = await page.locator('#clips + p + .demo').evaluate((el) => {
+        const box = (name) => [...el.querySelectorAll('.timeline__clip')].find((x) => x.querySelector('.timeline__name').textContent.trim() === name).getBoundingClientRect()
+        const hover = box('Hover'), focus = box('Focus')
+        // hover paints its 4px shadow to the end, focus its 6px ring (3px ring + 3px offset) all round
+        return { gap: (focus.left - 6) - (hover.right + 4), sameRow: Math.abs(hover.top - focus.top) < 8 }
+      })
+      if (r.sameRow) expect.ok(r.gap >= 8, `Hover's shadow and Focus's ring are ${r.gap.toFixed(0)}px apart`)
     },
   },
 ]

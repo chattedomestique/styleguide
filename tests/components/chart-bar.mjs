@@ -368,23 +368,36 @@ export const tests = [
     },
   },
   {
-    name: 'a raised bar draws its own edge where it left the axis, and a horizontal row hides the axis foot under it',
+    name: 'a raised bar draws its own edge where it left the axis; a horizontal chart has ONE axis down the plot; stacked under their labels, bars close their own edge',
     async run({ page, goto, expect }) {
       await goto('components/chart-bar.html')
       const read = () => page.evaluate(() => [...document.querySelectorAll('#demo-states .bars__col')].slice(0, 2).map((c) => {
-        const b = getComputedStyle(c.querySelector('.bars__bar')), t = getComputedStyle(c.querySelector('.bars__track'))
-        return { end: b.borderBottomWidth, start: b.borderLeftWidth, axis: t.borderLeftColor, axisW: t.borderLeftWidth }
+        const b = getComputedStyle(c.querySelector('.bars__bar'))
+        return { end: b.borderBottomWidth, start: b.borderLeftWidth }
       }))
       await page.waitForTimeout(400)
       let [rest, hover] = await read()
       expect.equal(rest.end, '0px', 'vertical, at rest: the baseline is the bar\'s foot')
       expect.equal(hover.end, '2px', 'vertical, raised: the bar draws its own foot (no open corner)')
+      // horizontal, side by side: the axis is the bar's start edge at rest, and one unbroken line down the plot
+      const h = await page.locator('#demo-ranked .bars').evaluate((el) => {
+        const tracks = [...el.querySelectorAll('.bars__track')]
+        const seg = tracks.map((t) => { const r = t.getBoundingClientRect(), cs = getComputedStyle(t, '::after'); return { top: r.top + parseFloat(cs.top), bottom: r.bottom - parseFloat(cs.bottom), x: r.left, w: cs.borderLeftWidth, style: cs.borderLeftStyle } })
+        const gaps = seg.slice(1).map((x, i) => x.top - seg[i].bottom)
+        const bar = getComputedStyle(el.querySelector('.bars__bar'))
+        return { gaps, xs: [...new Set(seg.map((x) => Math.round(x.x)))], w: seg[0].w, style: seg[0].style, barStart: bar.borderLeftWidth }
+      })
+      expect.ok(h.style === 'solid' && h.w === '2px', `a 2px axis (${h.style} ${h.w})`)
+      expect.equal(h.xs.length, 1, 'every row draws its stretch on one x')
+      expect.ok(h.gaps.every((g) => Math.abs(g) <= 0.5), `the stretches meet, so it is one line (gaps ${h.gaps.map((g) => g.toFixed(1)).join(', ')})`)
+      expect.equal(h.barStart, '0px', 'at rest the axis is the bar\'s start edge')
+      // 200% text: the states specimen stacks each label above its bar; no axis, every bar closes its own start edge
       await page.addStyleTag({ content: 'html{font-size:200%!important}' })
       await page.waitForTimeout(500)
       ;[rest, hover] = await read()
-      expect.ok(rest.start === '0px' && hover.start === '2px', `horizontal: the raised bar draws its own start edge (${rest.start} / ${hover.start})`)
-      expect.ok(!/ 0\)$|, 0\)$|transparent/.test(rest.axis), `the axis shows at rest (${rest.axis})`)
-      expect.ok(/(?:\/ 0\)|, 0\))$/.test(hover.axis.replace(/\s+/g, ' ')) || hover.axis === 'transparent' || hover.axis === 'rgba(0, 0, 0, 0)', `the axis under a raised bar is hidden (${hover.axis})`)
+      const axis = await page.locator('#demo-states .bars__track').first().evaluate((t) => getComputedStyle(t, '::after').content)
+      expect.ok(rest.start === '2px' && hover.start === '2px', `stacked: every bar draws its own start edge (${rest.start} / ${hover.start})`)
+      expect.equal(axis, 'none', 'and no axis runs through the labels above the bars')
     },
   },
   {
@@ -412,6 +425,30 @@ export const tests = [
       expect.equal(r.stretch, '62.5%', 'Archivo extra-condensed')
       expect.ok(r.labs.every((l) => l.lines === 1 && l.left >= 3 && l.right >= 3), `every label is one line with 3px clear each side (${JSON.stringify(r.labs.at(-1))})`)
       expect.equal(r.week, 'labels', 'a chart whose labels fit keeps the usual condensed labels')
+    },
+  },
+  {
+    name: 'at 200% text the average line is one dashed line down the plot, its key stays beside the words, and the data summary wraps evenly',
+    async run({ page, goto, expect }) {
+      await goto('components/chart-bar.html')
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' })
+      await page.waitForTimeout(500)
+      const r = await page.locator('#demo-week .bars').evaluate((el) => {
+        const plot = el.querySelector('.bars__plot'), pb = plot.getBoundingClientRect(), line = getComputedStyle(plot, '::before')
+        const tracks = [...el.querySelectorAll('.bars__track')].map((t) => getComputedStyle(t, '::before').content)
+        const note = el.querySelector('.bars__note'), nb = note.getBoundingClientRect(), key = getComputedStyle(note, '::before')
+        const rg = document.createRange(); rg.selectNodeContents(note); const words = [...rg.getClientRects()]
+        const sum = el.querySelector('.bars__data > summary'); const sr = document.createRange(); sr.selectNodeContents(sum)
+        const lines = []; for (const q of sr.getClientRects()) { const l = lines.find((x) => Math.abs(x.top - q.top) < 4); if (l) { l.w += q.width } else lines.push({ top: q.top, w: q.width }) }
+        return { lineStyle: line.borderLeftStyle, lineH: parseFloat(line.height), plotH: pb.height, perTrack: tracks.filter((c) => c !== 'none').length,
+          keyTop: parseFloat(key.height) / 2, firstLine: words[0] ? words[0].height : 0, keyLeft: true, wordsTop: words[0] ? words[0].top - nb.top : 0,
+          lines: lines.map((l) => Math.round(l.w)) }
+      })
+      expect.equal(r.lineStyle, 'dashed', 'the plot draws the average line')
+      expect.ok(Math.abs(r.lineH - r.plotH) < 1, `from the top of the plot to its bottom (${r.lineH.toFixed(0)} of ${r.plotH.toFixed(0)}px)`)
+      expect.equal(r.perTrack, 0, 'no track draws a stretch of its own (they broke at every label)')
+      expect.ok(r.keyTop <= r.firstLine && r.wordsTop < r.firstLine / 2, `the key sits on the first line of its words (dash ${r.keyTop.toFixed(0)}px down, line ${r.firstLine.toFixed(0)}px)`)
+      if (r.lines.length > 1) expect.ok(r.lines[r.lines.length - 1] >= 0.5 * r.lines[0], `the summary's lines are even (${r.lines.join(' / ')}px), never one word alone`)
     },
   },
 ]

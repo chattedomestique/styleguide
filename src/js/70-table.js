@@ -18,6 +18,20 @@
                 region, so the change is announced without moving focus.
      hint       .tbl gets data-scrollable while its scroll region overflows; CSS
                 shows .tbl__hint only then.
+     more       .tbl gets data-more while there is more to scroll toward the inline end;
+                CSS opens the frame on that side, so the table visibly runs on past the
+                edge even when the edge happens to fall between two columns.
+     floor      the name column is capped at two thirds of the region (CSS), but a table cell's
+                max-width beats its min-content: a cap under the longest word broke it
+                ('Selecte / d') or let a nowrap name run into the next column. SG.table
+                measures the column's longest unbreakable piece and writes it to --_name-min,
+                which the cap never goes below.
+     lead       while the region scrolls, a number column whose header is wider than its
+                values ("CARDS" over "12") starts its values at the column's start: the
+                cells get --_lead (the spare width) as extra end padding and the header
+                gets data-lead. Without it the edge cut such a column through blank cells
+                (the values sat at the far end) and the column read as empty. The values
+                stay end-aligned among themselves, so their decimals still line up.
 
    EVENTS (bubble from the .tbl)
      sg-table-sort    detail { column: index, direction: 'ascending'|'descending', header }
@@ -127,9 +141,84 @@
   function measure(wrap) {
     var scroller = SG.qs('.tbl__scroll', wrap);
     if (!scroller) return;
-    if (scroller.scrollWidth > scroller.clientWidth + 1) wrap.setAttribute('data-scrollable', '');
+    var over = scroller.scrollWidth > scroller.clientWidth + 1;
+    if (over) wrap.setAttribute('data-scrollable', '');
     else wrap.removeAttribute('data-scrollable');
+    var table = SG.qs('table', wrap);
+    if (table) { nameFloor(wrap, table); lead(table, over); }
+    edge(wrap, scroller, over);
   }
+
+  /* The narrowest the name column may be: its widest cell at min-content (a clone of the cell's content, laid out
+     at min-content inside the cell, so it has the cell's font and white-space), plus the cell's insets. */
+  function nameFloor(wrap, table) {
+    var nth = wrap.hasAttribute('data-select') ? 2 : 1;
+    var floor = 0;
+    SG.qsa('tbody th:nth-child(' + nth + ')', table).forEach(function (th) {
+      var probe = document.createElement('div');
+      probe.setAttribute('aria-hidden', 'true');
+      probe.style.cssText = 'position:absolute;top:0;left:0;visibility:hidden;inline-size:min-content;pointer-events:none';
+      Array.prototype.forEach.call(th.childNodes, function (n) { var c = n.cloneNode(true); if (c.removeAttribute) c.removeAttribute('id'); probe.appendChild(c); });
+      th.appendChild(probe);
+      var cs = getComputedStyle(th);
+      floor = Math.max(floor, probe.getBoundingClientRect().width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth));
+      th.removeChild(probe);
+    });
+    if (floor) wrap.style.setProperty('--_name-min', Math.ceil(floor) + 'px');
+    else wrap.style.removeProperty('--_name-min');
+  }
+
+  /* The spare width of each end-aligned column, measured with its values at rest (no lead). Only while the region
+     scrolls: a table that fits keeps the usual right-aligned numbers under right-aligned headers. */
+  function lead(table, over) {
+    headerCells(table).forEach(function (th, i) {
+      if (th.getAttribute('data-align') !== 'end') return;
+      var cells = [];
+      Array.prototype.forEach.call(table.tBodies, function (body) {
+        Array.prototype.forEach.call(body.rows, function (r) {
+          if (!r.classList.contains('tbl__empty') && r.cells[i]) cells.push(r.cells[i]);
+        });
+      });
+      var had = th.hasAttribute('data-lead');
+      cells.forEach(function (c) { c.style.removeProperty('--_lead'); });
+      th.removeAttribute('data-lead');
+      if (!over || !cells.length) return;
+      var wide = 0, room = Infinity;
+      cells.forEach(function (c) {
+        var rg = document.createRange();
+        rg.selectNodeContents(c);
+        wide = Math.max(wide, rg.getBoundingClientRect().width);
+        var cs = getComputedStyle(c);
+        room = Math.min(room, c.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+      });
+      var spare = Math.floor(room - wide);
+      if (spare < 4) return; /* the values already fill their column */
+      cells.forEach(function (c) { c.style.setProperty('--_lead', spare + 'px'); });
+      th.setAttribute('data-lead', '');
+      if (!had) table.offsetWidth; /* settle before the next column is measured */
+    });
+  }
+
+  /* More to see toward the inline end? scrollLeft runs negative in right-to-left, hence abs(). The open frame
+     swaps its 2px end border for 2px of padding, so the scroll range is the same open or closed (no flicker
+     at the end); the 2px of slack covers rounding. */
+  function edge(wrap, scroller, over) {
+    var more = over && Math.abs(scroller.scrollLeft) + scroller.clientWidth < scroller.scrollWidth - 2;
+    if (more) wrap.setAttribute('data-more', '');
+    else wrap.removeAttribute('data-more');
+  }
+
+  var pending = null;
+  document.addEventListener('scroll', function (e) {
+    var t = e.target;
+    if (!t || !t.classList || !t.classList.contains('tbl__scroll') || pending === t) return;
+    pending = t;
+    requestAnimationFrame(function () {
+      pending = null;
+      var wrap = t.closest('.tbl');
+      if (wrap) edge(wrap, t, wrap.hasAttribute('data-scrollable'));
+    });
+  }, { capture: true, passive: true });
 
   var ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(function (entries) {
     entries.forEach(function (e) { var w = e.target.closest('.tbl'); if (w) measure(w); });

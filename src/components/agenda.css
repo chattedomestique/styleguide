@@ -72,15 +72,16 @@
    "Study group 18:00 – 19:00" and the next "Design review" over "14:00 – 15:30": the eye had to hunt.
    WHY THE HOUR GOES ABOVE ITS EVENTS ON A NARROW CARD  Beside a 3.5rem hour label, a chip at 200% text on a
    phone had a sliver left and its words came out one letter per line. Under about 15.5rem of card the hour
-   label takes its own line and the chips get the whole width (a container query on the card), and the
-   weekday goes over the date on every card alike.
+   label takes its own line and the chips get the whole width (a container query on the card). The weekday is
+   over the date on every card at every size, so the dates line up down the list.
    WHY BACK-TO-BACK EVENTS HAVE A GAP  Two frames that touch read as one 4px line: each event stops 2px short
    of its end, so a standup and the review after it stay two things.
    LARGE TEXT  Words grow; the chips' insets, their 44px height and the rows' padding are chrome (--chrome-*).
 
    STATES  events in the days list are links: hover and keyboard focus lift them (--lift) and pressing
-   sinks them, like a Button; the day card itself is not pressable, so it never lifts. They are actions,
-   not choices, so they keep their fill in every state (the selection-control recipe does not apply).
+   puts them down with a 12% tint of their own ink, at once; the day card itself is not pressable, so it never
+   lifts. They are actions, not choices, so they keep their fill in every state (the selection-control recipe
+   does not apply).
    ========================================================================== */
 
 @layer sg.components {
@@ -108,11 +109,12 @@
     gap: var(--space-4);
   }
 
+  /* the weekday over the date on every card and at every size, so the dates line up down the list (in a row,
+     "30" followed WEDNESDAY and "2" followed FRIDAY, and the numbers zigzagged) */
   .agenda__date {
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: var(--space-3);
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .agenda__dow {
@@ -162,12 +164,6 @@
     }
     .agenda__slot > .agenda__hour {
       padding-block-start: 0;
-    }
-    /* and the date goes over its number on EVERY card: "Wednesday" wrapped and "Thursday" did not, so one
-       card stacked and the next ran in a row */
-    .agenda__date {
-      flex-direction: column;
-      align-items: flex-start;
     }
   }
 
@@ -234,8 +230,12 @@
       outline-offset: var(--ring-gap, var(--ring-offset));
       box-shadow: var(--focus-shadow), calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
     }
+    /* pressed: down, and the fill takes 12% of its own ink at once. A chip already lies flat at rest, so
+       "--lift 0" alone changed nothing and a tap on a phone showed no feedback (golden rule 14). Its words
+       keep 7:1 on the tint in every tone and theme. */
     &:is(:active, .is-active) {
       --lift: 0;
+      background: color-mix(in srgb, var(--_fill) 88%, var(--_on-fill));
       transition-duration: var(--dur-press);
     }
   }
@@ -258,10 +258,6 @@
       grid-template-columns: 8.5rem minmax(0, 1fr);
       align-items: start;
       column-gap: var(--space-5);
-    }
-    .agenda__date {
-      flex-direction: column;
-      align-items: flex-start;
     }
     /* room inside the scroller for a chip's 4px shadow and the focus ring, which overflow clipping would cut off */
     .agenda__slots {

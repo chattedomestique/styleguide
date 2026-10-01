@@ -263,11 +263,13 @@
     background: var(--bars-bg, var(--card-bg, var(--paper)));
   }
 
+  /* [key | words]: the dashed key stays beside the FIRST line of its words when they wrap (200% text). As a wrapping
+     flex row it dropped onto a line of its own, above its label. */
   .bars__note {
-    display: flex;
-    flex-wrap: wrap; /* the dashed marker drops above the words when the column is too narrow for both (200 % text) */
-    align-items: center;
-    gap: var(--space-1) var(--space-2);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2);
     font: var(--type-meta);
     color: var(--ink-soft);
     overflow-wrap: break-word;
@@ -275,9 +277,9 @@
 
   .bars__note::before {
     content: "";
-    flex: none;
     inline-size: 1.5rem;
-    border-block-start: var(--bw-thin) dashed var(--line);
+    block-size: 0.5lh; /* its dashed edge sits half a line down: on the first line's middle */
+    border-block-end: var(--bw-thin) dashed var(--line);
   }
 
   /* ---- interactive: the input IS the column ---------------------------------------------- */
@@ -346,6 +348,7 @@
     font: var(--type-label);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
+    text-wrap: balance; /* two even lines, never one word alone on the second ("SHOW THE DATA AS A / TABLE") */
     list-style: none;
     cursor: pointer;
   }
@@ -408,9 +411,18 @@
     align-items: center;
     block-size: 100%;
     border-block-end: 0;
-    /* each row's axis is its bar's resting edge. When the bar rises it takes its edge with it, so the axis under it
-       fades: left in place, its foot showed as a stray tick under the raised bar's corner */
-    border-inline-start: var(--bw) solid color-mix(in srgb, var(--line) calc((1 - var(--lift) * var(--move)) * 100%), transparent);
+  }
+  /* The axis is ONE line down the plot, as the vertical chart's baseline is one line across it: each row draws its
+     stretch over the row's padding too, so the stretches meet. (A stretch as tall as its track only, a little taller
+     than its bar, read as a bracket beside every bar.) At rest it is the bar's start edge; a bar that rises draws its
+     own, as a vertical bar draws its own foot. */
+  .bars[data-orientation="horizontal"] .bars__track::after {
+    content: "";
+    position: absolute;
+    inset-block: calc(var(--space-1) * -1);
+    inset-inline-start: 0;
+    border-inline-start: var(--bw) solid var(--line);
+    pointer-events: none;
   }
   .bars[data-orientation="horizontal"] .bars__value {
     inline-size: var(--_val-w);
@@ -497,7 +509,14 @@
       align-items: center;
       block-size: 100%;
       border-block-end: 0;
-      border-inline-start: var(--bw) solid color-mix(in srgb, var(--line) calc((1 - var(--lift) * var(--move)) * 100%), transparent); /* see the horizontal rule above */
+    }
+    .bars:not([data-orientation="vertical"]) .bars__track::after {
+      content: ""; /* the one axis down the plot: see the horizontal rule above */
+      position: absolute;
+      inset-block: calc(var(--space-1) * -1);
+      inset-inline-start: 0;
+      border-inline-start: var(--bw) solid var(--line);
+      pointer-events: none;
     }
     .bars:not([data-orientation="vertical"]) .bars__value {
       inline-size: var(--_val-w);
@@ -553,9 +572,13 @@
   }
 
   /* Last resort (200 % text in a narrow card): the label column would leave the track a few pixels wide and
-     the value would run out of the frame (WCAG 1.4.4 / 1.4.10). One column: each label sits above its bar. */
+     the value would run out of the frame (WCAG 1.4.4 / 1.4.10). One column: each label sits above its bar.
+     The labels sit where an axis would run, so there is none: every bar closes its own start edge. The reference
+     line is drawn once, down the whole plot (every track is the plot's width here, so one x fits them all), behind
+     the labels' plates: drawn per track it broke at every label into fourteen short dashes. */
   @container bars (max-width: 10rem) {
     .bars:not([data-orientation="vertical"]) .bars__plot {
+      position: relative;
       grid-template-columns: minmax(0, 1fr);
     }
     .bars:not([data-orientation="vertical"]) .bars__col {
@@ -565,6 +588,29 @@
     }
     .bars:not([data-orientation="vertical"]) .bars__track {
       inline-size: 100%;
+    }
+    .bars:not([data-orientation="vertical"]) .bars__track::after {
+      content: none;
+    }
+    .bars:not([data-orientation="vertical"]) .bars__bar,
+    .bars:not([data-orientation="vertical"]) .bars__seg:first-child {
+      border-inline-start-width: var(--bw);
+    }
+    .bars[data-ref]:not([data-orientation="vertical"]) .bars__track::before {
+      content: none;
+    }
+    .bars[data-ref]:not([data-orientation="vertical"]) .bars__plot::before {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: calc(var(--ref, 0) * (100% - var(--_val-w)));
+      border-inline-start: var(--bw-thin) dashed var(--line);
+      pointer-events: none;
+    }
+    .bars[data-ref]:not([data-orientation="vertical"]) .bars__label {
+      position: relative; /* above the line */
+      justify-self: start;
+      background: var(--bars-bg, var(--card-bg, var(--paper)));
     }
   }
 
