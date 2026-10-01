@@ -1,5 +1,8 @@
 <!--{"title":"List","group":"Components","order":72,"summary":"Ruled rows for settings, history and decks, with a leading slot and a trailing value, tag, chevron or control; and the key / value grid."}-->
 <style>
+  /* docs only, until docs.css bounds it on every page: at 200% text on a phone the section heading "Accessibility"
+     (48px, expanded) was wider than the column and broke inside the word. It shrinks with the column instead. */
+  .docs-article h2 { font-size: min(var(--text-xl), 12.5cqi); }
   /* docs only: the article's list styles must not indent or re-space the specimens */
   .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
   .docs-article .demo ul[role="list"] > li { max-inline-size: none; }
@@ -24,13 +27,13 @@
 </div>
 
 <h2 id="rows">Ruled rows</h2>
-<p>A <code>&lt;ul class="list" role="list"&gt;</code> of <code>&lt;li&gt;</code>, each holding one <code>.list__row</code>. A row has a <strong>lead</strong> (optional), a <strong>main</strong> block with a title and a soft meta line, and a <strong>trail</strong> (optional). The row is a <code>&lt;div&gt;</code> when it is only information. A stand-alone list takes <code>data-variant</code> <code>framed</code> (its own 2px frame); inside a card, a panel or an accordion body leave it bare, because the container is the frame.</p>
+<p>A <code>&lt;ul class="list" role="list"&gt;</code> of <code>&lt;li&gt;</code>, each holding one <code>.list__row</code>. A row has a <strong>lead</strong> (optional), a <strong>main</strong> block with a title and a soft meta line, and a <strong>trail</strong> (optional). The row is a <code>&lt;div&gt;</code> when it is only information. A meta line of short facts takes <code>data-facts</code> and one <code>&lt;span&gt;</code> per fact: the dot between two facts is drawn for you, and when the line wraps, no line starts or ends with a dot. A stand-alone list takes <code>data-variant</code> <code>framed</code> (its own 2px frame); inside a card, a panel or an accordion body leave it bare, because the container is the frame.</p>
 <div class="demo">
   <div class="demo__stage">
     <ul class="list" role="list" data-variant="framed">
-      <li><div class="list__row"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12&nbsp;cards ·&nbsp;last studied yesterday</span></span><span class="list__trail"><span class="list__value">5 known</span></span></div></li>
-      <li><div class="list__row"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8&nbsp;cards ·&nbsp;new</span></span><span class="list__trail"><span class="list__value">0 known</span></span></div></li>
-      <li><div class="list__row"><span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20&nbsp;cards ·&nbsp;last studied 3&nbsp;days ago</span></span><span class="list__trail"><span class="list__value">11 known</span></span></div></li>
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta" data-facts><span>12&nbsp;cards</span> <span>last studied yesterday</span></span></span><span class="list__trail"><span class="list__value">5 known</span></span></div></li>
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta" data-facts><span>8&nbsp;cards</span> <span>new</span></span></span><span class="list__trail"><span class="list__value">0 known</span></span></div></li>
+      <li><div class="list__row"><span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta" data-facts><span>20&nbsp;cards</span> <span>last studied 3&nbsp;days ago</span></span></span><span class="list__trail"><span class="list__value">11 known</span></span></div></li>
     </ul>
   </div>
 </div>
@@ -53,9 +56,9 @@
 <div class="demo">
   <div class="demo__stage">
     <ul class="list" role="list" data-variant="framed">
-      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="3"><span class="ic ic--shopping-bag" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Sports outlet</span><span class="list__meta">Clothing ·&nbsp;8&nbsp;April</span></span><span class="list__trail"><span class="list__value">−$734.00</span></span></a></li>
-      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="2"><span class="ic ic--receipt" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Electric bill</span><span class="list__meta">Utilities ·&nbsp;6&nbsp;April</span></span><span class="list__trail"><span class="list__value">−$62.40</span></span></a></li>
-      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="4"><span class="ic ic--wallet" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Salary</span><span class="list__meta">Income ·&nbsp;1&nbsp;April</span></span><span class="list__trail"><span class="list__value">+$3,200.00</span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="3"><span class="ic ic--shopping-bag" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Sports outlet</span><span class="list__meta" data-facts><span>Clothing</span> <span>8&nbsp;April</span></span></span><span class="list__trail"><span class="list__value">−$734.00</span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="2"><span class="ic ic--receipt" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Electric bill</span><span class="list__meta" data-facts><span>Utilities</span> <span>6&nbsp;April</span></span></span><span class="list__trail"><span class="list__value">−$62.40</span></span></a></li>
+      <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="4"><span class="ic ic--wallet" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Salary</span><span class="list__meta" data-facts><span>Income</span> <span>1&nbsp;April</span></span></span><span class="list__trail"><span class="list__value">+$3,200.00</span></span></a></li>
     </ul>
   </div>
 </div>
@@ -154,7 +157,7 @@
   <div class="demo__stage">
     <div class="resize-box">
       <ul class="list" role="list" data-variant="framed">
-        <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="3"><span class="ic ic--shopping-bag" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Harbour Books and Coffee</span><span class="list__meta">Books ·&nbsp;14&nbsp;April</span></span><span class="list__trail"><span class="list__value">−$184.50</span></span></a></li>
+        <li><a class="list__row" href="#"><span class="list__lead" data-shape="tile" data-tone="3"><span class="ic ic--shopping-bag" aria-hidden="true"></span></span><span class="list__main"><span class="list__title">Harbour Books and Coffee</span><span class="list__meta" data-facts><span>Books</span> <span>14&nbsp;April</span></span></span><span class="list__trail"><span class="list__value">−$184.50</span></span></a></li>
         <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Streak freeze</span></span><span class="list__trail"><span class="tag" data-tone="info">2&nbsp;left</span></span></a></li>
       </ul>
     </div>
@@ -248,7 +251,7 @@
   <li><strong>List</strong>: <code>&lt;ul role="list"&gt;</code>, no frame by default; rules between rows are 1px in the text colour. <code>data-variant</code> set to <code>framed</code> adds the 2px frame and the card radius.</li>
   <li><strong>Row</strong>: at least 56px tall, padded 16px at the sides, edge to edge so the whole width is the target. A grid of four slots: lead, main, value and end. The height floor, the insets and the slots for pictures and icons are chrome: they stay that size at any text size.</li>
   <li><strong>Lead</strong> (<code>.list__lead</code>): a 44px slot for an avatar, a 24px icon or a square tile (<code>data-shape="tile"</code>). It stays beside the title at every text size.</li>
-  <li><strong>Main</strong> (<code>.list__main</code>): <code>.list__title</code> (600) over <code>.list__meta</code> (soft ink, tabular).</li>
+  <li><strong>Main</strong> (<code>.list__main</code>): <code>.list__title</code> (600) over <code>.list__meta</code> (soft ink, tabular). With <code>data-facts</code>, a dot sits between two facts on one line, never at the start or end of a line.</li>
   <li><strong>Trail</strong> (<code>.list__trail</code>): a wrapper only. A <code>.list__value</code>, a tag or a button with a label go to the <em>value</em> slot (they move under the title when the row is narrow); a <code>.list__chevron</code>, a 20px icon or an icon-only button go to the <em>end</em> slot (they never move).</li>
   <li><strong>Key / value</strong>: <code>dl.kv</code> with <code>dt</code> in label type and <code>dd</code> in body type.</li>
 </ol>
@@ -262,6 +265,7 @@
     <tr><td><code>class="list__row"</code></td><td></td><td>The row inside each <code>&lt;li&gt;</code>. An <code>&lt;a&gt;</code>, <code>&lt;button&gt;</code> or <code>&lt;label&gt;</code> is pressable; a <code>&lt;div&gt;</code> is information.</td></tr>
     <tr><td><code>class="list__lead"</code></td><td><code>data-shape="tile"</code>, <code>data-tone</code></td><td>The leading slot. Tile: the owner's square with a 2px frame, in a tone.</td></tr>
     <tr><td><code>class="list__main"</code>, <code>__title</code>, <code>__meta</code></td><td></td><td>The text block.</td></tr>
+    <tr><td><code>data-facts</code> on <code>.list__meta</code></td><td>one <code>&lt;span&gt;</code> per fact</td><td>A line of short facts ("Books · 14 April"). The dots are drawn between facts and hidden from assistive tech; a fact stays whole while it fits a line, and a wrapped line never starts or ends with a dot.</td></tr>
     <tr><td><code>class="list__trail"</code>, <code>__value</code>, <code>__chevron</code></td><td></td><td>The end of the row. Words go to the value slot, icons to the end slot.</td></tr>
     <tr><td><code>aria-current</code> / <code>aria-pressed</code></td><td><code>page</code>, <code>true</code></td><td>The current row: inverted, a check (in place of a chevron) and a bolder title.</td></tr>
     <tr><td><code>aria-disabled="true"</code></td><td></td><td>Faint, blocked. Give a reason in <code>aria-describedby</code>.</td></tr>

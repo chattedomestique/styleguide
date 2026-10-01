@@ -82,11 +82,24 @@ export const tests = [
     },
   },
   {
-    name: 'two stats sit side by side at phone width: a stat is not a full-width square',
+    name: 'two stats sit side by side at phone width, down to 320px: a stat is not a full-width square, and nothing in it is cut',
     async run({ page, goto, expect }) {
       await goto('components/stat.html')
-      const r = await page.evaluate(() => { const g = document.querySelector('#recipe ~ .demo .grid'); const c = [...g.children].map((e) => e.getBoundingClientRect()); return { first: c[0].top, second: c[1].top } })
-      expect.ok(Math.abs(r.first - r.second) <= 1, 'the first two stats share a row')
+      for (const w of [390, 320]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.waitForTimeout(200)
+        // the wider-screen demo keeps its 9rem cells: below 390px it is one stat a row (as tall as its content)
+        const r = await page.evaluate((ids) => ids.map((id) => {
+          const g = document.querySelector(`${id} ~ .demo .grid`)
+          // the body, not the card: the card's frame is painted over its content by an overlay 2px outside its padding box
+          const c = [...g.children].map((e) => { const body = e.querySelector('.card__body'); return { top: e.getBoundingClientRect().top, spill: body.scrollWidth - body.clientWidth, figure: e.querySelector('.card__figure') } })
+          return { id, first: c[0].top, second: c[1].top, spill: Math.max(...c.map((x) => x.spill)), figures: c.map((x) => x.figure ? x.figure.scrollWidth - x.figure.clientWidth : 0) }
+        }), w === 390 ? ['#recipe', '#dashboard', '#wide'] : ['#recipe', '#dashboard'])
+        for (const x of r) {
+          expect.ok(Math.abs(x.first - x.second) <= 1, `${w}px: ${x.id}: the first two stats share a row`)
+          expect.ok(x.spill <= 1 && x.figures.every((f) => f <= 1), `${w}px: ${x.id}: no stat spills or cuts its figure`)
+        }
+      }
     },
   },
   {

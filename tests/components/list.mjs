@@ -393,4 +393,36 @@ export const tests = [
       }
     },
   },
+  {
+    name: 'a meta line of facts (data-facts) shows a dot between two facts on one line, and never starts or ends a line with one (390px and 320px, 100% and 200%)',
+    async run({ page, goto, expect }) {
+      await goto('components/list.html')
+      let wrapped = 0
+      for (const [w, text] of [[390, 100], [390, 200], [320, 100], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(250)
+        const r = await page.evaluate(() => [...document.querySelectorAll('.list__meta[data-facts]')].filter((m) => m.offsetParent).map((m) => {
+          const mb = m.getBoundingClientRect()
+          const facts = [...m.children].map((f) => {
+            const b = f.getBoundingClientRect(), d = getComputedStyle(f, '::before')
+            return { left: b.left, right: b.right, top: Math.round(b.top), dot: d.content, at: parseFloat(d.insetInlineStart), w: parseFloat(d.width), spill: f.scrollWidth - f.clientWidth }
+          })
+          return { t: m.textContent.trim().replace(/\s+/g, ' '), clip: getComputedStyle(m).overflowX, left: mb.left, facts }
+        }))
+        expect.ok(r.length >= 7, `${w}px ${text}%: meta lines of facts (${r.length})`)
+        for (const m of r) {
+          expect.equal(m.clip, 'clip', `${w}px ${text}%: "${m.t}" clips what lies past its edges`)
+          m.facts.forEach((f, i) => {
+            expect.ok(f.spill <= 1, `${w}px ${text}%: "${m.t}": fact ${i + 1} keeps its words inside it`)
+            if (i === 0) return
+            const prev = m.facts[i - 1]
+            if (f.top === prev.top) expect.ok(Math.abs(f.left - prev.right - f.w) <= 1, `${w}px ${text}%: "${m.t}": the dot fills the gap between two facts on one line`)
+            else { wrapped++; expect.ok(f.left + f.at + f.w <= m.left + 0.5, `${w}px ${text}%: "${m.t}": the dot of a fact that starts a line lies past the start edge, where it is clipped`) }
+          })
+        }
+      }
+      expect.ok(wrapped > 0, `some lines of facts wrap at 200% text (${wrapped}), so the line-start case is checked`)
+    },
+  },
 ]

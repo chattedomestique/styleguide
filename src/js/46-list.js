@@ -25,7 +25,9 @@
        itself: a framed list paints its frame over the rows with an overlay that sits on the border,
        2px outside the list's padding box, so the list always "overflows" by 2px */
     measure: '.list__row',
-    parts: '.list__row, .list__main',
+    /* a meta line of facts clips its inline overflow (it hides the dot that starts a line), so it is measured
+       itself: a word that does not fit beside the value would not show in its .list__main */
+    parts: '.list__row, .list__main, .list__meta[data-facts]',
     attrs: ['aria-current', 'aria-pressed']
   });
 

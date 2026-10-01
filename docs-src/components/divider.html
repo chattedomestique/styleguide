@@ -1,5 +1,8 @@
 <!--{"title":"Divider","group":"Components","order":66,"summary":"A line that separates, with an optional label: the plain rule, the framed section break, the labelled \"or\", and the vertical rule."}-->
 <style>
+  /* docs only, until docs.css bounds it on every page: at 200% text on a phone the section heading "Accessibility"
+     (48px, expanded) was wider than the column and broke inside the word. It shrinks with the column instead. */
+  .docs-article h2 { font-size: min(var(--text-xl), 12.5cqi); }
   /* docs only: the article's list styles must not indent or re-space the specimens */
   .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
   .docs-article .demo ul[role="list"] > li + li { margin-block-start: 0; }
@@ -94,12 +97,12 @@
     </div>
   </div>
 </div>
-<p><code>data-align="end"</code> puts the label last. It suits a label that sums up what is above it and lines up with the values at the end, such as a total under a column of amounts.</p>
+<p><code>data-align="end"</code> puts the label last. It suits a label that sums up what is above it and lines up with the values at the end, such as a total under a column of amounts. Keep the amounts on that edge at every text size: these rows do not wrap (<code>flex-wrap: nowrap</code>), so a long name wraps beside its amount instead of the amount dropping under the name, away from the total. A total that cannot keep its rule beside it takes the rule on a line of its own, above it.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="stack" data-gap="3">
-      <div class="split"><span>Electric bill</span><span class="num">−$62.40</span></div>
-      <div class="split"><span>Water bill</span><span class="num">−$31.10</span></div>
+      <div class="split" style="flex-wrap: nowrap"><span>Electric bill</span><span class="num">−$62.40</span></div>
+      <div class="split" style="flex-wrap: nowrap"><span>Water bill</span><span class="num">−$31.10</span></div>
       <p class="divider" data-align="end">Total −$93.50</p>
     </div>
   </div>
@@ -122,7 +125,7 @@
 <h2 id="anatomy">Anatomy</h2>
 <ol>
   <li><strong>Rule</strong>: <code>border-block-<wbr>start</code> of <code>--bw-thin</code> (or <code>--bw</code> for the frame weight, <code>data-weight</code> <code>frame</code>) in <code>currentColor</code>. A border, not a background, so forced-colours mode still draws it.</li>
-  <li><strong>Label</strong> (optional): <code>--type-label</code>, uppercase, positive tracking, wraps at large text.</li>
+  <li><strong>Label</strong> (optional): <code>--type-label</code>, uppercase, positive tracking, wraps at large text. Aligned to a side, a label that cannot keep its rule beside it takes the rule on a line of its own, full width: under a start label, over an end label.</li>
   <li><strong>Side rules</strong> (labelled): <code>::before</code> and <code>::after</code>, each growing to fill. Aligned to a side, the near one is not drawn.</li>
 </ol>
 
@@ -147,11 +150,11 @@
     <tr><td><kbd>Tab</kbd></td><td>Not focusable.</td></tr>
     <tr><td>Screen reader</td><td>A bare <code>&lt;hr&gt;</code> is a separator. A labelled divider is its text ("or", "Yesterday"); as a heading, it is announced and navigable as one.</td></tr>
     <tr><td>Colour</td><td>The rule is <code>currentColor</code>, so it has the contrast of the text around it (7:1). The quiet rule is 3:1 and is decoration, never the only boundary.</td></tr>
-    <tr><td>Zoom / text size</td><td>Label wraps; the rules keep at least 12px each. A row with vertical rules becomes a column when it cannot fit one line, so a rule never starts or ends a line.</td></tr>
+    <tr><td>Zoom / text size</td><td>Label wraps; a centred label keeps at least 12px of rule on each side, and a label aligned to a side takes its rule on a line of its own when it cannot keep it beside, so the rule is never a stub away from the words. A row with vertical rules becomes a column when it cannot fit one line, so a rule never starts or ends a line.</td></tr>
     <tr><td>Reduced motion</td><td>A divider does not move.</td></tr>
     <tr><td>Forced colours</td><td>Rules are borders in <code>CanvasText</code>, so they survive.</td></tr>
   </tbody>
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--bw</code>, <code>--bw-thin</code>, <code>--line-soft</code>, <code>--type-label</code>, <code>--ls-label</code>, <code>--space-3</code>, <code>--space-5</code>.</p>
+<p><code>--bw</code>, <code>--bw-thin</code>, <code>--line-soft</code>, <code>--type-label</code>, <code>--ls-label</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-5</code>.</p>

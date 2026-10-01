@@ -21,7 +21,9 @@
 
    data-weight     thin (default) | frame
    data-quiet      --line-soft. Decoration only: never the only thing that marks a boundary.
-   data-align      center (default) | start | end       where a labelled divider puts its label
+   data-align      center (default) | start | end       where a labelled divider puts its label. Aligned to a side,
+                                                        a label that cannot keep its rule beside it takes the rule
+                                                        under it (start) or over it (end), full width.
    data-orientation  horizontal (default) | vertical    vertical needs a row to stretch in (flex or grid)
 
    A ROW WITH VERTICAL RULES never wraps: a wrapped row put a rule at the start or the end of a line
@@ -76,6 +78,18 @@
       &[data-align="start"]::before,
       &[data-align="end"]::after {
         display: none;
+      }
+      /* ...and when the label cannot keep that rule beside it (a long label at large text), the rule goes on its own
+         line, full width, under a start label or over an end label. Squeezed onto one line, the label wrapped in a
+         box as wide as the row ("STUDYING / WITH YOU" in a 275px box), and the rule was a 40px stub at the far end,
+         detached from the words. */
+      &:is([data-align="start"], [data-align="end"]) {
+        flex-wrap: wrap;
+        row-gap: var(--space-2);
+      }
+      &[data-align="end"] {
+        justify-content: flex-end;
+        text-align: end;
       }
     }
 

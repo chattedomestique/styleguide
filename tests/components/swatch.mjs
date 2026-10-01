@@ -244,4 +244,27 @@ export const tests = [
       }
     },
   },
+  {
+    name: 'every name sits 8px or more under what its chip paints: the focus ring around a chosen chip, the lift and its shadow (390px, 320px, 200% text)',
+    async run({ page, goto, expect }) {
+      await goto('components/swatch.html')
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => [...document.querySelector('#states ~ .demo').querySelectorAll('.swatch-set__opt')].map((o) => {
+          const chip = o.querySelector('.swatch-set__chip'), cs = getComputedStyle(chip), b = chip.getBoundingClientRect()
+          let below = 0
+          if (cs.outlineStyle !== 'none') below = parseFloat(cs.outlineOffset) + parseFloat(cs.outlineWidth)
+          for (const m of cs.boxShadow.matchAll(/(-?[\d.]+)px (-?[\d.]+)px ([\d.]+)px (-?[\d.]+)px/g)) { const [, y, , sp] = m.slice(1).map(Number); below = Math.max(below, sp + y) }
+          const ring = getComputedStyle(chip, '::after')
+          if (ring.display !== 'none') below = Math.max(below, -parseFloat(ring.bottom)) // the selection ring, 6px out
+          const name = o.querySelector('.swatch-set__name')
+          return { t: name.textContent.trim(), clear: name.getBoundingClientRect().top - (b.bottom + below) }
+        }))
+        expect.equal(r.length, 8, `${w}px ${text}%: eight specimens`)
+        for (const x of r) expect.ok(x.clear >= 8, `${w}px ${text}%: "${x.t}" is ${x.clear.toFixed(1)}px under what its chip paints`)
+      }
+    },
+  },
 ]

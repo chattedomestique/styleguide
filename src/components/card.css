@@ -29,7 +29,8 @@
    · the frame is drawn OVER the content (.card::after), so soft corners show no hairline arc
      where an ink bar or a picture meets the rounded frame
    · a square card stops being square when it is wide (a full-width square on a phone was a
-     tall, mostly empty box) and cards in one row share one height
+     tall, mostly empty box): wider than 14rem it is as tall as its content; cards in one row
+     share one height
    · chrome stops at its 100% size (padding of the row and ghost cards, the link card's height
      floor), so 200% text keeps the width for the words
    · the ghost card keeps its words beside the + circle, and puts them under it only when a word
@@ -38,6 +39,10 @@
    · the portrait's word shrinks to fit the card instead of breaking inside a word
    · a foot link is a 44px target across too ("Invite" was 34px wide), and a row card's single
      icon-only control stays at the end of the row when its words drop
+   · panel list rows have chrome insets above and below (8px): 44px at 100%, and at 200% text the
+     words no longer fill the row from rule to rule
+   · an eyebrow or meta line of short facts (data-facts, one <span> each) draws the dots between
+     facts and never starts or ends a wrapped line with one; a wrapped eyebrow is balanced
    ========================================================================== */
 
 @layer sg.components {
@@ -268,6 +273,7 @@
   .card__eyebrow {
     font: var(--type-meta);
     color: var(--card-ink-soft);
+    text-wrap: balance; /* a short label: when a narrow card wraps it, two even lines, never "Learned so / far" */
   }
 
   .card__title {
@@ -288,6 +294,33 @@
     font-variant-numeric: tabular-nums;
     color: var(--card-ink-soft);
     text-wrap: balance; /* a meta line is one short sentence: when it wraps, two even lines, never "… nine / to go." */
+  }
+
+  /* FACTS. An eyebrow or a meta line made of short facts ("Deck · 12 cards", "48 cards · 3 people studying") is
+     written one <span> per fact, with data-facts on the line. The dot is drawn in the gap before each fact, and a
+     fact that starts a line puts its dot outside the line's start edge, where the line clips it: a wrapped line
+     never starts or ends with a dot. (As text, the dot either ended the first line or started the second, where
+     it read as a bullet: "48 cards / · 3 people studying".) A fact stays whole while it fits a line and wraps
+     inside itself only when it alone is wider than the line. The dot is decoration ("" for assistive tech); the
+     facts are read as words. Text only: the clip would cut a focus ring. */
+  :is(.card__eyebrow, .card__meta)[data-facts] {
+    --_sep: 0.8em; /* a space, the dot and a space, as in running text */
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--_sep);
+    overflow-x: clip; /* both inline edges, so it is right in either direction; the block axis stays visible */
+
+    & > * {
+      position: relative;
+      min-inline-size: 0;
+    }
+    & > * + *::before {
+      content: "·" / "";
+      position: absolute;
+      inset-inline-start: calc(var(--_sep) * -1);
+      inline-size: var(--_sep);
+      text-align: center;
+    }
   }
 
   /* A number never breaks inside itself: it stays on one line and shrinks with the card instead. 22cqi fits six
@@ -384,7 +417,9 @@
     justify-content: space-between;
     gap: 0 var(--chrome-3); /* chrome: the gap inside a row stops at its 100% size */
     min-block-size: var(--chrome-hit);
-    padding-inline: var(--card-pad);
+    /* chrome insets above and below, as on a List row: at 100% the row is still 44px (8 + 24 + 8), and at 200% text
+       its words keep 8px from the rules instead of filling the row edge to edge ("Numbers to / twenty") */
+    padding: var(--chrome-2) var(--card-pad);
     font: var(--type-body);
     font-variant-numeric: tabular-nums;
     color: color-mix(in srgb, var(--card-bar-ink) calc(var(--fill) * 100%), var(--card-ink));
@@ -396,12 +431,12 @@
     border-block-start: 0;
   }
 
+  /* the target is the whole row (its ::after), so the link needs no height of its own */
   .card__list a {
     display: flex;
     align-items: center;
     flex: 1 1 auto;
     min-inline-size: 0;
-    min-block-size: var(--chrome-hit);
     color: inherit;
     text-decoration: none;
   }
@@ -441,12 +476,10 @@
     align-items: flex-start;
     justify-content: center;
     gap: 0;
-    padding-block: var(--chrome-2);
   }
 
   .card__list[data-fit="stack"] a {
     flex: none;
-    min-block-size: 0;
   }
 
   .card__list > li:is(.is-hover, .is-focus, :active, :has(> a:focus-visible)) {
@@ -486,12 +519,13 @@
   }
 
   /* a square card, for grids of stats and decks: first part up top, last at the bottom.
-     Square while it is narrow (two or more to a row); a WIDE one (alone on a phone's row, or a wide cell)
-     stops at 224px tall instead of becoming a ~330px box with one number floating in it. The square is
-     the body's MINIMUM height: 100cqi is the card's own width (the card is the body's container), so a
-     card is exactly square, and its content can always grow it further, so nothing is ever clipped. The
-     cap is chrome (it does not grow with text): at 200% text a card alone on its row is as tall as its
-     content, not a 448px box. Grid items stretch, so square cards in one row share one height.
+     Square while it is narrow (two or more to a row); a WIDE one (wider than 14rem: alone on a phone's row,
+     or a wide cell) is as tall as its content. Square, it was a ~330px box with one number floating in it,
+     and capped at 224px it still spread "Streak / 4 / Best is nine." over a 270 x 224 box at 320px. The
+     square is the body's MINIMUM height: 100cqi is the card's own width (the card is the body's container),
+     so a card is exactly square, and its content can always grow it further, so nothing is ever clipped.
+     The cap is chrome (it does not grow with text): at 200% text a card is never a 448px box. Grid items
+     stretch, so square cards in one row share one height.
      (It was aspect-ratio: 1 / 1. A ratio-sized grid item keeps its own height in a row, an explicit
      min-content is read through the ratio and clips, and a stretched one takes its width from its
      height: in a 322px cell it was a 224px square with a gap beside it.) */
@@ -502,6 +536,12 @@
   .card--square > .card__body {
     justify-content: space-between;
     min-block-size: min(100cqi, var(--_square-max));
+  }
+
+  @container card (inline-size > 14rem) {
+    .card--square > .card__body {
+      min-block-size: 0;
+    }
   }
 
   /* action: the round slot. Decorative on a link card, a real button in a notch. */

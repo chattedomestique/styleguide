@@ -1,5 +1,8 @@
 <!--{"title":"Card","group":"Components","order":60,"summary":"A frame with slots that holds one idea: ten variants, six states, two grids. From the owner's Flashcards style sheet v0.1."}-->
 <style>
+  /* docs only, until docs.css bounds it on every page: at 200% text on a phone the section heading "Accessibility"
+     (48px, expanded) was wider than the column and broke inside the word. It shrinks with the column instead. */
+  .docs-article h2 { font-size: min(var(--text-xl), 12.5cqi); }
   /* docs only: the article's list styles must not indent or re-space the specimens (a panel's rows start where its bar's label starts) */
   .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
   .docs-article .demo ul[role="list"] > li { max-inline-size: none; }
@@ -31,10 +34,10 @@
 <tr><td>3</td><td>Media</td><td><code>.card__media</code></td><td><code>aspect-ratio: var(--ratio, 4 / 3)</code>; edge to edge; closed by a 2px rule; <code>img</code>/<code>video</code> are <code>object-fit: cover</code>; fill is the element's tone or <code>--tone-1</code>.</td></tr>
 <tr><td>4</td><td>Body</td><td><code>.card__body</code></td><td><code>padding: clamp(1rem, 5cqi, 1.5rem)</code>; flex column, <code>gap: 8px</code>; grows to fill.</td></tr>
 <tr><td></td><td>Head</td><td><code>.card__head</code></td><td>Same padding as the body. Used by notch and portrait cards for their top strip.</td></tr>
-<tr><td>5</td><td>Eyebrow</td><td><code>.card__eyebrow</code></td><td><code>--type-meta</code>, soft ink. What kind of thing this is.</td></tr>
+<tr><td>5</td><td>Eyebrow</td><td><code>.card__eyebrow</code></td><td><code>--type-meta</code>, soft ink. What kind of thing this is. Short facts take <code>data-facts</code> and one <code>&lt;span&gt;</code> each ("Deck · 12 cards"): the dot is drawn between two facts on one line, and a wrapped line never starts or ends with one.</td></tr>
 <tr><td>6</td><td>Title</td><td><code>.card__title</code></td><td><code>--type-title</code> at <code>clamp(1.375rem, 8cqi, 2rem)</code> (22–32px); balanced; breaks long words.</td></tr>
 <tr><td>7</td><td>Text</td><td><code>.card__text</code></td><td><code>--type-body</code>, 40ch max, pretty-wrapped.</td></tr>
-<tr><td></td><td>Meta</td><td><code>.card__meta</code></td><td><code>--type-meta</code>, tabular, soft ink.</td></tr>
+<tr><td></td><td>Meta</td><td><code>.card__meta</code></td><td><code>--type-meta</code>, tabular, soft ink. Takes <code>data-facts</code> like the eyebrow.</td></tr>
 <tr><td></td><td>Figure</td><td><code>.card__figure</code></td><td><code>--type-figure</code> at <code>clamp(1.75rem, 27cqi, 6.5rem)</code>, never more than <code>22cqi</code>; one line (a number never breaks); tabular, lining. Six characters (<code>12,480</code>) fit any card. A <code>&lt;small&gt;</code> inside is 0.42em, weight 500, soft ink.</td></tr>
 <tr><td>8</td><td>Foot</td><td><code>.card__foot</code></td><td><code>min-block-size: 44px</code>; <code>padding: 8px var(--card-pad)</code>; 1px rule above; <code>margin-block-start: auto</code>, so cards in a row end on one line. A link or button in it is a 44&times;44px target, however short its word.</td></tr>
 <tr><td>9</td><td>Action</td><td><code>.card__action</code></td><td>44px circle, <code>2px var(--card-ink)</code>. Fills with <code>--accent</code> when <code>--fill</code> is 1.</td></tr>
@@ -56,7 +59,7 @@
 <tr><td>Stack</td><td><code>.card--stack</code></td><td>A deck, not a card.</td><td>Two sheets via <code>box-shadow</code>; the margin reserves their room.</td></tr>
 <tr><td>Ghost</td><td><code>.card--ghost</code> (the card is the <code>&lt;a&gt;</code> or <code>&lt;button&gt;</code>)</td><td>An empty slot that asks to be filled.</td><td>Dashed; firms up on hover and focus.</td></tr>
 <tr><td>Portrait</td><td><code>.card--portrait</code> + <code>.card__stage</code>, <code>.card__hero</code></td><td>A tall card with one big subject: a flashcard, ticket or poster. 5 / 7.</td><td>Static faces; the flip is gate 4. Original names <code>.card--study</code> / <code>.card__answer</code> still work.</td></tr>
-<tr><td>Square</td><td><code>.card--square</code></td><td>A modifier for any card, in a grid of square cards.</td><td>As tall as it is wide while it is narrow (the body's minimum height is the card's width); a wide one (alone on a phone's row, or in a wide cell) stops at 224px tall instead of becoming a big empty box, at any text size. It is a minimum, so its content always fits, and square cards in one row share one height. The body spaces its first and last children apart.</td></tr>
+<tr><td>Square</td><td><code>.card--square</code></td><td>A modifier for any card, in a grid of square cards.</td><td>As tall as it is wide while it is narrow (the body's minimum height is the card's width, up to 224px); a wide one (wider than 14rem: alone on a phone's row, or in a wide cell) is as tall as its content instead of a big empty box. It is a minimum, so its content always fits, and square cards in one row share one height. The body spaces its first and last children apart.</td></tr>
 </tbody></table></div>
 <h3 id="plain">Plain</h3>
 <p>The default. A title, a line of support, somewhere to go.</p>
@@ -67,7 +70,7 @@
 <div class="grid" style="--grid-min: 15rem">
 <article class="card">
   <div class="card__body">
-    <p class="card__eyebrow">Deck ·&nbsp;12&nbsp;cards</p>
+    <p class="card__eyebrow" data-facts><span>Deck</span> <span>12&nbsp;cards</span></p>
     <h4 class="card__title">Shapes</h4>
     <p class="card__text">Circle to crescent. Swipe through them and tap to see the name.</p>
   </div>
@@ -75,7 +78,7 @@
 </article>
 <article class="card" data-tone="4">
   <div class="card__body">
-    <p class="card__eyebrow">Deck ·&nbsp;8&nbsp;cards</p>
+    <p class="card__eyebrow" data-facts><span>Deck</span> <span>8&nbsp;cards</span></p>
     <h4 class="card__title">Colours</h4>
     <p class="card__text">Eight colours, named out loud. Good for the car.</p>
   </div>
@@ -160,10 +163,10 @@
 <h3 id="stat">Stat</h3>
 <p>One number, big, with just enough around it to mean something.</p>
 <p><code>.card__figure</code> <code>.card--square</code> <a href="@/components/progress.html#meter"><code>.meter</code></a></p>
-<p class="t-meta">A recipe, not a class: eyebrow, figure, optional meter, one line of meta. The figure scales with the card's own width, from 28 to 104px, and stays on one line. Two square cards share a phone's row; a square card alone on a row stops at 224px tall, or at its content's height when the text is large.</p>
+<p class="t-meta">A recipe, not a class: eyebrow, figure, optional meter, one line of meta. The figure scales with the card's own width, from 28 to 104px, and stays on one line. Two square cards share a phone's row, down to 320px with a 7.5rem grid minimum; a square card wider than 14rem (alone on a row) is as tall as its content.</p>
 <div class="demo">
 <div class="demo__stage">
-<div class="grid" style="--grid-min: 9rem">
+<div class="grid" style="--grid-min: 7.5rem">
 <article class="card card--square" data-tone="1">
   <div class="card__body">
     <p class="card__eyebrow">Learned so far</p>
@@ -194,7 +197,7 @@
     <span class="card__tile" data-tone="1" aria-hidden="true"><span class="ic ic--circle" aria-hidden="true"></span></span>
     <div class="card__main">
       <h4 class="card__title">Circle</h4>
-      <p class="card__meta">Card 01 ·&nbsp;round</p>
+      <p class="card__meta" data-facts><span>Card 01</span> <span>round</span></p>
     </div>
     <div class="card__trail">
       <p>Known</p>
@@ -205,7 +208,7 @@
     <span class="card__tile" data-tone="2" aria-hidden="true"><span class="ic ic--square" aria-hidden="true"></span></span>
     <div class="card__main">
       <h4 class="card__title">Square</h4>
-      <p class="card__meta">Card 02 ·&nbsp;four equal sides</p>
+      <p class="card__meta" data-facts><span>Card 02</span> <span>four equal sides</span></p>
     </div>
     <div class="card__trail">
       <p>New</p>
@@ -238,7 +241,7 @@
 <article class="card card--link" data-tone="1">
   <div class="card__body">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;12&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>12&nbsp;cards</span></p>
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
@@ -250,7 +253,7 @@
 <article class="card card--link" data-tone="3">
   <div class="card__body">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;8&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>8&nbsp;cards</span></p>
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
@@ -262,7 +265,7 @@
 <article class="card card--link" data-tone="5">
   <div class="card__body">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;20&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>20&nbsp;cards</span></p>
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
@@ -417,7 +420,7 @@
 <article class="card card--link" data-tone="1">
   <div class="card__body">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;12&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>12&nbsp;cards</span></p>
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
@@ -431,7 +434,7 @@
 <article class="card card--link is-hover" data-tone="1">
   <div class="card__body">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;12&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>12&nbsp;cards</span></p>
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
@@ -445,7 +448,7 @@
 <article class="card card--link is-focus" data-tone="1">
   <div class="card__body">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;12&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>12&nbsp;cards</span></p>
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
@@ -459,7 +462,7 @@
 <article class="card card--link is-active" data-tone="1">
   <div class="card__body">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;12&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>12&nbsp;cards</span></p>
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
@@ -473,7 +476,7 @@
 <article class="card card--link" data-tone="1" aria-current="true">
   <div class="card__body">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;12&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>12&nbsp;cards</span></p>
       <span class="card__action" aria-hidden="true"><span class="ic ic--arrow" aria-hidden="true"></span></span>
     </div>
     <div class="card__group">
@@ -485,9 +488,9 @@
 </div>
 <div class="stack" data-gap="5" inert>
 <article class="card is-disabled" data-tone="1" aria-disabled="true">
-  <div class="card__body" style="min-block-size: 11rem; justify-content: space-between">
+  <div class="card__body" style="min-block-size: min(11rem, 176px); justify-content: space-between">
     <div class="card__row">
-      <p class="card__eyebrow">Deck ·&nbsp;12&nbsp;cards</p>
+      <p class="card__eyebrow" data-facts><span>Deck</span> <span>12&nbsp;cards</span></p>
     </div>
     <div class="card__group">
       <h4 class="card__title">Shapes</h4>
@@ -636,7 +639,7 @@
       <span class="card__tile" data-tone="2" aria-hidden="true"><span class="ic ic--heart" aria-hidden="true"></span></span>
       <div class="card__main">
         <h4 class="card__title">Heart</h4>
-        <p class="card__meta">Card 06 ·&nbsp;two curves and a point</p>
+        <p class="card__meta" data-facts><span>Card 06</span> <span>two curves and a point</span></p>
       </div>
       <div class="card__trail">
         <p>Known</p>

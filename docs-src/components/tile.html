@@ -1,4 +1,28 @@
 <!--{"title":"Tile","group":"Components","order":70,"summary":"The square quick action: an icon and a name on a field of colour, pressable, with an optional count. Plus a caption variant for decks and photos."}-->
+<style>
+  /* docs only, until docs.css bounds it on every page: at 200% text on a phone the section heading "Accessibility"
+     (48px, expanded) was wider than the column and broke inside the word. It shrinks with the column instead. */
+  .docs-article h2 { font-size: min(var(--text-xl), 12.5cqi); }
+  /* docs only: the States board. Every specimen is the same Send tile, so the tiles of a row are one height, and the
+     state is the caption under it: a long state name ("Unavailable") wraps nowhere, where inside a tile at 200% text it
+     broke. Four to a row, two, or one: a column is as wide as the longest caption (4.6rem, text-sized) and never less
+     than 96px, and the tile is 32px narrower than its column, so a raised tile's shadow and a focus ring stay 16px or
+     more from the next specimen and 8px or more from the caption (S3). */
+  .tile-states {
+    --ts-gap: var(--chrome-2);
+    --ts-col: max(4.6rem, 96px);
+    --ts-4: calc((100% - 3 * var(--ts-gap)) / 4 - 0.5px);
+    --ts-2: calc((100% - var(--ts-gap)) / 2 - 0.5px);
+    --ts-2-or-1: clamp(var(--ts-2), 100% - (100% - 2 * var(--ts-col) - var(--ts-gap)) * 1000, 100%);
+    --ts-track: clamp(var(--ts-4), var(--ts-2-or-1) - (100% - 4 * var(--ts-col) - 3 * var(--ts-gap)) * 1000, var(--ts-2-or-1));
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ts-track)), 1fr));
+    gap: var(--space-5) var(--ts-gap);
+  }
+  .tile-states > figure { display: grid; justify-items: center; align-content: start; row-gap: var(--chrome-4); margin: 0; }
+  .tile-states .tile { inline-size: min(100% - var(--chrome-6), 8rem); }
+  .tile-states figcaption { text-align: center; }
+</style>
 <h1>Tile</h1>
 <p class="lede">The square quick action: Send, Bills, Top up, Study. An icon and a name on a field of colour. You press it, so it has a 2px frame and a hard shadow that appears when it can be pressed; the field is the tone, so a row of tiles gives a screen its colour.</p>
 
@@ -64,7 +88,7 @@
 </div>
 
 <h2 id="badge">Badge</h2>
-<p>A count in the corner, for what is waiting: bills due, unread, new. It is a paper pill with an ink frame, so it reads on any field, filled or not. Put the unit in visually hidden text so the tile's name is <em>Bills, 3 due</em>. A dot with no number is colour alone and is not offered. A badge needs room beside the icon (four to a phone's row, a tile is about 65px, and even a "3" covered the icon), so a <code>.tile-grid</code> that holds a badge keeps its tiles 6rem or wider: two to a row on a phone, four on a wider screen.</p>
+<p>A count in the corner, for what is waiting: bills due, unread, new. It is a paper pill with an ink frame, so it reads on any field, filled or not, and it is chrome like the icon beside it: 24px at any text size. Put the unit in visually hidden text so the tile's name is <em>Bills, 3 due</em>. A dot with no number is colour alone and is not offered. A badge needs room beside the icon (four to a phone's row, a tile is about 65px, and even a "3" covered the icon), so a <code>.tile-grid</code> that holds a badge keeps its tiles 6rem or wider: two to a row on a phone, four on a wider screen.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="tile-grid">
@@ -90,22 +114,22 @@
 </div>
 
 <h2 id="states">States</h2>
-<p>The same two numbers as the button: <code>--lift</code> (0 flat, 1 raised) and <code>--fill</code> (0 the tone's field, 1 its solid). A tile can be on, so only <em>on</em> is filled: hover and keyboard focus raise it (a keyboard user sees what a mouse user sees), pressing puts it back down with a light tint, and the fill with its doubled frame is kept for a tile that is on. The <code>is-*</code> classes below only force a state for this page.</p>
+<p>The same two numbers as the button: <code>--lift</code> (0 flat, 1 raised) and <code>--fill</code> (0 the tone's field, 1 its solid). A tile can be on, so only <em>on</em> is filled: hover and keyboard focus raise it (a keyboard user sees what a mouse user sees), pressing puts it back down with a light tint, and the fill with its doubled frame is kept for a tile that is on. Each specimen below is the same Send tile, named by the caption under it. The <code>is-*</code> classes only force a state for this page.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="tile-grid" style="--tile-gap: var(--space-4)">
-      <div><a class="tile" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Rest</span></a></div>
-      <div><a class="tile is-hover" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Hover</span></a></div>
-      <div><a class="tile is-focus" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Focus</span></a></div>
-      <div><a class="tile is-active" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Pressed</span></a></div>
-      <div><a class="tile" href="#" data-tone="1" aria-current="page"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Current</span></a></div>
-      <div><a class="tile is-hover" href="#" data-tone="1" aria-current="page"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Current, hover</span></a></div>
-      <div><a class="tile is-focus" href="#" data-tone="1" aria-current="page"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Current, focus</span></a></div>
-      <div><button class="tile" type="button" data-tone="1" aria-disabled="true" aria-describedby="tile-off-why"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Off</span></button></div>
+    <div class="tile-states">
+      <figure><a class="tile" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></a><figcaption class="t-meta">Rest</figcaption></figure>
+      <figure><a class="tile is-hover" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></a><figcaption class="t-meta">Hover</figcaption></figure>
+      <figure><a class="tile is-focus" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></a><figcaption class="t-meta">Focus</figcaption></figure>
+      <figure><a class="tile is-active" href="#" data-tone="1"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></a><figcaption class="t-meta">Pressed</figcaption></figure>
+      <figure><button class="tile" type="button" data-tone="1" aria-pressed="true"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></button><figcaption class="t-meta">On</figcaption></figure>
+      <figure><button class="tile is-hover" type="button" data-tone="1" aria-pressed="true"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></button><figcaption class="t-meta">On, hover</figcaption></figure>
+      <figure><button class="tile is-focus" type="button" data-tone="1" aria-pressed="true"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></button><figcaption class="t-meta">On, focus</figcaption></figure>
+      <figure><button class="tile" type="button" data-tone="1" aria-disabled="true" aria-describedby="tile-off-why"><span class="ic ic--send" aria-hidden="true"></span><span class="tile__label">Send</span></button><figcaption class="t-meta">Unavailable</figcaption></figure>
     </div>
   </div>
 </div>
-<p class="t-meta" id="tile-off-why">"Off": Send is unavailable until you verify your email.</p>
+<p class="t-meta" id="tile-off-why">Unavailable: Send cannot be used until you verify your email.</p>
 <div class="table-wrap"><table class="docs-table">
   <caption class="sr-only">Tile states</caption>
   <thead><tr><th>State</th><th>Trigger</th><th><code>--lift</code></th><th><code>--fill</code></th><th>Also</th></tr></thead>
@@ -194,7 +218,7 @@
   <li><strong>Icon</strong>: a 24px mask at the start, in the text colour, decorative (<code>aria-hidden</code>).</li>
   <li><strong>Label</strong>: <code>--type-ctl</code>, 14 to 20px with the tile's width, at the bottom. Wraps between words; never truncated.</li>
   <li><strong>Padding</strong>: 10% of the tile, between 8 and 16px; chrome, so it does not grow with text.</li>
-  <li><strong>Badge</strong> (optional): paper pill with an ink frame, top end.</li>
+  <li><strong>Badge</strong> (optional): paper pill with an ink frame, top end. Chrome: 24px with 14px figures at any text size, like the icon beside it.</li>
   <li><strong>Hard shadow</strong>: 4px, zero blur, appears with <code>--lift</code>. It means "you can press this".</li>
 </ol>
 
@@ -232,4 +256,4 @@
 </table></div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-tile</code>, <code>--radius-pill</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-4</code>, <code>--space-3</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--radius-tile</code>, <code>--radius-pill</code>, <code>--chrome-1</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-4</code>, <code>--space-3</code>, <code>--text-sm</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>

@@ -47,7 +47,8 @@
 
    THE BADGE is a count (or "New"), drawn paper-on-ink-frame so it reads on any field, and
    its words belong in the tile's name: "Bills, 3 due" (put the unit in .sr-only). A dot with
-   no number is colour-only and is not offered.
+   no number is colour-only and is not offered. It is chrome, like the icon beside it: a 24px
+   pill with 14px figures at every text size (the name carries the words, and it grows).
 
    REFLOW. A tile is square because the grid gives it a width, and it grows taller, never clips, when the
    label wraps; a tile wider than 10rem stops at 10rem tall instead of becoming a big empty square, and the
@@ -223,21 +224,27 @@
     overflow-wrap: break-word;
   }
 
-  /* the count: paper with an ink frame, so it reads on any field, filled or not */
+  /* the count: paper with an ink frame, so it reads on any field, filled or not. It is chrome, like the icon it
+     sits beside: a 24px pill with 14px figures that stops at its 100% size. In rem it doubled at 200% text: a 48px
+     "3" beside a 29px icon, and "New" ended 9px from the icon. Its words are in the tile's name ("Bills, 3 due"),
+     and the name grows with the text. */
   .tile__badge {
+    --_badge: min(1.5rem, 24px);
+
     position: absolute;
     inset-block-start: var(--chrome-2);
     inset-inline-end: var(--chrome-2);
     display: inline-grid;
     place-items: center;
-    min-inline-size: 1.5rem;
-    block-size: 1.5rem;
-    padding-inline: var(--space-1);
+    min-inline-size: var(--_badge);
+    block-size: var(--_badge);
+    padding-inline: var(--chrome-1);
     color: var(--ink);
     background: var(--paper);
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-pill);
     font: var(--type-meta);
+    font-size: min(var(--text-sm), 14px);
     font-weight: 700;
     font-variant-numeric: tabular-nums lining-nums;
     line-height: 1;

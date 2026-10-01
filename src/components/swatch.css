@@ -54,7 +54,7 @@
    three or four to a row on a phone, two to a row at 200% text, and never more than six to a row on a wide
    screen. The rows come out even: never five to a row, and a set of four, six or eight picks a count that
    divides it (see THE COLUMNS).
-   The name sits 16px under the chip, clear of the focus ring around a chosen chip.
+   The name sits 20px under the chip, 10px clear of the focus ring around a chosen, raised chip.
    ========================================================================== */
 
 @layer sg.components {
@@ -120,7 +120,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--chrome-4); /* the name clears the focus ring around a chosen chip (12px out) */
+    /* the name clears the focus ring around a chosen chip by 10px: the ring reaches 12px out and the raised chip
+       sits 2px higher. At 16px the name of a chosen, focused swatch was 6px under the ring, and Tab lands on the
+       chosen swatch first, so that is the focus state seen most. */
+    gap: calc(var(--chrome-4) + var(--chrome-1));
     min-inline-size: var(--chrome-hit);
     padding: var(--chrome-3) 0 var(--chrome-2); /* room above for the rings and the lift; the name may use the whole column */
     /* the pressed tint: a share of the text colour over the whole option, behind the chip and the name */

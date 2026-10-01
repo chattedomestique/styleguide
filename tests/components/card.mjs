@@ -301,7 +301,10 @@ export const tests = [
       const read = () => page.evaluate(() => [...document.querySelectorAll('#stat ~ .demo .card--square')].slice(0, 2).map((c) => {
         const b = c.getBoundingClientRect(), body = c.querySelector('.card__body')
         const cs = getComputedStyle(c)
-        return { w: b.width, h: b.height, top: b.top, spill: body.scrollHeight - body.clientHeight, frame: parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth), rem: parseFloat(getComputedStyle(document.documentElement).fontSize) }
+        // empty: the body's height beyond its padding, its children and the gaps between them
+        const bs = getComputedStyle(body), kids = [...body.children]
+        const used = kids.reduce((n, k) => n + k.getBoundingClientRect().height, 0) + (kids.length - 1) * parseFloat(bs.rowGap) + parseFloat(bs.paddingTop) + parseFloat(bs.paddingBottom)
+        return { w: b.width, h: b.height, top: b.top, spill: body.scrollHeight - body.clientHeight, empty: body.clientHeight - used, frame: parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth), rem: parseFloat(getComputedStyle(document.documentElement).fontSize) }
       }))
       const phone = await read()
       expect.ok(Math.abs(phone[0].top - phone[1].top) <= 1, 'the two stats share a row at 390px')
@@ -313,6 +316,7 @@ export const tests = [
       for (const c of await read()) {
         expect.ok(c.h <= 14 * c.rem + c.frame + 1 && c.h < c.w, `a ${c.w.toFixed(0)}px wide square card stops at ${c.h.toFixed(0)}px tall (14rem and its frame)`)
         expect.ok(c.spill <= 1, 'and its content still fits')
+        expect.ok(c.empty <= 1, `and it is as tall as its content, with no empty band (${c.empty.toFixed(1)}px)`)
       }
       await page.setViewportSize({ width: 390, height: 844 })
       await page.addStyleTag({ content: 'html{font-size:200%}' })
@@ -330,7 +334,14 @@ export const tests = [
       await page.addStyleTag({ content: 'html{font-size:200%}' })
       await page.waitForTimeout(250)
       const r = await page.evaluate(() => {
-        const lines = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); return new Set([...rg.getClientRects()].filter((q) => q.width > 1).map((q) => Math.round(q.top))).size }
+        // the lines of the WORDS: a range over the whole element would also return the box of each fact <span>
+        // (data-facts), whose top is the line box's, not the glyphs'
+        const lines = (el) => {
+          const tops = new Set()
+          const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+          for (let n; (n = w.nextNode()); ) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.width > 1) tops.add(Math.round(q.top)) }
+          return tops.size
+        }
         const eyebrows = [...document.querySelectorAll('#link ~ .demo .card--link .card__eyebrow')].slice(0, 3).map((e) => ({ t: e.textContent.trim(), lines: lines(e) }))
         const ghost = document.querySelector('#ghost ~ .demo .card--ghost')
         const title = ghost.querySelector('.card__title').getBoundingClientRect(), circle = ghost.querySelector('.card__action').getBoundingClientRect()
@@ -372,6 +383,57 @@ export const tests = [
       const cramped = await read(200)
       expect.ok(cramped.words.tile.bottom <= cramped.words.main.top + 1, 'cramped: the tile, then the title')
       expect.ok(cramped.words.main.bottom <= cramped.words.trail.top + 1, 'then the value, in reading order')
+    },
+  },
+  {
+    name: 'a panel list row is 44px at 100% text, and at 200% its words keep 8px or more from the rules above and below',
+    async run({ page, goto, expect }) {
+      await goto('components/card.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(250)
+        const r = await page.evaluate(() => [...document.querySelectorAll('#panel ~ .demo .card__list > li')].map((li) => {
+          const b = li.getBoundingClientRect(), bt = parseFloat(getComputedStyle(li).borderTopWidth)
+          let top = Infinity, bottom = -Infinity
+          const w = document.createTreeWalker(li, NodeFilter.SHOW_TEXT)
+          for (let n; (n = w.nextNode()); ) { if (!n.data.trim()) continue; const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) { top = Math.min(top, q.top); bottom = Math.max(bottom, q.bottom) } }
+          return { name: li.querySelector('a').textContent.trim(), h: b.height, above: top - b.top - bt, below: b.bottom - bottom }
+        }))
+        expect.ok(r.length >= 4, 'four rows')
+        for (const x of r) {
+          if (text === 100) expect.ok(Math.abs(x.h - 44) <= 0.5, `100%: "${x.name}" is ${x.h.toFixed(1)}px tall`)
+          else expect.ok(x.above >= 8 && x.below >= 8, `200%: "${x.name}" keeps ${x.above.toFixed(1)}px above and ${x.below.toFixed(1)}px below its words`)
+        }
+      }
+    },
+  },
+  {
+    name: 'a line of facts (data-facts) shows a dot between two facts on one line, and never starts or ends a line with one',
+    async run({ page, goto, expect }) {
+      await goto('components/card.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(250)
+        const r = await page.evaluate(() => [...document.querySelectorAll('[data-facts]')].filter((m) => m.offsetParent).map((m) => {
+          const mb = m.getBoundingClientRect(), cs = getComputedStyle(m)
+          const facts = [...m.children].map((f) => {
+            const b = f.getBoundingClientRect(), d = getComputedStyle(f, '::before')
+            return { left: b.left, right: b.right, top: Math.round(b.top), dot: d.content, at: parseFloat(d.insetInlineStart), w: parseFloat(d.width) }
+          })
+          return { t: m.textContent.trim().replace(/\s+/g, ' '), clip: cs.overflowX, left: mb.left, right: mb.right, facts }
+        }))
+        expect.ok(r.length >= 10, `${text}%: lines of facts on the page (${r.length})`)
+        for (const m of r) {
+          expect.equal(m.clip, 'clip', `${text}%: "${m.t}" clips what lies past its edges`)
+          m.facts.forEach((f, i) => {
+            if (i === 0) return expect.ok(f.dot === 'none' || f.dot === 'normal', `${text}%: "${m.t}": no dot before the first fact`)
+            expect.ok(/·/.test(f.dot), `${text}%: "${m.t}": a dot before fact ${i + 1}`)
+            const prev = m.facts[i - 1]
+            if (f.top === prev.top) expect.ok(Math.abs(f.left - prev.right - f.w) <= 1, `${text}%: "${m.t}": the dot fills the gap between two facts on one line`)
+            else expect.ok(f.left + f.at + f.w <= m.left + 0.5, `${text}%: "${m.t}": the dot of a fact that starts a line lies past the start edge, where it is clipped`)
+          })
+        }
+      }
     },
   },
 ]

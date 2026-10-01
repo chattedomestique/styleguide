@@ -1,5 +1,8 @@
 <!--{"title":"Stat","group":"Components","order":74,"summary":"A recipe, not a component: how the Card stat, Tags, a List and Avatars compose a dashboard. No new CSS."}-->
 <style>
+  /* docs only, until docs.css bounds it on every page: at 200% text on a phone the section heading "Accessibility"
+     (48px, expanded) was wider than the column and broke inside the word. It shrinks with the column instead. */
+  .docs-article h2 { font-size: min(var(--text-xl), 12.5cqi); }
   /* docs only: the article's list styles must not indent or re-space the specimens */
   .docs-article .demo ul[role="list"] { padding-inline-start: 0; }
   .docs-article .demo ul[role="list"] > li { max-inline-size: none; }
@@ -12,10 +15,10 @@
 <p class="lede">One number, big, with just enough around it to mean something. This page adds no CSS: a stat is the <a href="@/components/card.html#stat">Card stat recipe</a>, and this is how it sits with a <a href="@/components/tag.html">Tag</a>, a <a href="@/components/list.html">List</a>, an <a href="@/components/avatar.html">Avatar</a> and a <a href="@/components/divider.html">Divider</a> to make a dashboard.</p>
 
 <h2 id="recipe">The recipe</h2>
-<p>Four parts, in this order: what it counts (<code>.card__eyebrow</code>), the number (<code>.card__figure</code>), what state it is in (one tag, optional, or a meter), and a one-line reading of it (<code>.card__meta</code>). One state per card: a second fact goes in the meta line, not in a second tag. The figure scales with the card's own width, from 28 to 104px, stays on one line, and uses tabular figures. Square cards in one row share one height.</p>
+<p>Four parts, in this order: what it counts (<code>.card__eyebrow</code>), the number (<code>.card__figure</code>), what state it is in (one tag, optional, or a meter), and a one-line reading of it (<code>.card__meta</code>). One state per card: a second fact goes in the meta line, not in a second tag. The figure scales with the card's own width, from 28 to 104px, stays on one line, and uses tabular figures. Square cards in one row share one height. Give the grid a small minimum (7.5rem here, 6.5rem inside the phone frame below) so a pair stays two to a row down to a 320px phone. A square card alone on its row (wider than 14rem) is as tall as its content.</p>
 <div class="demo">
   <div class="demo__stage">
-    <div class="grid" style="--grid-min: 9rem">
+    <div class="grid" style="--grid-min: 7.5rem">
       <article class="card card--square" data-tone="1">
         <div class="card__body">
           <p class="card__eyebrow">Learned so far</p>
@@ -55,7 +58,7 @@
             <span class="tag" data-tone="warn">11&nbsp;due</span>
           </header>
 
-          <div class="grid" style="--grid-min: 8rem">
+          <div class="grid" style="--grid-min: 6.5rem">
             <article class="card card--square" data-tone="1">
               <div class="card__body">
                 <p class="card__eyebrow">Learned</p>

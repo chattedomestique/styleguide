@@ -22,7 +22,7 @@
          <span class="list__lead"><span class="avatar" aria-hidden="true">MO</span></span>
          <span class="list__main">
            <span class="list__title">Maya Okafor</span>
-           <span class="list__meta">Owner · joined March</span>
+           <span class="list__meta" data-facts><span>Owner</span> <span>joined March</span></span>
          </span>
          <span class="list__trail"><span class="tag" data-tone="ok">Synced</span></span>
        </div>
@@ -34,7 +34,8 @@
    </dl>
 
    PARTS   .list__lead   icon, avatar or a square tile (data-shape="tile" + data-tone)
-           .list__main   .list__title (600) and .list__meta (soft ink)
+           .list__main   .list__title (600) and .list__meta (soft ink; data-facts and one <span> per fact
+                         draws the dots between facts, and never at the start or end of a line: see FACTS)
            .list__trail  a value, a tag, a chevron, or ONE control (a button)
    data-variant  on .list:   framed (a 2px frame and the card radius, for a stand-alone group; the frame is
                              painted over the rows, so an inverted row under a soft corner shows no seam)
@@ -191,6 +192,33 @@
     font-variant-numeric: tabular-nums;
     overflow-wrap: break-word;
     text-wrap: balance;
+  }
+
+  /* FACTS. A meta line of short facts ("Books · 14 April") is written one <span> per fact, with data-facts on the
+     line. The dot is drawn in the gap before each fact, and a fact that starts a line puts its dot outside the
+     line's start edge, where the line clips it: a wrapped line never starts or ends with a dot. (As text, the dot
+     either ended the first line or started the second, where it read as a bullet: "Books / · 14 April".) A fact
+     stays whole while it fits a line and wraps inside itself only when it alone is wider than the line. The dot
+     is decoration ("" for assistive tech); the facts are read as words. In row mode the clip would hide a word
+     that does not fit, so src/js/46-list.js measures the line itself. */
+  .list__meta[data-facts] {
+    --_sep: 0.8em; /* a space, the dot and a space, as in running text */
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--_sep);
+    overflow-x: clip; /* both inline edges, so it is right in either direction; the block axis stays visible */
+
+    & > * {
+      position: relative;
+      min-inline-size: 0;
+    }
+    & > * + *::before {
+      content: "·" / "";
+      position: absolute;
+      inset-inline-start: calc(var(--_sep) * -1);
+      inline-size: var(--_sep);
+      text-align: center;
+    }
   }
 
   /* the trail is a wrapper only: its parts go to the value and end slots */

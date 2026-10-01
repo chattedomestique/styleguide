@@ -165,4 +165,43 @@ export const tests = [
       }
     },
   },
+  {
+    name: 'a side-aligned label that cannot keep its rule beside it takes the rule on a line of its own; beside a label, the rule starts right after the words',
+    async run({ page, goto, expect }) {
+      await goto('components/divider.html')
+      await page.addStyleTag({ content: 'html{font-size:200%}' })
+      await page.waitForTimeout(200)
+      const r = await page.evaluate(() => {
+        const text = (el) => { let top = Infinity, bottom = -Infinity, right = -Infinity, lines = new Set(); const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); for (let n; (n = w.nextNode()); ) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) { if (q.width < 1) continue; top = Math.min(top, q.top); bottom = Math.max(bottom, q.bottom); right = Math.max(right, q.right); lines.add(Math.round(q.top)) } } return { top, bottom, right, lines: lines.size } }
+        const first = document.querySelector('#heading ~ .demo .divider[data-align="start"]')
+        const short = { d: first.getBoundingClientRect(), t: text(first), gap: parseFloat(getComputedStyle(first).columnGap) }
+        // a label too long for one line beside its rule
+        first.textContent = 'Everything you studied with friends this week'
+        const long = { d: first.getBoundingClientRect(), t: text(first), rowGap: parseFloat(getComputedStyle(first).rowGap), rule: parseFloat(getComputedStyle(first, '::after').borderTopWidth) }
+        return { short: JSON.parse(JSON.stringify(short)), long: JSON.parse(JSON.stringify(long)) }
+      })
+      expect.equal(r.short.t.lines, 1, 'a short label holds one line')
+      expect.ok(r.short.d.height - (r.short.t.bottom - r.short.t.top) <= 2, 'and its rule is beside it, not under it')
+      expect.ok(r.long.t.lines >= 2, `a long label wraps (${r.long.t.lines} lines)`)
+      expect.ok(r.long.d.bottom - r.long.t.bottom >= r.long.rowGap + r.long.rule - 1, `and its rule is on a line of its own, under the words (${(r.long.d.bottom - r.long.t.bottom).toFixed(1)}px below them)`)
+    },
+  },
+  {
+    name: 'a total (end-aligned divider) lines up with the amounts it sums, at 100% and 200% text',
+    async run({ page, goto, expect }) {
+      await goto('components/divider.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => {
+          const total = document.querySelector('#heading ~ .demo .divider[data-align="end"]')
+          const right = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); return Math.max(...[...rg.getClientRects()].map((q) => q.right)) }
+          const amounts = [...total.parentElement.querySelectorAll('.split > .num')].map(right)
+          return { total: right(total), amounts }
+        })
+        expect.ok(r.amounts.length >= 2, 'the amounts above the total')
+        for (const a of r.amounts) expect.ok(Math.abs(a - r.total) <= 1.5, `${text}%: an amount ends at ${a.toFixed(1)}px, the total at ${r.total.toFixed(1)}px`)
+      }
+    },
+  },
 ]

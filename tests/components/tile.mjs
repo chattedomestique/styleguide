@@ -329,4 +329,55 @@ export const tests = [
       }
     },
   },
+  {
+    name: 'the States board: one tile size, captions 8px or more clear of the ring and the shadow, specimens 16px or more apart (390, 320 and 1024px; 200% text)',
+    async run({ page, goto, expect }) {
+      await goto('components/tile.html')
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200], [1024, 100]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(200)
+        const r = await page.evaluate(() => [...document.querySelectorAll('#states ~ .demo .tile-states > figure')].map((f) => {
+          const t = f.querySelector('.tile'), cs = getComputedStyle(t), b = t.getBoundingClientRect()
+          // what is painted around the frame: the focus ring (outline) and every box-shadow (lift, doubled frame, halo)
+          const ext = { l: 0, r: 0, t: 0, b: 0 }
+          if (cs.outlineStyle !== 'none') { const o = parseFloat(cs.outlineOffset) + parseFloat(cs.outlineWidth); ext.l = ext.r = ext.t = ext.b = o }
+          for (const m of cs.boxShadow.matchAll(/(-?[\d.]+)px (-?[\d.]+)px ([\d.]+)px (-?[\d.]+)px/g)) {
+            const [x, y, , sp] = m.slice(1).map(Number)
+            if (/rgba\([^)]*, 0\)/.test(cs.boxShadow) && x === 0 && y === 0 && sp === 0) continue
+            ext.l = Math.max(ext.l, sp - x); ext.r = Math.max(ext.r, sp + x); ext.t = Math.max(ext.t, sp - y); ext.b = Math.max(ext.b, sp + y)
+          }
+          const cap = f.querySelector('figcaption').getBoundingClientRect()
+          return { name: f.querySelector('figcaption').textContent.trim(), w: b.width, h: b.height, vis: { left: b.left - ext.l, right: b.right + ext.r, top: b.top - ext.t, bottom: b.bottom + ext.b }, cap: { top: cap.top, bottom: cap.bottom } }
+        }))
+        expect.equal(r.length, 8, `${w}px ${text}%: eight specimens`)
+        for (const x of r) {
+          expect.ok(Math.abs(x.w - r[0].w) <= 1 && Math.abs(x.h - r[0].h) <= 1, `${w}px ${text}%: "${x.name}" is the same tile (${x.w.toFixed(0)} x ${x.h.toFixed(0)})`)
+          expect.ok(x.cap.top - x.vis.bottom >= 8, `${w}px ${text}%: "${x.name}" caption is ${(x.cap.top - x.vis.bottom).toFixed(1)}px under what the tile paints`)
+        }
+        for (const a of r) for (const b of r) {
+          if (a === b) continue
+          const sameRow = Math.abs(a.vis.top - b.vis.top) < a.h / 2
+          if (sameRow && b.vis.left > a.vis.left) expect.ok(b.vis.left - a.vis.right >= 16, `${w}px ${text}%: "${a.name}" and "${b.name}" are ${(b.vis.left - a.vis.right).toFixed(1)}px apart`)
+          if (!sameRow && b.vis.top > a.cap.bottom && b.vis.left < a.vis.right && a.vis.left < b.vis.right) expect.ok(b.vis.top - a.cap.bottom >= 16, `${w}px ${text}%: "${b.name}" is ${(b.vis.top - a.cap.bottom).toFixed(1)}px under the caption "${a.name}"`)
+        }
+      }
+    },
+  },
+  {
+    name: 'a badge is chrome: 24px with 14px figures at any text size, like the icon beside it',
+    async run({ page, goto, expect }) {
+      await goto('components/tile.html')
+      for (const text of [100, 200]) {
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(150)
+        const r = await page.evaluate(() => [...document.querySelectorAll('#badge ~ .demo .tile__badge')].map((b) => ({ t: b.textContent.trim(), h: b.getBoundingClientRect().height, f: parseFloat(getComputedStyle(b).fontSize) })))
+        expect.ok(r.length >= 4, 'four badges')
+        for (const b of r) {
+          expect.ok(Math.abs(b.h - 24) <= 0.5, `${text}%: "${b.t}" is ${b.h}px tall`)
+          expect.ok(b.f <= 14, `${text}%: "${b.t}" figures are ${b.f}px`)
+        }
+      }
+    },
+  },
 ]
