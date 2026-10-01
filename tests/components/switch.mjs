@@ -255,6 +255,40 @@ export const tests = [
     },
   },
   {
+    name: 'switch first: the switch leads, the label wraps beside it, and the word follows the label or drops UNDER it at its start (never at the far end of a wrapped label), at 320 and 390 px, 100% and 200% text',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      const read = () => page.evaluate(() => [...document.querySelectorAll('label.switch[data-layout="start"]:not([data-state="hidden"])')].map((l) => {
+        const row = l.getBoundingClientRect(), track = l.querySelector('input').getBoundingClientRect()
+        const lab = l.querySelector('.switch__label'), t = lab.getBoundingClientRect()
+        const word = [...l.querySelectorAll('.switch__state > span')].find((s) => getComputedStyle(s).opacity !== '0').getBoundingClientRect()
+        const rg = document.createRange(); rg.selectNodeContents(lab)
+        const tops = [...new Set([...rg.getClientRects()].map((q) => Math.round(q.top)))]
+        const lines = [...rg.getClientRects()]
+        const last = lines[lines.length - 1]
+        return {
+          name: l.querySelector('input').name,
+          lines: tops.length,
+          leads: track.left <= t.left && track.left <= row.left + 1,
+          beside: tops.length === 1 && Math.abs((word.top + word.height / 2) - (last.top + last.height / 2)) <= 2 && word.left >= last.right - 1 && word.left - last.right <= 16.5,
+          under: word.top >= t.bottom - 1 && Math.abs(word.left - t.left) <= 1,
+        }
+      }))
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((x) => { document.documentElement.style.fontSize = x + '%' }, text)
+        await settle(page)
+        const rows = await read()
+        expect.ok(rows.length >= 1, 'a switch-first row was found')
+        for (const r of rows) {
+          expect.ok(r.leads, `${w}px, ${text}%: ${r.name}: the switch leads the row`)
+          expect.ok(r.beside || r.under, `${w}px, ${text}%: ${r.name}: the word follows its one-line label or sits under the label at its start (label lines: ${r.lines})`)
+        }
+      }
+    },
+  },
+  {
     name: 'a forced .is-focus specimen draws the same ring round the track as real keyboard focus',
     async run({ page, goto, expect }) {
       await open(page, goto)

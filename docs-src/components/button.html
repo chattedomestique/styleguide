@@ -1,9 +1,13 @@
 <!--{"title":"Button","group":"Components","order":10,"summary":"Pills and circles you press: secondary, primary, tone, icon-only."}-->
 <style>
-  /* docs scaffolding only. State specimens stand in a grid: 16px apart, lined up in columns, and one per row
-     on a phone at large text (a wrapping row left two on one line and a lonely one under them). */
-  .docs-article .specimens { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: var(--space-4); align-items: center; justify-items: start; }
-  .docs-article .specimens__col { display: grid; gap: var(--space-4); justify-items: start; align-self: start; }
+  /* docs scaffolding only. State specimens stand in a grid: lined up in columns, and one per row on a phone at
+     large text (a wrapping row left two on one line and a lonely one under them). They are 16px apart as DRAWN,
+     not as boxes: a raised specimen paints 4px below its box (lift and hard shadow) and a focused one 8px above
+     it (lift and ring), so the rows are 28px apart and leave 16px clear between a shadow and the next ring. */
+  .docs-article .specimens { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: calc(var(--space-4) + var(--space-3)) var(--space-4); align-items: center; justify-items: start; }
+  .docs-article .specimens__col { display: grid; gap: calc(var(--space-4) + var(--space-3)); justify-items: start; align-self: start; }
+  /* a column's caption sits on its first specimen, which is at rest (no lift, no ring): the plain 16px */
+  .docs-article .specimens__col > .t-label { margin-block-end: calc(var(--space-3) * -1); }
 </style>
 <h1>Button</h1>
 <p class="lede">A button does something on this screen: save, add, send, confirm. If it goes somewhere else, it is a link. Buttons are pills and circles because, in this system, circles and pills act and rectangles hold.</p>
@@ -36,7 +40,7 @@
 <div class="demo" data-layout="row">
   <div class="demo__stage">
     <button class="btn" type="button">Keep deck</button>
-    <button class="btn" data-variant="tone" data-tone="bad" type="button"><span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck</button>
+    <button class="btn" data-variant="tone" data-tone="bad" type="button"><span class="btn__label"><span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck</span></button>
   </div>
 </div>
 
@@ -56,14 +60,14 @@
 </div>
 
 <h2 id="icons">With an icon, and as a circle</h2>
-<p>Icons are masks: <code>&lt;span class="ic ic--plus" aria-hidden="true"&gt;</code>. An icon beside a label grows with the reader's text size, because it is part of the line of words; if the label has to wrap, it wraps beside the icon, starting right after it. A circle holds one icon and <strong>must</strong> have an <code>aria-label</code>: a tooltip is not a name. An icon-only circle stays at its drawn size (36, 44 or 56) at any text size, so large text gives its room to the words around it.</p>
+<p>Icons are masks: <code>&lt;span class="ic ic--plus" aria-hidden="true"&gt;</code>. An icon beside a label grows with the reader's text size, because it is part of the line of words. Put an icon that comes <em>before</em> the words inside <code>.btn__label</code> with them: they are then one line of text, so if the label has to wrap at large text the icon leads its first line and the lines stay centred as one group. An icon <em>after</em> the words (<em>Continue</em>) stays outside the label, at its end. A circle holds one icon and <strong>must</strong> have an <code>aria-label</code>: a tooltip is not a name. An icon-only circle stays at its drawn size (36, 44 or 56) at any text size, so large text gives its room to the words around it; so does the gap in a row of circles (<code>--cluster-gap: var(--chrome-3)</code>, 12px), which keeps the row whole on a phone at 200% text.</p>
 <div class="demo">
   <div class="demo__stage">
     <div class="cluster" data-gap="3">
-      <button class="btn" data-variant="primary" type="button"><span class="ic ic--plus" aria-hidden="true"></span>Add funds</button>
+      <button class="btn" data-variant="primary" type="button"><span class="btn__label"><span class="ic ic--plus" aria-hidden="true"></span>Add funds</span></button>
       <button class="btn" type="button">Continue<span class="ic ic--arrow" aria-hidden="true"></span></button>
     </div>
-    <div class="cluster" data-gap="3">
+    <div class="cluster" style="--cluster-gap: var(--chrome-3)">
       <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button>
       <button class="btn" data-shape="circle" type="button" aria-label="Add task"><span class="ic ic--plus" aria-hidden="true"></span></button>
       <button class="btn" data-shape="circle" data-variant="primary" type="button" aria-label="Refresh"><span class="ic ic--refresh-cw" aria-hidden="true"></span></button>
@@ -129,7 +133,7 @@
   <li><strong>Fill</strong>: <code>--fill</code> mixes the resting colours toward the accent. An action button: rest 0 (outline), hover, focus and pressed 1. A toggle: 0 while off (a press tints it to 0.15), 1 only when on.</li>
   <li><strong>Doubled frame</strong> (on): a 2px ring of the resting colour inside the frame, so the frame and the edge of the fill read as two outlines whatever the accent.</li>
   <li><strong>Hard shadow</strong>: appears with <code>--lift</code> (4px, zero blur) when the button can be pressed; pressing sinks it back. A shadow means "you can press this". On a filled button a 2px gap in the surface colour separates the fill from the shadow, so the two do not fuse into one lump.</li>
-  <li><strong>Label</strong>: sentence case, semibold, verb first, 1&ndash;3 words. It wraps between words at large text; beside an icon it starts right after the icon.</li>
+  <li><strong>Label</strong> (<code>.btn__label</code> when there is an icon before the words): sentence case, semibold, verb first, 1&ndash;3 words. It wraps between words at large text, centred and balanced, with the icon at the start of its first line.</li>
   <li><strong>Icon</strong> (optional): 20px mask, decorative when a label is present. It grows with the label; the icon of an icon-only circle does not.</li>
   <li><strong>Hit area</strong>: an invisible <code>::after</code> that guarantees 44&times;44px.</li>
 </ol>
@@ -140,6 +144,7 @@
   <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
   <tbody>
     <tr><td><code>class="btn"</code></td><td></td><td>The button. Works on <code>&lt;button&gt;</code> and <code>&lt;a&gt;</code>.</td></tr>
+    <tr><td><code>class="btn__label"</code></td><td>a <code>&lt;span&gt;</code> holding a leading icon and the words</td><td>One line of text: a wrapped label keeps the icon at the start of its first line and stays centred. An icon after the words goes outside it.</td></tr>
     <tr><td><code>data-variant</code></td><td><code>primary</code>, <code>tone</code> (default: secondary)</td><td>Emphasis. Tone reads <code>--tone-bg/ink/fill/on-fill</code> from <code>data-tone</code> on the button.</td></tr>
     <tr><td><code>data-size</code></td><td><code>sm</code> (36), <code>lg</code> (56) (default 44)</td><td>Drawn height. The hit area is always at least 44.</td></tr>
     <tr><td><code>data-shape</code></td><td><code>circle</code></td><td>Square box for one icon. Needs <code>aria-label</code>.</td></tr>
@@ -159,7 +164,7 @@
     <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activates. Native <code>&lt;button&gt;</code> gives this for free; never use a <code>&lt;div&gt;</code>.</td></tr>
     <tr><td>Screen reader</td><td>"Label, button". Toggles add pressed / not pressed (the name stays the same); busy adds busy; <code>aria-disabled</code> adds unavailable.</td></tr>
     <tr><td>Touch</td><td>44&times;44px minimum hit area. No gesture required.</td></tr>
-    <tr><td>Zoom / text size</td><td>The label, and an icon beside it, grow with the text; the side padding, the icon gap and icon-only circles stop at their 100% size, so the words get the room. Labels wrap between words rather than clip at 200% text (beside an icon, starting right after it), a row of buttons wraps the whole button before it squeezes a label, and a tall wrapped button stays a rounded rectangle (the pill radius is half of one line, not an oval).</td></tr>
+    <tr><td>Zoom / text size</td><td>The label, and an icon beside it, grow with the text; the side padding, the icon gap and icon-only circles stop at their 100% size, so the words get the room. Labels wrap between words rather than clip at 200% text (in <code>.btn__label</code> the icon leads the first line and the lines stay centred), a row of buttons wraps the whole button before it squeezes a label, and a tall wrapped button stays a rounded rectangle (the pill radius is half of one line, not an oval).</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the fill change stays. The spinner pulses instead of rotating.</td></tr>
     <tr><td>Forced colours</td><td>The frame becomes <code>ButtonText</code>; raised and focus get a 4px <code>Highlight</code> outline; on gets a 4px frame.</td></tr>
   </tbody>

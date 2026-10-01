@@ -35,10 +35,11 @@
 
    ONE ROW AT EVERY SIZE: [-][value][+]. The circles are chrome (44px, or 56 large, at any text size), the
    gaps are chrome, and the value box is as wide as its digits (32-stepper.js counts the digits of min and
-   max into --_digits; two by default) and as tall as the circles (taller only when its figures need it),
-   so at 200% text the three still share a row, at one height, in a phone card (they used to wrap: "-" and
-   the number on one line, "+" alone below, or all three stacked). The figures grow with the reader's text;
-   the box grows around them.
+   max into --_digits; two by default) and exactly as tall as the circles, so at 200% text the three still
+   share a row, at one height, in a phone card (they used to wrap: "-" and the number on one line, "+" alone
+   below, or all three stacked). The figures are a DISPLAY size bounded by that box, like the amount input's:
+   they grow with the reader's text until they would crowd the box (64% of its height: 28px, 36px large),
+   then stop, so the digits keep about 8px of air above and below them.
 
    Not a slider, not a free-form number box: for a value on a continuous range use slider; for big or
    precise numbers (amounts, IDs) use a plain input with inputmode.
@@ -65,12 +66,14 @@
 
   .stepper > .stepper__input {
     --_digits: 2;
-    /* as tall as the circle beside it, so the three share one height; taller only when the figures need
-       it (the control type has a line height of 1, so at 200% text the 40px figures still fit the 44px box:
-       a box of figures plus air was 52px there, a step above both circles) */
-    --_h: max(var(--chrome-ctl), calc(1lh + 2 * var(--bw)));
+    /* as tall as the circles beside it, at every text size: the row has one height (--_h is also what the
+       input skin reads for its minimum height) */
+    --_h: var(--chrome-ctl);
+    /* the figures: a display size bounded by the box (see the header). Grown with the text to 40px at 200%,
+       they filled the 44px box to within 5px of its frame and looked cramped beside the fields on the page. */
+    --_fs: min(var(--text-lg), calc(var(--_h) * 0.64));
     /* a fixed height, not just a minimum: a text input never lets its line box be shorter than the font's
-       own (about 1.09em in Archivo), which made the box 47px at 200% text; the figures' ink still has room */
+       own (about 1.09em in Archivo) */
     block-size: var(--_h);
     flex: none;
     /* the digits (tabular figures, so 1ch each) with a little room for the caret, the side insets (chrome)
@@ -79,7 +82,7 @@
     min-inline-size: var(--_h); /* never narrower than it is tall */
     padding-inline: calc(var(--chrome-3) - var(--bw));
     font: var(--type-ctl);
-    font-size: var(--text-lg);
+    font-size: var(--_fs);
     font-variant-numeric: tabular-nums lining-nums;
     text-align: center;
     -moz-appearance: textfield;
@@ -92,8 +95,8 @@
     }
   }
   .stepper[data-size="lg"] > .stepper__input {
-    --_h: max(var(--chrome-ctl-lg), calc(1lh + 2 * var(--bw)));
-    font-size: var(--text-xl);
+    --_h: var(--chrome-ctl-lg);
+    --_fs: min(var(--text-xl), calc(var(--_h) * 0.64));
   }
 
   @media (scripting: none) {

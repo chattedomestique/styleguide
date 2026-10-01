@@ -207,7 +207,7 @@ export const tests = [
     },
   },
   {
-    name: 'Large text (200%, 390 and 320 px): every stepper is ONE row [-][value][+] at one height, 44px circles, the value whole, inside the card that clips it',
+    name: 'Large text (200%, 390 and 320 px): every stepper is ONE row [-][value][+] at one height, 44px circles, the value whole and not crowding its box, inside the card that clips it',
     viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await open(page, goto)
@@ -226,7 +226,7 @@ export const tests = [
           expect.ok(r.circles.every((c) => c === 44 || c === 56), `${w}px: ${r.id} keeps its 44 / 56px circles (${r.circles})`)
           expect.ok(r.inside, `${w}px: ${r.id}: the plus button stays inside the card`)
           expect.ok(r.whole, `${w}px: ${r.id}: the number shows whole`)
-          expect.ok(r.h >= r.fs, `${w}px: ${r.id}: the box is as tall as its figures (${r.h}px for ${r.fs}px)`)
+          expect.ok(r.fs <= r.h * 0.64 + 0.5 && r.fs >= 20, `${w}px: ${r.id}: the figures are a display size bounded by the box: grown past 20px, at most 64% of it, so the digits keep their air (${r.fs}px in ${r.h}px)`)
           expect.ok(Math.abs(r.h - r.ch) <= 1, `${w}px: ${r.id}: the box and the circles share one height (${r.h}px, ${r.ch}px)`)
         }
       }

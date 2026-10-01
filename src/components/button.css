@@ -11,7 +11,10 @@
    <button class="btn" data-variant="primary">Start</button>    filled with the accent
    <button class="btn" data-variant="tone" data-tone="3">…      filled with the tone's pill colours
    <button class="btn" data-shape="circle" aria-label="Add"><span class="ic ic--plus" aria-hidden="true"></span></button>
+   <button class="btn"><span class="btn__label"><span class="ic ic--plus" aria-hidden="true"></span>Add funds</span></button>
+   <button class="btn">Continue<span class="ic ic--arrow" aria-hidden="true"></span></button>      an icon after the words
 
+   .btn__label    the words, and an icon BEFORE them (see "an icon before the words" below)
    data-variant   secondary (default) | primary | tone (+ data-tone="bad" for a danger button: with an icon and a
                   verb that says what is lost, because the tone is never the only cue)
    data-size      sm (36, hit area still 44) | md (44, default) | lg (56)
@@ -21,19 +24,24 @@
    LARGE TEXT. The label grows with the reader's text size, and so does an icon that sits in the label (it
    is part of the line of words). The chrome does not grow past its 100% size (--chrome-* tokens: side
    padding, the icon gap, and the whole of an ICON-ONLY circle with its target), so at 200% text the words
-   keep the room. The icon always stays beside its label: when the label must wrap, it wraps beside the
-   icon (flex-wrap: nowrap), never under it. A label wraps at word boundaries (overflow-wrap: break-word)
+   keep the room. The icon always stays beside its words, never above or below them (flex-wrap: nowrap, and
+   in .btn__label it is part of the first line). A label wraps at word boundaries (overflow-wrap: break-word)
    and a word breaks only if it alone is wider than the row. The button is never wider than its row
    (max-inline-size), so a row of buttons moves a BUTTON to the next line before it squeezes a label. The
    radius is HALF THE NOMINAL HEIGHT, not 999px: a button that grows taller keeps the pill's end curve
    instead of turning into an oval. A circle is a square box at every size; a circle that holds a number
    or a letter (a keypad key, a page number) grows with the text, a circle that holds an icon does not.
 
-   A wrapped label beside an icon starts right after the icon (text-align: start). Centred in the width
-   that was left, its short lines floated away from the icon, which then looked stranded at the far edge
-   of a full-width button. A label without an icon stays centred. A full-width button pads its sides less
-   (--chrome-4): its label is centred anyway, and the 16px it gives back keeps "Create account" on one line
-   in a phone frame at 200% text.
+   AN ICON BEFORE THE WORDS goes INSIDE the label: <span class="btn__label"><span class="ic …"></span>Add funds</span>.
+   The icon and the words are then one line of text, so when the label wraps the icon leads its first line
+   and the lines are centred and balanced as one group ("[+] Add / funds"). As two flex items (icon | words),
+   the icon was centred on the whole wrapped block, and the block, as wide as the room left, could only start
+   its lines at the icon (the group then sat off-centre: "Delete deck" 18px from one end of the pill, 86px
+   from the other) or centre them away from it (the icon stranded at the far edge of a full-width button).
+   Without the label (older markup) a wrapped label still starts right after its icon (text-align: start).
+   An icon AFTER the words (an onward arrow, a menu's chevron) stays outside, at the end of the label.
+   A full-width button pads its sides less (--chrome-4): its label is centred anyway, and the 16px it gives
+   back keeps a short label on one line in a phone frame at 200% text.
 
    STATES come from ARIA and native attributes, never classes:
      :disabled / aria-disabled="true"   dashed frame, faint ink, no shadow, no hover
@@ -245,9 +253,24 @@
       display: flex;
       inline-size: 100%;
     }
-    /* a label beside an icon wraps from the icon's side, not centred away from it (see the header) */
+    /* a label beside an icon wraps from the icon's side, not centred away from it (older markup, see the header) */
     &:has(> .ic):not([data-shape="circle"]) {
       text-align: start;
+    }
+    /* The label: the icon and the words in one line of text, centred and balanced as one group (see the header).
+       It may shrink below its longest word, so a word breaks only when it alone is wider than the button. */
+    & > .btn__label {
+      min-inline-size: 0;
+      text-align: center;
+
+      /* The icon's margin box is one em tall and sits exactly on the line (line-height 1): Archivo's line runs from
+         0.835em above the baseline to 0.165em below it ((1 + ascent 0.88 - descent 0.21) / 2), so the icon is
+         centred where a flex layout centres it and does not make the first line taller than the others. */
+      & > .ic {
+        margin-block: calc((1em - var(--ic-size, 1.25rem)) / 2);
+        margin-inline-end: var(--chrome-2);
+        vertical-align: -0.165em;
+      }
     }
 
     /* ---- shape: a circle is a square box holding one icon (or one short number, like a keypad key) ---- */

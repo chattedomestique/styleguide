@@ -100,7 +100,8 @@
   }
 
   /* ---- Label ---------------------------------------------------------------
-     The most important text in a form. */
+     The most important text in a form. A label that wraps at large text wraps in balanced lines, so its last
+     word is not left alone ("Remind me / by" became "Remind / me by"). */
   .field__label {
     display: block;
     padding: 0; /* <legend> */
@@ -108,6 +109,7 @@
     line-height: var(--lh-snug);
     color: var(--ink);
     overflow-wrap: break-word;
+    text-wrap: balance;
   }
   legend.field__label {
     margin-block-end: var(--space-2); /* a legend is not a grid item, so the gap does not reach it */
@@ -172,9 +174,14 @@
       --ic-size: 1.125rem;
       margin-block-start: calc((1lh - var(--ic-size)) / 2);
     }
+    /* Balanced: an example address in the message ("you@<wbr>example.<wbr>com") moves to the next line whole
+       when it fits there, and splits at a <wbr> only when it must, on the most even lines. Greedy breaking
+       split it at the @ on a 320px phone at 100% text ("…like you@ / example.com") and left a lone "like"
+       on a line of its own at 200% text. */
     > span:last-child {
       min-inline-size: 0;
       overflow-wrap: break-word;
+      text-wrap: balance;
     }
   }
 

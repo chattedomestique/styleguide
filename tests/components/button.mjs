@@ -103,27 +103,53 @@ export const tests = [
     },
   },
   {
-    name: 'state specimens stand at least 16px apart (so a raised shadow or a ring, 6px, never comes within 8px of the next one or of the caption), at 100% and 200% text',
+    name: 'state specimens stand at least 16px apart AS DRAWN (lift, hard shadow and focus ring included), the caption 8px clear of them, at 320, 390 and 1024 px, at 100% and 200% text',
+    viewport: { width: 390, height: 844 },
     async run({ page, goto, expect }) {
       await goto('components/button.html')
       const gaps = () => page.evaluate(() => {
+        // The painted extent: the border box where it is drawn (transforms included, so a raised specimen is 2px up
+        // and left), grown by its outline (width + offset) and by every outer box-shadow (offset, spread and blur; the
+        // house shadows have no blur). Border boxes passed while a hard shadow ended 4px from the next ring.
+        const px = (s) => (s.match(/-?[\d.]+px/g) || []).map(parseFloat)
+        const painted = (e) => {
+          const r = e.getBoundingClientRect(), c = getComputedStyle(e)
+          let left = r.left, top = r.top, right = r.right, bottom = r.bottom
+          if (c.outlineStyle !== 'none') {
+            const o = parseFloat(c.outlineWidth) + parseFloat(c.outlineOffset)
+            left -= o; top -= o; right += o; bottom += o
+          }
+          if (c.boxShadow !== 'none') {
+            for (const sh of c.boxShadow.split(/,(?![^(]*\))/)) {
+              if (/inset/.test(sh)) continue
+              const [x = 0, y = 0, blur = 0, spread = 0] = px(sh.replace(/[a-z-]+\([^)]*\)/g, ''))
+              left = Math.min(left, r.left + x - spread - blur); top = Math.min(top, r.top + y - spread - blur)
+              right = Math.max(right, r.right + x + spread + blur); bottom = Math.max(bottom, r.bottom + y + spread + blur)
+            }
+          }
+          return { left, top, right, bottom }
+        }
         const out = []
+        // #states ~ .demo: the States demo and the Toggle demo after it
         for (const grid of document.querySelectorAll('#states ~ .demo .specimens')) {
-          // layout boxes, not the painted ones: a raised specimen is drawn 2px up and left of its box (its lift)
-          const box = (e) => { let x = 0, y = 0, n = e; while (n) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent } return { left: x, top: y, right: x + e.offsetWidth, bottom: y + e.offsetHeight } }
-          const items = [...grid.querySelectorAll(':scope > .btn, :scope > p, .specimens__col > .btn')].map((e) => ({ t: e.textContent.trim(), r: box(e) }))
+          const name = (e) => ({ true: 'On ', false: 'Off ' })[e.getAttribute('aria-pressed')] ?? ''
+          const items = [...grid.querySelectorAll(':scope > .btn, :scope > p, .specimens__col > .btn')].map((e) => ({ t: name(e) + e.textContent.trim(), caption: e.tagName === 'P', r: painted(e) }))
           for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
             const a = items[i].r, b = items[j].r
             const dx = Math.max(b.left - a.right, a.left - b.right), dy = Math.max(b.top - a.bottom, a.top - b.bottom)
-            out.push({ pair: items[i].t + ' / ' + items[j].t, gap: Math.max(dx, dy) })
+            out.push({ pair: items[i].t + ' / ' + items[j].t, gap: Math.max(dx, dy), need: items[i].caption || items[j].caption ? 8 : 16 })
           }
         }
         return out
       })
-      for (const g of await gaps()) expect.ok(g.gap >= 15.5, `${g.pair}: ${Math.round(g.gap)}px apart`)
-      await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
-      await page.waitForTimeout(100)
-      for (const g of await gaps()) expect.ok(g.gap >= 15.5, `200% text, ${g.pair}: ${Math.round(g.gap)}px apart`)
+      for (const [w, text] of [[320, 100], [390, 100], [1024, 100], [320, 200], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(100)
+        const all = await gaps()
+        expect.ok(all.length > 20, `${w}px, ${text}%: specimens found (${all.length} pairs)`)
+        for (const g of all) expect.ok(g.gap >= g.need - 0.5, `${w}px, ${text}%: ${g.pair}: ${Math.round(g.gap)}px clear as drawn (needs ${g.need})`)
+      }
     },
   },
   {
@@ -158,6 +184,37 @@ export const tests = [
       expect.equal(forced.style, live.style, 'same outline style as real focus')
       expect.equal(forced.width, live.width, 'same ring width as real focus')
       expect.equal(forced.offset, live.offset, 'same ring offset as real focus')
+    },
+  },
+  {
+    name: 'an icon before the words (.btn__label) leads the FIRST line of a wrapped label, beside the first word, and the group stays centred in the pill; one line looks as before (320 and 390 px, 100% and 200% text)',
+    viewport: { width: 320, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto('components/button.html')
+      const read = () => page.evaluate(() => [...document.querySelectorAll('.demo__stage .btn > .btn__label')].filter((l) => l.querySelector('.ic')).map((l) => {
+        const b = l.parentElement.getBoundingClientRect(), cs = getComputedStyle(l.parentElement)
+        const ic = l.querySelector('.ic').getBoundingClientRect()
+        const tn = [...l.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim())
+        const rg = document.createRange(); rg.selectNodeContents(tn)
+        const rects = [...rg.getClientRects()].filter((q) => q.width > 0)
+        const first = rects[0]
+        const lines = new Set(rects.map((q) => Math.round(q.top))).size
+        const left = Math.min(ic.left, ...rects.map((q) => q.left)) - b.left, right = b.right - Math.max(ic.right, ...rects.map((q) => q.right))
+        return { text: l.textContent.trim(), lines, mid: (ic.top + ic.height / 2) - (first.top + first.height / 2), gap: first.left - ic.right, left, right, bw: parseFloat(cs.borderLeftWidth) }
+      }))
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(100)
+        const all = await read()
+        expect.ok(all.length >= 2, `${w}px, ${text}%: labelled icon buttons found (${all.length})`)
+        for (const r of all) {
+          expect.ok(Math.abs(r.mid) <= 1.5, `${w}px, ${text}%: "${r.text}": the icon is centred on the first line (${r.mid.toFixed(1)}px off), ${r.lines} line(s)`)
+          expect.ok(r.gap >= 7 && r.gap <= 9.5, `${w}px, ${text}%: "${r.text}": the icon sits beside the first word (${r.gap.toFixed(1)}px)`)
+          expect.ok(Math.abs(r.left - r.right) <= 2, `${w}px, ${text}%: "${r.text}": the group is centred in the pill (${r.left.toFixed(1)}px / ${r.right.toFixed(1)}px)`)
+        }
+        if (w === 320 && text === 200) expect.ok(all.some((r) => r.lines > 1), 'at 320px with 200% text a label wraps, so the wrapped case is measured')
+      }
     },
   },
   {

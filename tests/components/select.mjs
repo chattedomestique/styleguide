@@ -43,7 +43,7 @@ export const tests = [
       expect.equal(info.pe, 'none', 'taps fall through to the select')
       expect.ok(/svg/.test(info.mask), 'a mask of an svg draws it')
       expect.ok(/ic--chevron-down/.test(info.cls), 'the chevron-down icon')
-      expect.ok(!/[▼▾⌄∨]/.test(info.text.replace('Pick a country Canada Ireland New Zealand Norway Portugal', '')), 'no text chevron glyph')
+      expect.ok(!/[▼▾⌄∨]/.test(info.text), 'no text chevron glyph')
       await page.locator('#sel-country').scrollIntoViewIfNeeded()
       const box = await page.locator('#sel-country').boundingBox()
       const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y).tagName, [box.x + box.width - 20, box.y + box.height / 2])
@@ -218,6 +218,26 @@ export const tests = [
       expect.ok(Math.abs(r.pt - r.pb) <= 1 && r.pt > 4, `the line is centred: ${r.pt}px above, ${r.pb}px below (an <option> does not centre itself)`)
       expect.ok(r.left <= 8 && r.right <= 8, `the chosen bar spans the frame (${r.left}px / ${r.right}px from it), it does not float inside it`)
       expect.equal(r.textOverflow, 'ellipsis', 'a name too wide for the box gets an ellipsis, not a hard cut under the frame')
+    },
+  },
+  {
+    name: 'one line: every closed select in the demos shows its value whole at 320 and 390 px with 200% text (the demo copy fits; the chevron slot and the padding are chrome)',
+    viewport: { width: 320, height: 800 },
+    async run({ page, goto, expect }) {
+      await open(page, goto)
+      for (const w of [320, 390]) {
+        await page.setViewportSize({ width: w, height: 800 })
+        await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+        await page.waitForTimeout(150)
+        const cut = await page.evaluate(() => [...document.querySelectorAll('.demo__stage .select > select:not([multiple]):not([size])')].map((s) => {
+          const cs = getComputedStyle(s)
+          const t = document.createElement('span'); t.style.cssText = 'position:absolute;white-space:pre;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing
+          t.textContent = s.selectedOptions[0].text; document.body.appendChild(t)
+          const need = t.getBoundingClientRect().width; t.remove()
+          return { id: s.id, text: s.selectedOptions[0].text, need: Math.round(need), room: Math.round(s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) }
+        }).filter((x) => x.need > x.room))
+        expect.equal(cut.length, 0, `${w}px, 200%: values cut to an ellipsis: ` + cut.map((x) => `${x.id} "${x.text}" (${x.need}px in ${x.room}px)`).join('; '))
+      }
     },
   },
 ]

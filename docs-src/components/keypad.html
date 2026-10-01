@@ -1,9 +1,16 @@
 <!--{"title":"Keypad","group":"Components","order":34,"summary":"A numeric keypad for entering an amount: round 3 x 4 keys, a live amount display, hardware keys and a confirm button."}-->
 <style>
   /* docs scaffolding only. The mock screen's top row is one row at every size: the back button, then the
-     title, which wraps beside it (a wrapping cluster put the title under the button at 200% text). */
-  .docs-article .mock-head { display: flex; align-items: center; gap: var(--chrome-3); }
-  .docs-article .mock-head > .t-title { flex: 1 1 0; min-inline-size: 0; }
+     title, which wraps beside it (a wrapping cluster put the title under the button at 200% text). The button
+     is centred on the title's FIRST line, as in an app bar: the title pads itself when its line is shorter than
+     the button, and the button moves down when the line is taller (200% text). */
+  .docs-article .mock-head { display: flex; align-items: flex-start; gap: var(--chrome-3); }
+  .docs-article .mock-head > .t-title { flex: 1 1 0; min-inline-size: 0; padding-block: max(0px, (var(--chrome-ctl) - 1lh) / 2); }
+  .docs-article .mock-head > .btn { margin-block: max(0px, (min(var(--text-xl), 15cqi) * var(--lh-tight) - var(--chrome-ctl)) / 2); }
+  /* The phone mock's title is sized from the phone as well as from the text size (15cqi), so
+     its longest word fits the screen at 200% text on a 320px phone ("Reminders", "Notifications" broke inside the
+     word there). At 100% text and on a 390px phone at 200% it is the ordinary title size, or within 2px of it. */
+  .docs-article .phone .t-title { font-size: min(var(--text-xl), 15cqi); }
   /* The demos' status line (role="status") stays in the accessibility tree while it is empty, but takes no
      row: its grid gap left a band of dead space under the confirm button. */
   .docs-article .keypad > [data-demo-status]:empty { position: absolute; }
@@ -62,7 +69,12 @@
     var pad = b.closest('[data-sg-keypad]');
     var out = pad.querySelector('[data-demo-status]');
     out.textContent = '';
-    window.requestAnimationFrame(function () { out.textContent = 'Sending ' + SG.keypad.get(pad).formatted + '. This is a demo: nothing was sent.'; });
+    var amount = SG.keypad.get(pad).formatted;
+    var say = {
+      review: 'Next, a review of the transfer: ' + amount + '. This is a demo: nothing was sent.',
+      add: 'Adding ' + amount + ' cards. This is a demo: nothing was added.',
+    }[b.getAttribute('data-demo-send')] || 'Sending ' + amount + '. This is a demo: nothing was sent.';
+    window.requestAnimationFrame(function () { out.textContent = say; });
   });
 </script>
 
@@ -90,7 +102,7 @@
         <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
         <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit"><span class="ic ic--delete" aria-hidden="true"></span></button>
       </div>
-      <button class="btn" type="button" data-variant="primary" data-block data-sg-keypad-confirm data-demo-send aria-describedby="kp-cards-hint">Add cards</button>
+      <button class="btn" type="button" data-variant="primary" data-block data-sg-keypad-confirm data-demo-send="add" aria-describedby="kp-cards-hint">Add cards</button>
       <p class="t-meta" role="status" data-demo-status></p>
     </div>
   </div>
@@ -134,7 +146,7 @@
             <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
             <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit"><span class="ic ic--delete" aria-hidden="true"></span></button>
           </div>
-          <button class="btn" type="button" data-variant="primary" data-size="lg" data-block data-sg-keypad-confirm data-demo-send aria-describedby="ctx-kp-hint">Review transfer</button>
+          <button class="btn" type="button" data-variant="primary" data-size="lg" data-block data-sg-keypad-confirm data-demo-send="review" aria-describedby="ctx-kp-hint">Review</button>
           <p class="t-meta" role="status" data-demo-status></p>
         </div>
       </div>

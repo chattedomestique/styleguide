@@ -1,5 +1,9 @@
 <!--{"title":"Field","group":"Components","order":20,"summary":"The wrapper around every form control: label, hint, error, required wording, counter, groups and the error summary."}-->
 <style>
+  /* docs scaffolding only. The phone mock's title is sized from the phone as well as from the text size (15cqi), so
+     its longest word fits the screen at 200% text on a 320px phone ("Reminders", "Notifications" broke inside the
+     word there). At 100% text and on a 390px phone at 200% it is the ordinary title size, or within 2px of it. */
+  .docs-article .phone .t-title { font-size: min(var(--text-xl), 15cqi); }
   /* docs scaffolding only: the docs stylesheet styles every h2 in the article as a page section */
   .docs-article .error-summary h2.card__label { margin: 0; padding: 0; border: 0; font: var(--type-label); letter-spacing: var(--ls-label); }
   .docs-article .demo .error-summary { margin: 0; }
@@ -114,7 +118,7 @@
       <label class="field__label" for="fld-email-bad">Email <span class="field__req">(required)</span></label>
       <input class="input" id="fld-email-bad" name="email-bad" type="email" required value="sam.rivera@" aria-invalid="true" aria-describedby="fld-email-bad-msg">
       <div class="field__foot">
-        <p class="field__error" id="fld-email-bad-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@<wbr>example.com</span></p>
+        <p class="field__error" id="fld-email-bad-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@<wbr>example.<wbr>com</span></p>
       </div>
     </div>
   </div>
@@ -207,14 +211,14 @@
             <label class="field__label" for="ctx-email">Email <span class="field__req">(required)</span></label>
             <input class="input" id="ctx-email" type="email" autocomplete="email" inputmode="email" required value="sam.rivera@" aria-invalid="true" aria-describedby="ctx-email-msg">
             <div class="field__foot">
-              <p class="field__error" id="ctx-email-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@<wbr>example.com</span></p>
+              <p class="field__error" id="ctx-email-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@<wbr>example.<wbr>com</span></p>
             </div>
           </div>
           <div class="field">
             <label class="field__label" for="ctx-ref">Referral code <span class="field__opt">(optional)</span></label>
             <input class="input" id="ctx-ref" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
           </div>
-          <button class="btn" data-variant="primary" data-block type="submit">Create account</button>
+          <button class="btn" data-variant="primary" data-block type="submit">Sign up</button>
         </form>
       </div>
     </div>
@@ -288,7 +292,7 @@
 </script>
 
 <h3 id="authentication">Accessible authentication</h3>
-<p>Signing in must not depend on remembering, transcribing or solving something (WCAG 3.3.8). In practice: let the browser and the password manager fill the fields, allow paste everywhere (one-time codes too), keep the show / hide toggle, and offer a second way in that needs no recall. No CAPTCHA puzzles; if you must prove a person is present, use a method that does not test cognition.</p>
+<p>Signing in must not depend on remembering, transcribing or solving something (WCAG 3.3.8). In practice: let the browser and the password manager fill the fields, allow paste everywhere (one-time codes too), keep the show / hide toggle, and offer a second way in that needs no recall: a sign-in link sent by email. No CAPTCHA puzzles; if you must prove a person is present, use a method that does not test cognition.</p>
 <div class="demo">
   <div class="demo__stage">
     <form class="stack" novalidate>
@@ -309,7 +313,7 @@
         </div>
       </div>
       <button class="btn" data-variant="primary" data-block type="submit">Sign in</button>
-      <button class="btn" data-block type="button"><span class="ic ic--mail" aria-hidden="true"></span>Email me a sign-in link</button>
+      <button class="btn" data-block type="button"><span class="btn__label"><span class="ic ic--mail" aria-hidden="true"></span>Email me a link</span></button>
     </form>
   </div>
 </div>
@@ -337,7 +341,7 @@
   <li><strong>Hint</strong> (<code>.field__hint</code>): secondary text, 7:1. Listed in <code>aria-describedby</code>.</li>
   <li><strong>Control</strong>: <a href="@/components/input.html">input</a>, <a href="@/components/select.html">select</a>, <a href="@/components/choice.html">choice</a>, <a href="@/components/switch.html">switch</a>, <a href="@/components/slider.html">slider</a> or <a href="@/components/stepper.html">stepper</a>.</li>
   <li><strong>Foot row</strong> (<code>.field__foot</code>): the error on the start side, the counter on the end side. It takes no room while both are hidden.</li>
-  <li><strong>Error</strong> (<code>.field__error</code>): icon + message in <code>--bad-ink</code>, shown only while the field is in error.</li>
+  <li><strong>Error</strong> (<code>.field__error</code>): icon + message in <code>--bad-ink</code>, shown only while the field is in error. The message wraps in balanced lines, so an example address written with a <code>&lt;wbr&gt;</code> after its @ and after its dot moves to the next line whole when it fits there, and splits at those points only when it must.</li>
   <li><strong>Error summary</strong> (<code>.card<wbr>.error-summary</code>, <code>data-tone="bad"</code>): at the top of the form; a bar with the heading, one 44&nbsp;px link row per problem.</li>
 </ol>
 

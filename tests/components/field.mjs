@@ -245,4 +245,35 @@ export const tests = [
       expect.equal(await page.locator('#frm-name').getAttribute('aria-invalid'), null, 'errors cleared')
     },
   },
+  {
+    name: 'an example address in an error message moves to the next line whole when it fits there, splits only after the @ or the dot when it must, and never leaves "like" on a line of its own (320 and 390 px, 100% and 200% text)',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/field.html')
+      const read = () => page.evaluate(() => ['fld-email-bad-msg', 'ctx-email-msg'].map((id) => {
+        const s = document.getElementById(id).querySelector('span:last-child')
+        const w = document.createTreeWalker(s, NodeFilter.SHOW_TEXT), lines = new Map()
+        let n
+        while ((n = w.nextNode())) for (let i = 0; i < n.length; i++) {
+          const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 1)
+          const q = r.getClientRects()[0]; if (!q) continue
+          const k = Math.round(q.top / 4); lines.set(k, (lines.get(k) || '') + n.data[i])
+        }
+        return { id, lines: [...lines.values()].map((x) => x.trim()) }
+      }))
+      for (const [w, text] of [[320, 100], [390, 100], [320, 200], [390, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await page.evaluate((t) => { document.documentElement.style.fontSize = t + '%' }, text)
+        await page.waitForTimeout(100)
+        for (const r of await read()) {
+          const where = `${w}px, ${text}%, ${r.id}: ${r.lines.join(' / ')}`
+          if (text === 100) expect.ok(r.lines.some((l) => l.endsWith('you@example.com')), `${where}: the address is whole`)
+          expect.ok(!r.lines.some((l) => l === 'like'), `${where}: no lone "like"`)
+          // a line that ends inside the address ends after its @ or its dot, never inside a word
+          const addr = r.lines.filter((l) => /you@|example|^com$/.test(l))
+          for (const l of addr.slice(0, -1)) expect.ok(/[@.]$/.test(l), `${where}: the address splits after the @ or the dot ("${l}")`)
+        }
+      }
+    },
+  },
 ]

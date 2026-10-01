@@ -41,7 +41,10 @@
    it, aligned to the start, the word still beside its switch. (A wrapping row used to drop the switch
    alone, leaving its word at the end of the first line: the pair was split.) The switch is a size
    container, so every switch in a list drops the same way, and nothing breaks into a lonely word.
-   data-layout="start" is [switch][label][word] on one row; the label wraps beside the switch.
+   data-layout="start" is [switch][label][word]: the label wraps beside the switch, and the word follows
+   the label, or, when it does not fit after it, drops UNDER THE LABEL at its start (the switch stands
+   outside the flow of words, in the row's start padding). It used to stay on the first line, at the far
+   end of a wrapped label ("Dark / mode" with "Off" off to the side), away from its switch and its label.
 
    MOTION. Travel is the thumb sliding with --fill. Under reduced motion (--move 0) the thumb
    lands at the midpoint of the colour change instead of travelling (round()), so what you see is
@@ -81,9 +84,11 @@
     }
     &[data-layout="start"] {
       display: inline-flex;
-      flex-wrap: nowrap; /* one row: the label wraps beside the switch */
+      flex-wrap: wrap; /* only the word ever wraps, to a line of its own under the label (see the header) */
       inline-size: fit-content; /* a flex or grid parent would otherwise stretch it */
       max-inline-size: 100%;
+      /* the switch's column: its 56px target less the 4px it reaches past the start edge, then the gap */
+      padding-inline-start: calc(var(--_tw) + var(--chrome-2) - var(--chrome-1) + var(--chrome-3));
     }
 
     > input {
@@ -251,17 +256,24 @@
       color: var(--ink);
     }
 
+    /* Switch first: the switch stands in the row's start padding, out of the flow of words, so the label and
+       the word wrap in a column of their own and a dropped word lands under the label, never under the switch. */
     &[data-layout="start"] {
       > input {
-        order: 1;
-        margin-inline: calc(var(--chrome-1) * -1) 0;
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: calc(var(--chrome-1) * -1); /* the track, not the hit area, meets the edge */
+        margin: 0;
       }
       .switch__label {
-        order: 2;
+        order: 1;
         flex: 0 1 auto;
       }
       .switch__state {
-        order: 3;
+        order: 2;
+        > span {
+          text-align: start; /* the word follows the label, so it lines up with the label's start when it drops */
+        }
       }
     }
 

@@ -1,4 +1,10 @@
 <!--{"title":"Stepper","group":"Components","order":32,"summary":"A quantity control: a number field between two circle buttons, with limits, long-press repeat and announcements."}-->
+<style>
+  /* docs scaffolding only. The phone mock's title is sized from the phone as well as from the text size (15cqi), so
+     its longest word fits the screen at 200% text on a 320px phone ("Reminders", "Notifications" broke inside the
+     word there). At 100% text and on a 390px phone at 200% it is the ordinary title size, or within 2px of it. */
+  .docs-article .phone .t-title { font-size: min(var(--text-xl), 15cqi); }
+</style>
 <h1>Stepper</h1>
 <p class="lede">A stepper is for a small whole number that people nudge up and down: cards per session, guests, reps. Two circle buttons change it by one; a rectangle between them holds the number and can also be typed into. The value is a real <code>&lt;input type="number"&gt;</code>, so the arrow keys, forms and validation are the browser's.</p>
 
@@ -99,7 +105,7 @@
               </div>
             </div>
             <div class="field">
-              <label class="field__label" id="ctx-days-l" for="ctx-days">Days a week</label>
+              <label class="field__label" id="ctx-days-l" for="ctx-days">Days a&nbsp;week</label>
               <div class="stepper" role="group" aria-labelledby="ctx-days-l" data-sg-stepper>
                 <button class="btn" type="button" data-shape="circle" data-sg-step="-1" aria-label="Fewer days" aria-controls="ctx-days"><span class="ic ic--minus" aria-hidden="true"></span></button>
                 <input class="input stepper__input" id="ctx-days" type="number" inputmode="numeric" min="1" max="7" step="1" value="5">
@@ -119,8 +125,8 @@
 <ol>
   <li><strong>Group</strong> (<code>.stepper</code>, <code>role="group"</code>, <code>aria-labelledby</code> the label): so the two buttons are read with the name of what they change.</li>
   <li><strong>Minus and plus</strong>: 44&nbsp;px circle <a href="@/components/button.html">buttons</a> with <code>data-sg-step</code> and a specific <code>aria-label</code>. They point at the input with <code>aria-controls</code>. They stay 44&nbsp;px at any text size.</li>
-  <li><strong>Value</strong> (<code>.input<wbr>.stepper__input</code>): an <a href="@/components/input.html">input</a> frame, centred, tabular figures, 20&nbsp;px. As wide as the longest number it can hold (the digits of <code>min</code> and <code>max</code>, at least two, counted by <code>32-stepper.js</code>) and as tall as the circles beside it (taller only when its figures need it), so the three share one height. The native spinner arrows and the mouse-wheel step are removed (they are 10&nbsp;px targets and change the number by accident).</li>
-  <li><strong>Row</strong>: [&minus;][value][+] is one row at every size; the figures grow with the text, the circles and the gaps do not.</li>
+  <li><strong>Value</strong> (<code>.input<wbr>.stepper__input</code>): an <a href="@/components/input.html">input</a> frame, centred, tabular figures, 20&nbsp;px. As wide as the longest number it can hold (the digits of <code>min</code> and <code>max</code>, at least two, counted by <code>32-stepper.js</code>) and exactly as tall as the circles beside it, so the three share one height. The figures grow with the text until they would crowd the box (28&nbsp;px, 36&nbsp;px in the large size), then stop, like the amount field's. The native spinner arrows and the mouse-wheel step are removed (they are 10&nbsp;px targets and change the number by accident).</li>
+  <li><strong>Row</strong>: [&minus;][value][+] is one row, at one height, at every size; the figures grow with the text up to the size their box holds, the circles and the gaps do not.</li>
 </ol>
 
 <h2 id="api">API</h2>
@@ -148,7 +154,7 @@
     <tr><td>Hold</td><td>After 450&nbsp;ms the step repeats and speeds up; release or leave to stop. An enhancement only; tapping always works (WCAG 2.5.1, 2.5.7).</td></tr>
     <tr><td>Screen reader</td><td>"Cards per session, group. Fewer cards, button. Cards per session, spin button, 20. More cards, button." At a limit: "More cards, button, dimmed".</td></tr>
     <tr><td>Touch</td><td>44&nbsp;px buttons and field, 8&nbsp;px apart. No gesture is needed.</td></tr>
-    <tr><td>Zoom / text size</td><td>The figures grow with the text and the box grows around them; the circles and the gaps stay their size, so the three controls keep one row, at one height, in a phone card at 200% text.</td></tr>
+    <tr><td>Zoom / text size</td><td>The figures grow with the text until they fill 64% of their box (28&nbsp;px; 36&nbsp;px large), so at 200% text they keep about 8&nbsp;px of air instead of touching the frame; the box, the circles and the gaps stay their size, so the three controls keep one row, at one height, in a phone card at 200% text.</td></tr>
     <tr><td>Reduced motion</td><td>No lift travel; the button fill still fades.</td></tr>
     <tr><td>Forced colours</td><td>Buttons and the field keep their real borders; raised and focused buttons get a 4px <code>Highlight</code> outline; limits use <code>GrayText</code>.</td></tr>
     <tr><td>No JavaScript</td><td>The buttons are hidden (<code>@media (scripting: none)</code>) and the browser's own spinner arrows return: a plain number field.</td></tr>
