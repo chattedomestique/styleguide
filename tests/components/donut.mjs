@@ -84,13 +84,17 @@ export const tests = [
       const r = await page.evaluate(() => {
         const a = SG.chart.arcs([620, 284, 152, 128, 100])
         const one = SG.chart.arcs([5])
-        return { sum: a.reduce((t, x) => t + x.share, 0), starts: a.map((x) => Math.round(x.start)), first: a[0].d.slice(0, 12), end: a[a.length - 1].end, oneD: one[0].d, oneArcs: (one[0].d.match(/A/g) || []).length }
+        return { sum: a.reduce((t, x) => t + x.share, 0), starts: a.map((x) => Math.round(x.start)), first: a[0].d.slice(0, 12), end: a[a.length - 1].end, oneD: one[0].d, oneArcs: (one[0].d.match(/A/g) || []).length, oneSub: (one[0].d.match(/M/g) || []).length, oneRadial: /L/.test(one[0].d) }
       })
       expect.ok(Math.abs(r.sum - 1) < 1e-9, 'shares sum to 1')
       expect.equal(r.starts[0], 0, 'first sector starts at 0 degrees')
       expect.equal(Math.round(r.end), 360, 'last sector ends at 360')
       expect.ok(/^M88 8A80 80 0/.test(r.first + '0'), `starts at the top of the ring: x centre, y = cy - outer (${r.first})`)
-      expect.equal(r.oneArcs, 4, 'a lone part is two halves (four arcs: outer and inner each)')
+      // Corrected: this used to assert "two halves", i.e. two sectors with a radial edge each, which drew a seam at 12 and 6 o'clock.
+      // What matters is that a lone part is ONE closed outline (the outer circle and the hole), with no radial edge to show a seam.
+      expect.equal(r.oneArcs, 4, 'a lone part is the outer and the inner circle, each as two half arcs')
+      expect.equal(r.oneSub, 2, 'two sub-paths only: the outer circle and the hole')
+      expect.ok(!r.oneRadial, 'and no radial line, so the frame has no seam')
     },
   },
   {

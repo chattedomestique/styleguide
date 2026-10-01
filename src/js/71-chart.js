@@ -84,7 +84,17 @@
       'L' + p2[0] + ' ' + p2[1] + 'A' + r1 + ' ' + r1 + ' 0 ' + large + ' 0 ' + p3[0] + ' ' + p3[1] + 'Z';
   }
 
-  /** Annular sectors for a donut. A lone 100% segment is drawn as two halves (an arc cannot close on itself). */
+  /**
+   * A complete ring: the outer circle clockwise and the inner one counter-clockwise (the fill leaves the hole), each as two
+   * half arcs because one arc cannot close on itself. No radial edge, so the 2px frame has no seam at 12 and 6 o'clock
+   * (a lone part drawn as two sectors showed a line there, as if there were two parts).
+   */
+  function ring(cx, cy, r1, r2) {
+    return 'M' + (cx - r2) + ' ' + cy + 'A' + r2 + ' ' + r2 + ' 0 1 1 ' + (cx + r2) + ' ' + cy + 'A' + r2 + ' ' + r2 + ' 0 1 1 ' + (cx - r2) + ' ' + cy + 'Z' +
+      'M' + (cx - r1) + ' ' + cy + 'A' + r1 + ' ' + r1 + ' 0 1 0 ' + (cx + r1) + ' ' + cy + 'A' + r1 + ' ' + r1 + ' 0 1 0 ' + (cx - r1) + ' ' + cy + 'Z';
+  }
+
+  /** Annular sectors for a donut. A lone 100% segment is a whole ring (see ring()). */
   function arcs(values, opts) {
     var o = opts || {};
     var cx = o.cx != null ? o.cx : 88, cy = o.cy != null ? o.cy : 88;
@@ -96,7 +106,7 @@
       var a0 = at * 360, a1 = (at + share) * 360;
       at += share;
       var d = share > 0.9999
-        ? sector(cx, cy, inner, outer, 0, 180) + sector(cx, cy, inner, outer, 180, 360)
+        ? ring(cx, cy, inner, outer)
         : sector(cx, cy, inner, outer, a0, Math.min(a1, a0 + 359.99));
       return { d: d, start: a0, end: a1, share: share };
     });

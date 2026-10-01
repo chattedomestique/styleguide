@@ -5,6 +5,9 @@
   /* the docs article styles bare lists; a legend is its own layout */
   .demo .legend { padding: 0; }
   .demo .legend__item { margin: 0; }
+  /* the marks demo: a mark is a bare box, so give it a size and a gap before its word */
+  #demo-marks .mark { display: inline-block; flex: none; inline-size: 1.25rem; block-size: 1.25rem; margin-inline-end: var(--space-2); vertical-align: -0.25em; }
+  #demo-marks .t-meta { margin: 0; }
 </style>
 <h1>Legend</h1>
 <p class="lede">A legend says which series is which. Its swatch is the series' tone <em>and</em> its pattern, and its name is words, so a chart never asks anyone to match colours by eye.</p>
@@ -70,12 +73,29 @@
 </div>
 
 <h3 id="marks">Any mark can be a key</h3>
-<p>The same swatch is available as <code>.mark</code> anywhere a chart-less thing needs to say "this colour and this pattern": a tag in a table cell, a category chip. It is a 2px-framed box with the tone fill and its pattern; size it yourself.</p>
-<div class="demo" id="demo-marks" data-layout="row">
+<p>The same swatch is available as <code>.mark</code> anywhere something other than a chart needs to say "this colour and this pattern": a category in a table row, a category tag. It is a 2px-framed box with the tone fill and its pattern; size it yourself. The word always sits next to it and names the category, so the mark is <code>aria-hidden</code>: it repeats what the word says and never replaces it.</p>
+<div class="demo" id="demo-marks">
   <div class="demo__stage">
-    <span class="mark" data-tone="2" role="img" aria-label="Food" style="inline-size: 3rem; block-size: 3rem"></span>
-    <span class="mark" data-tone="3" role="img" aria-label="Transport" style="inline-size: 3rem; block-size: 3rem"></span>
-    <span class="mark" data-tone="5" role="img" aria-label="Shopping" style="inline-size: 6rem; block-size: 1.5rem"></span>
+    <div class="stack" data-gap="4">
+      <div class="tbl">
+        <p class="tbl__title" id="tbl-marks">Spent in April</p>
+        <div class="tbl__scroll" role="region" aria-labelledby="tbl-marks" tabindex="0">
+          <table class="tbl__table" aria-labelledby="tbl-marks" style="--tbl-min: 0">
+            <thead><tr><th scope="col">Category</th><th scope="col" data-align="end">Spent</th></tr></thead>
+            <tbody>
+              <tr><th scope="row"><span class="mark" data-tone="2" aria-hidden="true"></span>Food</th><td data-align="end">$284</td></tr>
+              <tr><th scope="row"><span class="mark" data-tone="3" aria-hidden="true"></span>Transport</th><td data-align="end">$152</td></tr>
+              <tr><th scope="row"><span class="mark" data-tone="5" aria-hidden="true"></span>Shopping</th><td data-align="end">$96</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="t-meta">Tagged on a payment:</p>
+      <div class="cluster" data-gap="2">
+        <span class="tag"><span class="mark" data-tone="2" aria-hidden="true"></span>Food</span>
+        <span class="tag"><span class="mark" data-tone="3" aria-hidden="true"></span>Transport</span>
+      </div>
+    </div>
   </div>
 </div>
 
