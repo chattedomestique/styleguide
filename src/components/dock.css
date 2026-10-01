@@ -9,8 +9,8 @@
        <li><a class="dock__item" href="/" aria-current="page">
              <span class="ic ic--house" aria-hidden="true"></span><span class="dock__label">Home</span></a></li>
        <li><a class="dock__item" href="/stats">…<span class="dock__label">Stats</span></a></li>
-       <li><button class="btn dock__action" data-shape="circle" data-size="lg" data-variant="primary"
-                   type="button" aria-label="Add transaction"><span class="ic ic--plus" aria-hidden="true"></span></button></li>
+       <li><button class="btn dock__action" data-shape="circle" type="button"
+                   aria-label="Add transaction"><span class="ic ic--plus" aria-hidden="true"></span></button></li>
        <li><a class="dock__item" href="/cards">…</a></li>
      </ul>
    </nav>
@@ -26,8 +26,10 @@
    data-position  fixed (default) | static | absolute | sticky. static / absolute are for previews and
                   embedded frames; they publish no --dock-h.
 
-   THE CENTRE ACTION is an ACTION, not a destination, so it is a .btn circle (large, primary) and the
-   one member with no visible word: it needs an aria-label. One per dock.
+   THE CENTRE ACTION is an ACTION, not a destination, so it is a .btn circle, the one member with no visible
+   word (it needs an aria-label). One per dock. Use the default OUTLINED variant: the one filled shape in a
+   dock is where you are, so the action and the current destination never look like the same kind of thing.
+   The dock gives it the cells' size, so circles and pills line up.
 
    CELLS IN A FRAME, like the segmented control: the pill is the frame (2px, --line) and the items are
    cells. Cells do not lift (a hard shadow would have to leave the dock); hovering draws the cell's own
@@ -46,27 +48,31 @@
    Landscape phones and big text: on very short viewports a floating dock stops floating and flows at
    the end of the page (WCAG 1.4.10).
 
-   LARGE TEXT (WCAG 1.4.4). Every cell keeps at least its longest WORD and a 44px target; cells share the
-   width equally when there is room. When the cells cannot all fit on one row at 200% text they wrap onto a
-   second row. A pill is for ONE row: the dock's radius is half the height of a single row (cell + padding +
-   frame), not the 999px pill, so a wrapped dock is a rectangle with that corner and never an egg, and every
-   cell (itself a pill of the same row height) nests in the curve with nothing poking out. A cell keeps 4px
-   (plus its 2px edge) at its sides so a word on the bottom row stays clear of the corner; more would push
-   five destinations at 320px onto two rows. The alternative (shrinking cells below
-   their words) made neighbouring labels print over each other.
+   ONE ROW, ALWAYS. Two rows of destinations read as a grid of buttons, not as the app's main places, so
+   the dock never wraps (src/js/41-dock.js). It shows the richest presentation that fits one row and
+   re-checks when its width or the reader's text size changes (data-fit, set by the script):
+     labels    every destination: icon over its word (the default)
+     compact   the current destination: icon and word in a pill; the others: the icon in a circle
+     icons     every destination: the icon in a circle; the current one is the filled circle
+   The words stay in the DOM in every presentation (they are the accessible names), so a screen reader
+   hears the same at every size (WCAG 1.4.4: the words are hidden only where a row cannot hold them, as the
+   iOS and Android tab bars do at their largest text sizes). Cells and the centre action share ONE size,
+   --chrome-ctl-lg (56px), which does not grow with the text, nor do the icons (--chrome-ic): at 200% text
+   five 112px circles cannot fit a phone. In the icons presentation the circles may shrink to the 44px
+   target when even that is too wide. Without JS the dock keeps its words and wraps instead.
    RIGHT-TO-LEFT: arrows (.ic--arrow-left|right) inside a dock mirror.
 
-   Private properties (--_*): --_bg --_ink --_cur-bg --_cur-ink --_gap --_pad --_item-h
+   Private properties (--_*): --_bg --_ink --_cur-bg --_cur-ink --_gap --_pad --_item-h (the one cell size)
    ========================================================================== */
 
 @layer sg.components {
   /* No-JS estimate of --dock-h: item + padding + borders + (floating) the gap under the dock.
      Docks that do not float (data-position) or live in a preview frame publish none. */
   :root:has(.dock:not([data-position], [hidden], [data-chrome-scope] *)) {
-    --dock-h: calc(var(--ctl-lg) + 2 * var(--space-2) + 2 * var(--bw) + var(--space-3));
+    --dock-h: calc(var(--chrome-ctl-lg) + 2 * var(--chrome-2) + 2 * var(--bw) + var(--chrome-3));
   }
   :root:has(.dock[data-variant="bar"]:not([data-position], [hidden], [data-chrome-scope] *)) {
-    --dock-h: calc(var(--ctl-lg) + 2 * var(--space-2) + var(--bw));
+    --dock-h: calc(var(--chrome-ctl-lg) + 2 * var(--chrome-2) + var(--bw));
   }
 
   .dock {
@@ -74,13 +80,14 @@
     --_ink: var(--tone-ink, var(--ink));
     --_cur-bg: var(--tone-fill, var(--accent));
     --_cur-ink: var(--tone-on-fill, var(--on-accent));
-    --_gap: var(--space-3);
-    --_pad: var(--space-1);
-    --_item-h: var(--ctl-lg);
+    --_gap: var(--chrome-3);
+    --_pad: var(--chrome-1);
+    --_item-h: var(--chrome-ctl-lg); /* every cell and the centre action: one size, which text does not grow */
     --focus: var(--_ink); /* the ring follows the surface */
 
     position: fixed;
-    inset-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+    /* the gap to the screen edge is chrome: the page gutter at normal text, never more than 16px when the text grows */
+    inset-inline: max(min(var(--gutter), var(--chrome-4)), var(--safe-left)) max(min(var(--gutter), var(--chrome-4)), var(--safe-right));
     inset-block-end: calc(var(--safe-bottom) + var(--_gap));
     z-index: var(--z-dock);
     max-inline-size: 28rem;
@@ -145,18 +152,24 @@
     --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--_bg);
   }
 
-  /* buttons (the centre action) take the dock's colours: frame and ring in its ink, fill in its current colour */
+  /* buttons (the centre action) take the dock's colours: frame and ring in its ink, fill in its current colour,
+     and the dock's one cell size, so the action circle and the current pill are the same height */
   .dock .btn {
     --_rest-bg: var(--_bg);
     --_rest-ink: var(--_ink);
     --_on-bg: var(--_cur-bg);
     --_on-ink: var(--_cur-ink);
     --line: var(--_ink);
+    --_h: var(--_item-h);
+
+    & > .ic {
+      --ic-size: var(--chrome-ic);
+    }
   }
 
   .dock__list {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* only without JS: the script picks a presentation that fits one row (below) */
     align-items: center;
     justify-content: space-between;
     gap: var(--space-1);
@@ -173,6 +186,9 @@
       min-inline-size: min-content;
     }
   }
+  .dock[data-fit] .dock__list {
+    flex-wrap: nowrap;
+  }
 
   /* ---- Destination ------------------------------------------------------------------------- */
   .dock__item {
@@ -185,7 +201,7 @@
     justify-content: center;
     gap: var(--space-1);
     inline-size: 100%;
-    min-inline-size: var(--hit);
+    min-inline-size: var(--chrome-hit);
     min-block-size: var(--_item-h);
     margin: 0;
     padding: var(--space-1);
@@ -206,7 +222,7 @@
     transition: --fill var(--dur-hover) var(--ease-out);
 
     & > .ic {
-      --ic-size: 1.5rem;
+      --ic-size: var(--chrome-ic);
     }
 
     /* the fill: the current colour fading in with --fill (opacity on a decoration layer, never on text) */
@@ -289,32 +305,69 @@
     flex: none;
   }
 
-  /* ---- Compact: inactive words become visually hidden, names are kept ---------------------------- */
-  .dock[data-compact] {
-    /* Visually hidden, still the item's accessible name. Not the usual 1px nowrap box: that leaves the
-       word laid out to the right of where its centred label would start, so the last item's "Profile"
-       ran out past the dock, the preview stage and the phone frame (text cut by the frame at 320px and
-       at 200% text). Here the label is the item's own box, the word wraps inside it, and clip-path
-       paints none of it; nothing is laid out beyond the item. */
-    & .dock__item:not([aria-current="page"]) .dock__label {
-      position: absolute;
-      inset: 0;
-      max-inline-size: none;
-      margin: 0;
-      padding: 0;
-      clip-path: inset(50%);
-      overflow-wrap: anywhere;
-    }
+  /* ---- Words hidden where the row cannot hold them; names are kept ---------------------------------
+     Visually hidden, still the item's accessible name. Not the usual 1px nowrap box: that leaves the word
+     laid out to the right of where its centred label would start, so the last item's word ran out past the
+     dock and the frame. Here the label is the item's own box and clip-path paints none of it. */
+  :is(.dock[data-fit="compact"], .dock[data-compact]:not([data-fit])) .dock__item:not([aria-current="page"]) .dock__label,
+  .dock[data-fit="icons"] .dock__item .dock__label {
+    position: absolute;
+    inset: 0;
+    max-inline-size: none;
+    margin: 0;
+    padding: 0;
+    clip-path: inset(50%);
+    overflow-wrap: anywhere;
+  }
+
+  /* An icon on its own is a circle of the dock's one cell size: equal circles, evenly spaced. */
+  :is(.dock[data-fit="compact"], .dock[data-compact]:not([data-fit])) .dock__item:not([aria-current="page"]),
+  .dock[data-fit="icons"] .dock__item {
+    inline-size: var(--_item-h);
+    block-size: var(--_item-h);
+    min-block-size: 0;
+    padding: 0;
+  }
+
+  /* compact: the current destination is a pill of the same height, icon and word side by side */
+  :is(.dock[data-fit="compact"], .dock[data-compact]:not([data-fit])) {
     & .dock__item[aria-current="page"] {
       flex-direction: row;
-      gap: var(--space-2);
-      padding-inline: var(--space-3);
+      gap: var(--chrome-2);
+      block-size: var(--_item-h);
+      min-block-size: 0;
+      padding-inline: var(--chrome-4) var(--chrome-5);
       white-space: nowrap;
     }
     & .dock__item[aria-current="page"] .dock__label {
       animation: dock-label-in var(--dur-enter) var(--ease-out);
     }
+    /* the current item takes the room its word needs; the others share what is left */
+    & .dock__list > li:has(> [aria-current="page"]) {
+      flex: 0 0 auto;
+    }
   }
+
+  /* icons: when even equal 56px circles do not fit (five at 320px, or 200% text in a narrow frame) they
+     shrink together, never below the 44px target */
+  .dock[data-fit="icons"] {
+    /* no fixed gap: each circle sits centred in an equal share, so the spacing stays even and five 44px circles
+       still fit a 320px phone at 200% text */
+    & .dock__list {
+      gap: 0;
+    }
+    & .dock__list > li {
+      min-inline-size: var(--chrome-hit);
+    }
+    & :is(.dock__item, .dock__action) {
+      inline-size: min(100%, var(--_item-h));
+      min-inline-size: var(--chrome-hit);
+      block-size: auto;
+      min-block-size: 0;
+      aspect-ratio: 1;
+    }
+  }
+
   @keyframes dock-label-in {
     from {
       opacity: 0;
@@ -327,14 +380,8 @@
       transform: translateX(calc(var(--space-2) * var(--move)));
     }
   }
-  .dock[data-compact] .dock__item[aria-current="page"] .dock__label:dir(rtl) {
+  :is(.dock[data-fit="compact"], .dock[data-compact]:not([data-fit])) .dock__item[aria-current="page"] .dock__label:dir(rtl) {
     animation-name: dock-label-in-rtl;
-  }
-  @supports selector(:has(a)) {
-    /* the current item takes the room its word needs; the others share what is left */
-    .dock[data-compact] .dock__list > li:has(> [aria-current="page"]) {
-      flex: 0 0 auto;
-    }
   }
 
   /* ---- Right-to-left: arrows point the other way ---------------------------------------------- */

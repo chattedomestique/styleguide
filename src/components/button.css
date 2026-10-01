@@ -18,14 +18,14 @@
    data-shape     pill (default) | circle (square box, one icon, aria-label required)
    data-block     full width
 
-   WRAPPING. A label wraps at word boundaries (overflow-wrap: break-word) and never breaks inside a word
-   unless the word alone is wider than the row. The button is never wider than its row (max-inline-size),
-   so a flex row of buttons wraps the BUTTON to its own line before it squeezes a label. In a narrow
-   container (under 12rem: a phone at 200% text, a docs stage) the side padding drops to --space-3 so the
-   words keep the room, and a word that still does not fit is broken rather than spilling out of the pill.
-   The pill radius is HALF THE NOMINAL HEIGHT, not 999px: a label that wraps to two or three lines makes a
-   rounded rectangle, not an oval (rectangles hold, circles act). A circle (data-shape) is a square box,
-   so it keeps the full pill radius.
+   LARGE TEXT. The label grows with the reader's text size; the chrome does not grow past its 100% size
+   (--chrome-* tokens: side padding and the icon gap), so at 200% text the words keep the room. When an icon
+   and its label still cannot share a line, the icon moves ABOVE the label, both centred (flex-wrap), instead
+   of being pushed to one edge with the words squeezed beside it. A label wraps at word boundaries
+   (overflow-wrap: break-word) and a word breaks only if it alone is wider than the row. The button is never
+   wider than its row (max-inline-size), so a row of buttons moves a BUTTON to the next line before it
+   squeezes a label. The radius is HALF THE NOMINAL HEIGHT, not 999px: a button that grows taller is a
+   rounded rectangle, not an oval (rectangles hold, circles act). A circle is a square box at every size.
 
    STATES come from ARIA and native attributes, never classes:
      :disabled / aria-disabled="true"   dashed frame, faint ink, no shadow, no hover
@@ -55,7 +55,7 @@
     --_on-bg: var(--accent);
     --_on-ink: var(--on-accent);
     --_h: var(--ctl);
-    --_px: var(--space-5);
+    --_px: var(--chrome-5);
     --_r: min(var(--radius-pill), calc(var(--_h) / 2));
     /* A FILLED button that is raised would fuse with its own hard shadow (an ink fill beside an ink shadow
        is one lump). So the lift opens a gap in the colour of the surface: a ring that grows with
@@ -70,15 +70,17 @@
 
     position: relative;
     display: inline-flex;
+    flex-wrap: wrap; /* an icon that cannot share a line with its label goes above it, centred */
     align-items: center;
+    align-content: center;
     justify-content: center;
-    gap: var(--space-2);
+    gap: var(--chrome-1) var(--chrome-2);
     min-block-size: var(--_h);
     min-inline-size: var(--hit);
     max-inline-size: 100%; /* clamps the flex min-content too: the row wraps the button, the button never overflows it */
     /* vertical padding only matters once a label wraps past two lines (one or two fit inside --_h):
        the lines then keep clear of the frame and of the rounded ends */
-    padding: var(--space-1) var(--_px);
+    padding: var(--chrome-2) var(--_px);
     margin: 0;
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
     background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
@@ -188,12 +190,12 @@
     /* ---- sizes ---- */
     &[data-size="sm"] {
       --_h: var(--ctl-sm);
-      --_px: var(--space-4);
+      --_px: var(--chrome-4);
       font-size: var(--text-sm);
     }
     &[data-size="lg"] {
       --_h: var(--ctl-lg);
-      --_px: var(--space-6);
+      --_px: var(--chrome-6);
       font-size: var(--text-lg);
     }
     &[data-block] {
@@ -205,21 +207,8 @@
     &[data-shape="circle"] {
       --_r: var(--radius-pill);
       inline-size: var(--_h);
+      min-inline-size: var(--_h); /* a small (36px) circle is round: its 44px target is the ::after, not its width */
       padding: 0;
-    }
-
-    /* A narrow row (a docs stage, a phone at 200% text): keep the words' room, not the padding's. And since a word
-       can now be wider than the row itself, the last resort is to break it: text that spills out of the pill is
-       clipped by whatever frames it, which is worse than a broken word. (Words still wrap at spaces first; this
-       only changes what a single over-long word does, and a button that is alone on its line is never squeezed.) */
-    @container (max-width: 12rem) {
-      padding-inline: min(var(--_px), var(--space-3));
-      overflow-wrap: anywhere;
-    }
-    /* Narrower still (under 6rem: 320 px wide at 200% text), an icon and a label cannot share a line: the label drops
-       under the icon and keeps the whole row, instead of being squeezed to a few letters beside it. */
-    @container (max-width: 6rem) {
-      flex-wrap: wrap;
     }
   }
 

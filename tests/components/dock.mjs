@@ -50,19 +50,55 @@ export const tests = [
     },
   },
   {
-    name: 'Ink dock: the dock and the current pill swap (paper pill on ink), and the centre action is a paper circle',
+    name: 'Ink dock: the current pill is the one filled shape (paper on ink); the centre action is an outlined circle of the same height',
     async run({ page, goto, expect }) {
       await goto('components/dock.html')
       await page.mouse.move(0, 0)
       const r = await page.evaluate(() => {
         const d = document.querySelector('nav.dock[data-tone="ink"]')
         const cur = d.querySelector('[aria-current="page"]'); const act = d.querySelector('.dock__action')
-        return { dock: getComputedStyle(d).backgroundColor, dockInk: getComputedStyle(d).color, cur: getComputedStyle(cur, '::before').backgroundColor, curInk: getComputedStyle(cur).color, act: getComputedStyle(act).backgroundColor, actInk: getComputedStyle(act).color }
+        const ca = getComputedStyle(act)
+        return { dock: getComputedStyle(d).backgroundColor, dockInk: getComputedStyle(d).color, cur: getComputedStyle(cur, '::before').backgroundColor, curInk: getComputedStyle(cur).color, act: ca.backgroundColor, actInk: ca.color, actLine: ca.borderTopColor, curH: Math.round(cur.getBoundingClientRect().height), actH: Math.round(act.getBoundingClientRect().height), actW: Math.round(act.getBoundingClientRect().width) }
       })
       expect.equal(await hex(page, r.cur), await hex(page, r.dockInk), 'the current pill is the dock\'s text colour')
       expect.equal(await hex(page, r.curInk), await hex(page, r.dock), 'with the dock\'s fill as its text')
-      expect.equal(await hex(page, r.act), await hex(page, r.dockInk), 'the centre action is filled with the dock\'s text colour')
-      expect.equal(await hex(page, r.actInk), await hex(page, r.dock), 'and its plus is the dock\'s fill')
+      expect.equal(await hex(page, r.act), await hex(page, r.dock), 'the centre action is NOT filled at rest: the one filled shape is where you are')
+      expect.equal(await hex(page, r.actLine), await hex(page, r.dockInk), 'it is outlined in the dock\'s ink')
+      expect.equal(await hex(page, r.actInk), await hex(page, r.dockInk), 'and its plus is the dock\'s ink')
+      expect.equal(r.actH, r.curH, 'the action circle and the current pill are the same height')
+      expect.equal(r.actW, r.actH, 'the action is a circle')
+    },
+  },
+  {
+    name: 'One row at every size: words, then only the current word, then icons; names never change, cells and the action stay one size',
+    async run({ page, goto, expect }) {
+      const check = async (label) => {
+        return page.evaluate((label) => [...document.querySelectorAll('nav.dock')].filter((d) => d.getBoundingClientRect().width).map((d) => {
+          const cells = [...d.querySelectorAll('.dock__item, .dock__action')]
+          const tops = new Set(cells.map((c) => Math.round(c.getBoundingClientRect().top + c.getBoundingClientRect().height / 2)))
+          const list = d.querySelector('.dock__list')
+          const names = [...d.querySelectorAll('.dock__item')].map((a) => a.textContent.trim())
+          const circles = cells.filter((c) => !c.matches('[aria-current="page"]') || d.dataset.fit === 'icons').map((c) => [Math.round(c.getBoundingClientRect().width), Math.round(c.getBoundingClientRect().height)])
+          return { label, fit: d.dataset.fit, rows: tops.size, overflow: list.scrollWidth - list.clientWidth, names, circles, aria: d.getAttribute('aria-label') }
+        }), label)
+      }
+      for (const [w, text] of [[390, 100], [320, 100], [390, 200], [320, 200]]) {
+        await page.setViewportSize({ width: w, height: 844 })
+        await goto('components/dock.html')
+        if (text !== 100) await page.addStyleTag({ content: `html{font-size:${text}%!important}` })
+        await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+        await page.evaluate(() => SG.dock.fit())
+        for (const d of await check(`${w}@${text}`)) {
+          expect.equal(d.rows, 1, `${d.label} ${d.aria}: one row (fit=${d.fit})`)
+          expect.ok(d.overflow <= 1, `${d.label} ${d.aria}: nothing spills past the dock (${d.overflow}px)`)
+          expect.ok(d.names.every((n) => n.length > 0), `${d.label} ${d.aria}: every destination keeps its word as its name`)
+          if (d.fit !== 'labels') for (const [cw, ch] of d.circles) expect.ok(Math.abs(cw - ch) <= 1 && cw >= 44, `${d.label} ${d.aria}: icon cells are circles of at least 44px (${cw}x${ch})`)
+        }
+      }
+      // at a phone width and normal text, a four-item dock shows every word
+      await page.setViewportSize({ width: 390, height: 844 })
+      await goto('components/dock.html')
+      expect.equal(await page.evaluate(() => document.querySelector('nav.dock[aria-label="Main"]').dataset.fit), 'labels', 'at 390px and normal text the words are shown')
     },
   },
   {
@@ -329,7 +365,7 @@ export const tests = [
       const rowsAt = (w, withAction) => page.evaluate(([w, withAction]) => {
         const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:' + w + 'px'
         const item = (i, t) => '<li><a class="dock__item" href="#fx"><span class="ic ic--' + i + '" aria-hidden="true"></span><span class="dock__label">' + t + '</span></a></li>'
-        host.innerHTML = '<nav class="dock" data-position="static" aria-label="fx"><ul class="dock__list" role="list">' + item('house', 'Home') + item('chart-column', 'Stats') + (withAction ? '<li><button class="btn dock__action" data-shape="circle" data-size="lg" data-variant="primary" type="button" aria-label="Add"><span class="ic ic--plus" aria-hidden="true"></span></button></li>' : '') + item('wallet', 'Pots') + item('user', 'You') + '</ul></nav>'
+        host.innerHTML = '<nav class="dock" data-position="static" aria-label="fx"><ul class="dock__list" role="list">' + item('house', 'Home') + item('chart-column', 'Stats') + (withAction ? '<li><button class="btn dock__action" data-shape="circle" type="button" aria-label="Add"><span class="ic ic--plus" aria-hidden="true"></span></button></li>' : '') + item('wallet', 'Pots') + item('user', 'You') + '</ul></nav>'
         document.body.appendChild(host)
         const tops = new Set([...host.querySelectorAll('.dock__list > li')].map((l) => Math.round(l.getBoundingClientRect().top)))
         const h = host.querySelector('.dock').getBoundingClientRect().height
