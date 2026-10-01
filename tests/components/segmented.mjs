@@ -184,4 +184,64 @@ export const tests = [
       expect.equal(d.label, d.thumb, 'the label colour changes over the same time as the thumb glides (was 200ms against 520ms, so text flipped before the thumb arrived)')
     },
   },
+  {
+    name: 'A 320px phone (a 288px column): two whole labels (Bank account | Transactions) stay on ONE row, and a full pill keeps its shape',
+    viewport: { width: 320, height: 700 },
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      const r = await page.evaluate(() => {
+        const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:16px;inset-block-start:0;inline-size:288px'
+        host.innerHTML = '<fieldset class="segmented"><legend class="sr-only">Show</legend><label class="segmented__opt"><input type="radio" name="fx-a" checked><span class="segmented__label">Bank account</span></label><label class="segmented__opt"><input type="radio" name="fx-a"><span class="segmented__label">Transactions</span></label></fieldset>'
+        document.body.appendChild(host)
+        const g = host.querySelector('.segmented'); const o = [...g.querySelectorAll('.segmented__opt')].map((e) => e.getBoundingClientRect()); const t = g.getBoundingClientRect()
+        const out = { tops: o.map((x) => Math.round(x.top)), h: Math.round(t.height), R: parseFloat(getComputedStyle(g).borderTopLeftRadius), over: g.scrollWidth > g.clientWidth + 1 }
+        host.remove(); return out
+      })
+      expect.equal(new Set(r.tops).size, 1, 'Bank account | Transactions share one row: ' + JSON.stringify(r)); expect.ok(!r.over, 'nothing spills')
+      expect.ok(r.R * 2 >= r.h - 1, 'one row: a full pill: ' + JSON.stringify(r))
+    },
+  },
+  {
+    name: 'A shrink-wrapped control never wraps a label while there is room: Bank account | Transactions at 390px is two single-line cells',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      const r = await page.evaluate(() => {
+        const g = document.querySelector('input[name="seg-basic"]').closest('.segmented')
+        return { h: Math.round(g.getBoundingClientRect().height), lines: [...g.querySelectorAll('.segmented__label')].map((l) => Math.round(l.getBoundingClientRect().height)) }
+      })
+      expect.ok(r.lines.every((h) => h <= 40), 'both labels sit on one line (equal shares of the track are narrower than the longest label, which once made it wrap): ' + JSON.stringify(r))
+    },
+  },
+  {
+    name: 'Large text (200% on a 390px phone): the options give way to more rows, never to broken words, and the track is a rectangle with the one-row corner, not an oval',
+    viewport: { width: 390, height: 844 },
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      const r = await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%'
+        const host = document.createElement('div'); host.style.cssText = 'position:absolute;inset-inline-start:32px;inset-block-start:0;inline-size:326px'
+        host.innerHTML = '<fieldset class="segmented"><legend class="sr-only">Show</legend><label class="segmented__opt"><input type="radio" name="fx-b" checked><span class="segmented__label">Bank account</span></label><label class="segmented__opt"><input type="radio" name="fx-b"><span class="segmented__label">Transactions</span></label></fieldset>'
+        document.body.appendChild(host)
+        const g = host.querySelector('.segmented'); const cs = getComputedStyle(g)
+        const longest = (l) => Math.max(...l.textContent.trim().split(/\s+/).map((w) => { const p = document.createElement('span'); p.textContent = w; p.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit'; l.appendChild(p); const x = p.getBoundingClientRect().width; p.remove(); return x }))
+        const labels = [...g.querySelectorAll('.segmented__label')].map((l) => ({ word: Math.round(longest(l)), room: Math.round(l.clientWidth) }))
+        const out = { rows: new Set([...g.querySelectorAll('.segmented__opt')].map((e) => Math.round(e.getBoundingClientRect().top))).size, R: parseFloat(cs.borderTopLeftRadius), h: Math.round(g.getBoundingClientRect().height), labels, over: g.scrollWidth > g.clientWidth + 1 }
+        host.remove(); document.documentElement.style.fontSize = ''; return out
+      })
+      expect.equal(r.rows, 2, 'the two long labels cannot share a row at 200%: ' + JSON.stringify(r))
+      expect.ok(r.labels.every((l) => l.word <= l.room + 1), 'every word sits whole inside its cell: ' + JSON.stringify(r.labels))
+      expect.ok(r.R * 2 < r.h - 20, 'two rows tall, so the corner (' + r.R + 'px) is not half the height (' + r.h + 'px): a rectangle, not an oval')
+      expect.ok(!r.over, 'nothing spills sideways')
+    },
+  },
+  {
+    name: 'The size demo: small and large controls keep their own width; only the data-block control fills the stage',
+    viewport: { width: 1024, height: 800 },
+    async run({ page, goto, expect }) {
+      await goto('components/segmented.html')
+      const r = await page.evaluate(() => { const stage = document.querySelector('#sizes + p + .demo .demo__stage'); const w = (n) => Math.round(document.querySelector('input[name="' + n + '"]').closest('.segmented').getBoundingClientRect().width); return { sm: w('seg-sm'), lg: w('seg-lg'), block: w('seg-block'), stage: Math.round(stage.clientWidth) } })
+      expect.ok(r.sm < r.block / 2 && r.lg < r.block / 2, 'small and large hug their options, data-block spans the stage: ' + JSON.stringify(r))
+    },
+  },
 ]
