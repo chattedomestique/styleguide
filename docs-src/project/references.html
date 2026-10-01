@@ -1,12 +1,30 @@
 <!--{"title":"References","group":"Project","order":3,"summary":"For each reference screen and repository the owner supplied: what idea was taken, what was left behind and why, and what could not be read."}-->
 <style>
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  /* A repository's name is one long word ("chattedomestique"): on a phone at large text it is wider than the line in
+     the normal face, so the heading takes the narrower one there instead of breaking inside the name */
+  @container article (max-width: 11rem) { .docs-article h3[id^="r-"] { font-stretch: 80%; } }
 </style>
 <h1>References</h1>
 <p class="lede">Nine screens and three repositories shaped this guide. For each one this page says what idea was taken, what was left behind and why, and where the idea lives now. Nothing was copied from anyone else's work: no artwork, no copy and no code. The Flashcards app and its style sheet are the owner's own work, and the sheet is the base.</p>
 
 <h2 id="how">How they were used</h2>
 <p>Every reference was treated the same way. Measure the real thing (sizes, spacing, radii, colours sampled from pixels), list its parts and their states, compute its contrast with the WCAG formula, and then decide, idea by idea, whether the idea survives the seven rules. What survived was rebuilt from roles and the owner's vocabulary, so it looks drawn by the same hand as Card and Button.</p>
-<p>The full notes are in <code>references/screens/</code> (nine screens, plus <code>1bit-ui.md</code> and <code>ui-ux-pro-max.md</code>), <code>references/audit/</code> (including the audit of the Flashcards app) and <code>references/standards/</code>. They are working notes, not documentation.</p>
+<p>The full notes are in <code>references/<wbr>screens/</code> (nine screens, plus <code>1bit-ui.md</code> and <code>ui-ux-pro-max.md</code>), <code>references/<wbr>audit/</code> (including the audit of the Flashcards app) and <code>references/<wbr>standards/</code>. They are working notes, not documentation.</p>
 <div class="note" data-kind="warn">
   <span class="ic ic--triangle-alert" aria-hidden="true"></span>
   <div>
@@ -51,12 +69,12 @@
     <tr role="row"><td role="cell" data-label="Reference"><a href="#r-flashcards">The Flashcards app</a></td><td role="cell" data-label="Mostly gave">The role names, the motion vocabulary, the habit of commenting why</td><td role="cell" data-label="Lives in"><a href="@/foundations/motion.html">Motion</a>, <a href="@/foundations/color.html">Colour</a></td></tr>
   </tbody>
 </table></div>
-<p>The palettes name their sources in <code>src/tokens/40-palettes.css</code>: <code>mint</code> is the wallet and fintech screens, <code>periwinkle</code> the editor and habits screens, <code>sand</code> the calendar screens, <code>cream</code> the original Flashcards app, and <code>wire</code> the wireframe stage. They are palettes, not brands: the default is neutral.</p>
+<p>The palettes name their sources in <code>src/<wbr>tokens/<wbr>40-palettes.css</code>: <code>mint</code> is the wallet and fintech screens, <code>periwinkle</code> the editor and habits screens, <code>sand</code> the calendar screens, <code>cream</code> the original Flashcards app, and <code>wire</code> the wireframe stage. They are palettes, not brands: the default is neutral.</p>
 
 <h2 id="screens">The nine screens</h2>
 
 <h3 id="r-1">1 · Mint wallet</h3>
-<p class="t-meta">Two phones: a home screen (greeting, balance in an ink card, action circles, a floating dock, filter chips, a month chart) and a category sheet with a list of spending. The mockup is titled Nishar. Notes: <code>references/screens/img1-mint-fintech.md</code>.</p>
+<p class="t-meta">Two phones: a home screen (greeting, balance in an ink card, action circles, a floating dock, filter chips, a month chart) and a category sheet with a list of spending. The mockup is titled Nishar. Notes: <code>references/<wbr>screens/<wbr>img1-mint-fintech.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -88,7 +106,7 @@
 </div>
 
 <h3 id="r-2">2 · Mint colour cards</h3>
-<p class="t-meta">Three phones on a mint canvas: sending money with a keypad, a home screen of colour cards, and a transaction list. Flat fills, white outlined surfaces, one near-black ink. Notes: <code>references/screens/img2-mint-colour-cards.md</code>.</p>
+<p class="t-meta">Three phones on a mint canvas: sending money with a keypad, a home screen of colour cards, and a transaction list. Flat fills, white outlined surfaces, one near-black ink. Notes: <code>references/<wbr>screens/<wbr>img2-mint-colour-cards.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -120,7 +138,7 @@
 </div>
 
 <h3 id="r-3">3 · Window panels</h3>
-<p class="t-meta">A hard-edged, zero-radius launcher: an ink frame holding bordered panels, each with a title bar and one square control, a ticker above and a giant wordmark below. The mockup is titled MEOWIOM. Notes: <code>references/screens/img3-meowiom-panels.md</code>.</p>
+<p class="t-meta">A hard-edged, zero-radius launcher: an ink frame holding bordered panels, each with a title bar and one square control, a ticker above and a giant wordmark below. The mockup is titled MEOWIOM. Notes: <code>references/<wbr>screens/<wbr>img3-meowiom-panels.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -151,7 +169,7 @@
 </div>
 
 <h3 id="r-4">4 · Warm calendar</h3>
-<p class="t-meta">Two screens of a calendar and task app on a warm grey: Today (a huge date, a world clock, tonal task cards) and Calendar (a month switcher and full-width day cards with hour columns). Credited in the image to sajon.co. Notes: <code>references/screens/img4-calendar-warm.md</code>.</p>
+<p class="t-meta">Two screens of a calendar and task app on a warm grey: Today (a huge date, a world clock, tonal task cards) and Calendar (a month switcher and full-width day cards with hour columns). Credited in the image to sajon.co. Notes: <code>references/<wbr>screens/<wbr>img4-calendar-warm.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -183,7 +201,7 @@
 </div>
 
 <h3 id="r-5">5 · Bold calendar</h3>
-<p class="t-meta">Three screens: Today, a month list and a year grid, on a warm stone page with full-width cards each flooded with one muted colour. Credited in the image to uiux.aditya. Notes: <code>references/screens/img5-calendar-bold.md</code>.</p>
+<p class="t-meta">Three screens: Today, a month list and a year grid, on a warm stone page with full-width cards each flooded with one muted colour. Credited in the image to uiux.aditya. Notes: <code>references/<wbr>screens/<wbr>img5-calendar-bold.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -216,7 +234,7 @@
 </div>
 
 <h3 id="r-6">6 · Dark photo editor</h3>
-<p class="t-meta">Three phone screens of a greyscale photo editor where the picture is the brightest thing: a tool tray, a backdrop tool with a dial and a carousel of thumbnails, and a lighting tool with a drag handle. Notes: <code>references/screens/img6-dark-photo-editor.md</code>.</p>
+<p class="t-meta">Three phone screens of a greyscale photo editor where the picture is the brightest thing: a tool tray, a backdrop tool with a dial and a carousel of thumbnails, and a lighting tool with a drag handle. Notes: <code>references/<wbr>screens/<wbr>img6-dark-photo-editor.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -248,7 +266,7 @@
 </div>
 
 <h3 id="r-7">7 · Dark video editor</h3>
-<p class="t-meta">Three phone screens of a dark video editor with a single violet accent: a timeline with clips and a white playhead, a filter strip, a curve editor. Notes: <code>references/screens/img7-dark-video-editor.md</code>.</p>
+<p class="t-meta">Three phone screens of a dark video editor with a single violet accent: a timeline with clips and a white playhead, a filter strip, a curve editor. Notes: <code>references/<wbr>screens/<wbr>img7-dark-video-editor.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -279,7 +297,7 @@
 </div>
 
 <h3 id="r-8">8 · Editorial film app</h3>
-<p class="t-meta">A type-driven, hard-edged film photo app: a huge extended uppercase headline, a monospace data face, black caption bars under photos, a floating dock. The mockup is titled BINSOO. Notes: <code>references/screens/img8-binsoo-editorial.md</code>.</p>
+<p class="t-meta">A type-driven, hard-edged film photo app: a huge extended uppercase headline, a monospace data face, black caption bars under photos, a floating dock. The mockup is titled BINSOO. Notes: <code>references/<wbr>screens/<wbr>img8-binsoo-editorial.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -312,7 +330,7 @@
 </div>
 
 <h3 id="r-9">9 · Pastel bento</h3>
-<p class="t-meta">Two phones on a periwinkle page: a habits and productivity app in pastel blocks with a big score headline, a dock, a segmented toggle, a list row and a photo card with overlays. Notes: <code>references/screens/img9-pastel-bento.md</code>.</p>
+<p class="t-meta">Two phones on a periwinkle page: a habits and productivity app in pastel blocks with a big score headline, a dock, a segmented toggle, a list row and a photo card with overlays. Notes: <code>references/<wbr>screens/<wbr>img9-pastel-bento.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -348,8 +366,8 @@
 
 <h2 id="repos">The three repositories</h2>
 
-<h3 id="r-1bit">jcontini/1bit-ui</h3>
-<p class="t-meta">A Svelte 5 component library in a strict two-colour, one-bit look: 15 components and about 22 tokens. Notes: <code>references/screens/1bit-ui.md</code>.</p>
+<h3 id="r-1bit">jcontini/<wbr>1bit-ui</h3>
+<p class="t-meta">A Svelte 5 component library in a strict two-colour, one-bit look: 15 components and about 22 tokens. Notes: <code>references/<wbr>screens/<wbr>1bit-ui.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -381,8 +399,8 @@
   </div>
 </div>
 
-<h3 id="r-uxpro">nextlevelbuilder/ui-ux-pro-max-skill</h3>
-<p class="t-meta">A retrieval tool over CSV knowledge bases (88 styles, 192 palettes, 74 font pairings, about 170 prose rules) with a generator for design-system files. Notes: <code>references/screens/ui-ux-pro-max.md</code>.</p>
+<h3 id="r-uxpro">nextlevelbuilder/<wbr>ui-ux-pro-max-skill</h3>
+<p class="t-meta">A retrieval tool over CSV knowledge bases (88 styles, 192 palettes, 74 font pairings, about 170 prose rules) with a generator for design-system files. Notes: <code>references/<wbr>screens/<wbr>ui-ux-pro-max.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -411,8 +429,8 @@
   </div>
 </div>
 
-<h3 id="r-flashcards">chattedomestique/flashcards</h3>
-<p class="t-meta">The owner's own Flashcards app, audited as a de facto style guide before the Flashcards style sheet v0.1 arrived. The sheet is the base now, and it wins wherever the two differ. Notes: <code>references/audit/flashcards-app-audit.md</code>.</p>
+<h3 id="r-flashcards">chattedomestique/<wbr>flashcards</h3>
+<p class="t-meta">The owner's own Flashcards app, audited as a de facto style guide before the Flashcards style sheet v0.1 arrived. The sheet is the base now, and it wins wherever the two differ. Notes: <code>references/<wbr>audit/<wbr>flashcards-app-audit.md</code>.</p>
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
@@ -442,7 +460,7 @@
     </div>
   </div>
 </div>
-<p>A fourth repository of the owner's, <code>chattedomestique/glyphs</code>, was also checked. It holds a one-line README and nothing else, so nothing was taken from it.</p>
+<p>A fourth repository of the owner's, <code>chattedomestique/<wbr>glyphs</code>, was also checked. It holds a one-line README and nothing else, so nothing was taken from it.</p>
 
 <h2 id="codepen">The link that could not be read</h2>
 <div class="note" data-kind="warn">

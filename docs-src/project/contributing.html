@@ -1,7 +1,23 @@
 <!--{"title":"Contributing","group":"Project","order":4,"summary":"How to add the next example screens: the gate pipeline, the prompt to give an agent, the pull request checklist, and how to add a palette, a tone, an icon or a corner style."}-->
 <style>
   /* the agent prompt and the checklist are text to copy: wrap, never scroll sideways */
-  .prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--text-sm); }
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .prompt { white-space: pre-wrap; overflow-wrap: break-word; font-size: var(--text-sm); } /* a path breaks only when it alone is wider than the line */
 </style>
 <h1>Contributing</h1>
 <p class="lede">The guide grows one element at a time, from example screens the owner sends. This page is the whole routine: how a screen becomes an element, the words to hand an agent, what a pull request must show, and the four small extensions (a palette, a tone, an icon, a corner style) that need no new element.</p>
@@ -9,7 +25,7 @@
 <h2 id="loop">The loop</h2>
 <ol>
   <li><strong>A screen arrives.</strong> An image, or pasted HTML and CSS. A link that cannot be opened (a login wall, a 403) does not count; see <a href="@/project/references.html#codepen">References</a>.</li>
-  <li><strong>It is analysed, not copied.</strong> Measure it, list its parts, compute its contrast, and write the notes to <code>references/screens/</code>.</li>
+  <li><strong>It is analysed, not copied.</strong> Measure it, list its parts, compute its contrast, and write the notes to <code>references/<wbr>screens/</code>.</li>
   <li><strong>Each idea is sorted:</strong> already covered by an existing element (use that), worth a new element (build it), or left behind (say why). The rules in <a href="@/project/references.html#reasons">Why things were left behind</a> decide most of it.</li>
   <li><strong>A new element goes through the gates, in order.</strong> Colour before structure hides layout problems.</li>
   <li><strong>The pull request shows its evidence,</strong> and updates Status, Changelog and References.</li>
@@ -33,19 +49,20 @@
 
 <h2 id="steps">Step by step</h2>
 <ol>
-  <li><strong>Scaffold.</strong> <code>npm run new:component -- name --order 45</code> writes the CSS, the docs page and a spec stub, and refuses to overwrite anything. Orders are ranges: actions 10 to 19, forms 20 to 39, selection and navigation 40 to 59, surfaces 60 to 79, overlays and feedback 80 to 99, data 100 to 119, media and tools 120 to 139.</li>
-  <li><strong>Copy the structure of <code>src/components/button.css</code>.</strong> <code>--lift</code> and <code>--fill</code>, private <code>--_*</code> properties, variants through <code>data-*</code>, states through ARIA, <code>@layer sg.components</code>, the hit area, the focus ring, the hover gate, forced colours, reduced motion. Build on Card for containers instead of a parallel surface. If the element reads another element's private properties, as Select does Input's, the build records that in <code>dist/elements/manifest.json</code> as <code>buildsOn</code>, so say so in the file header.</li>
+  <li><strong>Scaffold.</strong> <code>npm run new:component <span data-f="nw">--</span> name <span data-f="nw">--order</span> 45</code> writes the CSS, the docs page and a spec stub, and refuses to overwrite anything. Orders are ranges: actions 10 to 19, forms 20 to 39, selection and navigation 40 to 59, surfaces 60 to 79, overlays and feedback 80 to 99, data 100 to 119, media and tools 120 to 139.</li>
+  <li><strong>Copy the structure of <code>src/<wbr>components/<wbr>button.css</code>.</strong> <code>--lift</code> and <code>--fill</code>, private <code>--_*</code> properties, variants through <code>data-*</code>, states through ARIA, <code>@layer sg.components</code>, the hit area, the focus ring, the hover gate, forced colours, reduced motion. Build on Card for containers instead of a parallel surface. If the element reads another element's private properties, as Select does Input's, the build records that in <code>dist/<wbr>elements/<wbr>manifest.json</code> as <code>buildsOn</code>, so say so in the file header.</li>
   <li><strong>Write real HTML in the docs demos.</strong> The "Markup" disclosure is read from the live demo, so the page cannot drift. Include when to use (do and don't), every variant and size, every state, an example in context, the anatomy, an API table, a keyboard and screen-reader table, and the tokens used. Copy comes from an app: decks, wallets, tasks, streaks.</li>
-  <li><strong>Add script only if HTML and CSS cannot do it.</strong> <code>src/js/NN-name.js</code> (name it after its element, and the build's manifest attaches it to that element), an IIFE on <code>window.SG</code>, event delegation on <code>data-sg-*</code> hooks, progressive enhancement, <code>SG.announce()</code> for changes that move no focus, <code>SG.motion.reduced()</code> before animating from script.</li>
-  <li><strong>Write the spec</strong> in <code>tests/components/name.mjs</code>: keyboard, ARIA flips, focus return, and the <code>--lift</code> and <code>--fill</code> states. Follow the WAI-ARIA Authoring Practices pattern exactly; <a href="@/accessibility/patterns.html">Patterns</a> lists which element follows which, and <a href="@/accessibility/testing.html#spec">Testing</a> shows how to write the spec.</li>
+  <li><strong>Add script only if HTML and CSS cannot do it.</strong> <code>src/<wbr>js/<wbr>NN-name.js</code> (name it after its element, and the build's manifest attaches it to that element), an IIFE on <code>window.SG</code>, event delegation on <code>data-sg-*</code> hooks, progressive enhancement, <code>SG.announce()</code> for changes that move no focus, <code>SG.motion.reduced()</code> before animating from script.</li>
+  <li><strong>Write the spec</strong> in <code>tests/<wbr>components/<wbr>name.mjs</code>: keyboard, ARIA flips, focus return, and the <code>--lift</code> and <code>--fill</code> states. Follow the WAI-ARIA Authoring Practices pattern exactly; <a href="@/accessibility/patterns.html">Patterns</a> lists which element follows which, and <a href="@/accessibility/testing.html#spec">Testing</a> shows how to write the spec.</li>
   <li><strong>Verify, then look.</strong>
     <pre class="t-mono prompt" tabindex="-1" aria-label="Commands to verify a new element"><code>npm run build
 npm run lint
 node tests/components.mjs name
 npm run test:a11y -- --pages components/name.html
-node tests/screenshots.mjs components/name.html --width 390 --theme dark --palette mint --corners soft</code></pre>
-    Green tests do not prove it looks right. Open the screenshots at 320, 390 and 1024 pixels, light and dark, in the <code>default</code>, <code>mint</code> and <code>wire</code> palettes, with square and soft corners (<code>--matrix</code> renders the grid, <code>--selector '#examples'</code> crops). Fix what looks wrong, not only what fails. What each command can and cannot catch is on <a href="@/accessibility/testing.html">Testing</a>.</li>
-  <li><strong>Move the status.</strong> Update the table in <a href="@/project/status.html">Status</a> and in <code>STYLE.md</code> section 6, and add a line to the <a href="@/project/changelog.html">Changelog</a> and <code>STYLE.md</code> section 8.</li>
+node tests/screenshots.mjs components/name.html --width 390 --theme dark --palette mint --corners soft
+node tests/design.mjs --pages components/name.html --crops</code></pre>
+    Green tests do not prove it looks right. Open the screenshots at 320, 390 and 1024 pixels, at 390 pixels with 200% text, light and dark, in the <code>default</code>, <code>mint</code> and <code>wire</code> palettes, with square and soft corners (<code>--matrix</code> renders the grid, <code><span data-f="nw">--selector</span> '#examples'</code> crops), and read what the design probe found. The bar is "a careful product designer would ship this screen": controls in one row at one height, no lonely item on a second row, no word broken inside, icons beside their labels. Fix what looks wrong, not only what fails. What each command can and cannot catch is on <a href="@/accessibility/testing.html">Testing</a>.</li>
+  <li><strong>Move the status.</strong> <a href="@/project/status.html">Status</a> is generated by <code>npm run status</code>. Add the element to <code>docs-src/project/<wbr>visual-review.json</code> as <code>in review</code>: only the person who reviews its screenshots sets it to <code>reviewed</code>. Edit <code>STYLE.md</code> section 6 only for Card and Button, and add a line to the <a href="@/project/changelog.html">Changelog</a> and <code>STYLE.md</code> section 8.</li>
 </ol>
 
 <h2 id="prompt">The prompt to give an agent</h2>
@@ -81,13 +98,17 @@ Rules that catch people out:
 - Never colour alone: selected, on, error and status always have a second cue. Never opacity on text.
 - Every tappable thing has a 44px hit area (the ::after pattern in button.css), 8px between targets. Every icon-only control has an aria-label. Every gesture has a click or key equivalent.
 - Native elements first. Roving tabindex, Esc and focus return as in the WAI-ARIA Authoring Practices.
-- rem for sizes, logical properties for direction, hover gated by @media (hover: hover), symbols as icon masks and never text glyphs or emoji.
+- Words grow with the reader's text, chrome does not: rem for words and for the space between blocks; the --chrome-* steps for the insets of controls and containers, for icon-only controls and their 44px targets, and for the slots that hold them. Look at it with 200% text.
+- A selection control (chip, tab, segment, toggle, dock item, tile, swatch) keeps the solid fill for selected: hover and focus only lift it, a press tints it, selected is filled plus a second cue. Actions fill on hover.
+- A bar or a row of controls never wraps raggedly: one row at every size, all one height, or the whole row switches (icons only, short form, one per line), measured with SG.fit (src/js/05-fit.js) when CSS cannot know. Never two and a lonely third.
+- Words wrap between words: overflow-wrap: break-word, never anywhere (the lint fails it). Numbers never break.
+- Logical properties for direction, hover gated by @media (hover: hover), symbols as icon masks and never text glyphs or emoji.
 - Copy in the docs comes from an app (decks, wallets, tasks, streaks), never placeholder text.
 - If a role or token is missing, add it in src/tokens with a comment and a line in tests/contrast.mjs. Do not inline a colour.
 - Never edit dist/ or docs/ by hand. Run npm run build.
 
 STEP 4. VERIFY, THEN LOOK AT IT.
-npm run build, npm run lint, npm run test:lint, node tests/components.mjs name, npm run test:a11y -- --pages components/name.html, and npm run test:contrast if you touched a colour. Then run node tests/screenshots.mjs on every page you made at 320, 390 and 1024 pixels, light and dark, in the default, mint and wire palettes, square and soft corners, and open the images. Fix what looks wrong, not only what fails. Do not silence a failing check: fix the cause, or change the rule with the reason written down.
+npm run build, npm run lint, npm run test:lint, node tests/components.mjs name, npm run test:a11y -- --pages components/name.html, and npm run test:contrast if you touched a colour. Then run node tests/screenshots.mjs on every page you made at 320, 390 and 1024 pixels and at 390 pixels with 200% text, light and dark, in the default, mint and wire palettes, square and soft corners, and open the images. Run node tests/design.mjs --pages on them and read every finding. Fix what looks wrong, not only what fails. Do not silence a failing check: fix the cause, or change the rule with the reason written down.
 When the checks are green, run npm run build one last time and commit the regenerated dist/ and docs/ with your source. CI runs npm run build:check and fails when they are stale.
 
 STEP 5. REPORT, plainly.
@@ -95,7 +116,7 @@ STEP 5. REPORT, plainly.
 - The exact commands you ran and what each printed at the end.
 - What is untested or weak. Tests run in Chromium only; say so, and say what a person still has to try on a real phone.
 - What you took from the screens and what you left behind and why. Add it to docs-src/project/references.html.
-- Status and Changelog: update docs-src/project/status.html, docs-src/project/changelog.html, and STYLE.md sections 6 and 8.
+- Status and Changelog: add each new element to docs-src/project/visual-review.json as "in review" (the Status page is generated by npm run status), and update docs-src/project/changelog.html and STYLE.md section 8.
 - Anything you needed in src/tokens, src/base, src/layout or scripts that you did not change, as a request.</code></pre>
 
 <h2 id="checklist">Pull request checklist</h2>
@@ -106,7 +127,9 @@ STEP 5. REPORT, plainly.
 - [ ] npm run test:contrast passes (required if a colour, a tone or a palette changed)
 - [ ] The spec in tests/components/ passes, and covers keyboard, ARIA flips, focus return and --lift / --fill
 - [ ] npm run test:a11y passes for each new page in all five appearances (CI runs two on a pull request, so run the rest yourself)
-- [ ] Screenshots reviewed at 320, 390 and 1024 px; light and dark; default, mint and wire; square and soft corners; high contrast
+- [ ] Screenshots reviewed at 320, 390 and 1024 px and at 390 px with 200% text; light and dark; default, mint and wire; square and soft corners; high contrast
+- [ ] At 390 px with 100% and 200% text: controls in one row at one height, no lonely item, no word broken inside, icons beside their labels
+- [ ] node tests/design.mjs findings for each page read, and each one fixed or explained
 - [ ] Squint test: it reads in data-palette="wire". Cover the logo: it could not be any product.
 - [ ] Roles only, no literals; no !important, gradients, blur or transition: all
 - [ ] Looks right in square and soft corners with no corner-specific code
@@ -118,7 +141,7 @@ STEP 5. REPORT, plainly.
 - [ ] Reduced motion: no travel, nothing instant, nothing bouncing
 - [ ] Docs page complete: when to use, variants, states, in context, anatomy, API, keyboard and screen reader, tokens; links and anchors resolve
 - [ ] References updated (what was taken, what was left behind and why), if the work came from a new screen
-- [ ] Status updated (Project page and STYLE.md section 6) and Changelog updated (Project page and STYLE.md section 8)
+- [ ] New elements added to docs-src/project/visual-review.json as "in review"; Changelog updated (Project page and STYLE.md section 8)
 - [ ] Anything not tested, and every known limit, is written in this description</code></pre>
 
 <h2 id="adding">Adding things</h2>
@@ -126,24 +149,24 @@ STEP 5. REPORT, plainly.
 
 <h3 id="add-palette">A palette</h3>
 <ol>
-  <li>In <code>src/tokens/40-palettes.css</code>, copy a block such as <code>[data-palette="mint"]</code> and rename it. It sets knobs only, never a colour: <code>--k-neutral-h</code> and <code>--k-neutral-c</code> (the grey's tint), <code>--k-canvas-l</code> and the canvas chroma, <code>--k-accent-h</code> and <code>--k-accent-c</code>, and a hue and vividness for each of the six tone slots (<code>--tone-h-1</code>, <code>--tone-c-1</code>, and so on up to 6).</li>
+  <li>In <code>src/<wbr>tokens/<wbr>40-palettes.css</code>, copy a block such as <code>[data-palette="mint"]</code> and rename it. It sets knobs only, never a colour: <code>--k-neutral-h</code> and <code>--k-neutral-c</code> (the grey's tint), <code>--k-canvas-l</code> and the canvas chroma, <code>--k-accent-h</code> and <code>--k-accent-c</code>, and a hue and vividness for each of the six tone slots (<code>--tone-h-1</code>, <code>--tone-c-1</code>, and so on up to 6).</li>
   <li>A light accent, like cream's yellow, needs dark text on it: set a dark <code>--k-on-accent-*</code> and <code>--k-accent-ink-*</code>.</li>
-  <li>Add the name to <code>PALETTES</code> in <code>tests/contrast.mjs</code> and to <code>OPTIONS.palette</code> in <code>docs-src/assets/docs.js</code>, so the appearance panel offers it. The <a href="@/foundations/color.html">Colour</a> page lists the palettes; add it there too.</li>
-  <li><code>npm run build && npm run test:contrast</code>. <a href="@/start/customize.html#palette">Customize</a> walks through a worked palette that passes the matrix. Every pair is checked in a real browser in every theme and contrast mode. Lightness gaps are fixed by the shared knobs, so a palette that only moves hue and chroma cannot break contrast; if it does, the knobs are wrong, not the test. Then screenshot a few pages with <code>--palette name</code>.</li>
+  <li>Add the name to <code>PALETTES</code> in <code>tests/<wbr>contrast.mjs</code> and to <code>OPTIONS.palette</code> in <code>docs-src/<wbr>assets/<wbr>docs.js</code>, so the appearance panel offers it. The <a href="@/foundations/color.html">Colour</a> page lists the palettes; add it there too.</li>
+  <li><code>npm run build && npm run test:contrast</code>. <a href="@/start/customize.html#palette">Customize</a> walks through a worked palette that passes the matrix. Every pair is checked in a real browser in every theme and contrast mode. Lightness gaps are fixed by the shared knobs, so a palette that only moves hue and chroma cannot break contrast; if it does, the knobs are wrong, not the test. Then screenshot a few pages with <code><span data-f="nw">--palette</span> name</code>.</li>
 </ol>
 
 <h3 id="add-tone">A tone</h3>
 <p>The six numbered slots are the API and stay six: a palette decides each slot's hue, which is the first bullet here.</p>
 <ul>
   <li><strong>A slot's hue.</strong> Set <code>--tone-h-N</code> (hue) and <code>--tone-c-N</code> (vividness, 0 is grey) inside a palette block. The pastel fill, its text and its soft text are derived, and each pair clears 7:1; the text on the solid pill clears 4.5:1.</li>
-  <li><strong>A new status tone</strong> (beyond <code>ok</code>, <code>warn</code>, <code>bad</code> and <code>info</code>). In <code>src/tokens/20-tones.css</code> add a <code>--hue-name</code> beside <code>--hue-ok</code>, add a <code>[data-tone]</code> rule for your name that sets <code>--th</code> and <code>--tc</code>, copying the four beside it, and add the selector to the <code>:is(…)</code> list that computes <code>--tone-bg</code> and <code>--tone-ink</code>. Add the name to <code>TONES</code> in <code>tests/lib/rules.mjs</code>, or the lint will call your new value a typo. <code>tests/contrast.mjs</code> reads tones from the built CSS, so run <code>npm run build</code> first and it is tested. Status always carries an icon or words as well as the colour, so <a href="@/components/tag.html">Tag</a> needs a symbol for it.</li>
+  <li><strong>A new status tone</strong> (beyond <code>ok</code>, <code>warn</code>, <code>bad</code> and <code>info</code>). In <code>src/<wbr>tokens/<wbr>20-tones.css</code> add a <code>--hue-name</code> beside <code>--hue-ok</code>, add a <code>[data-tone]</code> rule for your name that sets <code>--th</code> and <code>--tc</code>, copying the four beside it, and add the selector to the <code>:is(…)</code> list that computes <code>--tone-bg</code> and <code>--tone-ink</code>. Add the name to <code>TONES</code> in <code>tests/<wbr>lib/<wbr>rules.mjs</code>, or the lint will call your new value a typo. <code>tests/<wbr>contrast.mjs</code> reads tones from the built CSS, so run <code>npm run build</code> first and it is tested. Status always carries an icon or words as well as the colour, so <a href="@/components/tag.html">Tag</a> needs a symbol for it.</li>
   <li><strong>Tones carry rhythm, never meaning.</strong> A tone alone must not say "error".</li>
 </ul>
 <p>The roles and their maths are on <a href="@/foundations/tones.html">Tones</a>.</p>
 
 <h3 id="add-icon">An icon</h3>
 <ol>
-  <li>Drop a 24 by 24 stroke SVG in <code>src/icons/</code>. The file name is the id: <code>bell.svg</code> becomes <code>ic--bell</code>. The <code>viewBox</code> must be <code>0 0 24 24</code> (the build refuses anything else), and the drawing is stroke-only: the build re-strokes every icon at 2px with square caps, so the file's own stroke settings do not matter. Lucide icons (ISC) are welcome; keep <code>src/icons/LICENSE-lucide.txt</code> beside them.</li>
+  <li>Drop a 24 by 24 stroke SVG in <code>src/icons/</code>. The file name is the id: <code>bell.svg</code> becomes <code>ic--bell</code>. The <code>viewBox</code> must be <code>0 0 24 24</code> (the build refuses anything else), and the drawing is stroke-only: the build re-strokes every icon at 2px with square caps, so the file's own stroke settings do not matter. Lucide icons (ISC) are welcome; keep <code>src/<wbr>icons/<wbr>LICENSE-lucide.txt</code> beside them.</li>
   <li>Use it as <code>&lt;span class="ic ic--bell" aria-hidden="true"&gt;&lt;/span&gt;</code>. The build fails on any page that uses an icon class with no file behind it, which is the typo check. Size it with <code>--ic-size</code>.</li>
   <li><code>npm run build</code> writes it into <code>dist/icons.css</code>. The owner's five drawings (arrow, plus, minus, close, check) are in the main bundle; every other icon needs <code>icons.css</code>.</li>
   <li>An icon never replaces a word. A control whose only content is an icon gets an <code>aria-label</code> on the control, not on the icon. See <a href="@/foundations/icons.html">Icons</a>.</li>
@@ -151,16 +174,16 @@ STEP 5. REPORT, plainly.
 
 <h3 id="add-corners">A corner style</h3>
 <ol>
-  <li>In <code>src/tokens/30-corners.css</code> add a block such as <code>[data-corners="name"]</code> that sets the three roles and nothing else: <code>--radius-card</code>, <code>--radius-tile</code> and <code>--radius-ctl</code>. Circles and pills stay <code>--radius-pill</code>. Components must not change, and the lint refuses any radius that is not a role.</li>
-  <li>Add the value to <code>OPTIONS.corners</code> in <code>docs-src/assets/docs.js</code> so the appearance panel offers it.</li>
-  <li>Look at Card, Dock, Sheet, Field and Tabs with <code>--corners name</code>. Watch for a focus ring clipped by a large radius, and remember one shape gesture per card: round it or notch it, never both. The notch card stays square.</li>
+  <li>In <code>src/<wbr>tokens/<wbr>30-corners.css</code> add a block such as <code>[data-corners="name"]</code> that sets the three roles and nothing else: <code>--radius-card</code>, <code>--radius-tile</code> and <code>--radius-ctl</code>. Circles and pills stay <code>--radius-pill</code>. Components must not change, and the lint refuses any radius that is not a role.</li>
+  <li>Add the value to <code>OPTIONS.corners</code> in <code>docs-src/<wbr>assets/<wbr>docs.js</code> so the appearance panel offers it.</li>
+  <li>Look at Card, Dock, Sheet, Field and Tabs with <code><span data-f="nw">--corners</span> name</code>. Watch for a focus ring clipped by a large radius, and remember one shape gesture per card: round it or notch it, never both. The notch card stays square.</li>
 </ol>
 
 <h3 id="add-token">A token or a role</h3>
-<p>Declare it in <code>src/tokens/</code> with a comment saying what it is for, document it in <code>STYLE.md</code> section 2, and, if it is a colour pair, add a line for it in <code>buildPairs()</code> in <code>tests/contrast.mjs</code> (a pair read inside a tone goes in <code>TONE_PAIRS</code>). A role that is used as text or as a boundary and is not listed there is unverified. The lint's drift check fails if <code>CLAUDE.md</code>, <code>STYLE.md</code> or <code>README.md</code> name a token or class that does not exist.</p>
+<p>Declare it in <code>src/tokens/</code> with a comment saying what it is for, document it in <code>STYLE.md</code> section 2, and, if it is a colour pair, add a line for it in <code>buildPairs()</code> in <code>tests/<wbr>contrast.mjs</code> (a pair read inside a tone goes in <code>TONE_PAIRS</code>). A role that is used as text or as a boundary and is not listed there is unverified. The lint's drift check fails if <code>CLAUDE.md</code>, <code>STYLE.md</code> or <code>README.md</code> name a token or class that does not exist.</p>
 
 <h2 id="waivers">When the lint is wrong</h2>
-<p>Do not silence a failing check. Fix the cause, or change the rule with the reason written down. If a line is legitimately outside a rule, waive that one line with a reason the next reader can judge: <code>/* lint-allow rule: why */</code> on the line or the one above, or <code>lint-allow-file</code> for a whole file (<code>&lt;!-- lint-allow-file colour: why --&gt;</code> in a docs page). Every run lists the waivers it honoured, so an exception is allowed and never invisible.</p>
+<p>Do not silence a failing check. Fix the cause, or change the rule with the reason written down. If a line is legitimately outside a rule, waive that one line with a reason the next reader can judge: <code>/* <span data-f="nw">lint-allow</span> rule: why */</code> on the line or the one above, or <code>lint-allow-file</code> for a whole file (<code>&lt;!-- lint-allow-file colour: why --&gt;</code> in a docs page). Every run lists the waivers it honoured, so an exception is allowed and never invisible.</p>
 
 <h2 id="dont">Do not</h2>
 <ul>

@@ -1,27 +1,59 @@
-<!--{"title":"Space","group":"Foundations","order":13,"summary":"The 4px grid in rem, gutters and measure, 44px hit targets and the hit-area technique, and the z-index layers."}-->
+<!--{"title":"Space","group":"Foundations","order":13,"summary":"The 4px grid in rem, chrome caps (what grows with the reader's text and what stops), gutters and measure, 44px hit targets and the hit-area technique, and the z-index layers."}-->
 <style>
   /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
-  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--space-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
-  .docs-table td:first-child code { white-space: nowrap; }
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #space-table td:nth-child(5) { min-inline-size: 7rem; }
+    #space-table td:last-child { min-inline-size: 17rem; }
+    #chrome-table td:nth-child(2) { min-inline-size: 13rem; }
+    #chrome-table td:last-child { min-inline-size: 18rem; }
+  }
   .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
-  #space-table td:nth-child(5) { min-inline-size: 7rem; }
-  #space-table td:last-child { min-inline-size: 18rem; }
 
   .docs-article [data-f="bar"] { display: block; block-size: 1rem; inline-size: var(--w, 0); min-inline-size: var(--bw); background: var(--ink); }
 
-  /* the dashed box is the real hit area: the ::after the button already carries */
+  /* what grows and what stops: two lists side by side when there is room */
+  .docs-article [data-f="split"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: var(--space-4) var(--space-5); margin-block: var(--space-4); }
+  .docs-article [data-f="split"] > div { padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="split"] p { margin: 0 0 var(--space-2); max-inline-size: none; }
+  .docs-article [data-f="split"] ul { margin: 0; padding-inline-start: 1.25em; } /* the bullet's indent follows the words, in em */
+  .docs-article [data-f="split"] li { max-inline-size: none; }
+
+  /* The hit-area demo. The specimens stand apart: 16px between them, and the caption well clear of their dashed
+     target lines. The dashed box is the real hit area: the ::after the button already carries. */
+  .docs-article [data-f="hit"] { display: grid; gap: var(--space-5); }
   .docs-article [data-f="hit"] :is(.btn, .hit-area)::after { outline: var(--bw-thin) dashed var(--ink-soft); outline-offset: 0; }
-  .docs-article [data-f="mini"] { display: inline-grid; place-items: center; inline-size: 1.25rem; block-size: 1.25rem; padding: 0; border: var(--bw) solid var(--line); border-radius: var(--radius-pill); background: var(--paper); color: var(--ink); cursor: pointer; --ic-size: 0.625rem; }
   .docs-article [data-f="hit"] .cluster { align-items: center; }
   .docs-article [data-f="field"] { display: grid; gap: var(--space-4); }
   .docs-article [data-f="field"] p { margin: 0; max-inline-size: none; }
-  .docs-article [data-f="tags"] { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-  .docs-article [data-f="tags"] li { display: inline-flex; align-items: center; gap: var(--space-2); max-inline-size: none; margin: 0; padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3); border: var(--bw) solid var(--line); background: var(--paper); font: var(--type-meta); }
+  /* a 20px control is chrome: its box and its glyph stop at their 100% size, like the card's bar control */
+  .docs-article [data-f="mini"] { display: inline-grid; place-items: center; flex: none; inline-size: var(--chrome-box); block-size: var(--chrome-box); padding: 0; border: var(--bw) solid var(--line); border-radius: var(--radius-pill); background: var(--paper); color: var(--ink); cursor: pointer; --ic-size: var(--chrome-ic-xs); }
+  /* row gap: two stacked tags keep their targets apart at 200% text too (the hit area is --hit, which is rem) */
+  .docs-article [data-f="tags"] { display: flex; flex-wrap: wrap; gap: var(--space-5) var(--space-2); margin: 0; padding: 0; list-style: none; }
+  .docs-article [data-f="tags"] li { display: inline-flex; align-items: center; gap: var(--chrome-2); max-inline-size: none; margin: 0; padding: var(--chrome-1) var(--chrome-2) var(--chrome-1) var(--chrome-3); border: var(--bw) solid var(--line); background: var(--paper); font: var(--type-meta); }
   .docs-article [data-f="tags"] li + li { margin: 0; }
 </style>
 
 <h1>Space</h1>
-<p class="lede">Everything is laid out on a 4px grid, written in <code>rem</code>, so spacing grows with the reader's text size. Targets are the one thing that never shrinks: every pressable thing has a 44px hit area, however small it is drawn.</p>
+<p class="lede">Everything is laid out on a 4px grid. The space between the blocks of a layout is written in <code>rem</code>, so it grows with the reader's text size. The insets of controls and containers stop at their 100% size, so large text gets the room. Targets never shrink: every pressable thing has a 44px hit area, however small it is drawn.</p>
 
 <h2 id="scale">The spacing scale</h2>
 <p><code>--space-0</code> to <code>--space-9</code>. One step is one or two grid units; the scale is tight at the bottom, where small differences matter, and opens up at the top, where they do not. The last column is the computed size in this browser.</p>
@@ -29,12 +61,12 @@
   <caption class="sr-only">The spacing scale</caption>
   <thead><tr><th>Token</th><th>Value</th><th class="num">At 16px</th><th class="num">Now</th><th>Step</th><th>Use it for</th></tr></thead>
   <tbody>
-    <tr><td><code>--space-0</code></td><td>0</td><td class="num">0</td><td class="num" data-now="--space-0"></td><td><span data-f="bar" style="--w: 0"></span></td><td>Reset a gap (<code>gap: var(--space-0)</code>).</td></tr>
-    <tr><td><code>--space-1</code></td><td>0.25rem</td><td class="num">4px</td><td class="num" data-now="--space-1"></td><td><span data-f="bar" style="--w: var(--space-1)"></span></td><td>Tight gaps inside one part; the distance of the lifted shadow (<code>--lift</code> times this).</td></tr>
-    <tr><td><code>--space-2</code></td><td>0.5rem</td><td class="num">8px</td><td class="num" data-now="--space-2"></td><td><span data-f="bar" style="--w: var(--space-2)"></span></td><td>The gap inside a card body; <code>.cluster</code>'s default gap; the smallest gap between two targets.</td></tr>
-    <tr><td><code>--space-3</code></td><td>0.75rem</td><td class="num">12px</td><td class="num" data-now="--space-3"></td><td><span data-f="bar" style="--w: var(--space-3)"></span></td><td>Between the slots of a row: <code>.split</code>, the card bar and foot; <code>.grid</code>'s default gap.</td></tr>
-    <tr><td><code>--space-4</code></td><td>1rem</td><td class="num">16px</td><td class="num" data-now="--space-4"></td><td><span data-f="bar" style="--w: var(--space-4)"></span></td><td><code>.stack</code>'s default gap; a ghost card's padding; the start of the app's main region.</td></tr>
-    <tr><td><code>--space-5</code></td><td>1.5rem</td><td class="num">24px</td><td class="num" data-now="--space-5"></td><td><span data-f="bar" style="--w: var(--space-5)"></span></td><td>Room below the app's main region; the same size as the top of a card's padding range (1.5rem).</td></tr>
+    <tr><td><code>--space-0</code></td><td>0</td><td class="num">0</td><td class="num" data-now="--space-0"></td><td><span data-f="bar" style="--w: 0"></span></td><td>Reset a gap (<code>gap: <span data-f="nw">var(--space-0)</span></code>).</td></tr>
+    <tr><td><code>--space-1</code></td><td>0.25rem</td><td class="num">4px</td><td class="num" data-now="--space-1"></td><td><span data-f="bar" style="--w: var(--space-1)"></span></td><td>Tight gaps between two lines of one part; the distance of the lifted shadow (<code>--lift</code> times this).</td></tr>
+    <tr><td><code>--space-2</code></td><td>0.5rem</td><td class="num">8px</td><td class="num" data-now="--space-2"></td><td><span data-f="bar" style="--w: var(--space-2)"></span></td><td>The gap between the title and the text of a card; <code>.cluster</code>'s default gap; the smallest gap between two targets.</td></tr>
+    <tr><td><code>--space-3</code></td><td>0.75rem</td><td class="num">12px</td><td class="num" data-now="--space-3"></td><td><span data-f="bar" style="--w: var(--space-3)"></span></td><td>Between the parts of a row: <code>.split</code>; <code>.grid</code>'s default gap.</td></tr>
+    <tr><td><code>--space-4</code></td><td>1rem</td><td class="num">16px</td><td class="num" data-now="--space-4"></td><td><span data-f="bar" style="--w: var(--space-4)"></span></td><td><code>.stack</code>'s default gap; the start of the app's main region; between a specimen and its caption.</td></tr>
+    <tr><td><code>--space-5</code></td><td>1.5rem</td><td class="num">24px</td><td class="num" data-now="--space-5"></td><td><span data-f="bar" style="--w: var(--space-5)"></span></td><td>Room below the app's main region; between a group of controls and the text after it.</td></tr>
     <tr><td><code>--space-6</code></td><td>2rem</td><td class="num">32px</td><td class="num" data-now="--space-6"></td><td><span data-f="bar" style="--w: var(--space-6)"></span></td><td>Gaps between groups: <code>.stack</code> with <code>data-gap="6"</code>.</td></tr>
     <tr><td><code>--space-7</code></td><td>3rem</td><td class="num">48px</td><td class="num" data-now="--space-7"></td><td><span data-f="bar" style="--w: var(--space-7)"></span></td><td>Between sections: <code>data-gap="7"</code>.</td></tr>
     <tr><td><code>--space-8</code></td><td>4rem</td><td class="num">64px</td><td class="num" data-now="--space-8"></td><td><span data-f="bar" style="--w: var(--space-8)"></span></td><td>Page-level rhythm; above a section heading.</td></tr>
@@ -44,23 +76,77 @@
 <ul>
   <li><strong>Pick a step; don't compute one.</strong> If a design needs 10px, it needs 8 or 12. The rhythm is the point.</li>
   <li><strong>Steps 6 to 9 are for page rhythm.</strong> Inside a component, steps 1 to 5 do everything. The layout primitives stop at <code>data-gap="7"</code>.</li>
-  <li><strong>It is <code>rem</code>.</strong> Set text to 200% and every gap doubles with it, which is what keeps layouts from cramping (WCAG 1.4.4). Line weights are the exception: they stay in <code>px</code> on purpose (see <a href="@/foundations/shape.html">Shape</a>).</li>
+  <li><strong>Between blocks it is <code>rem</code>.</strong> The space between a title and its text, between cards and between sections grows with the reader's text size, which is what keeps large text from cramping (WCAG 1.4.4). The inset of a control or a container is chrome and stops at its 100% size: see <a href="#chrome">Chrome caps</a>. Line weights are the other exception: they stay in <code>px</code> on purpose (see <a href="@/foundations/shape.html">Shape</a>).</li>
   <li><strong>Logical properties.</strong> <code>margin-inline</code>, <code>padding-block</code>, <code>inset-inline-start</code>: the scale works unchanged in right-to-left scripts.</li>
 </ul>
 
+<h2 id="chrome">Chrome caps</h2>
+<p>Words grow with the reader's text size. The chrome around them does not grow past its 100% size. iOS and Android work the same way: Dynamic Type and Android font scale grow the words, not the icons, the padding or the tab bar. If the chrome grew with the text, 200% text on a phone would spend the width on frames: two 88px circles beside a title leave the title a few letters a line, and a button's 48px of side padding pushes its own label onto two lines.</p>
+<div data-f="split">
+  <div>
+    <p><strong>Grows with the text</strong> (<code>rem</code>)</p>
+    <ul>
+      <li>Words, and a control's height, so its label fits.</li>
+      <li>An icon that sits inside a line of words: the icon beside a button's label, a chip's check mark, the icon before a status message. It tracks its label.</li>
+      <li>The space between the blocks of a layout: <code>--space-*</code>, the gaps of <code>.stack</code> and <code>.cluster</code>, the room above a heading.</li>
+    </ul>
+  </div>
+  <div>
+    <p><strong>Stops at its 100% size</strong> (<code>--chrome-*</code>)</p>
+    <ul>
+      <li>The insets of controls and containers: their padding, and the gaps inside a control.</li>
+      <li>Icon-only controls and their 44px targets.</li>
+      <li>The slots that hold them: a row's chevron or trailing icon, a bar control, a leading picture, avatar or tile.</li>
+      <li>Badges on icons, and the frames of pictures (avatars, swatches).</li>
+      <li>The gutter of the app column.</li>
+    </ul>
+  </div>
+</div>
+<p>A cap is the smaller of the <code>rem</code> size and its size at 100% text: <code>--chrome-4</code> is <code>min(var(<span data-f="nw">--space-4</span>), 16px)</code>. At 100% text it is exactly the size it replaces, so nothing changes; it differs only when the text is larger. Browser zoom still scales everything, chrome included, because zoom scales CSS pixels. Set the text to 200% and compare the last column of the two tables: the spacing scale doubles, the caps do not.</p>
+<div class="table-wrap"><table class="docs-table" id="chrome-table">
+  <caption class="sr-only">The chrome caps: each token, its value, its size now, and what it is for</caption>
+  <thead><tr><th>Token</th><th>Value</th><th class="num">Now</th><th>Use it for</th></tr></thead>
+  <tbody>
+    <tr><td><code>--chrome-1</code></td><td><code>min(var(<span data-f="nw">--space-1</span>), 4px)</code></td><td class="num" data-now="--chrome-1"></td><td>The gap between two lines of a control's label.</td></tr>
+    <tr><td><code>--chrome-2</code></td><td><code>min(var(<span data-f="nw">--space-2</span>), 8px)</code></td><td class="num" data-now="--chrome-2"></td><td>The gap between a control's icon and its label; a control's block padding.</td></tr>
+    <tr><td><code>--chrome-3</code></td><td><code>min(var(<span data-f="nw">--space-3</span>), 12px)</code></td><td class="num" data-now="--chrome-3"></td><td>A tight inset: a docs stage on a phone, the gap between the cells of the dock.</td></tr>
+    <tr><td><code>--chrome-4</code></td><td><code>min(var(<span data-f="nw">--space-4</span>), 16px)</code></td><td class="num" data-now="--chrome-4"></td><td>A card's inset in a narrow card; a full-width button's side padding.</td></tr>
+    <tr><td><code>--chrome-5</code></td><td><code>min(var(<span data-f="nw">--space-5</span>), 24px)</code></td><td class="num" data-now="--chrome-5"></td><td>A button's side padding; a card's inset when the card is wide.</td></tr>
+    <tr><td><code>--chrome-6</code></td><td><code>min(var(<span data-f="nw">--space-6</span>), 32px)</code></td><td class="num" data-now="--chrome-6"></td><td>A large button's side padding.</td></tr>
+    <tr><td><code>--chrome-ic</code></td><td><code>min(1.5rem, 24px)</code></td><td class="num" data-now="--chrome-ic"></td><td>An icon that stands alone in a bar: a dock destination.</td></tr>
+    <tr><td><code>--chrome-ic-sm</code></td><td><code>min(1.25rem, 20px)</code></td><td class="num" data-now="--chrome-ic-sm"></td><td>The icon of an icon-only control: a circle button, a card's action.</td></tr>
+    <tr><td><code>--chrome-ic-xs</code></td><td><code>min(0.75rem, 12px)</code></td><td class="num" data-now="--chrome-ic-xs"></td><td>A glyph inside a drawn box: the card's bar control.</td></tr>
+    <tr><td><code>--chrome-box</code></td><td><code>min(1.25rem, 20px)</code></td><td class="num" data-now="--chrome-box"></td><td>A box drawn inside a 44px target: the card's bar control.</td></tr>
+    <tr><td><code>--chrome-ctl-sm</code></td><td><code>min(var(<span data-f="nw">--ctl-sm</span>), 36px)</code></td><td class="num" data-now="--chrome-ctl-sm"></td><td>A small icon-only circle (its target is still 44px).</td></tr>
+    <tr><td><code>--chrome-ctl</code></td><td><code><span data-f="nw">min(var(--ctl),</span> 44px)</code></td><td class="num" data-now="--chrome-ctl"></td><td>An icon-only circle.</td></tr>
+    <tr><td><code>--chrome-ctl-lg</code></td><td><code>min(var(<span data-f="nw">--ctl-lg</span>), 56px)</code></td><td class="num" data-now="--chrome-ctl-lg"></td><td>A large icon-only circle; a cell in a bar of icons (the dock).</td></tr>
+    <tr><td><code>--chrome-hit</code></td><td><code><span data-f="nw">min(var(--hit),</span> 44px)</code></td><td class="num" data-now="--chrome-hit"></td><td>The target of an icon-only control. A target is a size for a finger, not for text: WCAG 2.5.5 counts CSS pixels.</td></tr>
+    <tr><td><code>--gutter</code></td><td><code>clamp(min(1rem, 16px), 0.6rem + 1.6vw, min(1.75rem, 28px))</code></td><td class="num" data-now="--gutter"></td><td>The gap between cards and the side inset of the app column (<a href="#gutter">below</a>).</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li><strong>Words or chrome?</strong> Ask what the size is for. If it holds or separates words, it is <code>rem</code>. If it is a frame, an inset, a target or a picture, it is chrome.</li>
+  <li><strong>An icon beside words grows; an icon alone does not.</strong> The icon in "Add funds" is part of the line and grows with it. Beside a label that is not body size, size it in <code>em</code> (for example <code><span data-f="nw">--ic-size:</span> 1.15em</code>) so it keeps its size next to the words: a capped 20px icon beside 32px words looks like a speck. Only the padding, the gaps and the target around it stop. The icon in a circle button is the whole control, so it is chrome (<code>--chrome-ic-sm</code> in a <code>--chrome-ctl</code> circle).</li>
+  <li><strong>A cap never makes a target smaller than 44px.</strong> The caps stop growth; <code>--chrome-hit</code> is 44px at every text size.</li>
+</ul>
+
 <h3 id="gutter">Gutter and measure</h3>
-<p><code>--gutter</code> is <code>clamp(1rem, 0.6rem + 1.6vw, 1.75rem)</code>: the gap between cards, and the side padding of the app column. <code>--measure</code> is <code>62ch</code>, the widest a paragraph gets. <code>.card-grid</code> spaces cards with the gutter; <code>.card-grid--tiled</code> closes it to zero and lets neighbouring frames share one 2px line.</p>
+<p><code>--gutter</code> is the gap between cards and the side padding of the app column. It runs from 16px on a phone to 28px on a desk, and it is chrome at both ends (the formula is in the table above), so a phone at 200% text keeps its width for the words. <code>--measure</code> is <code>62ch</code>, the widest a paragraph gets. <code>.card-grid</code> spaces cards with the gutter; <code>.card-grid<span data-f="nw">--tiled</span></code> closes it to zero and lets neighbouring frames share one 2px line.</p>
 <div class="demo" data-nocode>
   <div class="demo__stage">
-    <div class="card-grid" style="--card-min: 9rem" >
-      <article class="card"><div class="card__body"><p class="card__eyebrow">Streak</p><p class="card__figure num">12</p></div></article>
-      <article class="card"><div class="card__body"><p class="card__eyebrow">Cards</p><p class="card__figure num">48</p></div></article>
-      <article class="card"><div class="card__body"><p class="card__eyebrow">Due</p><p class="card__figure num">7</p></div></article>
-    </div>
-    <div class="card-grid card-grid--tiled" style="--card-min: 9rem" >
-      <article class="card"><div class="card__body"><p class="card__eyebrow">Streak</p><p class="card__figure num">12</p></div></article>
-      <article class="card"><div class="card__body"><p class="card__eyebrow">Cards</p><p class="card__figure num">48</p></div></article>
-      <article class="card"><div class="card__body"><p class="card__eyebrow">Due</p><p class="card__figure num">7</p></div></article>
+    <div class="stack" data-gap="5">
+      <div class="card-grid" style="--card-min: 8.5rem">
+        <article class="card"><div class="card__body"><p class="card__eyebrow">Streak</p><p class="card__figure num">12</p></div></article>
+        <article class="card"><div class="card__body"><p class="card__eyebrow">Cards</p><p class="card__figure num">48</p></div></article>
+        <article class="card"><div class="card__body"><p class="card__eyebrow">Due</p><p class="card__figure num">7</p></div></article>
+        <article class="card"><div class="card__body"><p class="card__eyebrow">Known</p><p class="card__figure num">31</p></div></article>
+      </div>
+      <div class="card-grid card-grid--tiled" style="--card-min: 8.5rem">
+        <article class="card"><div class="card__body"><p class="card__eyebrow">Streak</p><p class="card__figure num">12</p></div></article>
+        <article class="card"><div class="card__body"><p class="card__eyebrow">Cards</p><p class="card__figure num">48</p></div></article>
+        <article class="card"><div class="card__body"><p class="card__eyebrow">Due</p><p class="card__figure num">7</p></div></article>
+        <article class="card"><div class="card__body"><p class="card__eyebrow">Known</p><p class="card__figure num">31</p></div></article>
+      </div>
     </div>
   </div>
 </div>
@@ -77,9 +163,10 @@
     <tr><td><code>--ic-size</code></td><td class="num">20px (1.25rem)</td><td class="num">n/a</td><td>The default icon. Icons are never the target; the control around them is.</td></tr>
   </tbody>
 </table></div>
+<p>A control with a label grows with its text, so these heights are <code>rem</code> and they are minimums. A control that holds only an icon is chrome: the same three sizes as <code>--chrome-ctl-sm</code>, <code>--chrome-ctl</code> and <code>--chrome-ctl-lg</code>, with a <code>--chrome-hit</code> target, at every text size.</p>
 <p>Targets are also spaced: <strong>at least 8px (<code>--space-2</code>) between two of them</strong>, so a thumb lands on one. That covers WCAG 2.5.8 (24px minimum) with room to spare, and meets the 44px of 2.5.5. Inline links inside a sentence are exempt; everything else is measured by <code>npm run test:a11y</code>.</p>
 
-<h3 id="hit-area">The hit-area technique</h3>
+<h3 id="hit-area">Extending a hit area</h3>
 <p>A control drawn at 36px or 20px still gets a 44px target through an invisible <code>::after</code> that grows to <code>--hit</code> when the box is smaller, and never shrinks it when the box is bigger. <code>.btn</code> carries it already. For anything else, add <code>.hit-area</code> (it sets <code>position: relative</code> and the <code>::after</code>). The dashed outlines below are the real hit areas, drawn for this page only.</p>
 <pre aria-label="The hit-area pseudo-element"><code>.hit-area { position: relative; }
 .hit-area::after {
@@ -98,7 +185,7 @@
         <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Add card"><span class="ic ic--plus" aria-hidden="true"></span></button>
       </div>
       <div data-f="field">
-        <p class="t-meta">A 20px control with <code>.hit-area</code>, 8px apart:</p>
+        <p class="t-meta">A 20px control with <code>.hit-area</code>, at the end of each tag:</p>
         <ul data-f="tags" role="list">
           <li>Shapes <button class="hit-area" data-f="mini" type="button" aria-label="Remove Shapes"><span class="ic ic--close" aria-hidden="true"></span></button></li>
           <li>Colours <button class="hit-area" data-f="mini" type="button" aria-label="Remove Colours"><span class="ic ic--close" aria-hidden="true"></span></button></li>
@@ -134,20 +221,20 @@
 <div class="dodont">
   <div class="note" data-kind="do">
     <span class="ic ic--check" aria-hidden="true"></span>
-    <div><strong>Do</strong><p>Use a step: <code>gap: var(--space-3)</code>. Use the layout primitives (<code>.stack</code>, <code>.cluster</code>, <code>data-gap</code>) before writing a margin. Give every small control a 44px hit area.</p></div>
+    <div><strong>Do</strong><p>Use a step: a <code>--space-*</code> step between blocks, a <code>--chrome-*</code> step inside a control or a frame. Use the layout primitives (<code>.stack</code>, <code>.cluster</code>, <code>data-gap</code>) before writing a margin. Give every small control a 44px hit area.</p></div>
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
-    <div><strong>Don't</strong><p>Write <code>margin: 10px</code>, use <code>px</code> for any gap, shrink a target to fit a row, or put two targets closer than 8px.</p></div>
+    <div><strong>Don't</strong><p>Write <code>margin: 10px</code>, use <code>px</code> for a gap between blocks, size an icon-only control in <code>rem</code>, shrink a target to fit a row, or put two targets closer than 8px.</p></div>
   </div>
 </div>
 
 <h2 id="tokens">Tokens used</h2>
-<p><code>--space-0</code> to <code>--space-9</code>, <code>--gutter</code>, <code>--measure</code>, <code>--hit</code>, <code>--ctl-sm</code>, <code>--ctl</code>, <code>--ctl-lg</code>, <code>--ic-size</code>, <code>--z-raised</code>, <code>--z-sticky</code>, <code>--z-dock</code>, <code>--z-overlay</code>, <code>--appbar-h</code>, <code>--dock-h</code>.</p>
+<p><code>--space-0</code> to <code>--space-9</code>, <code>--chrome-1</code> to <code>--chrome-6</code>, <code>--chrome-ic</code>, <code>--chrome-ic-sm</code>, <code>--chrome-ic-xs</code>, <code>--chrome-box</code>, <code>--chrome-ctl-sm</code>, <code>--chrome-ctl</code>, <code>--chrome-ctl-lg</code>, <code>--chrome-hit</code>, <code>--gutter</code>, <code>--measure</code>, <code>--hit</code>, <code>--ctl-sm</code>, <code>--ctl</code>, <code>--ctl-lg</code>, <code>--ic-size</code>, <code>--z-raised</code>, <code>--z-sticky</code>, <code>--z-dock</code>, <code>--z-overlay</code>, <code>--appbar-h</code>, <code>--dock-h</code>.</p>
 
 <script>
 window.addEventListener('DOMContentLoaded', function () {
-  /* Computed size of each step in this browser, so the rem scale is visible. */
+  /* Computed size of each step and each cap in this browser, so the rem scale and the caps are visible. */
   function now() {
     Array.prototype.forEach.call(document.querySelectorAll('[data-now]'), function (cell) {
       var probe = document.createElement('i');

@@ -16,13 +16,18 @@
  *   a11y         node tests/a11y.mjs --pages <every docs/components page>      (A11Y_JOBS=1 as --run does)
  *   lint         node tests/lint.mjs
  *
- * The rule for "Gates 0 to 4": an element is closed when (a) its spec in tests/components/ passes,
- * (b) the lint has no error ("Lint OK" in the lint log) and (c) its page has no accessibility-gate error in
- * any appearance and was run in all of them. Anything else is "open" and the findings are written into the row.
- * Gate 5 is always "awaiting sign-off": only the owner closes it. Card and Button are the owner's: their
- * row is copied from STYLE.md section 6 and the same evidence is only cross-checked (a finding shows under
- * Open items, it never edits the owner's record). The looks (the squint test, the screenshots) are a
- * person's, and the page says so rather than recording them.
+ * Each row has two fields that say what was checked, and nothing more:
+ *   Automated checks   "pass" when (a) its spec in tests/components/ passes, (b) the lint has no error ("Lint OK"
+ *                      in the lint log) and (c) its page has no accessibility-gate error in any appearance and was
+ *                      run in all of them. Otherwise "fail" (the findings go into the row) or "not run".
+ *   Screenshots        read from docs-src/project/visual-review.json, which a person keeps by hand after looking
+ *                      at the element's demos (390px at 100% and 200% text, and 1024px): { "<element>": { "state":
+ *                      "in review" | "changes needed" | "reviewed", "date": "YYYY-MM-DD" } }. Missing = "not reviewed".
+ *                      No script ever writes that file.
+ * Passing checks are not "done": gates 1 to 4 include looks (the squint test, the states as drawn), so the page
+ * never calls an element done on mechanical evidence alone. Gate 5 is always "awaiting sign-off": only the owner
+ * closes it. Card and Button are the owner's: their row is copied from STYLE.md section 6 and the same evidence
+ * is only cross-checked (a finding shows under Open items, it never edits the owner's record).
  *
  * Where the page goes. With --run: docs-src/project/status.html, because that is the point of the command.
  * With logs: STDOUT. Rendering from logs is also how you try a half-finished run, and that must never
@@ -45,6 +50,9 @@ import { parseArgs } from 'node:util'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PAGE = join(ROOT, 'docs-src', 'project', 'status.html')
+// Kept by hand: whether a person has reviewed each element's screenshots since its last change (see the header).
+const REVIEW = join(ROOT, 'docs-src', 'project', 'visual-review.json')
+const REVIEW_STATES = ['in review', 'changes needed', 'reviewed']
 // A path as the messages show it: from the repo root, or whole if it lies outside the repo.
 const rel = (p) => {
   const r = relative(ROOT, p).split('\\').join('/')
@@ -116,6 +124,27 @@ function readElements() {
   }
   for (const n of OWNERS) if (!els.has(n)) throw new Failure(`docs-src/components/${n}.html is missing: the owner's table needs it`)
   return els
+}
+
+/* ---- the screenshot review, kept by hand -----------------------------------------------------------
+ * name -> { state, date }. A name that is not an element, a state outside REVIEW_STATES or a date that is not
+ * YYYY-MM-DD stops the command: a typo must not quietly show as "not reviewed". */
+function readReview(els) {
+  let data
+  try {
+    data = JSON.parse(readFileSync(REVIEW, 'utf8'))
+  } catch (e) {
+    throw new Failure(`cannot read ${rel(REVIEW)}: ${e.message}`)
+  }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Failure(`${rel(REVIEW)} must be one object: { "<element>": { "state": …, "date": … } }`)
+  const out = new Map()
+  for (const [name, v] of Object.entries(data)) {
+    if (!els.has(name)) throw new Failure(`${rel(REVIEW)}: "${name}" is not an element (there is no docs-src/components/${name}.html)`)
+    if (!v || !REVIEW_STATES.includes(v.state)) throw new Failure(`${rel(REVIEW)}: ${name}: "state" must be one of ${REVIEW_STATES.map((x) => `"${x}"`).join(', ')}`)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date ?? '')) throw new Failure(`${rel(REVIEW)}: ${name}: "date" must be YYYY-MM-DD`)
+    out.set(name, { state: v.state, date: v.date })
+  }
+  return out
 }
 
 // The names of one family, in the page's order (by "order"; ties keep the alphabetical order of the file names).
@@ -202,7 +231,7 @@ function readLog(kind, file) {
 }
 
 /* ---- the page ----------------------------------------------------------------------------------------- */
-function render({ els, spec, a11y, lintOk, minAppearances, date }) {
+function render({ els, spec, a11y, lintOk, minAppearances, date, review }) {
   // What the gates found about one element, as ready-to-print HTML fragments. Empty means no finding.
   function findings(name) {
     const out = []
@@ -217,17 +246,23 @@ function render({ els, spec, a11y, lintOk, minAppearances, date }) {
     }
     return out
   }
-  // "done" needs evidence from all three gates. The lint is global (one result for the whole tree), the spec and the
-  // page are the element's own; a page counts only if it was run in every appearance, so a skipped one is not "done".
-  const closed = (name) => !findings(name).length && lintOk && spec.has(name) && (a11y.get(name)?.seen ?? 0) >= minAppearances
+  // "pass" needs evidence from all three gates. The lint is global (one result for the whole tree), the spec and the
+  // page are the element's own; a page counts only if it was run in every appearance, so a skipped one is not a pass.
+  const passes = (name) => !findings(name).length && lintOk && spec.has(name) && (a11y.get(name)?.seen ?? 0) >= minAppearances
+  // The screenshot review, as printed: "in review (2026-10-01)". Never derived from the gates.
+  const shots = (name) => {
+    const r = review.get(name)
+    return r ? `${esc(r.state)} (${esc(r.date)})` : 'not reviewed'
+  }
 
   function row(name) {
     const f = findings(name)
-    const ok = closed(name)
+    const ok = passes(name)
     const items = f.length ? f.join('<br>') : ok ? 'none' : 'not run'
     return '    <tr role="row">' +
       `<td role="cell" data-label="Element"><a href="@/components/${name}.html">${esc(els.get(name).title)}</a></td>` +
-      `<td role="cell" data-label="Gates 0 to 4">${ok ? 'done' : '<strong>open</strong>'}</td>` +
+      `<td role="cell" data-label="Automated checks">${ok ? 'pass' : f.length ? '<strong>fail</strong>' : '<strong>not run</strong>'}</td>` +
+      `<td role="cell" data-label="Screenshots">${shots(name)}</td>` +
       '<td role="cell" data-label="5 Freeze">awaiting sign-off</td>' +
       `<td role="cell" data-label="Open items">${items}</td></tr>`
   }
@@ -240,37 +275,30 @@ function render({ els, spec, a11y, lintOk, minAppearances, date }) {
   const lines = []
   const P = (s) => { lines.push(s) }
 
-  // The Project pages share this head: the same --appbar-h and h1 fixes as their siblings, and the stacked-table pattern of Start and Accessibility.
-  P(`<!--{"title":"Status","group":"Project","order":1,"summary":"Where every element stands in the six gates of the pipeline, what is still open, and how the table is kept."}-->
+  // The head: the stacked-table pattern now comes from docs.css and the build, so only the short status words are kept
+  // on one line in the wide layout.
+  P(`<!--{"title":"Status","group":"Project","order":1,"summary":"Where every element stands: what the automated checks found, whether a person has reviewed its screenshots, what is still open, and how the table is kept."}-->
 <style>
-  /* The sticky docs bar must not cover a focused link (WCAG 2.4.11). The foundation keeps focus clear of sticky chrome with
-     scroll-padding on <html> that reads --appbar-h, but the docs set --appbar-h on <body>, where <html> cannot see it. */
-  html { --appbar-h: calc(2.75rem + var(--safe-top)); }
-  /* A long title in the expanded 900 face does not fit the docs h1 size ("Contributing" is twelve letters):
-     size it to the column so it stays on one line at normal text size (at 200% text it wraps rather than clips).
-     The Project pages share one size so they read as a group. */
-  .docs-article h1 { font-size: clamp(1.5rem, calc((100vw - 2.5rem) / 10.4), 4rem); }
-  /* Docs-only: a table of words becomes stacked rows on a phone. Each cell carries its column name (data-label)
-     and the table keeps its ARIA roles, because display: block would otherwise strip the table semantics in
-     some browsers. The same pattern as the Start and Accessibility pages. */
-  @media (max-width: 40em) {
-    .docs-table[data-stack] { min-inline-size: 0; }
-    .docs-table[data-stack],
-    .docs-table[data-stack] tbody,
-    .docs-table[data-stack] tr,
-    .docs-table[data-stack] td { display: block; }
-    .docs-table[data-stack] thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: clip; white-space: nowrap; }
-    .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
-    .docs-table[data-stack] tr:last-child { border-block-end: 0; }
-    .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
-    .docs-table[data-stack] td:first-child { font-weight: 700; }
-    .docs-table[data-stack] td:first-child::before { display: none; }
-    .docs-table[data-stack] td::before { content: attr(data-label); display: block; color: var(--ink-soft); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
   }
-  @media (min-width: 40em) { .docs-table[data-stack] td[data-label="5 Freeze"] { white-space: nowrap; } }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens */
+  @media (min-width: 40em) { .docs-table[data-stack] td:is([data-label="Automated checks"], [data-label="Screenshots"], [data-label="5 Freeze"]) { white-space: nowrap; } }
 </style>
 <h1>Status</h1>
-<p class="lede">Every element moves through six gates, in order. This page records where each one stands. Card and Button are the two that have been through every gate and are waiting for sign-off; the rest were built since, and none has been signed off.</p>
+<p class="lede">Every element moves through six gates, in order. This page records what has been checked for each one, by machine and by eye, and nothing more. Card and Button are the owner's two and are waiting for sign-off; the rest were built since, and none has been signed off.</p>
 
 <h2 id="gates">The gates</h2>
 <p>The full list, with the question each gate asks, is on <a href="@/project/contributing.html#gates">Contributing</a>: 0 brief, 1 wireframe, 2 states, 3 colour, 4 motion, 5 freeze. Gate 5 is the owner's: an element is frozen when its docs are complete, its accessibility gate is green, its screenshots have been looked at, and the owner has said so.</p>
@@ -285,17 +313,23 @@ function render({ els, spec, a11y, lintOk, minAppearances, date }) {
   for (const n of OWNERS) P(`    <tr><td><a href="@/components/${n}.html">${esc(els.get(n).title)}</a></td><td>done</td><td>done</td><td>done</td><td>done</td><td>done</td><td>awaiting sign-off</td></tr>`)
   P('  </tbody>')
   P('</table></div>')
+  P(`<p>Screenshots, kept by hand (<a href="#keep">how</a>): ${OWNERS.map((n) => `${esc(els.get(n).title)} ${shots(n)}`).join('; ')}.</p>`)
   const ownerOpen = OWNERS.filter((n) => findings(n).length)
   if (ownerOpen.length) P('<p>On the last run Card or Button had a finding. It is listed under <a href="#open">Open items</a>.</p>')
   P('')
   P('<h2 id="rest">Everything built since</h2>')
-  P(`<p>Last run: ${esc(date)}, on the merged tree of every slice. <strong>Gates 0 to 4</strong> are marked <em>done</em> for an element when three things hold at once: its spec in <code>tests/components/</code> passes, <code>npm run lint</code> reports no error in its files, and its page passes <code>npm run test:a11y</code> in all five appearances. Otherwise the cell says <em>open</em> and the findings are in the Open items field. That is the mechanical part. The squint test in <code>data-palette="wire"</code>, and whether it looks right in the screenshots, are looks by a person, and this table does not record them. <strong>Gate 5</strong> is <em>awaiting sign-off</em> for every element: nobody has signed one off.</p>`)
+  P(`<p>Last run of the checks: ${esc(date)}, on the merged tree of every slice. Each row has two fields, and each says only what was checked.</p>`)
+  P(`<ul>
+  <li><strong>Automated checks</strong> reads <em>pass</em> when three things hold at once: the element's spec in <code>tests/<wbr>components/</code> passes, <code>npm run lint</code> reports no error, and its page passes <code>npm run test:a11y</code> in all five appearances. Otherwise it reads <em>fail</em>, with the findings in Open items, or <em>not run</em>. A pass proves what those checks measure: keys, states, names, contrast, targets, no text cut off and no sideways scrolling at 320px and at 200% text. It does not prove that the element looks right.</li>
+  <li><strong>Screenshots</strong> says whether a person has looked at the element's demos at 390px with 100% and with 200% text, and at 1024px, since its last change: <em>in review</em>, <em>changes needed</em> or <em>reviewed</em>, with the date. Equal heights in a row, no lonely item, no word broken inside, icons beside their labels: only a person checks those.</li>
+</ul>`)
+  P(`<p>Gates 1 to 4 include looks (the squint test in <code>data-palette="wire"</code>, the states as drawn), so an element is ready for the owner only when its checks pass <em>and</em> its screenshots are reviewed. <strong>Gate 5</strong> is <em>awaiting sign-off</em> for every element: nobody has signed one off.</p>`)
   P('')
   for (const fam of families) {
     P(`<h3 id="f-${fam.key}">${esc(fam.title)}</h3>`)
     P('<div class="table-wrap" tabindex="-1"><table class="docs-table" data-stack role="table">')
-    P(`  <caption class="sr-only">${esc(fam.title)}: gates 0 to 4, gate 5 and open items for each element</caption>`)
-    P('  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Element</th><th role="columnheader">Gates 0 to 4</th><th role="columnheader">5 Freeze</th><th role="columnheader">Open items</th></tr></thead>')
+    P(`  <caption class="sr-only">${esc(fam.title)}: automated checks, screenshot review, gate 5 and open items for each element</caption>`)
+    P('  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Element</th><th role="columnheader">Automated checks</th><th role="columnheader">Screenshots</th><th role="columnheader">5 Freeze</th><th role="columnheader">Open items</th></tr></thead>')
     P('  <tbody role="rowgroup">')
     for (const n of fam.names) P(row(n))
     P('  </tbody>')
@@ -305,21 +339,22 @@ function render({ els, spec, a11y, lintOk, minAppearances, date }) {
 
   P('<h2 id="open">Open items</h2>')
   // Card and Button first, then the families in page order.
-  const openNames = [...ownerOpen, ...families.flatMap((fam) => fam.names.filter((n) => !closed(n)))]
+  const openNames = [...ownerOpen, ...families.flatMap((fam) => fam.names.filter((n) => !passes(n)))]
   if (openNames.length) {
-    P('<p>Every item is a finding from a gate, not an opinion. When one is fixed, run the checks again and only then change the cell.</p>')
+    P('<p>Every item is a finding from an automated check, not an opinion. When one is fixed, run the checks again; the cell changes only with them.</p>')
     P('<ul>')
     for (const n of openNames) P(`  <li><a href="@/components/${n}.html">${esc(els.get(n).title)}</a>: ${findings(n).length ? findings(n).join('; ') : 'not run'}</li>`)
     P('</ul>')
   } else {
-    P("<p>Nothing is open. Every element passes its spec, the lint and the accessibility gate. That is the mechanical half of gates 0 to 4; the looks are still a person's to review.</p>")
+    P("<p>No automated check has a finding: every element passes its spec, the lint and the accessibility gate. That is the mechanical half; the Screenshots field says how far the looks have been reviewed.</p>")
   }
   P('')
   P(`<h2 id="keep">How this table is kept</h2>
 <ul>
-  <li>It is generated, so that nobody types a status. <code>npm run status</code> runs the build, the lint, the component specs and the accessibility gate, and rewrites this page from their output (about an hour for all five appearances; <code>npm run status -- --quick</code> runs two and is for looking, not for committing). Run <code>npm run build</code> afterwards so <code>docs/</code> matches; CI fails otherwise.</li>
+  <li>It is generated, so that nobody types a status. <code>npm run status</code> runs the build, the lint, the component specs and the accessibility gate, and rewrites this page from their output (about an hour for all five appearances; <code>npm run status -- <span data-f="nw">--quick</span></code> runs two and is for looking, not for committing). Run <code>npm run build</code> afterwards so <code>docs/</code> matches; CI fails otherwise.</li>
   <li><code>STYLE.md</code> section 6 keeps the owner's own two rows, Card and Button: when either moves, copy its row there in the same pull request, and add a line to the <a href="@/project/changelog.html">Changelog</a>.</li>
-  <li>To refresh only the evidence, run the three commands yourself: <code>npm run lint</code>, <code>npm run test:components</code> and <code>npm run test:a11y</code>. A cell is only ever <em>done</em> because a check passed. Gate 5 is the owner's sign-off and is never filled in by the script.</li>
+  <li>To refresh only the evidence, run the three commands yourself: <code>npm run lint</code>, <code>npm run test:components</code> and <code>npm run test:a11y</code>. <em>Automated checks</em> only ever reads <em>pass</em> because the checks passed. Gate 5 is the owner's sign-off and is never filled in by the script.</li>
+  <li><strong>Screenshots</strong> is kept by hand in <code>docs-src/project/<wbr>visual-review.json</code>, one entry per element: <code>{ "button": { "state": "reviewed", "date": "2026-10-02" } }</code>. The states are <code>in review</code> (being looked at, or changed since the last look), <code>changes needed</code> and <code>reviewed</code>. Whoever reviews the screenshots changes the entry after looking (390px at 100% and 200% text, and 1024px), sets it back to <code>in review</code> when the element changes, and regenerates this page: from the last run's logs, which <code>npm run status</code> keeps in <code>test-results/</code> (the header of <code>scripts/<wbr>status.mjs</code> shows how), so nothing has to run again. No script writes the file.</li>
   <li>Everything here was measured in Chromium. Nothing has been verified in Safari, Firefox or with a screen reader; see <a href="@/project/decisions.html#devices">Decisions</a>.</li>
 </ul>`)
 
@@ -412,6 +447,7 @@ async function main() {
   if (!/^[1-9]\d*$/.test(wanted)) throw new Failure(`appearances must be a positive whole number, not "${wanted}"`, 2)
 
   const els = readElements()
+  const review = readReview(els)
   const logs = opt.run ? await runGates({ els, quick: !!opt.quick }) : { components: opt['components-log'], a11y: opt['a11y-log'], lint: opt['lint-log'] }
   const text = Object.fromEntries(Object.entries(logs).map(([kind, file]) => [kind, readLog(kind, file)]))
   const lintOk = text.lint.includes('Lint OK')
@@ -424,6 +460,7 @@ async function main() {
     lintOk,
     minAppearances: Number(wanted),
     date: process.env.STATUS_DATE || localDate(),
+    review,
   })
 
   const out = opt.out ?? (opt.run ? PAGE : '-')
@@ -434,7 +471,8 @@ async function main() {
     // docs/ is generated from docs-src/ and committed; the CI check (npm run build:check) fails while the two disagree.
     if (resolve(out) === PAGE) console.error('status: now run npm run build, so docs/ carries the new page')
   }
-  console.error(`status: ${total} elements besides Card and Button, ${total - open} done, ${open} open`)
+  const seen = [...review.values()].filter((r) => r.state === 'reviewed').length
+  console.error(`status: ${total} elements besides Card and Button: ${total - open} pass the automated checks, ${open} do not; ${seen} of ${els.size} have reviewed screenshots`)
   if (opt.quick) console.error('status: --quick ran two appearances, but the page text says all five. Use it to look, not to commit.')
 }
 

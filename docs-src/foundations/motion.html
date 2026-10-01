@@ -1,33 +1,55 @@
-<!--{"title":"Motion","group":"Foundations","order":16,"summary":"Gate 4: four durations and three easings, --move to turn travel into a fade, and reduced motion that is gentler rather than instant."}-->
+<!--{"title":"Motion","group":"Foundations","order":16,"summary":"Gate 4: four durations and three easings, one number that turns travel into a fade, and reduced motion that is gentler rather than instant."}-->
 <style>
   /* Docs-only scaffolding for this page. Every animated value below comes from a motion token. */
-  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--space-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
-  .docs-table td:first-child code { white-space: nowrap; }
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #dur-table td:last-child { min-inline-size: 16rem; }
+    #reduced-table td:last-child { min-inline-size: 16rem; }
+    #reduced-table td:nth-child(2), #reduced-table td:nth-child(3) { min-inline-size: 10rem; }
+    #ease-table td:nth-child(2) { min-inline-size: 15rem; }
+    #ease-table td:last-child { min-inline-size: 14rem; }
+  }
   .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
-  #dur-table td:last-child { min-inline-size: 16rem; }
-  #reduced-table td:last-child { min-inline-size: 16rem; }
-  #reduced-table td:nth-child(2), #reduced-table td:nth-child(3) { min-inline-size: 11rem; }
-  #ease-table td:nth-child(2) { min-inline-size: 15rem; }
-  #ease-table td:last-child { min-inline-size: 14rem; }
 
-  .docs-article [data-f="now"] { display: grid; gap: var(--space-3); padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="now"] { display: grid; gap: var(--space-3); padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); }
   .docs-article [data-f="now"] p { margin: 0; max-inline-size: none; }
   .docs-article [data-f="now"] output { font-weight: 700; }
   .docs-article [data-f="rows"] { display: grid; gap: var(--space-4); }
   .docs-article [data-f="rows"] > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
   .docs-article [data-f="name"] { display: grid; gap: 0.125rem; justify-items: start; min-inline-size: 0; }
   .docs-article [data-f="name"] span { font: var(--type-meta); color: var(--ink-soft); }
-  .docs-article [data-f="curve"] { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: var(--space-3); align-items: center; }
+  /* the curve is a 48px picture, so its column is its own width (a 3rem column took 96px from the name at 200% text) */
+  .docs-article [data-f="curve"] { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: center; }
   .docs-article [data-f="curve"] svg { color: var(--ink); }
   .docs-article [data-f="track"] { container-type: inline-size; position: relative; display: block; block-size: 1.75rem; border: var(--bw) solid var(--line); background: var(--paper-2); }
-  .docs-article [data-f="dot"] { position: absolute; inset-block: 0.125rem; inset-inline-start: 0.125rem; inline-size: 1.25rem; border: var(--bw-thin) solid var(--line); border-radius: var(--radius-pill); background: var(--ink-mute); transition: transform var(--_d) var(--_e), background-color var(--_d) var(--_e); }
+  /* a circle at any text size: a square box centred in the track (inset-block alone made it an oval at 200% text,
+     because the track's 2px border does not grow while its height does) */
+  .docs-article [data-f="dot"] { position: absolute; inset-block: 0; margin-block: auto; inset-inline-start: 0.125rem; inline-size: 1.25rem; block-size: 1.25rem; border: var(--bw-thin) solid var(--line); border-radius: var(--radius-pill); background: var(--ink-mute); transition: transform var(--_d) var(--_e), background-color var(--_d) var(--_e); }
   .docs-article [data-played] [data-f="dot"] { transform: translateX(calc(var(--move) * (100cqw - 1.75rem))); background: var(--accent); }
   .docs-article [data-f="rows"] > [data-f="play"], .docs-article [data-f="play"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 
   .docs-article [data-f="sheet"] { position: relative; min-block-size: 17rem; overflow: clip; border: var(--bw) solid var(--line); background: var(--canvas); }
-  .docs-article [data-f="page"] { display: grid; gap: var(--space-3); padding: var(--space-4); justify-items: start; }
+  .docs-article [data-f="page"] { display: grid; gap: var(--space-3); padding: var(--chrome-4); justify-items: start; }
   .docs-article [data-f="page"] p { margin: 0; max-inline-size: none; }
-  .docs-article [data-f="panel"] { position: absolute; inset-inline: var(--space-3); inset-block-end: var(--space-3); display: grid; gap: var(--space-3); padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); visibility: hidden; opacity: 0; transform: translateY(calc(var(--move) * 2.5rem)); transition: transform var(--dur-hover) var(--ease-in), opacity var(--dur-hover) var(--ease-in), visibility 0s linear var(--dur-hover); }
+  .docs-article [data-f="panel"] { position: absolute; inset-inline: var(--chrome-3); inset-block-end: var(--chrome-3); display: grid; gap: var(--space-3); padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); visibility: hidden; opacity: 0; transform: translateY(calc(var(--move) * 2.5rem)); transition: transform var(--dur-hover) var(--ease-in), opacity var(--dur-hover) var(--ease-in), visibility 0s linear var(--dur-hover); }
   .docs-article [data-f="panel"] p { margin: 0; max-inline-size: none; }
   .docs-article [data-f="sheet"][data-open] [data-f="panel"] { visibility: visible; opacity: 1; transform: none; transition: transform var(--dur-enter) var(--ease-out), opacity var(--dur-enter) var(--ease-out), visibility 0s; }
 
@@ -194,7 +216,7 @@ transform: translateY(calc(var(--move) * 2.5rem));</code></pre>
     <tr><td><code>--move</code></td><td class="num">1</td><td class="num">0</td><td>No travel, rotation or scale that a component multiplies by it.</td></tr>
     <tr><td><code>--dur-move</code></td><td class="num">520ms</td><td class="num">200ms</td><td>The remaining fade is brief.</td></tr>
     <tr><td><code>--dur-enter</code></td><td class="num">320ms</td><td class="num">180ms</td><td>Arrivals are short fades.</td></tr>
-    <tr><td><code>--anim-spin</code></td><td><code>sg-spin 800ms linear infinite</code></td><td><code>sg-pulse 1400ms ease-in-out infinite</code></td><td>A rotating spinner becomes a slow opacity pulse.</td></tr>
+    <tr><td><code>--anim-spin</code></td><td><code><span data-f="nw">sg-spin</span> 800ms linear infinite</code></td><td><code><span data-f="nw">sg-pulse</span> 1400ms <span data-f="nw">ease-in-out</span> infinite</code></td><td>A rotating spinner becomes a slow opacity pulse.</td></tr>
   </tbody>
 </table></div>
 <p>Colour changes, fills and the appearance of a shadow are not travel, so they stay. A button still fills on hover; it just stops moving.</p>
@@ -257,7 +279,7 @@ box.animate(frames, { duration: ms, easing, fill: 'forwards' });</code></pre>
 
 <h2 id="add">Add or change a motion token</h2>
 <ol>
-  <li>Put it in <code>src/tokens/60-motion.css</code> with a comment saying what it is for.</li>
+  <li>Put it in <code>src/<wbr>tokens/<wbr>60-motion.css</code> with a comment saying what it is for.</li>
   <li>If reduced motion should change it, set it in <strong>both</strong> blocks, <code>@media (prefers-reduced-motion: reduce)</code> and <code>:root[data-motion="reduced"]</code>, identically.</li>
   <li>Use it in a component through a single <code>transition</code> that names its properties. Write the spec with <code>reducedMotion</code> and assert the travel is gone.</li>
   <li>Document it here, in the durations or easing table.</li>
@@ -279,7 +301,15 @@ window.addEventListener('DOMContentLoaded', function () {
     var attr = root.getAttribute('data-motion');
     var reduced = SG.motion.reduced();
     var why = attr === 'reduced' ? 'You chose Reduced.' : attr === 'full' ? 'You chose Full' + (mq.matches ? ', which overrides your device setting to reduce.' : '.') : mq.matches ? 'Your device asks for reduced motion.' : 'Your device has no preference.';
-    document.getElementById('now-text').textContent = (reduced ? 'Reduced. ' : 'Full. ') + why + ' --move is ' + cs.getPropertyValue('--move').trim() + ', --dur-move is ' + cs.getPropertyValue('--dur-move').trim() + ', --dur-enter is ' + cs.getPropertyValue('--dur-enter').trim() + '.';
+    /* each token is a code chip of its own, so a line never breaks after its leading hyphens */
+    var out = document.getElementById('now-text');
+    out.textContent = (reduced ? 'Reduced. ' : 'Full. ') + why + ' ';
+    ['--move', '--dur-move', '--dur-enter'].forEach(function (name, i) {
+      var tok = document.createElement('code');
+      tok.className = 'nb';
+      tok.textContent = name;
+      out.append(tok, ' is ' + cs.getPropertyValue(name).trim() + (i < 2 ? ', ' : '.'));
+    });
     var cur = SG.prefs.get('motion');
     Array.prototype.forEach.call(document.querySelectorAll('[data-motion-set]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-motion-set') === cur)); });
     Array.prototype.forEach.call(document.querySelectorAll('[data-dur]'), function (o) { o.textContent = cs.getPropertyValue(o.getAttribute('data-dur')).trim(); });

@@ -1,19 +1,65 @@
 <!--{"title":"Colour","group":"Foundations","order":10,"summary":"Knobs, roles and components: every colour pair keeps a fixed lightness gap, so contrast is decided before a hue is picked."}-->
 <style>
   /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  /* a token swatch's inset and its colour chip are chrome too (the chip is the frame of a picture) */
+  .docs-article .swatch { gap: var(--chrome-2) var(--chrome-3); padding: var(--chrome-3); }
+  .docs-article .swatch__chip { inline-size: var(--chrome-ctl); block-size: var(--chrome-ctl); }
+  .docs-article .swatch__pass { white-space: nowrap; } /* "Pass 7" is one verdict: never "Pass" at a line end and a lonely 7 below */
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
   /* Islands re-point --line at their own ink, which would make a dark island's frame vanish against a light page.
      A registered <color> resolves light-dark() where it is declared, so islands inherit the PAGE's ink. */
   @property --page-line { syntax: "<color>"; inherits: true; initial-value: transparent; }
   .docs-article { --page-line: var(--ink); }
-  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--space-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
-  .docs-table td:first-child code { white-space: nowrap; }
-  .docs-article [data-f="island"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--space-4); border: var(--bw) solid var(--page-line); }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #lines-table td:nth-child(2) code { white-space: nowrap; }
+    #pal-table td:nth-child(2), #pal-table td:nth-child(3) { min-inline-size: 11rem; }
+    #pal-table td:nth-child(4) { min-inline-size: 14.5rem; }
+  }
+  /* these tables do not stack (a table of numbers scrolls sideways on a phone), so their columns keep their widths */
+  .docs-table:not([data-stack]) td:first-child code { white-space: nowrap; }
+  #floors-table td:nth-child(2) { min-inline-size: 11rem; }
+  #floors-table td:nth-child(3) { min-inline-size: 13rem; }
+  #lightness-table td:last-child { min-inline-size: 14rem; }
+  .docs-article [data-f="island"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--chrome-4); border: var(--bw) solid var(--page-line); }
   .docs-article [data-f="island"] > p { margin: 0; max-inline-size: none; color: var(--ink-soft); }
-  .docs-article [data-f="sw"] { align-items: start; }
+  /* Swatch groups lay out evenly: four as two by two, five as three and two, three in a row, one column on a phone.
+     The shared .swatches grid fills as many 14rem columns as fit, which left a lonely fourth or fifth swatch on a
+     desk. Grouped swatches (each container has its own contrast floor) join one grid; a row shares one height. */
+  .docs-article [data-f^="sw"] > [data-swatches] { display: contents; }
+  .docs-article :is([data-f="sw3"], [data-f="sw4"], [data-f="sw5"]) { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 1fr); }
+  @container article (min-width: 30rem) { .docs-article [data-f="sw4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container article (min-width: 42rem) { .docs-article :is([data-f="sw3"], [data-f="sw5"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   .docs-article [data-f="pals"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: var(--space-4); }
+  /* a sample card's two buttons: one row, or one per line at the card's full width when the card is narrower than
+     both labels (about 14rem at 100% text); never a ragged wrap with two pills of different widths */
+  .docs-article :is([data-f="pals"], [data-f="lab"]) .card .cluster { flex-wrap: nowrap; }
+  @container card (inline-size <= 14.5rem) { .docs-article :is([data-f="pals"], [data-f="lab"]) .card .cluster { flex-direction: column; align-items: stretch; } }
+  /* the same for a row of buttons straight inside an island (the cream sample) */
+  .docs-article [data-f="island"]:has(> .cluster) { container-type: inline-size; inline-size: 100%; } /* a container has no intrinsic width: fill the stage */
+  .docs-article [data-f="island"] > .cluster { flex-wrap: nowrap; }
+  @container (max-width: 17rem) { .docs-article [data-f="island"] > .cluster { flex-direction: column; align-items: stretch; } }
   .docs-article [data-f="pair"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--space-2); }
-  .docs-article [data-f="dots"] { display: flex; flex-wrap: wrap; gap: var(--space-1); }
-  .docs-article [data-f="dots"] i { inline-size: 1.25rem; block-size: 1.25rem; border: var(--bw-thin) solid var(--line); }
+  /* the eight colour samples are swatches, the frames of pictures: chrome, so they stay one row of 20px squares at 200% text */
+  .docs-article [data-f="dots"] { display: flex; flex-wrap: wrap; gap: var(--chrome-1); }
+  .docs-article [data-f="dots"] i { inline-size: var(--chrome-box); block-size: var(--chrome-box); border: var(--bw-thin) solid var(--line); }
   .docs-article [data-f="read"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); margin: 0; padding: 0; list-style: none; font: var(--type-meta); }
   .docs-article [data-f="read"] li { display: flex; align-items: flex-start; gap: var(--space-2); max-inline-size: none; margin: 0; color: var(--ink); }
   .docs-article [data-f="read"] .ic { margin-block-start: 0.125rem; }
@@ -25,7 +71,7 @@
   .docs-article [data-f="row"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
   /* a transparent border keeps a range input's edge in forced-colours mode */
   .docs-article [data-f="calc"] input[type="range"], .docs-article [data-f="lab"] input[type="range"] { inline-size: 100%; block-size: var(--hit); margin: 0; border: var(--bw) solid transparent; }
-  .docs-article [data-f="sample"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding: var(--space-5); border: var(--bw) solid var(--line); background: var(--sample-bg, var(--canvas)); color: var(--sample-fg, var(--ink)); }
+  .docs-article [data-f="sample"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding: var(--chrome-5); border: var(--bw) solid var(--line); background: var(--sample-bg, var(--canvas)); color: var(--sample-fg, var(--ink)); }
   .docs-article [data-f="sample"] strong { font: var(--type-title); }
   .docs-article [data-f="big"] { margin: 0; font: var(--type-figure); font-size: var(--text-2xl); font-variant-numeric: tabular-nums lining-nums; }
 
@@ -36,26 +82,23 @@
   .docs-article [data-f="controls"] fieldset { display: grid; gap: var(--space-1); min-inline-size: 0; }
 
   .docs-article [data-f="op"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--space-3); }
-  .docs-article [data-f="op"] > div { padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); }
-  .docs-article [data-f="op"] p { margin: 0; max-inline-size: none; display: flex; align-items: center; gap: var(--space-2); }
+  .docs-article [data-f="op"] > div { padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="op"] p { margin: 0; max-inline-size: none; display: flex; align-items: flex-start; gap: var(--space-2); }
+  .docs-article [data-f="op"] p > .ic { flex: none; margin-block-start: calc((1lh - var(--ic-size, 1.25rem)) / 2); } /* on the first line when the words wrap */
+  /* a token in a sample breaks at the space before it, never inside it ("var(- / -ink-soft)") */
+  .docs-article [data-f="nw"] { white-space: nowrap; }
   .docs-article [data-f="op"] small { display: block; margin-block-start: var(--space-2); color: var(--ink-soft); font: var(--type-meta); }
   .docs-article [data-f="faded"] { color: var(--ink); opacity: 0.6; }
   .docs-article [data-f="solid"] { color: var(--ink-soft); }
 
-  .docs-article [data-f="photo"] { display: grid; gap: var(--space-3); padding: var(--space-6) var(--space-4) var(--space-4); border: var(--bw) solid var(--line); background: var(--on-media); }
-  .docs-article [data-f="photo"] p { margin: 0; max-inline-size: none; padding: var(--space-3); color: var(--on-media); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
-  .docs-article [data-f="photo"] code { background: none; border: 0; padding: 0; color: inherit; }
+  .docs-article [data-f="photo"] { display: grid; gap: var(--space-3); padding: var(--chrome-6) var(--chrome-4) var(--chrome-4); border: var(--bw) solid var(--line); background: var(--on-media); }
+  .docs-article [data-f="photo"] p { margin: 0; max-inline-size: none; padding: var(--chrome-3); color: var(--on-media); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="photo"] code { background: none; border: 0; padding: 0; color: inherit; text-transform: none; letter-spacing: 0; } /* a token keeps its case */
 
   .docs-article [data-f="status"] .ic { flex: none; }
   .docs-article [data-f="status"] span { display: inline-flex; align-items: center; gap: var(--space-2); }
   .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
   .docs-table th[scope="colgroup"] { background: var(--paper-3); color: var(--ink); }
-  #floors-table td:nth-child(2) { min-inline-size: 11rem; }
-  #floors-table td:nth-child(3) { min-inline-size: 13rem; }
-  #lines-table td:nth-child(2) code { white-space: nowrap; }
-  #pal-table td:nth-child(2), #pal-table td:nth-child(3) { min-inline-size: 11rem; }
-  #pal-table td:nth-child(4) { min-inline-size: 16rem; }
-  #lightness-table td:last-child { min-inline-size: 14rem; }
 </style>
 
 <h1>Colour</h1>
@@ -88,7 +131,7 @@
   </section>
 </div>
 
-<p>One role through all three steps (from <code>src/tokens/10-color.css</code>):</p>
+<p>One role through all three steps (from <code>src/<wbr>tokens/<wbr>10-color.css</code>):</p>
 <pre aria-label="One role through knobs, role and component"><code>/* 1 · knobs: plain numbers */
 --k-ink-l: 0.2;   --k-ink-d: 0.96;
 --k-neutral-c: 0; --k-neutral-h: 95;
@@ -109,7 +152,7 @@
     <tr><td>Neutral tint</td><td><code>--k-neutral-h</code>, <code>--k-neutral-c</code>, <code>--k-canvas-c-l</code>, <code>--k-canvas-c-d</code>, <code>--k-paper-c-l</code></td><td>Palettes</td></tr>
     <tr><td>Neutral lightness, light</td><td><code>--k-canvas-l</code>, <code>--k-paper-l</code>, <code>--k-paper-2-l</code>, <code>--k-paper-3-l</code>, <code>--k-ink-l</code>, <code>--k-soft-l</code>, <code>--k-mute-l</code>, <code>--k-faint-l</code></td><td>Higher contrast; the sand palette</td></tr>
     <tr><td>Neutral lightness, dark</td><td><code>--k-canvas-d</code>, <code>--k-paper-d</code>, <code>--k-paper-2-d</code>, <code>--k-paper-3-d</code>, <code>--k-ink-d</code>, <code>--k-soft-d</code>, <code>--k-mute-d</code>, <code>--k-faint-d</code></td><td>Higher contrast</td></tr>
-    <tr><td>Accent</td><td><code>--k-accent-h</code>, <code>--k-accent-c</code>, <code>--k-accent-fill-l</code> / <code>-d</code>, <code>--k-on-accent-l</code> / <code>-d</code>, <code>--k-accent-ink-l</code> / <code>-d</code>, <code>--k-accent-soft-l</code> / <code>-d</code>, <code>--k-on-accent-soft-l</code> / <code>-d</code></td><td>Palettes, higher contrast</td></tr>
+    <tr><td>Accent</td><td><code>--k-accent-h</code>, <code>--k-accent-c</code>, <code><span data-f="nw">--k-</span>accent-fill-l</code> / <code>-d</code>, <code>--k-on-accent-l</code> / <code>-d</code>, <code>--k-accent-ink-l</code> / <code>-d</code>, <code><span data-f="nw">--k-</span>accent-soft-l</code> / <code>-d</code>, <code><span data-f="nw">--k-</span>on-accent-soft-l</code> / <code>-d</code></td><td>Palettes, higher contrast</td></tr>
     <tr><td>Status text</td><td><code>--k-status-c</code>, <code>--k-status-ink-l</code> / <code>-d</code>; hues <code>--hue-ok</code>, <code>--hue-warn</code>, <code>--hue-bad</code>, <code>--hue-info</code></td><td>Higher contrast; the wire palette (chroma 0)</td></tr>
     <tr><td>Tones</td><td><code>--k-tone-*</code>, <code>--tone-h-1</code> to <code>--tone-h-6</code> (see <a href="@/foundations/tones.html">Tones</a>)</td><td>Palettes, higher contrast</td></tr>
   </tbody>
@@ -119,7 +162,7 @@
   <span class="ic ic--info" aria-hidden="true"></span>
   <div>
     <strong>Why roles are declared again on every scope</strong>
-    <p>A custom property whose value contains <code>var()</code> is resolved on the element where it is declared. A nested <code>&lt;section data-palette="mint"&gt;</code> therefore needs its own copy of every role, computed from its own knobs; otherwise it would inherit the parent's finished colours. That is why the role block in <code>10-color.css</code> lists <code>:root, [data-theme], [data-palette], [data-contrast]</code>. The palette islands further down are the proof.</p>
+    <p>A custom property whose value contains <code>var()</code> is resolved on the element where it is declared. A nested <code>&lt;section data-palette="mint"&gt;</code> therefore needs its own copy of every role, computed from its own knobs; otherwise it would inherit the parent's finished colours. That is why the role block in <code>10-color.css</code> lists <code>:root, <span data-f="nw">[data-theme],</span> <span data-f="nw">[data-palette],</span> <span data-f="nw">[data-contrast]</span></code>. The palette islands further down are the proof.</p>
   </div>
 </div>
 
@@ -188,7 +231,7 @@
 
 <h3 id="surfaces">Surfaces</h3>
 <p>Depth comes from lightness steps and a 2px frame, not from saturated colour or shadow. Ratios below are <code>--ink</code> against each surface.</p>
-<div data-swatches="--canvas --paper --paper-2 --paper-3" data-on="--ink" data-min="7"></div>
+<div data-swatches="--canvas --paper --paper-2 --paper-3" data-on="--ink" data-min="7" data-f="sw4"></div>
 <div class="table-wrap"><table class="docs-table">
   <caption class="sr-only">Surface roles and what they are for</caption>
   <thead><tr><th>Role</th><th>Use it for</th><th>Do not use it for</th></tr></thead>
@@ -201,7 +244,7 @@
 </table></div>
 
 <h3 id="text-roles">Text and icons</h3>
-<div class="grid" data-f="sw" style="--grid-min: 15rem">
+<div data-f="sw4">
   <div data-swatches="--ink --ink-soft" data-on="--canvas" data-min="7"></div>
   <div data-swatches="--ink-mute" data-on="--canvas" data-min="4.5"></div>
   <div data-swatches="--ink-faint" data-on="--canvas" data-min="3"></div>
@@ -218,7 +261,7 @@
 </table></div>
 
 <h3 id="lines">Lines and focus</h3>
-<div data-swatches="--line --line-soft --focus" data-on="--canvas" data-min="3"></div>
+<div data-swatches="--line --line-soft --focus" data-on="--canvas" data-min="3" data-f="sw3"></div>
 <div class="table-wrap"><table class="docs-table" id="lines-table">
   <caption class="sr-only">Line and focus roles and what they are for</caption>
   <thead><tr><th>Role</th><th>Is</th><th>Use it for</th></tr></thead>
@@ -232,7 +275,7 @@
 
 <h3 id="accent">Accent</h3>
 <p>The accent is the one "press this" colour: the primary button, the thing you are pointing at. In the default palette it is ink (black on light, white on dark); the other palettes give it a hue.</p>
-<div class="grid" data-f="sw" style="--grid-min: 15rem">
+<div data-f="sw5">
   <div data-swatches="--accent"></div>
   <div data-swatches="--on-accent" data-on="--accent" data-min="4.5"></div>
   <div data-swatches="--accent-ink" data-on="--canvas" data-min="4.5"></div>
@@ -257,11 +300,11 @@
       <span style="color: var(--ok-ink)"><span class="ic ic--circle-check" aria-hidden="true"></span>Deck saved</span>
       <span style="color: var(--warn-ink)"><span class="ic ic--triangle-alert" aria-hidden="true"></span>Low storage</span>
       <span style="color: var(--bad-ink)"><span class="ic ic--circle-x" aria-hidden="true"></span>Payment failed</span>
-      <span style="color: var(--info-ink)"><span class="ic ic--info" aria-hidden="true"></span>Synced 2 min ago</span>
+      <span style="color: var(--info-ink)"><span class="ic ic--info" aria-hidden="true"></span>Synced 2&nbsp;min ago</span>
     </div>
   </div>
 </div>
-<div data-swatches="--ok-ink --warn-ink --bad-ink --info-ink" data-on="--paper" data-min="4.5"></div>
+<div data-swatches="--ok-ink --warn-ink --bad-ink --info-ink" data-on="--paper" data-min="4.5" data-f="sw4"></div>
 
 <h3 id="overlays">Overlays and media</h3>
 <p>Text or an icon over a photo, video or map never goes straight on the image. A scrim gives it a known background. <code>--scrim</code> is black at 60% and <code>--scrim-strong</code> at 75%; <code>--on-media</code> is white. The scrim is the one translucency the guide allows, and it is also the modal backdrop.</p>
@@ -276,7 +319,7 @@
 <p class="t-meta">The photo here is the worst case, pure white. White on <code>--scrim</code> over it measures 5.74:1 and on <code>--scrim-strong</code> 10.37:1, both over the 4.5:1 floor. A swatch cannot rate a translucent colour, so the contrast test does it by compositing over white.</p>
 
 <h2 id="floors">What is guaranteed, and against what</h2>
-<p>The floor columns are what <code>tests/contrast.mjs</code> enforces for every theme, both contrast modes and all six palettes. The measured columns are the lowest ratio across those six palettes, as <em>light / dark</em>. A floor is a promise; a measured value is a fact about today's knobs and moves if you change them. Measured on 2026-09-30, all passing; <code>node tests/contrast.mjs --all</code> prints every pair.</p>
+<p>The floor columns are what <code>tests/<wbr>contrast.mjs</code> enforces for every theme, both contrast modes and all six palettes. The measured columns are the lowest ratio across those six palettes, as <em>light / dark</em>. A floor is a promise; a measured value is a fact about today's knobs and moves if you change them. Measured on 2026-09-30, all passing; <code>node tests/contrast.mjs <span data-f="nw">--all</span></code> prints every pair.</p>
 <div class="table-wrap"><table class="docs-table" id="floors-table">
   <caption class="sr-only">Contrast floors enforced by the test and the worst ratios measured</caption>
   <thead><tr><th>Text or shape</th><th>Against</th><th>Used for</th><th class="num">Floor</th><th class="num">Floor, higher contrast</th><th class="num">Worst, light / dark</th><th class="num">Worst, higher contrast</th></tr></thead>
@@ -372,18 +415,18 @@
     <tr><td>Tones</td><td>See <a href="@/foundations/tones.html">Tones</a></td><td>Pastel text and fills pushed apart; bold fill darker (0.38)</td></tr>
   </tbody>
 </table></div>
-<p>Two rules keep the tier trustworthy. First, the OS query block and the <code>data-contrast="more"</code> block in each token file are copies of each other, and <code>tests/lint.mjs</code> fails if they differ. Second, <code>tests/contrast.mjs</code> renders each palette with the media query and with the attribute and fails if any role differs. <code>data-contrast="off"</code> is honoured by the CSS (it ignores the OS request), but <code>SG.prefs</code> and the Appearance panel only offer <em>System</em> and <em>More</em>.</p>
+<p>Two rules keep the tier trustworthy. First, the OS query block and the <code>data-contrast="more"</code> block in each token file are copies of each other, and <code>tests/lint.mjs</code> fails if they differ. Second, <code>tests/<wbr>contrast.mjs</code> renders each palette with the media query and with the attribute and fails if any role differs. <code>data-contrast="off"</code> is honoured by the CSS (it ignores the OS request), but <code>SG.prefs</code> and the Appearance panel only offer <em>System</em> and <em>More</em>.</p>
 <div class="note" data-kind="a11y">
   <span class="ic ic--info" aria-hidden="true"></span>
   <div>
     <strong>Higher contrast reaches islands</strong>
-    <p>A region can ask for more contrast with <code>&lt;div data-contrast="more"&gt;</code> on a normal page (measured: <code>--k-ink-l</code> goes from 0.2 to 0.1 inside it), and a palette island inside a higher-contrast page gets the boost as well, because the knob block is repeated for <code>[data-palette]</code>. <code>tests/contrast.mjs</code> checks both cases. Motion is the exception: <code>data-motion</code> works on <code>&lt;html&gt;</code> only.</p>
+    <p>A region can ask for more contrast with <code>&lt;div data-contrast="more"&gt;</code> on a normal page (measured: <code>--k-ink-l</code> goes from 0.2 to 0.1 inside it), and a palette island inside a higher-contrast page gets the boost as well, because the knob block is repeated for <code>[data-palette]</code>. <code>tests/<wbr>contrast.mjs</code> checks both cases. Motion is the exception: <code>data-motion</code> works on <code>&lt;html&gt;</code> only.</p>
   </div>
 </div>
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <p>Preview it on this page. This is the same switch as <strong>Contrast</strong> in Appearance and is saved in the same place.</p>
-    <p><button class="btn" type="button" id="hc-toggle" aria-pressed="false"><span class="ic ic--contrast" aria-hidden="true"></span>Higher contrast</button></p>
+    <p><button class="btn" type="button" id="hc-toggle" aria-pressed="false"><span class="ic ic--contrast" aria-hidden="true"></span>Contrast</button></p>
   </div>
 </div>
 
@@ -394,11 +437,11 @@
     <div data-f="op">
       <div>
         <p data-f="solid" id="op-solid"><span class="ic ic--circle-check" aria-hidden="true"></span>Due on Friday</p>
-        <small>Do: <code>color: var(--ink-soft)</code>. <output id="op-solid-out">Measured: n/a</output></small>
+        <small>Do: <code>color: <span data-f="nw">var(--ink-soft)</span></code>. <output id="op-solid-out">Measured: n/a</output></small>
       </div>
       <div>
         <p data-f="faded" id="op-faded"><span class="ic ic--circle-x" aria-hidden="true"></span>Due on Friday</p>
-        <small>Don't: <code>color: var(--ink); opacity: 0.6</code>. <output id="op-faded-out">Measured: n/a</output></small>
+        <small>Don't: <code>color: <span data-f="nw">var(--ink);</span> <span data-f="nw">opacity: 0.6</span></code>. <output id="op-faded-out">Measured: n/a</output></small>
       </div>
     </div>
   </div>
@@ -511,11 +554,11 @@
 
 <h2 id="own-palette">Make your own palette</h2>
 <ol>
-  <li>Open <code>src/tokens/40-palettes.css</code> and copy the block closest to what you want: <code>mint</code> for a coloured accent, <code>cream</code> for a pale one, <code>sand</code> for a tinted neutral with an ink accent.</li>
+  <li>Open <code>src/<wbr>tokens/<wbr>40-palettes.css</code> and copy the block closest to what you want: <code>mint</code> for a coloured accent, <code>cream</code> for a pale one, <code>sand</code> for a tinted neutral with an ink accent.</li>
   <li>Rename the selector to <code>[data-palette="yourname"]</code>.</li>
   <li>Set the hue knobs: <code>--k-neutral-h</code> and <code>--k-neutral-c</code> tint every neutral; <code>--k-canvas-c-l</code> and <code>--k-canvas-c-d</code> tint the canvas more than the rest; <code>--k-accent-h</code> and <code>--k-accent-c</code> colour the accent; <code>--tone-h-1</code> and <code>--tone-c-1</code> (up to 6) point the six tone slots at hues.</li>
   <li>Keep the accent <em>lightness</em> knobs inside the shared group at the top of that file (fill 0.48 / 0.76, label 0.99 / 0.18, accent text 0.45 / 0.82). Contrast was designed around those values. If your accent is pale, follow the next section instead.</li>
-  <li>Add the name to <code>PALETTES</code> in <code>tests/contrast.mjs</code> and to <code>OPTIONS.palette</code> in <code>docs-src/assets/docs.js</code> so the Appearance panel offers it.</li>
+  <li>Add the name to <code>PALETTES</code> in <code>tests/<wbr>contrast.mjs</code> and to <code>OPTIONS.palette</code> in <code>docs-src/<wbr>assets/<wbr>docs.js</code> so the Appearance panel offers it.</li>
   <li>Run <code>npm run test:contrast</code>. Fix the knob that fails, not the component that shows it.</li>
 </ol>
 <p>The lab below writes the block for you and measures the four ratios that decide whether an accent works, in both themes. It is two islands, <code>data-palette="lab"</code> with light and dark themes, whose knobs are set on their parent with inline custom properties.</p>
@@ -590,7 +633,7 @@
 <ol>
   <li>Add the knobs to <code>10-color.css</code> (light and dark), then the role in the shared block, with a comment saying what it is for.</li>
   <li>If the role is higher-contrast sensitive, add its knobs to <strong>both</strong> the <code>prefers-contrast</code> block and the <code>data-contrast="more"</code> block, identically.</li>
-  <li>If it is text, a frame, or something drawn on a fill, add its pair to <code>buildPairs()</code> in <code>tests/contrast.mjs</code> with the floor it must meet. A colour role that is not listed there is unverified.</li>
+  <li>If it is text, a frame, or something drawn on a fill, add its pair to <code>buildPairs()</code> in <code>tests/<wbr>contrast.mjs</code> with the floor it must meet. A colour role that is not listed there is unverified.</li>
   <li>Show it on this page, with a swatch and a row in the floors table.</li>
 </ol>
 
@@ -663,8 +706,16 @@ window.addEventListener('DOMContentLoaded', function () {
     var ink = rgb(SG.tokenToHex('--ink'));
     var a = 0.6;
     var over = function (bg) { return ink.map(function (v, i) { return Math.round(v * a + bg[i] * (1 - a)); }); };
-    document.getElementById('op-solid-out').textContent = 'Measured: ' + fmt(ratio(inkSoft, canvas)) + ':1 on the canvas, ' + fmt(ratio(inkSoft, deep)) + ':1 on --paper-3.';
-    document.getElementById('op-faded-out').textContent = 'Measured: ' + fmt(ratio(over(canvas), canvas)) + ':1 on the canvas, ' + fmt(ratio(over(deep), deep)) + ':1 on --paper-3.';
+    /* the token is a code chip of its own, so it never breaks after its leading hyphens */
+    function say(out, onCanvas, onDeep) {
+      var tok = document.createElement('code');
+      tok.className = 'nb';
+      tok.textContent = '--paper-3';
+      out.textContent = 'Measured: ' + fmt(onCanvas) + ':1 on the canvas, ' + fmt(onDeep) + ':1 on ';
+      out.append(tok, '.');
+    }
+    say(document.getElementById('op-solid-out'), ratio(inkSoft, canvas), ratio(inkSoft, deep));
+    say(document.getElementById('op-faded-out'), ratio(over(canvas), canvas), ratio(over(deep), deep));
   }
   measureOpacity();
   SG.prefs.onChange(measureOpacity);
@@ -710,7 +761,8 @@ window.addEventListener('DOMContentLoaded', function () {
           list.appendChild(li);
         });
       });
-      var lines = ['[data-palette="yourname"] {', '  --k-neutral-h: ' + h + '; --k-neutral-c: 0.012;', '  --k-canvas-c-l: 0.03; --k-canvas-c-d: 0.02;', '  --k-accent-h: ' + h + '; --k-accent-c: ' + c.toFixed(2) + ';'];
+      /* one declaration per line, so the block reads on a phone without scrolling sideways */
+      var lines = ['[data-palette="yourname"] {', '  --k-neutral-h: ' + h + ';', '  --k-neutral-c: 0.012;', '  --k-canvas-c-l: 0.03;', '  --k-canvas-c-d: 0.02;', '  --k-accent-h: ' + h + ';', '  --k-accent-c: ' + c.toFixed(2) + ';'];
       Object.keys(lightness).forEach(function (k) { lines.push('  ' + k + ': ' + lightness[k] + ';'); });
       lines.push('}');
       document.getElementById('lab-css').textContent = lines.join('\n');

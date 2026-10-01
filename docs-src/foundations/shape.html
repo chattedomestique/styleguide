@@ -1,25 +1,49 @@
 <!--{"title":"Shape","group":"Foundations","order":14,"summary":"Two line weights, three radius roles and the pill: square or soft with one attribute, and nothing decorative."}-->
 <style>
   /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
-  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--space-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
-  .docs-table td:first-child code { white-space: nowrap; }
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #lines-table td:nth-child(3) { min-inline-size: 18rem; }
+    #lines-table td:nth-child(4) { min-inline-size: 10rem; }
+    #roles-table td:nth-child(n+2) { min-inline-size: 7rem; }
+    #roles-table td:last-child { min-inline-size: 16rem; }
+  }
   .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
-  #lines-table td:nth-child(3) { min-inline-size: 18rem; }
-  #lines-table td:nth-child(4) { min-inline-size: 10rem; }
-  #roles-table td:nth-child(n+2) { min-inline-size: 7rem; }
-  #roles-table td:last-child { min-inline-size: 16rem; }
 
   .docs-article [data-f="weights"] { display: grid; gap: var(--space-4); }
   .docs-article [data-f="weights"] > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
   .docs-article [data-f="weights"] p { margin: 0; max-inline-size: none; }
   .docs-article [data-f="rule"] { display: block; inline-size: 100%; border: 0; border-block-start: var(--_w) solid var(--line); }
-  .docs-article [data-f="box"] { display: block; padding: var(--space-4) var(--space-3); border: var(--_w) solid var(--line); background: var(--paper); font: var(--type-meta); text-align: center; }
+  .docs-article [data-f="box"] { display: block; padding: var(--chrome-4) var(--chrome-3); border: var(--_w) solid var(--line); background: var(--paper); font: var(--type-meta); text-align: center; }
 
   .docs-article [data-f="corners"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: var(--space-4); }
-  .docs-article [data-f="corner"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--space-4); border: var(--bw) dashed var(--line); background: var(--canvas); }
+  /* each style is a container, so its four radius specimens sit four in a row or two by two, never three and one */
+  .docs-article [data-f="corner"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--chrome-4); border: var(--bw) dashed var(--line); background: var(--canvas); container-type: inline-size; }
   .docs-article [data-f="corner"] > p { margin: 0; max-inline-size: none; }
-  .docs-article [data-f="shapes"] { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
-  .docs-article [data-f="shapes"] span { display: grid; place-items: center; min-inline-size: 4.5rem; min-block-size: 3.5rem; padding: var(--space-2); border: var(--bw) solid var(--line); background: var(--paper); font: var(--type-meta); }
+  /* two by two at every width: four in a row made each specimen nearly square, and the pill drew a circle */
+  .docs-article [data-f="shapes"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  /* a specimen is a picture of a shape, so its height is chrome (56px at most): in rem it grew as tall as it was wide
+     at 200% text, and the pill specimen drew a circle */
+  .docs-article [data-f="shapes"] span { display: grid; place-items: center; min-block-size: var(--chrome-ctl-lg); padding: var(--chrome-2); border: var(--bw) solid var(--line); background: var(--paper); font: var(--type-meta); }
+  .docs-article .card__tile:has(> .ic) { display: grid; place-items: center; } /* a tile holds a real icon */
   .docs-article [data-f="r-card"] { border-radius: var(--radius-card); }
   .docs-article [data-f="r-tile"] { border-radius: var(--radius-tile); }
   .docs-article [data-f="r-ctl"] { border-radius: var(--radius-ctl); }
@@ -31,6 +55,7 @@
   .docs-article [data-f="ratios"] > div { min-inline-size: 0; }
   /* A card that holds only a picture: the picture's own 2px divider would sit on the card's 2px frame and draw a 4px bottom edge. There is no body to close off, so drop it here. */
   .docs-article [data-f="ratios"] p { margin: 0 0 var(--space-2); max-inline-size: none; }
+  .docs-article [data-f="ratios"] .t-label code { text-transform: none; letter-spacing: 0; } /* a token keeps its case inside an uppercase label */
 </style>
 
 <h1>Shape</h1>
@@ -78,7 +103,7 @@
 <p class="t-meta">One card, all the weights: a 2px frame around the card, the bar (the frame made thicker), a 1px rule between rows and above the foot.</p>
 
 <h2 id="radius">Radius: three roles and a pill</h2>
-<p>Everything that is not a circle or a pill reads exactly three radius roles. They are the only radii a component may use, and <code>src/tokens/30-corners.css</code> is the only file that sets them.</p>
+<p>Everything that is not a circle or a pill reads exactly three radius roles. They are the only radii a component may use, and <code>src/<wbr>tokens/<wbr>30-corners.css</code> is the only file that sets them.</p>
 <div class="table-wrap"><table class="docs-table" id="roles-table">
   <caption class="sr-only">The radius roles per corner style</caption>
   <thead><tr><th>Role</th><th class="num">Square (default)</th><th class="num">Soft</th><th>Read by</th></tr></thead>
@@ -105,29 +130,29 @@
         <p class="t-label">Square</p>
         <div data-f="shapes" aria-hidden="true"><span data-f="r-card">card</span><span data-f="r-tile">tile</span><span data-f="r-ctl">ctl</span><span data-f="r-pill">pill</span></div>
         <article class="card card--row">
-          <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
-          <div class="card__main"><p class="card__title">Triangle</p><p class="card__meta">Card 03</p></div>
+          <span class="card__tile" data-tone="2" aria-hidden="true"><span class="ic ic--square" aria-hidden="true"></span></span>
+          <div class="card__main"><p class="card__title">Square</p><p class="card__meta">Card 02</p></div>
           <div class="card__trail"><p>New</p></div>
         </article>
         <section class="card">
           <header class="card__bar"><p class="card__label">Decks</p><button class="card__ctl" type="button" aria-label="Collapse decks, square"><span class="ic ic--minus" aria-hidden="true"></span></button></header>
           <div class="card__body"><p class="card__text">Twelve cards. Five known.</p></div>
         </section>
-        <div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Study</button><button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Add card, square"><span class="ic ic--plus" aria-hidden="true"></span></button></div>
+        <div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Study</button><button class="btn" data-size="sm" type="button">Shuffle</button></div>
       </div>
       <div data-f="corner" data-corners="soft">
         <p class="t-label">Soft</p>
         <div data-f="shapes" aria-hidden="true"><span data-f="r-card">card</span><span data-f="r-tile">tile</span><span data-f="r-ctl">ctl</span><span data-f="r-pill">pill</span></div>
         <article class="card card--row">
-          <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
-          <div class="card__main"><p class="card__title">Triangle</p><p class="card__meta">Card 03</p></div>
+          <span class="card__tile" data-tone="2" aria-hidden="true"><span class="ic ic--square" aria-hidden="true"></span></span>
+          <div class="card__main"><p class="card__title">Square</p><p class="card__meta">Card 02</p></div>
           <div class="card__trail"><p>New</p></div>
         </article>
         <section class="card">
           <header class="card__bar"><p class="card__label">Decks</p><button class="card__ctl" type="button" aria-label="Collapse decks, soft"><span class="ic ic--minus" aria-hidden="true"></span></button></header>
           <div class="card__body"><p class="card__text">Twelve cards. Five known.</p></div>
         </section>
-        <div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Study</button><button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Add card, soft"><span class="ic ic--plus" aria-hidden="true"></span></button></div>
+        <div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Study</button><button class="btn" data-size="sm" type="button">Shuffle</button></div>
       </div>
     </div>
   </div>
@@ -135,13 +160,13 @@
 <ul>
   <li><strong>A card clips its contents.</strong> <code>.card</code> has <code>overflow: clip</code>, so media, bar and foot take the card's corners for free. Nothing inside needs its own radius to sit right.</li>
   <li><strong>One shape gesture per card.</strong> Round it <em>or</em> notch it, never both. The notch card stays square in both styles: its cut is the gesture.</li>
-  <li><strong>Tiled grids square off.</strong> <code>.card-grid--tiled</code> sets <code>--card-radius: 0</code> so shared frames meet cleanly.</li>
+  <li><strong>Tiled grids square off.</strong> <code>.card-grid<span data-f="nw">--tiled</span></code> sets <code><span data-f="nw">--card-radius:</span> 0</code> so shared frames meet cleanly.</li>
 </ul>
 <div class="note" data-kind="a11y">
   <span class="ic ic--info" aria-hidden="true"></span>
   <div>
     <strong>The open decision</strong>
-    <p>Both are implemented and the default is square, because that is what the owner's committed CSS does. To commit to soft in an app, write <code>&lt;html data-corners="soft"&gt;</code>: no source changes, and choosing Square in a settings screen still works because <code>SG.prefs</code> then writes <code>square</code> down explicitly. To change the guide's own default instead, change the default block (<code>:root, [data-corners="square"]</code>) in <code>src/tokens/30-corners.css</code> <em>and</em> <code>DEFAULT_VALUE.corners</code> in <code>src/js/10-prefs.js</code>; without the second edit, choosing Square removes the attribute and leaves soft switched on. Nothing in <code>src/components</code> changes either way.</p>
+    <p>Both are implemented and the default is square, because that is what the owner's committed CSS does. To commit to soft in an app, write <code>&lt;html data-corners="soft"&gt;</code>: no source changes, and choosing Square in a settings screen still works because <code>SG.prefs</code> then writes <code>square</code> down explicitly. To change the guide's own default instead, change the default block (<code>:root, [data-corners="square"]</code>) in <code>src/<wbr>tokens/<wbr>30-corners.css</code> <em>and</em> <code>DEFAULT_VALUE.corners</code> in <code>src/<wbr>js/<wbr>10-prefs.js</code>; without the second edit, choosing Square removes the attribute and leaves soft switched on. Nothing in <code>src/components</code> changes either way.</p>
   </div>
 </div>
 
@@ -165,8 +190,8 @@
 <div class="demo" data-nocode>
   <div class="demo__stage">
     <div data-f="ratios">
-      <div><p class="t-label">--ratio-media: 4 / 3</p><div class="card"><div class="card__media wf-media" data-tone="3" role="img" aria-label="A 4 by 3 picture placeholder"></div></div></div>
-      <div><p class="t-label">--ratio-portrait: 5 / 7</p><div class="card"><div class="card__media wf-media" data-tone="4" style="--ratio: var(--ratio-portrait)" role="img" aria-label="A 5 by 7 picture placeholder"></div></div></div>
+      <div><p class="t-label"><code>--ratio-media</code> 4 / 3</p><div class="card"><div class="card__media"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"></div></div></div>
+      <div><p class="t-label"><code>--ratio-portrait</code> 5 / 7</p><div class="card"><div class="card__media" style="--ratio: var(--ratio-portrait)"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div></div></div>
     </div>
   </div>
 </div>
@@ -195,7 +220,7 @@
   </div>
   <div class="note" data-kind="dont">
     <span class="ic ic--close" aria-hidden="true"></span>
-    <div><strong>Don't</strong><p>Write <code>border-radius: 8px</code> or <code>border: 1.5px solid</code>, put a blur shadow under a card, or round the card and notch it too.</p></div>
+    <div><strong>Don't</strong><p>Write <code><span data-f="nw">border-radius:</span> 8px</code> or <code>border: 1.5px solid</code>, put a blur shadow under a card, or round the card and notch it too.</p></div>
   </div>
 </div>
 

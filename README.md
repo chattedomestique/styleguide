@@ -1,6 +1,6 @@
 # Style Guide
 
-A reusable, accessible UI system for progressive web apps and mobile apps: minimal, brutalist, friendly, and clear about what to do next. Vanilla CSS plus a little JavaScript: **no framework, and no build step for the apps that use it**.
+A reusable, accessible UI system for progressive web apps and mobile apps: the buttons, forms, cards, bars and screens of an app, written once for every app you build. Vanilla CSS plus a little JavaScript: **no framework, and no build step for the apps that use it**.
 
 It is the owner's *Flashcards style sheet v0.1*, generalised: their type, space, line, shape, hit-target and focus tokens, their role names, the tone API, the `.card` element and their checker rules are the base. On top of that this repo adds real colour (dark mode, higher contrast, six palettes, all contrast-verified in a browser), an accessibility test gate, and more elements as example screens arrive.
 
@@ -8,7 +8,7 @@ It is the owner's *Flashcards style sheet v0.1*, generalised: their type, space,
 
 ## Use it in an app (2 minutes)
 
-1. Copy these from `dist/` into your app: `styleguide.min.css`, `fonts/`, and optionally `styleguide.min.js` and `icons.css` (about 145 more icons than the few built in). That is everything: about 40 KB of CSS and 41 KB of JavaScript gzipped. To ship less, use `core.min.css` (6 KB gzipped: tokens, base, layout, utilities) plus only the files you need from `dist/elements/` and `dist/js/`; `dist/elements/manifest.json` says what each element builds on and which scripts it has.
+1. Copy these from `dist/` into your app: `styleguide.min.css`, `fonts/`, and optionally `styleguide.min.js` and `icons.css` (about 150 more icons than the five built in). That is everything: a little over 40 KB each of CSS and JavaScript, gzipped (`gzip -9c dist/styleguide.min.css | wc -c` measures it). To ship less, use `core.min.css` (about 7 KB gzipped: tokens, base, layout, utilities) plus only the files you need from `dist/elements/` and `dist/js/`; `dist/elements/manifest.json` says what each element builds on and which scripts it has.
 2. Put this in your `<head>`:
 
    ```html
@@ -40,7 +40,8 @@ Any element can carry these to make a themed island. Components never know which
 ## What makes it different
 
 - **Accessible by construction.** Colour pairs are built from fixed lightness gaps (OKLCH), then *verified in a real browser* for every theme × contrast mode × palette × tone, and for palettes on islands (10,000+ checks). Text is ≥ 7:1, frames ≥ 3:1, targets ≥ 44 px, and nothing relies on colour alone.
-- **Flat and legible.** Two line weights, hard shadows only on things you can press, circles and pills for everything you act on, one typeface with a width axis. No gradients, blur or glass; the checker fails the build on them.
+- **Flat and legible.** Two line weights, hard shadows only on things you can press, circles and pills for everything you act on, one typeface with a width axis. No gradients, blur or glass; `npm run lint` fails on them.
+- **Large text that still fits a phone.** Words grow with the reader's text size; the chrome around them (insets, icon-only controls, targets) stops at its 100% size, as iOS and Android do. A bar or a row of controls stays one row, or switches its whole layout, instead of wrapping raggedly.
 - **Tones you cannot get wrong.** `data-tone="3"` gives an element a fill, text, soft text, a pill and its text that always pass.
 - **Reduced motion means gentler, not instant.** Travel drops out; colour changes stay; spinners pulse.
 - **Growable.** Adding an element is a gated routine with a scaffold, a lint, an accessibility gate and interaction specs. See [CLAUDE.md](CLAUDE.md).
@@ -79,6 +80,7 @@ npm run lint             the gate: undefined tokens, colour literals, gradients 
 npm run test:contrast    every colour role pair, every theme / contrast / palette / tone
 npm run test:components  keyboard, ARIA and --lift / --fill state specs (SG_JS=min runs them on the minified bundle)
 npm run test:a11y        axe + focus walk + target sizes + reflow + forced colours on every docs page
+node tests/design.mjs    design-integrity report: ovals, wrapped labels, broken words, ragged bars (not a gate)
 npm run status           regenerate the Status page from the gates (about an hour; -- --quick for two appearances)
 npm test                 all of it
 npm run new:component -- name --order 45
@@ -86,7 +88,9 @@ npm run new:component -- name --order 45
 
 ## Status and honest limits
 
-Version 0.2.0 plus the unreleased work listed in the [changelog](docs/project/changelog.html). Verified in **Chromium** only. **Not verified:** Safari / iOS (standalone safe areas, Dynamic Type), Firefox, real screen readers (VoiceOver, TalkBack, NVDA) and Android font scaling; the Manual page of the docs has the passes to run on real devices. Every element passes its spec and the accessibility gate in five appearances (light, dark + mint + soft, wire, higher contrast + periwinkle + dark, forced colours), including text at 200% and a 320px screen; gate 5 (sign-off) is the owner's. What was wrong with the original sheet, and what was done about each finding, is in [AUDIT.md](AUDIT.md); the evidence and the notes behind the design are in [references/](references/). Open decisions the owner can reverse are on the Decisions page.
+Version 0.2.0 plus the unreleased work listed in the [changelog](docs/project/changelog.html). Verified in **Chromium** only. **Not verified:** Safari / iOS (standalone safe areas, Dynamic Type), Firefox, real screen readers (VoiceOver, TalkBack, NVDA) and Android font scaling; the Manual page of the docs has the passes to run on real devices.
+
+Each element has automated checks: its interaction spec, the lint, and the accessibility gate in five appearances (light, dark + mint + soft, wire, higher contrast + periwinkle + dark, forced colours). They prove what they measure (keys, states, names, contrast, target sizes, and no text cut off or sideways scrolling at 320px and at 200% text) and nothing about how an element looks. Whether it looks right, at 390px with 100% and with 200% text, is reviewed by people from screenshots. The Status page of the docs shows both for every element: the automated result from the last run, and the screenshot review, which is kept by hand in `docs-src/project/visual-review.json`. Gate 5 (sign-off) is the owner's. What was wrong with the original sheet, and what was done about each finding, is in [AUDIT.md](AUDIT.md); the evidence and the notes behind the design are in [references/](references/). Open decisions the owner can reverse are on the Decisions page.
 
 ## Credits and licences
 

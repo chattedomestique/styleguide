@@ -1,4 +1,21 @@
 <!--{"title":"Manual","group":"Accessibility","order":3,"summary":"The real-device pass no tool can make: iPhone VoiceOver, Android TalkBack, Dynamic Type and font scale, 400% zoom and text spacing, Windows High Contrast, Voice and Switch Control. Scripts, what a pass looks like, and what is not verified."}-->
+<style>
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+</style>
 <h1>Manual testing</h1>
 <p class="lede">The checks that need a person and a device. Every automated test in this repository runs in Chromium on Linux; none has seen a phone, a screen reader or Windows High Contrast. This page is the script for that pass.</p>
 
@@ -68,13 +85,13 @@
 </table></div>
 
 <h2 id="dynamic">Dynamic Type and font scale</h2>
-<p>The guide sets every size in <code>rem</code> so that it follows the browser's text size. Whether <em>the operating system's</em> text size reaches a web page is exactly what nobody has checked: iOS Safari only follows Dynamic Type through a <code>font: -apple-system-body</code> rule that is in the base layer but <strong>unverified on a device</strong>, and Chrome on Android follows it only with <code>&lt;meta name="text-scale" content="scale"&gt;</code> (Chrome and Edge 146 and later), which is an optional head line. This is the first test to run.</p>
+<p>The guide sets the words in <code>rem</code> so that they follow the browser's text size, and stops the chrome around them (insets, icon-only controls, targets) at its 100% size, as the platforms' own apps do (<a href="@/foundations/space.html#chrome">chrome caps</a>). Whether <em>the operating system's</em> text size reaches a web page is exactly what nobody has checked: iOS Safari only follows Dynamic Type through a <code>font: -apple-system-body</code> rule that is in the base layer but <strong>unverified on a device</strong>, and Chrome on Android follows it only with <code>&lt;meta name="text-scale" content="scale"&gt;</code> (Chrome and Edge 146 and later), which is an optional head line. This is the first test to run.</p>
 <div class="table-wrap"><table class="docs-table" data-stack role="table">
   <caption class="sr-only">The text size script for iPhone and Android</caption>
   <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
   <tbody role="rowgroup">
     <tr role="row"><td role="cell" data-label="Step">1. iPhone: does it follow?</td><td role="cell" data-label="Do"><em>Settings</em>, <em>Accessibility</em>, <em>Display &amp; Text Size</em>, <em>Larger Text</em>. Turn on <em>Larger Accessibility Sizes</em>, drag the slider one notch at a time to the largest, and reload the page in Safari each time.</td><td role="cell" data-label="Pass looks like">Body text changes with the slider. <strong>If it does not</strong>, the Dynamic Type rule is not working for this page: note the iOS version and see <a href="@/start/customize.html#off">Customize</a> for the escape hatch. Repeat in the installed app.</td></tr>
-    <tr role="row"><td role="cell" data-label="Step">2. iPhone: the largest size</td><td role="cell" data-label="Do">At the largest size, walk the main screens.</td><td role="cell" data-label="Pass looks like">No text is cut off, nothing overlaps, no sideways scroll; buttons grow rather than clip; a sticky bar stays about two rows; the dock wraps to a second row; the focused control is not hidden behind a bar.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. iPhone: the largest size</td><td role="cell" data-label="Do">At the largest size, walk the main screens.</td><td role="cell" data-label="Pass looks like">No text is cut off, nothing overlaps, no sideways scroll; buttons grow rather than clip, with each icon beside its label; a bar keeps its controls on one row while its title takes two or three lines; the dock keeps one row and drops to icons when its labels do not fit; no word breaks inside unless it alone is wider than the screen; the focused control is not hidden behind a bar.</td></tr>
     <tr role="row"><td role="cell" data-label="Step">3. Android: does it follow?</td><td role="cell" data-label="Do"><em>Settings</em>, <em>Accessibility</em> (or <em>Display</em>), <em>Font size</em> to the largest, and <em>Display size</em> to the largest. Load the page with and without the <code>text-scale</code> meta.</td><td role="cell" data-label="Pass looks like">With the meta, text follows the setting in Chrome 146 or later; without it, only the browser's own text size applies. Note the versions. Layouts that still use <code>px</code> may scroll sideways with the meta on.</td></tr>
     <tr role="row"><td role="cell" data-label="Step">4. Android: the largest size</td><td role="cell" data-label="Do">Walk the main screens.</td><td role="cell" data-label="Pass looks like">The same as step 2.</td></tr>
     <tr role="row"><td role="cell" data-label="Step">5. Mid sizes</td><td role="cell" data-label="Do">Repeat at the size one notch above default.</td><td role="cell" data-label="Pass looks like">Nothing is clipped. Most bugs are not at the extreme.</td></tr>

@@ -44,7 +44,7 @@ Run it on any screen before calling it done.
 
 ## 2. Foundations
 
-Everything is a custom property. Sizes are `rem` so they follow the reader's text size; line weights are `px` so a 2px rule stays 2px.
+Everything is a custom property. Words and the space between blocks are `rem` so they follow the reader's text size; the chrome around the words (insets, icon-only controls and their targets) stops at its 100% size (see *Chrome caps* below); line weights are `px` so a 2px rule stays 2px.
 
 ### Files and layers
 
@@ -60,7 +60,7 @@ dist/styleguide.css       the one file an app links. Declares the layer order.
   src/base/                      reset, element defaults, .t-* styles, icons        (layer: sg.reset, sg.base)
   src/layout/layout.css          app shell and layout primitives                    (layer: sg.layout)
   src/components/*.css           the elements                                       (layer: sg.components)
-dist/icons.css            about 140 more masked icons (optional)
+dist/icons.css            about 150 more masked icons (optional)
 dist/wire.css             wireframe placeholders, .wf-* (development only)            (layer: sg.wire)
 ```
 
@@ -84,9 +84,27 @@ Size scale: `--text-xs` 0.8125rem · `--text-sm` 0.875rem · `--text-md` 1rem ·
 
 Inside a card, title and figure sizes come from the card's own width (`cqi`), not the viewport. See §3.
 
+**Wrapping.** Words wrap between words: headings, paragraphs and list items have `overflow-wrap: break-word`, so a word breaks inside itself only when it alone is wider than the line. Never `overflow-wrap: anywhere` on text in a layout: it makes an element's min-content one letter, so a flex or grid item shrinks below its longest word and the word shatters ("Shopp / ing"); the lint fails it (§5). `.break` is `min-inline-size: 0` + `break-word` + `hyphens: auto`, for a flex or grid item that may hold a word longer than the line. Running text (`p`, `li`, `dd`, `figcaption`, `blockquote`) has `text-wrap: pretty`; titles `text-wrap: balance`, and the display line and the card's text slots `hyphens: auto` (Chromium on Linux, where the tests run, has no hyphenation dictionaries, so screenshots show a plain break where a phone shows a hyphen). A number never breaks mid-number: give it `white-space: nowrap`, and let a display figure shrink to fit its box (a size bounded by `cqi`) instead of wrapping.
+
 ### Space
 
-A 4px grid. `--space-N`: 1 = 4px · 2 = 8 · 3 = 12 · 4 = 16 · 5 = 24 · 6 = 32 · 7 = 48 · 8 = 64 · 9 = 96 (`--space-0` is 0). `--gutter` `clamp(1rem, 0.6rem + 1.6vw, 1.75rem)` is the gap between cards. `--measure` 62ch is the widest a paragraph gets.
+A 4px grid. `--space-N`: 1 = 4px · 2 = 8 · 3 = 12 · 4 = 16 · 5 = 24 · 6 = 32 · 7 = 48 · 8 = 64 · 9 = 96 (`--space-0` is 0). They are the space *between* blocks and grow with the text. `--gutter` `clamp(min(1rem, 16px), 0.6rem + 1.6vw, min(1.75rem, 28px))` is the gap between cards and the app column's side inset, chrome at both ends. `--measure` 62ch is the widest a paragraph gets.
+
+### Chrome caps *(added)*
+
+Words grow with the reader's text size; the chrome around them stops at its 100% size, as iOS and Android do (Dynamic Type grows the words, not the icons or the insets). At 200% text rem chrome ate a phone: two 88px circles beside a title left it a few letters a line, and a button's 48px of side padding pushed its own label onto two lines. Each cap is the smaller of a rem size and its px size, so at 100% text nothing changes. Browser zoom still scales everything, because zoom scales px.
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--chrome-1` … `--chrome-6` | `min(var(--space-N), <its px>)`: 4 · 8 · 12 · 16 · 24 · 32px | insets of controls and containers: padding, the gaps inside a control |
+| `--chrome-ic` | `min(1.5rem, 24px)` | an icon that stands alone in a bar (the dock) |
+| `--chrome-ic-sm` | `min(1.25rem, 20px)` | the icon of an icon-only control |
+| `--chrome-ic-xs` | `min(0.75rem, 12px)` | a glyph inside a drawn box (the card's bar control) |
+| `--chrome-box` | `min(1.25rem, 20px)` | a box drawn inside a 44px target |
+| `--chrome-ctl-sm` · `--chrome-ctl` · `--chrome-ctl-lg` | `min(var(--ctl-sm), 36px)` · `min(var(--ctl), 44px)` · `min(var(--ctl-lg), 56px)` | icon-only circles; a cell in a bar of icons |
+| `--chrome-hit` | `min(var(--hit), 44px)` | the target of an icon-only control |
+
+Grows (rem): words, a control's height, the space between blocks, and an icon inside a line of words (in `em`, for example `--ic-size: 1.15em`, so it tracks its label; only the padding, the gaps and the target around it stop). Stops (`--chrome-*`): insets, icon-only controls and their targets, the slots that hold them (a row's chevron, a bar control, a leading picture, avatar or tile), badges on icons, the frames of pictures.
 
 ### Line
 
@@ -106,7 +124,7 @@ Circles and pills are always `--radius-pill` (999px). Everything else reads exac
 
 ### Hit targets and focus
 
-`--hit` 2.75rem (44px). The drawn thing may be smaller; the target is not. A 20px box is fine inside a 44px control. Control heights *(added)*: `--ctl-sm` 36px (hit area still 44), `--ctl` 44px, `--ctl-lg` 56px. `--ring` 3px, `--ring-offset` 3px, colour `--focus`, plus a paper halo so it shows on any background. Inside a card the offset drops to `--ring-offset-in` (2px) because the card clips its contents; set `--ring-gap` to pick one.
+`--hit` 2.75rem (44px). The drawn thing may be smaller; the target is not. A 20px box is fine inside a 44px control. Control heights *(added)*: `--ctl-sm` 36px (hit area still 44), `--ctl` 44px, `--ctl-lg` 56px; a control with a label grows past them with its text. An icon-only control is chrome: `--chrome-ctl-sm` / `--chrome-ctl` / `--chrome-ctl-lg` with a `--chrome-hit` target at every text size. `--ring` 3px, `--ring-offset` 3px, colour `--focus`, plus a paper halo so it shows on any background. Inside a card the offset drops to `--ring-offset-in` (2px) because the card clips its contents; set `--ring-gap` to pick one.
 
 ### Colour
 
@@ -151,19 +169,37 @@ Gate 4 is open. Two registered numbers drive interaction: `--lift` (0 flat, 1 ra
 
 Only `transform`, `opacity` and the two numbers animate. **Reduced motion means gentler, not instant**: `--move` goes to 0 (every component multiplies its travel by it), durations shorten, a spinner becomes a pulse, and colour changes stay. `perspective` belongs on the flip's direct parent. `prefers-reduced-motion` and `data-motion="reduced"` set identical blocks.
 
+### States
+
+Two families set the two numbers differently. An **action** does something when pressed (a `.btn` without `aria-pressed`, a link card): the owner's states. A **selection control** is selected, on or current (chip, tab, segmented option, toggle button, dock item, tile, swatch, calendar day, timeline clip, chosen chart bar, sheet handle, pressable avatar): the solid fill means selected and nothing else, so a hovered chip never looks selected. *(added)*
+
+| State | Comes from | Action: `--lift` / `--fill` | Selection: `--lift` / `--fill` |
+| --- | --- | --- | --- |
+| rest | nothing | 0 / 0 (primary starts filled) | 0 / 0 |
+| hover | `:hover` inside `@media (hover: hover)` | 1 / 1 | 1 / 0 |
+| focus | `:focus-visible` (+ the ring) | 1 / 1 | 1 / 0 |
+| pressed | `:active` (`--dur-press`) | 0 / 1 | 0 / 0.15, a tint visible within 100ms |
+| selected, on, current | `aria-pressed` / `-selected` / `-checked="true"`, `aria-current` | n/a | – / 1, plus a structural cue: doubled frame, check, underline or weight |
+| selected + hover or focus | both | n/a | 1 / 1 |
+| busy · unavailable | `aria-busy` · `:disabled`, `aria-disabled` | 0 / – · 0 / 0 | the same |
+
+A list row lives inside a frame and does not lift: hover is a light tint, pressed a deeper one, current is the ink fill with a check and a bold title.
+
 ### Icons
 
-Five glyphs ship in the main bundle, the owner's own drawings on a 24 grid with a 2px square-cap stroke (the frame's weight, so an icon reads as line work and not as a sticker). About 140 more, re-stroked to the same weight from Lucide (ISC), are in `dist/icons.css`. They are CSS masks, so they take `currentColor`:
+Five glyphs ship in the main bundle, the owner's own drawings on a 24 grid with a 2px square-cap stroke (the frame's weight, so an icon reads as line work and not as a sticker). About 150 more, re-stroked to the same weight from Lucide (ISC), are in `dist/icons.css`. They are CSS masks, so they take `currentColor`:
 
 ```html
 <span class="ic ic--arrow" aria-hidden="true"></span>
 ```
 
-`ic--arrow` (↗) · `ic--plus` · `ic--minus` · `ic--close` · `ic--check`. Size with `--ic-size` (default 1.25rem). Decorative by default: when an icon is a control's only content, the *control* gets the `aria-label`.
+`ic--arrow` (↗) · `ic--plus` · `ic--minus` · `ic--close` · `ic--check`. Size with `--ic-size` (default 1.25rem): an icon beside words grows with them (in `em` beside a label that is not body size); an icon that is the whole control is chrome (`--chrome-ic-sm`, `--chrome-ic`, `--chrome-ic-xs`). Decorative by default: when an icon is a control's only content, the *control* gets the `aria-label`.
 
 ### Layout primitives *(added)*
 
 Intrinsic, no media queries: `.app` (shell), `.stack`, `.cluster`, `.split`, `.grid` (`--grid-min`), `.center`, `.bleed`, `.scroller`, `.cq` (make a container), `.sticky-top`, `.safe-top`, `.safe-bottom`, `.safe-x`, `.break`, `.truncate`. Safe-area insets need `viewport-fit=cover` and cover all four sides (landscape phones have side insets). Sticky chrome sets `--appbar-h` / `--dock-h` so focus is never hidden behind it.
+
+**A bar or a row of controls never wraps raggedly** *(added)*: it is one row at every size, and when it cannot fit it switches as a whole (icons only, the short form, one item per line, or a scroller with a clear cue). Where CSS cannot know whether the row fits, `SG.fit` (`src/js/05-fit.js`, in the core script) measures it: `SG.fit.register(selector, { steps, measure, parts, start, attrs })` tries the steps richest first and writes the first that fits to `data-fit`; the element's CSS keeps the row on one line while `data-fit` is set, and has its own fallback without script. The dock, the segmented control and the pager use it.
 
 ### Appearance switches
 
@@ -189,7 +225,7 @@ The owner's original element, ported without changes to its class names, anatomy
 
 ### Button
 
-A pill or circle you press. One primary per screen or card. Secondary is an outline that fills on hover; primary is filled with the accent; tone borrows the colours of the tone it sits in (`data-tone="bad"` is a danger button). Sizes `sm` / md / `lg` all keep a 44px hit area. Toggles use `aria-pressed` (filled *and* a doubled frame); busy uses `aria-busy` (a spinner, or a pulse under reduced motion); unavailable uses `aria-disabled` plus a reason in `aria-describedby`. Full spec: `docs/components/button.html`. `src/components/button.css` is the **reference component**: every other element copies its structure.
+A pill or circle you press. One primary per screen or card. Secondary is an outline that fills on hover; primary is filled with the accent; tone borrows the colours of the tone it sits in (`data-tone="bad"` is a danger button). Sizes `sm` / md / `lg` all keep a 44px hit area; an icon-only circle is chrome (44, or 36 / 56) at every text size, and the radius is half the nominal height, so a label that must wrap keeps the pill's end curve. Toggles use `aria-pressed` and follow the selection states (§2): off rises on hover without filling, on is filled *and* the frame doubles; busy uses `aria-busy` (a spinner, or a pulse under reduced motion); unavailable uses `aria-disabled` plus a reason in `aria-describedby`. Full spec: `docs/components/button.html`. `src/components/button.css` is the **reference component**: every other element copies its structure.
 
 ---
 
@@ -224,9 +260,10 @@ The tooling audit of the original checker fed it 146 deliberate violations: it c
 | 6 | layering | a component using `.wf-*`; anything using a `--grey-*` primitive |
 | 7 | markup | a class used in a docs page or in JS (`class=`, `classList.add`, `className =`) that no CSS defines; `data-tone` with a value that isn't a tone |
 | 8 | doc drift | `CLAUDE.md`, `STYLE.md`, `README.md` naming a custom property or class that does not exist; `STYLE.md` and `package.json` disagreeing on the version |
-| 9 | accessibility hygiene | `outline: none` with no replacement in the same rule, `transition: all`, px font sizes, an `html` font-size other than 100%, a viewport that blocks zoom, unlabeled icon buttons, icons without `aria-hidden`, positive `tabindex`, `role=button` on a div, `<img>` without `alt`, `overflow: hidden` (clips rings), text dimmed with `opacity`, a control drawn under 44px |
+| 9 | accessibility hygiene | `outline: none` with no replacement in the same rule, `transition: all`, px font sizes, an `html` font-size other than 100%, a viewport that blocks zoom, unlabeled icon buttons, icons without `aria-hidden`, positive `tabindex`, `role=button` on a div, `<img>` without `alt`, text dimmed with `opacity`, a control drawn under 44px. (`overflow: hidden` is not linted: whether it clips a ring or text is measured by `npm run test:a11y`.) |
 | 10 | hygiene | `:hover` not gated by `(hover: hover)`, physical properties (RTL), fixed px sizes, px media queries, `!important`, `prefers-contrast` blocks that drifted apart, `import`/`export` in a script |
 | 11 | copy | lorem ipsum, "John Doe", "seamless", "leverage" in a docs page (rule 5) |
+| 12 | wrapping (`wrap`) | `overflow-wrap: anywhere` in `src/` outside the tokens: it makes min-content one letter, so flex and grid items shatter their words. A code token or URL may waive it on its line with `/* lint-allow wrap: why */`. Two self-test cases cover it |
 
 Which of the seven rules have a gate behind them: **2 flat** and **6 colour is a swap** fully; **1 two line weights** and **3 rectangles hold, circles act** for the values the CSS can express; **5 say something real** in the docs; **4 uppercase is structure** and **7 no decoration** only as warnings (an uppercase style outside a label selector, an inset one-edge shadow). "The gate is clean" therefore does not mean "the sheet complies": the squint test is still the last word.
 
@@ -236,7 +273,7 @@ What lint cannot see, because it never renders, is covered by the browser tests:
 
 ## 6. Status
 
-This table is the owner's record for Card and Button. The other fifty elements are on the Status page of the docs, which `npm run status` generates from the gates (the spec, the lint and the accessibility gate), so nobody types a status. When Card or Button moves, edit the row here.
+This table is the owner's record for Card and Button. The other fifty elements are on the Status page of the docs, which `npm run status` generates: its *Automated checks* field from the gates (the spec, the lint and the accessibility gate), and its *Screenshots* field from `docs-src/project/visual-review.json`, which the person who reviews the screenshots keeps by hand. Passing checks alone never read as "done". When Card or Button moves, edit the row here.
 
 | Element | 0 Brief | 1 Wireframe | 2 States | 3 Colour | 4 Motion | 5 Freeze |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -257,6 +294,6 @@ This table is the owner's record for Card and Button. The other fifty elements a
 
 ## 8. Changelog
 
-- **Unreleased** · Fifty elements, nine foundations pages, Start, Accessibility and Project pages, per-element builds, CI. Palettes are self-contained and higher contrast reaches islands; `SG.prefs` keeps an app's authored look and takes a storage key per app. Docs tables stack on phones; the Status page is generated. A design review of every page was worked through: nothing breaks mid-word or is cut off at 200% text in the elements. The full list is in `docs/project/changelog.html`.
+- **Unreleased** · Fifty elements, nine foundations pages, Start, Accessibility and Project pages, per-element builds, CI. Palettes are self-contained and higher contrast reaches islands; `SG.prefs` keeps an app's authored look and takes a storage key per app. Docs tables stack on phones; the Status page is generated. A visual pass at 390px with 100% and 200% text added the system rules: chrome caps, selection states, one-row bars measured with `SG.fit`, `overflow-wrap: break-word` with a lint rule against `anywhere`, and pills that keep their ends when a label wraps. The Status page now separates the automated checks from the screenshot review. The full list is in `docs/project/changelog.html`.
 - **0.2.0** · 2026-09-30 · Re-founded on the Flashcards style sheet v0.1. Colour engine (dark, higher contrast, six palettes, status tones, bold), motion on, Button, accessibility gate, extended checker. Card: `study` renamed `portrait` (alias kept); hover rules gated for touch; long words no longer clip at large text.
 - **0.1.0** · 2026-09-30 · The owner's sheet: foundations (type, space, line, shape, hit, motion). Wireframe colour layer with six tone slots. Card: ten variants, six states, two grids. Gates 0–2 closed for Cards.

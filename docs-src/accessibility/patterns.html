@@ -1,4 +1,21 @@
 <!--{"title":"Patterns","group":"Accessibility","order":4,"summary":"A keyboard pattern index: which element follows which WAI-ARIA Authoring Practices pattern or native behaviour, the keys it answers to, its tab stops, and the spec that presses them."}-->
+<style>
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+</style>
 <h1>Keyboard patterns</h1>
 <p class="lede">Every element, the pattern it follows and the keys it answers to. The keys come from each element's own accessibility table and from its script; the spec in the last line of each pattern cell is the file that presses them in a real browser.</p>
 
@@ -127,7 +144,7 @@
 </table></div>
 
 <h2 id="add">Adding an element</h2>
-<p>A new element takes its pattern from the APG or from a native element, never invents one. The work is in <code>CLAUDE.md</code>: copy <code>src/components/button.css</code>, write the keyboard and screen-reader table on its page, write <code>tests/components/&lt;name&gt;.mjs</code> that presses the keys and asserts focus, ARIA state and the <code>--lift</code> and <code>--fill</code> numbers, and add a row here. The checks that prove the rest are on <a href="@/accessibility/testing.html">Testing</a>, and the rows of the <a href="@/accessibility/checklist.html#done">definition of done</a> say what each has to show.</p>
+<p>A new element takes its pattern from the APG or from a native element, never invents one. The work is in <code>CLAUDE.md</code>: copy <code>src/<wbr>components/<wbr>button.css</code>, write the keyboard and screen-reader table on its page, write <code>tests/<wbr>components/<wbr>&lt;name&gt;.mjs</code> that presses the keys and asserts focus, ARIA state and the <code>--lift</code> and <code>--fill</code> numbers, and add a row here. The checks that prove the rest are on <a href="@/accessibility/testing.html">Testing</a>, and the rows of the <a href="@/accessibility/checklist.html#done">definition of done</a> say what each has to show.</p>
 <p>What none of this proves is what a screen reader says. Those scripts are on <a href="@/accessibility/manual.html">Manual</a>, and nobody has run them.</p>
 <style>
 .docs-article .pt-spec { display: block; margin-block-start: var(--space-1); color: var(--ink-soft); font: var(--type-meta); }
