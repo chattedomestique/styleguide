@@ -237,6 +237,26 @@ export const tests = [
     },
   },
   {
+    // Regression: a tooltip lined up with its trigger's start edge was given the strip to the end of the screen and shrank
+    // to fit, so on a 320px phone its right edge sat at x = 320, flush with the glass, while popovers kept 16px.
+    name: 'at 320 px a tooltip that is longer than the room beside its trigger keeps the screen gutter (16 px), start-aligned or flipped',
+    viewport: { width: 320, height: 640 },
+    async run({ page, goto, expect }) {
+      await goto('components/tooltip.html')
+      for (const id of ['tip-start', 'tip-archive', 'tip-id']) {
+        const sel = `[aria-describedby^="${id}"]`
+        await page.locator(sel).first().scrollIntoViewIfNeeded()
+        await page.locator(sel).first().focus()
+        await page.keyboard.press('Shift+Tab')
+        await page.keyboard.press('Tab') // keyboard modality, so the tooltip shows
+        await page.waitForTimeout(450)
+        const r = await page.evaluate((i) => { const t = document.getElementById(i).getBoundingClientRect(); return { open: document.getElementById(i).matches(':popover-open'), left: t.left, right: t.right, vw: innerWidth } }, id)
+        expect.ok(r.open, `${id} is shown`)
+        expect.ok(r.right <= r.vw - 15.5 && r.left >= 15.5 - 2, `${id}: ${Math.round(r.left)}..${Math.round(r.right)} of ${r.vw}, expected a 16px gutter at the screen edge`)
+      }
+    },
+  },
+  {
     name: 'fallback without anchor positioning: JS places and clamps it',
     async run({ page, goto, expect }) {
       await page.addInitScript(() => { const s = CSS.supports.bind(CSS); CSS.supports = (...a) => (/position-area|anchor-name/.test(a.join(' ')) ? false : s(...a)) })

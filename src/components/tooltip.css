@@ -33,11 +33,14 @@
   [popover].tooltip {
     /* 1 · private properties */
     --_rise: calc(var(--move) * var(--space-1));
+    /* the same gutter the popover keeps from the screen's edges (popover.css --_edge) */
+    --_edge: calc(max(var(--gutter), var(--safe-left)) + max(var(--gutter), var(--safe-right)));
+    --_screen-gap: max(var(--gutter), var(--safe-left), var(--safe-right));
 
     position: fixed;
     display: none; /* a closed tooltip stays hidden while the exit animation needs display to be discrete */
     box-sizing: border-box;
-    max-inline-size: min(20rem, calc(100vw - var(--space-5)));
+    max-inline-size: min(20rem, calc(100vw - var(--_edge)));
     margin: 0;
     padding: var(--space-2) var(--space-3);
     overflow: visible;
@@ -73,6 +76,23 @@
     [popover].tooltip:popover-open {
       opacity: 0;
       transform: translateY(var(--_rise));
+    }
+  }
+
+  /* KEEP A GUTTER AT THE SCREEN'S EDGE. A tooltip lined up with its trigger's start edge ("bottom-start")
+     is given the whole strip from there to the end of the screen, and shrinks to fit it: on a 320px phone
+     it ran flush to the glass (right edge at x = 320) while a popover kept 16px. The margin is on the side
+     the screen bounds (and flips with the placement, in RTL too); it costs nothing when the tooltip is
+     narrower than the strip. The centred placements get the same gutter from the edge-aligned fallbacks
+     in popover.css (--sg-ts ...). Beside a control (start, end) a tooltip is a few words and flips when
+     it does not fit, so those are left alone: a gutter there would flip a tooltip that fits. Native
+     placement only: the script's fallback already clamps to 8px. */
+  [popover].tooltip[data-anchored]:not([data-anchor-js]) {
+    &[data-placement$="-start"] {
+      margin-inline-end: var(--_screen-gap);
+    }
+    &[data-placement$="-end"] {
+      margin-inline-start: var(--_screen-gap);
     }
   }
 
