@@ -38,7 +38,7 @@
      pressed   --lift 0 and a light tint (--fill 0.15), within 100ms
      selected  --fill 1 AND a doubled frame; hovered, it lifts too, with a gap in the surface colour so the
                ink pill does not fuse with its own shadow (as Button); pressed again, it stays chosen and only
-               lightens a little (--fill 0.85)
+               lightens its fill a little (--_press)
    The doubled frame is a 2px ring in the surface colour just INSIDE the border, between the frame and the
    fill: drawn outside, it made the chosen tab 4px larger than the tabs beside it. The weight stays 600 for
    every tab on purpose: a heavier selected tab is wider, and the whole row would shuffle sideways each time
@@ -166,6 +166,7 @@
   .tabs__tab {
     --lift: 0;
     --fill: 0;
+    --_press: 0; /* a press on something filled lightens the fill only (see button.css): the label keeps its contrast */
     --_rest-bg: var(--paper);
     --_rest-ink: var(--ink);
     --_on-bg: var(--accent);
@@ -197,7 +198,7 @@
     margin-inline-end: var(--_tail, 0px);
     padding: var(--_py) calc(var(--_px) + var(--_grow, 0px) / 2);
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
-    background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
+    background: color-mix(in srgb, color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg)) calc(100% - var(--_press) * 12%), var(--_rest-bg));
     border: var(--bw) solid var(--line);
     border-radius: var(--radius-pill);
     box-shadow: var(--_select), var(--_halo), var(--_shadow);
@@ -261,7 +262,8 @@
     /* pressing the chosen tab again keeps it chosen: it lightens a little (the pressed rule above is more
        specific than [aria-selected], so without this it dropped to the 15% tint and looked deselected) */
     &[aria-selected="true"]:is(:active, .is-active):not(:disabled, [aria-disabled="true"]) {
-      --fill: 0.85;
+      --fill: 1;
+      --_press: 1;
     }
 
     /* unavailable: dashed = not here. Faint, not opacity. */

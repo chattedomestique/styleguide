@@ -69,7 +69,7 @@ export const tests = [
     name: 'S1: the fill is kept for on. An action chip and a "more" chip only lift on hover; an on chip lightens a little while pressed',
     async run({ page, goto, expect }) {
       await goto('components/chip.html')
-      const read = (loc) => loc.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      const read = (loc) => loc.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')), press: Number(getComputedStyle(el).getPropertyValue('--_press')), ink: getComputedStyle(el).color }))
       for (const loc of [page.locator('#action + p + .demo .chip').first(), page.locator('.chip[data-kind="more"]')]) {
         await loc.scrollIntoViewIfNeeded()
         await loc.hover()
@@ -79,11 +79,14 @@ export const tests = [
       }
       const on = page.locator(`${FILTERS} .chip[aria-pressed="true"]`).first()
       await on.scrollIntoViewIfNeeded()
+      const before = await read(on)
       await on.hover()
       await page.mouse.down()
       await page.waitForTimeout(350)
       const r = await read(on)
-      expect.equal(r.lift, 0, 'pressed: sunk'); expect.ok(r.fill > 0.8 && r.fill < 0.9, 'an on chip pressed lightens a little: ' + r.fill)
+      // the fill lightens (--_press) while the label keeps its on-colour, so its contrast never drops below AA
+      expect.equal(r.lift, 0, 'pressed: sunk'); expect.equal(r.fill, 1, 'an on chip pressed stays filled'); expect.equal(r.press, 1, 'its fill lightens a little (--_press)')
+      expect.equal(r.ink, before.ink, 'the label keeps its colour')
       await page.mouse.up()
     },
   },

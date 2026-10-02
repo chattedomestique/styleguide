@@ -32,7 +32,7 @@
      rest      --lift 0, --fill 0
      hover     --lift 1 (raised, with its hard shadow), no fill: a mouse over a chip must not look like "on"
      focus     --lift 1 and the ring
-     pressed   --lift 0 and a light tint (--fill 0.15), visible within 100ms; an on chip lightens (0.85)
+     pressed   --lift 0 and a light tint (--fill 0.15), visible within 100ms; an on chip lightens its fill (--_press)
      on        --fill 1 + the doubled frame + a check; hovered, it also lifts
    This holds for action and "more" chips too: next to filters, any filled chip would read as on.
    An INPUT chip holds a value rather than invites a press, so it is flat (no shadow, no hover); only its
@@ -99,6 +99,7 @@
   .chip {
     --lift: 0;
     --fill: 0;
+    --_press: 0; /* a press on something filled lightens the fill only (see button.css): the label keeps its contrast */
     --_rest-bg: var(--paper);
     --_rest-ink: var(--ink);
     --_on-bg: var(--accent);
@@ -129,7 +130,7 @@
     /* --_grow: set on a scrolling row by the script, so the chip at its edge is cut near its middle */
     padding-inline: calc(var(--_px) + var(--_grow, 0px) / 2);
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
-    background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
+    background: color-mix(in srgb, color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg)) calc(100% - var(--_press) * 12%), var(--_rest-bg));
     border: var(--bw) solid var(--line);
     border-radius: calc(var(--_h) / 2);
     box-shadow: var(--_select), var(--_halo), var(--_shadow);
@@ -241,9 +242,10 @@
       & > .chip__icon {
         display: none;
       }
-      /* pressing an on chip lightens it a little: the same "I felt that" as the tint, from the other side */
+      /* pressing an on chip lightens its fill a little: the same "I felt that" as the tint, from the other side */
       &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], :has(> .chip__input:disabled)) {
-        --fill: 0.85;
+        --fill: 1; /* stays on: the pressed tint above would otherwise take it to 15% and it would read as off */
+        --_press: 1;
       }
     }
 

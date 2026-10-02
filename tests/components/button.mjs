@@ -40,7 +40,7 @@ export const tests = [
     async run({ page, goto, expect }) {
       await goto('components/button.html')
       const b = page.locator('#variants ~ .demo .btn[data-variant="primary"]').first()
-      const nums = () => b.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')) }))
+      const nums = () => b.evaluate((el) => ({ lift: Number(getComputedStyle(el).getPropertyValue('--lift')), fill: Number(getComputedStyle(el).getPropertyValue('--fill')), bg: getComputedStyle(el).backgroundColor, ink: getComputedStyle(el).color }))
       await page.waitForTimeout(50)
       const rest = await nums()
       expect.equal(rest.lift, 0, 'rest: --lift 0')
@@ -54,8 +54,10 @@ export const tests = [
       const down = await nums()
       expect.equal(down.lift, 0, 'pressed: back onto the surface')
       // a primary button is filled at rest, so a press that only sank it would look like rest on a touch screen:
-      // its fill lightens a little instead (golden rule 14)
-      expect.equal(down.fill, 0.85, 'pressed: the fill lightens, so a tap shows')
+      // its fill lightens a little (--_press) while the label keeps its colour (golden rule 14)
+      expect.equal(down.fill, 1, 'pressed: still filled')
+      expect.ok(down.bg !== rest.bg, 'pressed: the fill lightens, so a tap shows (' + rest.bg + ' -> ' + down.bg + ')')
+      expect.equal(down.ink, rest.ink, 'pressed: the label keeps its colour, so its contrast does not drop')
       await page.mouse.up()
       await page.mouse.move(0, 0)
       await page.keyboard.press('Tab') // switch to keyboard modality so :focus-visible applies

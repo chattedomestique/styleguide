@@ -75,6 +75,10 @@
   .btn {
     --lift: 0;
     --fill: 0;
+    /* a press on something already filled: 12% of the resting colour comes into the FILL only, so the label keeps
+       its full on-colour and its contrast stays at AA on every accent (lowering --fill also faded the label: 3.9:1
+       on a mid-green accent) */
+    --_press: 0;
     --_rest-bg: var(--paper);
     --_rest-ink: var(--ink);
     --_on-bg: var(--accent);
@@ -110,7 +114,7 @@
     padding: var(--chrome-2) var(--_px);
     margin: 0;
     color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
-    background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
+    background: color-mix(in srgb, color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg)) calc(100% - var(--_press) * 12%), var(--_rest-bg));
     border: var(--bw) solid var(--line);
     border-radius: var(--_r);
     box-shadow: var(--_select), var(--_halo), var(--_shadow);
@@ -181,12 +185,12 @@
 
     /* on: filled, and the frame doubles (a ring of the resting colour inside the frame), so "on" does not
        depend on the accent being dark. Raised on hover and focus like any button; a press lightens the
-       fill a little, so a tap on an "on" toggle shows before it turns off. */
+       fill a little (--_press), so a tap on an "on" toggle shows before it turns off. */
     &:is([aria-pressed="true"], [role="radio"][aria-checked="true"]) {
       --fill: 1;
       --_selw: var(--bw);
       &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
-        --fill: 0.85;
+        --_press: 1;
       }
     }
 
@@ -230,10 +234,10 @@
       --fill: 1;
     }
     /* A primary button is flat and filled at rest, so the press (lift 0, fill 1) looked exactly like rest and a tap on
-       a touch screen showed nothing (golden rule 14: feedback within 100 ms). The press lightens the fill a little,
-       as it does on an "on" toggle. */
+       a touch screen showed nothing (golden rule 14: feedback within 100 ms). The press lightens the fill a little
+       (--_press), as it does on an "on" toggle. */
     &[data-variant="primary"]:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
-      --fill: 0.85;
+      --_press: 1;
     }
     &[data-variant="tone"] {
       --_rest-bg: var(--tone-bg);

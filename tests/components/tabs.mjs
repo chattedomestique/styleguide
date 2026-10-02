@@ -459,11 +459,11 @@ export const tests = [
       await t.hover()
       await page.mouse.down()
       await page.waitForTimeout(400)
-      const f = await t.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--fill')))
+      const f = await t.evaluate((el) => ({ fill: Number(getComputedStyle(el).getPropertyValue('--fill')), press: Number(getComputedStyle(el).getPropertyValue('--_press')) }))
       await page.mouse.up()
-      expect.ok(f >= 0.8 && f < 1, 'the chosen tab under a press keeps nearly all its fill: ' + f)
+      expect.ok(f.fill === 1 && f.press === 1, 'the chosen tab under a press stays filled and only lightens its fill (--_press): ' + JSON.stringify(f))
       const forced = await page.evaluate(() => { const el = document.getElementById('tabs-pill-t1'); el.classList.add('is-active'); const v = Number(getComputedStyle(el).getPropertyValue('--fill')); el.classList.remove('is-active'); return v })
-      expect.ok(forced >= 0.8, 'the forced pressed state agrees: ' + forced)
+      expect.ok(forced === 1, 'the forced pressed state agrees: ' + forced)
     },
   },
   {
