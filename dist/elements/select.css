@@ -1,0 +1,279 @@
+/*! styleguide v0.2.0 - element: select. Needs core.css and the elements: appbar, button, chip, dock, input, pagination, player, progress, scrubber, stepper, tabs, tag, timeline, 00-chart-marks, avatar, donut, marquee, media, sparkline, toast, toolbar, alert, choice, slider, switch, dialog, popover, segmented, sheet, table, list, keypad. Generated from src/components/select.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Select  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A styled NATIVE <select>. The closed control is ours; the picker that opens is the
+   browser's own, which is the best touch, keyboard, type-ahead and screen-reader
+   experience there is (the wheel on iOS, the sheet on Android, the list on desktop). We
+   do not replace it.
+
+   <div class="select">
+     <select id="country" name="country" autocomplete="country-name">
+       <option value="" disabled selected>Choose a country</option>
+       <option>Canada</option>
+       …
+     </select>
+     <span class="ic ic--chevron-down" aria-hidden="true"></span>
+   </div>
+
+   data-size   md (44, default) | lg (56)      on .select
+   States      :disabled, :user-invalid, [aria-invalid="true"], :focus-visible: the same
+               frame as the text input (input.css is the one source). The error's inner second
+               frame is drawn by ::after, OVER the end slot, so the whole control (value and
+               chevron) wears one doubled frame; drawn on the wrapper's own box the slot covered it,
+               and the chevron cell kept a single thin frame beside a doubled one.
+
+   LARGE TEXT. The value grows with the reader's text size; the end slot (44px), the chevron (20px)
+   and the side padding are chrome and stop at their 100% size. At 200% text a rem-sized slot took a
+   third of the control and cut the value to "Dublin (…", "US…".
+
+   A select is something you PRESS to open, so unlike a text field it is raised like a
+   button: the frame holds the choice (a rectangle), the end slot is the action. The slot
+   is its own 2px block joined to the frame, and FILLS with the accent when the select can
+   be pressed (hover, focus), with the same hard lift as a button. Pressing sinks it.
+   Pressing opens the native picker, so the lift is the only thing that animates.
+
+   WHY THE WRAPPER
+   A <select> cannot contain an icon, and a text glyph for the chevron is not in the bundled
+   font (and a CSS background image cannot take a colour from a role). So the chevron is a
+   real mask icon laid over the end slot. It ignores pointer events, so a tap anywhere on
+   the box opens the native picker. The wrapper is the frame, so the ring, the error and the
+   disabled look are drawn once (:has()), exactly as in .input-group.
+
+   A LISTBOX (multiple, or size above 1) is a visible list, not a button: no chevron, no lift. Its chosen
+   options are filled with --accent and bold, because the list shows the selection all the time.
+
+   Use a select for 5 to about 15 options that are known in advance. Fewer than 5: use
+   radio buttons (see choice). Many more, or searchable: a combobox, not this.
+   ========================================================================== */
+
+/* lint-allow-file tokens: select is the input family: it reuses the field frame from input.css through shared private properties, on purpose */
+
+@layer sg.components {
+  .select {
+    --lift: 0;
+    --fill: 0;
+    /* A raised select with its end slot FILLED (ink) would fuse with its ink shadow into one lump, like a
+       filled button does (see button.css): the lift opens a gap in the surface colour, and the shadow moves
+       out by the same amount so it keeps its 4px. */
+    --_gap: calc(var(--lift) * var(--fill) * var(--bw));
+    --_halo: 0 0 0 var(--_gap) var(--focus-halo, var(--paper));
+    --_shadow: calc(var(--lift) * var(--space-1) + var(--_gap)) calc(var(--lift) * var(--space-1) + var(--_gap)) 0 0 var(--line);
+
+    position: relative;
+    display: block;
+    isolation: isolate;
+    min-block-size: var(--_h);
+    box-shadow: var(--_halo), var(--_shadow); /* the error's inset frame is ::after's (see below) */
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* The end slot: a 44 px block that overlays the frame's end so its corners match the
+       frame's outer radius. It is the part that fills. */
+    &::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      inset-block: calc(var(--_bw) * -1);
+      inset-inline-end: calc(var(--_bw) * -1);
+      inline-size: calc(var(--chrome-hit) + var(--_bw));
+      background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--_bg));
+      border: var(--_bw) solid var(--_line);
+      border-start-end-radius: var(--radius-ctl);
+      border-end-end-radius: var(--radius-ctl);
+      pointer-events: none;
+    }
+
+    > select {
+      position: relative;
+      z-index: 1;
+      display: block;
+      inline-size: 100%;
+      min-block-size: calc(var(--_h) - 2 * var(--_bw));
+      margin: 0;
+      padding-block: 0;
+      padding-inline: calc(var(--_px) - 2 * var(--_bw)) calc(var(--chrome-hit) + var(--chrome-2) - var(--_bw));
+      color: inherit;
+      background: transparent;
+      /* a real border in no colour: see input.css (.input-group > .input) for why */
+      border: var(--_bw) solid transparent;
+      border-radius: inherit;
+      font: inherit;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+
+      &:disabled {
+        opacity: 1;
+        -webkit-text-fill-color: var(--_ink);
+        cursor: not-allowed;
+      }
+
+      /* An unchosen placeholder option reads like a placeholder (--ink-mute is >= 4.5:1). */
+      &:has(> option[value=""]:checked) {
+        color: var(--ink-mute);
+      }
+
+      /* The popup list: solid role colours, or some platforms paint their own grey. */
+      option,
+      optgroup {
+        background-color: var(--paper);
+        color: var(--ink);
+      }
+      option:disabled {
+        color: var(--ink-mute);
+      }
+      optgroup {
+        font-weight: 700;
+      }
+    }
+
+    /* The error's inner frame, over everything but the chevron, so it runs round the end slot too */
+    &::after {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      border-radius: max(0px, calc(var(--radius-ctl) - var(--_bw))); /* the inner edge of the frame's corner */
+      box-shadow: var(--_inset);
+      pointer-events: none;
+    }
+
+    > .ic {
+      --ic-size: var(--chrome-ic-sm);
+      position: absolute;
+      z-index: 3;
+      inset-block: 0;
+      inset-inline-end: calc((var(--chrome-hit) - var(--ic-size)) / 2);
+      margin-block: auto;
+      color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--_ink));
+      pointer-events: none;
+    }
+
+    /* raised where a pointer can hover, and always on keyboard focus (same lift, so both match) */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:has(> select:disabled)) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:is(.is-focus, :has(> select:focus-visible)) {
+      --lift: 1;
+      --fill: 1;
+    }
+    /* pressed: back onto the surface, the fill stays. After hover so it wins. */
+    &:is(.is-active, :has(> select:active)):not(:has(> select:disabled)) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* unavailable: dashed, faint, flat, no slot fill. The slot's own edge is dashed too, or a solid
+       divider and a solid end edge would sit on a dashed frame. */
+    &:has(> select:disabled) {
+      --lift: 0;
+      --fill: 0;
+      --_shadow: 0 0 0 0 transparent;
+      --_halo: 0 0 0 0 transparent;
+
+      &::before {
+        border-style: dashed;
+      }
+    }
+
+    /* Multiple / listbox: a tall box, no chevron, no lift, padding around the options. */
+    &:has(> select[multiple]),
+    &:has(> select[size]:not([size="1"])) {
+      --lift: 0;
+      --fill: 0;
+      --_shadow: 0 0 0 0 transparent;
+      transform: none;
+
+      &::before,
+      > .ic {
+        display: none;
+      }
+      > select {
+        /* edge to edge: the chosen option's bar spans the frame, and the TEXT keeps the inset every other
+           field has (so "Colours" lines up with a closed select's value). A bar floating 12px inside the
+           frame with the text a further 8px in looked like a rendering fault. */
+        padding: 0;
+        cursor: default;
+        option {
+          /* min-block-size alone leaves the text at the TOP of a 44px row (an <option> does not centre its
+             line), so the row's height comes from padding: half of what the line leaves free, each side */
+          min-block-size: var(--hit);
+          padding-block: calc((var(--hit) - 1lh) / 2);
+          padding-inline: calc(var(--_px) - 2 * var(--_bw));
+          /* an option cannot wrap: a name wider than the box ends in an ellipsis, not under the frame */
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        /* The chosen option(s). The solid paper fill set on every option above also erases the
+           platform's own "selected" grey, so without this rule a list that is not focused shows NO
+           selection at all (WCAG 1.4.1, 3.3.2). Fill plus weight: the second cue is the bold. While the
+           list has focus the platform paints its own (blue) selection over this, which CSS cannot restyle. */
+        option:checked {
+          background-color: var(--accent);
+          color: var(--on-accent);
+          font-weight: 700;
+        }
+      }
+    }
+  }
+
+  /* the wrapper wears the ring; the select inside would draw a second, inner one */
+  @supports selector(:has(*)) {
+    .select > select:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+    /* .is-focus (docs and tests) draws the same ring as a real focus */
+    .select:is(.is-focus, :has(> select:focus-visible)) {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper), var(--_halo), var(--_shadow);
+    }
+  }
+
+  /* ---- Forced colours: fills and shadows go, so the lifted select gets a heavier outline and
+     the slot keeps its own frame (the divider) and the chevron stays ButtonText. ----------- */
+  @media (forced-colors: active) {
+    .select > select {
+      border-color: Canvas;
+    }
+    .select {
+      &::before {
+        border-color: ButtonText;
+      }
+      &:is(:hover, .is-hover, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      > .ic {
+        forced-color-adjust: none;
+        background-color: ButtonText;
+      }
+    }
+    .select:is(.is-focus, :has(> select:focus-visible)) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    .select:has(> select:disabled) {
+      &::before {
+        border-color: GrayText;
+      }
+      > .ic {
+        background-color: GrayText;
+      }
+    }
+  }
+}

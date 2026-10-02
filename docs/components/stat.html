@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0e0e" media="(prefers-color-scheme: dark)" />
+    <title>Stat · Style Guide</title>
+    <meta name="description" content="A recipe, not a component: how the Card stat, Tags, a List and Avatars compose a dashboard. No new CSS." />
+    <!-- Apply saved appearance before first paint so there is no flash of the wrong theme. -->
+    <script>try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}</script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141414'/%3E%3Crect x='6' y='6' width='20' height='20' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E" />
+    <link rel="preload" href="../assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../assets/styleguide.css" />
+    <link rel="stylesheet" href="../assets/icons.css" />
+    <link rel="stylesheet" href="../assets/wire.css" />
+    <link rel="stylesheet" href="../assets/docs.css" />
+  </head>
+  <body class="docs">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="docs-bar" id="docs-bar">
+      <button class="btn docs-bar__menu" data-shape="circle" data-size="sm" type="button" aria-label="Menu" aria-expanded="false" aria-controls="docs-nav">
+        <span class="ic ic--menu" aria-hidden="true"></span>
+      </button>
+      <a class="docs-bar__title" href="../index.html"><span class="t-label">Style guide</span> <span class="docs-bar__version t-label">v0.2.0</span></a>
+      <button class="btn docs-bar__prefs" data-size="sm" type="button" popovertarget="docs-prefs" aria-label="Appearance settings">
+        <span class="ic ic--sliders-horizontal" aria-hidden="true"></span>
+        <span>Appearance</span>
+      </button>
+    </header>
+
+    <div class="docs-scrim" data-docs-scrim hidden></div>
+
+    <div class="docs-shell">
+      <nav class="docs-nav" id="docs-nav" aria-label="Primary"><section class="docs-nav__group"><h2 class="docs-nav__heading">Start</h2><ul role="list"><li><a href="../index.html">Overview</a></li><li><a href="../start/install.html">Install</a></li><li><a href="../start/customize.html">Customize</a></li><li><a href="../start/upgrade.html">Upgrade</a></li><li><a href="../start/pwa.html">PWA</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Foundations</h2><ul role="list"><li><a href="../foundations/color.html">Colour</a></li><li><a href="../foundations/tones.html">Tones</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/interaction.html">Interaction</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/icons.html">Icons</a></li><li><a href="../foundations/layout.html">Layout</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Components</h2><ul role="list"><li><a href="../components/button.html">Button</a></li><li><a href="../components/field.html">Field</a></li><li><a href="../components/input.html">Input</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/choice.html">Choice</a></li><li><a href="../components/switch.html">Switch</a></li><li><a href="../components/slider.html">Slider</a></li><li><a href="../components/stepper.html">Stepper</a></li><li><a href="../components/keypad.html">Keypad</a></li><li><a href="../components/tabs.html">Tabs</a></li><li><a href="../components/chip.html">Chip</a></li><li><a href="../components/segmented.html">Segmented control</a></li><li><a href="../components/appbar.html">App bar</a></li><li><a href="../components/dock.html">Dock</a></li><li><a href="../components/breadcrumb.html">Breadcrumb</a></li><li><a href="../components/pagination.html">Pagination</a></li><li><a href="../components/card.html">Card</a></li><li><a href="../components/tag.html">Tag</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/divider.html">Divider</a></li><li><a href="../components/accordion.html">Accordion</a></li><li><a href="../components/tile.html">Tile</a></li><li><a href="../components/list.html">List</a></li><li><a href="../components/stat.html" aria-current="page">Stat</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/sheet.html">Sheet</a></li><li><a href="../components/menu.html">Menu</a></li><li><a href="../components/popover.html">Popover</a></li><li><a href="../components/tooltip.html">Tooltip</a></li><li><a href="../components/alert.html">Alert</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/progress.html">Progress</a></li><li><a href="../components/spinner.html">Spinner</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/empty.html">Empty state</a></li><li><a href="../components/marquee.html">Marquee</a></li><li><a href="../components/table.html">Table</a></li><li><a href="../components/chart-bar.html">Bar chart</a></li><li><a href="../components/sparkline.html">Sparkline</a></li><li><a href="../components/donut.html">Donut chart</a></li><li><a href="../components/legend.html">Legend</a></li><li><a href="../components/calendar.html">Calendar</a></li><li><a href="../components/agenda.html">Agenda</a></li><li><a href="../components/media.html">Media</a></li><li><a href="../components/carousel.html">Carousel</a></li><li><a href="../components/filmstrip.html">Filmstrip</a></li><li><a href="../components/gallery.html">Gallery</a></li><li><a href="../components/toolbar.html">Toolbar</a></li><li><a href="../components/scrubber.html">Scrubber</a></li><li><a href="../components/swatch.html">Swatch</a></li><li><a href="../components/timeline.html">Timeline</a></li><li><a href="../components/player.html">Player</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Accessibility</h2><ul role="list"><li><a href="../accessibility/checklist.html">Checklist</a></li><li><a href="../accessibility/testing.html">Testing</a></li><li><a href="../accessibility/manual.html">Manual</a></li><li><a href="../accessibility/patterns.html">Patterns</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Project</h2><ul role="list"><li><a href="../project/status.html">Status</a></li><li><a href="../project/decisions.html">Decisions</a></li><li><a href="../project/references.html">References</a></li><li><a href="../project/contributing.html">Contributing</a></li><li><a href="../project/changelog.html">Changelog</a></li><li><a href="../project/audit.html">Audit</a></li></ul></section></nav>
+
+      <main class="docs-main" id="main" tabindex="-1">
+        <article class="docs-article">
+          <p class="docs-crumb t-label">Components</p>
+          <h1>Stat</h1>
+<p class="lede">One number, big, with just enough around it to mean something. This page adds no CSS: a stat is the <a href="../components/card.html#stat">Card stat recipe</a>, and this is how it sits with a <a href="../components/tag.html">Tag</a>, a <a href="../components/list.html">List</a>, an <a href="../components/avatar.html">Avatar</a> and a <a href="../components/divider.html">Divider</a> to make a dashboard.</p>
+
+<h2 id="recipe">The recipe</h2>
+<p>Four parts, in this order: what it counts (<code class="nb">.card__eyebrow</code>), the number (<code class="nb">.card__figure</code>), what state it is in (one tag, optional, or a meter), and a one-line reading of it (<code class="nb">.card__meta</code>). One state per card: a second fact goes in the meta line, not in a second tag. The figure scales with the card's own width, from 28 to 104px, stays on one line, and uses tabular figures. Square cards in one row share one height. Give the grid a small minimum (7.5rem here, 6.5rem inside the phone frame below) so a pair stays two to a row down to a 320px phone. A square card alone on its row (wider than 14rem) is as tall as its content.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 7.5rem">
+      <article class="card card--square" data-tone="1">
+        <div class="card__body">
+          <p class="card__eyebrow">Learned so far</p>
+          <p class="card__figure">5<small aria-hidden="true">/12</small><span class="sr-only"> of 12</span></p>
+          <div class="meter" role="meter" aria-label="Shapes learned" aria-valuemin="0" aria-valuemax="12" aria-valuenow="5" aria-valuetext="5 of 12" style="--value: 41.6%"></div>
+          <p class="card__meta">Seven to go.</p>
+        </div>
+      </article>
+      <article class="card card--square">
+        <div class="card__body">
+          <p class="card__eyebrow">Streak</p>
+          <p class="card__figure">4</p>
+          <div class="cluster"><span class="tag" data-tone="ok" data-size="sm">On track</span></div>
+          <p class="card__meta">Days running. Best is nine.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+<p class="t-meta">The state goes in a tag, never in the tone. The tone gives the grid its rhythm; "On track" is the words and the check. The ink tone works the same way (see the wider screen below).</p>
+
+<h2 id="dashboard">A dashboard</h2>
+<p>The stat leads; the list is what to do next; the tags say where each row stands; the stack says who is in it. A labelled divider names each group. Everything is an element from the guide with its own markup; the only thing here that is new is the order.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="stack" data-gap="5">
+          <header class="split">
+            <div class="cluster" data-gap="3" style="flex-wrap: nowrap">
+              <a class="avatar" href="#" data-presence="online" aria-label="Your profile, Sam Castillo, online">SC<img src="../assets/surfaces/avatar-sam.svg" alt=""></a>
+              <div>
+                <p class="t-meta">Good evening</p>
+                <h3 class="t-title">Sam</h3>
+              </div>
+            </div>
+            <span class="tag" data-tone="warn">11&nbsp;due</span>
+          </header>
+
+          <div class="grid" style="--grid-min: 6.5rem">
+            <article class="card card--square" data-tone="1">
+              <div class="card__body">
+                <p class="card__eyebrow">Learned</p>
+                <p class="card__figure">5<small aria-hidden="true">/12</small><span class="sr-only"> of 12</span></p>
+                <p class="card__meta">Seven to go.</p>
+              </div>
+            </article>
+            <article class="card card--square">
+              <div class="card__body">
+                <p class="card__eyebrow">Streak</p>
+                <p class="card__figure">4</p>
+                <p class="card__meta">Best is nine.</p>
+              </div>
+            </article>
+          </div>
+
+          <div class="stack" data-gap="3">
+            <h4 class="divider" data-align="start">Due today</h4>
+            <ul class="list" role="list" data-variant="framed">
+              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">7&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-priority="high" data-size="sm">High</span></span></a></li>
+              <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">4&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-priority="low" data-size="sm">Low</span></span></a></li>
+            </ul>
+          </div>
+
+          <div class="stack" data-gap="3">
+            <h4 class="divider" data-align="start">Studying with you</h4>
+            <div class="cluster" data-gap="3">
+              <ul class="avatar-stack" data-size="sm" role="list" aria-label="Maya, Jonas and Priya">
+                <li><span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="../assets/surfaces/avatar-maya.svg" alt=""></span></li>
+                <li><span class="avatar" role="img" aria-label="Jonas Berg">JB<img src="../assets/surfaces/avatar-jonas.svg" alt=""></span></li>
+                <li><span class="avatar" role="img" aria-label="Priya Nair">PN<img src="../assets/surfaces/avatar-priya.svg" alt=""></span></li>
+              </ul>
+              <p class="t-meta">Three friends this week</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="wide">On a wider screen</h2>
+<p>The same parts, placed by their container. Stats in a <code class="nb">.grid</code> with a minimum width, then a list and a key / value card side by side. Nothing looks at the viewport: each card answers to its own width.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="5">
+      <div class="grid" style="--grid-min: 9rem">
+        <article class="card card--square" data-tone="1">
+          <div class="card__body">
+            <p class="card__eyebrow">Learned so far</p>
+            <p class="card__figure">5<small aria-hidden="true">/12</small><span class="sr-only"> of 12</span></p>
+            <p class="card__meta">Seven to go.</p>
+          </div>
+        </article>
+        <article class="card card--square" data-tone="3">
+          <div class="card__body">
+            <p class="card__eyebrow">Cards due</p>
+            <p class="card__figure">11</p>
+            <div class="cluster"><span class="tag" data-tone="warn" data-size="sm">Due soon</span></div>
+          </div>
+        </article>
+        <article class="card card--square">
+          <div class="card__body">
+            <p class="card__eyebrow">Streak</p>
+            <p class="card__figure">4</p>
+            <p class="card__meta">Days running.</p>
+          </div>
+        </article>
+        <article class="card card--square" data-tone="ink">
+          <div class="card__body">
+            <p class="card__eyebrow">Accuracy</p>
+            <p class="card__figure">86<small>%</small></p>
+            <div class="cluster"><span class="tag" data-tone="ok" data-size="sm">Up 8&nbsp;points</span></div>
+          </div>
+        </article>
+      </div>
+      <div class="grid" style="--grid-min: 17rem">
+        <section class="card">
+          <header class="card__bar"><p class="card__label">Decks</p></header>
+          <ul class="list" role="list">
+            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-tone="ok" data-size="sm">Synced</span></span></a></li>
+            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-tone="warn" data-size="sm">Needs review</span></span></a></li>
+            <li><a class="list__row" href="#"><span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20&nbsp;cards</span></span><span class="list__trail"><span class="tag" data-tone="bad" data-size="sm">Sync failed</span></span></a></li>
+          </ul>
+        </section>
+        <article class="card">
+          <div class="card__body">
+            <p class="card__eyebrow">This week</p>
+            <p class="card__title">Shapes</p>
+            <dl class="kv" style="--kv-min: 6rem">
+              <div><dt>Sessions</dt><dd>5</dd></div>
+              <div><dt>Cards seen</dt><dd>140</dd></div>
+              <div><dt>Correct</dt><dd>120</dd></div>
+              <div><dt>Missed</dt><dd>20</dd></div>
+            </dl>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="rules">Rules for composing</h2>
+<ul>
+  <li><strong>One number per card.</strong> If it needs two, it is two cards. The eyebrow says what is counted; the meta says what to make of it.</li>
+  <li><strong>State goes in a tag, rhythm goes in a tone.</strong> A red card is not "bad". A tag that says <em>Sync failed</em> with a cross is.</li>
+  <li><strong>The list is what to do next.</strong> Put the most urgent row first and give it a priority tag; a long list belongs on its own screen.</li>
+  <li><strong>Write numbers for machines and people.</strong> <code class="nb">.num</code> or <code class="nb">.card__figure</code> for tabular figures, <code class="nb">Intl.NumberFormat</code> for the digits, and the true minus sign U+2212 for negatives.</li>
+  <li><strong>Hide what the number already says.</strong> "5/12" is read as "5 of 12" if the <code class="nb">/12</code> is decorative and the words are in a visually hidden span.</li>
+  <li><strong>A dashboard has a beginning.</strong> Stats first, then what to do, then who is involved: four to eight elements, then stop.</li>
+</ul>
+
+<h2 id="a11y">Accessibility</h2>
+<ul>
+  <li>Each stat is an article whose text reads in order: eyebrow, figure, meta. A meter has its own <code class="nb">role="meter"</code> with <code class="nb">aria-valuenow</code>; the figure next to it carries the same number as text.</li>
+  <li>Changing figures (a count that updates while you watch) are announced with <code class="nb">SG.announce()</code>, once per change, not on every tick.</li>
+  <li>Tags are text. A status tag carries a symbol and words, a priority carries bars and words, so nothing on the dashboard needs colour to be understood.</li>
+  <li>Headings stay in order: a screen title, then a divider heading for each group.</li>
+</ul>
+
+<h2 id="tokens">Parts used</h2>
+<p><a href="../components/card.html">Card</a> (<code class="nb">.card--square</code>, <code class="nb">.card__figure</code>), <a href="../components/tag.html">Tag</a>, <a href="../components/list.html">List</a> (<code class="nb">.list</code>, <code class="nb">.kv</code>), <a href="../components/avatar.html">Avatar</a> and stack, <a href="../components/divider.html">Divider</a> and the <a href="../components/progress.html#meter">Meter</a> (<code class="nb">.meter</code>).</p>
+
+        </article>
+        <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__heading">On this page</h2><ul role="list"><li><a href="#recipe">The recipe</a></li><li><a href="#dashboard">A dashboard</a></li><li><a href="#wide">On a wider screen</a></li><li><a href="#rules">Rules for composing</a></li><li><a href="#a11y">Accessibility</a></li><li><a href="#tokens">Parts used</a></li></ul></nav>
+      </main>
+    </div>
+
+    <!-- Appearance panel: built by docs.js (theme, contrast, palette, corners, motion). -->
+    <div class="docs-prefs" id="docs-prefs" popover aria-label="Appearance settings"></div>
+
+    <script src="../assets/styleguide.js" defer></script>
+    <script src="../assets/docs.js" defer></script>
+  </body>
+</html>

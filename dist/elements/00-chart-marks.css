@@ -1,0 +1,95 @@
+/*! styleguide v0.2.0 - element: 00-chart-marks. Needs core.css. Generated from src/components/00-chart-marks.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Chart marks  (layer: sg.components)            shared by bars, donut, legend
+   --------------------------------------------------------------------------
+   One rule for every chart in the guide: COLOUR IS NEVER THE ONLY CUE (WCAG
+   1.4.1). A series is a tone slot (data-tone="1" … "6") AND a pattern, and the
+   pattern is tied to the slot here, so nobody can forget it:
+
+     tone 1  solid                 tone 4  back-hatch  \\\
+     tone 2  hatch      ///        tone 5  cross-hatch XXX
+     tone 3  dots       . . .      tone 6  lines       |||
+
+   Why tone ↔ pattern are welded: a pastel fill (L ≥ 0.92) cannot reach 3:1
+   against the paper (1.4.11), so the 2px --line frame carries the boundary and
+   the pattern carries identity. In the wire palette the six tones are six
+   greys that sit a few percent apart; the pattern is what still tells them
+   apart. In forced-colours mode fills vanish and the pattern survives.
+   Tones carry rhythm, never meaning: a legend and direct labels say what a
+   series IS.
+
+   A mark is: tone fill + 2px frame + a pattern drawn as a MASK filled with ink
+   (so it follows theme, palette and contrast mode, and needs no colour literal).
+   Private properties the parts read:   --_pat  --_bg  --_pat-ink
+
+   Parts that are marks: .mark (generic), .bars__bar, .bars__seg, .legend__key.
+   The donut draws the same six tiles as SVG <pattern>s (see donut.css) at the
+   same size, because an SVG fill cannot take a CSS mask.
+
+   FOUNDATION REQUESTS  none: this file only reads --tone-*, --ink, --paper,
+   --line, --bw and the tone switch that already exists.
+   ========================================================================== */
+
+@layer sg.components {
+  /* set by [data-tone] on THAT element only (registered non-inheriting, like
+     --tone-bg), so a tonal card never leaks its pattern into a chart inside it */
+  @property --mark-pat {
+    syntax: "*";
+    inherits: false;
+  }
+
+  :root {
+    --pat-size: 0.5rem; /* one tile; rem, so patterns grow with text size like everything else */
+
+    /* 8x8 tiles, 1.25-unit strokes. Black here is only an alpha mask; the colour is --ink. */
+    --pat-1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3C/svg%3E");
+    --pat-2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M0 8L8 0M-1 1L1 -1M7 9L9 7' stroke='%23000' stroke-width='1.25' fill='none'/%3E%3C/svg%3E");
+    --pat-3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Ccircle cx='2' cy='2' r='1.15'/%3E%3Ccircle cx='6' cy='6' r='1.15'/%3E%3C/svg%3E");
+    --pat-4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M0 0L8 8M-1 7L1 9M7 -1L9 1' stroke='%23000' stroke-width='1.25' fill='none'/%3E%3C/svg%3E");
+    --pat-5: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M0 8L8 0M0 0L8 8M-1 1L1 -1M7 9L9 7M-1 7L1 9M7 -1L9 1' stroke='%23000' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+    --pat-6: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M2 0V8M6 0V8' stroke='%23000' stroke-width='1.25' fill='none'/%3E%3C/svg%3E");
+  }
+
+  [data-tone="1"] { --mark-pat: var(--pat-1); }
+  [data-tone="2"] { --mark-pat: var(--pat-2); }
+  [data-tone="3"] { --mark-pat: var(--pat-3); }
+  [data-tone="4"] { --mark-pat: var(--pat-4); }
+  [data-tone="5"] { --mark-pat: var(--pat-5); }
+  [data-tone="6"] { --mark-pat: var(--pat-6); }
+
+  /* ---- the mark ------------------------------------------------------------ */
+  :is(.mark, .bars__bar, .bars__seg, .legend__key) {
+    --_pat: var(--mark-pat, var(--pat-1)); /* read here, on the element that has data-tone */
+    --_bg: var(--tone-bg, var(--paper));
+    --_pat-ink: var(--ink);
+
+    position: relative;
+    background: var(--_bg);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+  }
+
+  :is(.mark, .bars__bar, .bars__seg, .legend__key)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--_pat-ink);
+    mask: var(--_pat) 0 0 / var(--pat-size) var(--pat-size) repeat;
+    pointer-events: none;
+  }
+
+  /* forced colours deletes background-color, which is what the mask is painted
+     with. System colour it back in: the pattern is then the ONLY thing that tells
+     series apart, and it still does. */
+  @media (forced-colors: active) {
+    :is(.mark, .bars__bar, .bars__seg, .legend__key) {
+      border-color: CanvasText;
+    }
+    :is(.mark, .bars__bar, .bars__seg, .legend__key)::before {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+  }
+}

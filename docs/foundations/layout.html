@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0e0e" media="(prefers-color-scheme: dark)" />
+    <title>Layout · Style Guide</title>
+    <meta name="description" content="The app shell, stack, cluster, split, grid, bleed and scroller, container queries before media queries, sticky chrome, safe areas and rows that never wrap raggedly: small primitives that reflow at 320px and 200% text." />
+    <!-- Apply saved appearance before first paint so there is no flash of the wrong theme. -->
+    <script>try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}</script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141414'/%3E%3Crect x='6' y='6' width='20' height='20' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E" />
+    <link rel="preload" href="../assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../assets/styleguide.css" />
+    <link rel="stylesheet" href="../assets/icons.css" />
+    <link rel="stylesheet" href="../assets/wire.css" />
+    <link rel="stylesheet" href="../assets/docs.css" />
+  </head>
+  <body class="docs">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="docs-bar" id="docs-bar">
+      <button class="btn docs-bar__menu" data-shape="circle" data-size="sm" type="button" aria-label="Menu" aria-expanded="false" aria-controls="docs-nav">
+        <span class="ic ic--menu" aria-hidden="true"></span>
+      </button>
+      <a class="docs-bar__title" href="../index.html"><span class="t-label">Style guide</span> <span class="docs-bar__version t-label">v0.2.0</span></a>
+      <button class="btn docs-bar__prefs" data-size="sm" type="button" popovertarget="docs-prefs" aria-label="Appearance settings">
+        <span class="ic ic--sliders-horizontal" aria-hidden="true"></span>
+        <span>Appearance</span>
+      </button>
+    </header>
+
+    <div class="docs-scrim" data-docs-scrim hidden></div>
+
+    <div class="docs-shell">
+      <nav class="docs-nav" id="docs-nav" aria-label="Primary"><section class="docs-nav__group"><h2 class="docs-nav__heading">Start</h2><ul role="list"><li><a href="../index.html">Overview</a></li><li><a href="../start/install.html">Install</a></li><li><a href="../start/customize.html">Customize</a></li><li><a href="../start/upgrade.html">Upgrade</a></li><li><a href="../start/pwa.html">PWA</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Foundations</h2><ul role="list"><li><a href="../foundations/color.html">Colour</a></li><li><a href="../foundations/tones.html">Tones</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/interaction.html">Interaction</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/icons.html">Icons</a></li><li><a href="../foundations/layout.html" aria-current="page">Layout</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Components</h2><ul role="list"><li><a href="../components/button.html">Button</a></li><li><a href="../components/field.html">Field</a></li><li><a href="../components/input.html">Input</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/choice.html">Choice</a></li><li><a href="../components/switch.html">Switch</a></li><li><a href="../components/slider.html">Slider</a></li><li><a href="../components/stepper.html">Stepper</a></li><li><a href="../components/keypad.html">Keypad</a></li><li><a href="../components/tabs.html">Tabs</a></li><li><a href="../components/chip.html">Chip</a></li><li><a href="../components/segmented.html">Segmented control</a></li><li><a href="../components/appbar.html">App bar</a></li><li><a href="../components/dock.html">Dock</a></li><li><a href="../components/breadcrumb.html">Breadcrumb</a></li><li><a href="../components/pagination.html">Pagination</a></li><li><a href="../components/card.html">Card</a></li><li><a href="../components/tag.html">Tag</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/divider.html">Divider</a></li><li><a href="../components/accordion.html">Accordion</a></li><li><a href="../components/tile.html">Tile</a></li><li><a href="../components/list.html">List</a></li><li><a href="../components/stat.html">Stat</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/sheet.html">Sheet</a></li><li><a href="../components/menu.html">Menu</a></li><li><a href="../components/popover.html">Popover</a></li><li><a href="../components/tooltip.html">Tooltip</a></li><li><a href="../components/alert.html">Alert</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/progress.html">Progress</a></li><li><a href="../components/spinner.html">Spinner</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/empty.html">Empty state</a></li><li><a href="../components/marquee.html">Marquee</a></li><li><a href="../components/table.html">Table</a></li><li><a href="../components/chart-bar.html">Bar chart</a></li><li><a href="../components/sparkline.html">Sparkline</a></li><li><a href="../components/donut.html">Donut chart</a></li><li><a href="../components/legend.html">Legend</a></li><li><a href="../components/calendar.html">Calendar</a></li><li><a href="../components/agenda.html">Agenda</a></li><li><a href="../components/media.html">Media</a></li><li><a href="../components/carousel.html">Carousel</a></li><li><a href="../components/filmstrip.html">Filmstrip</a></li><li><a href="../components/gallery.html">Gallery</a></li><li><a href="../components/toolbar.html">Toolbar</a></li><li><a href="../components/scrubber.html">Scrubber</a></li><li><a href="../components/swatch.html">Swatch</a></li><li><a href="../components/timeline.html">Timeline</a></li><li><a href="../components/player.html">Player</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Accessibility</h2><ul role="list"><li><a href="../accessibility/checklist.html">Checklist</a></li><li><a href="../accessibility/testing.html">Testing</a></li><li><a href="../accessibility/manual.html">Manual</a></li><li><a href="../accessibility/patterns.html">Patterns</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Project</h2><ul role="list"><li><a href="../project/status.html">Status</a></li><li><a href="../project/decisions.html">Decisions</a></li><li><a href="../project/references.html">References</a></li><li><a href="../project/contributing.html">Contributing</a></li><li><a href="../project/changelog.html">Changelog</a></li><li><a href="../project/audit.html">Audit</a></li></ul></section></nav>
+
+      <main class="docs-main" id="main" tabindex="-1">
+        <article class="docs-article">
+          <p class="docs-crumb t-label">Foundations</p>
+          <style>
+  /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #prims-table td:nth-child(2) { min-inline-size: 14rem; }
+    #prims-table td:last-child { min-inline-size: 16rem; }
+    #safe-table td:last-child { min-inline-size: 16rem; }
+  }
+  .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+
+  /* a labelled block to lay out */
+  .docs-article [data-f="b"] { display: flex; align-items: center; justify-content: center; min-block-size: 2.75rem; padding: var(--chrome-2) var(--chrome-3); border: var(--bw) solid var(--line); background: var(--paper); font: var(--type-meta); text-align: center; overflow-wrap: break-word; }
+  .docs-article [data-f="b"][data-tone] { background: var(--tone-bg); color: var(--tone-ink); }
+  .docs-article [data-f="note"] { margin: 0; max-inline-size: none; font: var(--type-meta); color: var(--ink-soft); }
+  .docs-article [data-f="pair"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--space-5); align-items: start; }
+  .docs-article [data-f="pair"] > div { display: grid; gap: var(--space-2); min-inline-size: 0; }
+  .docs-article [data-f="wrapbox"] { padding: var(--chrome-3); border: var(--bw) dashed var(--line); }
+  /* The scroller demo is a screen: it cancels the stage's inset so the row can run to the frame, the way a
+     .bleed row runs to the edge of a phone. The chip that is cut off is cut by the frame: "more this way". */
+  .docs-article [data-f="screen"] { display: grid; gap: var(--space-3); margin-inline: calc(var(--chrome-5) * -1); }
+  @media (max-width: 40em) { .docs-article [data-f="screen"] { margin-inline: calc(var(--chrome-3) * -1); } }
+  .docs-article [data-f="screen"] p { margin: 0; max-inline-size: none; }
+  /* the width buttons: one row when they fit, one per line when they do not (never two and a lonely third) */
+  /* The squeeze demo's four stat cards ask the dashed box, not the page: one column, two by two, or four in a row,
+     never three and a lonely fourth (an auto-fit grid gave 3 + 1 at a desk width). */
+  .docs-article #cq-box { container: cqbox / inline-size; }
+  .docs-article [data-f="four"] { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 1fr); }
+  @container cqbox (min-width: 15rem) { .docs-article [data-f="four"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container cqbox (min-width: 30rem) { .docs-article [data-f="four"] { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .docs-article [data-f="widths"] { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  @container (max-width: 15rem) { .docs-article [data-f="widths"] { flex-direction: column; align-items: stretch; } }
+  /* a tile holds a real icon (the card's tile is chrome: 44px at any text size) */
+  .docs-article .card__tile:has(> .ic) { display: grid; place-items: center; }
+  .docs-article [data-f="shape"] { display: grid; gap: var(--space-2); }
+
+  /* the phone used for the safe-area demo: insets are simulated by setting the tokens on the frame */
+  .docs-article [data-f="device"] .phone__screen { display: flex; flex-direction: column; min-block-size: 24rem; padding: 0; }
+  .docs-article [data-f="device"] [data-f="appbar"] { position: relative; padding-inline: var(--chrome-4); padding-block-end: var(--chrome-3); background: var(--ink); color: var(--paper); }
+  .docs-article [data-f="device"] [data-f="appbar"] p { margin: var(--chrome-3) 0 0; max-inline-size: none; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="device"] [data-f="main"] { flex: 1 1 auto; display: grid; gap: var(--space-2); align-content: start; padding: var(--chrome-4); }
+  .docs-article [data-f="device"] [data-f="main"] p { margin: 0; max-inline-size: none; }
+  .docs-article [data-f="device"] [data-f="dock"] { position: relative; padding-inline: var(--chrome-4); padding-block-start: var(--chrome-3); border-block-start: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="device"] [data-f="dock"] p { display: flex; justify-content: space-around; gap: var(--chrome-2); margin: 0 0 var(--chrome-3); max-inline-size: none; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="band"] { position: absolute; inset-inline: 0; display: flex; align-items: flex-end; justify-content: center; padding-block-end: var(--space-1); border-block-end: var(--bw-thin) dashed currentColor; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="appbar"] > [data-f="band"] { inset-block-start: 0; block-size: var(--safe-top); }
+  .docs-article [data-f="dock"] > [data-f="band"] { inset-block-end: 0; block-size: var(--safe-bottom); border-block-end: 0; border-block-start: var(--bw-thin) dashed currentColor; align-items: flex-start; padding-block: var(--space-1) 0; }
+</style>
+
+<h1>Layout</h1>
+<p class="lede">Small composable primitives that set space and flow and never colour. They are intrinsic: they wrap, shrink and re-flow on their own, so the same markup holds at 320px wide, at 200% text, and in a one-column phone or a four-column desk. Media queries are kept for one job, the app shell.</p>
+
+<h2 id="shell">App shell</h2>
+<p><code class="nb">.app</code> is a phone-width column, centred on larger screens, with the safe areas as padding on all four sides (landscape phones have side insets). <code class="nb">.app__main</code> is the region between the app bar and the dock; it keeps room for the dock and the home indicator.</p>
+<pre aria-label="A minimal app shell"><code>&lt;meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"&gt;
+
+&lt;body&gt;
+  &lt;div class="app"&gt;                      &lt;!-- add data-wide for the 64rem column --&gt;
+    &lt;header class="sticky-top safe-top"&gt;…&lt;/header&gt;
+    &lt;main class="app__main"&gt;…&lt;/main&gt;
+  &lt;/div&gt;
+&lt;/body&gt;</code></pre>
+<div class="table-wrap"><table data-stack role="table" class="docs-table" id="prims-table">
+  <caption class="sr-only">App shell classes and what they set</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Class</th><th role="columnheader">Sets</th><th role="columnheader">Notes</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Class"><code class="nb">.app</code></td><td role="cell" data-label="Sets">A flex column, <code><span data-f="nw">max-inline-size:</span> <span data-f="nw">var(--app-max)</span></code> (default <code class="nb">--container-sm</code>, 30rem), centred, <code><span data-f="nw">min-block-size:</span> 100dvh</code>, side padding <code>max(var(<span data-f="nw">--gutter</span>), var(<span data-f="nw">--safe-left</span>))</code> and the same for the right.</td><td role="cell" data-label="Notes">Use <code class="nb">dvh</code>, never <code class="nb">vh</code>: mobile browser chrome moves. iOS standalone can report <code class="nb">safe-area-inset-top</code> as 0 (WebKit bug 301994), so nothing here depends on it.</td></tr>
+    <tr role="row"><td role="cell" data-label="Class"><code class="nb">.app[data-wide]</code></td><td role="cell" data-label="Sets"><code class="nb">--app-max</code> becomes <code class="nb">--container-lg</code> (64rem).</td><td role="cell" data-label="Notes">For tablet and desktop layouts.</td></tr>
+    <tr role="row"><td role="cell" data-label="Class"><code class="nb">.app__main</code></td><td role="cell" data-label="Sets"><code>flex: 1 1 auto</code>; block padding <code class="nb">--space-4</code> above and <code class="nb">--dock-h</code> + <code class="nb">--safe-bottom</code> + <code class="nb">--space-5</code> below.</td><td role="cell" data-label="Notes">Set <code class="nb">--dock-h</code> from the dock so the last item is never hidden behind it.</td></tr>
+  </tbody>
+</table></div>
+<p>The container widths are tokens: <code class="nb">--container-sm</code> 30rem (480px, the PWA default), <code class="nb">--container-md</code> 48rem, <code class="nb">--container-lg</code> 64rem, <code class="nb">--container-xl</code> 80rem.</p>
+
+<h2 id="flow">Stack, cluster and split</h2>
+<h3 id="stack">Stack</h3>
+<p>Vertical rhythm: every direct child is separated by <code class="nb">--stack-gap</code> (default <code class="nb">--space-4</code>). Set it with <code class="nb">data-gap</code> from 1 to 7 (the steps of the <a href="../foundations/space.html">space scale</a>), or set the property yourself.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div data-f="pair">
+      <div>
+        <div class="stack" data-gap="2"><div data-f="b">Wallet</div><div data-f="b">Transactions</div><div data-f="b">Settings</div></div>
+        <p data-f="note"><code class="nb">data-gap="2"</code></p>
+      </div>
+      <div>
+        <div class="stack" data-gap="5"><div data-f="b">Wallet</div><div data-f="b">Transactions</div><div data-f="b">Settings</div></div>
+        <p data-f="note"><code class="nb">data-gap="5"</code></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="cluster">Cluster</h3>
+<p>A horizontal run that wraps: buttons, tags, avatars. <code class="nb">--cluster-gap</code> defaults to <code class="nb">--space-2</code>; <code class="nb">data-gap</code> accepts 1, 3, 4 and 5; <code class="nb">data-justify</code> is <code class="nb">between</code>, <code class="nb">end</code> or <code class="nb">center</code>; <code class="nb">--cluster-align</code> defaults to <code class="nb">center</code>. Targets in a cluster keep at least 8px between them.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+      <div class="cluster">
+        <button class="btn" data-size="sm" type="button">All decks</button>
+        <button class="btn" data-size="sm" type="button">Shapes</button>
+        <button class="btn" data-size="sm" type="button">Colours</button>
+        <button class="btn" data-size="sm" type="button">Numbers to twenty</button>
+        <button class="btn" data-size="sm" type="button">Farm animals</button>
+      </div>
+      <div class="cluster" data-justify="between">
+        <button class="btn" data-size="sm" type="button">Cancel</button>
+        <button class="btn" data-variant="primary" data-size="sm" type="button">Save deck</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="split">Split</h3>
+<p>One row: the first child grows and may shrink, the last sits at the end. A title and an action, a label and a value. The first child has <code><span data-f="nw">min-inline-size:</span> 0</code>, so a long title wraps instead of pushing the action off the screen. The last child is <code>flex: none</code> (never squeezed, capped at the row's width), and the row wraps: when the title and the action cannot share a line, the action drops under the title as a whole instead of overlapping it (second row below).</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="3">
+      <div class="split"><p class="t-title">Numbers to twenty</p><button class="btn" data-size="sm" type="button">Study</button></div>
+      <div class="split"><p class="t-title">A deck with a very long name that keeps going past the edge of a phone</p><button class="btn" data-size="sm" type="button">Study</button></div>
+    </div>
+  </div>
+</div>
+
+<h2 id="grid">Grid</h2>
+<p>As many columns as fit <code class="nb">--grid-min</code> (default 12rem), no media queries: <code><span data-f="nw">repeat(auto-fit,</span> minmax(min(100%, var(--grid-min)), 1fr))</code>. The <code>min(100%, …)</code> is what stops a cell overflowing a 320px screen. <code class="nb">--grid-gap</code> defaults to <code class="nb">--space-3</code>. <code><span data-f="nw">data-cols="2"</span> | "3" | "4"</code> forces that many equal columns and does <em>not</em> reflow: use it only for small, fixed content such as a keypad, never for cards.</p>
+<p>Mind the last row. Three cards in two columns leave one alone on the second row, which reads as an afterthought. When the number of cards is small and known, make it one that fills the rows you expect (two or four for a phone's two columns), or decide the columns yourself with a container query.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+      <div class="grid" style="--grid-min: 9rem">
+        <article class="card" data-tone="1"><div class="card__body"><p class="card__eyebrow">Streak</p><p class="card__figure num">12</p></div></article>
+        <article class="card" data-tone="2"><div class="card__body"><p class="card__eyebrow">Cards</p><p class="card__figure num">48</p></div></article>
+        <article class="card" data-tone="3"><div class="card__body"><p class="card__eyebrow">Due</p><p class="card__figure num">7</p></div></article>
+        <article class="card" data-tone="4"><div class="card__body"><p class="card__eyebrow">Known</p><p class="card__figure num">31</p></div></article>
+      </div>
+      <div class="grid" data-cols="3" style="--grid-gap: var(--space-2)">
+        <div data-f="b">1</div><div data-f="b">2</div><div data-f="b">3</div>
+        <div data-f="b">4</div><div data-f="b">5</div><div data-f="b">6</div>
+      </div>
+    </div>
+  </div>
+</div>
+<p>For cards there is also <code class="nb">.card-grid</code>, which adds the gutter and <code class="nb">--card-min</code> (see <a href="../foundations/space.html#gutter">Space</a>). <code class="nb">.center</code> centres one child both ways.</p>
+
+<h2 id="bleed">Bleed and scroller</h2>
+<p><code class="nb">.bleed</code> lets a child run edge to edge inside the padded app column, with a negative margin equal to the column's side padding. <code class="nb">.scroller</code> is a horizontal run with native scrolling and scroll-snap, for chips, thumbnails and month switchers: momentum, keyboard and assistive-technology scrolling all work for free. Give it <code class="nb">role="region"</code> and an <code class="nb">aria-label</code> so it can be found, and add <code class="nb">.bleed</code> so it runs to the edge of the screen.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="safe-x" data-f="screen">
+      <p class="t-label">Decks</p>
+      <div class="scroller bleed" role="region" aria-label="Filter decks, scrolls sideways">
+        <button class="btn" data-size="sm" type="button">All</button>
+        <button class="btn" data-size="sm" type="button">Colours</button>
+        <button class="btn" data-size="sm" type="button">Shapes</button>
+        <button class="btn" data-size="sm" type="button">Numbers to twenty</button>
+        <button class="btn" data-size="sm" type="button">Farm animals</button>
+        <button class="btn" data-size="sm" type="button">Weather</button>
+        <button class="btn" data-size="sm" type="button">Food</button>
+      </div>
+      <p class="t-meta">Six decks, 148 cards.</p>
+    </div>
+  </div>
+</div>
+<p class="t-meta">The frame above is the screen. The label, the first filter and the line below start at the column's edge; the row of filters runs on to the edge of the screen, and the filter the edge cuts off says there is more. Never stop a scroller at a frame line inside the layout: a pill sliced by a line reads as a mistake. The peek is not guaranteed: at some widths and text sizes the edge falls between two items and the row looks complete, so when missing an item matters, let the row wrap (<code class="nb">.cluster</code>) instead. Scrolling is an enhancement; every item is also reachable with Tab.</p>
+
+<h2 id="containers">Container queries, not media queries</h2>
+<p>A component cannot know how wide the page is. It is the same card in a phone's one column and in a desktop's four. So components ask for <em>their own</em> width: <code class="nb">.card</code> is a container (<code>container: card / <span data-f="nw">inline-size</span></code>) and its parts use <code>@container card <span data-f="nw">(max-width:</span> 18rem)</code>. <code class="nb">.cq</code> makes any element a container, so children can respond to it. Media queries are for the app shell only, and they are written in <code class="nb">em</code> so the breakpoint follows the reader's text size: the docs shell switches to two columns at <code class="nb">64em</code>, which is 1024px at default text and 2048px at 200%. Lint warns on a <code class="nb">px</code> media query.</p>
+<p>Squeeze the box. The card re-templates itself when it is narrower than 18rem (the value drops under the title), and the grid drops columns as cells reach their minimum. The page width never changes.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="widths" role="group" aria-label="Width of the box below" id="cq-buttons">
+      <button class="btn" data-size="sm" type="button" data-w="14rem" aria-pressed="false">Narrow</button>
+      <button class="btn" data-size="sm" type="button" data-w="22rem" aria-pressed="false">Medium</button>
+      <button class="btn" data-size="sm" type="button" data-w="100%" aria-pressed="true">Wide</button>
+    </div>
+    <div class="resize-box" id="cq-box">
+      <div class="stack" data-gap="3">
+        <article class="card card--row">
+          <span class="card__tile" data-tone="2" aria-hidden="true"><span class="ic ic--square" aria-hidden="true"></span></span>
+          <div class="card__main"><p class="card__title">Square</p><p class="card__meta">Card 02 · four sides</p></div>
+          <div class="card__trail"><p>Known</p><p class="card__meta">3 days ago</p></div>
+        </article>
+        <div data-f="four">
+          <article class="card" data-tone="4"><div class="card__body"><p class="card__eyebrow">Streak</p><p class="card__figure num">12</p></div></article>
+          <article class="card" data-tone="5"><div class="card__body"><p class="card__eyebrow">Due</p><p class="card__figure num">7</p></div></article>
+          <article class="card" data-tone="6"><div class="card__body"><p class="card__eyebrow">Known</p><p class="card__figure num">5</p></div></article>
+          <article class="card" data-tone="1"><div class="card__body"><p class="card__eyebrow">New</p><p class="card__figure num">3</p></div></article>
+        </div>
+      </div>
+    </div>
+    <p class="t-meta">Drag the corner of the dashed box, or use the buttons.</p>
+  </div>
+</div>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Give the component a container and write <code class="nb">@container</code> rules on its parts. Use <code>minmax(min(100%, 12rem), 1fr)</code> for grids.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Write <code>@media <span data-f="nw">(min-width:</span> 768px)</code> inside a component, or put <code class="nb">cqi</code> on the element that is itself the container.</p></div>
+  </div>
+</div>
+
+<h2 id="sticky">Sticky chrome and focus</h2>
+<p><code class="nb">.sticky-top</code> is <code>position: sticky; inset-block-start: 0</code> at <code class="nb">--z-sticky</code>. Any sticky or fixed bar must tell the page how tall it is, through <code class="nb">--appbar-h</code> (top) and <code class="nb">--dock-h</code> (bottom), both 0px until set. <code class="nb">html</code> turns them into <code class="nb">scroll-padding-block</code> with <code class="nb">--space-3</code> of air, so a focused control scrolls into view clear of the bar rather than hidden behind it (WCAG 2.4.11). This site's own bar does it: <code>.docs { <span data-f="nw">--appbar-h:</span> 2.75rem }</code>.</p>
+<pre aria-label="Sticky chrome sets its height"><code>.my-appbar { position: sticky; inset-block-start: 0; z-index: var(--z-sticky); }
+:root      { --appbar-h: 3.5rem; }   /* the bar's height, so focus is never hidden behind it */</code></pre>
+<p>Sticky stops working inside an ancestor with <code class="nb">overflow</code> other than <code class="nb">visible</code>; keep <code>overflow: hidden</code> off the app column.</p>
+
+<h2 id="safe-areas">Safe areas</h2>
+<p>Notches, rounded corners and home indicators take space the page must not use. The four tokens read the device's insets, and are 0px where there are none:</p>
+<div class="table-wrap"><table data-stack role="table" class="docs-table" id="safe-table">
+  <caption class="sr-only">Safe-area tokens and classes</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Token or class</th><th role="columnheader" class="num">Here, now</th><th role="columnheader">What it does</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Token or class"><code class="nb">--safe-top</code></td><td role="cell" data-label="Here, now" class="num" data-safe="--safe-top"></td><td role="cell" data-label="What it does"><code>env(safe-area-inset-top, 0px)</code>. <code class="nb">.safe-top</code> pads the block start by it.</td></tr>
+    <tr role="row"><td role="cell" data-label="Token or class"><code class="nb">--safe-bottom</code></td><td role="cell" data-label="Here, now" class="num" data-safe="--safe-bottom"></td><td role="cell" data-label="What it does"><code>env(safe-area-inset-bottom, 0px)</code>. <code class="nb">.safe-bottom</code> pads the block end by it; <code class="nb">.app__main</code> reserves it.</td></tr>
+    <tr role="row"><td role="cell" data-label="Token or class"><code class="nb">--safe-left</code>, <code class="nb">--safe-right</code></td><td role="cell" data-label="Here, now" class="num" data-safe="--safe-left"></td><td role="cell" data-label="What it does">The side insets of a landscape phone. <code class="nb">.safe-x</code> pads both inline sides by <code>max(var(<span data-f="nw">--gutter</span>), inset)</code>; <code class="nb">.app</code> does it too. Always all four sides, never just top and bottom.</td></tr>
+  </tbody>
+</table></div>
+<p>They need <code class="nb">viewport-fit=cover</code> in the viewport meta tag, or the browser letterboxes the page and reports 0. The phone below simulates a notch and a home indicator by setting the two tokens on its frame (47px and 34px, a recent iPhone's insets: they are device pixels, so they do not grow with the text); the dashed bands are the insets, and the bar and the dock grow by exactly that much.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone" data-f="device" style="--safe-top: 47px; --safe-bottom: 34px">
+      <div class="phone__screen">
+        <header data-f="appbar" class="safe-top">
+          <span data-f="band" aria-hidden="true">Status bar</span>
+          <p>Decks</p>
+        </header>
+        <div data-f="main">
+          <p class="t-title">Shapes</p>
+          <p class="t-meta">Twelve cards. Five known.</p>
+        </div>
+        <nav data-f="dock" class="safe-bottom" aria-label="Demo dock">
+          <p><span>Home</span><span>Decks</span><span>Streak</span></p>
+          <span data-f="band" aria-hidden="true">Home indicator</span>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="t-meta"><strong>Not verified on a device.</strong> iOS standalone reports <code class="nb">safe-area-inset-top</code> as 0 in some versions; the shell does not rely on it. Test on a real iPhone (see the manual pass in the accessibility docs).</p>
+
+<h2 id="wrapping">Wrapping, breaking and truncating</h2>
+<div class="table-wrap"><table data-stack role="table" class="docs-table">
+  <caption class="sr-only">Helpers for long text</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Class</th><th role="columnheader">Does</th><th role="columnheader">Use it for</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Class"><code class="nb">.break</code></td><td role="cell" data-label="Does"><code><span data-f="nw">min-inline-size:</span> 0</code>, <code><span data-f="nw">overflow-wrap:</span> <span data-f="nw">break-word</span></code> and <code>hyphens: auto</code></td><td role="cell" data-label="Use it for">Text in a flex or grid item that may hold a word longer than the line (a name, an address, a long compound). The item may shrink below its longest word, and that word breaks only when it alone cannot fit a line. Not <code class="nb">anywhere</code>: it makes the item's minimum width one letter, so every word in it can be shattered ("Shopp / ing").</td></tr>
+    <tr role="row"><td role="cell" data-label="Class"><code class="nb">.truncate</code></td><td role="cell" data-label="Does">One line, hidden overflow, ellipsis</td><td role="cell" data-label="Use it for">A secondary line that is also available in full somewhere else.</td></tr>
+    <tr role="row"><td role="cell" data-label="Class"><code class="nb">.clamp-2</code></td><td role="cell" data-label="Does">Two lines, then an ellipsis</td><td role="cell" data-label="Use it for">A description in a list.</td></tr>
+  </tbody>
+</table></div>
+<p>The demos, and the rules for words, titles and numbers, are on <a href="../foundations/typography.html#wrapping">Typography</a>.</p>
+
+<h2 id="fit">Rows that never wrap raggedly</h2>
+<p>A bar or a row of controls must not wrap into two uneven rows: two destinations and a lonely third read as a grid, not as the app's main places, and a label broken to fit says nothing. Such a row has a few complete layouts, richest first, and uses the first one that fits on one line. The <a href="../components/dock.html">Dock</a> shows icons and words, then only the current destination's word, then icons alone. The <a href="../components/segmented.html">Segmented control</a> goes from one row to one option per line. <a href="../components/pagination.html">Pagination</a> turns Previous and Next into circles, then shows only the first, current and last page, then "Page 5 of 12". CSS cannot ask "does this fit?", so a small script measures: <code class="nb">SG.fit</code>, in <code class="nb">src/js/05-fit.js</code>, part of the core script.</p>
+<pre aria-label="Registering a row with SG.fit"><code>SG.fit.register('.my-bar', {
+  steps: ['labels', 'icons'],   // richest first; the last one is used when none fits
+  measure: '.my-bar__list',     // what must not overflow (default: the element itself)
+  parts: '.my-bar__label',      // optional: parts that must not overflow either
+  attrs: ['aria-current']       // optional: re-check when these change inside it
+})</code></pre>
+<p>It tries each step in turn, writes it to <code class="nb">data-fit</code> on the element, and keeps the first one in which nothing overflows. The element's CSS draws each step. For the measure to mean anything, the CSS keeps the row on one line while <code class="nb">data-fit</code> is set, so "does not fit" shows up as overflow instead of as a wrapped row or a broken word:</p>
+<pre aria-label="The CSS side of a row that SG.fit measures"><code>.my-bar[data-fit] .my-bar__list { flex-wrap: nowrap; }
+.my-bar[data-fit] .my-bar__label { white-space: nowrap; }
+.my-bar[data-fit="icons"] .my-bar__label { /* hidden visually; it is still the name */ }</code></pre>
+<ul>
+  <li><strong>It checks again</strong> when the element's size changes (a rotation, the reader's text size), when the fonts load, when a matching element is added, and when one of <code class="nb">attrs</code> changes inside it. <code class="nb">SG.fit.update()</code> checks everything now.</li>
+  <li><strong>Without JavaScript</strong> there is no <code class="nb">data-fit</code>, and the element's own CSS fallback applies: the row wraps, or it scrolls. Write that fallback first.</li>
+  <li><strong>Words stay in the page</strong> in every step, as the accessible names. Hide a label visually, never with <code>display: none</code>.</li>
+  <li><strong>Use it only where CSS cannot decide.</strong> A layout that depends only on the element's own width is a container query. <code class="nb">SG.fit</code> is for "does this exact content fit at this text size".</li>
+</ul>
+<p>Set the text to 200% in your browser and open the Dock page: the dock changes from words to icons as a whole, and never wraps.</p>
+
+<h2 id="reflow">Reflow at 320px and 200% text</h2>
+<p>WCAG 1.4.10 asks that content reflow with no sideways scroll at 320 CSS pixels, and 1.4.4 that text can reach 200%. The primitives are built for it, and <code>npm run test:a11y</code> checks every page at 320px, and at 390px with the root at 200%.</p>
+<ul>
+  <li><code class="nb">.grid</code> cells have a <code>min(100%, …)</code> floor, so one column always fits.</li>
+  <li><code class="nb">.cluster</code> wraps; <code class="nb">.split</code>'s first child shrinks; <code class="nb">.card--row</code> moves its trailing value under the title.</li>
+  <li>Text sizes are <code class="nb">rem</code> and heights are <code class="nb">min-block-size</code>, so a control grows with its label instead of clipping it. Insets, icon-only controls and their targets are chrome and stop at their 100% size, so the words get the width (<a href="../foundations/space.html#chrome">Chrome caps</a>).</li>
+  <li>A bar or a row of controls never wraps into uneven rows: it switches its whole layout (<a href="#fit">above</a>).</li>
+  <li>Only a <code class="nb">.scroller</code>, a code block and a wide table are allowed to scroll sideways, and each is a labelled, focusable region.</li>
+</ul>
+
+<h2 id="add">Add a primitive</h2>
+<ol>
+  <li>Put it in <code>src/<wbr>layout/<wbr>layout.css</code> inside <code>@layer sg.layout</code>, wrapped in <code class="nb">:where()</code> so an app can override it with a plain selector, no <code class="nb">!important</code>.</li>
+  <li>Make it intrinsic: flex or grid with wrapping and <code class="nb">min()</code>; no media query.</li>
+  <li>Expose knobs as custom properties with a default in the rule (<code><span data-f="nw">var(--stack-gap,</span> <span data-f="nw">var(--space-4))</span></code>) and, for a few presets, as <code class="nb">data-*</code> attributes.</li>
+  <li>Set space and flow only. No colour, border or shadow.</li>
+  <li>Use logical properties (<code class="nb">margin-inline</code>, <code class="nb">padding-block</code>) so right-to-left works.</li>
+  <li>Document it here with a live demo, and check it at 320px and 200% text.</li>
+</ol>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code class="nb">--container-sm</code>, <code class="nb">--container-md</code>, <code class="nb">--container-lg</code>, <code class="nb">--container-xl</code>, <code class="nb">--gutter</code>, <code class="nb">--space-1</code> to <code class="nb">--space-7</code>, <code class="nb">--chrome-2</code> to <code class="nb">--chrome-5</code>, <code class="nb">--safe-top</code>, <code class="nb">--safe-right</code>, <code class="nb">--safe-bottom</code>, <code class="nb">--safe-left</code>, <code class="nb">--appbar-h</code>, <code class="nb">--dock-h</code>, <code class="nb">--z-sticky</code>. Knobs: <code class="nb">--app-max</code>, <code class="nb">--stack-gap</code>, <code class="nb">--cluster-gap</code>, <code class="nb">--cluster-align</code>, <code><span data-f="nw">--cluster-</span>justify</code>, <code class="nb">--grid-min</code>, <code class="nb">--grid-gap</code>, <code class="nb">--scroller-gap</code>.</p>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  /* what the safe-area tokens resolve to in this browser */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-safe]'), function (cell) {
+    var probe = document.createElement('i');
+    probe.style.cssText = 'position:absolute;visibility:hidden;inline-size:var(' + cell.getAttribute('data-safe') + ')';
+    document.body.appendChild(probe);
+    cell.textContent = Math.round(probe.getBoundingClientRect().width * 10) / 10 + 'px';
+    probe.remove();
+  });
+
+  /* width buttons: a tap equivalent for dragging the resize handle */
+  var group = document.getElementById('cq-buttons'), box = document.getElementById('cq-box');
+  if (group && box) group.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-w]');
+    if (!b) return;
+    box.style.inlineSize = b.getAttribute('data-w') === '100%' ? '' : 'min(100%, ' + b.getAttribute('data-w') + ')';
+    Array.prototype.forEach.call(group.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+  });
+});
+</script>
+
+        </article>
+        <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__heading">On this page</h2><ul role="list"><li><a href="#shell">App shell</a></li><li><a href="#flow">Stack, cluster and split</a></li><li><a href="#grid">Grid</a></li><li><a href="#bleed">Bleed and scroller</a></li><li><a href="#containers">Container queries, not media queries</a></li><li><a href="#sticky">Sticky chrome and focus</a></li><li><a href="#safe-areas">Safe areas</a></li><li><a href="#wrapping">Wrapping, breaking and truncating</a></li><li><a href="#fit">Rows that never wrap raggedly</a></li><li><a href="#reflow">Reflow at 320px and 200% text</a></li><li><a href="#add">Add a primitive</a></li><li><a href="#tokens">Tokens used</a></li></ul></nav>
+      </main>
+    </div>
+
+    <!-- Appearance panel: built by docs.js (theme, contrast, palette, corners, motion). -->
+    <div class="docs-prefs" id="docs-prefs" popover aria-label="Appearance settings"></div>
+
+    <script src="../assets/styleguide.js" defer></script>
+    <script src="../assets/docs.js" defer></script>
+  </body>
+</html>

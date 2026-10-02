@@ -1,0 +1,273 @@
+/*! styleguide v0.2.0 - element: filmstrip. Needs core.css. Generated from src/components/filmstrip.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Filmstrip  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A strip of thumbnails that chooses what the big picture above it shows: one choice at a time, like a
+   radio group, because that is what it is. The thumbnails are NATIVE radio buttons (an <input type=radio>
+   stretched over each thumbnail), so the browser gives us one tab stop, arrow keys that move AND choose,
+   wrap-around, and a form value, with no ARIA to get wrong. src/js/72-filmstrip.js only mirrors the
+   choice into the stage.
+
+   <div class="filmstrip" data-ratio="4:3">
+     <figure class="media" id="trail-stage"> <div class="media__frame"><img src alt></div> <figcaption>…</figcaption> </figure>
+     <fieldset class="filmstrip__strip" aria-controls="trail-stage">
+       <legend class="sr-only">Choose a photo</legend>
+       <div class="filmstrip__track">
+         <label class="filmstrip__thumb">
+           <input type="radio" name="trail" checked data-full="harbour.svg" data-alt="Three boats under a low sun" data-title="Harbour at dawn">
+           <img src="harbour.svg" alt="Harbour at dawn">
+         </label> …
+
+   data-size       sm (56) | md (72, default) | lg (96). The hit area is the whole thumbnail, and never under 44.
+                   A thumbnail is the frame of a picture, so it is chrome: it keeps its size at 200% text (as do the
+                   check badge and the track's insets), and the strip shows as many choices as before.
+   data-shape      circle: round thumbnails, for swatches and choices rather than photos
+   A thumbnail may be a swatch instead of a picture: put data-tone on the <label> (it paints its own tone),
+   a visually hidden name inside it, and data-stage-tone on the input to recolour the stage. An icon
+   (ic--close for "none") is centred in the thumbnail.
+
+   STATES  :checked on the input, read through :has(): the frame doubles AND a check badge appears in the
+           corner (two cues that survive pale photos, forced colours and a mono palette). The chosen picture is
+           never painted over: a fill would hide the photo, so the frame and the badge are its cues.
+           Hover and keyboard focus raise the thumbnail (--lift 1: the hard shadow), with no fill.
+           Pressing puts it back on the strip and tints it (--fill 0.15: 15% ink over the picture, drawn on the
+           radio that covers it), so a tap on a touch screen, where nothing hovers, shows at once.
+   FOCUS   the ring is drawn on the label, outside the doubled frame, inside the track's padding.
+   SCROLLING  a strip with more thumbnails than room scrolls sideways; the first one past the edge is cut about in
+           half at rest (the gap, and if need be the size, is measured), and the chosen one is brought into view
+           with a neighbour cut on each side that has more (src/js/72-filmstrip.js).
+   PRIVATE --_thumb (size)   --_select (the doubled frame)   --_strip-gap, --_thumb-k (on the track; the script
+           overrides them inline)
+   ========================================================================== */
+
+@layer sg.components {
+  .filmstrip {
+    display: grid;
+    min-inline-size: 0;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+    overflow: clip;
+  }
+
+  /* the stage is a .media that the filmstrip's frame already surrounds */
+  .filmstrip > .media {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .filmstrip__strip {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-block-start: var(--bw) solid var(--line);
+  }
+
+  /* The track scrolls; its padding is the room the ring and the doubled frame need (they must not clip).
+     --_strip-gap and --_thumb-k are measured by src/js/72-filmstrip.js (and written inline on the track) so that,
+     at rest, the first thumbnail past the edge is cut part way: the only sign that the strip scrolls (a strip
+     ending on a whole thumbnail looks finished). No snap points: the script scrolls to positions that cut a
+     neighbour on each side, and a snap would pull them back to a thumbnail's edge. */
+  .filmstrip__track {
+    --_strip-gap: var(--chrome-3);
+    --_thumb-k: 1;
+    display: flex;
+    gap: var(--_strip-gap);
+    padding: var(--chrome-3);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: var(--chrome-3);
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) var(--paper-2);
+  }
+
+  .filmstrip__thumb {
+    --lift: 0;
+    --fill: 0;
+    --_thumb: min(4.5rem, 72px); /* chrome: the frame of a picture */
+    --_select: 0 0 0 0 transparent;
+    --_shadow: calc(var(--lift) * var(--chrome-1)) calc(var(--lift) * var(--chrome-1)) 0 0 var(--line); /* 4px at every text size, like the thumbnail */
+
+    position: relative;
+    display: block;
+    flex: none;
+    /* --_thumb-k (from the track: the script sets 0.88 to 1.12) nudges the size so a scrolling strip cuts its
+       last thumbnail part way; 1 everywhere else, and outside a track */
+    inline-size: calc(var(--_thumb) * var(--_thumb-k, 1));
+    block-size: calc(var(--_thumb) * var(--_thumb-k, 1));
+    margin: 0;
+    color: var(--tone-ink, var(--ink));
+    background: var(--tone-bg, var(--paper-2));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-tile);
+    box-shadow: var(--_select), var(--_shadow);
+    cursor: pointer;
+    transform: translate(
+      calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+  }
+
+  .filmstrip[data-size="sm"] .filmstrip__thumb {
+    --_thumb: min(3.5rem, 56px);
+  }
+  .filmstrip[data-size="lg"] .filmstrip__thumb {
+    --_thumb: min(6rem, 96px);
+  }
+  .filmstrip[data-shape="circle"] .filmstrip__thumb {
+    border-radius: var(--radius-pill);
+  }
+
+  /* the picture fills the thumbnail and takes its corners. The label cannot clip (overflow) because the
+     check badge hangs off its corner, so the picture rounds itself. */
+  .filmstrip__thumb > img {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+  }
+
+  .filmstrip__thumb > .ic {
+    --ic-size: var(--chrome-ic-sm); /* an icon alone in a thumbnail: chrome */
+    position: absolute;
+    inset: 0;
+    margin: auto;
+  }
+
+  /* the real radio sits over the whole thumbnail: it is the hit area, the focus target and the form value. Its
+     background is the press tint: --fill of ink over the picture (0 at rest, so it is clear) */
+  .filmstrip__thumb > input {
+    position: absolute;
+    inset: calc(var(--bw) * -1);
+    inline-size: calc(100% + var(--bw) * 2);
+    block-size: calc(100% + var(--bw) * 2);
+    margin: 0;
+    appearance: none;
+    background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
+    border: 0;
+    border-radius: inherit;
+    cursor: pointer;
+    z-index: 1; /* above the picture, so the radio really is what a pointer and the focus probe hit */
+  }
+
+  /* raised: where a pointer can hover, and always on keyboard focus (same lift, so both match). No fill: a
+     thumbnail is a choice, and nothing but the chosen one may look chosen. */
+  @media (hover: hover) {
+    .filmstrip__thumb:is(:hover, .is-hover) {
+      --lift: 1;
+      --fill: 0;
+    }
+  }
+  .filmstrip__thumb:is(:has(> input:focus-visible), .is-focus) {
+    --lift: 1;
+    --fill: 0;
+    --ring-gap: calc(var(--bw) + var(--ring-offset-in));
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-gap);
+    /* the paper halo goes in front of the hard shadow (as on a Button), so the ring is a clean square; the doubled
+       frame of a chosen thumbnail stays in front of both */
+    box-shadow: var(--_select), 0 0 0 var(--ring-gap) var(--paper), var(--_shadow);
+  }
+  /* pressed: back on the strip and tinted at once (a touch screen has no hover to show first) */
+  .filmstrip__thumb:is(:active, .is-active) {
+    --lift: 0;
+    --fill: 0.15;
+    transition-duration: var(--dur-press);
+  }
+  /* the radio's own ring would double the label's: the label wears it (same move as .card__link) */
+  @supports selector(:has(*)) {
+    .filmstrip__thumb > input:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+  }
+
+  /* chosen: the frame doubles, and a check badge says so in words a mono palette and a blind eye agree on */
+  .filmstrip__thumb:is(:has(> input:checked), .is-selected) {
+    --_select: 0 0 0 var(--bw) var(--line);
+  }
+  .filmstrip__thumb::before,
+  .filmstrip__thumb::after {
+    content: "";
+    position: absolute;
+    z-index: 2; /* above the picture and the radio, which come later in the DOM */
+    display: none;
+    pointer-events: none;
+  }
+  .filmstrip__thumb:is(:has(> input:checked), .is-selected)::before,
+  .filmstrip__thumb:is(:has(> input:checked), .is-selected)::after {
+    display: block;
+  }
+  /* the badge is chrome, like the thumbnail it marks: 20px at every text size */
+  .filmstrip__thumb::before {
+    inset-block-start: calc(var(--chrome-1) * -1 - var(--bw));
+    inset-inline-end: calc(var(--chrome-1) * -1 - var(--bw));
+    inline-size: var(--chrome-box);
+    block-size: var(--chrome-box);
+    background: var(--ink);
+    border: var(--bw) solid var(--paper);
+    border-radius: var(--radius-pill);
+    box-sizing: border-box;
+  }
+  .filmstrip__thumb::after {
+    z-index: 3;
+    inset-block-start: calc(var(--chrome-1) * -1 - var(--bw) + var(--chrome-1) / 2);
+    inset-inline-end: calc(var(--chrome-1) * -1 - var(--bw) + var(--chrome-1) / 2);
+    inline-size: calc(var(--chrome-box) - var(--chrome-1));
+    block-size: calc(var(--chrome-box) - var(--chrome-1));
+    background: var(--paper);
+    mask: var(--icon-check) center / var(--chrome-ic-xs) no-repeat;
+  }
+
+  /* unavailable: dashed, faint, inert (aria-disabled is not valid on a native radio: use disabled) */
+  .filmstrip__thumb:has(> input:disabled) {
+    --lift: 0;
+    border-style: dashed;
+    border-color: var(--ink-faint);
+    cursor: not-allowed;
+  }
+  .filmstrip__thumb > input:disabled {
+    cursor: not-allowed;
+  }
+  /* a picture that is unavailable also loses its colour, so dashed is not the only cue it has gone quiet */
+  .filmstrip__thumb:has(> input:disabled) > img {
+    filter: grayscale(1);
+  }
+
+  /* ---- forced colours: backgrounds, masks' colours and shadows change, borders stay --------- */
+  @media (forced-colors: active) {
+    .filmstrip,
+    .filmstrip__strip {
+      border-color: CanvasText;
+    }
+    .filmstrip__thumb {
+      border-color: CanvasText;
+    }
+    .filmstrip__thumb:is(:has(> input:checked), .is-selected) {
+      border-width: var(--bw-heavy);
+    }
+    .filmstrip__thumb:is(:hover, .is-hover, :has(> input:focus-visible), .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+      border-color: Highlight;
+    }
+    .filmstrip__thumb::before {
+      forced-color-adjust: none;
+      background: Canvas;
+      border-color: CanvasText;
+    }
+    .filmstrip__thumb::after {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+  }
+}

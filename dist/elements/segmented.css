@@ -1,0 +1,384 @@
+/*! styleguide v0.2.0 - element: segmented. Needs core.css. Generated from src/components/segmented.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Segmented control  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Picks ONE value from 2 to 4 options of equal weight: Weekly | Monthly,
+   Bank account | Transactions. Built on native radio inputs, so arrow keys,
+   roving focus, form submission and screen-reader semantics need no script.
+
+   <fieldset class="segmented">
+     <legend class="sr-only">Period</legend>
+     <label class="segmented__opt">
+       <input type="radio" name="period" value="weekly" checked>
+       <span class="segmented__label">Weekly</span>
+     </label>
+     <label class="segmented__opt">
+       <input type="radio" name="period" value="monthly">
+       <span class="segmented__label"><span class="ic ic--calendar" aria-hidden="true"></span>Monthly</span>
+     </label>
+   </fieldset>
+   A visible heading instead of a legend: <div class="segmented" role="radiogroup" aria-labelledby="id">
+   (native radios still inside). If it swaps panels of content it is TABS; if it goes to another
+   screen it is navigation; this one sets a value.
+
+   data-size        sm (option 28, track 40) | md (36 / 48, default) | lg (44 / 56); hit area always 44
+   data-block       full width
+   data-variant     tone: fill from data-tone="N" on the control itself (as Button)
+   data-indicator   slide: one thumb glides between options. Under reduced motion the thumb stays
+                    put and each option fades its own fill in instead. Keep the labels short: the
+                    thumb glides along one row of equal columns, so when those cannot hold the labels
+                    the control stacks (see LARGE TEXT) and each option paints its own fill.
+
+   A TRACK WITH CELLS, NOT A ROW OF BUTTONS. The pill track is the frame (2px, --line); the options
+   are cells inside it. Cells do not lift: a hard shadow would have to leave the track, so the cell
+   pattern replaces "lift" with the cell's own frame on hover. THE FILL MEANS CHOSEN:
+     rest      no frame, no fill
+     hover     the cell's own 2px frame (pointer only)
+     focus     the ring, inside the chosen cell (where a radio group's focus lands), in the thumb's ink
+     pressed   a light tint (--fill 0.15) at once, before the radio has flipped (feedback inside 100ms)
+     chosen    the filled thumb with a frame of its own
+   Everything else is Button's: pill, 2px frame, --fill animated by ONE transition.
+
+   SELECTED is never colour alone: a filled thumb AND its own 2px frame inside the track (a second
+   ring that reads even when the accent is pale or the palette is mono). The weight stays the same on
+   purpose: a bolder label is wider, and the row would shuffle each time you chose. Forced colours:
+   Highlight fill and a 4px frame.
+
+   The native input covers the whole option at opacity 0 (a tap anywhere, including the invisible
+   44px extension, hits a real radio) and the ring is drawn on the sibling .segmented__label, because
+   a ring on an invisible input is invisible.
+
+   LARGE TEXT AND NARROW SCREENS (WCAG 1.4.4, 1.4.10). ONE ROW, OR ONE OPTION PER LINE, never 2 + 1.
+   src/js/44-segmented.js measures (SG.fit) and writes the layout to data-fit:
+     row     every option in one row of equal cells, each at least as wide as its whole label (the default)
+     grid    four options only: two rows of two equal cells
+     stack   every option on a line of its own, full width; a label too long for that wraps at its spaces
+   While data-fit is set the labels do not wrap (nowrap), so "does not fit" shows up as overflow. The words
+   grow with the reader's text, and so does an icon beside a word (1.1em: it is part of the line); the chrome
+   (the track's padding, the cells' side padding) stops at its 100% size (--chrome-*). The side padding also eases down to 8px on a narrow screen (4vw: 12.8px at
+   320), so two or three whole labels still share a row in a 288px column. Without JS there is no data-fit:
+   the cells wrap onto more rows of equal cells instead (whole labels first). A word is never broken
+   unless it is wider than the whole control.
+   A PILL IS FOR ONE LINE. The track and the cells take half of ONE line's height (--_opt) as their radius,
+   not the 999px pill: a stacked control is a soft rectangle, never an oval, and the cells (radius
+   --_opt / 2) nest in the track's corner (the track pads 4px and frames 2px).
+
+   Private properties (--_*): --_opt --_pad --_track --_fg --_thumb --_thumb-ink --_show
+   --_px --_n / --_i (option count and chosen index, set with :has(); only the sliding thumb reads them)
+   ========================================================================== */
+
+@layer sg.components {
+  .segmented {
+    --_opt: var(--ctl-sm); /* a cell's one-line height: it holds words, so it grows with them (as Button) */
+    --_pad: var(--chrome-1);
+    --_px: var(--chrome-4);
+    --_track: var(--paper-2);
+    --_fg: var(--ink);
+    --_thumb: var(--accent);
+    --_thumb-ink: var(--on-accent);
+    --_n: 2;
+    --_i: 0;
+    --_dir: 1;
+
+    position: relative;
+    isolation: isolate;
+    /* A row of equal cells that WRAPS onto more rows when their whole labels cannot share the width
+       (200% text, a narrow column): rows of whole words beat one row of words broken into letters. The cells
+       ask for equal shares (flex 1 1 0, so in one row they are equal and the chosen label cannot reflow
+       the row) but never less than their label (min-inline-size: fit-content: the label's width, capped
+       at the control's), and flex-wrap does the rest. Only a label wider than the whole control breaks. */
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    /* never wider than its container, even as a grid or flex item (a .field is a grid): with the automatic
+       minimum, a row of whole labels widened the track past a 390px phone at 200% text, the control itself
+       never overflowed, and SG.fit kept the row while the demo cut "Transactions" off */
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    margin: 0;
+    padding: var(--_pad);
+    color: var(--_fg);
+    background: var(--_track);
+    border: var(--bw) solid var(--line);
+    border-radius: calc((var(--_opt) + 2 * (var(--_pad) + var(--bw))) / 2);
+    font: var(--type-ctl);
+
+    &:dir(rtl) {
+      --_dir: -1;
+    }
+    &[data-size="sm"] {
+      --_opt: 1.75rem;
+      --_px: var(--chrome-3);
+      font-size: var(--text-sm);
+    }
+    &[data-size="lg"] {
+      --_opt: var(--ctl);
+      --_px: var(--chrome-5);
+    }
+    &[data-block] {
+      display: flex;
+      inline-size: 100%;
+    }
+    &[data-variant="tone"] {
+      --_track: var(--tone-bg);
+      --_fg: var(--tone-ink);
+      --_thumb: var(--tone-fill);
+      --_thumb-ink: var(--tone-on-fill);
+    }
+  }
+
+  /* ---- Option ------------------------------------------------------------------------ */
+  .segmented__opt {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    min-inline-size: fit-content; /* as wide as its label, never wider than the control: a row wraps instead of breaking words */
+    max-inline-size: 100%;
+
+    /* the radio covers the option and grows to 44px tall if the option is shorter */
+    & > input {
+      position: absolute;
+      z-index: 1;
+      inset-block-start: min(0px, calc((100% - var(--chrome-hit)) / 2));
+      inset-inline: 0;
+      inline-size: 100%;
+      block-size: max(100%, var(--chrome-hit));
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+  }
+
+  .segmented__label {
+    --fill: 0;
+    --_show: var(--fill); /* how much of the option's own thumb shows; the sliding thumb takes over from it */
+
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: nowrap; /* the icon stays beside its word; a long label wraps beside it, never under it */
+    align-items: center;
+    justify-content: center;
+    gap: var(--chrome-2);
+    min-inline-size: 0;
+    min-block-size: var(--_opt);
+    padding-block: var(--chrome-1);
+    /* the nominal side padding, easing down towards 8px on a narrow screen (3.5vw: 11.2px at 320, 13.7px at 390)
+       so two or three whole labels still share one row where the nominal padding would stack them
+       ("Bank account | Transactions" fits one row at 320) */
+    padding-inline: min(var(--_px), max(var(--chrome-2), 3.5vw));
+    color: color-mix(in srgb, var(--_thumb-ink) calc(var(--fill) * 100%), var(--_fg));
+    /* The chosen thumb IS the cell: its own fill and its own frame (the second ring), faded in by --_show (a mix
+       with transparent is that colour at --_show opacity). Not a pseudo-element: one that reached over the cell's
+       border counted as overflow, and the layout measure (44-segmented.js) read every cell as too narrow. The
+       frame is a real border at every state, so forced colours always draws an edge; dashed when unavailable. */
+    background: color-mix(in srgb, var(--_thumb) calc(var(--_show) * 100%), transparent);
+    border: var(--bw) solid color-mix(in srgb, var(--line) calc(var(--_show) * 100%), transparent);
+    border-radius: calc(var(--_opt) / 2);
+    text-align: center;
+    text-wrap: balance;
+    /* break-word, not anywhere: "anywhere" would make the cell's minimum one letter. A word breaks only when it
+       is wider than the whole control (a last resort for a label with a long token in it). */
+    overflow-wrap: break-word;
+    cursor: pointer;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    & > .ic {
+      --ic-size: 1.1em; /* it sits in the line of words, so it grows with them (a capped icon was a speck at 200%) */
+    }
+  }
+
+  /* hover: the cell's own frame appears (gated). An outline, not a tint: a tint would move the text's
+     contrast (it does on tone fills), an outline cannot. The chosen cell stays as it is. */
+  @media (hover: hover) {
+    .segmented__opt > input:not(:checked, :disabled):hover + .segmented__label {
+      border-color: var(--line);
+    }
+  }
+  .segmented__label.is-hover {
+    border-color: var(--line);
+  }
+  /* pressed: a light tint at once, before the radio has even flipped (feedback inside 100ms). Not the fill:
+     the fill means chosen, and a press that is dragged away chooses nothing. The chosen cell stays as it is. */
+  .segmented__opt > input:not(:checked, :disabled):active + .segmented__label,
+  .segmented__label.is-active {
+    --fill: 0.15;
+    transition-duration: var(--dur-press);
+  }
+
+  /* chosen: filled, with a frame of its own. NOT heavier: a bolder label is wider, and the cells of a
+     wrapping row would shuffle every time you chose one. */
+  .segmented__opt > input:checked + .segmented__label {
+    --fill: 1;
+  }
+
+  /* focus: the ring belongs on the visible label, not the invisible radio. It is drawn INSIDE the cell, 2px in
+     from its frame, in the colour of what it sits on: the thumb's ink on the chosen cell (where a radio group's
+     focus lands), the focus ink on an empty one (the ring follows the surface). Outside, it ran into the
+     track's own frame at the ends (the track pads only 4px) and read as one heavy black cap. */
+  .segmented__opt > input:focus-visible + .segmented__label,
+  .segmented__label.is-focus {
+    outline: var(--ring) solid color-mix(in srgb, var(--_thumb-ink) calc(var(--fill) * 100%), var(--focus));
+    outline-offset: calc((var(--bw) + var(--ring-offset-in) + var(--ring)) * -1);
+  }
+
+  /* unavailable: dashed = not here. A chosen-but-disabled option keeps its weight and a recessed fill. */
+  .segmented__opt > input:disabled {
+    cursor: not-allowed;
+  }
+  .segmented__opt > input:disabled + .segmented__label {
+    --fill: 0;
+    color: var(--ink-faint);
+    border-color: var(--ink-faint);
+    border-style: dashed;
+    cursor: not-allowed;
+  }
+  .segmented__opt > input:disabled:checked + .segmented__label {
+    background: var(--paper-3);
+  }
+
+  /* ---- Sliding thumb (optional) ---------------------------------------------------------------
+     One thumb on the track moves with transform. --move is 1 normally and 0 under reduced motion:
+     the thumb's opacity is --move (gone), and each option paints its own fill by (1 - --move).
+     Reduced motion therefore becomes a fade, never a jump cut and never travel.
+     Needs :has() to know which option is chosen; without it the plain fill above still works. */
+  @supports selector(:has(a)) {
+    /* more options share the same width: less padding keeps short words whole */
+    .segmented:has(> .segmented__opt:nth-of-type(3)) { --_n: 3; --_px: var(--chrome-3); }
+    .segmented:has(> .segmented__opt:nth-of-type(4)) { --_n: 4; --_px: var(--chrome-2); }
+    .segmented:has(> .segmented__opt:nth-of-type(5)) { --_n: 5; --_px: var(--chrome-1); }
+    .segmented:has(> .segmented__opt:nth-of-type(2) > input:checked) { --_i: 1; }
+    .segmented:has(> .segmented__opt:nth-of-type(3) > input:checked) { --_i: 2; }
+    .segmented:has(> .segmented__opt:nth-of-type(4) > input:checked) { --_i: 3; }
+    .segmented:has(> .segmented__opt:nth-of-type(5) > input:checked) { --_i: 4; }
+
+    .segmented[data-indicator="slide"] {
+      /* one row by construction: the gliding thumb is 1/n of the track, so the cells must be equal columns */
+      flex-wrap: nowrap;
+
+      & .segmented__opt {
+        min-inline-size: 0;
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset-block: var(--_pad);
+        inset-inline-start: var(--_pad);
+        inline-size: calc((100% - 2 * var(--_pad)) / var(--_n));
+        background: var(--_thumb);
+        border: var(--bw) solid var(--line);
+        border-radius: calc(var(--_opt) / 2);
+        transform: translateX(calc(var(--_i) * 100% * var(--_dir)));
+        opacity: var(--move);
+        transition: transform var(--dur-move) var(--ease-out);
+      }
+      & .segmented__label {
+        /* one row of EQUAL columns (the thumb is 1/n of the track). When a label cannot fit its column the
+           measure stacks the control (data-fit="stack", below) and the thumb gives way to each option's fill. */
+        overflow-wrap: break-word;
+        --_show: calc(var(--fill) * (1 - var(--move)));
+        /* The text colour follows the thumb's glide (same duration and curve). At the hover speed the
+           label flipped to its chosen colour 300ms before the thumb arrived: black on the black thumb
+           and white on the pale track, unreadable mid-flight (WCAG 1.4.3). */
+        transition-duration: var(--dur-move);
+      }
+      /* Pressing tints the cell, as in the plain control: the cell's own fill layer shows at 15% (the gliding
+         thumb only covers the chosen cell). */
+      & .segmented__opt > input:not(:checked, :disabled):active + .segmented__label,
+      & .segmented__label.is-active {
+        --_show: 0.15;
+        transition-duration: var(--dur-press);
+      }
+    }
+  }
+
+  /* ---- Measured layouts (src/js/44-segmented.js, SG.fit) -------------------------------------------
+     One row, or (four options) two rows of two, or one option per line: never a ragged 2 + 1. While a layout is
+     being tried the labels do not wrap, so a label that does not fit shows up as overflow. */
+  .segmented[data-fit] {
+    flex-wrap: nowrap;
+
+    & .segmented__label {
+      white-space: nowrap;
+    }
+  }
+  .segmented[data-fit="grid"] {
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    &[data-block] {
+      display: grid;
+    }
+    & .segmented__opt {
+      min-inline-size: 0;
+    }
+  }
+  .segmented[data-fit="stack"] {
+    flex-direction: column;
+
+    /* the last layout: nothing is measured any more, so a label too long for the full width wraps at its spaces */
+    & .segmented__label {
+      white-space: normal;
+    }
+    & .segmented__opt {
+      flex: none;
+      min-inline-size: 0;
+    }
+  }
+  /* A sliding thumb glides along one row; in two rows or a column each option paints its own fill instead. */
+  .segmented[data-indicator="slide"]:is([data-fit="grid"], [data-fit="stack"]) {
+    &::before {
+      display: none;
+    }
+    & .segmented__label {
+      --_show: var(--fill);
+      transition-duration: var(--dur-hover);
+    }
+    & .segmented__opt > input:not(:checked, :disabled):active + .segmented__label,
+    & .segmented__label.is-active {
+      --_show: var(--fill);
+    }
+  }
+
+  /* ---- Forced colours ---------------------------------------------------------------------------
+     Backgrounds are replaced, so the chosen option becomes Highlight with a heavier frame (a shape
+     cue), and the decorative thumb is dropped. */
+  @media (forced-colors: active) {
+    .segmented {
+      border-color: ButtonText;
+
+      &::before {
+        display: none;
+      }
+    }
+    .segmented__label {
+      border-color: ButtonText;
+    }
+    .segmented__opt > input:checked + .segmented__label {
+      forced-color-adjust: none;
+      border: var(--bw-heavy) solid Highlight;
+      background: Highlight;
+      color: HighlightText;
+    }
+    .segmented__opt > input:checked + .segmented__label > .ic {
+      background-color: HighlightText;
+    }
+    .segmented__opt > input:focus-visible + .segmented__label,
+    .segmented__label.is-focus {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: var(--ring-offset-in);
+      box-shadow: none;
+    }
+    .segmented__opt > input:disabled + .segmented__label {
+      color: GrayText;
+      border-color: GrayText;
+    }
+    .segmented__opt > input:disabled:checked + .segmented__label {
+      forced-color-adjust: auto;
+      border-width: var(--bw-heavy);
+    }
+  }
+}

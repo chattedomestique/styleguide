@@ -1,0 +1,160 @@
+/*! styleguide v0.2.0 - element: donut. Needs core.css. Generated from src/components/donut.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Donut chart  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Parts of a whole, a handful of them: where the month's money went. A ring of
+   tone-filled, pattern-overprinted, 2px-framed sectors with the total in the
+   hole, and a legend whose labels carry the values. If the reader must compare
+   two close parts, use a bar chart instead: length is read better than angle.
+
+   <figure class="donut">
+     <figcaption class="donut__title">Where April went</figcaption>
+     <div class="donut__layout">
+       <div class="donut__body">
+         <svg class="donut__ring" viewBox="0 0 176 176" role="img" focusable="false" aria-label="…">
+           <defs> …the five pattern tiles… </defs>
+           <g class="donut__seg" data-tone="1"><path class="donut__fill" d="…"/></g>
+           <g class="donut__seg" data-tone="2"><path class="donut__fill" d="…"/><path class="donut__pat" d="…" fill="url(#p2)"/></g>
+         </svg>
+         <div class="donut__centre"><p class="donut__total">$1,284</p><p class="donut__caption">spent</p></div>
+       </div>
+       <ul class="legend" role="list"> …one .legend__item per sector, with value and share… </ul>
+     </div>
+   </figure>
+
+   SG.chart.donut(items, { label }) writes the whole <svg> (sectors, patterns, label) from data.
+
+   WHY PATTERN TILES ARE REPEATED HERE  A CSS mask paints bars and keys, but an SVG fill cannot take
+   a mask, so the ring uses <pattern> elements with the same six tiles (8 units = 0.5rem, because the
+   ring is drawn 1 unit = 1px at the default text size and scales with rem). Tone 1 is solid.
+   WHY THE FRAME IS vector-effect: the 2px line between sectors stays 2px however big the ring is.
+   WHY THE LEGEND MUST HAVE VALUES  The ring has no labels of its own: the legend is the readable
+   form of the chart, and it is what a screen reader reaches. Keep it next to the ring.
+
+   data-tone on each .donut__seg (1 to 6). More than six parts: fold the tail into "Other".
+   Static: a donut does not take focus, lift or cast a shadow.
+   ========================================================================== */
+
+@layer sg.components {
+  .donut {
+    container: donut / inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-inline-size: 0;
+    margin: 0;
+  }
+
+  .donut__title {
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    letter-spacing: var(--ls-title);
+  }
+
+  .donut__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr); /* the track is the container, so the ring's max-inline-size: 100% means something */
+    gap: var(--space-5);
+    justify-items: center;
+    align-items: center;
+  }
+
+  .donut__layout > .legend {
+    justify-self: stretch;
+  }
+
+  /* the ring is sized in rem so it (and its pattern tiles) grow with text; it gives way on a narrow container */
+  .donut__body {
+    container: donut-ring / inline-size; /* the hole text sizes itself against the ring, not the page */
+    position: relative;
+    inline-size: 11rem;
+    max-inline-size: 100%;
+    aspect-ratio: 1;
+  }
+
+  .donut__ring {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+  }
+
+  .donut__seg {
+    --_bg: var(--tone-bg, var(--paper));
+  }
+
+  .donut__fill {
+    fill: var(--_bg);
+    stroke: var(--line);
+    stroke-width: var(--bw);
+    stroke-linejoin: miter;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .donut__pat {
+    stroke: none;
+  }
+
+  /* the tiles: ink lines, the same strokes as --pat-2 … --pat-6 */
+  .donut pattern path {
+    fill: none;
+    stroke: var(--ink);
+    /* lint-allow line: SVG geometry in viewBox units (a pattern tile); it scales with the drawing, it is not a UI border */
+    stroke-width: 1.25;
+  }
+
+  .donut pattern circle {
+    fill: var(--ink);
+  }
+
+  /* the total, in the hole */
+  .donut__centre {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    padding: 24%;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .donut__total {
+    font: var(--type-figure);
+    font-size: clamp(0.875rem, 12cqi, var(--text-lg));
+    letter-spacing: var(--ls-figure);
+    font-variant-numeric: tabular-nums lining-nums;
+    line-height: 1.1;
+  }
+
+  .donut__caption {
+    font: var(--type-meta);
+    font-size: clamp(0.75rem, 7cqi, var(--text-xs));
+    color: var(--ink-soft);
+  }
+
+  /* wide enough: ring on the left, legend on the right */
+  @container donut (min-width: 32rem) {
+    .donut__layout {
+      grid-template-columns: auto minmax(0, 1fr);
+      justify-items: start;
+      gap: var(--space-7);
+    }
+  }
+
+  /* forced colours: fills vanish, so the frame and the pattern (system colours) do the work */
+  @media (forced-colors: active) {
+    .donut__fill {
+      fill: Canvas;
+      stroke: CanvasText;
+    }
+    .donut pattern path {
+      stroke: CanvasText;
+    }
+    .donut pattern circle {
+      fill: CanvasText;
+    }
+  }
+}
