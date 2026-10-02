@@ -329,6 +329,9 @@ export const tests = [
       await goto('components/menu.html')
       await page.locator('#mb-actions').click()
       expect.ok(await isOpen(page, 'm-actions'), 'opened by click')
+      // the first row is focused from the popover's toggle event, which is async (as openWith above waits for):
+      // wait up to 2s for focus to arrive before asserting where it went (CI read it a frame early)
+      await page.waitForFunction(() => !!document.activeElement.closest('.menu'), null, { timeout: 2000 }).catch(() => {})
       expect.equal(await activeLabel(page), 'Rename', 'click also focuses the first row')
       await page.mouse.click(5, 300)
       await page.waitForTimeout(300)

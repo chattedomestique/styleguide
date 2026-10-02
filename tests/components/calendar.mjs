@@ -33,9 +33,11 @@ export const tests = [
         return { today: name('2026-09-30'), chosen: name('2026-10-02'), plain: name('2026-10-07'), tag: el.querySelector('.cal__day').tagName }
       })
       expect.equal(r.tag, 'BUTTON', 'a real button')
-      expect.ok(/Wednesday 30 September 2026, today, 2 events/.test(r.today), `today: ${r.today}`)
-      expect.ok(/Friday 2 October 2026, 3 events/.test(r.chosen), `chosen: ${r.chosen}`)
-      expect.equal(r.plain, 'Wednesday 7 October 2026', 'a quiet day is just its date')
+      // The date comes from Intl.DateTimeFormat, and Chromium builds differ on the comma after the weekday
+      // ("Wednesday, 30 September 2026" in CI's ICU, "Wednesday 30 September 2026" in another): either is the full date.
+      expect.ok(/^Wednesday,? 30 September 2026, today, 2 events/.test(r.today), `today: ${r.today}`)
+      expect.ok(/^Friday,? 2 October 2026, 3 events/.test(r.chosen), `chosen: ${r.chosen}`)
+      expect.ok(/^Wednesday,? 7 October 2026$/.test(r.plain), `a quiet day is just its date: ${r.plain}`)
     },
   },
   {
@@ -112,7 +114,7 @@ export const tests = [
       let r = await page.locator(M).evaluate((el) => ({ sel: [...el.querySelectorAll('td[aria-selected="true"] .cal__day')].map((b) => b.dataset.date), title: el.querySelector('.cal__events-title').textContent, items: [...el.querySelectorAll('.cal__event')].map((e) => e.querySelector('.cal__what').textContent), value: el.getAttribute('data-value') }))
       expect.equal(r.sel.join(), '2026-10-01', 'exactly one selected cell')
       expect.equal(r.items.join(), 'Dentist', 'that day\'s events')
-      expect.ok(/Thursday 1 October/.test(r.title), r.title)
+      expect.ok(/Thursday,? 1 October/.test(r.title), r.title)
       expect.equal(r.value, '2026-10-01', 'data-value follows')
       await expect.focused(page, '.cal__day', 'focus stays on the day')
       await page.keyboard.press('ArrowRight')
