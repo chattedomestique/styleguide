@@ -1,0 +1,28 @@
+{
+  "name": "styleguide",
+  "version": "0.2.0",
+  "description": "A reusable, accessible, brand-agnostic UI style guide for progressive web apps and mobile apps. Vanilla CSS + a little JS, no framework, no build step for consumers.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:check": "node scripts/build.mjs --check",
+    "serve": "node scripts/serve.mjs",
+    "lint": "node tests/lint.mjs",
+    "test:contrast": "node tests/contrast.mjs",
+    "test:a11y": "node tests/a11y.mjs",
+    "test:shots": "node tests/screenshots.mjs",
+    "test": "npm run build:check && npm run lint && npm run test:lint && npm run test:contrast && npm run test:components && npm run test:a11y",
+    "new:component": "node scripts/new-component.mjs",
+    "test:components": "node tests/components.mjs",
+    "test:lint": "node tests/lint.selftest.mjs",
+    "status": "node scripts/status.mjs --run"
+  },
+  "devDependencies": {
+    "axe-core": "^4.10.0",
+    "playwright-core": "^1.50.0"
+  }
+}

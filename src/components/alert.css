@@ -1,0 +1,253 @@
+/* ==========================================================================
+   Alert  (layer: sg.components)                  dismiss: src/js/65-dismiss.js
+   --------------------------------------------------------------------------
+   An inline banner that stays where it is put until the problem is fixed or the
+   person dismisses it. A toast (toast.css) is for a passing confirmation; an alert
+   is for something that still matters after a glance.
+
+   AN ALERT IS A CARD. It is the owner's .card with a tone and one row of parts in
+   its body, not a second kind of surface: the frame, the tone fill, the radius
+   role, the focus-ring rule and the forced-colours border all come from card.css.
+   This file only lays out the row.
+
+   <div class="card alert" data-tone="warn" role="status">
+     <div class="card__body">
+       <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+       <div class="alert__main">
+         <p class="alert__title"><span class="sr-only">Warning: </span>Storage almost full</p>
+         <p class="alert__text">You have used 92% of your space.</p>
+       </div>
+       <button class="btn alert__close" data-variant="tone" data-tone="warn" data-shape="circle"
+               data-size="sm" type="button" data-sg-dismiss aria-label="Dismiss alert">
+         <span class="ic ic--close" aria-hidden="true"></span></button>
+       <div class="alert__actions">
+         <button class="btn" data-variant="tone" data-tone="warn" type="button">Free up space</button>
+       </div>
+     </div>
+   </div>
+
+   data-tone       ok | warn | bad | info for a status; 1…6 | ink for a tip or promo; none =
+                   a plain paper card. Put the SAME data-tone on the buttons (data-variant="tone")
+                   so they take the alert's colours.
+   data-emphasis   bold: a saturated fill with near-white text, once per screen at most
+   data-size       sm: a banner ROW (icon, one or two lines, action, close side by side)
+   data-dismissible + [data-sg-dismiss]   the close button, handled by SG.dismiss
+
+   ICON + WORDS, NEVER COLOUR ALONE (WCAG 1.4.1). Every status has its own icon SHAPE
+   (info circle, check circle, warning triangle, alert circle) AND a title that says what
+   happened, with a visually hidden status word in front of it for screen readers. The hue is
+   rhythm on top; the mono palette and forced colours lose nothing.
+
+   WHICH ROLE? (WCAG 4.1.3)  static on page load: none. Appears or changes later:
+   role="status" (polite). Needs attention now, e.g. a failed save: role="alert"
+   (assertive, use sparingly). Put the role on an element that already exists and insert
+   the alert into it: a live region created together with its text is announced by some
+   screen readers and skipped by others.
+
+   Not pressable as a whole, so no lift and no shadow; its buttons are. Text is the card's
+   full ink (>= 7:1), never the softer ink, so the pastel fills cannot drag it under.
+
+   FORCED COLOURS  nothing to add here: the frame is card.css's real border (CanvasText in
+   forced colours) and each button keeps its own, so the edge and every control survive.
+   ========================================================================== */
+
+@layer sg.components {
+  /* LARGE TEXT. The words grow with the reader's text size, and so does the status icon, because it leads the
+     title's first line: 1.25 times the title's size, never under 24px (24 at 100% text, 40 at 200%), the same
+     rule as the toast's icon. The chrome stops at its 100% size (chrome caps, 00-foundation.css): the gaps and
+     the 36px dismiss circle. --_line is one line of the title, and the icon and the circle are centred on it at
+     every size: at 100% the circle is pulled in by the 6px it overhangs the 24px line (so the row is no taller
+     than its text), at 200% it is pushed down by the 6px the 48px line overhangs it. A title that wraps is
+     balanced, so it never leaves its last word alone on a line ("Storage almost / full"). */
+  .alert > .card__body {
+    --_gap: var(--chrome-3);
+    --_ic: max(var(--chrome-ic), calc(var(--text-md) * 1.25));
+    --_c: var(--chrome-ctl-sm);
+    --_line: calc(var(--text-md) * var(--lh-body));
+
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--_gap);
+    row-gap: var(--_gap);
+
+    &:has(> .alert__close) {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    /* the status icon, level with the title's first line */
+    > .ic {
+      --ic-size: var(--_ic);
+      margin-block-start: calc((var(--_line) - var(--_ic)) / 2);
+    }
+  }
+
+  .alert__main {
+    display: grid;
+    gap: var(--space-1);
+    min-inline-size: 0;
+  }
+  .alert__title {
+    font: var(--type-body);
+    font-weight: 700;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+  .alert__text {
+    font: var(--type-body);
+    overflow-wrap: break-word;
+    text-wrap: pretty;
+  }
+
+  /* actions sit under the text, in the text column */
+  .alert__actions {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--chrome-2);
+  }
+
+  /* A label holds one line wherever the row allows: the button's chrome-capped side padding leaves the words
+     the room (a two-word verb such as "Free up space" fits an alert on a 390px phone at 200% text). The
+     button never outgrows the card; a label wider than the whole card wraps inside it, and the Button keeps
+     the pill's end curve when it does (its radius is half of ONE line's height), never a rectangle or an
+     oval. Keep action labels short: two words. */
+  .alert__actions .btn {
+    max-inline-size: 100%;
+    line-height: var(--lh-snug); /* a wrapped label needs more than --type-ctl's 1 */
+  }
+
+  /* Dismiss: a circle button, centred on the first line (see LARGE TEXT above). The 44px hit area is the
+     button's own. Two classes, because the Button's own "margin: 0" sits later in the same layer and would
+     win over one (the circle then sat 6px below the title at 100% text and 6px above the icon at 200%). */
+  .btn.alert__close {
+    align-self: start;
+    justify-self: end;
+    margin-block: calc((var(--_line) - var(--_c)) / 2);
+    margin-inline-end: calc(var(--chrome-1) * -1);
+  }
+
+  /* ---- Narrow card: the icon (and the dismiss circle) move to a row of their own above the words, so the
+     text column gets the card's full width instead of a few words a line. The words need about 10rem beside
+     the rest: the icon (max(24px, 1.25rem), as above) and the chrome, which is capped (00-foundation.css) and
+     so counted in px: the card's two 16px insets and the icon's 12px gap make 44px; the 36px dismiss circle
+     and its gap add 48px. rem in a container query follows the reader's text size, so the words keep their
+     10rem at every size: at 200% text on a 390px phone every regular alert stacks; at 100% on a 320px phone
+     only a dismissible one does, and an alert without a dismiss keeps its icon beside its title. (One 17rem
+     threshold for both stacked every alert on a 320px phone at 100% text, where the words had room.) ---- */
+  @container card (max-width: calc(10rem + max(24px, 1.25rem) + 92px)) {
+    .alert:not([data-size="sm"]) > .card__body:has(> .alert__close) {
+      grid-template-areas:
+        "icon . close"
+        "main main main"
+        "actions actions actions";
+
+      > .ic {
+        grid-area: icon;
+        align-self: center;
+        margin-block-start: 0;
+      }
+      > .alert__main {
+        grid-area: main;
+      }
+      > .alert__actions {
+        grid-area: actions;
+      }
+      > .alert__close {
+        grid-area: close;
+      }
+    }
+  }
+  @container card (max-width: calc(10rem + max(24px, 1.25rem) + 44px)) {
+    .alert:not([data-size="sm"]) > .card__body {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "icon . close"
+        "main main main"
+        "actions actions actions";
+
+      /* here the icon heads the block on a row of its own, above the title, and centres on the dismiss circle
+         that shares its row; it keeps the size it has beside a title (LARGE TEXT above) */
+      > .ic {
+        grid-area: icon;
+        align-self: center;
+        margin-block-start: 0;
+      }
+      > .alert__main {
+        grid-area: main;
+      }
+      > .alert__actions {
+        grid-area: actions;
+      }
+      > .alert__close {
+        grid-area: close;
+      }
+    }
+  }
+
+  /* ---- Banner row (data-size="sm") ---------------------------------------------------------
+     Icon, words, action and close on ONE row while the card has room (26rem: the words keep 10rem
+     beside a 6rem action and the 36px close). Everything is centred on the FIRST line of the words:
+     --_row is a line or the 36px controls, whichever is taller, so a one-line banner centres the icon and
+     the words on the controls and a two-line one keeps the icon beside line one, the way a regular alert
+     does. Below 26rem the action drops under the words, indented to the words' column instead of under
+     the icon. The icon never moves onto a row of its own: a banner is one line of state. */
+  .alert[data-size="sm"] > .card__body {
+    --_gap: var(--chrome-2);
+    --_row: max(var(--_c), var(--_line));
+
+    display: flex;
+    flex-direction: row; /* .card__body is a column */
+    flex-wrap: wrap; /* a long action label wraps under the words rather than squeezing them */
+    align-items: flex-start;
+    padding-block: var(--chrome-2);
+    padding-inline: var(--chrome-3) var(--chrome-2);
+
+    > .ic {
+      margin-block-start: calc((var(--_row) - var(--_ic)) / 2);
+    }
+    > .alert__main {
+      flex: 1 1 8rem;
+      padding-block: calc((var(--_row) - var(--_line)) / 2);
+    }
+    > .alert__actions,
+    > .alert__close {
+      flex: none;
+    }
+    > .alert__close {
+      margin-block: calc((var(--_row) - var(--_c)) / 2) 0;
+      margin-inline-end: 0;
+    }
+  }
+
+  @container card (max-width: 26rem) {
+    .alert[data-size="sm"] > .card__body {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "icon main close"
+        ".    actions actions";
+      row-gap: 0;
+
+      &:not(:has(> .alert__close)) {
+        grid-template-areas:
+          "icon main main"
+          ".    actions actions";
+      }
+      > .ic {
+        grid-area: icon;
+      }
+      > .alert__main {
+        grid-area: main;
+      }
+      > .alert__actions {
+        grid-area: actions;
+        padding-block-end: var(--chrome-1);
+      }
+      > .alert__close {
+        grid-area: close;
+      }
+    }
+  }
+}

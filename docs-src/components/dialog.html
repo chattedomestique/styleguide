@@ -1,0 +1,389 @@
+<!--{"title":"Dialog","group":"Components","order":80,"summary":"A modal box that stops the flow for one decision, on the native dialog element: confirm, destructive alert, form. A card in the top layer."}-->
+<style>
+  /* Docs-only scaffolding. The docs stylesheet styles every h2/h3 in the article and spaces the
+     children of a demo stage with sibling margins (which would un-centre a modal dialog). Undo
+     both inside demos so the components look as they do in an app. Fields come from the forms
+     slice in a real app. */
+  .docs-article .demo .demo__stage > :is(dialog, [popover]) { margin: revert-layer; }
+  .docs-article dialog .card__title { all: revert-layer; }
+  .docs-article dialog .card__label { all: revert-layer; }
+  .docs-article dialog .card__text { all: revert-layer; }
+  #dlg-rename label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  #dlg-rename input {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: var(--ctl);
+    padding-inline: var(--space-3);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+    background: var(--paper);
+    color: var(--ink);
+    font: var(--type-body);
+  }
+  .dlg-readout { margin-block-end: var(--space-2); }
+  #dlg-corners > div { min-inline-size: 0; }
+  #dlg-corners .t-label { margin-block-end: var(--space-2); }
+  #dlg-decks { margin: 0; padding: 0; }
+  #dlg-decks > li { max-inline-size: none; margin: 0; }
+</style>
+<h1>Dialog</h1>
+<p class="lede">A dialog stops the flow to ask for one decision. It is a native <code>&lt;dialog&gt;</code> wearing the card's frame, so the browser does the hard parts (it traps focus, blocks the page behind it, closes on <kbd>Esc</kbd>) and the look stays the owner's: a 2px frame, an ink bar, a flat scrim behind.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div>
+      <strong>Do</strong>
+      <p>Use a dialog for a <em>decision</em> that cannot wait: confirm something destructive, leave with unsaved changes, answer one short question such as a new name. Put the verb in the button: <em>Delete deck</em>, not <em>OK</em>.</p>
+    </div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div>
+      <strong>Don't</strong>
+      <p>Use a dialog to <em>inform</em>. It interrupts on purpose, so news, tips and "saved" messages belong inline. Do not ask to confirm something that can be undone: do it and offer Undo. Never open a second dialog on top of the first.</p>
+    </div>
+  </div>
+</div>
+
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div>
+    <strong>Dialogs interrupt</strong>
+    <p>Every dialog costs the person their place on the screen. Ask once, ask clearly. For content to browse or act on at length, use a <a href="@/components/sheet.html">sheet</a>. For a hint next to a control, use a <a href="@/components/popover.html">popover</a>.</p>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+<h3 id="confirm">Confirm</h3>
+<p>A question with one clear next step. The primary button takes focus (<code>autofocus</code>), so <kbd>Enter</kbd> confirms. <kbd>Esc</kbd>, a tap on the scrim and <em>Not now</em> all leave things as they were.</p>
+<p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-confirm">Last choice: <strong>none yet</strong></p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" data-sg-open="#dlg-confirm">Archive deck</button>
+
+    <dialog class="dialog card" id="dlg-confirm" aria-labelledby="dlg-confirm-t" aria-describedby="dlg-confirm-d">
+      <header class="card__bar">
+        <p class="card__label">Confirm</p>
+      </header>
+      <div class="card__body">
+        <h2 class="card__title" id="dlg-confirm-t">Archive “Shapes”?</h2>
+        <p class="card__text" id="dlg-confirm-d">It leaves your study list. Your progress is kept, and you can bring it back from Archive any time.</p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" type="button" data-sg-close value="not now">Not now</button>
+        <button class="btn" data-variant="primary" type="button" data-sg-close value="archive" autofocus>Archive deck</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+
+
+<h3 id="alert">Destructive alert</h3>
+<p>When the action cannot be undone the dialog is an <code>alertdialog</code>. The bar carries an icon <em>and</em> words (a status is never colour alone), initial focus goes to <strong>Cancel</strong> so a stray <kbd>Enter</kbd> never deletes anything, and the destructive button names exactly what will happen.</p>
+<p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-delete">Last choice: <strong>none yet</strong></p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" data-variant="tone" data-tone="bad" type="button" data-sg-open="#dlg-delete">
+      <span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck
+    </button>
+
+    <dialog class="dialog card" id="dlg-delete" role="alertdialog" aria-labelledby="dlg-delete-t" aria-describedby="dlg-delete-d">
+      <header class="card__bar">
+        <p class="card__label"><span class="ic ic--triangle-alert" aria-hidden="true"></span>Permanent</p>
+      </header>
+      <div class="card__body">
+        <h2 class="card__title" id="dlg-delete-t">Delete “Shapes”?</h2>
+        <p class="card__text" id="dlg-delete-d">The deck, its 12 cards and your progress on them are removed from this device.</p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" type="button" data-sg-close value="cancel" autofocus>Cancel</button>
+        <button class="btn" data-variant="tone" data-tone="bad" type="button" data-sg-close value="delete">Delete deck</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+
+
+<h3 id="form">Form</h3>
+<p>One short question. Wrap bar, body and actions in a <code>&lt;form method="dialog"&gt;</code>: the browser validates, closes the dialog and reports which button was pressed in <code>returnValue</code>. The first field has <code>autofocus</code>. Cancel is a plain <code>type="button"</code> with <code>data-sg-close</code>, so it skips validation, and because Save is the form's only submit button, <kbd>Enter</kbd> in the field saves.</p>
+<p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-rename">Last choice: <strong>none yet</strong></p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" data-sg-open="#dlg-rename">
+      <span class="ic ic--pencil" aria-hidden="true"></span>Rename deck
+    </button>
+
+    <dialog class="dialog card" id="dlg-rename" aria-labelledby="dlg-rename-t">
+      <form class="dialog__form" method="dialog">
+        <header class="card__bar">
+          <p class="card__label">Rename</p>
+          <button class="card__ctl" type="button" data-sg-close value="cancel" aria-label="Close">
+            <span class="ic ic--close" aria-hidden="true"></span>
+          </button>
+        </header>
+        <div class="card__body">
+          <h2 class="card__title" id="dlg-rename-t">Rename deck</h2>
+          <label for="dlg-rename-name">Name</label>
+          <input id="dlg-rename-name" name="name" type="text" value="Shapes" required maxlength="40" autocomplete="off" autofocus />
+        </div>
+        <div class="dialog__actions">
+          <button class="btn" type="button" data-sg-close value="cancel">Cancel</button>
+          <button class="btn" data-variant="primary" value="save">Save name</button>
+        </div>
+      </form>
+    </dialog>
+  </div>
+</div>
+
+
+<h3 id="required">Required</h3>
+<p><code>data-required</code> switches off <kbd>Esc</kbd> and the scrim tap, and leaves out the close control, for the rare moment when the person must choose before anything else can happen (the session ended, a payment needs a decision). There is still a visible button for every way out; nobody is trapped. Every other dialog stays dismissible.</p>
+<p class="t-meta dlg-readout" role="status" aria-live="polite" data-for="dlg-required">Last choice: <strong>none yet</strong></p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" data-sg-open="#dlg-required">End session</button>
+
+    <dialog class="dialog card" id="dlg-required" data-required aria-labelledby="dlg-required-t" aria-describedby="dlg-required-d">
+      <header class="card__bar">
+        <p class="card__label"><span class="ic ic--lock" aria-hidden="true"></span>Signed out</p>
+      </header>
+      <div class="card__body">
+        <h2 class="card__title" id="dlg-required-t">Your session ended</h2>
+        <p class="card__text" id="dlg-required-d">You were signed out after 15 minutes without activity. Sign in again to keep your changes, or leave without saving them.</p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" type="button" data-sg-close value="left">Don’t save</button>
+        <button class="btn" data-variant="primary" type="button" data-sg-close value="sign in" autofocus>Sign in again</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+
+
+<h3 id="long">Longer content</h3>
+<p>The bar and the actions stay put; the body scrolls. If the body holds nothing focusable, SG makes it a keyboard-reachable region named after the dialog. A close control in the bar is friendly when there is no obvious "No" (touch screens have no <kbd>Esc</kbd>). <code>data-size="lg"</code> widens it to 40rem.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" data-sg-open="#dlg-long">About sharing</button>
+
+    <dialog class="dialog card" id="dlg-long" data-size="lg" aria-labelledby="dlg-long-t">
+      <header class="card__bar">
+        <p class="card__label">Sharing</p>
+        <button class="card__ctl" type="button" data-sg-close aria-label="Close">
+          <span class="ic ic--close" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card__body">
+        <h2 class="card__title" id="dlg-long-t">How sharing works</h2>
+        <p class="card__text">When you share a deck, everyone you invite can study it and sees the cards in your order. They cannot see your other decks, your streak, or anything you have archived.</p>
+        <p class="card__text">You stay the owner. Removing a person takes effect on their device the next time it connects, and anything they already marked as known stays theirs.</p>
+        <p class="card__text">Invitations expire after seven days. A link works for the person it was sent to, on up to three devices. If you think a link reached someone it was not meant for, stop sharing and invite again: old links stop working at once.</p>
+        <p class="card__text">Shared decks sync whenever you are online and are kept on each device, so they keep working without a connection. Deleting a shared deck deletes it for everyone, after a warning.</p>
+        <p class="card__text">Questions about how your information is stored are answered in the privacy notice. It is written in plain language and lists every place your data goes.</p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" data-variant="primary" type="button" data-sg-close value="understood" autofocus>Got it</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+
+<h3 id="tone">With a tone</h3>
+<p>A dialog is a card, so <code>data-tone</code> works: the body takes the tone, and <code>ink</code> flips the bar to paper. Tones carry rhythm, never meaning: what makes this a good-news dialog is the word and the icon in the bar.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" data-sg-open="#dlg-tone">Finish study</button>
+
+    <dialog class="dialog card" id="dlg-tone" data-tone="4" data-size="sm" aria-labelledby="dlg-tone-t" aria-describedby="dlg-tone-d">
+      <header class="card__bar">
+        <p class="card__label"><span class="ic ic--flame" aria-hidden="true"></span>Streak</p>
+        <button class="card__ctl" type="button" data-sg-close aria-label="Close">
+          <span class="ic ic--close" aria-hidden="true"></span>
+        </button>
+      </header>
+      <div class="card__body">
+        <h2 class="card__title" id="dlg-tone-t">7 days in a row</h2>
+        <p class="card__text" id="dlg-tone-d">You knew 9 of 12 cards today. Come back tomorrow to keep the streak.</p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" data-variant="primary" type="button" data-sg-close value="nice" autofocus>Nice</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+
+<h3 id="invoker">Without the JavaScript hooks</h3>
+<p>The platform's own <code>command</code> and <code>commandfor</code> attributes work too. Current browsers do everything natively; SG fills in the same behaviour (and the focus return) for older ones. Use whichever you prefer, but not both on one button.</p>
+<div class="demo" data-layout="row">
+  <div class="demo__stage">
+    <button class="btn" type="button" command="show-modal" commandfor="dlg-command">Sign out</button>
+
+    <dialog class="dialog card" id="dlg-command" data-size="sm" aria-labelledby="dlg-command-t" aria-describedby="dlg-command-d">
+      <header class="card__bar">
+        <p class="card__label">Confirm</p>
+      </header>
+      <div class="card__body">
+        <h2 class="card__title" id="dlg-command-t">Sign out?</h2>
+        <p class="card__text" id="dlg-command-d">Your decks stay on this device. You will need your passcode to open them again.</p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" type="button" command="close" commandfor="dlg-command" value="stay">Stay signed in</button>
+        <button class="btn" data-variant="primary" type="button" command="close" commandfor="dlg-command" value="sign out" autofocus>Sign out</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+
+<h3 id="corners">Square and soft corners</h3>
+<p>The dialog does not know which corner style is active: the frame reads <code>--radius-card</code>, like every card. These are static previews (<code>data-inline</code>); live dialogs go in the top layer.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" id="dlg-corners" style="--grid-min: 19rem; --grid-gap: var(--space-5)">
+      <div data-corners="square">
+        <p class="t-label">Square</p>
+        <dialog class="dialog card" open data-inline data-size="sm" role="alertdialog" aria-labelledby="dlg-sq-t" aria-describedby="dlg-sq-d">
+          <header class="card__bar"><p class="card__label"><span class="ic ic--triangle-alert" aria-hidden="true"></span>Permanent</p></header>
+          <div class="card__body"><h3 class="card__title" id="dlg-sq-t">Delete “Shapes”?</h3><p class="card__text" id="dlg-sq-d">The deck and its 12 cards are removed from this device.</p></div>
+          <div class="dialog__actions"><button class="btn" type="button">Cancel</button><button class="btn" data-variant="tone" data-tone="bad" type="button">Delete deck</button></div>
+        </dialog>
+      </div>
+      <div data-corners="soft">
+        <p class="t-label">Soft</p>
+        <dialog class="dialog card" open data-inline data-size="sm" role="alertdialog" aria-labelledby="dlg-so-t" aria-describedby="dlg-so-d">
+          <header class="card__bar"><p class="card__label"><span class="ic ic--triangle-alert" aria-hidden="true"></span>Permanent</p></header>
+          <div class="card__body"><h3 class="card__title" id="dlg-so-t">Delete “Shapes”?</h3><p class="card__text" id="dlg-so-d">The deck and its 12 cards are removed from this device.</p></div>
+          <div class="dialog__actions"><button class="btn" type="button">Cancel</button><button class="btn" data-variant="tone" data-tone="bad" type="button">Delete deck</button></div>
+        </dialog>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>Delete sits in the row, the dialog names the thing being deleted, and focus returns to that row's button afterwards so a keyboard user keeps their place.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <ul class="list" data-variant="framed" id="dlg-decks" aria-label="Your decks" role="list">
+      <li>
+        <div class="list__row">
+          <span class="list__lead" data-shape="tile" data-tone="2" aria-hidden="true"><span class="ic ic--blend" aria-hidden="true"></span></span>
+          <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards</span></span>
+          <span class="list__trail"><button class="btn" data-shape="circle" data-size="sm" type="button" data-sg-open="#dlg-ctx-shapes" aria-label="Delete Shapes"><span class="ic ic--trash-2" aria-hidden="true"></span></button></span>
+        </div>
+      </li>
+      <li>
+        <div class="list__row">
+          <span class="list__lead" data-shape="tile" data-tone="1" aria-hidden="true"><span class="ic ic--palette" aria-hidden="true"></span></span>
+          <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards</span></span>
+          <span class="list__trail"><button class="btn" data-shape="circle" data-size="sm" type="button" data-sg-open="#dlg-ctx-colours" aria-label="Delete Colours"><span class="ic ic--trash-2" aria-hidden="true"></span></button></span>
+        </div>
+      </li>
+    </ul>
+    <dialog class="dialog card" id="dlg-ctx-shapes" role="alertdialog" aria-labelledby="dlg-ctx-shapes-t" aria-describedby="dlg-ctx-shapes-d">
+      <header class="card__bar"><p class="card__label"><span class="ic ic--triangle-alert" aria-hidden="true"></span>Permanent</p></header>
+      <div class="card__body"><h2 class="card__title" id="dlg-ctx-shapes-t">Delete “Shapes”?</h2><p class="card__text" id="dlg-ctx-shapes-d">12 cards are removed from this device.</p></div>
+      <div class="dialog__actions">
+        <button class="btn" type="button" data-sg-close value="cancel" autofocus>Cancel</button>
+        <button class="btn" data-variant="tone" data-tone="bad" type="button" data-sg-close value="delete Shapes">Delete deck</button>
+      </div>
+    </dialog>
+    <dialog class="dialog card" id="dlg-ctx-colours" role="alertdialog" aria-labelledby="dlg-ctx-colours-t" aria-describedby="dlg-ctx-colours-d">
+      <header class="card__bar"><p class="card__label"><span class="ic ic--triangle-alert" aria-hidden="true"></span>Permanent</p></header>
+      <div class="card__body"><h2 class="card__title" id="dlg-ctx-colours-t">Delete “Colours”?</h2><p class="card__text" id="dlg-ctx-colours-d">8 cards are removed from this device.</p></div>
+      <div class="dialog__actions">
+        <button class="btn" type="button" data-sg-close value="cancel" autofocus>Cancel</button>
+        <button class="btn" data-variant="tone" data-tone="bad" type="button" data-sg-close value="delete Colours">Delete deck</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+
+<h2 id="behaviour">What happens, and who does it</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Dialog behaviour and who provides it</caption>
+  <thead><tr><th>Behaviour</th><th>Provided by</th></tr></thead>
+  <tbody>
+    <tr><td>Page behind is inert; Tab stays inside</td><td>The browser (<code>showModal()</code>). No <code>aria-modal</code> and no focus-trap script.</td></tr>
+    <tr><td><kbd>Esc</kbd> closes</td><td>The browser. <code>data-required</code> blocks it.</td></tr>
+    <tr><td>Scrim tap closes</td><td>SG (<code>60-dialog.js</code>): a press must start and end on the scrim. Not with <code>data-required</code>.</td></tr>
+    <tr><td>Focus returns to the button that opened it</td><td>The browser where it can; SG everywhere else (Safari does not focus buttons on click) and when the opener has disappeared.</td></tr>
+    <tr><td>Page does not scroll behind</td><td>CSS: <code>:root:has(dialog:modal)</code>, with a stable scrollbar gutter so nothing shifts sideways.</td></tr>
+    <tr><td>Above everything, no z-index</td><td>The top layer. Nothing in this system sets a z-index on an overlay.</td></tr>
+    <tr><td>Opens with <code>data-sg-open</code> or <code>command</code>/<code>commandfor</code></td><td>SG hooks; the invoker attributes are native in current browsers and supplied by SG in older ones.</td></tr>
+    <tr><td>Name and description read on open</td><td>You: <code>aria-labelledby</code> (the visible title) and <code>aria-describedby</code> (the message).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Dialog</strong>: <code>&lt;dialog class="dialog card"&gt;</code>. The owner's card in the top layer: 2px frame, <code>--radius-card</code>, no shadow. 28rem wide at most (<code>data-size</code>), never wider than the screen minus a 16px margin and the safe areas. The margin is chrome: it stays 16px at 200% text, so the words keep the width.</li>
+  <li><strong>Bar</strong> (<code>.card__bar</code>): names the <em>kind</em> of dialog in uppercase (Confirm, Rename, Signed out), with an icon when it is a status, and holds the close control when there is one.</li>
+  <li><strong>Title</strong> (<code>.card__title</code>, a real heading, <code>h2</code> by default): a sentence-case question the person can answer. <code>aria-labelledby</code> points at it.</li>
+  <li><strong>Body</strong> (<code>.card__body</code>, <code>.card__text</code>): the consequence, or the fields. Scrolls on its own when long.</li>
+  <li><strong>Actions</strong> (<code>.dialog__<wbr>actions</code>): pills, primary last. On a phone-width dialog they stack full width in the same order, one line each: keep the labels to two words (<em>Don’t save</em>, <em>Delete deck</em>), so the stack has one height at 200% text too.</li>
+  <li><strong>Scrim</strong>: <code>--scrim</code> (60% black), the one translucency the system allows. With the 2px frame it is the only thing that separates the dialog from the page.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Dialog attributes and JavaScript</caption>
+  <thead><tr><th>Attribute / call</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="dialog card"</code></td><td>on a <code>&lt;dialog&gt;</code></td><td>The dialog. Parts: <code>dialog__form</code> (optional <code>&lt;form method="dialog"&gt;</code> wrapper), <code>dialog__actions</code>; the rest are the card's (<code>card__bar</code>, <code>card__label</code>, <code>card__ctl</code>, <code>card__body</code>, <code>card__title</code>, <code>card__text</code>).</td></tr>
+    <tr><td><code>role="alertdialog"</code></td><td></td><td>For destructive or urgent confirmations. Put <code>autofocus</code> on Cancel.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code> (22rem), <code>md</code> (28, default), <code>lg</code> (40)</td><td>Maximum width.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code>, <code>ok</code>…</td><td>The card's tone API, unchanged.</td></tr>
+    <tr><td><code>data-required</code></td><td></td><td>Scrim tap and <kbd>Esc</kbd> do nothing. Sets <code>closedby="none"</code> when opened. Leave the close control out.</td></tr>
+    <tr><td><code>data-inline</code></td><td></td><td>Static preview in the page flow, not modal. For documentation and split-pane layouts.</td></tr>
+    <tr><td><code>data-sg-open="#id"</code></td><td>selector</td><td>On any button: opens that dialog and remembers the button for focus return.</td></tr>
+    <tr><td><code>data-sg-close</code></td><td>empty, or a selector</td><td>Closes the dialog it is in (or the one named). <code>value</code> becomes <code>returnValue</code>.</td></tr>
+    <tr><td><code>command="show-modal"</code> <code>commandfor="id"</code></td><td><code>show-modal</code>, <code>close</code>, <code>request-close</code></td><td>The platform's declarative alternative to <code>data-sg-open</code>.</td></tr>
+    <tr><td><code>SG.dialog.open(el, {trigger})</code></td><td></td><td>Open from script and set where focus returns. Also <code>SG.dialog.close(el, value)</code> and <code>SG.dialog.requestClose(el)</code> (honours a vetoed <code>cancel</code> event).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Dialog keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Cycles through the controls inside the dialog only. Everything behind it is inert (WCAG 2.1.2: never a trap, because <kbd>Esc</kbd> and a button always leave).</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Closes (same as the dismissing button) and returns focus to the opener. Not in a <code>data-required</code> dialog, which always has a button for every way out.</td></tr>
+    <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activates the focused button. In a form dialog <kbd>Enter</kbd> in a field submits with the default button.</td></tr>
+    <tr><td>Initial focus</td><td>Destructive: Cancel. Confirm: the primary button. Form: the first field. Long reading: the primary button, and the body is also reachable by keyboard. Set with <code>autofocus</code>; with none, the browser picks the first control (the close control).</td></tr>
+    <tr><td>Focus order (2.4.3)</td><td>DOM order is visual order, also when the actions stack on a phone. Nothing is reversed with CSS.</td></tr>
+    <tr><td>Screen reader</td><td>Announced as "Title, dialog" (or "alert dialog") followed by the description. The title is a real heading, so heading navigation works. The bar's icon is hidden; its words are read.</td></tr>
+    <tr><td>Touch</td><td>Buttons are 44px tall with 8px between them. The scrim tap and every button are taps; nothing needs a gesture.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the reader's text size; the margin to the screen edge and the insets of the actions stop at their 100% size, so the title and the buttons keep the width. The body scrolls, long words wrap. The dialog never exceeds the screen and stays inside the safe areas, also at 200% text and 320px.</td></tr>
+    <tr><td>Reduced motion</td><td>The 24px rise is multiplied by <code>--move</code>, so only a fade remains (180ms, never instant).</td></tr>
+    <tr><td>Forced colours</td><td>The card's frame becomes <code>CanvasText</code>; the bar gets a real line under it because its ink fill is gone; buttons keep their borders.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>Every dialog needs a title the person can see and <code>aria-labelledby</code> pointing at it. An unlabelled dialog is announced as just "dialog".</li>
+  <li>The status icon in the bar is never the only signal: the bar's words and the title say what is at stake.</li>
+  <li>Do not put <code>tabindex</code> on the <code>&lt;dialog&gt;</code>. Use <code>autofocus</code> on a control inside it.</li>
+  <li>A dialog opened from a menu item returns focus to the menu's button, because the item is hidden by then.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--line</code>, <code>--scrim</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-card</code>, <code>--card-pad</code>, <code>--card-ink</code>, <code>--hit</code>, <code>--ring</code>, <code>--chrome-2</code>, <code>--chrome-3</code>, <code>--chrome-4</code>, <code>--space-5</code>, <code>--measure</code>, <code>--safe-top</code>, <code>--safe-right</code>, <code>--safe-bottom</code>, <code>--safe-left</code>, <code>--move</code>, <code>--dur-enter</code>, <code>--dur-hover</code>, <code>--ease-out</code>, <code>--ease-in</code>.</p>
+<p>Related: <a href="@/components/sheet.html">Sheet</a>, <a href="@/components/menu.html">Menu</a>, <a href="@/components/popover.html">Popover</a>, <a href="@/components/tooltip.html">Tooltip</a>, <a href="@/components/button.html">Button</a>, <a href="@/components/card.html">Card</a>.</p>
+
+<script>
+  // Demo only: show which button closed which dialog (returnValue), under the demo it belongs to.
+  (function () {
+    document.addEventListener('close', function (e) {
+      var d = e.target;
+      if (d.tagName !== 'DIALOG' || d.hasAttribute('data-inline')) return;
+      var out = document.querySelector('[data-for="' + d.id + '"] strong');
+      if (!out) return;
+      var v = d.returnValue;
+      d.returnValue = '';
+      if (d.id === 'dlg-rename' && v === 'save') v = 'renamed to “' + d.querySelector('input').value + '”';
+      out.textContent = v || 'dismissed without choosing (Esc or scrim)';
+    }, true);
+  })();
+</script>

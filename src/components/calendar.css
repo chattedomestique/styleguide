@@ -1,0 +1,527 @@
+/* ==========================================================================
+   Calendar  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A month on one screen (or one week): choose a day, see what is planned. The
+   grid is a real table with role="grid", every day is a button, and everything
+   inside .cal is rendered by SG.calendar (src/js/72-calendar.js) from a few
+   data attributes. This file is only how it looks.
+
+   <div class="cal" data-sg-calendar data-value="2026-10-02" data-first-day="1"></div>
+
+   data-view   month (default) | week   (a strip of seven tall day pills)
+
+   THE LOOK  A 2px frame. The month and two round buttons on paper; the weekday
+   names in the ink bar (uppercase labels are structure, as in the Table and the
+   Card bar); then days as circles, because a day is something you press and
+   circles act. The list of the chosen day's events sits under a 1px rule.
+
+   STATES, each with a cue that is not colour:
+     today       [aria-current="date"]   a 2px ring AND the numeral underlined and heavy
+     chosen      td[aria-selected=true]  filled with the accent, a doubled frame (its frame, a paper gap, then the
+                                          fill: drawn inward, so it is no bigger than today's ring) AND paper numerals;
+                                          in a narrow grid, where the circle is barely bigger than its numeral, a
+                                          heavier numeral replaces the inner frame
+     events      markers under the day   one to three small squares; the count is also in the
+                                          day's accessible name and in the list below
+     outside     [data-outside]          the neighbouring months' days: soft ink, regular weight
+     unavailable [aria-disabled=true]    quiet: faint numeral struck through, no frame, no lift (data-min /
+                                          data-max). Thirteen dashed circles were the loudest thing in the grid.
+     hover, focus  --lift 1 and the ring-frame appear, never the fill (the selection-control recipe: the
+                   solid fill is the chosen day's alone); pressed sinks back with a 15% tint
+
+   The day is drawn as a circle of at most 2.5rem but its hit area is the whole 44px-tall cell
+   (the ::after from button.css), so dense rows still give every day a full target.
+
+   TARGETS  Seven columns are 44px wide only in a container of 308px or more (a 390px phone with gutters is
+   358px, a 320px one is 288px: 41px). Narrower, the cells shrink with the container, above the WCAG 2.5.8 floor
+   of 24px down to about 10.5rem. Neighbouring cells touch: a gap would take the width the targets need, and
+   touching cells leave no dead zone to mis-tap into (the Carousel's dots are the same). The drawn circle is
+   4px narrower than its cell, and every marker (today's ring, the chosen disc, a hovered day) has that one outer
+   size: two neighbouring markers always keep 4px between them. The chosen day's second frame is drawn INSIDE it;
+   drawn outside it made the chosen disc 4px bigger than today's ring in the same row, and at 200% text the two
+   came within 2px of each other.
+
+   CONTAINER QUERIES  Weekday names: "Mon" while each column is wide enough, one letter below
+   15rem (rem, so 200% text switches sooner). Week view: same. Below 17.5rem (a column under 2.5em: 200%
+   text on a phone) the numerals take Archivo's condensed width, so two digits sit inside their circle and
+   never touch the next day's; the size of the words is never reduced.
+
+   LARGE TEXT  The numerals grow with the reader's text size, and so does a day's circle (up to 2.5rem). The
+   chrome does not: the 44px row, the insets, the event markers and the gaps round them stop at their 100% size
+   (--chrome-*), and the numeral's box is trimmed to its cap height (text-box), so a numeral and its markers
+   fit a circle that is a seventh of a phone. The head stays ONE row at every size: [prev] [month, which may
+   wrap] [next].
+
+   WEEK VIEW  Seven pills of at least 44px. When the calendar is narrower than that (a phone at 200% text,
+   or a phone mock), the strip scrolls sideways with snap instead of squeezing the days, and the chosen day is
+   scrolled into view; the cut day at the frame's edge says there is more (at both edges once it has scrolled).
+
+   FOUNDATION REQUESTS  none.
+   ========================================================================== */
+
+@layer sg.components {
+  .cal {
+    --_r: max(0px, calc(var(--radius-card) - var(--bw)));
+    container: cal / inline-size;
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+  }
+
+  .cal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--chrome-2);
+    padding: var(--chrome-3);
+  }
+
+  .cal__title {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    text-align: center;
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    letter-spacing: var(--ls-title);
+    text-wrap: balance;
+  }
+
+  /* ---- the grid -------------------------------------------------------------- */
+  .cal__grid {
+    inline-size: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .cal__grid thead th {
+    padding: var(--chrome-3) 0; /* a bar round its label: chrome, so 200% text does not double its air */
+    color: var(--paper);
+    background: var(--ink);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    text-align: center;
+    overflow: clip;
+  }
+
+  /* The bar sits under the month head, inside the frame: square. Only when an app hides the head is the bar the
+     card's first row, and then it follows the frame's inner curve (rounded under the head it showed dark notches). */
+  .cal__head[hidden] + .cal__scroll .cal__grid thead th:first-child {
+    border-start-start-radius: var(--_r);
+  }
+  .cal__head[hidden] + .cal__scroll .cal__grid thead th:last-child {
+    border-start-end-radius: var(--_r);
+  }
+
+  .cal__dow-narrow {
+    display: none;
+  }
+
+  /* a narrow column: a smaller month and less padding keep the two buttons beside it (a 320px phone, or
+     200% text). The head never wraps: the month wraps between the two buttons instead (S2: one row). */
+  @container cal (max-width: 17rem) {
+    .cal__head {
+      padding: var(--chrome-2);
+    }
+    .cal__title {
+      font-size: var(--text-md);
+    }
+  }
+
+  @container cal (max-width: 15rem) {
+    .cal__dow-long {
+      display: none;
+    }
+    .cal__dow-narrow {
+      display: inline;
+    }
+  }
+
+  /* content-box, so the 44px is the row's own and padding is extra: every circle sits on an exact
+     44px pitch, and the first and last row get a little air outside it */
+  .cal__grid tbody td {
+    box-sizing: content-box;
+    block-size: var(--chrome-hit);
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .cal__grid tbody tr:first-child td {
+    padding-block-start: var(--chrome-2);
+  }
+  .cal__grid tbody tr:last-child td {
+    padding-block-end: var(--chrome-2);
+  }
+
+  /* ---- a day -------------------------------------------------------------------- */
+  .cal__day {
+    --lift: 0;
+    --fill: 0;
+    /* 4px narrower than the column (2px a side), so two neighbouring markers never come closer than 4px; nothing is
+       drawn outside the circle at rest (the chosen day's second frame is inset), so this is every marker's outer size */
+    --_d: min(calc(100% - var(--chrome-1)), 2.5rem);
+    /* The hard shadow of a FILLED day (the chosen one; accent = ink in the default looks) would merge with its fill into
+       a blob, so as --fill rises a paper gap opens between them. An unfilled day (paper inside, ink frame) keeps the
+       plain shadow it always had: both the gap and the extra spread are scaled by --fill. */
+    --_shadow:
+      0 0 0 calc(var(--lift) * var(--fill) * var(--bw)) var(--paper),
+      calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 calc(var(--lift) * var(--fill) * var(--bw)) var(--line);
+    --_select: 0 0 0 0 transparent;
+
+    position: relative;
+    display: grid;
+    grid-template-rows: auto var(--chrome-1);
+    align-content: center;
+    justify-items: center;
+    row-gap: calc(var(--chrome-1) + 0.12em); /* room for today's underline between the numeral and its markers */
+    inline-size: var(--_d);
+    aspect-ratio: 1;
+    margin: 0 auto;
+    padding: 0;
+    color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--ink));
+    background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+    border: var(--bw) solid transparent;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--_select), var(--_shadow);
+    font: var(--type-ctl);
+    /* two digits must fit the circle even when text is big and the column is narrow: it still grows
+       with the reader's text size (the floor is in rem) but not faster than the column allows */
+    font-size: clamp(0.875rem, 5.5cqi, var(--text-md));
+    font-variant-numeric: tabular-nums lining-nums;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* hit area: the whole cell, 44px tall. Sideways it grows to a seventh of the calendar and no
+       further, so it never sticks out of its column (and never adds to the page's scroll width). */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--hit)) / 2));
+      inset-inline: min(0px, calc((100% - 100cqi / 7) / 2));
+    }
+
+    /* The doubled frame goes ABOVE the paper halo, or on the chosen day the halo (3px) hides it (2px) and "chosen"
+       loses its second cue exactly when the day is focused. */
+    &:focus-visible {
+      box-shadow: var(--_select), var(--focus-shadow), var(--_shadow);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --lift: 1;
+        border-color: var(--line);
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --lift: 1;
+      border-color: var(--line);
+      /* the ring must not be overpainted: every day has an opaque paper background and later days paint over earlier ones */
+      z-index: 1;
+    }
+    /* .is-focus forces the state on the docs page: it has to show the ring a real focus gets, or "Focus" looks like "Hover" */
+    &.is-focus:not([aria-disabled="true"]) {
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--_select), var(--focus-shadow), var(--_shadow);
+    }
+    /* pressed: back on the surface with a light tint, at once (the chosen day keeps its fill, below) */
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --lift: 0;
+      --fill: 0.15;
+      border-color: var(--line);
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  /* the numeral's box is its cap height, so it centres optically and leaves the circle room for the markers */
+  .cal__num {
+    line-height: 1;
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* event markers: up to three small squares under the numeral. Decorative; the count is text. Chrome: 4px. */
+  .cal__pips {
+    display: flex;
+    gap: calc(var(--chrome-1) / 2);
+    block-size: var(--chrome-1);
+  }
+
+  .cal__pip {
+    inline-size: var(--chrome-1);
+    block-size: var(--chrome-1);
+    background: currentColor;
+  }
+
+  /* today: a ring that is always there, and the numeral underlined and heavy */
+  .cal__day[aria-current="date"] {
+    border-color: var(--line);
+    font-weight: 800;
+  }
+  .cal__day[aria-current="date"] .cal__num {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.12em;
+  }
+
+  /* chosen: filled, and the frame doubles INWARD: the ink frame, a paper gap, then the fill. Inward, so the chosen
+     disc is exactly as big as today's ring (an outer spread made it 4px bigger, and in the default looks, where the
+     accent is ink, it showed only as size, never as a second frame). It stays filled while it is pressed. */
+  td[aria-selected="true"] > .cal__day,
+  td[aria-selected="true"] > .cal__day:is(:active, .is-active) {
+    --fill: 1;
+    --_select: inset 0 0 0 var(--bw) var(--paper);
+    border-color: var(--line);
+  }
+
+  /* the neighbouring months: still days, so still real buttons; quieter, not faint (4.5:1) */
+  .cal__day[data-outside] {
+    color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--ink-mute));
+    font-weight: 400;
+  }
+
+  /* unavailable: quiet. A faint numeral struck through (the line is the cue that is not colour; the name says
+     "not available"), and no frame: a row of dashed circles out-shouted every day you can choose. Inactive
+     controls are exempt from the text contrast minimum (WCAG 1.4.3). */
+  .cal__day[aria-disabled="true"] {
+    --lift: 0;
+    --fill: 0;
+    color: var(--ink-faint);
+    border-color: transparent;
+    cursor: not-allowed;
+  }
+  .cal__day[aria-disabled="true"] .cal__num {
+    text-decoration: line-through;
+    text-decoration-thickness: var(--bw-thin);
+  }
+
+  /* narrow columns (under 2.5em: 200% text on a phone): Archivo's condensed width keeps two digits inside
+     their circle and clear of the next day's, at the reader's full text size */
+  @container cal (max-width: 17.5rem) {
+    .cal__num {
+      font-stretch: 75%;
+    }
+    /* Here the circle is barely bigger than its numeral (and today's underline and the markers sit inside it too):
+       the inset second frame would cut into the numeral, so the chosen day says "chosen" with its fill, its frame
+       and a heavier numeral instead. The week's tall pills keep the doubled frame: they have the room. */
+    .cal:not([data-view="week"]) td[aria-selected="true"] > .cal__day {
+      --_select: 0 0 0 0 transparent;
+      font-weight: 800;
+    }
+  }
+
+  /* narrowest (under about 1.3em a column: 200% text on a 320px phone): the extra-condensed width, and the
+     circle holds the numeral alone. The markers sit just under it, still inside the 44px row, and today keeps
+     its ring and weight (an underline has no room left inside so small a circle). Still a circle, not a capsule.
+     The numeral is also bounded by its circle (cqi), as a figure is by its box: in the narrowest grids a 28px "30"
+     filled today's ring edge to edge. In a 288px calendar (a 320px phone at 200%) that bound is still 27px. */
+  @container cal (max-width: 9rem) {
+    .cal:not([data-view="week"]) .cal__num {
+      font-stretch: 62.5%;
+    }
+    .cal:not([data-view="week"]) .cal__day {
+      font-size: min(0.875rem, 9.5cqi);
+    }
+    .cal:not([data-view="week"]) .cal__day {
+      grid-template-rows: auto;
+    }
+    .cal:not([data-view="week"]) .cal__pips {
+      position: absolute;
+      inset-block-start: calc(100% + var(--chrome-1) / 2);
+      inset-inline: 0;
+      justify-content: center;
+    }
+    /* under the circle the markers sit on paper, so the chosen day's are ink, not the paper of its numeral */
+    .cal:not([data-view="week"]) td[aria-selected="true"] .cal__pips {
+      color: var(--ink);
+    }
+    .cal:not([data-view="week"]) .cal__day[aria-current="date"] .cal__num {
+      text-decoration: none;
+    }
+  }
+
+  /* ---- week view: seven tall pills ---------------------------------------------- */
+  .cal__scroll {
+    --_strip: 100%;
+    position: relative;
+  }
+
+  /* seven pills of at least 44px; narrower than that, the strip scrolls with snap instead of squeezing.
+     SG.calendar sets --_strip then: the days are sized so the strip shows whole days and HALF of the next,
+     because half a day at the edge reads as "more", where a sliver of a few pixels read as the week's end. */
+  /* Scrolled, a day's start snaps 3/4 of a day in from the edge (scroll-padding): with k and a half days in view,
+     that leaves three quarters of a day at BOTH edges, so the strip says "more" on each side. At the start of the
+     week the strip rests at 0 (whole days from the edge, half a day at the end). */
+  .cal[data-view="week"] .cal__scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: calc(var(--_strip) / 7 * 0.75);
+  }
+  /* a strip that ends the calendar is clipped to the frame's inner curve: square, the cut day at the edge
+     painted over the soft corner's arc */
+  .cal[data-view="week"] .cal__scroll:last-child {
+    border-end-start-radius: var(--_r);
+    border-end-end-radius: var(--_r);
+  }
+  .cal[data-view="week"] .cal__grid {
+    inline-size: var(--_strip);
+  }
+  .cal[data-view="week"] .cal__grid tbody td {
+    scroll-snap-align: start;
+  }
+
+  .cal[data-view="week"] .cal__grid thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .cal[data-view="week"] .cal__grid tbody td {
+    block-size: auto;
+    padding-block: var(--chrome-2) var(--chrome-3);
+    vertical-align: middle;
+  }
+
+  .cal[data-view="week"] .cal__day {
+    --_d: min(calc(100% - var(--chrome-1)), 3rem); /* the same 4px between neighbours as the month */
+    grid-template-rows: auto auto var(--chrome-1);
+    aspect-ratio: auto;
+    min-block-size: calc(var(--chrome-6) * 2.25); /* 72px: the pill's shape is chrome; its words make it taller when they need to */
+    padding-block: var(--chrome-2);
+  }
+
+  .cal__dow {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+
+  .cal[data-view="week"] .cal__num {
+    font-size: clamp(0.875rem, 7cqi, var(--text-lg));
+  }
+
+  /* ---- the chosen day's events ------------------------------------------------------ */
+  .cal__events {
+    padding: var(--chrome-3);
+    border-block-start: var(--bw-thin) solid var(--line);
+  }
+
+  /* data-list="off": the days are chosen here but what is on them is shown elsewhere (an Agenda) */
+  .cal[data-list="off"] .cal__events {
+    display: none;
+  }
+
+  .cal__events-title {
+    margin-block-end: var(--space-2);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+
+  /* one time column for the whole list (each event is a subgrid of it), so the titles line up whatever the
+     times say: "9:30 – 9:45", "14:00 – 15:30", "All day" */
+  .cal__list {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: var(--space-2) var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cal__event {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: baseline;
+    padding: var(--chrome-2) var(--chrome-3);
+    color: var(--tone-ink, var(--ink));
+    background: var(--tone-bg, var(--paper));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-tile);
+  }
+
+  .cal__when {
+    font: var(--type-meta);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+    white-space: nowrap; /* one line, so the column is as wide as the longest time and every title starts at one edge */
+  }
+
+  /* too narrow for a time column: every event puts its time over its title (all of them, the same way) */
+  @container cal (max-width: 20rem) {
+    .cal__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .cal__event {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-1);
+    }
+    .cal__when {
+      white-space: normal; /* over its title a range may wrap after its dash ("9:30 –" / "9:45"); a time has no space to break at */
+    }
+  }
+
+  .cal__what {
+    font: var(--type-body);
+    overflow-wrap: break-word;
+  }
+
+  .cal__empty {
+    font: var(--type-body);
+    color: var(--ink-soft);
+  }
+
+  /* ---- forced colours: fills and shadows go; frames and weights carry it ----------------- */
+  @media (forced-colors: active) {
+    .cal {
+      border-color: CanvasText;
+    }
+    .cal__day {
+      border-color: ButtonText;
+    }
+    .cal__day[aria-disabled="true"] {
+      color: GrayText;
+      border-color: Canvas; /* no frame here either: GrayText and the strike say "not available" */
+    }
+    td[aria-selected="true"] > .cal__day {
+      border-width: var(--bw-heavy);
+    }
+    .cal__day:is(:focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    .cal__pip {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .cal__event {
+      border-color: CanvasText;
+    }
+  }
+
+  @media (forced-colors: active) and (hover: hover) {
+    .cal__day:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+}

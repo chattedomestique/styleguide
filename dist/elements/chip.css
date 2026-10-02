@@ -1,0 +1,427 @@
+/*! styleguide v0.2.0 - element: chip. Needs core.css. Generated from src/components/chip.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Chip  (layer: sg.components)                      interactive chips only
+   --------------------------------------------------------------------------
+   A chip is a small pill you OPERATE. A static label, tag or count is not a chip.
+
+   FILTER   any number on, toggles       <button class="chip" type="button" aria-pressed="false">Shopping</button>
+   CHOICE   exactly one of a set         <label class="chip"><input class="chip__input" type="radio" name="size" value="s">Small</label>
+   (or many: same markup with type="checkbox")
+   INPUT    a removable thing the user   <li class="chip" data-kind="input"><span class="chip__label">Anna Kim</span>
+            added                          <button class="chip__remove" type="button" aria-label="Remove Anna Kim">…</button></li>
+   MORE     the "+N" disclosure          <button class="chip" type="button" data-kind="more" aria-expanded="false" aria-controls="ids">3 more</button>
+   ACTION   a plain button or link       <button class="chip" type="button">Add tag</button>   <a class="chip" href>
+
+   A ROW: <div class="chips" role="group" aria-label="Filter by category" data-sg-chips>. Add the layout
+   class "scroller" for one scrolling line (the next chip peeks in as the cue). data-sg-chips turns on
+   src/js/42-chip.js: filter toggling, input-chip removal with focus move + announcement, the +N disclosure.
+
+   data-size      md (36, hit area still 44; default) | lg (44)
+   data-variant   tone: fill from data-tone="N" on the chip itself (as Button)
+
+   STATE is ARIA or native, never a class: aria-pressed / aria-checked / :checked (on), aria-expanded,
+   :disabled / aria-disabled.  ON is never the fill alone: filled + a doubled frame + a CHECK mask
+   appears in front of the label (drawn by ::before from the owner's --icon-check, so nobody can forget it).
+   A leading icon (.chip__icon) gives its place to the check, so the chip does not jump when toggled.
+   The doubled frame is drawn INSIDE the border (a 2px ring in the surface colour between the frame and the
+   fill), so an on chip keeps the size of its neighbours: a ring outside made it 4px larger, taller than the
+   chips in its row and 2px past the row's start. A tone chip has no inner ring: on its tone fill the check is
+   the cue, and a ring there read as a heavy black frame.
+
+   PRESSABLE, SO IT FOLLOWS BUTTON: 2px frame, pill, --lift / --fill, hard shadow when it can be pressed.
+   THE FILL MEANS ON. A row of chips is a row of states, so the solid fill is kept for a chip that is on:
+     rest      --lift 0, --fill 0
+     hover     --lift 1 (raised, with its hard shadow), no fill: a mouse over a chip must not look like "on"
+     focus     --lift 1 and the ring
+     pressed   --lift 0 and a light tint (--fill 0.15), visible within 100ms; an on chip lightens its fill (--_press)
+     on        --fill 1 + the doubled frame + a check; hovered, it also lifts
+   This holds for action and "more" chips too: next to filters, any filled chip would read as on.
+   An INPUT chip holds a value rather than invites a press, so it is flat (no shadow, no hover); only its
+   remove button acts, and that fills rather than lifts (a shadow would leave the chip).
+
+   The row pads 8px when it scrolls, because overflow clips rings and shadows (WCAG 2.4.7). The chip that
+   peeks in at the edge says the row goes on, so where it is cut is not left to luck: at rest the script
+   (42-chip.js) changes every chip's side padding by the same small amount (--_grow on the row) until the
+   chip at the edge shows between 30% and 60% of itself (a chip missing only its round end read as clipped, a
+   sliver as a stray bracket), or tightens a row that misses by a few pixels until it fits. (A 1px rule on
+   that edge used to say "more" as well; beside a cut chip it read as a stray fence line, so it is gone.) In a
+   scrolling row a chip never shrinks (flex: none): a nowrap flex row would otherwise squeeze every chip to one
+   letter a line before it let the row scroll.
+
+   LARGE TEXT. The words grow with the reader's text size, and so do the leading icon and the check, which
+   sit in the line of words (1.15em: a capped glyph was a speck beside 28px words). The chrome does not grow
+   (the --chrome-* caps): the side padding, the gap, the 44px target, and the remove button of an input chip
+   (its own control: a 24px circle with a 20px glyph and a 44px target). So at 200% text a label keeps the room and holds one
+   line wherever the row allows.
+   A PILL IS FOR ONE LINE. The radius is half of ONE line's height (--_h), not the 999px pill, so a label
+   that wraps (a long name in a narrow row) makes a soft rectangle, never an oval. Words break only at word
+   boundaries unless a single word is wider than the whole row.
+
+   Private properties (--_*): --_rest-bg --_rest-ink --_on-bg --_on-ink --_h --_px --_selw --_gap --_halo --_select
+   --_shadow --_glyph --_glyph-size --_grow (set by the script on a scrolling row)
+   ========================================================================== */
+
+@layer sg.components {
+  /* ---- Row ------------------------------------------------------------------------------ */
+  .chips {
+    --_grow: 0px; /* the script sets it (inline) on a scrolling row: what every chip's side padding changes by */
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    /* One scrolling line. overflow clips outlines and shadows, so the line keeps 8px of room on
+       every side and a negative margin hands the space back to the layout. */
+    &.scroller {
+      flex-wrap: nowrap;
+      padding-block: var(--space-2);
+      scroll-padding-inline: var(--space-4);
+
+      & > * {
+        flex: none;
+      }
+    }
+    &.scroller:not(.bleed) {
+      padding-inline: var(--space-2);
+      margin-inline: calc(var(--space-2) * -1);
+    }
+  }
+  /* the chips a "+N" button reveals join the row's flow when shown */
+  .chips__more {
+    display: contents;
+  }
+
+  /* ---- Chip --------------------------------------------------------------------------------- */
+  .chip {
+    --lift: 0;
+    --fill: 0;
+    --_press: 0; /* a press on something filled lightens the fill only (see button.css): the label keeps its contrast */
+    --_rest-bg: var(--paper);
+    --_rest-ink: var(--ink);
+    --_on-bg: var(--accent);
+    --_on-ink: var(--on-accent);
+    --_h: var(--ctl-sm);
+    --_px: var(--chrome-4); /* chrome: the side padding stops at its 100% size, the label takes the room */
+    /* As Button: a FILLED chip that is raised (on + hover) would fuse with its own hard shadow, so the lift opens
+       a gap in the surface colour (--_gap grows with --lift x --fill) outside the frame, and the shadow moves out
+       by the same amount so it keeps its 4px. The doubled frame of an on chip (--_selw) is drawn inside. */
+    --_selw: 0px;
+    --_gap: calc(var(--lift) * var(--fill) * var(--bw));
+    --_halo: 0 0 0 var(--_gap) var(--focus-halo, var(--paper));
+    --_shadow: calc(var(--lift) * var(--space-1) + var(--_gap)) calc(var(--lift) * var(--space-1) + var(--_gap)) 0 0 var(--line);
+    --_select: inset 0 0 0 var(--_selw) var(--paper);
+    --_glyph: var(--icon-check);
+    /* the leading icon and the check sit in the line of words, so they grow with it (as Button's "+ Add funds") */
+    --_glyph-size: 1.15em;
+
+    position: relative;
+    display: inline-flex;
+    flex-wrap: nowrap; /* the icon or check stays beside the label; a long label wraps beside it */
+    align-items: center;
+    gap: var(--chrome-2);
+    min-block-size: var(--_h);
+    max-inline-size: 100%;
+    margin: 0;
+    padding-block: var(--chrome-1);
+    /* --_grow: set on a scrolling row by the script, so the chip at its edge is cut near its middle */
+    padding-inline: calc(var(--_px) + var(--_grow, 0px) / 2);
+    color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
+    background: color-mix(in srgb, color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg)) calc(100% - var(--_press) * 12%), var(--_rest-bg));
+    border: var(--bw) solid var(--line);
+    border-radius: calc(var(--_h) / 2);
+    box-shadow: var(--_select), var(--_halo), var(--_shadow);
+    font: var(--type-ctl);
+    font-size: var(--text-sm);
+    text-align: start;
+    text-decoration: none;
+    /* Words wrap at their spaces. break-word (not anywhere) keeps the chip's floor at its longest word, so a
+       wrapping row moves a whole chip to the next line instead of squeezing it; a word breaks only when it alone
+       is wider than the row (WCAG 1.4.10). A scrolling row keeps its chips whole (flex: none). */
+    overflow-wrap: break-word;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* hit area: a 36px chip still gets a 44px target (a size for a finger, so it does not grow with text) */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--chrome-hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
+    }
+
+    /* the glyph in front of the label: a check when on, plus / minus on a "+N" chip. Hidden otherwise.
+       The size of the leading icon it replaces (below). */
+    &::before {
+      content: "";
+      display: none;
+      flex: none;
+      inline-size: var(--_glyph-size);
+      block-size: var(--_glyph-size);
+      background: currentColor;
+      mask: var(--_glyph) center / contain no-repeat;
+    }
+
+    &[data-size="lg"] {
+      --_h: var(--ctl);
+      --_px: var(--chrome-5);
+      font-size: var(--text-md);
+    }
+    &[data-variant="tone"] {
+      --_rest-bg: var(--tone-bg);
+      --_rest-ink: var(--tone-ink);
+      --_on-bg: var(--tone-fill);
+      --_on-ink: var(--tone-on-fill);
+    }
+
+    /* The ring. :focus-visible gets its outline and --focus-shadow from the base layer, which only knows the
+       pseudo-class, so the docs-only .is-focus draws the same ring here: the States demo must be able to show focus. */
+    &.is-focus:not(:focus-visible) {
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+    }
+    &:is(:focus-visible, .is-focus) {
+      box-shadow: var(--focus-shadow), var(--_select), var(--_halo), var(--_shadow);
+    }
+
+    /* raised where a pointer can hover, and always on keyboard focus (same lift, so both match). Raised, NOT
+       filled: the fill is what "on" looks like, and a hovered chip is not on (it fills only if it already is). */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:disabled, [aria-disabled="true"], [data-kind="input"], :has(> .chip__input:disabled)) {
+        --lift: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not(:disabled, [aria-disabled="true"], [data-kind="input"]) {
+      --lift: 1;
+    }
+
+    /* a native input inside is invisible, so the chip wears the ring on its behalf */
+    &:has(> .chip__input:focus-visible) {
+      --lift: 1;
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--paper);
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--focus-shadow), var(--_select), var(--_halo), var(--_shadow);
+    }
+
+    /* pressed: back onto the surface with a light tint, so a tap shows at once (within 100ms) without
+       looking like "on". After hover so it wins. */
+    &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [data-kind="input"], :has(> .chip__input:disabled)) {
+      --lift: 0;
+      --fill: 0.15;
+      transition-duration: var(--dur-press);
+    }
+
+    /* ON: filled, the doubled frame (inside), and a check appears. A tone chip keeps a single frame: the check
+       is the cue on its tone fill. */
+    &:is([aria-pressed="true"], [aria-checked="true"], [aria-current="true"]),
+    &:has(> .chip__input:checked) {
+      --fill: 1;
+      --_selw: var(--bw);
+      --_glyph: var(--icon-check);
+
+      &[data-variant="tone"] {
+        --_selw: 0px;
+      }
+
+      &::before {
+        display: block;
+      }
+      & > .chip__icon {
+        display: none;
+      }
+      /* pressing an on chip lightens its fill a little: the same "I felt that" as the tint, from the other side */
+      &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], :has(> .chip__input:disabled)) {
+        --fill: 1; /* stays on: the pressed tint above would otherwise take it to 15% and it would read as off */
+        --_press: 1;
+      }
+    }
+
+    /* unavailable: dashed = not here. Faint, not opacity. */
+    &:disabled,
+    &[aria-disabled="true"],
+    &:has(> .chip__input:disabled) {
+      --lift: 0;
+      --fill: 0;
+      --_rest-bg: transparent;
+      --_rest-ink: var(--ink-faint);
+      --_shadow: 0 0 0 0 transparent;
+      --_halo: 0 0 0 0 transparent;
+      color: var(--ink-faint);
+      background: transparent;
+      border-color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+    &[aria-disabled="true"] {
+      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
+    }
+  }
+
+  .chip > .ic {
+    --ic-size: var(--_glyph-size);
+  }
+
+  /* the real radio / checkbox of a choice chip: covers the chip (and its 44px hit area), invisible */
+  .chip__input {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: min(0px, calc((100% - var(--chrome-hit)) / 2));
+    inset-inline: 0;
+    inline-size: 100%;
+    block-size: max(100%, var(--chrome-hit));
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  /* ---- Input chip: text + a separate remove button ----------------------------------------------
+     The chip is not a control itself; only the remove button is, and it has its own name
+     ("Remove Anna Kim"). Flat: a value is held, not offered. */
+  .chip__label {
+    min-inline-size: 0;
+    overflow-wrap: break-word;
+  }
+  .chip[data-kind="input"] {
+    --_rest-bg: var(--paper-2);
+    --_rest-ink: var(--ink);
+    padding-inline-end: var(--chrome-1);
+    cursor: default;
+    transform: none;
+
+    /* not a control, so no hit area: it would paint over the remove button and swallow its clicks */
+    &::after {
+      content: none;
+    }
+  }
+  .chip__remove {
+    --fill: 0;
+
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    /* chrome: a 24px circle (the small control less 12px) inside the chip at every text size, so an input chip
+       is as tall as the chips beside it (36px: a 28px circle made it 40) */
+    inline-size: calc(var(--chrome-ctl-sm) - var(--chrome-3));
+    block-size: calc(var(--chrome-ctl-sm) - var(--chrome-3));
+    margin: 0;
+    padding: 0;
+    color: color-mix(in srgb, var(--on-accent) calc(var(--fill) * 100%), var(--_rest-ink, var(--ink)));
+    background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--_rest-bg, var(--paper-2)));
+    border: var(--bw) solid transparent; /* forced colours draws it */
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    & > .ic {
+      --ic-size: var(--chrome-ic-sm); /* 20px in its 24px circle: an icon-only control's glyph, at every text size */
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--chrome-hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
+    }
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --fill: 1;
+    }
+    &:is(:active, .is-active) {
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  /* ---- "+N" disclosure ------------------------------------------------------------------------------
+     Dashed frame = "more is hidden", with a plus in front. Expanded: solid, recessed, with a minus.
+     (Two masks from the owner's set, swapped: a rotation would vanish under reduced motion.) */
+  .chip[data-kind="more"] {
+    --_glyph: var(--icon-plus);
+
+    border-style: dashed;
+
+    &::before {
+      display: block;
+    }
+    &[aria-expanded="true"] {
+      --_glyph: var(--icon-minus);
+      --_rest-bg: var(--paper-2);
+
+      border-style: solid;
+    }
+  }
+
+  /* ---- Forced colours ----------------------------------------------------------------------------------
+     Fills and shadows vanish: the edge stays, raised and on get a heavier line, and the masks (which ARE
+     backgrounds) need a system colour or they disappear. */
+  @media (forced-colors: active) {
+    .chip {
+      border-color: ButtonText;
+
+      &::before {
+        forced-color-adjust: none;
+        background-color: ButtonText;
+      }
+      &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &:has(> .chip__input:focus-visible) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &:is([aria-pressed="true"], [aria-checked="true"], [aria-current="true"]),
+      &:has(> .chip__input:checked) {
+        border-width: var(--bw-heavy);
+      }
+      &:disabled,
+      &[aria-disabled="true"],
+      &:has(> .chip__input:disabled) {
+        color: GrayText;
+        border-color: GrayText;
+
+        &::before {
+          background-color: GrayText;
+        }
+      }
+    }
+    .chip__remove {
+      border-color: ButtonText;
+
+      &:is(.is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      @media (hover: hover) {
+        &:hover {
+          outline: var(--bw-heavy) solid Highlight;
+          outline-offset: 0;
+        }
+      }
+    }
+  }
+}

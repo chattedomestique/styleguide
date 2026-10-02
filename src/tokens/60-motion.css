@@ -1,0 +1,44 @@
+/* ==========================================================================
+   60 · Motion  (gate 4)
+   --------------------------------------------------------------------------
+   The owner's durations and easings, unchanged, plus what an app needs.
+   Only transform and opacity move; the two registered numbers --lift and --fill
+   animate with ONE transition (see button.css). Reduced motion means GENTLER,
+   not instant: travel becomes a fade and springs lose overshoot; durations never
+   drop to zero, because jump cuts are what "reduce" users did not ask for.
+
+   Components multiply every translate by --move, so the swap is automatic.
+   Users can also choose in the app: data-motion="reduced" | "full" on <html>
+   ("full" deliberately overrides an OS reduce request; the default follows the OS).
+   ========================================================================== */
+
+@layer sg.tokens {
+  :root {
+    --dur-press: 130ms;
+    --dur-hover: 200ms;
+    --dur-move: 520ms;
+    --dur-enter: 320ms; /* added: sheets, dialogs, toasts arriving */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-flip: cubic-bezier(0.83, 0, 0.17, 1);
+    --ease-in: cubic-bezier(0.4, 0, 0.7, 0.2); /* added: things leaving */
+
+    --move: 1; /* 1 = travel allowed, 0 = replace travel with a fade */
+    --anim-spin: sg-spin 800ms linear infinite; /* loading: pulses instead under reduced motion */
+  }
+
+  /* Follow the OS unless the user chose "full" in the app. Keep the two blocks identical (linted). */
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="full"]) {
+      --move: 0;
+      --dur-move: 200ms;
+      --dur-enter: 180ms;
+      --anim-spin: sg-pulse 1400ms ease-in-out infinite;
+    }
+  }
+  :root[data-motion="reduced"] {
+    --move: 0;
+    --dur-move: 200ms;
+    --dur-enter: 180ms;
+    --anim-spin: sg-pulse 1400ms ease-in-out infinite;
+  }
+}

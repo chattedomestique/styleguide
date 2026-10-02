@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0e0e" media="(prefers-color-scheme: dark)" />
+    <title>Testing · Style Guide</title>
+    <meta name="description" content="How this repository tests: the lint, the contrast matrix, the accessibility gate, keyboard specs, the design probe and screenshots. How to run each, what each can and cannot catch, how to read the reports and how to extend them." />
+    <!-- Apply saved appearance before first paint so there is no flash of the wrong theme. -->
+    <script>try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}</script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141414'/%3E%3Crect x='6' y='6' width='20' height='20' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E" />
+    <link rel="preload" href="../assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../assets/styleguide.css" />
+    <link rel="stylesheet" href="../assets/icons.css" />
+    <link rel="stylesheet" href="../assets/wire.css" />
+    <link rel="stylesheet" href="../assets/docs.css" />
+  </head>
+  <body class="docs">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="docs-bar" id="docs-bar">
+      <button class="btn docs-bar__menu" data-shape="circle" data-size="sm" type="button" aria-label="Menu" aria-expanded="false" aria-controls="docs-nav">
+        <span class="ic ic--menu" aria-hidden="true"></span>
+      </button>
+      <a class="docs-bar__title" href="../index.html"><span class="t-label">Style guide</span> <span class="docs-bar__version t-label">v0.2.0</span></a>
+      <button class="btn docs-bar__prefs" data-size="sm" type="button" popovertarget="docs-prefs" aria-label="Appearance settings">
+        <span class="ic ic--sliders-horizontal" aria-hidden="true"></span>
+        <span>Appearance</span>
+      </button>
+    </header>
+
+    <div class="docs-scrim" data-docs-scrim hidden></div>
+
+    <div class="docs-shell">
+      <nav class="docs-nav" id="docs-nav" aria-label="Primary"><section class="docs-nav__group"><h2 class="docs-nav__heading">Start</h2><ul role="list"><li><a href="../index.html">Overview</a></li><li><a href="../start/install.html">Install</a></li><li><a href="../start/customize.html">Customize</a></li><li><a href="../start/upgrade.html">Upgrade</a></li><li><a href="../start/pwa.html">PWA</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Foundations</h2><ul role="list"><li><a href="../foundations/color.html">Colour</a></li><li><a href="../foundations/tones.html">Tones</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/interaction.html">Interaction</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/icons.html">Icons</a></li><li><a href="../foundations/layout.html">Layout</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Components</h2><ul role="list"><li><a href="../components/button.html">Button</a></li><li><a href="../components/field.html">Field</a></li><li><a href="../components/input.html">Input</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/choice.html">Choice</a></li><li><a href="../components/switch.html">Switch</a></li><li><a href="../components/slider.html">Slider</a></li><li><a href="../components/stepper.html">Stepper</a></li><li><a href="../components/keypad.html">Keypad</a></li><li><a href="../components/tabs.html">Tabs</a></li><li><a href="../components/chip.html">Chip</a></li><li><a href="../components/segmented.html">Segmented control</a></li><li><a href="../components/appbar.html">App bar</a></li><li><a href="../components/dock.html">Dock</a></li><li><a href="../components/breadcrumb.html">Breadcrumb</a></li><li><a href="../components/pagination.html">Pagination</a></li><li><a href="../components/card.html">Card</a></li><li><a href="../components/tag.html">Tag</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/divider.html">Divider</a></li><li><a href="../components/accordion.html">Accordion</a></li><li><a href="../components/tile.html">Tile</a></li><li><a href="../components/list.html">List</a></li><li><a href="../components/stat.html">Stat</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/sheet.html">Sheet</a></li><li><a href="../components/menu.html">Menu</a></li><li><a href="../components/popover.html">Popover</a></li><li><a href="../components/tooltip.html">Tooltip</a></li><li><a href="../components/alert.html">Alert</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/progress.html">Progress</a></li><li><a href="../components/spinner.html">Spinner</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/empty.html">Empty state</a></li><li><a href="../components/marquee.html">Marquee</a></li><li><a href="../components/table.html">Table</a></li><li><a href="../components/chart-bar.html">Bar chart</a></li><li><a href="../components/sparkline.html">Sparkline</a></li><li><a href="../components/donut.html">Donut chart</a></li><li><a href="../components/legend.html">Legend</a></li><li><a href="../components/calendar.html">Calendar</a></li><li><a href="../components/agenda.html">Agenda</a></li><li><a href="../components/media.html">Media</a></li><li><a href="../components/carousel.html">Carousel</a></li><li><a href="../components/filmstrip.html">Filmstrip</a></li><li><a href="../components/gallery.html">Gallery</a></li><li><a href="../components/toolbar.html">Toolbar</a></li><li><a href="../components/scrubber.html">Scrubber</a></li><li><a href="../components/swatch.html">Swatch</a></li><li><a href="../components/timeline.html">Timeline</a></li><li><a href="../components/player.html">Player</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Accessibility</h2><ul role="list"><li><a href="../accessibility/checklist.html">Checklist</a></li><li><a href="../accessibility/testing.html" aria-current="page">Testing</a></li><li><a href="../accessibility/manual.html">Manual</a></li><li><a href="../accessibility/patterns.html">Patterns</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Project</h2><ul role="list"><li><a href="../project/status.html">Status</a></li><li><a href="../project/decisions.html">Decisions</a></li><li><a href="../project/references.html">References</a></li><li><a href="../project/contributing.html">Contributing</a></li><li><a href="../project/changelog.html">Changelog</a></li><li><a href="../project/audit.html">Audit</a></li></ul></section></nav>
+
+      <main class="docs-main" id="main" tabindex="-1">
+        <article class="docs-article">
+          <p class="docs-crumb t-label">Accessibility</p>
+          <style>
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+</style>
+<h1>Testing</h1>
+<p class="lede">Six kinds of check, what each can and cannot catch, how to run them and how to extend them. Automated checks find a minority of accessibility problems, and none of them can say that a screen looks right. The rest needs a person and a device.</p>
+
+<h2 id="commands">The commands</h2>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Commands, what they do, and how long they took</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Command</th><th role="columnheader">What it does</th><th role="columnheader">Time here</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run build</code></td><td role="cell" data-label="What it does">Writes <code class="nb">dist/</code> and <code class="nb">docs/</code> from <code class="nb">src/</code> and <code class="nb">docs-src/</code>. Fails on duplicate ids, links and anchors that do not resolve, and unknown icons. <code><span data-f="nw">--</span> --allow-broken-links</code> turns link failures into warnings while pages are unfinished.</td><td role="cell" data-label="Time here">under a second</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run build:check</code></td><td role="cell" data-label="What it does">Builds in memory and fails if the committed <code class="nb">dist/</code> and <code class="nb">docs/</code> differ. Catches "I changed the source and forgot to build".</td><td role="cell" data-label="Time here">under a second</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run lint</code></td><td role="cell" data-label="What it does">Static rules over the CSS, the scripts and the docs HTML. Errors fail; warnings are printed and should be justified. No browser.</td><td role="cell" data-label="Time here">0.2 s</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:lint</code></td><td role="cell" data-label="What it does">Replays the original checker's tooling audit against the lint: every deliberate violation it can judge, and every legitimate snippet that must pass. Add a case whenever you add a rule.</td><td role="cell" data-label="Time here">0.1 s</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:contrast</code></td><td role="cell" data-label="What it does">The contrast matrix. <code class="nb">-- --all</code> prints every pair, not only failures. Writes <code>test-results/<wbr>contrast.json</code>.</td><td role="cell" data-label="Time here">About 7 s for 10,350 checks</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:components</code></td><td role="cell" data-label="What it does">Keyboard, ARIA and <code class="nb">--lift</code> / <code class="nb">--fill</code> specs from <code>tests/<wbr>components/</code>. <code><span data-f="nw">--</span> button tabs</code> runs only those specs.</td><td role="cell" data-label="Time here">about 15 min for every spec (about 680 tests) on a shared machine; one file is usually under half a minute</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:a11y</code></td><td role="cell" data-label="What it does">axe, focus walk, ring contrast, target sizes, reflow, clipped text and forced-colours borders on each docs page, in five appearances. <code class="nb">-- --pages</code> <code class="nb">a.html,b.html</code> (paths relative to <code class="nb">docs/</code>), <code class="nb">-- --quick</code> (two appearances). <code class="nb">A11Y_JOBS</code> sets how many pages run at once (default 2). Writes <code>test-results/<wbr>a11y.json</code>.</td><td role="cell" data-label="Time here">about 24 s per page with one job</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run test:shots <span data-f="nw">--</span> page.html</code></td><td role="cell" data-label="What it does">Screenshots, for your eyes. Flags <a href="#shots">below</a>.</td><td role="cell" data-label="Time here">a few seconds per image</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>node tests/design.mjs</code></td><td role="cell" data-label="What it does">The design-integrity probe: ovals, wrapped labels, broken words, bars that wrap, controls of one row at different heights. A report for a person, not a gate. Writes <code>test-results/<wbr>design.json</code>. Flags <a href="#design">below</a>.</td><td role="cell" data-label="Time here">about a minute for 23 text pages in all five conditions with two jobs</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm test</code></td><td role="cell" data-label="What it does"><code class="nb">build:check</code>, <code class="nb">lint</code>, <code class="nb">test:lint</code>, <code class="nb">test:contrast</code>, <code class="nb">test:components</code>, <code class="nb">test:a11y</code>, in that order. No screenshots and no manual pass.</td><td role="cell" data-label="Time here">pages × 24 s ÷ jobs</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run serve</code></td><td role="cell" data-label="What it does">Serves <code class="nb">docs/</code> on port 4173, on 127.0.0.1 only, with <code><span data-f="nw">cache-control:</span> <span data-f="nw">no-store</span></code>.</td><td role="cell" data-label="Time here">n/a</td></tr>
+    <tr role="row"><td role="cell" data-label="Command"><code>npm run new:component <span data-f="nw">--</span> name <span data-f="nw">--order</span> 45</code></td><td role="cell" data-label="What it does">Scaffolds the CSS, the docs page and a spec for a new element.</td><td role="cell" data-label="Time here">n/a</td></tr>
+  </tbody>
+</table></div>
+<p>Times were measured on the machine this page was written on, which was shared with other work. The accessibility gate took 3 min 10 s for eight docs pages in all five appearances with one job. They grow with the page count.</p>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div><strong>The tests read built files</strong><p>The contrast test loads <code>dist/<wbr>styleguide.css</code>; the other browser tests load <code class="nb">docs/</code>. After editing <code class="nb">src/</code> or <code class="nb">docs-src/</code>, run <code>npm run build</code> first, or you are testing the old build. <code>npm test</code> starts with <code class="nb">build:check</code>, which only <em>reports</em> that the build is stale.</p></div>
+</div>
+
+<h3 id="setup">Setup</h3>
+<ul>
+  <li>Node 20 or later, then <code>npm install</code>. The dev dependencies are <code class="nb">axe-core</code> and <code class="nb">playwright-core</code>; nothing else, and the guide itself has no dependencies.</li>
+  <li>A Chromium. The tests look for <code class="nb">$CHROME_PATH</code>, then the browser Playwright manages (install it with <code>npx <span data-f="nw">playwright-core</span> install chromium</code>), then <code>/<wbr>opt/<wbr>pw-browsers/<wbr>chromium</code>.</li>
+  <li><strong>Only Chromium is ever exercised.</strong> Firefox, Safari and every phone are outside the suite.</li>
+  <li>Never run two browser tests at the same time on a small machine; set <code class="nb">A11Y_JOBS=1</code>.</li>
+  <li>The repository's workflow (<code>.github/<wbr>workflows/<wbr>ci.yml</code>) runs the same commands: a <code class="nb">static</code> job first (<code class="nb">lint</code>, <code class="nb">test:lint</code>, <code class="nb">build:check</code>) and then a <code class="nb">browser</code> job (contrast, components, accessibility). A pull request runs the gate with <code class="nb">--quick</code>; a push to the main branch runs all five appearances.</li>
+</ul>
+
+<h3 id="shots">Screenshots</h3>
+<p>Green tests do not prove a page looks right. Look at it at 320, 390 and 1024&nbsp;px, in light and dark, with the default, mint and wire palettes and square and soft corners. Output goes to <code>test-results/<wbr>shots/</code>; open the PNGs. Very tall pages are easier to read cut into pieces.</p>
+<pre aria-label="Screenshot commands">node tests/screenshots.mjs components/button.html --width 390
+node tests/screenshots.mjs components/button.html --theme dark --palette mint --corners soft
+node tests/screenshots.mjs components/button.html --width 320
+node tests/screenshots.mjs components/button.html --matrix                    # 12 shots: light/dark x default/mint/wire x square/soft
+node tests/screenshots.mjs index.html --selector '#use' --width 1280          # crop to one element</pre>
+<p>Other flags: <code><span data-f="nw">--contrast</span> more</code>, <code><span data-f="nw">--motion</span> reduced|full</code>, <code class="nb">--forced-colors</code>, <code class="nb">--height</code>, <code class="nb">--scale</code> (device pixel ratio) and <code class="nb">--out</code>. The tool saves the look through <code class="nb">localStorage</code> before the page loads, the same way a person's saved choice arrives.</p>
+<p>Look at every element at 390px with 100% text <em>and</em> with 200% text, not only at the default: controls in one row at one height, no lonely item on a second row, no word broken inside, icons beside their labels, nothing touching a frame. That review is recorded by hand on the <a href="../project/status.html">Status</a> page.</p>
+
+<h3 id="design">The design-integrity probe</h3>
+<p>The accessibility gate proves that nothing is cut off or out of reach. It cannot tell a designed layout from a broken-looking one. <code class="nb">tests/design.mjs</code> finds the objective signs of the second kind on every docs page, in the conditions people use: a phone (390px), a small phone (320px), a desktop (1024px), a phone with 200% text, and dark mint with soft corners.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">What the design-integrity probe reports</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Finding</th><th role="columnheader">What it found</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">not-round</code></td><td role="cell" data-label="What it found">An icon-only control with fully rounded ends that is not a circle: an oval "circle".</td></tr>
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">oval</code></td><td role="cell" data-label="What it found">A text pill whose label wrapped: a pill is for one line.</td></tr>
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">label-wraps</code></td><td role="cell" data-label="What it found">A control's label runs over more than one line: a tab, a chip, a tag, a button, a segment, a dock word.</td></tr>
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">word-broken</code></td><td role="cell" data-label="What it found">A word split across two lines anywhere but after a hyphen.</td></tr>
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">narrow-text</code></td><td role="cell" data-label="What it found">Text squeezed into a column a few letters wide.</td></tr>
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">bar-wraps</code></td><td role="cell" data-label="What it found">A bar that is one row by definition (dock, tabs, segmented control, toolbar, pagination) runs onto a second row.</td></tr>
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">row-mismatch</code></td><td role="cell" data-label="What it found">Two controls of the same kind and size, side by side in one row, at different heights.</td></tr>
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">icon-drift</code></td><td role="cell" data-label="What it found">An icon and its label in one control drawn far apart: the label centred away from its icon.</td></tr>
+    <tr role="row"><td role="cell" data-label="Finding"><code class="nb">overhang</code></td><td role="cell" data-label="What it found">A control sticking out past the frame of the box that holds it.</td></tr>
+  </tbody>
+</table></div>
+<pre aria-label="Design-integrity probe commands">node tests/design.mjs                                  # every page, every condition
+node tests/design.mjs --pages components/dock.html,components/button.html
+node tests/design.mjs --conditions phone,large          # any of phone, small, desktop, large, dark-soft
+node tests/design.mjs --pages components/dock.html --crops   # also save a crop of each finding</pre>
+<p>It prints a count per page and condition and writes every finding to <code>test-results/<wbr>design.json</code>: the page, the condition, the kind, the element, the section of the page it is in and, with <code class="nb">--crops</code>, a cropped screenshot in <code>test-results/<wbr>design/</code>. <code class="nb">DESIGN_JOBS</code> sets how many pages run at once (default 3).</p>
+<ul>
+  <li><strong>It is a report, not a gate.</strong> It never fails, and <code>npm test</code> does not run it. A finding is a lead, not a verdict: a label may wrap on purpose in a narrow card, and a word has to break when it alone is wider than the line. A person opens the crop and decides, as part of the screenshot review.</li>
+  <li><strong>It cannot see</strong> what it has no rule for: spacing that is uneven, an edge that does not line up, an awkward wrap of running text, colour. And it runs only in Chromium, like everything here.</li>
+</ul>
+
+<h2 id="catch">What each check can and cannot catch</h2>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">For each check, what it catches and what it misses</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Check</th><th role="columnheader">Catches</th><th role="columnheader">Cannot catch</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Check">Lint</td><td role="cell" data-label="Catches">Colour literals (hex, functions, named colours, and colours inside <code class="nb">data:</code> URIs) outside <code class="nb">src/tokens</code>; gradients, blur, text shadows, blurred shadows; a first font family that is a default; literal line widths and radii that are not roles; <code class="nb">px</code> font sizes and line heights; <code>outline: none</code> with no replacement; <code>transition: all</code>; positive <code class="nb">tabindex</code>; <code class="nb">role="button"</code> on a <code class="nb">div</code>; an <code class="nb">img</code> without <code class="nb">alt</code>; an icon not <code class="nb">aria-hidden</code>; a <code class="nb">button</code> with no name; a <code class="nb">var()</code> that nothing declares; a class used in a docs page or a script that no CSS defines; <code class="nb">:hover</code> not gated by <code>(hover: hover)</code>; the contrast and motion blocks drifting apart; an element with no docs page; <code class="nb">STYLE.md</code> naming a token that does not exist; placeholder copy. The full list is <code class="nb">STYLE.md</code> §5.</td><td role="cell" data-label="Cannot catch">Anything that needs rendering: whether a colour is readable, a label helpful, a layout sound. Only the guide's CSS, scripts and docs HTML are read, never your app. Two of the seven rules are only warnings: uppercase outside a label, and a decorative one-edge shadow.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Contrast matrix</td><td role="cell" data-label="Catches">Any listed pair that falls under its floor in any palette, theme or contrast mode; the focus ring on any surface and tone; the scrims over a white photo; the device's "more contrast" request producing different colours from the attribute.</td><td role="cell" data-label="Cannot catch">A role used as text or a boundary that nobody listed (it is simply unverified). Hover, pressed and disabled fills. Text over real photos. Semi-transparent colours over unknown backgrounds. Display colour profiles: colours are read as 8-bit sRGB.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Accessibility gate</td><td role="cell" data-label="Catches">Verified on a page broken on purpose (<a href="#reports">below</a>): a button with no name, 2.13:1 text, a 16&nbsp;px target, a removed focus ring, a box that overflows at 320&nbsp;px and at 200% text. Also: text cut off by a clipping frame, a focus ring under 3:1, a focused control covered by other content, a control with no border under forced colours, a failed request or an uncaught error.</td><td role="cell" data-label="Cannot catch">Everything in <a href="#human">the list below</a>. Also: axe results marked "needs review" are not reported; the focus walk stops at 120 stops or when it loops; reflow is measured once per page; only the five appearances run.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Component specs</td><td role="cell" data-label="Catches">The keys, focus moves, ARIA flips and state numbers somebody wrote down. Any console or page error during the test.</td><td role="cell" data-label="Cannot catch">What assistive technology announces. Other browsers. Touch gestures beyond what Playwright emulates. Anything nobody wrote a test for.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Design probe</td><td role="cell" data-label="Catches">Ovals that should be circles, pills whose label wrapped, broken words, text squeezed narrow, bars that wrap, controls of one row at different heights, icons far from their labels, controls sticking out of their frame, at five sizes and appearances.</td><td role="cell" data-label="Cannot catch">Whether a finding is wrong (a person decides). Uneven spacing, misaligned edges, colour. It is a report and fails nothing.</td></tr>
+    <tr role="row"><td role="cell" data-label="Check">Screenshots</td><td role="cell" data-label="Catches">What you notice while looking.</td><td role="cell" data-label="Cannot catch">Regressions you do not look for: there is no pixel comparison.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="lint">The lint and its self-test</h3>
+<p>The lint is the owner's checker rebuilt on a real CSS tokenizer. The original matched <code>prop: value;</code> with regular expressions, so it missed a last declaration with no semicolon, a colour inside a custom property, a blur hidden behind a token, and any named colour. Its tooling audit fed it deliberate violations and it caught 44%. <code>npm run test:lint</code> replays those cases, and the current run reads <code>violations caught: 112/136 (82%) · legitimate snippets passed: 34/34 · not static CSS/HTML (skipped): 15 · known misses: 24</code>. The 24 misses are cases only a render can judge, such as a colour pair's contrast; <code>npm run test:contrast</code> judges those.</p>
+<p>Errors fail the run. Warnings are printed and each should be explained in the change. Examples: a <code class="nb">:hover</code> outside a hover query, a physical property that breaks right-to-left, a fixed <code class="nb">px</code> size, an <code class="nb">!important</code>, uppercase outside a label, and, in the docs, a class that has no CSS yet.</p>
+
+<h3 id="axe">What axe covers here</h3>
+<p>The gate runs axe-core (4.13.0 when this was written) with the tags <code class="nb">wcag2a</code>, <code class="nb">wcag2aa</code>, <code class="nb">wcag21a</code>, <code class="nb">wcag21aa</code>, <code class="nb">wcag22aa</code> and <code class="nb">best-practice</code>. Those tags pick the rules, so the same 90 of axe's 105 rules run on every page. Which of them find something depends on the page: on the Button page about half found something to check and passed, and the rest had nothing to judge (no video, no frames, no image maps). Colour contrast is among the ones that found something, and it also returned "needs review" results for some text, which the gate does not report. The other 15 never run: seven experimental rules (<code class="nb">css-orientation-lock</code>, <code class="nb">focus-order-semantics</code>, <code class="nb">hidden-content</code>, <code class="nb">label-content-name-mismatch</code>, <code class="nb">p-as-heading</code>, <code class="nb">table-fake-caption</code>, <code class="nb">td-has-header</code>), three AAA rules (<code class="nb">color-contrast-enhanced</code>, which the contrast matrix covers instead, <code class="nb">identical-links-same-purpose</code>, <code class="nb">meta-refresh-no-exceptions</code>) the obsolete <code class="nb">duplicate-id</code> and <code class="nb">duplicate-id-active</code> pair (the build checks ids) and three deprecated rules (<code class="nb">aria-roledescription</code>, <code class="nb">audio-caption</code>, <code>landmark-complementary-is-top-level</code>).</p>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div><strong>Do not read a green run as "accessible"</strong><p>The figure usually quoted is that automated tools find about a third of accessibility problems. Published estimates run from roughly 30 to over 50 percent, depending on whether you count issue types or occurrences. This project has not measured its own. Treat green as "nothing these tools know about is wrong".</p></div>
+</div>
+
+<h3 id="human">Only a person or a device finds these</h3>
+<ul>
+  <li><strong>Meaning.</strong> Whether a label, alt text, error message or heading is actually helpful and correct. Whether reading order and focus order make sense. Whether instructions rely on shape, colour or position.</li>
+  <li><strong>What assistive technology says.</strong> VoiceOver, TalkBack, NVDA and JAWS announcements. Whether a live region is really spoken. Rotor and heading navigation. Voice Control ("tap Save") and Switch Control.</li>
+  <li><strong>The platform.</strong> Safari and WebKit behaviour. Installed iOS apps and their safe areas (WebKit bug 301994). Dynamic Type and Android font scale. A keyboard covering a field. iOS zooming on focus. Gestures that fight the system back gesture. Thumb reach.</li>
+  <li><strong>Perception.</strong> Colour-only cues (use the <code class="nb">wire</code> palette and the browser's vision-deficiency emulation). Motion comfort. Glare outdoors. Flashing.</li>
+  <li><strong>Feel.</strong> Whether a press answers at once. Accidental activation. Whether a drag alternative is discoverable. Hover content that behaves.</li>
+  <li><strong>Layout under stress.</strong> 400% zoom, 256&nbsp;px-tall viewports, text spacing overrides, landscape phones, right-to-left, long translated strings. The gate sees scrolling and cut-off text in a clipping frame; it does not see text that overlaps.</li>
+  <li><strong>Content.</strong> Language of parts, plain language, consistent names and help, cognitive load.</li>
+</ul>
+<p>The scripts for these are on <a href="../accessibility/manual.html">Manual</a>. Nobody has run them yet.</p>
+
+<h2 id="matrix">The appearance matrix</h2>
+<p>A page is tested in several looks, because most accessibility bugs are "fine in the default, broken in one other setting".</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The five appearances the accessibility gate runs</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Appearance</th><th role="columnheader">Settings</th><th role="columnheader">Width</th><th role="columnheader">Why this one</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Appearance"><code class="nb">default</code></td><td role="cell" data-label="Settings">Device defaults: light, default palette, square corners</td><td role="cell" data-label="Width">390</td><td role="cell" data-label="Why this one">What most people see. Reflow at 320&nbsp;px and at 200% text is measured here, once, with every <code class="nb">&lt;details&gt;</code> open.</td></tr>
+    <tr role="row"><td role="cell" data-label="Appearance"><code class="nb">dark-mint-soft</code></td><td role="cell" data-label="Settings">Dark, mint, soft corners</td><td role="cell" data-label="Width">390</td><td role="cell" data-label="Why this one">Dark colours, a coloured accent, and the soft radius roles (the inset focus ring meets the curve).</td></tr>
+    <tr role="row"><td role="cell" data-label="Appearance"><code class="nb">wire-square</code></td><td role="cell" data-label="Settings">Light, wire, square corners</td><td role="cell" data-label="Width">390</td><td role="cell" data-label="Why this one">Zero chroma: anything that relied on colour shows up.</td></tr>
+    <tr role="row"><td role="cell" data-label="Appearance"><code class="nb">contrast-periwinkle-dark</code></td><td role="cell" data-label="Settings">More contrast, periwinkle, dark</td><td role="cell" data-label="Width">1280</td><td role="cell" data-label="Why this one">The higher-contrast knobs, and the wide layout.</td></tr>
+    <tr role="row"><td role="cell" data-label="Appearance"><code class="nb">forced-colors</code></td><td role="cell" data-label="Settings">Windows High Contrast emulated, otherwise default</td><td role="cell" data-label="Width">390</td><td role="cell" data-label="Why this one">Backgrounds and shadows are removed. Every control must keep a border and a focus outline. axe's colour-contrast rule is switched off here.</td></tr>
+  </tbody>
+</table></div>
+<p><code class="nb">--quick</code> runs only the first two. The contrast matrix is separate and wider: light and dark × normal and more contrast × all six palettes (24 combinations), then the island cases: a palette inside a higher-contrast page, and higher contrast asked of one element (22 more). It covers every role pair, every tone in pastel and bold (the tones are discovered from the CSS, so a new one is tested the day it exists), the focus ring on every surface, the scrims over a white photo, and that the device's "more contrast" request and <code class="nb">data-contrast="more"</code> produce identical colours. The screenshot tool's <code class="nb">--matrix</code> takes 12 pictures at 390&nbsp;px.</p>
+<p><strong>Not in any automated matrix:</strong> the sand and cream palettes in the gate (the contrast matrix does cover them), reduced motion in the gate (specs emulate it per element), text at 200% in dark or forced colours, right-to-left beyond the specs that mirror, landscape, and every browser except Chromium.</p>
+
+<h2 id="reports">Reading the reports</h2>
+<p>Both browser tests exit non-zero on any error and write JSON to <code class="nb">test-results/</code>, which is not committed. The terminal shows the first six errors per page and appearance; the JSON has all of them.</p>
+<h3 id="report-a11y">a11y.json</h3>
+<p>An array with one entry per page and appearance:</p>
+<pre aria-label="Shape of one entry in a11y.json">{
+  &quot;page&quot;: &quot;components/button.html&quot;,
+  &quot;appearance&quot;: &quot;default&quot;,
+  &quot;errors&quot;: [],
+  &quot;warnings&quot;: [],
+  &quot;tabStops&quot;: 53
+}</pre>
+<p><code class="nb">tabStops</code> is how many Tab stops the walk reached (capped at 120). An unexpectedly low number means controls are unreachable or the page broke. Error lines begin with what found them:</p>
+<ul>
+  <li><code>axe &lt;rule&gt; (impact, Nx)</code> with the selector and axe's explanation.</li>
+  <li><code class="nb">focus:</code> a control that shows no outline or shadow when focused, a ring under 3:1 against what it is drawn on, or a control covered by other content.</li>
+  <li><code>target WxH:</code> an element under 24&nbsp;px (error). Under 44&nbsp;px is a <em>warning</em>.</li>
+  <li><code class="nb">forced-colors:</code> a control with no border once backgrounds are removed.</li>
+  <li><code class="nb">reflow@320</code> and <code>reflow@200% text</code>: sideways scrolling, with the elements that stick out. <code class="nb">clipped@320</code> and <code>clipped@200% text</code>: text cut off by a clipping frame.</li>
+  <li><code class="nb">console:</code> an uncaught error or a failed request. <code class="nb">runner:</code> the test itself broke.</li>
+</ul>
+<p>This is the terminal output for a page broken on purpose (a scratch copy of the docs with one extra page, not part of the repository), in the default appearance:</p>
+<pre aria-label="Accessibility gate output for a page broken on purpose">x 6 error(s)              bad.html  [default]
+      x axe button-name (critical, 1x): Buttons must have discernible text  e.g. button[data-shape=&quot;circle&quot;] :: Element does not have inner text that is visible to screen readers
+      x axe color-contrast (serious, 1x): Elements must meet minimum color contrast ratio thresholds  e.g. p :: Element has insufficient color contrast of 2.13 (foreground color: #aaaaaa, background color: #f5f5f5, ...). Expected contrast ratio of 4.5:1
+      x focus: no visible focus indicator on button.btn &quot;No ring&quot;
+      x target 16x16: a &quot;x&quot; is under the 24px WCAG 2.5.8 floor
+      x reflow@320: horizontal overflow 176px. div right=496 (viewport 320)
+      x reflow@200% text: horizontal overflow 122px. div right=512 (viewport 390)</pre>
+<p>Useful one-liners (<code class="nb">jq</code> is optional; Node's <code>require('./<wbr>test-results/<wbr>a11y.json')</code> works too). All four were run against real reports:</p>
+<pre aria-label="jq commands for reading the reports"># a11y: every failing page and appearance, with its errors
+jq -r '.[] | select(.errors | length > 0) | &quot;\(.page) [\(.appearance)]&quot;, (.errors[] | &quot;  &quot; + .)' test-results/a11y.json
+
+# a11y: the distinct warnings across the whole run
+jq -r '[.[].warnings[]] | unique[]' test-results/a11y.json
+
+# a11y: how many Tab stops each page reached (0 or 1 usually means something is wrong)
+jq -r '.[] | &quot;\(.page) [\(.appearance)] tab stops: \(.tabStops)&quot;' test-results/a11y.json
+
+# contrast: one line per failed check
+jq -r '.failures[] | &quot;\(.key)  \(.fg) on \(.bg)  \(.ratio * 100 | round / 100):1 (needs \(.min))  \(.what)&quot;' test-results/contrast.json</pre>
+
+<h3 id="contrast">contrast.json</h3>
+<p>Every failed check, with the two colours as painted. The terminal groups failures by pair; the JSON keeps every combination. This is the clay palette from <a href="../start/customize.html#palette">Customize</a> added as a seventh palette (so 28 combinations and 26 island ones) with its accent lightness raised to 0.62, in a scratch copy of the repository; it is not a failure in the repo:</p>
+<pre aria-label="Contrast matrix failure in the terminal">1 of 12150 checks FAILED, in 1 distinct pairs:
+
+  x --on-accent on --accent (text on accent fill) needs 4.5
+      worst 3.62:1 in light/off/clay (#fff8f1 on #c56a3e); 1 combos, e.g. light/off/clay</pre>
+<pre aria-label="The same failure in contrast.json">{
+  &quot;checked&quot;: 12150,
+  &quot;failures&quot;: [
+    {
+      &quot;key&quot;: &quot;light/off/clay&quot;,
+      &quot;fg&quot;: &quot;--on-accent&quot;,
+      &quot;bg&quot;: &quot;--accent&quot;,
+      &quot;what&quot;: &quot;text on accent fill&quot;,
+      &quot;fgHex&quot;: &quot;#fff8f1&quot;,
+      &quot;bgHex&quot;: &quot;#c56a3e&quot;,
+      &quot;ratio&quot;: 3.623665074841121,
+      &quot;min&quot;: 4.5
+    }
+  ],
+  &quot;mismatches&quot;: []
+}</pre>
+<p>The <code class="nb">key</code> reads <code>theme/<wbr>contrast/<wbr>palette</code>, with <code class="nb">/tone=3+bold</code> appended for a tone scope. <code class="nb">mismatches</code> lists roles whose colour differs between the device's "more contrast" request and <code class="nb">data-contrast="more"</code>: those two blocks must stay identical.</p>
+
+<h2 id="pair">Add a colour pair to the matrix</h2>
+<p>A role that is used as text or as a control boundary and is not listed in <code>tests/<wbr>contrast.mjs</code> is unverified. When you add a role (declared in <code class="nb">src/tokens</code>, with a comment), add its pairs in the same change:</p>
+<pre aria-label="Adding a pair to the contrast matrix">// tests/contrast.mjs, inside buildPairs(), next to the other add() lines:
+//        foreground role     background role       floor  label for the report           floor in higher contrast
+add('--ink-mute', '--accent-soft', 4.5, 'placeholder on soft accent', 7)
+
+// Pairs that only exist inside a tone or status scope go in TONE_PAIRS instead:
+//   { fg: '--tone-ink-soft', bg: '--tone-bg', min: 7, bold: 6.5, what: 'tone secondary text' },
+// `min` is the pastel floor, `bold` the floor under data-emphasis=&quot;bold&quot;. Add child: true to read the
+// pair on a child of the toned element (the --surface-* roles and --focus are read that way).</pre>
+<ol>
+  <li>Arguments of <code class="nb">add()</code>: foreground role, background role, the floor, a label for the report, and (optional) the floor under <code class="nb">data-contrast="more"</code>. Use 4.5 for text and 3 for boundaries and icons; 7 for body text.</li>
+  <li><code>npm run build</code>, then <code>npm run test:contrast</code>. Each pair adds one check per combination: the 24 theme, contrast and palette combinations and the 22 island ones, 46 in all. Checked: the pair above passes (10,396 checks instead of 10,350).</li>
+  <li>If it fails, change the knobs or the role, not the floor. Lowering a number needs a reason written next to it.</li>
+  <li>A new <em>palette</em> goes in the <code class="nb">PALETTES</code> list at the top of the file. A new <em>tone</em> is found from the CSS on its own.</li>
+</ol>
+
+<h2 id="spec">Write a component spec</h2>
+<p>axe cannot know that arrow keys should move between tabs. A spec can. One file per element in <code>tests/<wbr>components/<wbr>&lt;name&gt;.mjs</code>, exporting <code class="nb">tests</code>. This one tests the docs shell itself. It is <code>tests/<wbr>components/<wbr>shell.mjs</code> in the repository, and a spec checks that the page and the file say the same:</p>
+<pre aria-label="An example component spec">// tests/components/shell.mjs: the docs shell's own skip link, mobile menu and reduced-motion token.
+export const tests = [
+  {
+    name: 'skip link is the first Tab stop and moves focus to &lt;main&gt;',
+    async run({ page, goto, expect }) {
+      await goto('index.html')
+      await page.keyboard.press('Tab')
+      await expect.focused(page, '.skip-link', 'first Tab stop')
+      await page.keyboard.press('Enter')
+      await expect.focused(page, 'main#main', 'focus lands in main')
+    },
+  },
+  {
+    name: 'menu button toggles aria-expanded; Escape closes and returns focus',
+    viewport: { width: 390, height: 844 }, // the drawer only exists below 64em
+    async run({ page, goto, expect }) {
+      await goto('index.html')
+      await expect.attr(page, '.docs-bar__menu', 'aria-expanded', 'false')
+      await page.locator('.docs-bar__menu').focus()
+      await page.keyboard.press('Enter')
+      await expect.attr(page, '.docs-bar__menu', 'aria-expanded', 'true')
+      await expect.focused(page, '#docs-nav a', 'focus moves into the drawer')
+      await page.keyboard.press('Escape')
+      await expect.attr(page, '.docs-bar__menu', 'aria-expanded', 'false')
+      await expect.focused(page, '.docs-bar__menu', 'focus returns to the trigger')
+    },
+  },
+  {
+    name: 'reduced motion turns travel off (--move is 0)',
+    reducedMotion: true, // emulates prefers-reduced-motion: reduce
+    async run({ page, goto, expect }) {
+      await goto('index.html')
+      const move = await page.evaluate(() =&gt; getComputedStyle(document.documentElement).getPropertyValue('--move').trim())
+      expect.equal(move, '0', '--move under reduced motion')
+    },
+  },
+]</pre>
+<ul>
+  <li><strong>The test object:</strong> <code class="nb">name</code>; optional <code class="nb">viewport</code> (default 390 × 844), <code class="nb">touch</code> (true turns on touch emulation) and <code class="nb">reducedMotion</code> (true emulates <code>prefers-reduced-motion: reduce</code>); and <code>run({ page, goto, expect, url, browser })</code>.</li>
+  <li><strong><code class="nb">page</code></strong> is a Playwright page. <strong><code>goto('components/<wbr>x.html')</code></strong> opens a built docs page and turns off smooth scrolling. <strong><code class="nb">expect</code></strong> has <code class="nb">ok</code>, <code class="nb">equal</code>, <code>focused(page, selector)</code> and <code>attr(page, selector, name, value)</code>, and in the current harness <code>eventually(read, test, msg)</code>, which polls until a condition holds: use it instead of a fixed wait for anything that settles after an event. Anything else, throw.</li>
+  <li><strong>The harness</strong> starts each test with empty <code class="nb">localStorage</code> and fails it if the page logs an error or throws.</li>
+  <li><strong>What every spec should cover:</strong> Tab reaches it; each documented key does what the docs table says; the <code class="nb">aria-*</code> state flips together with the visible state; <kbd>Esc</kbd> closes an overlay and focus returns to its trigger; for anything pressable, <code class="nb">--lift</code> and <code class="nb">--fill</code> in each state (see <code>tests/<wbr>components/<wbr>button.mjs</code>); nothing throws.</li>
+  <li>Run it with <code>npm run test:components <span data-f="nw">--</span> name</code>.</li>
+</ul>
+
+<h2 id="ci">CI</h2>
+<p>The repository's workflow runs the commands above as separate steps so that a failure names its step:</p>
+<pre aria-label="What the repository&#x27;s CI workflow runs">static    npm ci, npm run lint, npm run test:lint, npm run build:check
+browser   (after static) npm ci, install Chromium, npm run build, npm run test:contrast,
+          npm run test:components, npm run test:a11y  (--quick on a pull request), A11Y_JOBS=2
+          and the test-results folder uploaded when anything fails</pre>
+<ul>
+  <li><code class="nb">build:check</code> assumes <code class="nb">dist/</code> and <code class="nb">docs/</code> are committed, which they are. If you fork and do not commit them, replace that line with <code>npm run build</code>.</li>
+  <li>The Chromium download is the slow step. Cache <code>~/<wbr>.cache/<wbr>ms-playwright</code> keyed on <code class="nb">package-lock.json</code> if it matters.</li>
+  <li>Manual passes cannot be automated. Put "manual pass done for this release" in your release checklist (<a href="../start/upgrade.html#release">Upgrade</a>).</li>
+</ul>
+
+<h2 id="lighthouse">Lighthouse and PWA checks</h2>
+<p>Do not make a Lighthouse PWA score a release gate. Chrome's own documentation says so:</p>
+<blockquote>
+  <p>"PWA testing in Lighthouse is deprecated. For more information on its deprecation see Chrome's updated Installability Criteria."</p>
+  <p class="cite">Chrome for Developers, <a href="https://developer.chrome.com/docs/lighthouse/pwa/installable-manifest">Lighthouse: installable manifest</a>, read on 30 September 2026</p>
+</blockquote>
+<ul>
+  <li>Check installability in DevTools: <em>Application</em>, then <em>Manifest</em> and <em>Service workers</em>. Chrome no longer requires a service worker to offer install, and Safari on iOS needs neither a manifest nor a worker (<a href="../start/pwa.html">PWA</a>).</li>
+  <li>Lighthouse's accessibility category runs axe-core, so it adds nothing to the gate above, only a score that hides the detail.</li>
+  <li>Nothing in this repository runs Lighthouse.</li>
+</ul>
+
+<h2 id="emulate">Emulating preferences while you work</h2>
+<p>Chrome DevTools, <em>Rendering</em> panel: emulate <code class="nb">prefers-color-scheme</code>, <code class="nb">prefers-contrast</code>, <code class="nb">prefers-reduced-motion</code>, <code class="nb">forced-colors</code> and vision deficiencies. Or use the <strong>Appearance</strong> panel at the top of this site, which sets the same attributes the device would. Emulation is a shortcut for development; it does not replace the device scripts on <a href="../accessibility/manual.html">Manual</a>.</p>
+<style>
+.docs-article blockquote { margin-inline: 0; padding: var(--chrome-3) var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); }
+.docs-article blockquote > p { max-inline-size: none; margin: 0; }
+.docs-article blockquote .cite { margin-block-start: var(--space-2); color: var(--ink-soft); font: var(--type-meta); }
+</style>
+
+        </article>
+        <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__heading">On this page</h2><ul role="list"><li><a href="#commands">The commands</a></li><li><a href="#catch">What each check can and cannot catch</a></li><li><a href="#matrix">The appearance matrix</a></li><li><a href="#reports">Reading the reports</a></li><li><a href="#pair">Add a colour pair to the matrix</a></li><li><a href="#spec">Write a component spec</a></li><li><a href="#ci">CI</a></li><li><a href="#lighthouse">Lighthouse and PWA checks</a></li><li><a href="#emulate">Emulating preferences while you work</a></li></ul></nav>
+      </main>
+    </div>
+
+    <!-- Appearance panel: built by docs.js (theme, contrast, palette, corners, motion). -->
+    <div class="docs-prefs" id="docs-prefs" popover aria-label="Appearance settings"></div>
+
+    <script src="../assets/styleguide.js" defer></script>
+    <script src="../assets/docs.js" defer></script>
+  </body>
+</html>

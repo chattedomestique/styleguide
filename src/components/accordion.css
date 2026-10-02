@@ -1,0 +1,275 @@
+/* ==========================================================================
+   Accordion  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A stack of sections that fold away, built on the browser's own <details>
+   and <summary>. No script: Enter and Space toggle, the state is exposed to
+   screen readers as expanded / collapsed, and closed content is out of the tab
+   order.
+
+   <div class="accordion">
+     <details class="accordion__item" name="faq" open>
+       <summary class="accordion__head"><span class="accordion__title">How do streaks work?</span></summary>
+       <div class="accordion__body">…</div>
+     </details>
+     <details class="accordion__item" name="faq">…</details>
+   </div>
+
+   ONE OR MANY OPEN. Give the items the same name="…" and opening one closes the
+   others (the browser does it). Leave name off and each item opens on its own.
+   Where name is not supported items simply open independently.
+
+   data-variant   rows (default: one frame, hairlines between, only the open item gets a bar)
+                  | panels (each item is a Card panel: its own frame, the bar is always there)
+   data-tone      on an .accordion__item: tints the body (1…6, ink). The ink tone flips the bar to paper.
+
+   THE SAME 2px LANGUAGE AS THE CARD PANEL. The head is the card's bar: ink fill, paper
+   text, a 20px square control that shows + (closed) or − (open). In rows the bar appears
+   only on the open item, so "which one am I in" is answered by the inversion AND the
+   sign AND the native expanded state; no colour is involved (wire palette and forced
+   colours keep all three). A head is a pressable thing, so hover / focus / press only
+   SET --fill (a tint of the text colour over the bar) and ONE transition animates it;
+   the head never lifts, because it lives inside a frame. As on the card, the frame is painted over
+   the content (::after), so a bar under a soft corner shows no hairline of the page colour.
+
+   MOTION is opacity and a short drop, via ::details-content, only while OPENING; closing
+   is instant so nothing has to wait for an exit. --move turns the drop into a plain fade.
+
+   DISABLED: aria-disabled="true" on the <summary> (keeps it focusable, so its reason can
+   be read). SG.guard blocks Enter and Space; the pointer is blocked here.
+
+   SIZES. The control (a 20px box holding a 12px sign), the head's 56px floor and the insets of the head
+   and the body are chrome: they stop at their 100% size, so at 200% text the title keeps the width for
+   its words. Head and body share one 16px side inset, and so does a List placed in a flush body, so the
+   text of an open item's rows lines up with the titles of the closed items. Words wrap between words and
+   are cut only when one cannot fit a line of its own. (The insets used to be rem, tightened again by
+   container queries at large text: the + slot and its padding took 88px of a 311px head.)
+
+   PRIVATE PROPERTIES (--_*) are set on the item and read by the head, so the open state,
+   the panels variant and a tone each change a few of them and nothing else.
+   ========================================================================== */
+
+@layer sg.components {
+  .accordion {
+    --_bar-bg: var(--ink);
+    --_bar-ink: var(--paper);
+
+    position: relative; /* holds the frame drawn over the content (below) */
+    display: block;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+    overflow: clip; /* a focus ring on a head is drawn INSIDE it (see below), so nothing is cut */
+    overflow-clip-margin: border-box;
+  }
+
+  /* THE FRAME IS DRAWN OVER THE CONTENT, as on the card. In soft corners an open head (the bar) under a
+     rounded frame showed a hairline arc of the page colour inside the corner: the content was clipped
+     on the frame's inner curve and the border drawn on its outer one, and the two anti-aliased edges
+     let the background through. Now the content runs under the frame to its outer edge
+     (overflow-clip-margin) and the frame is painted on top of it, on one curve. */
+  :is(.accordion:not([data-variant="panels"]), .accordion[data-variant="panels"] > .accordion__item)::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--bw) * -1);
+    border: inherit;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .accordion__item {
+    --_surface: var(--tone-bg, var(--paper));
+    --_text: var(--tone-ink, var(--ink));
+    --_head-bg: var(--_surface);
+    --_head-ink: var(--_text);
+
+    display: block;
+    color: var(--_text);
+    background: var(--_surface);
+
+    & + .accordion__item {
+      border-block-start: var(--bw-thin) solid var(--line);
+    }
+
+    /* open: the head becomes the bar */
+    &[open] {
+      --_head-bg: var(--_bar-bg);
+      --_head-ink: var(--_bar-ink);
+    }
+    /* the inverted tone flips the bar, or it would vanish into the item */
+    &[data-tone="ink"] {
+      --_bar-bg: var(--paper);
+      --_bar-ink: var(--ink);
+    }
+  }
+
+  .accordion__head {
+    --fill: 0;
+    --_tint: color-mix(in srgb, var(--_head-ink) 12%, var(--_head-bg));
+    --_head-min: min(3.5rem, 56px); /* chrome: a 56px target, which does not grow with text (the title does) */
+
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--chrome-3);
+    min-block-size: var(--_head-min);
+    padding: var(--chrome-2) var(--chrome-4);
+    color: var(--_head-ink);
+    background: color-mix(in srgb, var(--_tint) calc(var(--fill) * 100%), var(--_head-bg));
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    overflow-wrap: break-word; /* words wrap between words; one is cut only when it cannot fit a line alone */
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    /* the control: a 20px square frame holding a + or −, the card bar's control */
+    &::before,
+    &::after {
+      content: "";
+      grid-area: 1 / 2;
+      place-self: center;
+    }
+    &::before {
+      inline-size: var(--chrome-box);
+      block-size: var(--chrome-box);
+      border: var(--bw) solid currentColor;
+      border-radius: var(--radius-ctl);
+    }
+    &::after {
+      --_ic: var(--icon-plus);
+      inline-size: var(--chrome-ic-xs);
+      block-size: var(--chrome-ic-xs);
+      background: currentColor;
+      mask: var(--_ic) center / contain no-repeat;
+    }
+    .accordion__item[open] > &::after {
+      --_ic: var(--icon-minus);
+    }
+
+    /* the ring fits inside the head (the frame clips) and follows the head's own ink,
+       which is paper on a bar. Written out so .is-focus (the docs' way to show the state) draws it too. */
+    &:is(:focus-visible, .is-focus) {
+      --ring-gap: calc(var(--ring) * -1);
+      outline: var(--ring) solid var(--_head-ink);
+      outline-offset: var(--ring-gap);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --fill: 1;
+    }
+    /* pressed: a deeper tint, straight away */
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --fill: 1;
+      --_tint: color-mix(in srgb, var(--_head-ink) 20%, var(--_head-bg));
+      transition-duration: var(--dur-press);
+    }
+
+    /* unavailable: faint, and the pointer is blocked. Focusable, so a reason can be read. */
+    &[aria-disabled="true"] {
+      --fill: 0;
+      color: var(--ink-faint);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+
+  .accordion__title {
+    min-inline-size: 0;
+  }
+
+  .accordion__body {
+    padding: var(--chrome-4) var(--chrome-4) var(--chrome-5);
+    font: var(--type-body);
+    overflow-wrap: break-word;
+
+    & > * {
+      max-inline-size: var(--measure);
+    }
+    & > * + * {
+      margin-block-start: var(--space-3);
+    }
+    /* a list or a grid that brings its own rows runs edge to edge */
+    &[data-flush] {
+      padding: 0;
+      & > * {
+        max-inline-size: none;
+      }
+    }
+  }
+
+  /* opening: a fade and a short drop. Closing is instant: the transition lives on the
+     destination (open) state only. Not supported = it simply opens. */
+  @supports selector(details::details-content) {
+    .accordion__item::details-content {
+      opacity: 0;
+      transform: translateY(calc(var(--space-2) * -1 * var(--move)));
+    }
+    .accordion__item[open]::details-content {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity var(--dur-enter) var(--ease-out),
+        transform var(--dur-enter) var(--ease-out),
+        content-visibility var(--dur-enter) allow-discrete;
+    }
+  }
+
+  /* ---- variant: panels. Each item is a Card panel: its own frame, and the bar is always there. ---- */
+  .accordion[data-variant="panels"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    background: none;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+
+    & > .accordion__item {
+      --_head-bg: var(--_bar-bg);
+      --_head-ink: var(--_bar-ink);
+
+      position: relative; /* holds its frame, drawn over the content */
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-card);
+      overflow: clip;
+      overflow-clip-margin: border-box;
+    }
+  }
+
+  /* ---- forced colours: fills and tints vanish, so the open item gets a heavier line under its head ---- */
+  @media (forced-colors: active) {
+    .accordion,
+    .accordion__item {
+      border-color: CanvasText;
+    }
+    .accordion__head {
+      &::after {
+        forced-color-adjust: none;
+        background-color: CanvasText;
+      }
+      &:is(:hover, .is-hover) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: calc(var(--bw-heavy) * -1);
+      }
+      &[aria-disabled="true"] {
+        color: GrayText;
+      }
+    }
+    .accordion__item[open] > .accordion__head {
+      border-block-end: var(--bw-heavy) solid CanvasText;
+    }
+  }
+}

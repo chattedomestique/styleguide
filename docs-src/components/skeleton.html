@@ -1,0 +1,258 @@
+<!--{"title":"Skeleton","group":"Components","order":94,"summary":"Flat placeholders that mirror the layout while content loads: shown only after 300 ms, a stepped pulse, and still when motion is reduced."}-->
+<style>
+  /* docs.css gives every article list a start padding and li margins; components opt out. */
+  .demo .list { padding: 0; }
+  .demo .list > li { margin: 0; max-inline-size: none; }
+  #sk-body:empty { display: none; } /* nothing loaded yet: no gap under the heading */
+</style>
+<h1>Skeleton</h1>
+<p class="lede">A skeleton is a grey sketch of the content that is on its way: same places, same sizes, so the page does not jump when the real thing lands. It shows only if the wait is long enough to notice, it never shimmers, and it holds perfectly still for people who ask for less motion.</p>
+
+<h2 id="when">When to use</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Choosing a loading indicator by wait length</caption>
+  <thead><tr><th>The wait is</th><th>Show</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Under 100&nbsp;ms</td><td>Nothing</td><td>It feels instant. Any indicator would be a flash.</td></tr>
+    <tr><td>100&ndash;300&nbsp;ms</td><td>Keep the previous content</td><td>The screen stays calm. A skeleton that flashes up and vanishes is worse than a short blank.</td></tr>
+    <tr><td>Over 300&nbsp;ms, known shape</td><td>A skeleton (this page)</td><td>It says "this is coming, here" and reserves the space.</td></tr>
+    <tr><td>Over 300&nbsp;ms, unknown shape, or an action</td><td>A <a href="@/components/spinner.html">spinner</a></td><td>Nothing to sketch: a save, a refresh, a button.</td></tr>
+    <tr><td>Over 2&nbsp;s with a known length</td><td><a href="@/components/progress.html">Progress</a></td><td>A number beats an animation.</td></tr>
+    <tr><td>Over about 10&nbsp;s, or failed</td><td>An <a href="@/components/empty.html">empty state</a> with Retry</td><td>Never leave a skeleton on screen for ever.</td></tr>
+  </tbody>
+</table></div>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Mirror the real layout: the same number of rows, the same tile size, the same media ratio. Keep the heading and the controls real and sketch only what is loading.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Announce the skeleton, sweep a gradient across it, or show it for content that is already there. It is decoration, hidden from assistive technology.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+<p>Every piece sits in a <code>.skeleton</code> group that is <code>aria-hidden</code> and fades in after 300&nbsp;ms. A shape is the ink mixed 26% into the surface under it, so it reads on the canvas, on a card and on a tone alike.</p>
+
+<h3 id="text">Text</h3>
+<p>Line widths are percentages, so a paragraph gets a natural ragged edge. The last line is shorter.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="skeleton" aria-hidden="true">
+      <span class="skeleton__line" data-w="60"></span>
+      <span class="skeleton__line"></span>
+      <span class="skeleton__line"></span>
+      <span class="skeleton__line" data-w="75"></span>
+    </div>
+  </div>
+</div>
+
+<h3 id="slots">Tile, avatar and text</h3>
+<p>The tile is the size of a list's tile (44px). The avatar is a circle, in three sizes. A line placed straight into a row is the short trailing value. Slots keep their size at 200% text, as the real ones do; the lines beside them take the width that is left.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="skeleton" aria-hidden="true">
+      <div class="skeleton__row">
+        <span class="skeleton__tile"></span>
+        <span class="skeleton__stack"><span class="skeleton__line" data-w="60"></span><span class="skeleton__line" data-w="40"></span></span>
+        <span class="skeleton__line"></span>
+      </div>
+      <div class="skeleton__row">
+        <span class="skeleton__avatar" data-size="sm"></span>
+        <span class="skeleton__stack"><span class="skeleton__line" data-w="40"></span></span>
+      </div>
+      <div class="skeleton__row">
+        <span class="skeleton__avatar"></span>
+        <span class="skeleton__stack"><span class="skeleton__line" data-w="60"></span><span class="skeleton__line" data-w="40"></span></span>
+      </div>
+      <div class="skeleton__row">
+        <span class="skeleton__avatar" data-size="lg"></span>
+        <span class="skeleton__stack"><span class="skeleton__line" data-w="75"></span><span class="skeleton__line" data-w="60"></span><span class="skeleton__line" data-w="25"></span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="card">Card</h3>
+<p>The media block takes an aspect ratio (<code>16/9</code> by default, <code>4/3</code>, <code>1/1</code>, <code>21/9</code>), so its space is reserved before the image exists. That is what prevents layout shift. Inside a card the shapes mix with the card's own paper or tone.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 14rem">
+      <div class="card" aria-busy="true">
+        <div class="card__body">
+          <div class="skeleton" aria-hidden="true">
+            <span class="skeleton__block" data-ratio="4/3"></span>
+            <span class="skeleton__line" data-w="75"></span>
+            <span class="skeleton__line" data-w="90"></span>
+            <span class="skeleton__pill"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card" data-tone="2" aria-busy="true">
+        <div class="card__body">
+          <div class="skeleton" aria-hidden="true">
+            <span class="skeleton__line" data-w="40"></span>
+            <span class="skeleton__line" data-w="60"></span>
+            <span class="skeleton__line" data-w="90"></span>
+            <span class="skeleton__line" data-w="25"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="list">List of rows</h3>
+<p><code>data-layout="list"</code> gives each row the height, insets and 1px rule of a <a href="@/components/list.html">list</a> row, and <code>data-variant</code> set to <code>framed</code> adds the framed list's 2px frame, so a list of placeholder rows turns into a list of real ones without moving anything. The rules and the frame are the list's own structure, so they are drawn in its colours; only the content is grey. Where the real list drops its values under the titles (large text, a narrow column), the placeholder rows drop their value line under the text lines too, at the same width, so the rows keep their shape when the content lands.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="skeleton" data-layout="list" data-variant="framed" aria-hidden="true">
+      <div class="skeleton__row"><span class="skeleton__tile"></span><span class="skeleton__stack"><span class="skeleton__line" data-w="60"></span><span class="skeleton__line" data-w="40"></span></span><span class="skeleton__line"></span></div>
+      <div class="skeleton__row"><span class="skeleton__tile"></span><span class="skeleton__stack"><span class="skeleton__line" data-w="75"></span><span class="skeleton__line" data-w="40"></span></span><span class="skeleton__line"></span></div>
+      <div class="skeleton__row"><span class="skeleton__tile"></span><span class="skeleton__stack"><span class="skeleton__line" data-w="60"></span><span class="skeleton__line" data-w="25"></span></span><span class="skeleton__line"></span></div>
+    </div>
+  </div>
+</div>
+
+<h3 id="live">The full pattern, live</h3>
+<p>The region that is loading carries <code>aria-busy="true"</code>. When the content arrives: swap the skeleton for it, set <code>aria-busy="false"</code> and make one polite announcement. The buttons simulate a slow response (1.6&nbsp;s) and a fast one (0.2&nbsp;s, so no skeleton ever appears).</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage" data-code="// the region that is loading
+&lt;section aria-labelledby=&quot;h&quot; aria-busy=&quot;true&quot;&gt;
+  &lt;h2 id=&quot;h&quot;&gt;Recent sessions&lt;/h2&gt;
+  &lt;div class=&quot;skeleton&quot; data-layout=&quot;list&quot; aria-hidden=&quot;true&quot;&gt; … &lt;/div&gt;
+&lt;/section&gt;
+
+// when the data arrives
+region.querySelector('.skeleton').replaceWith(list)
+region.setAttribute('aria-busy', 'false')
+SG.announce('Recent sessions loaded')">
+    <div class="cluster">
+      <button class="btn" type="button" id="sk-slow">Load in 1.6&nbsp;s</button>
+      <button class="btn" type="button" id="sk-fast">Load in 0.2&nbsp;s</button>
+    </div>
+    <section class="stack" data-gap="3" id="sk-region" aria-labelledby="sk-h" aria-busy="false">
+      <div class="stack" data-gap="1">
+        <h4 class="t-title" id="sk-h">Recent sessions</h4>
+        <p class="t-meta"><span id="sk-status">Not loaded.</span> <span id="sk-hint">Press a button to load the list.</span></p>
+      </div>
+      <div id="sk-body"></div>
+    </section>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>The heading and the filter stay real. Only the list is sketched, inside the list's own frame.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="4">
+        <h4 class="t-title">Study</h4>
+        <fieldset class="segmented">
+          <legend class="sr-only">Show</legend>
+          <label class="segmented__opt"><input type="radio" name="sk-ctx-filter" value="all" checked><span class="segmented__label">All</span></label>
+          <label class="segmented__opt"><input type="radio" name="sk-ctx-filter" value="due"><span class="segmented__label">Due</span></label>
+        </fieldset>
+        <section aria-labelledby="sk-ctx-h" aria-busy="true" class="stack" data-gap="3">
+          <h5 class="t-label" id="sk-ctx-h">This week</h5>
+          <div class="skeleton" data-layout="list" data-variant="framed" aria-hidden="true">
+            <div class="skeleton__row"><span class="skeleton__tile"></span><span class="skeleton__stack"><span class="skeleton__line" data-w="60"></span><span class="skeleton__line" data-w="40"></span></span><span class="skeleton__line"></span></div>
+            <div class="skeleton__row"><span class="skeleton__tile"></span><span class="skeleton__stack"><span class="skeleton__line" data-w="75"></span><span class="skeleton__line" data-w="25"></span></span><span class="skeleton__line"></span></div>
+            <div class="skeleton__row"><span class="skeleton__tile"></span><span class="skeleton__stack"><span class="skeleton__line" data-w="60"></span><span class="skeleton__line" data-w="40"></span></span><span class="skeleton__line"></span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="motion">Motion and timing</h2>
+<ul>
+  <li><strong>Delay</strong>: the group starts at opacity 0 and fades in after 300&nbsp;ms (<code>animation-delay</code>), so there is no JavaScript timer to forget.</li>
+  <li><strong>Stepped pulse</strong>: four held levels over 1.6&nbsp;s (100%, 75%, 55%, 75% opacity), identical for every piece, so the screen breathes together. Nothing slides, nothing sweeps, nothing flashes: 2.5 small steps a second, below the 3-per-second line of WCAG 2.3.1.</li>
+  <li><strong>Reduced motion</strong>: the pulse is off (<code>animation: none</code>); the shapes are still. The 300&nbsp;ms fade-in stays: it is opacity only.</li>
+  <li><strong>Never for ever</strong>: if the data has not arrived after about ten seconds, replace the skeleton with a message and a Retry button (see <a href="@/components/empty.html">Empty state</a>). Motion that cannot end fails WCAG 2.2.2 in spirit.</li>
+</ul>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Region</strong>: the real section, list or card that is loading, with <code>aria-busy</code> set to <code>true</code>. Its heading and any controls stay real.</li>
+  <li><strong>Group</strong> <code>.skeleton</code>: hidden from assistive technology (<code>aria-hidden</code>); owns the 300&nbsp;ms delay and the gap between pieces.</li>
+  <li><strong>Pieces</strong>: <code>__line</code> (text, <code>--radius-ctl</code>), <code>__tile</code> (<code>--radius-tile</code>), <code>__avatar</code> and <code>__pill</code> (always round), <code>__block</code> (media, with an aspect ratio, <code>--radius-tile</code>). Square and soft corners follow the roles with no branch.</li>
+  <li><strong>Layout helpers</strong>: <code>__row</code> (a slot beside text), <code>__stack</code> (lines).</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Skeleton classes and attributes</caption>
+  <thead><tr><th>Class or attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.skeleton</code></td><td><code>data-layout="list"</code></td><td>The group. Put <code>aria-hidden="true"</code> on it. <code>list</code> gives each row the height of a <code>.card--row</code>.</td></tr>
+    <tr><td><code>.skeleton__line</code></td><td><code>data-w</code> 25, 40, 60, 75, 90, 100 (default)</td><td>A line of text, in percent of the width.</td></tr>
+    <tr><td><code>.skeleton__tile</code></td><td></td><td>A 44px square slot.</td></tr>
+    <tr><td><code>.skeleton__avatar</code></td><td><code>data-size</code> <code>sm</code> (32), md (48), <code>lg</code> (72)</td><td>A circle.</td></tr>
+    <tr><td><code>.skeleton__block</code></td><td><code>data-ratio</code> <code>16/9</code> (default), <code>4/3</code>, <code>1/1</code>, <code>21/9</code></td><td>Media with a reserved ratio.</td></tr>
+    <tr><td><code>.skeleton__pill</code></td><td></td><td>A button or chip placeholder.</td></tr>
+    <tr><td><code>.skeleton__row</code>, <code>.skeleton__stack</code></td><td></td><td>A flex row with a gap; a grid of lines.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Skeleton screen reader and motion behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td>Screen reader</td><td>The skeleton is invisible to it (<code>aria-hidden</code>). The region's <code>aria-busy="true"</code> says content is updating, and some readers hold back until it is false. When the content lands, one polite <code>SG.announce()</code>, such as “Recent sessions loaded” (WCAG 4.1.3). Do not announce "loading" on entry: it is noise.</td></tr>
+    <tr><td>Keyboard</td><td>Nothing in a skeleton is focusable. Do not sketch controls; keep the real ones.</td></tr>
+    <tr><td>Reduced motion</td><td>Still. A skeleton is told from content by shape alone.</td></tr>
+    <tr><td>Flashing</td><td>A slow, shallow, stepped dip, well under three a second (WCAG 2.3.1).</td></tr>
+    <tr><td>Forced colours</td><td>The shapes are painted in <code>GrayText</code>; backgrounds would otherwise be removed and leave a blank region.</td></tr>
+    <tr><td>Contrast</td><td>Decorative, so there is no contrast requirement (WCAG 1.4.11 covers meaningful graphics). The shapes are still visible against their surface.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--ink</code> and <code>--canvas</code> (mixed, or the card's <code>--card-ink</code> and <code>--card-bg</code>), <code>--radius-ctl</code>, <code>--radius-tile</code>, <code>--radius-pill</code>, <code>--hit</code>, <code>--ctl</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-4</code>, <code>--space-5</code>, <code>--dur-enter</code>, <code>--ease-out</code>.</p>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    var SG = window.SG;
+    var region = document.getElementById('sk-region');
+    if (!region) return;
+    var body = document.getElementById('sk-body');
+    var status = document.getElementById('sk-status');
+    var hint = document.getElementById('sk-hint');
+    var slowBtn = document.getElementById('sk-slow');
+    var fastBtn = document.getElementById('sk-fast');
+    var row = '<div class="skeleton__row"><span class="skeleton__tile"></span><span class="skeleton__stack"><span class="skeleton__line" data-w="60"></span><span class="skeleton__line" data-w="40"></span></span><span class="skeleton__line"></span></div>';
+    var skeleton = '<div class="skeleton" data-layout="list" data-variant="framed" aria-hidden="true">' + row + row + row + '</div>';
+    // the real rows the placeholders stand for: a framed list, a tile with the deck's icon, title, meta, a value
+    var rows = [['Shapes', '12 cards, 9 known', '3 days ago', 'blend', '2'], ['Colours', '8 cards, 8 known', 'Yesterday', 'palette', '1'], ['Numbers to twenty', '20 cards, 4 known', 'Today', 'hash', '4']];
+    var list = '<ul class="list" data-variant="framed" role="list">' + rows.map(function (r) {
+      return '<li><div class="list__row"><span class="list__lead" data-shape="tile" data-tone="' + r[4] + '" aria-hidden="true"><span class="ic ic--' + r[3] + '" aria-hidden="true"></span></span>' +
+        '<span class="list__main"><span class="list__title">' + r[0] + '</span><span class="list__meta">' + r[1] + '</span></span>' +
+        '<span class="list__trail"><span class="list__value">' + r[2] + '</span></span></div></li>';
+    }).join('') + '</ul>';
+    var timer = null;
+    function load(ms) {
+      clearTimeout(timer);
+      region.setAttribute('aria-busy', 'true');
+      status.textContent = 'Loading.';
+      hint.textContent = '';
+      body.innerHTML = skeleton;
+      slowBtn.setAttribute('aria-disabled', 'true');
+      fastBtn.setAttribute('aria-disabled', 'true');
+      timer = setTimeout(function () {
+        body.innerHTML = list;
+        region.setAttribute('aria-busy', 'false');
+        status.textContent = 'Loaded.';
+        SG.announce('Recent sessions loaded');
+        slowBtn.removeAttribute('aria-disabled');
+        fastBtn.removeAttribute('aria-disabled');
+      }, ms);
+    }
+    slowBtn.addEventListener('click', function () { load(1600); });
+    fastBtn.addEventListener('click', function () { load(200); });
+  });
+</script>

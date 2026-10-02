@@ -1,0 +1,282 @@
+<!--{"title":"Toolbar","group":"Components","order":130,"summary":"A tray of round tool buttons with their names underneath: one tab stop, arrow keys, and buttons to scroll when it overflows."}-->
+<h1>Toolbar</h1>
+<p class="lede">A toolbar is a tray of tools you reach for again and again: Crop, Light, Colour. Each is a round Button with its name under it, because a bare icon asks you to guess. The tray is one tab stop and the arrow keys move inside it, so a keyboard user does not tab through twenty buttons to get past it.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it for three or more related controls that act on the same thing, like the tools of an editor. Keep every tool labelled, and put the same tools in the same order on every screen.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it to move between pages (that is navigation: links, with <code>aria-current</code>) or to switch panels of content (that is tabs). Do not leave the names off to save room: scroll instead.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="tools">A tray of tools</h3>
+<p>Pick one of a group: each tool is a <code>role="radio"</code> Button inside a <code>role="radiogroup"</code>, and the one that is on has a filled circle, a doubled frame (a 2px ring inside its border, so it stays the size of the other tools) and an underlined name; only the tool that is on is filled (a pointer over another one raises it, a press tints it). Seven tools do not fit on a phone, so the tray scrolls and the two scroll buttons appear, small (36px, with a 44px target), one on each side of the tools on the same row. The tray shows whole tools only: it pages, each page the tools that fit, spread out to fill it, so no circle and no word is sliced at the edge, and forward brings the next page. The buttons disappear when everything fits.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="toolbar">
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="back" aria-label="Scroll tools back" hidden><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+      <div class="toolbar__list" role="toolbar" aria-label="Photo tools">
+        <div class="toolbar__group" role="radiogroup" aria-label="Active tool">
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t1-crop" aria-labelledby="t1-crop-l" role="radio" aria-checked="false"><span class="ic ic--crop" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t1-crop-l" for="t1-crop">Crop</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t1-light" aria-labelledby="t1-light-l" role="radio" aria-checked="true"><span class="ic ic--sun" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t1-light-l" for="t1-light">Light</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t1-colour" aria-labelledby="t1-colour-l" role="radio" aria-checked="false"><span class="ic ic--palette" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t1-colour-l" for="t1-colour">Colour</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t1-effects" aria-labelledby="t1-effects-l" role="radio" aria-checked="false"><span class="ic ic--wand-sparkles" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t1-effects-l" for="t1-effects">Effects</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t1-text" aria-labelledby="t1-text-l" role="radio" aria-checked="false"><span class="ic ic--type" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t1-text-l" for="t1-text">Text</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t1-focus" aria-labelledby="t1-focus-l" role="radio" aria-checked="false"><span class="ic ic--focus" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t1-focus-l" for="t1-focus">Focus</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t1-rotate" aria-labelledby="t1-rotate-l" role="radio" aria-checked="false"><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t1-rotate-l" for="t1-rotate">Rotate</label>
+        </div>
+        </div>
+      </div>
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="forward" aria-label="Scroll tools forward" hidden><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+    </div>
+  </div>
+</div>
+
+<h3 id="toggles">Toggles, actions and groups</h3>
+<p>Buttons that switch something on and off use <code>aria-pressed</code>; buttons that just do something need nothing. A <code>.toolbar__sep</code> divides groups. A tool that cannot be used right now is <code>aria-disabled</code>, not <code>disabled</code>: it keeps its place in the arrow-key order, so a keyboard user finds it and hears why.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="toolbar">
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="back" aria-label="Scroll tools back" hidden><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+      <div class="toolbar__list" role="toolbar" aria-label="History and view">
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t2-undo" aria-labelledby="t2-undo-l"><span class="ic ic--undo-2" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t2-undo-l" for="t2-undo">Undo</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t2-redo" aria-labelledby="t2-redo-l" aria-disabled="true" aria-describedby="t2-redo-why"><span class="ic ic--redo-2" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t2-redo-l" for="t2-redo">Redo</label>
+        </div>
+        <span class="toolbar__sep" role="separator" aria-orientation="vertical"></span>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t2-compare" aria-labelledby="t2-compare-l" data-toggle aria-pressed="true"><span class="ic ic--layers-2" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t2-compare-l" for="t2-compare">Compare</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t2-grid" aria-labelledby="t2-grid-l" data-toggle aria-pressed="false"><span class="ic ic--layout-grid" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t2-grid-l" for="t2-grid">Grid</label>
+        </div>
+      </div>
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="forward" aria-label="Scroll tools forward" hidden><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+    </div>
+    <p id="t2-redo-why" class="t-meta">Redo: nothing to redo yet.</p>
+  </div>
+</div>
+
+<h3 id="tone">Tones and dark stages</h3>
+<p>Put <code>data-tone="1"</code> to <code>"6"</code> on the tray to tint it; the buttons stay paper, so they keep their contrast. Editors are usually dark so the picture is the brightest thing on screen: make the tray an island with <code>data-theme="dark"</code> and every role, the ring included, follows.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <div class="toolbar" data-tone="4">
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="back" aria-label="Scroll tools back" hidden><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+      <div class="toolbar__list" role="toolbar" aria-label="Photo tools, tinted">
+        <div class="toolbar__group" role="radiogroup" aria-label="Active tool">
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t3-crop" aria-labelledby="t3-crop-l" role="radio" aria-checked="false"><span class="ic ic--crop" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t3-crop-l" for="t3-crop">Crop</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t3-light" aria-labelledby="t3-light-l" role="radio" aria-checked="false"><span class="ic ic--sun" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t3-light-l" for="t3-light">Light</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t3-colour" aria-labelledby="t3-colour-l" role="radio" aria-checked="false"><span class="ic ic--palette" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t3-colour-l" for="t3-colour">Colour</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t3-effects" aria-labelledby="t3-effects-l" role="radio" aria-checked="true"><span class="ic ic--wand-sparkles" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t3-effects-l" for="t3-effects">Effects</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t3-text" aria-labelledby="t3-text-l" role="radio" aria-checked="false"><span class="ic ic--type" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t3-text-l" for="t3-text">Text</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t3-focus" aria-labelledby="t3-focus-l" role="radio" aria-checked="false"><span class="ic ic--focus" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t3-focus-l" for="t3-focus">Focus</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t3-rotate" aria-labelledby="t3-rotate-l" role="radio" aria-checked="false"><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t3-rotate-l" for="t3-rotate">Rotate</label>
+        </div>
+        </div>
+      </div>
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="forward" aria-label="Scroll tools forward" hidden><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+    </div>
+    <div class="toolbar" data-theme="dark">
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="back" aria-label="Scroll tools back" hidden><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+      <div class="toolbar__list" role="toolbar" aria-label="Photo tools, dark">
+        <div class="toolbar__group" role="radiogroup" aria-label="Active tool">
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t4-crop" aria-labelledby="t4-crop-l" role="radio" aria-checked="true"><span class="ic ic--crop" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t4-crop-l" for="t4-crop">Crop</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t4-light" aria-labelledby="t4-light-l" role="radio" aria-checked="false"><span class="ic ic--sun" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t4-light-l" for="t4-light">Light</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t4-colour" aria-labelledby="t4-colour-l" role="radio" aria-checked="false"><span class="ic ic--palette" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t4-colour-l" for="t4-colour">Colour</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t4-effects" aria-labelledby="t4-effects-l" role="radio" aria-checked="false"><span class="ic ic--wand-sparkles" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t4-effects-l" for="t4-effects">Effects</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t4-text" aria-labelledby="t4-text-l" role="radio" aria-checked="false"><span class="ic ic--type" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t4-text-l" for="t4-text">Text</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t4-focus" aria-labelledby="t4-focus-l" role="radio" aria-checked="false"><span class="ic ic--focus" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t4-focus-l" for="t4-focus">Focus</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t4-rotate" aria-labelledby="t4-rotate-l" role="radio" aria-checked="false"><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t4-rotate-l" for="t4-rotate">Rotate</label>
+        </div>
+        </div>
+      </div>
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="forward" aria-label="Scroll tools forward" hidden><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+    </div>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>An editor screen: an <a href="@/components/appbar.html">app bar</a> with the photo's name and Save, the photo, and the tray underneath. Choosing a tool swaps the rest of the screen to that tool's controls (see <a href="@/components/scrubber.html">Scrubber</a> and <a href="@/components/swatch.html">Swatch</a>).</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone" data-theme="dark">
+      <div class="phone__screen stack" data-gap="3">
+        <header class="appbar">
+          <h4 class="appbar__title">Harbour at dawn</h4>
+          <div class="appbar__end">
+            <button class="btn" data-shape="circle" data-size="sm" type="button" aria-label="Save photo"><span class="ic ic--download" aria-hidden="true"></span></button>
+          </div>
+        </header>
+        <figure class="media" data-ratio="4:5">
+          <div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"></div>
+        </figure>
+    <div class="toolbar">
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="back" aria-label="Scroll tools back" hidden><span class="ic ic--chevron-left" aria-hidden="true"></span></button>
+      <div class="toolbar__list" role="toolbar" aria-label="Photo tools, editor">
+        <div class="toolbar__group" role="radiogroup" aria-label="Active tool">
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t5-crop" aria-labelledby="t5-crop-l" role="radio" aria-checked="false"><span class="ic ic--crop" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t5-crop-l" for="t5-crop">Crop</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t5-light" aria-labelledby="t5-light-l" role="radio" aria-checked="true"><span class="ic ic--sun" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t5-light-l" for="t5-light">Light</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t5-colour" aria-labelledby="t5-colour-l" role="radio" aria-checked="false"><span class="ic ic--palette" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t5-colour-l" for="t5-colour">Colour</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t5-effects" aria-labelledby="t5-effects-l" role="radio" aria-checked="false"><span class="ic ic--wand-sparkles" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t5-effects-l" for="t5-effects">Effects</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t5-text" aria-labelledby="t5-text-l" role="radio" aria-checked="false"><span class="ic ic--type" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t5-text-l" for="t5-text">Text</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t5-focus" aria-labelledby="t5-focus-l" role="radio" aria-checked="false"><span class="ic ic--focus" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t5-focus-l" for="t5-focus">Focus</label>
+        </div>
+        <div class="toolbar__item">
+          <button class="btn" data-shape="circle" type="button" id="t5-rotate" aria-labelledby="t5-rotate-l" role="radio" aria-checked="false"><span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+          <label class="toolbar__label" id="t5-rotate-l" for="t5-rotate">Rotate</label>
+        </div>
+        </div>
+      </div>
+      <button class="btn toolbar__scroll" data-shape="circle" data-size="sm" type="button" data-dir="forward" aria-label="Scroll tools forward" hidden><span class="ic ic--chevron-right" aria-hidden="true"></span></button>
+    </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Tray</strong> (<code>.toolbar</code>): a 2px frame, a rectangle (square or soft with <code>data-corners</code>). It holds; the circles inside act.</li>
+  <li><strong>List</strong> (<code>.toolbar__list</code>, <code>role="toolbar"</code>): the scroller and the one tab stop. It has an <code>aria-label</code>. Its 8px padding leaves room for the focus ring and the hard shadow, which overflow scrolling would otherwise clip. While it overflows it pages: each page is the cells that fit whole, spread evenly to fill it.</li>
+  <li><strong>Tool</strong> (<code>.btn</code> circle, 44px at every text size) in its cell (its label's width plus 4px a side, never under 52px; cells 4px apart): a Button. Icon 20px, decorative. A toggle or radio tool is filled only when it is on, its frame doubled inside its border.</li>
+  <li><strong>Label</strong> (<code>.toolbar__label</code>): a <code>&lt;label for&gt;</code> the button, under it, in sentence case. It is the accessible name and a second, larger place to tap. Underlined when the tool is on.</li>
+  <li><strong>Separator</strong> (<code>.toolbar__sep</code>): a 1px rule between groups.</li>
+  <li><strong>Scroll buttons</strong> (<code>.toolbar__scroll</code>, <code>data-size="sm"</code>): back and forward, for people whose pointer does not swipe. 36px circles with 44px targets, so the tools keep the room, one on each side of them, on the same row, centred on their circles, never over a tool. Each press goes one page. <code>aria-disabled</code> at either end. <code>tabindex="-1"</code>, so the toolbar stays one tab stop; keyboard users scroll by arrowing.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Toolbar classes and attributes</caption>
+  <thead><tr><th>Part</th><th>Attribute</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.toolbar</code></td><td><code>data-tone</code> <code>1</code> to <code>6</code>, <code>ink</code></td><td>Tints the tray. On <code>ink</code> the focus ring follows the surface.</td></tr>
+    <tr><td><code>.toolbar__list</code></td><td><code>role="toolbar"</code>, <code>aria-label</code> (required)</td><td>The toolbar and the scroller. Buttons inside get the roving tabindex.</td></tr>
+    <tr><td><code>.toolbar__group</code></td><td><code>role="radiogroup"</code>, <code>aria-label</code></td><td>A set of tools where one is on. Its buttons are <code>role="radio"</code> with <code>aria-checked</code>.</td></tr>
+    <tr><td><code>.toolbar__item</code></td><td></td><td>A circle Button and its <code>.toolbar__label</code>. The label's <code>for</code> must match the button's <code>id</code>.</td></tr>
+    <tr><td>Button in an item</td><td><code>aria-pressed</code>, <code>aria-checked</code>, <code>aria-disabled</code></td><td>On is a filled circle with its frame doubled inside. See <a href="@/components/button.html">Button</a>.</td></tr>
+    <tr><td><code>.toolbar__scroll</code></td><td><code>data-dir="back|forward"</code>, <code>data-size="sm"</code>, <code>hidden</code></td><td>Start hidden; the script shows them only when the list overflows. One on each side of the list, on the same row; each press goes one page of whole tools.</td></tr>
+    <tr><td>Button in an item</td><td><code>data-toggle</code></td><td>Optional: pressing flips <code>aria-pressed</code>. Skip it when your app owns the state.</td></tr>
+    <tr><td><code>SG.toolbar.init(list)</code></td><td></td><td>Wire a toolbar you added after load (existing ones are found automatically).</td></tr>
+    <tr><td><code>SG.toolbar.fit(tray)</code></td><td></td><td>Re-measure one <code>.toolbar</code> now: which scroll buttons show, and its pages of whole tools. It runs by itself when the tray or a label changes size and when fonts load.</td></tr>
+    <tr><td><code>SG.toolbar.page(tray, step)</code></td><td><code>1</code> | <code>-1</code></td><td>Go one page forward or back (what the scroll buttons do).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Toolbar keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Enters the toolbar on the tool last used (or the one that is on, or the first); the next <kbd>Tab</kbd> leaves it. The scroll buttons are not tab stops: arrowing to a tool scrolls it into view.</td></tr>
+    <tr><td><kbd>Left</kbd> <kbd>Right</kbd></td><td>Move between tools and wrap around (mirrored in right-to-left). The focused tool scrolls into view.</td></tr>
+    <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>First and last tool.</td></tr>
+    <tr><td><kbd>Enter</kbd> <kbd>Space</kbd></td><td>Press the tool. A radio turns on and the others turn off; a toggle flips. Arrow keys never change what is on, only where focus is.</td></tr>
+    <tr><td>Screen reader</td><td>"Photo tools, toolbar". Each tool: "Light, radio button, checked, 2 of 7" from the visible label. Toggles say pressed or not pressed; <code>aria-disabled</code> says unavailable, and the reason is read from <code>aria-describedby</code>.</td></tr>
+    <tr><td>Touch</td><td>The circle is 44px and the words under it are part of the same target. Swiping scrolls the tray a page at a time; the scroll buttons are the alternative to swiping (WCAG 2.5.1).</td></tr>
+    <tr><td>Zoom / text size</td><td>The labels grow with the text and wrap at their spaces inside their cell (a single word is never broken); the circles, their targets, the gaps and the cells' 52px minimum keep their 100% size. The tray pages at 320px (two whole tools) and at 200% text (two whole tools on a 390px phone), and the scroll buttons stay beside the tools on the same row, so a person who cannot swipe can still reach every tool.</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the shadow, the press tint and the on fill stay. Pages jump instead of gliding.</td></tr>
+    <tr><td>Forced colours</td><td>The tray and every Button keep a real border; on is a 4px frame.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--line-soft</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--radius-card</code>, <code>--chrome-hit</code>, <code>--chrome-ctl</code>, <code>--chrome-ctl-sm</code>, <code>--chrome-1</code>, <code>--chrome-2</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-press</code>. Everything else is the Button's.</p>
+
+<h2 id="related">Related</h2>
+<ul>
+  <li><a href="@/components/button.html">Button</a>: every tool is one, unchanged.</li>
+  <li><a href="@/components/tabs.html">Tabs</a>: to switch panels of content rather than act on one thing.</li>
+  <li><a href="@/components/segmented.html">Segmented control</a>: to pick one value from two to four.</li>
+  <li><a href="@/components/menu.html">Menu</a>: when the commands are too many or too rare for a tray.</li>
+</ul>

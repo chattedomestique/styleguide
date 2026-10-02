@@ -1,0 +1,178 @@
+<!--{"title":"Sparkline","group":"Components","order":104,"summary":"A tiny inline trend with a text alternative: one 2px line and an end dot, no axes, never the only way to read the numbers."}-->
+<style>
+  /* docs scaffolding only: keep the class names in the API tables whole */
+  .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
+  /* docs scaffolding only */
+  /* the trend icon sits on the FIRST line of its words when they wrap (200% text), not in the middle of two */
+  #demo-stat .card__meta { display: flex; align-items: flex-start; gap: var(--space-2); }
+  #demo-stat .card__meta .ic { margin-block: calc((1lh - 1.25rem) / 2); }
+  #demo-table .spark { inline-size: 6rem; }
+</style>
+<h1>Sparkline</h1>
+<p class="lede">A sparkline is a trend in a corner of a number: which way is it going? It draws one line with no axes, so it never says how much. The numbers sit next to it as text, and it carries a sentence that says the trend in words.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Put it beside the current value, inside a stat card or a table row, and write its label as a sentence with the direction, the span and the endpoints. Say "up" or "down" in words and an icon too: the line's angle is not a cue for everyone.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it to read values (no axis, no scale), colour the line green or red to say good or bad, or draw it with no text alternative. For a few values the reader must compare, use a <a href="@/components/chart-bar.html">bar chart</a>.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="stat">In a stat card</h3>
+<p>The recipe: an eyebrow, the figure, the sparkline, and one line of meta that says the direction with an icon and words. The line takes the card's ink, so it works on a toned card; the end dot has a ring in the card's own fill. The second card is toned, to show it follows.</p>
+<div class="demo" id="demo-stat">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 14rem">
+      <article class="card">
+        <div class="card__body">
+          <p class="card__eyebrow">Index fund</p>
+          <p class="card__figure num">$283.72</p>
+          <svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Index fund, last 12 days: up 1.7%, from $278.90 to $283.72"><polygon class="spark__area" points="0,100 0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22 100,100"/><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
+          <p class="card__meta"><span class="ic ic--trending-up" aria-hidden="true"></span><span>Up 1.7% in 12 days</span></p>
+        </div>
+      </article>
+      <article class="card" data-tone="3">
+        <div class="card__body">
+          <p class="card__eyebrow">Steps</p>
+          <p class="card__figure num">4,900</p>
+          <svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Steps, last 7 days: down 40%, from 8,200 to 4,900"><polyline class="spark__line" points="0,26 16.67,8 33.33,42 50,54 66.67,68 83.33,86 100,92"/><path class="spark__dot spark__dot--ring" d="M100 92h0"/><path class="spark__dot" d="M100 92h0"/></svg>
+          <p class="card__meta"><span class="ic ic--trending-down" aria-hidden="true"></span><span>Down 40% in 7 days</span></p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<h3 id="sizes">Sizes</h3>
+<p><code>data-size</code> sets the height (1.75, 2.5 or 4rem); the width is whatever the layout gives it, and the line stays 2px. Set <code>min</code> and <code>max</code> yourself when several sparklines must share a scale, like the flat line below (0 to 20 cards).</p>
+<div class="demo" id="demo-sizes">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4" style="max-inline-size: 22rem">
+      <div>
+        <p class="t-meta">Small</p>
+        <svg class="spark" data-size="sm" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Index fund, last 12 days: up 1.7%"><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
+      </div>
+      <div>
+        <p class="t-meta">Medium (default), shared scale</p>
+        <svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Cards due, last 12 days: flat, between 12 and 16 a day"><polyline class="spark__line" points="0,33.2 9.09,41.6 18.18,24.8 27.27,29 36.36,37.4 45.45,33.2 54.55,29 63.64,33.2 72.73,24.8 81.82,37.4 90.91,29 100,33.2"/><path class="spark__dot spark__dot--ring" d="M100 33.2h0"/><path class="spark__dot" d="M100 33.2h0"/></svg>
+      </div>
+      <div>
+        <p class="t-meta">Large, with the area wash</p>
+        <svg class="spark" data-size="lg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Index fund, last 12 days: up 1.7%, from $278.90 to $283.72"><polygon class="spark__area" points="0,100 0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22 100,100"/><polyline class="spark__line" points="0,69.76 9.09,63.59 18.18,92 27.27,52.47 36.36,43.82 45.45,58.65 54.55,29 63.64,37.65 72.73,8 81.82,24.06 90.91,17.88 100,10.22"/><path class="spark__dot spark__dot--ring" d="M100 10.22h0"/><path class="spark__dot" d="M100 10.22h0"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="table">In a table</h3>
+<p>A fixed-width sparkline in a cell turns a column of numbers into a column of numbers <em>and</em> trends. The row's name and its current value stay text; the trend column's header says what it is.</p>
+<div class="demo" id="demo-table">
+  <div class="demo__stage">
+    <div class="tbl">
+      <p class="tbl__title" id="tbl-acc">Accuracy by deck</p>
+      <div class="tbl__scroll" role="region" aria-labelledby="tbl-acc" tabindex="0">
+        <table class="tbl__table" aria-labelledby="tbl-acc" style="--tbl-min: 0">
+          <thead>
+            <tr><th scope="col">Deck</th><th scope="col">12 days</th><th scope="col" data-align="end">Now</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Shapes</th><td><svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Shapes accuracy, last 12 days: up from 84% to 92%"><polyline class="spark__line" points="0,30.4 9.09,29 18.18,31.8 27.27,26.2 36.36,24.8 45.45,22 54.55,23.4 63.64,20.6 72.73,22 81.82,19.2 90.91,20.6 100,19.2"/><path class="spark__dot spark__dot--ring" d="M100 19.2h0"/><path class="spark__dot" d="M100 19.2h0"/></svg></td><td data-align="end" data-value="92">92%</td></tr>
+            <tr><th scope="row">Capitals</th><td><svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Capitals accuracy, last 12 days: down from 88% to 78%"><polyline class="spark__line" points="0,24.8 9.09,27.6 18.18,26.2 27.27,30.4 36.36,31.8 45.45,33.2 54.55,36 63.64,34.6 72.73,37.4 81.82,36 90.91,38.8 100,38.8"/><path class="spark__dot spark__dot--ring" d="M100 38.8h0"/><path class="spark__dot" d="M100 38.8h0"/></svg></td><td data-align="end" data-value="78">78%</td></tr>
+            <tr><th scope="row">Kanji N5</th><td><svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Kanji N5 accuracy, last 12 days: flat around 88%"><polyline class="spark__line" points="0,26.2 9.09,24.8 18.18,26.2 27.27,23.4 36.36,24.8 45.45,24.8 54.55,23.4 63.64,26.2 72.73,24.8 81.82,23.4 90.91,24.8 100,24.8"/><path class="spark__dot spark__dot--ring" d="M100 24.8h0"/><path class="spark__dot" d="M100 24.8h0"/></svg></td><td data-align="end" data-value="88">88%</td></tr>
+            <tr><th scope="row">Bird calls</th><td><svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" focusable="false" aria-label="Bird calls accuracy, last 12 days: up from 52% to 64%"><polyline class="spark__line" points="0,75.2 9.09,71 18.18,72.4 27.27,66.8 36.36,68.2 45.45,64 54.55,65.4 63.64,61.2 72.73,62.6 81.82,59.8 90.91,61.2 100,58.4"/><path class="spark__dot spark__dot--ring" d="M100 58.4h0"/><path class="spark__dot" d="M100 58.4h0"/></svg></td><td data-align="end" data-value="64">64%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl__hint">Scroll sideways for more columns.</p>
+    </div>
+  </div>
+</div>
+
+<h3 id="data">From data</h3>
+<p><code>SG.chart.sparkline(values, { label, area, dot, min, max })</code> returns the <code>&lt;svg&gt;</code> string. The label is required; a sparkline without a sentence is refused. <code>SG.chart<wbr>.points(values)</code> gives just the coordinates if you template it yourself. This page runs the code below, and the sparkline under it is what it returns.</p>
+<pre><code>const label = [
+  'Index fund, last 5 days:',
+  'up 1.7%, from $278.90',
+  'to $283.72',
+].join(' ')
+const values = [278.9, 279.4,
+  277.1, 280.3, 283.72]
+el.innerHTML = SG.chart
+  .sparkline(values, {
+    label,
+    area: true,
+  })</code></pre>
+<div class="demo" id="demo-data" data-nocode>
+  <div class="demo__stage">
+    <div class="stack" data-gap="2" style="max-inline-size: 22rem">
+      <p class="t-meta">Index fund, last 5 days</p>
+      <div id="spark-built"></div>
+    </div>
+  </div>
+</div>
+<script>
+  /* demo only: run the code above, so the page shows exactly what the helper returns */
+  document.addEventListener('DOMContentLoaded', function () {
+    var label = ['Index fund, last 5 days:', 'up 1.7%, from $278.90', 'to $283.72'].join(' ');
+    var values = [278.9, 279.4, 277.1, 280.3, 283.72];
+    document.getElementById('spark-built').innerHTML = SG.chart.sparkline(values, { label: label, area: true });
+  });
+</script>
+
+<h2 id="label">Writing the text alternative</h2>
+<p>Name the subject, the span, the direction, and the two endpoints. One sentence; no "chart of". A reader who cannot see the line should lose nothing the line told a sighted reader.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Good and poor sparkline labels</caption>
+  <thead><tr><th>Label</th><th>Verdict</th></tr></thead>
+  <tbody>
+    <tr><td><code>Index fund, last 12 days: up 1.7%, from $278.90 to $283.72</code></td><td>Good. Subject, span, direction, endpoints.</td></tr>
+    <tr><td><code>Steps, last 7 days: down 40%, from 8,200 to 4,900</code></td><td>Good.</td></tr>
+    <tr><td><code>Sparkline</code></td><td>Says what it is, not what it shows.</td></tr>
+    <tr><td><code>Trend chart of the index fund price</code></td><td>No direction, no numbers.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Box</strong> (<code>.spark</code>): an SVG that fills the width and has a rem height. <code>role="img"</code> and a label are required.</li>
+  <li><strong>Line</strong> (<code>.spark__line</code>): a polyline in the text colour, 2px (the frame weight) however the box stretches.</li>
+  <li><strong>Area</strong> (<code>.spark__area</code>, optional): a flat wash, the text colour mixed 14% into the surface. No gradient.</li>
+  <li><strong>End dot</strong> (<code>.spark__dot</code> on a ring <code>.spark__dot--ring</code>): where the line ends now, 12px. It is a zero-length path with a round cap, so it stays a circle in a stretched box.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Sparkline classes and helpers</caption>
+  <thead><tr><th>Hook</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.spark</code></td><td><code>svg</code>, <code>viewBox="0 0 100 100"</code>, <code>preserveAspectRatio="none"</code>, <code>role="img"</code>, <code>aria-label</code></td><td>The sparkline.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code>, <code>lg</code></td><td>Height 1.75rem or 4rem (default 2.5rem). <code>--spark-h</code> sets any other.</td></tr>
+    <tr><td><code>--spark-bg</code></td><td>a colour role</td><td>The surface it sits on, for the dot's ring and the area wash. Inside a <code>.card</code> it follows the card.</td></tr>
+    <tr><td><code>SG.chart.sparkline(values, opts)</code></td><td><code>{ label (required), area, dot, min, max }</code></td><td>The <code>&lt;svg&gt;</code> as a string.</td></tr>
+    <tr><td><code>SG.chart.points(values, opts)</code></td><td><code>[[x, y], …]</code></td><td>Points in the 0 to 100 box, y down, with an 8% margin.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Sparkline keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Nothing to reach. A sparkline is not a control and shows nothing on hover.</td></tr>
+    <tr><td>Screen reader</td><td>One image, named by the sentence: "Index fund, last 12 days: up 1.7%, from $278.90 to $283.72". The figure and the direction line beside it are ordinary text.</td></tr>
+    <tr><td>Colour</td><td>The line is the text colour: 7:1 on its surface (and 3:1 is all a graphic needs, WCAG 1.4.11). Direction is carried by words and an icon next to it, never by a green or red line (1.4.1).</td></tr>
+    <tr><td>Zoom / text size</td><td>The box is rem-high and fills the width, so it never overflows; the line stays 2px.</td></tr>
+    <tr><td>Reduced motion</td><td>Nothing moves. It does not draw itself in.</td></tr>
+    <tr><td>Forced colours</td><td>Line and dot become <code>CanvasText</code>, the ring and wash become <code>Canvas</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>currentColor</code> (the card's ink), <code>--paper</code>, <code>--card-bg</code> when inside a card, <code>--bw</code>, <code>--space-3</code>.</p>

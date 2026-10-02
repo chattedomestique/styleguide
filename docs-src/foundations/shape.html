@@ -1,0 +1,250 @@
+<!--{"title":"Shape","group":"Foundations","order":14,"summary":"Two line weights, three radius roles and the pill: square or soft with one attribute, and nothing decorative."}-->
+<style>
+  /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #lines-table td:nth-child(3) { min-inline-size: 18rem; }
+    #lines-table td:nth-child(4) { min-inline-size: 10rem; }
+    #roles-table td:nth-child(n+2) { min-inline-size: 7rem; }
+    #roles-table td:last-child { min-inline-size: 16rem; }
+  }
+  .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+
+  .docs-article [data-f="weights"] { display: grid; gap: var(--space-4); }
+  .docs-article [data-f="weights"] > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  .docs-article [data-f="weights"] p { margin: 0; max-inline-size: none; }
+  .docs-article [data-f="rule"] { display: block; inline-size: 100%; border: 0; border-block-start: var(--_w) solid var(--line); }
+  .docs-article [data-f="box"] { display: block; padding: var(--chrome-4) var(--chrome-3); border: var(--_w) solid var(--line); background: var(--paper); font: var(--type-meta); text-align: center; }
+
+  .docs-article [data-f="corners"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: var(--space-4); }
+  /* each style is a container, so its four radius specimens sit four in a row or two by two, never three and one */
+  .docs-article [data-f="corner"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--chrome-4); border: var(--bw) dashed var(--line); background: var(--canvas); container-type: inline-size; }
+  .docs-article [data-f="corner"] > p { margin: 0; max-inline-size: none; }
+  /* two by two at every width: four in a row made each specimen nearly square, and the pill drew a circle */
+  .docs-article [data-f="shapes"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  /* a specimen is a picture of a shape, so its height is chrome (56px at most): in rem it grew as tall as it was wide
+     at 200% text, and the pill specimen drew a circle */
+  .docs-article [data-f="shapes"] span { display: grid; place-items: center; min-block-size: var(--chrome-ctl-lg); padding: var(--chrome-2); border: var(--bw) solid var(--line); background: var(--paper); font: var(--type-meta); }
+  .docs-article .card__tile:has(> .ic) { display: grid; place-items: center; } /* a tile holds a real icon */
+  .docs-article [data-f="r-card"] { border-radius: var(--radius-card); }
+  .docs-article [data-f="r-tile"] { border-radius: var(--radius-tile); }
+  .docs-article [data-f="r-ctl"] { border-radius: var(--radius-ctl); }
+  .docs-article [data-f="r-pill"] { border-radius: var(--radius-pill); }
+  .docs-article .card__list { padding-inline-start: 0; }
+  .docs-article .card__list > li { max-inline-size: none; }
+  .docs-article .card__list > li + li { margin-block-start: 0; }
+  .docs-article [data-f="ratios"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--space-3); }
+  .docs-article [data-f="ratios"] > div { min-inline-size: 0; }
+  /* A card that holds only a picture: the picture's own 2px divider would sit on the card's 2px frame and draw a 4px bottom edge. There is no body to close off, so drop it here. */
+  .docs-article [data-f="ratios"] p { margin: 0 0 var(--space-2); max-inline-size: none; }
+  .docs-article [data-f="ratios"] .t-label code { text-transform: none; letter-spacing: 0; } /* a token keeps its case inside an uppercase label */
+</style>
+
+<h1>Shape</h1>
+<p class="lede">Two line weights, three radius roles and a pill. A rectangle holds something, a circle or pill does something, and the only softening the guide allows is turning the corners of the rectangles on with one attribute.</p>
+
+<h2 id="lines">Line weights</h2>
+<p>Two weights draw everything, and a third exists for one job. They are <code>px</code> on purpose: a 2px frame should stay 2px when the reader makes the text bigger, while everything else scales with <code>rem</code>.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="weights">
+      <div style="--_w: var(--bw)"><span data-f="box">A frame: <code>--bw</code>, 2px</span></div>
+      <div style="--_w: var(--bw-thin)"><span data-f="rule"></span><p class="t-meta">A divider: <code>--bw-thin</code>, 1px</p></div>
+      <div style="--_w: var(--bw-heavy)"><span data-f="box">Forced colours only: <code>--bw-heavy</code>, 4px</span></div>
+    </div>
+  </div>
+</div>
+<div class="table-wrap"><table class="docs-table" id="lines-table">
+  <caption class="sr-only">The line weights and what each is for</caption>
+  <thead><tr><th>Token</th><th class="num">Width</th><th>Use it for</th><th>Not for</th></tr></thead>
+  <tbody>
+    <tr><td><code>--bw</code></td><td class="num">2px</td><td>What you press or what contains: a card's frame, a button, a tile, an input, the bar of a panel. The hard shadow and the doubled frame of "selected" are the same weight.</td><td>A hairline between rows.</td></tr>
+    <tr><td><code>--bw-thin</code></td><td class="num">1px</td><td>Only divides: the rule above a card foot, the rules between list rows, <code>hr</code>.</td><td>A frame, or anything a person has to find.</td></tr>
+    <tr><td><code>--bw-heavy</code></td><td class="num">4px</td><td>Forced-colours mode and nothing else: the <code>Highlight</code> outline on hover and focus, the border of a selected thing. See <a href="@/foundations/interaction.html#forced-colors">Interaction</a>.</td><td>Anything in the normal look.</td></tr>
+    <tr><td><code>--ring</code></td><td class="num">3px</td><td>The focus ring, with <code>--ring-offset</code> (3px) between it and the element, or <code>--ring-offset-in</code> (2px) inside something that clips.</td><td>A decorative outline.</td></tr>
+  </tbody>
+</table></div>
+<p>Lint fails any literal border or outline width (<code>border: 1px solid …</code>) in the library: use one of these four tokens. Icons are drawn with a 2-unit stroke on a 24 grid, so they read as part of the same line work (see <a href="@/foundations/icons.html">Icons</a>).</p>
+
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <article class="card">
+      <header class="card__bar">
+        <p class="card__label">01 · Shapes</p>
+        <button class="card__ctl" type="button" aria-label="Collapse Shapes"><span class="ic ic--minus" aria-hidden="true"></span></button>
+      </header>
+      <ul class="card__list" role="list">
+        <li><a href="#lines">Circle</a><span class="num">3 days ago</span></li>
+        <li><a href="#lines">Triangle</a><span class="num">New</span></li>
+        <li><a href="#lines">Star</a><span class="num">Known</span></li>
+      </ul>
+      <footer class="card__foot"><span>3 of 12 known</span><a href="#lines">Study</a></footer>
+    </article>
+  </div>
+</div>
+<p class="t-meta">One card, all the weights: a 2px frame around the card, the bar (the frame made thicker), a 1px rule between rows and above the foot.</p>
+
+<h2 id="radius">Radius: three roles and a pill</h2>
+<p>Everything that is not a circle or a pill reads exactly three radius roles. They are the only radii a component may use, and <code>src/<wbr>tokens/<wbr>30-corners.css</code> is the only file that sets them.</p>
+<div class="table-wrap"><table class="docs-table" id="roles-table">
+  <caption class="sr-only">The radius roles per corner style</caption>
+  <thead><tr><th>Role</th><th class="num">Square (default)</th><th class="num">Soft</th><th>Read by</th></tr></thead>
+  <tbody>
+    <tr><td><code>--radius-card</code></td><td class="num">0</td><td class="num"><code>--radius-3</code>, 24px</td><td>The card's frame (<code>--card-radius</code>).</td></tr>
+    <tr><td><code>--radius-tile</code></td><td class="num">0</td><td class="num"><code>--radius-2</code>, 12px</td><td>The square icon tile at the head of a row (<code>.card__tile</code>).</td></tr>
+    <tr><td><code>--radius-ctl</code></td><td class="num">0</td><td class="num"><code>--radius-1</code>, 6px</td><td>The small square control in a bar (<code>.card__ctl</code>).</td></tr>
+    <tr><td><code>--radius-pill</code></td><td class="num">999px</td><td class="num">999px</td><td>Buttons, circles, handles, action slots. The same in both styles.</td></tr>
+  </tbody>
+</table></div>
+<p>The three numbered steps <code>--radius-1</code>, <code>--radius-2</code> and <code>--radius-3</code> are only the values the soft block points at. A component asks for a <em>role</em>, never a step and never a number. Lint fails a literal radius such as <code>8px</code>; a review should fail a step.</p>
+
+<h3 id="corners">Square and soft</h3>
+<p><code>data-corners="square"</code> is the default. <code>data-corners="soft"</code> turns the three roles on, on <code>&lt;html&gt;</code> for the whole app or on any element for an island. Nothing in <code>src/components</code> changes between them. Below, the same markup twice; the pill buttons are identical.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="cluster" role="group" aria-label="Corners for this page" id="corner-buttons">
+      <button class="btn" data-size="sm" type="button" data-corners-set="square" aria-pressed="true">Square</button>
+      <button class="btn" data-size="sm" type="button" data-corners-set="soft" aria-pressed="false">Soft</button>
+    </div>
+    <p class="t-meta">These two buttons change the whole page, like Corners in Appearance.</p>
+    <div data-f="corners">
+      <div data-f="corner" data-corners="square">
+        <p class="t-label">Square</p>
+        <div data-f="shapes" aria-hidden="true"><span data-f="r-card">card</span><span data-f="r-tile">tile</span><span data-f="r-ctl">ctl</span><span data-f="r-pill">pill</span></div>
+        <article class="card card--row">
+          <span class="card__tile" data-tone="2" aria-hidden="true"><span class="ic ic--square" aria-hidden="true"></span></span>
+          <div class="card__main"><p class="card__title">Square</p><p class="card__meta">Card 02</p></div>
+          <div class="card__trail"><p>New</p></div>
+        </article>
+        <section class="card">
+          <header class="card__bar"><p class="card__label">Decks</p><button class="card__ctl" type="button" aria-label="Collapse decks, square"><span class="ic ic--minus" aria-hidden="true"></span></button></header>
+          <div class="card__body"><p class="card__text">Twelve cards. Five known.</p></div>
+        </section>
+        <div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Study</button><button class="btn" data-size="sm" type="button">Shuffle</button></div>
+      </div>
+      <div data-f="corner" data-corners="soft">
+        <p class="t-label">Soft</p>
+        <div data-f="shapes" aria-hidden="true"><span data-f="r-card">card</span><span data-f="r-tile">tile</span><span data-f="r-ctl">ctl</span><span data-f="r-pill">pill</span></div>
+        <article class="card card--row">
+          <span class="card__tile" data-tone="2" aria-hidden="true"><span class="ic ic--square" aria-hidden="true"></span></span>
+          <div class="card__main"><p class="card__title">Square</p><p class="card__meta">Card 02</p></div>
+          <div class="card__trail"><p>New</p></div>
+        </article>
+        <section class="card">
+          <header class="card__bar"><p class="card__label">Decks</p><button class="card__ctl" type="button" aria-label="Collapse decks, soft"><span class="ic ic--minus" aria-hidden="true"></span></button></header>
+          <div class="card__body"><p class="card__text">Twelve cards. Five known.</p></div>
+        </section>
+        <div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Study</button><button class="btn" data-size="sm" type="button">Shuffle</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+<ul>
+  <li><strong>A card clips its contents.</strong> <code>.card</code> has <code>overflow: clip</code>, so media, bar and foot take the card's corners for free. Nothing inside needs its own radius to sit right.</li>
+  <li><strong>One shape gesture per card.</strong> Round it <em>or</em> notch it, never both. The notch card stays square in both styles: its cut is the gesture.</li>
+  <li><strong>Tiled grids square off.</strong> <code>.card-grid<span data-f="nw">--tiled</span></code> sets <code><span data-f="nw">--card-radius:</span> 0</code> so shared frames meet cleanly.</li>
+</ul>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div>
+    <strong>The open decision</strong>
+    <p>Both are implemented and the default is square, because that is what the owner's committed CSS does. To commit to soft in an app, write <code>&lt;html data-corners="soft"&gt;</code>: no source changes, and choosing Square in a settings screen still works because <code>SG.prefs</code> then writes <code>square</code> down explicitly. To change the guide's own default instead, change the default block (<code>:root, [data-corners="square"]</code>) in <code>src/<wbr>tokens/<wbr>30-corners.css</code> <em>and</em> <code>DEFAULT_VALUE.corners</code> in <code>src/<wbr>js/<wbr>10-prefs.js</code>; without the second edit, choosing Square removes the attribute and leaves soft switched on. Nothing in <code>src/components</code> changes either way.</p>
+  </div>
+</div>
+
+<h2 id="rect-circle">Rectangles hold, circles act</h2>
+<p>The shape of a thing tells you what it does before you read it.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Which shape for which job</caption>
+  <thead><tr><th>Shape</th><th>Means</th><th>Examples</th></tr></thead>
+  <tbody>
+    <tr><td>Rectangle (square or soft)</td><td>Holds something. Not pressed itself, or pressed as one whole.</td><td>Card, panel, tile, input, bar, list.</td></tr>
+    <tr><td>Pill or circle (<code>--radius-pill</code>)</td><td>Does something. Press it.</td><td>Button, round action, handle, toggle.</td></tr>
+  </tbody>
+</table></div>
+<p>The link card and the ghost card are the rectangles you press: each lifts as a whole (see <a href="@/foundations/interaction.html">Interaction</a>) and is one link or one button, not a rectangle with a button inside.</p>
+
+<h2 id="flat">Flat</h2>
+<p>No gradients, no blur, no glass, no translucency. The only shadow is hard-edged (zero blur) and means "you can press this"; nothing else gets one. The one exception is <code>--scrim</code>, behind a modal or under text on a photo. Drawing with <code>box-shadow</code> is fine when the shadow <em>is</em> a frame or a sheet (the doubled ring on a selected control, the two sheets behind a stack card); what is banned is a shadow that shades.</p>
+
+<h2 id="ratios">Ratios</h2>
+<p>Two aspect ratios are tokens. Media is 4 by 3, the flashcard is tall.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="ratios">
+      <div><p class="t-label"><code>--ratio-media</code> 4 / 3</p><div class="card"><div class="card__media"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"></div></div></div>
+      <div><p class="t-label"><code>--ratio-portrait</code> 5 / 7</p><div class="card"><div class="card__media" style="--ratio: var(--ratio-portrait)"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<h2 id="count">The count</h2>
+<p>Run this on any screen before calling it done. The machine checks what it can; the rest is your eye.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">The count</caption>
+  <thead><tr><th>Count</th><th class="num">Allowed</th><th>Checked by</th></tr></thead>
+  <tbody>
+    <tr><td>Line weights in use</td><td class="num">Two</td><td>Lint: no literal widths.</td></tr>
+    <tr><td>Radius roles</td><td class="num">Three and the pill</td><td>Lint: <code>border-radius</code> must be a role.</td></tr>
+    <tr><td>Type families</td><td class="num">One</td><td>Lint: <code>font-family</code> must be a token.</td></tr>
+    <tr><td>Gradients</td><td class="num">Zero</td><td>Lint (the wireframe kit's placeholder is the one exception).</td></tr>
+    <tr><td>Blurred shadows</td><td class="num">Zero</td><td>Lint.</td></tr>
+    <tr><td>Shadows on things you cannot press</td><td class="num">Zero</td><td>Your eye, and <a href="@/foundations/interaction.html">Interaction</a>.</td></tr>
+  </tbody>
+</table></div>
+<p>Then the squint test: flip to <code>data-palette="wire"</code> (see <a href="@/foundations/color.html#palettes">Colour</a>). If the structure only works in colour, colour was hiding a layout problem.</p>
+
+<h2 id="rules">Do and don't</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Frame what contains or is pressed with <code>--bw</code>, divide with <code>--bw-thin</code>, and read <code>--radius-card</code>, <code>--radius-tile</code> or <code>--radius-ctl</code>. Let <code>data-corners</code> decide.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Write <code><span data-f="nw">border-radius:</span> 8px</code> or <code>border: 1.5px solid</code>, put a blur shadow under a card, or round the card and notch it too.</p></div>
+  </div>
+</div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--ring-offset-in</code>, <code>--radius-1</code>, <code>--radius-2</code>, <code>--radius-3</code>, <code>--radius-card</code>, <code>--radius-tile</code>, <code>--radius-ctl</code>, <code>--radius-pill</code>, <code>--ratio-media</code>, <code>--ratio-portrait</code>, <code>--line</code>, <code>--line-soft</code>.</p>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  var SG = window.SG;
+  var group = document.getElementById('corner-buttons');
+  if (!SG || !group) return;
+  function sync() {
+    var cur = SG.prefs.get('corners');
+    Array.prototype.forEach.call(group.querySelectorAll('button'), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-corners-set') === cur));
+    });
+  }
+  group.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-corners-set]');
+    if (!b) return;
+    SG.prefs.set('corners', b.getAttribute('data-corners-set'));
+    SG.announce('Corners: ' + b.getAttribute('data-corners-set'));
+  });
+  SG.prefs.onChange(sync);
+  sync();
+});
+</script>

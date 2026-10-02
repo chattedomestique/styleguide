@@ -1,0 +1,319 @@
+/* ==========================================================================
+   Docs-only styles. NOT part of the library (never copied to apps), and exempt
+   from the flat-rule lint like the owner's sheet.css (a specimen page may show
+   "not this"). Built from the library's own roles, in the owner's visual
+   language: black bar, uppercase structure labels, 2px frames, poster titles.
+   ========================================================================== */
+
+.docs {
+  --docs-nav-w: 16.5rem;
+  --appbar-h: 2.75rem;
+}
+
+/* ---- Top bar: the ink strip -------------------------------------------------- */
+.docs-bar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-sizing: content-box;
+  block-size: var(--appbar-h);
+  padding-block-start: var(--safe-top);
+  padding-inline: max(var(--space-3), var(--safe-left)) max(var(--space-3), var(--safe-right));
+  color: var(--paper);
+  background: var(--ink);
+  border-block-end: var(--bw) solid var(--ink);
+}
+.docs-bar__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  min-block-size: var(--hit);
+  color: inherit;
+  text-decoration: none;
+  overflow-wrap: break-word; /* at 200% text the title wraps instead of running under the Appearance button */
+  line-height: 1.1;
+}
+.docs-bar__version { color: color-mix(in srgb, var(--paper) 70%, var(--ink)); }
+/* The bar is ink, so controls on it invert: paper fill, ink text, paper frame. */
+.docs-bar .btn {
+  --_rest-bg: var(--ink);
+  --_rest-ink: var(--paper);
+  --_on-bg: var(--paper);
+  --_on-ink: var(--ink);
+  --line: var(--paper);
+}
+@media (min-width: 64em) { .docs-bar__menu { display: none; } }
+@media (max-width: 30em) {
+  .docs-bar__version { display: none; }
+  .docs-bar__prefs span:not(.ic) { display: none; }
+  .docs-bar__prefs { min-inline-size: var(--hit); padding-inline: 0; }
+}
+
+/* ---- Shell ------------------------------------------------------------------------- */
+.docs-shell { display: grid; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 64em) { .docs-shell { grid-template-columns: var(--docs-nav-w) minmax(0, 1fr); } }
+
+.docs-nav {
+  padding: var(--space-5) var(--space-3) var(--space-8);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.docs-nav__group + .docs-nav__group { margin-block-start: var(--space-5); }
+.docs-nav__heading { margin: 0 0 var(--space-1); padding-inline: var(--space-3); color: var(--ink-soft); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+.docs-nav ul { list-style: none; margin: 0; padding: 0; }
+.docs-nav a {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--hit);
+  padding-inline: var(--space-3);
+  border: var(--bw) solid transparent;
+  color: var(--ink);
+  font: var(--type-meta);
+  font-size: var(--text-md);
+  color: var(--ink);
+  text-decoration: none;
+}
+@media (hover: hover) { .docs-nav a:hover { border-color: var(--line); } }
+/* current page: filled ink AND heavier weight AND an arrow, never colour alone */
+.docs-nav a[aria-current="page"] { color: var(--paper); background: var(--ink); font-weight: 700; }
+
+@media (min-width: 64em) {
+  .docs-nav {
+    position: sticky;
+    inset-block-start: calc(var(--appbar-h) + var(--safe-top));
+    align-self: start;
+    max-block-size: calc(100dvh - var(--appbar-h) - var(--safe-top));
+    border-inline-end: var(--bw-thin) solid var(--line);
+  }
+}
+@media (max-width: 63.99em) {
+  .docs-nav {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: var(--z-overlay);
+    inline-size: min(20rem, 88vw);
+    padding-block-start: calc(var(--safe-top) + var(--space-5));
+    background: var(--canvas);
+    border-inline-end: var(--bw) solid var(--line);
+    transform: translateX(calc(var(--move) * -100%));
+    opacity: 0;
+    visibility: hidden;
+    transition: transform var(--dur-enter) var(--ease-out), opacity var(--dur-hover) var(--ease-out), visibility 0s linear var(--dur-enter);
+  }
+  .docs-nav[data-open] { transform: none; opacity: 1; visibility: visible; transition-delay: 0s; }
+  .docs-scrim { position: fixed; inset: 0; z-index: calc(var(--z-overlay) - 1); background: var(--scrim); }
+}
+
+/* ---- Main column -------------------------------------------------------------------- */
+.docs-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  padding: var(--space-5) max(var(--gutter), var(--safe-right)) var(--space-9) max(var(--gutter), var(--safe-left));
+  outline-offset: -2px;
+}
+@media (min-width: 80em) { .docs-main { grid-template-columns: minmax(0, 52rem) 13rem; justify-content: center; } }
+/* The article is a container so the title can be sized from its column, not the viewport: the sidebar and the table of
+   contents take a different share at every width, and a viewport-sized title broke inside a word ("ACCORDIO / N") at
+   1024 to 1366. 9.6cqi fits the widest title word ("Contributing", 10.1em in the expanded face) with a little to spare. */
+.docs-article { min-inline-size: 0; max-inline-size: 52rem; container: article / inline-size; }
+.docs-article > * + * { margin-block-start: var(--space-4); }
+.docs-crumb { margin: 0; color: var(--ink-soft); }
+
+/* poster-scale title, like the owner's sheet ("CARDS"): expanded, 900, uppercase, sized to fit */
+.docs-article h1 {
+  font: 900 expanded clamp(1.5rem, 9.6cqi, 6.5rem) / 0.9 var(--font-sans);
+  letter-spacing: var(--ls-display);
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+/* Big text in a phone column (200% text on a 390px phone leaves about 10rem): the expanded face is too wide for the
+   longest title words, so the face narrows in steps instead of the word breaking. In rem, so it follows the text size. */
+@container article (max-width: 16rem) { .docs-article h1 { font-stretch: 100%; } }
+@container article (max-width: 11rem) { .docs-article h1 { font-stretch: 72%; } }
+.docs-article h2 {
+  margin-block-start: var(--space-8);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--bw) solid var(--line);
+  font: 700 expanded var(--text-xl) / 1 var(--font-sans);
+  letter-spacing: var(--ls-title);
+  scroll-margin-block-start: calc(var(--appbar-h) + var(--space-4));
+}
+/* h2 is expanded type too: at 200% text "Accessibility" is wider than a phone line and broke inside the word. After the
+   rule above, whose font shorthand would reset the width axis again. */
+@container article (max-width: 11rem) { .docs-article h2 { font-stretch: 100%; } }
+@container article (max-width: 9rem) { .docs-article h2 { font-stretch: 87.5%; } }
+/* Prose only. These are unlayered, so inside a demo they would beat the layered component rules: a card title in an
+   h3 took the docs title font and a 32px top margin, a panel list was indented and spaced like prose, a divider's
+   rule stopped short of its buttons, a player's end time floated mid-bar. The scope is in :where(), so each rule keeps
+   the specificity it had and the docs' own lists (.docs-steps, .docs-index) still override it. */
+.docs-article h3:where(:not(:is(.demo, .phone) *)) { margin-block-start: var(--space-6); font: var(--type-title); scroll-margin-block-start: calc(var(--appbar-h) + var(--space-4)); }
+.docs-article :is(p, li):not(:is(.demo, .phone) *) { max-inline-size: var(--measure); }
+.docs-article :is(ul, ol):where(:not(:is(.demo, .phone) *)) { padding-inline-start: var(--space-5); }
+.docs-article li + li:where(:not(:is(.demo, .phone) *)) { margin-block-start: var(--space-1); }
+.docs-article .lede { max-inline-size: 38rem; color: var(--ink-soft); font: 400 var(--text-lg) / 1.4 var(--font-sans); }
+
+.docs-toc { position: sticky; inset-block-start: calc(var(--appbar-h) + var(--safe-top) + var(--space-5)); align-self: start; display: none; }
+@media (min-width: 80em) { .docs-toc { display: block; } }
+.docs-toc__heading { margin: 0 0 var(--space-2); color: var(--ink-soft); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+.docs-toc ul { list-style: none; margin: 0; padding: 0; border-inline-start: var(--bw) solid var(--line); }
+.docs-toc a { display: flex; align-items: center; min-block-size: var(--hit); padding: var(--space-1) var(--space-3); color: var(--ink-soft); font: var(--type-meta); text-decoration: none; }
+.docs-toc a:hover { color: var(--ink); }
+
+/* ---- Demo: a framed specimen with its markup underneath (like the owner's MARKUP bar) ---- */
+.demo { border: var(--bw) solid var(--line); background: var(--canvas); overflow: clip; }
+.demo__stage { padding: var(--chrome-5); background: var(--demo-bg, var(--canvas)); container-type: inline-size; }
+/* Chrome caps (00-foundation.css): the stage and the phone mock are insets, so they stop at their 100% size;
+   in rem they doubled at 200% text and left a nested demo a few letters a line. Tighter on a phone. */
+@media (max-width: 40em) { .demo__stage { padding: var(--chrome-3); } }
+.demo[data-bg="paper"] .demo__stage { --demo-bg: var(--paper); }
+.demo[data-bg="ink"] .demo__stage { --demo-bg: var(--ink); color: var(--paper); }
+.demo[data-bg="media"] .demo__stage { --demo-bg: var(--tone-2); }
+.demo__stage > * + * { margin-block-start: var(--space-4); }
+.demo[data-layout="row"] .demo__stage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.demo[data-layout="row"] .demo__stage > * + * { margin-block-start: 0; }
+.docs-article pre { max-inline-size: 100%; margin-block: var(--space-4); padding: var(--space-4); overflow-x: auto; background: var(--paper-2); border: var(--bw) solid var(--line); font-size: var(--text-sm); line-height: 1.55; }
+.demo__code { border-block-start: var(--bw) solid var(--line); background: var(--paper); }
+.demo__code summary { display: flex; align-items: center; gap: var(--space-2); min-block-size: var(--hit); padding-inline: var(--space-4); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; cursor: pointer; list-style: none; }
+.demo__code summary::-webkit-details-marker { display: none; }
+.demo__code pre { position: relative; margin: 0; padding: var(--space-4); border-block-start: var(--bw-thin) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; overflow-x: auto; }
+.demo__copy { position: absolute; inset-block-start: var(--space-2); inset-inline-end: var(--space-2); }
+
+/* A phone-sized frame for screens and patterns. */
+.phone { inline-size: min(100%, 24.375rem); margin-inline: auto; border: var(--bw) solid var(--line); border-radius: var(--radius-card); background: var(--canvas); color: var(--ink); overflow: clip; container-type: inline-size; }
+.phone__screen { padding: var(--chrome-4); }
+/* the tighter phone inset: after the rule above, which would otherwise win at the same specificity */
+@media (max-width: 40em) { .phone__screen { padding: var(--chrome-3); } }
+/* A phone mock's title is sized from the phone as well as from the text size, so its longest word fits the screen at
+   200% text on a 320px phone ("Reminders", "Notifications" broke inside the word). At 100% text, and on a 390px phone
+   at 200%, it is the ordinary title size or within 2px of it. */
+.phone .t-title { font-size: min(var(--text-xl), 15cqi); }
+.phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-5); justify-items: center; }
+
+/* ---- Callouts: a frame, a label word and an icon (never colour alone) ---------------------- */
+.note { display: flex; gap: var(--chrome-3); padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); } /* chrome: at 200% text on a 320px phone rem insets left a note 139px for its words */
+.note > .ic { flex: none; margin-block-start: 0.125rem; }
+.note > div { min-inline-size: 0; overflow-wrap: break-word; }
+
+/* The sticky docs bar must not cover a focused link (WCAG 2.4.11). The foundation keeps focus clear of sticky chrome with
+   scroll-padding on <html> that reads --appbar-h, but .docs sets --appbar-h on <body>, where <html> cannot see it. */
+html { --appbar-h: calc(2.75rem + var(--safe-top)); }
+
+/* Docs-only: a table of words becomes stacked rows on a phone. Each cell carries its column name (data-label) and the
+   table keeps its ARIA roles, because display: block would otherwise strip the table semantics in some browsers. */
+@media (max-width: 40em) {
+  .docs-table[data-stack] { min-inline-size: 0; }
+  .docs-table[data-stack],
+  .docs-table[data-stack] tbody,
+  .docs-table[data-stack] tr,
+  .docs-table[data-stack] td { display: block; }
+  .docs-table[data-stack] thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: clip; white-space: nowrap; } /* data-allow-clip: the header row is visually hidden, not cut off */
+  .docs-table[data-stack] tr { padding: var(--space-3) var(--space-4); border-block-end: var(--bw-thin) solid var(--line-soft); }
+  .docs-table[data-stack] tr:last-child { border-block-end: 0; }
+  .docs-table[data-stack] td { padding: var(--space-1) 0; border: 0; }
+  .docs-table[data-stack] td:first-child { font-weight: 700; }
+  .docs-table[data-stack] td:first-child::before { display: none; }
+  .docs-table[data-stack] td::before { content: attr(data-label); display: block; color: var(--ink-soft); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+}
+
+/* In a wide table a file name or token is a word: keep it whole and let the column take the width, because "anywhere"
+   wrapping lets a column shrink until "styleguide.css" reads "styleg / uide.c / ss". The table scrolls inside its own
+   focusable wrapper when a row is wider than the column (1.4.10 exempts data tables). */
+@media (min-width: 40em) {
+  .docs-article .docs-table td code { overflow-wrap: break-word; }
+}
+
+.note > div > :first-child { margin-block-start: 0; }
+.note > div > strong:first-child { display: block; font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; overflow-wrap: break-word; } /* the note's title only, not a bold word at the start of a paragraph */
+.note[data-kind="dont"] { border-style: dashed; }
+.dodont { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--space-4); }
+
+/* ---- Tables ------------------------------------------------------------------------------ */
+.table-wrap { overflow-x: auto; border: var(--bw) solid var(--line); }
+.table-wrap:focus-visible { outline-offset: 0; }
+.table-hint[hidden] { display: none; }
+.table-hint { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-1) 0 0; max-inline-size: none; font: var(--type-meta); color: var(--ink-soft); }
+.docs-table { inline-size: 100%; min-inline-size: 32rem; border-collapse: collapse; font-size: var(--text-sm); }
+.docs-table th, .docs-table td { padding: var(--space-2) var(--space-3); border-block-end: var(--bw-thin) solid var(--line); text-align: start; vertical-align: top; }
+.docs-table th { background: var(--ink); color: var(--paper); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; white-space: nowrap; }
+.docs-table tr:last-child td { border-block-end: 0; }
+.docs-article .docs-table th code { color: inherit; background: transparent; border-color: currentColor; }
+
+/* ---- Token swatches (filled by docs.js) ---------------------------------------------------- */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); gap: var(--space-3); }
+.swatch { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-3); border: var(--bw) solid var(--line); background: var(--paper); }
+.swatch__chip { flex: none; inline-size: 2.75rem; block-size: 2.75rem; border: var(--bw) solid var(--line); }
+.swatch__body { flex: 1 1 9rem; min-inline-size: 0; font: var(--type-meta); }
+.swatch__name { display: block; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 700; }
+.swatch__meta { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.swatch__pass { font-weight: 700; }
+
+/* ---- Misc -------------------------------------------------------------------------------------- */
+.docs-article code.nb { display: inline-block; max-inline-size: 100%; overflow-wrap: break-word; } /* a token or attribute name is one word: as an inline box it never breaks after its leading hyphens while it fits a line, and only a token wider than the whole line (200% text on a phone) wraps inside its box instead of pushing the page sideways (WCAG 1.4.10) */
+.docs-article code:not(pre code) { padding: 0.05em 0.35em; background: var(--paper-2); border: var(--bw-thin) solid var(--line-soft); font-size: 0.88em; overflow-wrap: anywhere; }
+.docs-article hr:not([class]):where(:not(:is(.demo, .phone) *)) { margin-block: var(--space-6); } /* prose only: a component's own <hr> (a menu separator, a divider) keeps its spacing */
+.cards-index { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--gutter); list-style: none; padding: 0; }
+.cards-index a { display: block; padding: var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink); text-decoration: none; }
+.cards-index a:hover { box-shadow: var(--space-1) var(--space-1) 0 var(--line); }
+.cards-index strong { display: block; font: var(--type-title); }
+.cards-index span { color: var(--ink-soft); font: var(--type-meta); }
+
+/* generated by the {{icon-grid}} build placeholder */
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.icon-grid li { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-2); border: var(--bw-thin) solid var(--line-soft); background: var(--paper); text-align: center; }
+.icon-grid .ic { --ic-size: 1.5rem; }
+.icon-grid code { font-size: var(--text-xs); overflow-wrap: anywhere; }
+
+/* ---- Appearance panel (popover) --------------------------------------------------------------------- */
+.docs-prefs {
+  inset: auto;
+  inset-block-start: calc(var(--appbar-h) + var(--safe-top) + var(--space-2));
+  inset-inline-end: max(var(--space-3), var(--safe-right));
+  inline-size: min(22rem, calc(100vw - var(--space-5)));
+  max-block-size: calc(100dvh - var(--appbar-h) - var(--safe-top) - var(--space-5));
+  margin: 0;
+  padding: var(--space-4);
+  overflow-y: auto;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--space-1) var(--space-1) 0 var(--line);
+}
+.docs-prefs fieldset { margin: 0 0 var(--space-4); padding: 0; border: 0; }
+.docs-prefs legend { padding: 0; margin-block-end: var(--space-2); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+.docs-prefs .opts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.docs-prefs label.opt { display: inline-flex; align-items: center; min-block-size: var(--hit); padding-inline: var(--space-4); border: var(--bw) solid var(--line); border-radius: var(--radius-pill); font: var(--type-ctl); cursor: pointer; }
+.docs-prefs label.opt:has(input:checked) { background: var(--ink); color: var(--paper); box-shadow: 0 0 0 var(--bw) var(--line); }
+.docs-prefs label.opt:has(input:focus-visible) { outline: var(--ring) solid var(--focus); outline-offset: var(--ring-offset); }
+.docs-prefs input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.docs-prefs .hint { margin: 0; color: var(--ink-soft); font: var(--type-meta); }
+
+@media (forced-colors: active) {
+  .docs-prefs label.opt:has(input:checked) { outline: var(--bw) solid Highlight; outline-offset: calc(var(--bw) * -2); } /* an inner line: the option does not change size */
+  .docs-nav a[aria-current="page"] { border: var(--bw-heavy) solid Highlight; }
+}
+
+/* a box you can resize to watch a card answer to its own width (owner's "container sizing" demo) */
+.resize-box { resize: inline; overflow: auto; inline-size: min(100%, 26rem); min-inline-size: min(12rem, 100%); max-inline-size: 100%; padding: var(--space-3); border: var(--bw) dashed var(--line); }
+
+/* ---- Overview: the start path and the generated page index ---------------------------------------------------------- */
+.docs-article .docs-steps, .docs-article .docs-index { margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.docs-steps { counter-reset: step; display: grid; gap: var(--space-2); }
+.docs-steps li { max-inline-size: none; margin: 0; counter-increment: step; }
+.docs-index { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--space-2); }
+.docs-index li { max-inline-size: none; margin: 0; }
+.docs-article .docs-index li + li, .docs-article .docs-steps li + li { margin-block-start: 0; }
+.docs-steps a, .docs-index a { display: flex; flex-direction: column; gap: var(--space-1); block-size: 100%; min-block-size: var(--hit); padding: var(--space-3) var(--space-4); border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink); text-decoration: none; }
+.docs-steps a::before { content: counter(step, decimal-leading-zero); font: var(--type-label); letter-spacing: var(--ls-label); color: var(--ink-soft); }
+.docs-steps strong, .docs-index strong { font: 700 var(--text-md) / 1.2 var(--font-sans); overflow-wrap: break-word; }
+.docs-steps span, .docs-index span { color: var(--ink-soft); font: var(--type-meta); overflow-wrap: break-word; }
+@media (hover: hover) { .docs-steps a:hover, .docs-index a:hover { border-color: var(--ink); } }
+.docs-article h3 + .docs-index { margin-block-end: var(--space-4); }

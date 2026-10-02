@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0e0e" media="(prefers-color-scheme: dark)" />
+    <title>Upgrade · Style Guide</title>
+    <meta name="description" content="Moving from the Flashcards style sheet v0.1 to this guide: what stayed, what was renamed, and how to load it in an app that already has a .card. Then versioning, what counts as breaking, how to update an app and how to cut a release." />
+    <!-- Apply saved appearance before first paint so there is no flash of the wrong theme. -->
+    <script>try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}</script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141414'/%3E%3Crect x='6' y='6' width='20' height='20' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E" />
+    <link rel="preload" href="../assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../assets/styleguide.css" />
+    <link rel="stylesheet" href="../assets/icons.css" />
+    <link rel="stylesheet" href="../assets/wire.css" />
+    <link rel="stylesheet" href="../assets/docs.css" />
+  </head>
+  <body class="docs">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="docs-bar" id="docs-bar">
+      <button class="btn docs-bar__menu" data-shape="circle" data-size="sm" type="button" aria-label="Menu" aria-expanded="false" aria-controls="docs-nav">
+        <span class="ic ic--menu" aria-hidden="true"></span>
+      </button>
+      <a class="docs-bar__title" href="../index.html"><span class="t-label">Style guide</span> <span class="docs-bar__version t-label">v0.2.0</span></a>
+      <button class="btn docs-bar__prefs" data-size="sm" type="button" popovertarget="docs-prefs" aria-label="Appearance settings">
+        <span class="ic ic--sliders-horizontal" aria-hidden="true"></span>
+        <span>Appearance</span>
+      </button>
+    </header>
+
+    <div class="docs-scrim" data-docs-scrim hidden></div>
+
+    <div class="docs-shell">
+      <nav class="docs-nav" id="docs-nav" aria-label="Primary"><section class="docs-nav__group"><h2 class="docs-nav__heading">Start</h2><ul role="list"><li><a href="../index.html">Overview</a></li><li><a href="../start/install.html">Install</a></li><li><a href="../start/customize.html">Customize</a></li><li><a href="../start/upgrade.html" aria-current="page">Upgrade</a></li><li><a href="../start/pwa.html">PWA</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Foundations</h2><ul role="list"><li><a href="../foundations/color.html">Colour</a></li><li><a href="../foundations/tones.html">Tones</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/interaction.html">Interaction</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/icons.html">Icons</a></li><li><a href="../foundations/layout.html">Layout</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Components</h2><ul role="list"><li><a href="../components/button.html">Button</a></li><li><a href="../components/field.html">Field</a></li><li><a href="../components/input.html">Input</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/choice.html">Choice</a></li><li><a href="../components/switch.html">Switch</a></li><li><a href="../components/slider.html">Slider</a></li><li><a href="../components/stepper.html">Stepper</a></li><li><a href="../components/keypad.html">Keypad</a></li><li><a href="../components/tabs.html">Tabs</a></li><li><a href="../components/chip.html">Chip</a></li><li><a href="../components/segmented.html">Segmented control</a></li><li><a href="../components/appbar.html">App bar</a></li><li><a href="../components/dock.html">Dock</a></li><li><a href="../components/breadcrumb.html">Breadcrumb</a></li><li><a href="../components/pagination.html">Pagination</a></li><li><a href="../components/card.html">Card</a></li><li><a href="../components/tag.html">Tag</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/divider.html">Divider</a></li><li><a href="../components/accordion.html">Accordion</a></li><li><a href="../components/tile.html">Tile</a></li><li><a href="../components/list.html">List</a></li><li><a href="../components/stat.html">Stat</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/sheet.html">Sheet</a></li><li><a href="../components/menu.html">Menu</a></li><li><a href="../components/popover.html">Popover</a></li><li><a href="../components/tooltip.html">Tooltip</a></li><li><a href="../components/alert.html">Alert</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/progress.html">Progress</a></li><li><a href="../components/spinner.html">Spinner</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/empty.html">Empty state</a></li><li><a href="../components/marquee.html">Marquee</a></li><li><a href="../components/table.html">Table</a></li><li><a href="../components/chart-bar.html">Bar chart</a></li><li><a href="../components/sparkline.html">Sparkline</a></li><li><a href="../components/donut.html">Donut chart</a></li><li><a href="../components/legend.html">Legend</a></li><li><a href="../components/calendar.html">Calendar</a></li><li><a href="../components/agenda.html">Agenda</a></li><li><a href="../components/media.html">Media</a></li><li><a href="../components/carousel.html">Carousel</a></li><li><a href="../components/filmstrip.html">Filmstrip</a></li><li><a href="../components/gallery.html">Gallery</a></li><li><a href="../components/toolbar.html">Toolbar</a></li><li><a href="../components/scrubber.html">Scrubber</a></li><li><a href="../components/swatch.html">Swatch</a></li><li><a href="../components/timeline.html">Timeline</a></li><li><a href="../components/player.html">Player</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Accessibility</h2><ul role="list"><li><a href="../accessibility/checklist.html">Checklist</a></li><li><a href="../accessibility/testing.html">Testing</a></li><li><a href="../accessibility/manual.html">Manual</a></li><li><a href="../accessibility/patterns.html">Patterns</a></li></ul></section><section class="docs-nav__group"><h2 class="docs-nav__heading">Project</h2><ul role="list"><li><a href="../project/status.html">Status</a></li><li><a href="../project/decisions.html">Decisions</a></li><li><a href="../project/references.html">References</a></li><li><a href="../project/contributing.html">Contributing</a></li><li><a href="../project/changelog.html">Changelog</a></li><li><a href="../project/audit.html">Audit</a></li></ul></section></nav>
+
+      <main class="docs-main" id="main" tabindex="-1">
+        <article class="docs-article">
+          <p class="docs-crumb t-label">Start</p>
+          <style>
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+</style>
+<h1>Upgrade</h1>
+<p class="lede">Coming from the original Flashcards style sheet, how versions work, what a release is allowed to break, and how to move an app from one to the next.</p>
+
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div><strong>Where things stand</strong><p>The version is 0.2.0 (<code class="nb">package.json</code>). The repository has no git tags and nothing is published: <code>private: true</code> keeps it off npm. The changelog is <code class="nb">STYLE.md</code> §8; there is no separate <code class="nb">CHANGELOG.md</code>. Nothing has been upgraded from one release to another yet, so the update steps below are the policy and a recipe, not something anyone has done twice.</p></div>
+</div>
+
+<h2 id="from-v01">From the Flashcards style sheet v0.1</h2>
+<p>This guide <strong>is</strong> your sheet, generalised. It was re-founded on it rather than patched: your type, space, line, shape, hit-target and focus tokens, your role names, the tone API, the <code class="nb">.card</code> element and its classes, the gates and the checker's rules are kept as you wrote them. What was wrong with the original, and what was done about each finding, is on the <a href="../project/audit.html">Audit</a> page.</p>
+
+<h3 id="kept">What stayed exactly as you wrote it</h3>
+<ul>
+  <li><strong>Every value in <code>tokens/<wbr>foundation.css</code></strong>: the 8 text sizes, the 4 line heights, the tracking, the six <code class="nb">--type-*</code> styles, the space scale, <code class="nb">--bw</code> / <code class="nb">--bw-thin</code> / <code class="nb">--bw-heavy</code>, the radius primitives and roles, <code class="nb">--hit</code>, <code class="nb">--ring</code> and its offsets, <code class="nb">--dur-press</code>, <code class="nb">--dur-hover</code>, <code class="nb">--dur-move</code>, <code class="nb">--ease-out</code>, <code class="nb">--ease-flip</code>. Compared value by value: 56 of 57 are identical, and the one that is not is renamed (below).</li>
+  <li><strong>Every class</strong> in <code class="nb">card.css</code>, <code class="nb">base.css</code>, <code class="nb">icons.css</code> and <code class="nb">wire.css</code>: <code class="nb">.card</code> with all ten variants and every <code class="nb">.card__*</code> part, <code class="nb">.card-grid</code>, <code class="nb">.t-*</code>, <code class="nb">.ic</code> and its five glyphs, <code class="nb">.is-hover</code> and the other forced-state classes, <code class="nb">.sr-only</code>, <code class="nb">.wf-*</code>.</li>
+  <li><strong>The tone API</strong>: <code class="nb">data-tone="1"</code> to <code class="nb">"6"</code> and <code class="nb">"ink"</code>, <code class="nb">--tone-bg</code> and <code class="nb">--tone-ink</code> on that element only, and <code class="nb">--tone-1</code> to <code class="nb">--tone-6</code> with <code class="nb">--on-tone-1</code> to <code class="nb">--on-tone-6</code>.</li>
+  <li><strong>The interaction model</strong>: <code class="nb">--lift</code> and <code class="nb">--fill</code>, set by every state.</li>
+  <li><strong>The seven rules, the test and the pipeline</strong> (gates 0 to 5). The gate is now <code>npm run lint</code>, plus three browser tests the original did not have.</li>
+</ul>
+
+<h3 id="moved">Where the files went</h3>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Where each file of the original sheet lives in this repository</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">The original sheet</th><th role="columnheader">This repository</th><th role="columnheader">What changed</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="The original sheet"><code>css/<wbr>flashcards.css</code> (the file an app links)</td><td role="cell" data-label="This repository"><code>dist/<wbr>styleguide.css</code> or <code>dist/<wbr>styleguide.min.css</code>, with <code class="nb">dist/fonts/</code> beside it</td><td role="cell" data-label="What changed">Generated by <code>npm run build</code>. Layer order is now <code>sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities</code> instead of <code>tokens, base, components, wire, sheet</code>. The wire layer sits <em>below</em> components, so a placeholder can never override a real element.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code class="nb">css/fonts.css</code></td><td role="cell" data-label="This repository"><code>src/<wbr>tokens/<wbr>50-fonts.css</code></td><td role="cell" data-label="What changed">Three files (latin, latin-ext, vietnamese) instead of one. Same family, same axes.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code>css/<wbr>tokens/<wbr>foundation.css</code></td><td role="cell" data-label="This repository"><code>src/<wbr>tokens/<wbr>00-foundation.css</code>, plus <code class="nb">30-corners.css</code> and <code class="nb">60-motion.css</code></td><td role="cell" data-label="What changed">Same values. Corners and motion have their own files.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code>css/<wbr>tokens/<wbr>color.wire.css</code></td><td role="cell" data-label="This repository"><code class="nb">10-color.css</code>, <code class="nb">20-tones.css</code>, <code class="nb">40-palettes.css</code></td><td role="cell" data-label="What changed">Roles are built from knobs with <code class="nb">light-dark(oklch())</code>; the <code class="nb">--grey-N</code> primitives are gone and the lint fails anything that reads one. The wire palette is the greys, kept as the squint test.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code class="nb">css/base.css</code></td><td role="cell" data-label="This repository"><code>src/<wbr>base/<wbr>00-reset.css</code>, <code class="nb">10-base.css</code></td><td role="cell" data-label="What changed"><code class="nb">[data-tone]</code> moved next to the colour it needs, in <code class="nb">20-tones.css</code>. Dark mode can now be switched on from the tokens.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code class="nb">css/icons.css</code></td><td role="cell" data-label="This repository"><code>src/<wbr>base/<wbr>20-icons.css</code>, and <code class="nb">dist/icons.css</code></td><td role="cell" data-label="What changed">The five glyphs are unchanged; about 150 more ship in the optional file.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code>css/<wbr>components/<wbr>card.css</code></td><td role="cell" data-label="This repository"><code>src/<wbr>components/<wbr>card.css</code></td><td role="cell" data-label="What changed">Hardened; see the next table.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code class="nb">css/wire.css</code></td><td role="cell" data-label="This repository"><code>src/<wbr>wire/<wbr>wire.css</code>, built to <code class="nb">dist/wire.css</code></td><td role="cell" data-label="What changed">Development only, never in the main file.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code class="nb">css/sheet.css</code> (the sheet page's own chrome, <code class="nb">.sg-*</code>)</td><td role="cell" data-label="This repository"><code>docs-src/<wbr>assets/<wbr>docs.css</code></td><td role="cell" data-label="What changed">Not shipped, and linted like shipped CSS.</td></tr>
+    <tr role="row"><td role="cell" data-label="The original sheet"><code class="nb">tools/check.mjs</code></td><td role="cell" data-label="This repository"><code class="nb">tests/lint.mjs</code>, rebuilt on a CSS tokenizer</td><td role="cell" data-label="What changed">The original's tooling audit is replayed on every run: 82% of its deliberate violations are caught (the original caught 44%) and every legitimate snippet passes.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="renamed">Names that changed</h3>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Names and behaviours that changed from the original sheet, and what to do</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Was</th><th role="columnheader">Is</th><th role="columnheader">Do</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Was"><code class="nb">.card--study</code></td><td role="cell" data-label="Is"><code class="nb">.card--portrait</code>. The old name still works as an alias.</td><td role="cell" data-label="Do">Rename at your leisure. A product name should not live in a shared foundation.</td></tr>
+    <tr role="row"><td role="cell" data-label="Was"><code class="nb">.card__answer</code></td><td role="cell" data-label="Is"><code class="nb">.card__hero</code>, with the old name as an alias.</td><td role="cell" data-label="Do">Same.</td></tr>
+    <tr role="row"><td role="cell" data-label="Was"><code class="nb">--ratio-study</code></td><td role="cell" data-label="Is"><code class="nb">--ratio-portrait</code>. <strong>No alias</strong>: the old name is gone.</td><td role="cell" data-label="Do">Search your CSS for it.</td></tr>
+    <tr role="row"><td role="cell" data-label="Was"><code class="nb">--grey-0</code> to <code class="nb">--grey-10</code></td><td role="cell" data-label="Is">Gone. Read a role (<code class="nb">--paper</code>, <code class="nb">--ink</code>, <code class="nb">--tone-3</code>).</td><td role="cell" data-label="Do">Replace each read with the role that says what it is for.</td></tr>
+    <tr role="row"><td role="cell" data-label="Was">Soft ink inside a card: <code><span data-f="nw">color-mix(…</span> 72%, …)</code></td><td role="cell" data-label="Is"><code class="nb">--tone-ink-soft</code> on a tone, <code><span data-f="nw">--surface-</span>ink-soft</code> anywhere else: explicit roles, 7:1 or more.</td><td role="cell" data-label="Do">Read the roles. The mix measured under 7:1 on every tone.</td></tr>
+    <tr role="row"><td role="cell" data-label="Was"><code class="nb">aria-selected</code> as "this card is chosen"</td><td role="cell" data-label="Is"><code class="nb">aria-current</code>, <code class="nb">aria-pressed</code>, or <code class="nb">role="option"</code> / <code class="nb">role="tab"</code> with <code class="nb">aria-selected</code>. Never <code class="nb">aria-selected</code> on an article or a link.</td><td role="cell" data-label="Do">Change the markup where you select cards.</td></tr>
+    <tr role="row"><td role="cell" data-label="Was">Hover rules that were not gated</td><td role="cell" data-label="Is">Every <code class="nb">:hover</code> is inside <code>@media (hover: hover)</code>.</td><td role="cell" data-label="Do">Nothing: a hover no longer sticks on a touch screen. Gate your own.</td></tr>
+    <tr role="row"><td role="cell" data-label="Was"><code class="nb">check.mjs</code></td><td role="cell" data-label="Is"><code>npm run lint</code>, <code>npm run test:lint</code>, and the browser tests <code class="nb">test:contrast</code>, <code class="nb">test:a11y</code>, <code class="nb">test:components</code>.</td><td role="cell" data-label="Do">Run <code>npm test</code>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Was">Motion gate closed (every state instant)</td><td role="cell" data-label="Is">Gate 4 is open: one transition animates <code class="nb">--lift</code> and <code class="nb">--fill</code>, and reduced motion means gentler, not instant.</td><td role="cell" data-label="Do">Closing it again is one flag in <code>checkCss({ gates })</code>.</td></tr>
+  </tbody>
+</table></div>
+<p>The portrait card's answer is a real reveal now: a named subject, a button with a constant name and <code class="nb">aria-expanded</code>, and the answer announced politely. The animated flip itself is still a motion decision nobody has made, so keep the app's own flip until it is.</p>
+
+<h3 id="added">What was added on top</h3>
+<ul>
+  <li><strong>Colour</strong>: dark mode, higher contrast (<code class="nb">data-contrast</code>), six palettes (<code class="nb">data-palette</code>), square and soft corners (<code class="nb">data-corners</code>), status tones (<code class="nb">ok</code> <code class="nb">warn</code> <code class="nb">bad</code> <code class="nb">info</code>) and <code class="nb">data-emphasis="bold"</code>; new roles <code class="nb">--paper-2</code>, <code class="nb">--paper-3</code>, <code class="nb">--ink-mute</code>, <code class="nb">--accent-ink</code>, <code class="nb">--accent-soft</code>, the status inks, <code class="nb">--scrim</code>, and the surface contract (<code class="nb">--surface-bg</code>, <code class="nb">--surface-ink</code>, <code><span data-f="nw">--surface-</span>ink-soft</code>).</li>
+  <li><strong>Structure</strong>: layout primitives, safe areas, a utilities layer, control heights (<code class="nb">--ctl-sm</code>, <code class="nb">--ctl</code>, <code class="nb">--ctl-lg</code>), <code class="nb">--z-*</code> layers, motion tokens <code class="nb">--dur-enter</code>, <code class="nb">--ease-in</code> and <code class="nb">--move</code>.</li>
+  <li><strong>Script</strong>: <code class="nb">window.SG</code>, plain scripts with no modules.</li>
+  <li><strong>Elements</strong>: the button, and every element on the Components pages.</li>
+  <li><strong>Checks</strong>: the contrast matrix, the accessibility gate, keyboard specs.</li>
+</ul>
+
+<h2 id="collision">Your app already has a .card</h2>
+<p>This is the migration note from the original sheet's <code class="nb">README.md</code>, as the owner wrote it:</p>
+<blockquote>
+  <p><code class="nb">../styles.css</code> already owns <code class="nb">.card</code>, <code class="nb">.card-inner</code> and <code class="nb">.card-face</code>, so the two can't load together as they stand. Its canvas is cream with a dotted background, Space Grotesk, 4px borders, a 10px hard shadow and a 26px radius; none of that is carried into this sheet.</p>
+  <p>When the app adopts the sheet: load <code>design/<wbr>css/<wbr>flashcards.css</code>, remove or rename the old <code class="nb">.card*</code> rules, map <code class="nb">--t1…--t6</code> to <code><span data-f="nw">--tone-1</span>…<span data-f="nw">--tone-6</span></code>, and move the flip onto <code class="nb">.card--study</code> at gate 4 (the rules in the root README still stand). Or prefix the new classes first and migrate at leisure. The prefix is an open decision.</p>
+</blockquote>
+<p>Two things have moved since. This guide answered the prefix question by <strong>keeping your short names and adding no prefix</strong> (the audit lists it as a decision you may still want to make), so the old rules are the ones that move aside. And the collision is wider than <code class="nb">.card</code>. Checked against the tokens and classes that the <a href="../project/audit.html">audit</a> lists for the app's <code class="nb">styles.css</code>:</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Names that the app's styles.css and this guide both define</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Kind</th><th role="columnheader">Both define</th><th role="columnheader">What happens if both load</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Kind">Classes</td><td role="cell" data-label="Both define"><code class="nb">.app</code>, <code class="nb">.card</code>, <code class="nb">.sr-only</code></td><td role="cell" data-label="What happens if both load">The rule that comes later or is unlayered wins, property by property. The app's <code class="nb">.card</code> has a 4px border, a 26px radius and a 10px shadow.</td></tr>
+    <tr role="row"><td role="cell" data-label="Kind">Custom properties</td><td role="cell" data-label="Both define"><code class="nb">--canvas</code>, <code class="nb">--paper</code>, <code class="nb">--ink</code>, <code class="nb">--ink-soft</code>, <code class="nb">--bw</code>, <code class="nb">--dur-move</code>, <code class="nb">--dur-press</code>, <code class="nb">--ease-flip</code></td><td role="cell" data-label="What happens if both load">The app declares them unlayered on <code class="nb">:root</code> as literal values, so they replace the guide's <em>roles</em>, not only its card: every border becomes 4px, and because <code class="nb">--ink</code> and the others are now fixed colours, <code class="nb">data-theme</code>, <code class="nb">data-palette</code> and <code class="nb">data-contrast</code> no longer reach them.</td></tr>
+    <tr role="row"><td role="cell" data-label="Kind">Elements</td><td role="cell" data-label="Both define"><code class="nb">html</code> and <code class="nb">body</code> rules</td><td role="cell" data-label="What happens if both load">The app's body font (Space Grotesk, never loaded) and its cream, dotted canvas replace the guide's.</td></tr>
+  </tbody>
+</table></div>
+<p>The app's other names (<code class="nb">.deck</code>, <code class="nb">.card-inner</code>, <code class="nb">.card-face</code>, <code class="nb">.dots</code>, <code class="nb">--t1</code> to <code class="nb">--t6</code>, <code class="nb">--radius</code>, <code class="nb">--gap</code> and so on) do not exist in the guide and cannot collide. An earlier build of the app had <code class="nb">.btn</code>, <code class="nb">.toast</code>, <code class="nb">.chip</code> and <code class="nb">.skip-link</code>; if your copy still does, they collide too.</p>
+
+<h3 id="recipes">Two ways to load both</h3>
+<p>Both were tried in Chromium with a <strong>stand-in</strong> for the app's stylesheet, written from the audit's description (its tokens, its <code class="nb">.card</code> with the 4px border, 26px radius and 10px shadow, its <code class="nb">body</code> rule). The app's real <code class="nb">styles.css</code> was not available, so check the result against it.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The three ways of loading the guide next to an old stylesheet, and what each gave</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Setup</th><th role="columnheader">What the guide's .card and .btn drew</th><th role="columnheader">Verdict</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Setup">Guide, then the old sheet as it is</td><td role="cell" data-label="What the guide&#x27;s .card and .btn drew">4px border, 26px radius and a 10px shadow on the guide's card; <code class="nb">--bw</code> was 4px, so the button's frame too; the body font was the old stack.</td><td role="cell" data-label="Verdict">Do not. This is the collision.</td></tr>
+    <tr role="row"><td role="cell" data-label="Setup"><strong>Rename.</strong> The old sheet's <code class="nb">.card*</code> become <code class="nb">.fc-card*</code> and its colliding tokens <code class="nb">--fc-*</code>, both in the CSS and wherever the HTML or script uses them</td><td role="cell" data-label="What the guide&#x27;s .card and .btn drew">Exactly what the guide draws on its own: 2px border, no radius, no shadow at rest. The old screens looked as before. The old <code class="nb">body</code> and <code class="nb">.app</code> rules still apply, because they are the same elements.</td><td role="cell" data-label="Verdict"><strong>Use this to migrate screen by screen.</strong> Rename <code class="nb">body</code> and <code class="nb">.app</code> styles into a wrapper class too.</td></tr>
+    <tr role="row"><td role="cell" data-label="Setup"><strong>Layer.</strong> The old sheet is imported into a layer that is declared before the guide's: the guide wins</td><td role="cell" data-label="What the guide&#x27;s .card and .btn drew">Exactly what the guide draws on its own, everywhere, including on the old screens that use <code class="nb">.card</code> and the old tokens.</td><td role="cell" data-label="Verdict">Use this for a cut-over: every screen turns into the guide at once, and only the old names that the guide does not define keep their old look.</td></tr>
+  </tbody>
+</table></div>
+<pre aria-label="Renaming the old card and its tokens">/* before: the app's styles.css */
+:root { --canvas: #fff2dc; --paper: #fffdf7; --ink: #14120e; --bw: 4px; /* … */ }
+.card { border: var(--bw) solid var(--ink); border-radius: var(--radius); background: var(--paper); box-shadow: 10px 10px 0 var(--shadow); }
+
+/* after: prefixed, so the guide and the old sheet can live side by side */
+:root { --fc-canvas: #fff2dc; --fc-paper: #fffdf7; --fc-ink: #14120e; --fc-bw: 4px; /* … */ }
+.fc-card { border: var(--fc-bw) solid var(--fc-ink); border-radius: var(--radius); background: var(--fc-paper); box-shadow: 10px 10px 0 var(--shadow); }</pre>
+<pre aria-label="Loading the old stylesheet into a layer below the guide">&lt;!-- First, so that &quot;legacy&quot; is the weakest layer. The guide's own stylesheet declares its layers after this. --&gt;
+&lt;style&gt;@import url(&quot;styles.css&quot;) layer(legacy);&lt;/style&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;styleguide/styleguide.min.css&quot;&gt;</pre>
+<p>Then <code class="nb">--t1</code> to <code class="nb">--t6</code> become <code class="nb">data-tone="1"</code> to <code class="nb">"6"</code>, and the script that builds <code><span data-f="nw">"var(--t"</span> + n + ")"</code> sets <code>el.dataset.tone = n</code> instead, so the colour stays in CSS and follows the palette. <code class="nb">.card--study</code> becomes <code class="nb">.card--portrait</code> when you get to it.</p>
+
+<h2 id="policy">Versioning policy</h2>
+<p>Semantic Versioning: <code class="nb">MAJOR.MINOR.PATCH</code>. The "API" is what an app can depend on, listed in the next section.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Which kind of change bumps which part of the version</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Bump</th><th role="columnheader">Changes that cause it</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Bump">Major</td><td role="cell" data-label="Changes that cause it">Renaming or removing anything in the API list below. Changing what an attribute value means. Changing documented markup so that an app's HTML must change. Raising the browser floor (today <code class="nb">light-dark()</code>: Chrome and Edge 123, Firefox 120, Safari 17.5, plus container queries, <code class="nb">:has()</code>, <code class="nb">@property</code>, <code class="nb">color-mix()</code> and cascade layers).</td></tr>
+    <tr role="row"><td role="cell" data-label="Bump">Minor</td><td role="cell" data-label="Changes that cause it">New tokens, elements, variants, palettes, tones, icons or <code class="nb">SG</code> functions. Retuning colour or size values while every check in <code>npm run test:contrast</code> and the accessibility gate still passes. Deprecating a name (it keeps working).</td></tr>
+    <tr role="row"><td role="cell" data-label="Bump">Patch</td><td role="cell" data-label="Changes that cause it">Bug fixes, contrast and focus fixes that do not change a name, documentation, tests, and anything an app cannot see.</td></tr>
+  </tbody>
+</table></div>
+<p><strong>While the version is 0.x</strong>, Semantic Versioning treats the API as unstable. The rule here: a breaking change bumps the <em>minor</em> number and is listed as breaking in the changelog. From 1.0.0 on, breaking changes bump the major number. The 1.0.0 release is a decision, not a date.</p>
+
+<h3 id="api">What counts as the API</h3>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">Parts of the guide that apps may depend on, and parts that are private</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Part</th><th role="columnheader">Covered</th><th role="columnheader">Examples</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Part">Custom properties: roles and scales</td><td role="cell" data-label="Covered">Name and meaning</td><td role="cell" data-label="Examples"><code class="nb">--canvas</code> <code class="nb">--paper</code> <code class="nb">--ink</code> <code class="nb">--line</code> <code class="nb">--focus</code> <code class="nb">--accent</code> and their siblings; <code class="nb">--surface-*</code>; <code class="nb">--tone-*</code>; <code class="nb">--space-*</code>; <code class="nb">--text-*</code>; <code class="nb">--type-*</code>; <code class="nb">--lh-*</code>; <code class="nb">--ls-*</code>; <code class="nb">--font-sans</code>; <code class="nb">--radius-card</code> <code class="nb">--radius-tile</code> <code class="nb">--radius-ctl</code> <code class="nb">--radius-pill</code>; <code class="nb">--bw</code> <code class="nb">--bw-thin</code> <code class="nb">--bw-heavy</code>; <code class="nb">--ring</code>; <code class="nb">--hit</code>; <code class="nb">--ctl-*</code>; <code class="nb">--dur-*</code>; <code class="nb">--ease-*</code>; <code class="nb">--move</code>; <code class="nb">--lift</code>; <code class="nb">--fill</code>; <code class="nb">--z-*</code>; <code class="nb">--safe-*</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Part">Palette knobs and hues</td><td role="cell" data-label="Covered">Name. <em>Values may be retuned</em> in a minor release, with contrast re-verified.</td><td role="cell" data-label="Examples"><code class="nb">--k-*</code>, <code class="nb">--hue-*</code>, <code class="nb">--tone-h-1</code> to <code class="nb">--tone-c-6</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Part">Classes and data attributes</td><td role="cell" data-label="Covered">Name, allowed values and meaning</td><td role="cell" data-label="Examples"><code class="nb">.btn</code>, <code class="nb">.card</code> and its parts, <code class="nb">.stack</code>, <code class="nb">data-variant="primary"</code>, <code class="nb">data-palette="mint"</code>, <code class="nb">data-corners</code>, <code class="nb">data-tone</code>, <code class="nb">data-emphasis</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Part">Cascade layers</td><td role="cell" data-label="Covered">Names and order</td><td role="cell" data-label="Examples"><code class="nb">sg.reset</code> to <code class="nb">sg.utilities</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Part">JavaScript</td><td role="cell" data-label="Covered">The documented members of <code class="nb">window.SG</code>, the <code class="nb">sg:prefs</code> storage key, and the <code class="nb">sg:*</code> events each element documents</td><td role="cell" data-label="Examples"><code class="nb">SG.prefs</code>, <code class="nb">SG.announce</code>, <code class="nb">SG.motion</code>, <code class="nb">SG.storage</code>, <code class="nb">SG.roving</code>, <code class="nb">SG.toggle</code>, <code class="nb">SG.ready</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Part">Icons</td><td role="cell" data-label="Covered">Names</td><td role="cell" data-label="Examples"><code class="nb">ic--plus</code>. Removing an icon is breaking; adding one is not.</td></tr>
+    <tr role="row"><td role="cell" data-label="Part">Files in <code class="nb">dist/</code></td><td role="cell" data-label="Covered">Names, and the relative <code class="nb">fonts/</code> path</td><td role="cell" data-label="Examples"><code class="nb">styleguide.min.css</code>, <code>fonts/<wbr>archivo-latin-var.woff2</code></td></tr>
+    <tr role="row"><td role="cell" data-label="Part"><strong>Not covered</strong></td><td role="cell" data-label="Covered">May change in any release</td><td role="cell" data-label="Examples">Anything starting with <code class="nb">--_</code>, internal selectors, DOM structure beyond the documented markup, exact pixel and colour values, and the <code class="nb">docs/</code> site.</td></tr>
+  </tbody>
+</table></div>
+<p>Accessibility fixes are the one thing that can change looks in a patch release: if a pair fails a check it is corrected without waiting for a minor bump, and the changelog says when that happened.</p>
+
+<h2 id="update">Update an app</h2>
+<ol>
+  <li><strong>Read the changelog</strong> (<code class="nb">STYLE.md</code> §8) from your version to the new one. Start with anything marked breaking.</li>
+  <li><strong>See exactly what changed</strong> in the CSS by comparing the two unminified files:
+<pre aria-label="Compare two versions of the stylesheet">diff -u old/styleguide/styleguide.css new/styleguide/styleguide.css | less</pre>
+  </li>
+  <li><strong>Replace the guide's files wholesale.</strong> Swap the whole <code class="nb">styleguide/</code> folder, or change the tag in the jsDelivr URLs. Never patch files in it by hand; your overrides live in your own CSS (<a href="../start/customize.html#keep">Customize</a>).</li>
+  <li><strong>Find uses of anything renamed or removed.</strong> This is the search for the names on this page:
+<pre aria-label="Search your app for names that were renamed or removed">grep -rnF -e '.card--study' -e '.card__answer' -e '--ratio-study' -e '--grey-' my-app/ --include='*.css' --include='*.html' --include='*.js'</pre>
+  </li>
+  <li><strong>Bump your service worker's cache name</strong> (or the versioned folder name) so installed copies fetch the new files. Without this a cache-first worker keeps serving the old CSS (<a href="../start/pwa.html#sw">PWA</a>).</li>
+  <li><strong>Look at your screens.</strong> The guide's tests cover the guide's own pages, not your app. Open each main screen in light and dark, in a palette you do not use every day, at 320&nbsp;px wide and with text at 200%, and run anything the changelog touches from the <a href="../accessibility/manual.html">manual pass</a>.</li>
+  <li>Deploy. To go back, put the old folder or tag back.</li>
+</ol>
+
+<h3 id="deprecate">Deprecating a name</h3>
+<p>Before removing or renaming a token or class, keep the old name working for one release as an alias of the new one, so apps get a warning period instead of a broken screen, and list it as deprecated in the changelog with the version it goes away in. <code class="nb">.card--study</code> and <code class="nb">.card__answer</code> are this convention in use. (<code class="nb">--ratio-study</code> was renamed without an alias.)</p>
+
+<h2 id="changelog">Changelog convention</h2>
+<ul>
+  <li>The changelog lives in <code class="nb">STYLE.md</code> §8, newest version first. A version heading names the date; each entry names the exact token, class, attribute or function in code font; breaking changes say what to do instead.</li>
+  <li>Changes to contrast numbers, focus behaviour or keyboard behaviour are always listed, even when tiny. They are what an app's own accessibility pass depends on.</li>
+  <li>The version has one source, <code class="nb">package.json</code>. The lint fails if the version on <code class="nb">STYLE.md</code>'s third line disagrees with it.</li>
+</ul>
+
+<h2 id="release">Cut a release (maintainers)</h2>
+<p>In order. The version bump comes <em>before</em> the build, because the version is written into the banner of <code class="nb">dist/</code> and into the docs header.</p>
+<pre aria-label="Release commands">npm version --no-git-tag-version minor     # edits package.json and package-lock.json only
+# edit STYLE.md: the version on line 3, and a new entry in section 8
+npm run build                              # the banner and the docs header pick up the new version
+npm test                                   # build:check, lint, contrast, components, accessibility
+git add -A
+git commit -m &quot;Release 0.3.0&quot;
+git tag -a v0.3.0 -m &quot;0.3.0&quot;
+git push --follow-tags</pre>
+<ul>
+  <li><strong>What was run:</strong> in a scratch copy, the version bump, <code>npm run build</code> (the banner read <code>/*! styleguide v0.3.0</code>), <code class="nb">build:check</code> (passed) and the lint, which <strong>failed</strong> with "STYLE.md says v0.2 but package.json is 0.3.0" until <code class="nb">STYLE.md</code> is edited. The tag and the push were not run.</li>
+  <li><strong>Never move or re-create a tag.</strong> jsDelivr caches a tag as immutable. A fix is a new patch version.</li>
+  <li><strong>jsDelivr needs no publish step.</strong> It serves any tag of a public GitHub repository (<a href="../start/install.html#cdn">Install</a>).</li>
+  <li><code class="nb">dist/</code> and <code class="nb">docs/</code> are committed on release, so every tag is linkable and GitHub Pages can serve <code class="nb">docs/</code>. Do not commit them from a feature branch; run <code>npm run build</code> when you release.</li>
+  <li>Which version an app has: the first line of its <code class="nb">styleguide.css</code> or <code class="nb">styleguide.min.css</code>.</li>
+</ul>
+<style>
+.docs-article blockquote { margin-inline: 0; padding: var(--chrome-3) var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); }
+.docs-article blockquote > p { max-inline-size: none; margin: 0; }
+.docs-article blockquote > p + p { margin-block-start: var(--space-3); }
+</style>
+
+        </article>
+        <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__heading">On this page</h2><ul role="list"><li><a href="#from-v01">From the Flashcards style sheet v0.1</a></li><li><a href="#collision">Your app already has a .card</a></li><li><a href="#policy">Versioning policy</a></li><li><a href="#update">Update an app</a></li><li><a href="#changelog">Changelog convention</a></li><li><a href="#release">Cut a release (maintainers)</a></li></ul></nav>
+      </main>
+    </div>
+
+    <!-- Appearance panel: built by docs.js (theme, contrast, palette, corners, motion). -->
+    <div class="docs-prefs" id="docs-prefs" popover aria-label="Appearance settings"></div>
+
+    <script src="../assets/styleguide.js" defer></script>
+    <script src="../assets/docs.js" defer></script>
+  </body>
+</html>

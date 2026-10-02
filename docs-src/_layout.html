@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0e0e" media="(prefers-color-scheme: dark)" />
+    <title>{{title}} · Style Guide</title>
+    <meta name="description" content="{{summary}}" />
+    <!-- Apply saved appearance before first paint so there is no flash of the wrong theme. -->
+    <script>try{var p=JSON.parse(localStorage.getItem('sg:prefs')||'{}');for(var k in p)document.documentElement.setAttribute('data-'+k,p[k])}catch(e){}</script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141414'/%3E%3Crect x='6' y='6' width='20' height='20' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E" />
+    <link rel="preload" href="{{root}}assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="{{root}}assets/styleguide.css" />
+    <link rel="stylesheet" href="{{root}}assets/icons.css" />
+    <link rel="stylesheet" href="{{root}}assets/wire.css" />
+    <link rel="stylesheet" href="{{root}}assets/docs.css" />
+  </head>
+  <body class="docs">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="docs-bar" id="docs-bar">
+      <button class="btn docs-bar__menu" data-shape="circle" data-size="sm" type="button" aria-label="Menu" aria-expanded="false" aria-controls="docs-nav">
+        <span class="ic ic--menu" aria-hidden="true"></span>
+      </button>
+      <a class="docs-bar__title" href="{{root}}index.html"><span class="t-label">Style guide</span> <span class="docs-bar__version t-label">v{{version}}</span></a>
+      <button class="btn docs-bar__prefs" data-size="sm" type="button" popovertarget="docs-prefs" aria-label="Appearance settings">
+        <span class="ic ic--sliders-horizontal" aria-hidden="true"></span>
+        <span>Appearance</span>
+      </button>
+    </header>
+
+    <div class="docs-scrim" data-docs-scrim hidden></div>
+
+    <div class="docs-shell">
+      <nav class="docs-nav" id="docs-nav" aria-label="Primary">{{nav}}</nav>
+
+      <main class="docs-main" id="main" tabindex="-1">
+        <article class="docs-article">
+          <p class="docs-crumb t-label">{{group}}</p>
+          {{content}}
+        </article>
+        {{toc}}
+      </main>
+    </div>
+
+    <!-- Appearance panel: built by docs.js (theme, contrast, palette, corners, motion). -->
+    <div class="docs-prefs" id="docs-prefs" popover aria-label="Appearance settings"></div>
+
+    <script src="{{root}}assets/styleguide.js" defer></script>
+    <script src="{{root}}assets/docs.js" defer></script>
+  </body>
+</html>

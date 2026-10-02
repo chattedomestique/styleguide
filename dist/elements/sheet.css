@@ -1,0 +1,425 @@
+/*! styleguide v0.2.0 - element: sheet. Needs core.css. Generated from src/components/sheet.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Sheet  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A panel that slides up from the bottom edge on a phone and docks to the side on a
+   wide screen: a deck's detail, a filter form, a share list. Modal (a <dialog>) or
+   persistent (a popover="manual" section). It is a .card, so the frame, the ink bar
+   and the tones are the owner's. JS: src/js/61-sheet.js (handle, drag, Esc).
+
+   <button class="btn" data-sg-open="#food">Food &amp; drink</button>
+
+   <dialog class="sheet card" id="food" aria-labelledby="food-t">
+     <button class="sheet__handle" type="button" data-sg-sheet-size aria-pressed="false" aria-label="Full height"></button>
+     <header class="card__bar">
+       <h2 class="card__label" id="food-t">Food &amp; drink</h2>
+       <button class="card__ctl" type="button" data-sg-close aria-label="Close" autofocus>
+         <span class="ic ic--close" aria-hidden="true"></span></button>
+     </header>
+     <div class="card__body">…scrolls…</div>
+     <div class="sheet__actions">…optional…</div>
+   </dialog>
+
+   Two kinds, one look
+     <dialog class="sheet card">           MODAL: showModal(), scrim, inert page, Esc, focus trap
+     <section class="sheet card" popover="manual" role="dialog" aria-labelledby="…">
+                                           NON-MODAL: a persistent panel. The page behind stays
+                                           usable; it closes only from its Close control, or Esc
+                                           while focus is inside it.
+   data-size   half (default) | full        62% of the screen / all but --space-8 of it
+   data-inline                              static preview in the page flow (docs, split panes)
+   data-side                                with data-inline: the side-panel look (edge on the inline-start
+                                            side only, no handle) as a pane
+   data-required                            no scrim tap, no Esc, no drag (see dialog.css)
+
+   THE HANDLE IS A BUTTON, NOT A PICTURE. .sheet__handle is a real <button aria-pressed> with
+   a stable label ("Full height"): tap, Enter or Space toggles half / full; ArrowUp and
+   ArrowDown on it set full / half. Dragging it is an enhancement on top (WCAG 2.5.7), never the
+   only way: Close is always visible, Esc and the scrim tap close, the handle resizes. (The
+   reference screen's grabber was a 1.6:1 picture and the only control; this is the fix.)
+   It is a pill, and pills act, but it is a SELECTION control, so only "on" is solid: outlined at
+   rest, raised (outline + hard shadow) on hover and focus, tinted while pressed, and filled with a
+   doubled frame when on. A 56×28px box holding a 48×16px pill (chrome: neither grows with text),
+   whose hit area reaches 44px.
+
+   ACTIONS. Pills under a 1px rule, primary last, right-aligned on one row while they fit; when they do
+   not (200% text on a phone), every one is full width and they stack in DOM order, so the row is never
+   a ragged one-and-one at two widths. src/js/61-sheet.js measures it with SG.fit (data-fit="row" |
+   "stack"); without JS the row wraps.
+
+   WIDE SCREENS. From 48em the sheet becomes a side panel docked to the inline-end edge at the
+   full height of the screen: there is no half or full any more, so the handle is hidden and
+   nothing needs dragging. `--_side` is 1 there; 61-sheet.js reads it so the two can never
+   disagree. (This is a viewport-level overlay, so an em media query is the right tool; a
+   container query has no container to ask.)
+
+   MOTION. The slide is translateY(100% × --move) (translateX in the panel): under reduced
+   motion it is a fade. Resizing between half and full animates max/min-block-size. That is
+   layout, not compositor work, and is used once per tap on purpose: a detent change has no
+   fade equivalent. --dur-enter shortens to 180ms under reduced motion, so it is eased, never
+   instant. Dragging follows the finger exactly (direct manipulation is allowed).
+
+   SAFE AREAS. The sheet is inset by the left / right / bottom insets, the body and actions
+   pad the home indicator, and the panel's bar pads the top inset. Nothing is hidden under a
+   notch or a home bar, and a full-height sheet leaves a --space-8 strip of the page showing.
+   ========================================================================== */
+
+@layer sg.components {
+  /* The look, for every sheet: modal, persistent or a static preview in the docs. */
+  .sheet.card {
+    /* 1 · private properties */
+    --_w: 36rem; /* a bottom sheet is never wider than this; centred above that */
+    --_panel-w: 26rem; /* the side panel */
+    --_side: 0; /* 1 from 48em: a panel, not a sheet. Read by 61-sheet.js */
+    --_dir: 1; /* -1 in RTL: the panel slides in from the end edge */
+    --_top-gap: var(--space-8); /* page peeking above a full sheet */
+    --_max: calc((100dvh - var(--safe-top)) * 0.62);
+    --_min: 0px;
+    /* closed / entering pose: below the screen. --move 0 leaves a plain fade. */
+    --_pose: translateY(calc(var(--move) * 100%));
+
+    padding: 0;
+    overscroll-behavior: contain;
+    /* docked to the edge: the card's bottom frame and corners would double the screen edge */
+    border-block-end-width: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .sheet.card:dir(rtl) {
+    --_dir: -1;
+  }
+
+  .sheet.card[data-size="full"] {
+    --_max: calc(100dvh - var(--safe-top) - var(--_top-gap));
+    --_min: var(--_max);
+  }
+
+  /* The top layer: docked to the bottom edge, hidden until open, slides in. */
+  :is(dialog, [popover]).sheet {
+    position: fixed;
+    inset: auto var(--safe-right) 0 var(--safe-left);
+    margin: 0 auto;
+    display: none; /* .card says flex; a closed sheet must stay hidden */
+    inline-size: min(var(--_w), calc(100% - var(--safe-left) - var(--safe-right)));
+    max-inline-size: none;
+    min-block-size: var(--_min);
+    max-block-size: var(--_max);
+
+    opacity: 0;
+    transform: var(--_pose);
+    /* Leaving: shorter and eased in. display + overlay keep it painted until the slide ends. */
+    transition:
+      opacity var(--dur-hover) var(--ease-in),
+      transform var(--dur-hover) var(--ease-in),
+      overlay var(--dur-hover) allow-discrete,
+      display var(--dur-hover) allow-discrete;
+  }
+
+  :is(dialog.sheet[open], [popover].sheet:popover-open) {
+    display: flex;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-enter) var(--ease-out),
+      transform var(--dur-enter) var(--ease-out),
+      max-block-size var(--dur-enter) var(--ease-out),
+      min-block-size var(--dur-enter) var(--ease-out),
+      overlay var(--dur-enter) allow-discrete,
+      display var(--dur-enter) allow-discrete;
+  }
+
+  @starting-style {
+    :is(dialog.sheet[open], [popover].sheet:popover-open) {
+      opacity: 0;
+      transform: var(--_pose);
+    }
+  }
+
+  /* Being dragged: follow the finger exactly; SG sets the inline transform. */
+  .sheet.card[data-dragging] {
+    transition: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* The scrim: modal sheets only. A persistent panel leaves the page live, so it has none. */
+  dialog.sheet::backdrop {
+    background: var(--scrim);
+    opacity: 0;
+    transition:
+      opacity var(--dur-hover) var(--ease-in),
+      overlay var(--dur-hover) allow-discrete,
+      display var(--dur-hover) allow-discrete;
+  }
+  dialog.sheet[open]::backdrop {
+    opacity: 1;
+    transition:
+      opacity var(--dur-enter) var(--ease-out),
+      overlay var(--dur-enter) allow-discrete,
+      display var(--dur-enter) allow-discrete;
+  }
+  @starting-style {
+    dialog.sheet[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* A persistent panel rests above the dock, not over it. */
+  [popover].sheet {
+    inset-block-end: var(--dock-h);
+    border-block-end-width: var(--bw);
+    border-end-start-radius: var(--card-radius);
+    border-end-end-radius: var(--card-radius);
+  }
+
+  /* The side panel as a static pane (a split view in an app, the docs preview): the same edge and
+     corners the panel gets from 48em below, with no handle because a pane has no half or full. */
+  .sheet.card[data-inline][data-side] {
+    border-width: 0;
+    border-inline-start-width: var(--bw);
+    border-radius: 0;
+    border-start-start-radius: var(--card-radius);
+    border-end-start-radius: var(--card-radius);
+
+    > .sheet__handle {
+      display: none;
+    }
+  }
+
+  /* Not in the top layer: a static preview in the page flow (docs, split panes). Any element. */
+  .sheet.card[data-inline] {
+    position: relative;
+    inset: auto;
+    display: flex;
+    inline-size: 100%;
+    min-block-size: 0;
+    max-block-size: none;
+    margin: 0;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* A persistent panel covers part of a page that stays usable. Keep a focused control clear of
+     it (WCAG 2.4.11), exactly as the dock and app bar do: 61-sheet.js publishes the panel's size
+     and this turns it into scroll-padding. Layers beat the base's :where(html) rule. */
+  :root:has(.sheet[popover]:popover-open) {
+    scroll-padding-block-end: calc(var(--dock-h) + var(--safe-bottom) + var(--sg-sheet-block, 0px) + var(--space-3));
+    scroll-padding-inline-end: calc(var(--sg-sheet-inline, 0px) + var(--space-3));
+  }
+
+  /* ---- The handle: a pill that acts ------------------------------------------------------
+     The button is a 56×28px box; the pill is drawn by ::before, 48×16px, 4px in from each side and 6px
+     from the top and the bottom, and the hit area by ::after, which reaches 44px. It is chrome (a control
+     that holds no words), so none of that grows with the reader's text size. The box has room for the
+     raised pill and its hard shadow (2px up and left, 4px out to the bottom right), so the focus ring,
+     drawn around the BOX, never touches them: with the box as narrow as the pill, the shadow reached the
+     ring at the right-hand end and the two fused into one heavy shape.
+     A SELECTION CONTROL (S1): the solid fill means one thing, "full height is on". Hover and keyboard
+     focus raise the OUTLINE (lift 1, fill 0: the hard shadow says "you can press this"), a press sinks it
+     and tints it (fill 0.15, visible within 100ms on touch), and on is filled with a doubled frame (a
+     second cue that does not depend on the accent being dark). On + hover is raised AND filled; the lift
+     then opens a gap in the surface colour between the fill and its shadow, as on Button, so the two never
+     fuse into one dark lump. Same --lift / --fill pattern as Button. */
+  .sheet__handle {
+    --lift: 0;
+    --fill: 0;
+    --_selw: 0px;
+    --_gap: calc(var(--lift) * var(--fill) * var(--bw));
+    --_halo: 0 0 0 calc(var(--_selw) + var(--_gap)) var(--focus-halo, var(--paper));
+    --_shadow: calc(var(--lift) * var(--chrome-1) + var(--_gap)) calc(var(--lift) * var(--chrome-1) + var(--_gap)) 0 0 var(--line);
+    --_select: 0 0 0 var(--_selw) var(--line);
+    --_strip: calc(var(--chrome-1) * 1.5); /* 6px above and below the capsule */
+
+    position: relative;
+    flex: none;
+    align-self: center;
+    inline-size: calc(var(--chrome-ctl) + var(--chrome-1) * 3); /* 56: the 48px pill and 4px each side for its lift and shadow */
+    block-size: calc(var(--chrome-5) + var(--chrome-1)); /* 28 */
+    margin: var(--_strip) 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: grab;
+    touch-action: none;
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block: var(--_strip);
+      inset-inline: var(--chrome-1);
+      background: color-mix(in srgb, var(--accent) calc(var(--fill) * 100%), var(--paper));
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--_select), var(--_halo), var(--_shadow);
+      transform: translate(
+        calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+        calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
+      );
+    }
+
+    /* hit area: 56px wide and 44px tall. It stays inside the card (the strip above, the bar's
+       label row below, which holds no target), because the card clips at its frame. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: calc(var(--_strip) * -1) calc(100% - var(--chrome-hit) + var(--_strip));
+      inset-inline: min(0px, calc((100% - var(--chrome-hit)) / 2));
+    }
+
+    /* the ring goes round the box, clear of the pill and its shadow (the card's own rule gives it a 2px offset) */
+    &.is-focus {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-offset-in);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --lift: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --lift: 1;
+    }
+    &:is(:active, .is-active) {
+      --lift: 0;
+      --fill: 0.15;
+      cursor: grabbing;
+      transition-duration: var(--dur-press);
+    }
+    /* "full height" is on: filled AND the frame doubles. After :active, so pressing an "on" handle keeps
+       its fill until the tap turns it off. */
+    &[aria-pressed="true"] {
+      --fill: 1;
+      --_selw: var(--bw);
+    }
+  }
+  .sheet[data-dragging] .sheet__handle {
+    cursor: grabbing;
+  }
+
+  /* ---- Bar, body, actions ------------------------------------------------------------------ */
+
+  /* The bar names the sheet; in a panel it also pads the top inset. */
+  .sheet .card__bar {
+    min-block-size: calc(var(--chrome-hit) + var(--safe-top) * var(--_side));
+    padding-block-start: calc(var(--safe-top) * var(--_side));
+    /* a drag may start on the bar as well as on the handle: the page must not scroll under it */
+    touch-action: none;
+  }
+
+  /* The body is the only part that scrolls. It pads the home indicator. A body that scrolls
+     and holds nothing focusable gets tabindex="0" from SG; its ring is drawn inside. */
+  .sheet .card__body {
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-block-end: max(var(--card-pad), calc(var(--safe-bottom) + var(--chrome-3)));
+
+    &:focus-visible {
+      --ring-gap: calc(var(--ring) * -1);
+    }
+  }
+  /* A ruled list inside the body runs edge to edge, like a list in a panel card. */
+  .sheet .card__body > .card__list {
+    margin-inline: calc(var(--card-pad) * -1);
+    border-block-start: var(--bw-thin) solid var(--card-ink);
+  }
+  /* ...and when it is the FIRST thing in the body it runs up to the bar too: the body's top padding
+     left a blank band with a hairline between the ink bar and the first row, which read as a missing
+     row (and cost a row of a half-height sheet). The bar already is the rule. */
+  .sheet .card__body > .card__list:first-child {
+    margin-block-start: calc(var(--card-pad) * -1);
+    border-block-start-width: 0;
+  }
+  .sheet .card__body:has(+ .sheet__actions) {
+    padding-block-end: var(--card-pad);
+  }
+
+  .sheet__actions {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--chrome-2);
+    padding: var(--chrome-3) var(--card-pad) max(var(--chrome-3), calc(var(--safe-bottom) + var(--chrome-2)));
+    border-block-start: var(--bw-thin) solid var(--card-ink);
+  }
+  /* Measured (see ACTIONS above). While SG.fit tries the row, nothing in it may wrap or shrink, so a row
+     that does not fit shows as overflow instead of as a label squeezed onto two lines. `safe`: a right-aligned
+     row that is too wide would otherwise spill out at the START, where no scroll width can see it. */
+  .sheet__actions[data-fit="row"] {
+    flex-wrap: nowrap;
+    justify-content: safe flex-end;
+
+    > .btn {
+      flex: none;
+      white-space: nowrap;
+    }
+  }
+  /* One per line, each the full width: one width and one height, labels centred. A full-width pill needs
+     side padding only to keep a label off its round ends (12px, as in dialog.css). */
+  .sheet__actions[data-fit="stack"] {
+    flex-direction: column;
+    align-items: stretch;
+
+    > .btn {
+      --_px: var(--chrome-3);
+      inline-size: 100%;
+    }
+  }
+
+  /* ---- Wide screens: a side panel ------------------------------------------------------------
+     Docked to the inline-end edge at the height of the screen. No half / full, so no handle. */
+  @media (min-width: 48em) {
+    :is(dialog, [popover]).sheet:not([data-inline]) {
+      --_side: 1;
+      --_pose: translateX(calc(var(--move) * var(--_dir) * 100%));
+
+      inset-block: 0;
+      inset-inline: auto var(--safe-right);
+      margin: 0;
+      inline-size: min(var(--_panel-w), calc(100% - var(--safe-left) - var(--safe-right)));
+      block-size: auto; /* the UA's fit-content would stop short of the edges; auto stretches between the insets */
+      min-block-size: 0;
+      max-block-size: none;
+      border-width: 0;
+      border-inline-start-width: var(--bw);
+      border-radius: 0;
+      border-start-start-radius: var(--card-radius);
+      border-end-start-radius: var(--card-radius);
+    }
+    [popover].sheet:not([data-inline]) {
+      inset-block-end: 0;
+    }
+    .sheet:not([data-inline]) .sheet__handle {
+      display: none;
+    }
+  }
+
+  /* ---- Forced colours ------------------------------------------------------------------------
+     Fills and shadows vanish: the pill keeps its ButtonText frame, raised gets a heavy
+     Highlight outline, on gets a heavy frame, and the bar (an ink fill) gets a real line. */
+  @media (forced-colors: active) {
+    .sheet__handle::before {
+      border-color: ButtonText;
+    }
+    .sheet__handle:is(:hover, .is-hover, :focus-visible, .is-focus)::before {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    .sheet__handle[aria-pressed="true"]::before {
+      border-width: var(--bw-heavy);
+    }
+    .sheet .card__bar {
+      border-block-end: var(--bw) solid CanvasText;
+    }
+  }
+}

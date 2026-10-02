@@ -1,0 +1,257 @@
+/*! styleguide v0.2.0 - element: field. Needs core.css. Generated from src/components/field.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Field  (layer: sg.components)
+   --------------------------------------------------------------------------
+   The wrapper every form control sits in: label, hint, control, error, counter.
+   It owns the WORDS around a control; the control itself is input / select /
+   choice / switch / slider / stepper / keypad.
+
+   <div class="field" data-sg-field>
+     <label class="field__label" for="email">Email <span class="field__req">(required)</span></label>
+     <p class="field__hint" id="email-hint">We send your receipt here.</p>
+     <input class="input" id="email" type="email" required autocomplete="email" aria-describedby="email-hint">
+     <div class="field__foot">
+       <p class="field__error" id="email-error" hidden><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@example.com</span></p>
+       <p class="field__counter" data-sg-counter>Up to 140 characters</p>
+     </div>
+   </div>
+
+   <fieldset class="field"><legend class="field__label">Delivery</legend> …choices… </fieldset>
+
+   <div class="card error-summary" data-tone="bad" data-sg-summary tabindex="-1" hidden>
+     <div role="alert">
+       <header class="card__bar"><h2 class="card__label"><span class="ic ic--circle-alert" aria-hidden="true"></span>There is a problem</h2></header>
+       <ul class="card__list" role="list"></ul>
+     </div>
+   </div>
+
+   data-layout    stacked (default) | inline (label beside the control; it wraps to
+                  stacked when there is no room, with no media query)
+   data-size      on .field__label: lg = the heading of a group of several fields
+
+   INLINE: two columns, the words and the control.
+   <div class="field" data-layout="inline" data-sg-field>
+     <div class="field__head"><label class="field__label" for="city">City</label>
+       <p class="field__hint" id="city-hint">Where the order ships from.</p></div>
+     <div class="field__body"><input class="input" id="city" …> (+ .field__foot)</div>
+   </div>
+   The hint belongs to the label's column, so when the columns stack (a phone) the field reads label,
+   hint, control: exactly the stacked field. (With the hint under the control, a phone showed two
+   different orders for the same kind of field on one page.)
+
+   STATE comes from ARIA and native attributes, never classes:
+     aria-invalid="true"   the control has a problem (set by you or by SG.field)
+     :user-invalid         the BROWSER says so, and only after the person touched the
+                           field. Plain :invalid fires on page load, which paints an
+                           empty form red before anyone typed.
+     [hidden]              error not shown. Its id is only listed in aria-describedby
+                           while it is visible: a hidden element that is referenced is
+                           STILL read by screen readers.
+
+   WHY THIS SHAPE
+   - The label is a real <label for>, always visible. A placeholder is a hint for a
+     format example, never the label (WCAG 3.3.2, 2.5.3).
+   - "(required)" / "(optional)" are WORDS in the label, not a lone asterisk that means
+     nothing to a screen reader or to someone who has never seen the form.
+   - An error is an icon + words + a doubled frame on the control. Colour only ever
+     reinforces it (WCAG 1.4.1). It says what is wrong AND how to fix it (3.3.1, 3.3.3).
+   - The error summary at the top of a form is the only thing announced on a failed
+     submit; inline errors are read when their field takes focus. It is a .card in the
+     bad tone (frame, bar, list), not a second kind of panel.
+   - Labels are sentence case and semibold: it is text you read, not structure.
+   ========================================================================== */
+
+@layer sg.components {
+  /* ---- The field ---------------------------------------------------------- */
+  .field {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0; /* <fieldset class="field"> loses the UA box */
+
+    &[data-layout="inline"] {
+      display: flex;
+      flex-wrap: wrap;
+      /* Baseline alignment lines the label up with the text inside the control when
+         they share a row, and adds no height when they wrap into a stacked field. */
+      align-items: baseline;
+      column-gap: var(--space-4);
+      row-gap: var(--space-2);
+
+      /* Label column and control column share the row while there is room and wrap to
+         a stacked field when there is not (a 390 px phone): no media query. */
+      > :is(.field__head, .field__label) {
+        flex: 1 1 8rem;
+      }
+      > .field__body {
+        flex: 2 1 14rem;
+      }
+    }
+  }
+
+  /* Optional wrappers so the inline layout can make two columns: the words (label + hint) and the
+     control (+ its error and counter). Harmless in a stacked field: the same gaps, the same order. */
+  .field__head,
+  .field__body {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+
+  /* ---- Label ---------------------------------------------------------------
+     The most important text in a form. A label that wraps at large text wraps in balanced lines, so its last
+     word is not left alone ("Remind me / by" became "Remind / me by"). */
+  .field__label {
+    display: block;
+    padding: 0; /* <legend> */
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    color: var(--ink);
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+  legend.field__label {
+    margin-block-end: var(--space-2); /* a legend is not a grid item, so the gap does not reach it */
+  }
+  /* The heading of a group that holds several fields ("Delivery address"): above the labels inside it
+     in the hierarchy, or a legend and the first label read as the same thing. */
+  .field__label[data-size="lg"] {
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    line-height: var(--lh-snug);
+    letter-spacing: var(--ls-title);
+  }
+  legend.field__label[data-size="lg"] {
+    margin-block-end: var(--space-3);
+  }
+  .field__req,
+  .field__opt {
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+
+  /* ---- Hint and helper text ------------------------------------------------- */
+  .field__hint {
+    margin: 0;
+    font: var(--type-meta);
+    color: var(--ink-soft);
+    text-wrap: pretty;
+  }
+
+  /* ---- Foot row: error on the start side, counter on the end ------------------ */
+  .field__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-inline-size: 0;
+
+    /* nothing visible in it (the error is hidden, no counter): take no room */
+    &:not(:has(> :not([hidden]))) {
+      display: none;
+    }
+  }
+
+  /* ---- Error: icon + words, never colour alone ------------------------------------
+     The icon sits on the first line and the words hang beside it: a second line starts under the
+     first line's words, never under the icon. The icon grows with the words (it is part of the line);
+     the gap beside it is chrome and stops at 8px, which leaves the words the room at 200% text. */
+  .field__error {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: flex-start;
+    gap: var(--chrome-2);
+    min-inline-size: 0;
+    margin: 0;
+    font: var(--type-meta);
+    font-weight: 600;
+    color: var(--bad-ink);
+
+    > .ic {
+      --ic-size: 1.125rem;
+      margin-block-start: calc((1lh - var(--ic-size)) / 2);
+    }
+    /* Balanced: an example address in the message ("you@<wbr>example.<wbr>com") moves to the next line whole
+       when it fits there, and splits at a <wbr> only when it must, on the most even lines. Greedy breaking
+       split it at the @ on a 320px phone at 100% text ("…like you@ / example.com") and left a lone "like"
+       on a line of its own at 200% text. */
+    > span:last-child {
+      min-inline-size: 0;
+      overflow-wrap: break-word;
+      text-wrap: balance;
+    }
+  }
+
+  /* ---- Character counter ------------------------------------------------------------
+     The visible text updates on every keystroke; the polite announcement is a separate
+     live region that SG.field updates after the typing pauses, so a screen reader is not
+     interrupted once per character. */
+  .field__counter {
+    flex: none;
+    margin: 0;
+    margin-inline-start: auto;
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+    text-align: end;
+
+    /* Over the limit: the words change ("3 characters over"), and so do weight and ink. */
+    &[data-state="over"] {
+      font-weight: 700;
+      color: var(--bad-ink);
+    }
+  }
+
+  /* ---- Error summary -------------------------------------------------------------------
+     A .card in the bad tone. On a failed submit focus moves HERE (tabindex=-1), the inner
+     role=alert announces it, and every entry links to its field. The card's own list rows
+     are already 44 px, ruled, and full-row targets. */
+  .error-summary {
+    scroll-margin-block: calc(var(--appbar-h) + var(--space-4));
+
+    /* Programmatic focus: a tabindex=-1 region wears the ring on any :focus, because a
+       script moved the person here and they need to see where they landed. */
+    &:focus {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-offset);
+      box-shadow: 0 0 0 var(--ring-offset) var(--paper);
+    }
+
+    .card__label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .card__list {
+      font: var(--type-body);
+    }
+    /* .card__list links are bare navigation rows; here the row IS the message, so it stays
+       underlined (a link must never rely on colour, WCAG 1.4.1). */
+    .card__list a {
+      text-decoration: underline;
+      text-decoration-thickness: var(--bw);
+      text-underline-offset: 0.18em;
+      font-weight: 600;
+      overflow-wrap: break-word;
+    }
+  }
+
+  /* ---- Forced colours --------------------------------------------------------------------
+     Fills and the pastel vanish. The summary keeps its frame, bar, icon and words; errors
+     keep icon and words; the counter keeps its bold. Nothing relies on colour. */
+  @media (forced-colors: active) {
+    .field__error,
+    .field__counter[data-state="over"] {
+      color: CanvasText;
+    }
+    .error-summary:focus {
+      outline: var(--bw-heavy) solid Highlight;
+    }
+  }
+}

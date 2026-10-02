@@ -1,0 +1,270 @@
+<!--{"title":"Segmented control","group":"Components","order":43,"summary":"Pick one of two to four equal options: a pill track with native radios. Sizes, icons, a sliding thumb, tone."}-->
+<h1>Segmented control</h1>
+<p class="lede">A segmented control sets one value out of a few that are equally likely: <em>Weekly | Monthly</em>, <em>Bank account | Transactions</em>. It is a pill track with the chosen option filled in.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use two to four options with short labels, and one always chosen. It changes how the content beneath it is shown, or a setting, straight away.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it to navigate (links in a <a href="@/components/dock.html">dock</a>), to swap panels of different content (<a href="@/components/tabs.html">tabs</a>), for five or more options, or for a choice that can be empty (<a href="@/components/chip.html">chips</a>).</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="basic">Basic</h3>
+<p>Native radio inputs in a <code>&lt;fieldset&gt;</code> with a <code>&lt;legend&gt;</code>. There is no script: <kbd>Tab</kbd> enters the group once, on the chosen option; <kbd>Left</kbd> and <kbd>Right</kbd> move <em>and</em> choose; the value posts with a form. The legend can be visually hidden when the control is labelled by the text next to it.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <fieldset class="segmented">
+      <legend class="sr-only">Show</legend>
+      <label class="segmented__opt"><input type="radio" name="seg-basic" value="bank" checked><span class="segmented__label">Bank account</span></label>
+      <label class="segmented__opt"><input type="radio" name="seg-basic" value="transactions"><span class="segmented__label">Transactions</span></label>
+    </fieldset>
+  </div>
+</div>
+
+<h3 id="count">Three and four options, with icons</h3>
+<p>Options share the width equally while their labels fit, and choosing one never reflows the row (the weight does not change). When the whole labels cannot share one row (large text, a narrow column) the control does not wrap raggedly: it puts every option on a line of its own, or, with four options, two rows of two. Past four options, use a menu or chips. An icon goes before the word, never instead of it, and is left out at four options, where there is no room for both.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+      <fieldset class="segmented">
+        <legend class="sr-only">Range</legend>
+        <label class="segmented__opt"><input type="radio" name="seg-count" value="day"><span class="segmented__label">Day</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-count" value="week" checked><span class="segmented__label">Week</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-count" value="month"><span class="segmented__label">Month</span></label>
+      </fieldset>
+      <fieldset class="segmented">
+        <legend class="sr-only">Chart type</legend>
+        <label class="segmented__opt"><input type="radio" name="seg-icons" value="bars" checked><span class="segmented__label"><span class="ic ic--chart-column" aria-hidden="true"></span>Bars</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-icons" value="line"><span class="segmented__label"><span class="ic ic--chart-line" aria-hidden="true"></span>Line</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-icons" value="pie"><span class="segmented__label"><span class="ic ic--chart-pie" aria-hidden="true"></span>Pie</span></label>
+      </fieldset>
+      <fieldset class="segmented" data-block>
+        <legend class="sr-only">Period</legend>
+        <label class="segmented__opt"><input type="radio" name="seg-four" value="day"><span class="segmented__label">Day</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-four" value="week"><span class="segmented__label">Week</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-four" value="month" checked><span class="segmented__label">Month</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-four" value="year"><span class="segmented__label">Year</span></label>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<h3 id="sizes">Sizes and full width</h3>
+<p>Small is 40px tall, medium 48, large 56. Every option keeps a 44px hit area. A control is as wide as its options need; <code>data-block</code> spans the container, which is what you want on a phone.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+      <div class="cluster" data-gap="4">
+        <fieldset class="segmented" data-size="sm">
+          <legend class="sr-only">Reminder frequency</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-sm" value="daily" checked><span class="segmented__label">Daily</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-sm" value="weekly"><span class="segmented__label">Weekly</span></label>
+        </fieldset>
+        <fieldset class="segmented" data-size="lg">
+          <legend class="sr-only">Study by</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-lg" value="cards"><span class="segmented__label">Cards</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-lg" value="decks" checked><span class="segmented__label">Decks</span></label>
+        </fieldset>
+      </div>
+      <fieldset class="segmented" data-block>
+        <legend class="sr-only">Full width</legend>
+        <label class="segmented__opt"><input type="radio" name="seg-block" value="income" checked><span class="segmented__label">Income</span></label>
+        <label class="segmented__opt"><input type="radio" name="seg-block" value="expenses"><span class="segmented__label">Expenses</span></label>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<h3 id="slide">Sliding thumb</h3>
+<p><code>data-indicator="slide"</code> replaces the per-option fill with one thumb that glides to the chosen option. Under reduced motion the thumb stays out of the way and each option fades its own fill in: a fade, never a jump cut. The thumb glides along one row of equal columns, so keep the labels short; when large text leaves a label no room in its column, the control stacks and each option fills itself, as under reduced motion.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <fieldset class="segmented" data-indicator="slide" data-block>
+      <legend class="sr-only">Theme</legend>
+      <label class="segmented__opt"><input type="radio" name="seg-slide" value="a" checked><span class="segmented__label">Light</span></label>
+      <label class="segmented__opt"><input type="radio" name="seg-slide" value="b"><span class="segmented__label">Dark</span></label>
+      <label class="segmented__opt"><input type="radio" name="seg-slide" value="c"><span class="segmented__label">Auto</span></label>
+    </fieldset>
+  </div>
+</div>
+
+<h3 id="tone">Inside a tonal card</h3>
+<p><code>data-variant="tone"</code> reads the tone of <code>data-tone</code> on the control itself, so it matches the card it sits in. This is the weekly / monthly toggle of a stat card.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <article class="card" data-tone="1">
+      <div class="card__body">
+        <fieldset class="segmented" data-variant="tone" data-tone="1" data-size="sm">
+          <legend class="sr-only">Progress period</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-tone" value="weekly" checked><span class="segmented__label">Weekly</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-tone" value="monthly"><span class="segmented__label">Monthly</span></label>
+        </fieldset>
+        <p class="card__eyebrow">Your progress</p>
+        <p class="card__figure num">94<small>%</small></p>
+      </div>
+    </article>
+  </div>
+</div>
+
+<h3 id="states">States</h3>
+<p>The solid fill is kept for the chosen option. Hover draws the option's own frame (an outline, because a tint would move the text's contrast); a press tints it at once, before the radio has flipped; the chosen one is filled, with a frame of its own; keyboard focus rings the chosen option from inside (where a radio group's focus always lands), in the colour of the thumb's words, so it never runs into the track's frame; an unavailable one is dashed and skipped by the arrow keys. Each state is shown in a track of its own here, beside a plain option at rest. The <code>is-*</code> classes on the label only force a state for this page.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="5">
+      <div class="cluster" data-gap="4">
+        <fieldset class="segmented">
+          <legend class="sr-only">Hover specimen</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-state-h" value="rest"><span class="segmented__label">Rest</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-h" value="hover"><span class="segmented__label is-hover">Hover</span></label>
+        </fieldset>
+        <fieldset class="segmented">
+          <legend class="sr-only">Pressed specimen</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-state-p" value="pressed"><span class="segmented__label is-active">Pressed</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-p" value="rest"><span class="segmented__label">Rest</span></label>
+        </fieldset>
+        <fieldset class="segmented">
+          <legend class="sr-only">Chosen specimen</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-state-o" value="on" checked><span class="segmented__label">On</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-o" value="rest"><span class="segmented__label">Rest</span></label>
+        </fieldset>
+      </div>
+      <div class="stack" data-gap="3">
+        <fieldset class="segmented" data-block aria-describedby="seg-why">
+          <legend class="sr-only">Remind me by</legend>
+          <label class="segmented__opt"><input type="radio" name="seg-state-a" value="a" checked><span class="segmented__label is-focus">Email</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-a" value="b"><span class="segmented__label">Push</span></label>
+          <label class="segmented__opt"><input type="radio" name="seg-state-a" value="c" disabled><span class="segmented__label">SMS</span></label>
+        </fieldset>
+        <p class="t-meta" id="seg-why">Text messages need a phone number in your account.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">How each option state is drawn</caption>
+  <thead><tr><th>State</th><th>Looks like</th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td>the word on the track, no frame</td></tr>
+    <tr><td>Hover (pointer only)</td><td>the option's own 2px frame</td></tr>
+    <tr><td>Pressed</td><td>a light tint (<code>--fill</code> 0.15), within 100ms</td></tr>
+    <tr><td>Chosen</td><td>filled, with a frame of its own (<code>--fill</code> 1)</td></tr>
+    <tr><td>Keyboard focus</td><td>a 3px ring inside the chosen option, 2px in from its frame, in the thumb's ink (the focus ink on an empty option)</td></tr>
+    <tr><td>Unavailable</td><td>dashed frame, faint ink</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="form">In a form</h3>
+<p>It is a real radio group, so it works with <code>FormData</code>, <code>required</code>, <code>form.reset()</code> and the <code>change</code> event.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <form id="seg-form" class="stack" data-gap="3">
+      <fieldset class="segmented" data-block>
+        <legend class="sr-only">Billing period</legend>
+        <label class="segmented__opt"><input type="radio" name="period" value="weekly" checked><span class="segmented__label">Weekly</span></label>
+        <label class="segmented__opt"><input type="radio" name="period" value="monthly"><span class="segmented__label">Monthly</span></label>
+      </fieldset>
+      <p class="t-meta">Submitted as <code>period=<output id="seg-form-value" for="seg-form">weekly</output></code></p>
+    </form>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="stack" data-gap="4">
+          <p class="t-title">Spending</p>
+          <fieldset class="segmented" data-block>
+            <legend class="sr-only">Period</legend>
+            <label class="segmented__opt"><input type="radio" name="seg-cx" value="week"><span class="segmented__label">Week</span></label>
+            <label class="segmented__opt"><input type="radio" name="seg-cx" value="month" checked><span class="segmented__label">Month</span></label>
+            <label class="segmented__opt"><input type="radio" name="seg-cx" value="year"><span class="segmented__label">Year</span></label>
+          </fieldset>
+          <article class="card" data-tone="2">
+            <div class="card__body">
+              <p class="card__eyebrow">Spent in September</p>
+              <p class="card__figure num">$1.8<small>k</small></p>
+              <p class="card__meta">$212 less than August</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Track</strong> (<code>.segmented</code>): a pill with a 2px <code>--line</code> frame, filled with <code>--paper-2</code>, 4px of padding. A <code>&lt;fieldset&gt;</code> with a <code>&lt;legend&gt;</code>, or a <code>role="radiogroup"</code> with a visible label.</li>
+  <li><strong>Option</strong> (<code>.segmented__opt</code>): a <code>&lt;label&gt;</code> holding a native radio. Equal width.</li>
+  <li><strong>Radio</strong>: invisible, covering the option and stretching to 44px tall. All keyboard and form behaviour is the browser's.</li>
+  <li><strong>Label</strong> (<code>.segmented__label</code>): the visible cell. Its fill follows <code>--fill</code> (0 empty, 0.15 pressed, 1 chosen). Optional icon, then the word, side by side.</li>
+  <li><strong>Chosen cue</strong>: a filled pill with a 2px frame of its own inside the track. The frame is the line colour, so it shows as an edge on a tone or a pale accent and merges with an ink fill. The weight does not change, so the row cannot reflow. Never colour alone.</li>
+  <li><strong>Thumb</strong> (optional, <code>data-indicator="slide"</code>): one pill that glides between options.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Segmented control classes and attributes</caption>
+  <thead><tr><th>Name</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="segmented"</code></td><td>on a <code>fieldset</code> or <code>role="radiogroup"</code></td><td>The track. Children: one <code>segmented__opt</code> per option.</td></tr>
+    <tr><td><code>segmented__opt</code>, <code>segmented__label</code></td><td><code>label</code>, <code>span</code></td><td>The option and its visible cell. The radio sits between them, before the label.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code>, <code>lg</code> (default 48)</td><td>Track height 40 / 56. The hit area is always 44.</td></tr>
+    <tr><td><code>data-block</code></td><td></td><td>Full width.</td></tr>
+    <tr><td><code>data-variant="tone"</code></td><td></td><td>Track and thumb from <code>data-tone</code> on the control.</td></tr>
+    <tr><td><code>data-indicator="slide"</code></td><td></td><td>One gliding thumb. Reduced motion, or a stacked layout: each option fades its own fill.</td></tr>
+    <tr><td><code>data-fit</code></td><td><code>row</code>, <code>grid</code>, <code>stack</code> (set by script)</td><td>The layout that fits: one row, two rows of two (four options), one option per line. Read it, do not write it.</td></tr>
+    <tr><td><code>disabled</code> on a radio (or on the fieldset)</td><td></td><td>Dashed and faint, skipped by the arrow keys. A reason in <code>aria-describedby</code> on the group helps.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<p>A native radio group (<a href="https://www.w3.org/WAI/ARIA/apg/patterns/radio/">APG Radio Group</a>), so the browser supplies the behaviour below.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Segmented control keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Enters the group once, on the chosen option, and leaves on the next press.</td></tr>
+    <tr><td><kbd>Left</kbd> / <kbd>Right</kbd> (and <kbd>Up</kbd> / <kbd>Down</kbd>)</td><td>Move to the previous / next option and choose it, wrapping; unavailable options are skipped.</td></tr>
+    <tr><td><kbd>Space</kbd></td><td>Chooses the focused option (when none is chosen).</td></tr>
+    <tr><td>Screen reader</td><td>"Show, group. Bank account, radio button, 1 of 2, selected." The legend names the group.</td></tr>
+    <tr><td>Touch</td><td>Each option is at least 44&times;44px, even in the small size, and the whole cell taps, not only the word.</td></tr>
+    <tr><td>Zoom / text size</td><td>The words grow with the text, and so does an icon beside a word (1.1em); the track's padding and the side padding stop at their 100% size. The options stay in one row of equal cells while their whole labels fit (the side padding also eases down to 8px on a narrow screen). When they cannot, the control changes as a whole, measured by <code>src/js/44-segmented.js</code>: every option on a line of its own, or two rows of two for four options. Never a ragged 2 + 1, and a word is never broken unless it is wider than the whole control. The track keeps the corner of one row, so a stacked control is a soft rectangle, never an oval. Without JavaScript the cells wrap onto more rows instead.</td></tr>
+    <tr><td>Reduced motion</td><td>The colour change stays; the sliding thumb becomes a fade.</td></tr>
+    <tr><td>Forced colours</td><td>The track and every option keep a border; the chosen option is <code>Highlight</code> with a 4px frame; the ring is a 4px <code>Highlight</code> outline.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>Always give the group a name (a legend, or <code>aria-labelledby</code>). The options alone do not say what they choose between.</li>
+  <li>A segmented control applies at once. If the choice needs a confirmation, use a form with a button.</li>
+  <li>If the options swap <em>panels</em> of content, use <a href="@/components/tabs.html">tabs</a>: different ARIA, different keys.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper-2</code>, <code>--paper-3</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--accent</code>, <code>--on-accent</code>, <code>--line</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--ctl</code>, <code>--ctl-sm</code>, <code>--chrome-hit</code>, <code>--chrome-ic-sm</code>, <code>--chrome-1</code> to <code>--chrome-5</code>, <code>--type-ctl</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-move</code>, <code>--ease-out</code>, <code>--move</code>, <code>--ring</code>, <code>--ring-offset-in</code>.</p>
+
+<h2 id="related">Related</h2>
+<ul>
+  <li><a href="@/components/tabs.html">Tabs</a>: panels of different content.</li>
+  <li><a href="@/components/chip.html">Chip</a>: optional filters, several at once.</li>
+  <li><a href="@/components/button.html">Button</a>: the pill and the <code>--fill</code> model this follows.</li>
+</ul>
+
+<script>
+  // Docs-only: show the value a form would send.
+  (function () {
+    var form = document.getElementById('seg-form');
+    var out = document.getElementById('seg-form-value');
+    if (!form || !out) return;
+    form.addEventListener('change', function () { out.textContent = new FormData(form).get('period'); });
+  })();
+</script>

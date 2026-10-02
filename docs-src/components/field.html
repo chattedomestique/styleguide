@@ -1,0 +1,386 @@
+<!--{"title":"Field","group":"Components","order":20,"summary":"The wrapper around every form control: label, hint, error, required wording, counter, groups and the error summary."}-->
+<style>
+  /* docs scaffolding only: the docs stylesheet styles every h2 in the article as a page section */
+  .docs-article .error-summary h2.card__label { margin: 0; padding: 0; border: 0; font: var(--type-label); letter-spacing: var(--ls-label); }
+  .docs-article .demo .error-summary { margin: 0; }
+</style>
+<h1>Field</h1>
+<p class="lede">A field is a control plus the words that make it usable: a label you can always see, a hint, an error that says how to fix it, and whether it is required. Every input, select, choice, slider and stepper sits in one.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Give every control a visible <code>&lt;label&gt;</code>. Say "(required)" or "(optional)" in words. Put the format in a hint ("Day, month, year") and keep the placeholder for an example at most.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use a placeholder as the label (it vanishes when you type, so people forget what they were asked). Don't mark required fields with a lone asterisk or show errors in red alone.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="stacked">Stacked, with a hint</h3>
+<p>The default: label above, hint under the label, control below. The hint is linked with <code>aria-describedby</code> so it is read when the field is focused.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="field" data-sg-field>
+      <label class="field__label" for="fld-name">Name on the card</label>
+      <p class="field__hint" id="fld-name-hint">As it appears on your bank card.</p>
+      <input class="input" id="fld-name" name="name" type="text" autocomplete="cc-name" aria-describedby="fld-name-hint">
+    </div>
+  </div>
+</div>
+
+<h3 id="required">Required and optional, in words</h3>
+<p>A lone asterisk means nothing to a screen reader or to anyone who has not seen the form before. Write the word. If most fields are required, mark the optional ones instead, and say so at the top of the form. Also set the native <code>required</code> attribute so the browser can validate.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack">
+      <div class="field" data-sg-field>
+        <label class="field__label" for="fld-email">Email <span class="field__req">(required)</span></label>
+        <input class="input" id="fld-email" name="email" type="email" required autocomplete="email" inputmode="email">
+      </div>
+      <div class="field" data-sg-field>
+        <label class="field__label" for="fld-phone">Phone <span class="field__opt">(optional)</span></label>
+        <input class="input" id="fld-phone" name="phone" type="tel" autocomplete="tel">
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="inline">Inline layout</h3>
+<p>Label beside the control, for settings and wide forms. There is no media query: the two columns share the row while they fit and stack when they do not, so on a phone it is the stacked field again. Put the label and its hint in <code>.field__head</code> (the words) and the control in <code>.field__body</code>: stacked, that reads label, hint, control, exactly like every other field.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack">
+      <div class="field" data-layout="inline" data-sg-field>
+        <div class="field__head">
+          <label class="field__label" for="fld-city">City</label>
+          <p class="field__hint" id="fld-city-hint">Where the order ships from.</p>
+        </div>
+        <div class="field__body">
+          <input class="input" id="fld-city" name="city" type="text" autocomplete="address-level2" aria-describedby="fld-city-hint">
+        </div>
+      </div>
+      <div class="field" data-layout="inline" data-sg-field>
+        <div class="field__head">
+          <label class="field__label" for="fld-country">Country</label>
+        </div>
+        <div class="field__body">
+          <div class="select">
+            <select id="fld-country" name="country" autocomplete="country-name">
+              <option>Canada</option>
+              <option>Ireland</option>
+              <option>New Zealand</option>
+            </select>
+            <span class="ic ic--chevron-down" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="counter">Character counter</h3>
+<p>Add <code>data-sg-counter</code> to a <code>.field__counter</code>. The visible count updates as you type. A screen reader hears the count <strong>once, politely, when you pause typing</strong>, never once per keystroke. <code>maxlength</code> is a hard limit (the browser stops typing). <code>data-sg-<wbr>maxlength</code> is a soft limit: you may go over, the counter says how far over in words and weight, and the field becomes invalid inside a validating form.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack">
+      <div class="field" data-sg-field>
+        <label class="field__label" for="fld-bio">About you <span class="field__opt">(optional)</span></label>
+        <textarea class="input" id="fld-bio" name="bio" rows="3" maxlength="120"></textarea>
+        <div class="field__foot">
+          <p class="field__counter" data-sg-counter>Up to 120 characters</p>
+        </div>
+      </div>
+      <div class="field" data-sg-field>
+        <label class="field__label" for="fld-tagline">Deck tagline</label>
+        <input class="input" id="fld-tagline" name="tagline" type="text" data-sg-maxlength="20" value="Every capital city in Europe" data-error-long="Shorten your tagline to 20 characters or fewer">
+        <div class="field__foot">
+          <p class="field__counter" data-sg-counter>Up to 20 characters</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="error">Error state</h3>
+<p>An error is three things at once: an <strong>icon</strong>, <strong>words</strong> that say what is wrong and how to fix it, and a <strong>second frame</strong> inside the control. Colour only reinforces. The message is linked with <code>aria-describedby</code> and the control carries <code>aria-invalid="true"</code>. This is the server-rendered form of it, which needs no JavaScript.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="field" data-sg-field>
+      <label class="field__label" for="fld-email-bad">Email <span class="field__req">(required)</span></label>
+      <input class="input" id="fld-email-bad" name="email-bad" type="email" required value="sam.rivera@" aria-invalid="true" aria-describedby="fld-email-bad-msg">
+      <div class="field__foot">
+        <p class="field__error" id="fld-email-bad-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@<wbr>example.<wbr>com</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="group">Group: fieldset and legend</h3>
+<p>Radios and related checkboxes are a group. The <code>&lt;legend&gt;</code> is the group's label and is read before each option, so "Yes" is never heard without its question. The hint and error are linked to the <code>&lt;fieldset&gt;</code>.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <fieldset class="field" data-sg-field aria-describedby="fld-contact-hint">
+      <legend class="field__label">How should we remind you? <span class="field__req">(required)</span></legend>
+      <p class="field__hint" id="fld-contact-hint">Choose one.</p>
+      <div class="choice-group">
+        <label class="choice"><input type="radio" name="fld-contact" value="push" required><span class="choice__label">Push notification</span></label>
+        <label class="choice"><input type="radio" name="fld-contact" value="email"><span class="choice__label">Email</span></label>
+        <label class="choice"><input type="radio" name="fld-contact" value="none"><span class="choice__label">Do not remind me</span></label>
+      </div>
+    </fieldset>
+  </div>
+</div>
+
+<h3 id="summary">Validation and the error summary</h3>
+<p>Put <code>data-sg-form</code> and <code>novalidate</code> on the form. Each field is checked when you leave it (only if it has a value, so tabbing past an empty field never makes the layout jump under your finger), then live while it shows an error. On submit, every problem is listed in the <strong>error summary</strong>, focus moves to it, and each entry is a link to its field. The summary is a <a href="@/components/card.html">card</a> in the <code>bad</code> tone: frame, bar and ruled rows. Try it: press <em>Send</em> with the form empty, then fix the fields one by one.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <form class="stack" novalidate data-sg-form data-demo-form>
+      <div class="card error-summary" data-tone="bad" data-sg-summary hidden tabindex="-1">
+        <div role="alert">
+          <header class="card__bar">
+            <h2 class="card__label"><span class="ic ic--circle-alert" aria-hidden="true"></span>There is a problem</h2>
+          </header>
+          <ul class="card__list" role="list"></ul>
+        </div>
+      </div>
+      <div class="field" data-sg-field>
+        <label class="field__label" for="frm-name">Name <span class="field__req">(required)</span></label>
+        <input class="input" id="frm-name" name="name" type="text" required autocomplete="name" data-error-missing="Enter your name">
+      </div>
+      <div class="field" data-sg-field>
+        <label class="field__label" for="frm-email">Email <span class="field__req">(required)</span></label>
+        <p class="field__hint">We only use it to reply.</p>
+        <input class="input" id="frm-email" name="email" type="email" required autocomplete="email" inputmode="email" data-error-missing="Enter your email" data-error-type="Enter an email like you@example.com">
+      </div>
+      <div class="field" data-sg-field>
+        <label class="field__label" for="frm-note">Message <span class="field__opt">(optional)</span></label>
+        <textarea class="input" id="frm-note" name="note" rows="3" data-sg-maxlength="60" data-error-long="Shorten your message to 60 characters or fewer"></textarea>
+        <div class="field__foot">
+          <p class="field__counter" data-sg-counter>Up to 60 characters</p>
+        </div>
+      </div>
+      <div class="field" data-sg-field>
+        <label class="choice">
+          <input type="checkbox" name="terms" required data-error-missing="Tick the box to accept the terms">
+          <span class="choice__label">I accept the terms <span class="field__req">(required)</span></span>
+        </label>
+      </div>
+      <button class="btn" data-variant="primary" data-block type="submit">Send</button>
+      <button class="btn" data-block type="reset">Clear form</button>
+      <p class="t-meta" role="status" data-demo-status></p>
+    </form>
+  </div>
+</div>
+<script>
+  /* docs demo only: a real app would send the form here (or cancel "sg:validated" and use fetch) */
+  document.addEventListener('sg:validated', function (e) {
+    var form = e.target.closest('[data-demo-form]');
+    if (!form) return;
+    e.preventDefault();
+    var out = form.querySelector('[data-demo-status]');
+    out.textContent = '';
+    window.requestAnimationFrame(function () { out.textContent = 'Thanks. Nothing was sent: this is a demo.'; });
+  });
+</script>
+
+<h3 id="in-context">In context: a sign-up screen</h3>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen stack" data-gap="5">
+        <div class="stack" data-gap="1">
+          <p class="t-title">Create your account</p>
+          <p class="t-meta">Fields marked (required) must be filled in.</p>
+        </div>
+        <form class="stack" novalidate>
+          <div class="field">
+            <label class="field__label" for="ctx-name">Name <span class="field__req">(required)</span></label>
+            <input class="input" id="ctx-name" type="text" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label class="field__label" for="ctx-email">Email <span class="field__req">(required)</span></label>
+            <input class="input" id="ctx-email" type="email" autocomplete="email" inputmode="email" required value="sam.rivera@" aria-invalid="true" aria-describedby="ctx-email-msg">
+            <div class="field__foot">
+              <p class="field__error" id="ctx-email-msg"><span class="ic ic--circle-alert" aria-hidden="true"></span><span>Enter an email like you@<wbr>example.<wbr>com</span></p>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="ctx-ref">Referral code <span class="field__opt">(optional)</span></label>
+            <input class="input" id="ctx-ref" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          </div>
+          <button class="btn" data-variant="primary" data-block type="submit">Sign up</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="standards">Forms and the standards</h2>
+<p>A form is where most accessibility failures cost someone a booking, a payment or a sign-in. These are the WCAG 2.2 criteria that decide it, what the system does about each, and what is still yours to do.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">WCAG success criteria for forms and how this system meets them</caption>
+  <thead><tr><th>Criterion</th><th>Level</th><th>What the system does</th><th>What you still do</th></tr></thead>
+  <tbody>
+    <tr><td>1.3.1 Info and relationships</td><td>A</td><td>Real <code>&lt;label for&gt;</code>, <code>&lt;fieldset&gt;</code> and <code>&lt;legend&gt;</code>; hint and error wired with <code>aria-describedby</code>.</td><td>Group radios and related checkboxes in a fieldset.</td></tr>
+    <tr><td>1.3.5 Identify input purpose</td><td>AA</td><td>The <a href="@/components/input.html#attributes">attribute table</a> lists the <code>autocomplete</code> token for each kind of data.</td><td>Set the token on every field that asks about the person.</td></tr>
+    <tr><td>1.4.1 Use of colour</td><td>A</td><td>Error = icon + words + inner frame. Required = words. Selected = fill plus a mark.</td><td>Never write "the red fields".</td></tr>
+    <tr><td>2.5.3 Label in name</td><td>A</td><td>The accessible name starts with the visible label: the label <em>is</em> the name. Icon-only buttons (clear, show password, stepper) carry an <code>aria-label</code> that names the action in plain words.</td><td>Do not <code>aria-label</code> a field with different words from the ones on screen.</td></tr>
+    <tr><td>3.3.1 Error identification</td><td>A</td><td>The field is marked <code>aria-invalid</code> and the error is text next to it, in the summary, and in the field's description.</td><td>Write the message (see below).</td></tr>
+    <tr><td>3.3.2 Labels or instructions</td><td>A</td><td>A visible label on every control; format goes in a hint before the control.</td><td>Say the format and the units.</td></tr>
+    <tr><td>3.3.3 Error suggestion</td><td>AA</td><td><code>data-error-*</code> per failure, so "how to fix" is authored, not the browser's generic text.</td><td>Suggest the fix when you know it.</td></tr>
+    <tr><td>3.3.4 Error prevention</td><td>AA</td><td>The "checked" route: a form with <code>data-sg-form</code> does not submit until every field passes, and lists what to fix. <code>sg:validated</code> is the hook for a review step.</td><td>For money, legal or deletion: offer review, confirm or undo before the final send.</td></tr>
+    <tr><td>3.3.7 Redundant entry</td><td>A</td><td>Nothing in the system asks twice; <code>autocomplete</code> lets the browser fill what it knows.</td><td>Carry answers across steps; offer "same as" (below).</td></tr>
+    <tr><td>3.3.8 Accessible authentication</td><td>AA</td><td>Password fields allow paste and password managers; the show / hide button is a real toggle.</td><td>Never block paste, never use a puzzle or a transcription test without an alternative (below).</td></tr>
+    <tr><td>4.1.3 Status messages</td><td>AA</td><td>The summary is <code>role="alert"</code>; the counter speaks once after a pause; steppers and sliders announce the new value politely.</td><td>Announce success with <code>SG.announce()</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="redundant">Redundant entry: “same as”</h3>
+<p>If you already asked for it, do not ask again (WCAG 3.3.7). The usual case is a billing address that matches the delivery address. Offer a checkbox, leave it on, and only show the second set of fields when it is turned off, pre-filled with what was typed.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <form class="stack" novalidate data-demo-same>
+      <fieldset class="field">
+        <legend class="field__label" data-size="lg">Delivery address</legend>
+        <div class="stack" data-gap="3">
+          <div class="field"><label class="field__label" for="red-street">Street address</label><input class="input" id="red-street" name="ship-street" type="text" autocomplete="shipping street-address" value="14 Canal Street"></div>
+          <div class="field"><label class="field__label" for="red-city">City</label><input class="input" id="red-city" name="ship-city" type="text" autocomplete="shipping address-level2" value="Dublin"></div>
+        </div>
+      </fieldset>
+      <label class="choice">
+        <input type="checkbox" name="same" checked aria-controls="red-billing">
+        <span class="choice__label">Billing address is the same as delivery</span>
+      </label>
+      <fieldset class="field" id="red-billing" hidden>
+        <legend class="field__label" data-size="lg">Billing address</legend>
+        <div class="stack" data-gap="3">
+          <div class="field"><label class="field__label" for="red-bstreet">Street address</label><input class="input" id="red-bstreet" name="bill-street" type="text" autocomplete="billing street-address"></div>
+          <div class="field"><label class="field__label" for="red-bcity">City</label><input class="input" id="red-bcity" name="bill-city" type="text" autocomplete="billing address-level2"></div>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+</div>
+<script>
+  /* docs demo only: show the second address pre-filled from the first, never empty */
+  (function () {
+    var form = document.querySelector('[data-demo-same]');
+    if (!form) return;
+    var box = form.querySelector('input[name="same"]');
+    var billing = form.querySelector('#red-billing');
+    box.addEventListener('change', function () {
+      billing.hidden = box.checked;
+      if (!box.checked) {
+        [['red-street', 'red-bstreet'], ['red-city', 'red-bcity']].forEach(function (pair) {
+          var to = document.getElementById(pair[1]);
+          if (!to.value) to.value = document.getElementById(pair[0]).value;
+        });
+        document.getElementById('red-bstreet').focus();
+      }
+    });
+  })();
+</script>
+
+<h3 id="authentication">Accessible authentication</h3>
+<p>Signing in must not depend on remembering, transcribing or solving something (WCAG 3.3.8). In practice: let the browser and the password manager fill the fields, allow paste everywhere (one-time codes too), keep the show / hide toggle, and offer a second way in that needs no recall: a sign-in link sent by email. No CAPTCHA puzzles; if you must prove a person is present, use a method that does not test cognition.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <form class="stack" novalidate>
+      <div class="field">
+        <label class="field__label" for="auth-email">Email</label>
+        <input class="input" id="auth-email" name="username" type="email" required autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" enterkeyhint="next">
+      </div>
+      <div class="field">
+        <label class="field__label" for="auth-pw">Password</label>
+        <div class="input-group">
+          <input class="input" id="auth-pw" name="password" type="password" required autocomplete="current-password" autocapitalize="none" spellcheck="false" enterkeyhint="go">
+          <span class="input-group__end">
+            <button class="input-group__btn" type="button" data-sg-reveal aria-label="Show password" aria-pressed="false" aria-controls="auth-pw">
+              <span class="ic ic--eye-off" data-icon="off" aria-hidden="true"></span>
+              <span class="ic ic--eye" data-icon="on" aria-hidden="true"></span>
+            </button>
+          </span>
+        </div>
+      </div>
+      <button class="btn" data-variant="primary" data-block type="submit">Sign in</button>
+      <button class="btn" data-block type="button"><span class="btn__label"><span class="ic ic--mail" aria-hidden="true"></span>Email me a link</span></button>
+    </form>
+  </div>
+</div>
+
+<h3 id="prevention">Error prevention for money</h3>
+<p>For anything that moves money, signs something or cannot be undone (WCAG 3.3.4), make at least one of these true: the last step is a <strong>review</strong> of what they entered, it can be <strong>reversed</strong> (and Undo is shown), or it is <strong>checked and confirmed</strong> before it is final. A review screen that repeats the amount and the recipient beats a "Are you sure?" dialog, which people click through. See the <a href="@/components/keypad.html">keypad</a> for an amount entry.</p>
+
+<h2 id="messages">Writing the words</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">How to write labels, hints and error messages</caption>
+  <thead><tr><th>Part</th><th>Rule</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td>Label</td><td>A noun, short, in natural case. Never a question the placeholder answers.</td><td>Email</td></tr>
+    <tr><td>Hint</td><td>What format or where to find it. Before the control, so it is read first.</td><td>Day, month, year. For example 14 3 2026</td></tr>
+    <tr><td>Error</td><td>What is wrong <em>and</em> how to fix it. Plain words, no blame, no error codes.</td><td>Enter a date like 14 Mar 2026</td></tr>
+    <tr><td>Summary entry</td><td>The same sentence as the inline error, so the link and the field agree.</td><td>Enter an email like you@example.com</td></tr>
+    <tr><td>Counter</td><td>Remaining, then "over" in words when exceeded.</td><td>12 characters left / 3 characters over</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Label</strong> (<code>.field__label</code>): always visible, a real <code>&lt;label for&gt;</code> (or <code>&lt;legend&gt;</code> for a group). Semibold, sentence case: it is text you read, not structure.</li>
+  <li><strong>Required / optional</strong> (<code>.field__req</code>, <code>.field__opt</code>): words inside the label, so they are part of its accessible name.</li>
+  <li><strong>Hint</strong> (<code>.field__hint</code>): secondary text, 7:1. Listed in <code>aria-describedby</code>.</li>
+  <li><strong>Control</strong>: <a href="@/components/input.html">input</a>, <a href="@/components/select.html">select</a>, <a href="@/components/choice.html">choice</a>, <a href="@/components/switch.html">switch</a>, <a href="@/components/slider.html">slider</a> or <a href="@/components/stepper.html">stepper</a>.</li>
+  <li><strong>Foot row</strong> (<code>.field__foot</code>): the error on the start side, the counter on the end side. It takes no room while both are hidden.</li>
+  <li><strong>Error</strong> (<code>.field__error</code>): icon + message in <code>--bad-ink</code>, shown only while the field is in error. The message wraps in balanced lines, so an example address written with a <code>&lt;wbr&gt;</code> after its @ and after its dot moves to the next line whole when it fits there, and splits at those points only when it must.</li>
+  <li><strong>Error summary</strong> (<code>.card<wbr>.error-summary</code>, <code>data-tone="bad"</code>): at the top of the form; a bar with the heading, one 44&nbsp;px link row per problem.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Field classes and attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="field"</code></td><td>on <code>div</code> or <code>fieldset</code></td><td>Grid of label, hint, control and foot. A <code>fieldset.field</code> loses its UA border.</td></tr>
+    <tr><td><code>data-layout</code></td><td><code>inline</code></td><td>Label beside the control; wraps to stacked when narrow.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>lg</code>, on <code>.field__label</code></td><td>The heading of a group that holds several fields ("Delivery address"), so the legend outranks the labels inside it.</td></tr>
+    <tr><td><code>data-sg-field</code></td><td></td><td>Turns on <code>30-field.js</code> for this field: ids, <code>label for</code>, <code>aria-describedby</code> (error id only while visible), counter.</td></tr>
+    <tr><td><code>data-sg-form</code></td><td>on <code>&lt;form novalidate&gt;</code></td><td>Validate on leave, live after an error, everything on submit; fills and focuses the summary.</td></tr>
+    <tr><td><code>data-sg-summary</code></td><td>on <code>.card<wbr>.error-summary</code></td><td>Where the summary is written. Keep <code>hidden</code>, <code>tabindex="-1"</code> and a <code>role="alert"</code> child.</td></tr>
+    <tr><td><code>data-sg-counter</code></td><td>on <code>.field__counter</code></td><td>Limit from <code>maxlength</code> (hard) or <code>data-sg-<wbr>maxlength</code> (soft). Words: <code>data-left="{n} characters left"</code>, <code>data-over="{n} characters over"</code>.</td></tr>
+    <tr><td><code>data-error</code>, <code>data-error-missing|<wbr>type|<wbr>pattern|<wbr>short|<wbr>long|<wbr>low|<wbr>high|<wbr>step|<wbr>bad</code></td><td>text, on the control or the field</td><td>The message for that validity failure. Falls back to the browser's own text.</td></tr>
+    <tr><td><code>aria-invalid="true"</code></td><td>on the control</td><td>Bad-ink frame and inner frame. Set by you, or by <code>SG.field</code>. <code>:user-invalid</code> does the same after the person has touched the field.</td></tr>
+    <tr><td>JavaScript</td><td><code>SG.field.setError(el, msg)</code>, <code>.clearError(el)</code>, <code>.validate(field)</code>, <code>.validateForm(form)</code>, <code>.showErrors(form, [{control, message}])</code></td><td>Custom rules and server-side errors ("That email is already registered"). The event <code>sg:validated</code> is cancelable: cancel it to submit with <code>fetch</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Field keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Moves between controls in reading order. The error summary has <code>tabindex="-1"</code>, so <kbd>Tab</kbd> never stops on the box itself; script moves focus there after a failed submit, and <kbd>Tab</kbd> then walks the links inside it.</td></tr>
+    <tr><td>Failed submit</td><td>Focus moves to the error summary (<code>tabindex="-1"</code>); its <code>role="alert"</code> child announces the heading and entries. <kbd>Tab</kbd> then walks the links; <kbd>Enter</kbd> focuses the field.</td></tr>
+    <tr><td>Screen reader, field</td><td>"Email (required), edit text, invalid entry, Enter an email like you@example.com". Label, then name / role / state, then the description.</td></tr>
+    <tr><td>Screen reader, group</td><td>The legend is announced with each option: "How should we remind you, Email, radio button, 2 of 3".</td></tr>
+    <tr><td>Counter</td><td>Announced politely after a 1&nbsp;s pause, not per keystroke. The visible count is in <code>aria-describedby</code>, so it is read on focus too.</td></tr>
+    <tr><td>Hidden error</td><td>A hidden element that is referenced by <code>aria-describedby</code> is <em>still read</em>. The script therefore adds the error id only while the error shows.</td></tr>
+    <tr><td>Not colour alone</td><td>Error = icon + words + inner frame. A counter past its limit = words + bold. Required = words.</td></tr>
+    <tr><td>Reduced motion</td><td>Nothing here moves.</td></tr>
+    <tr><td>Forced colours</td><td>Borders are system colours; the error frame gets heavier (the inner frame is a shadow, which forced colours removes); the summary keeps its frame, bar and icon.</td></tr>
+    <tr><td>No JavaScript</td><td>Labels, hints and native validation still work. Server-rendered errors are fully styled. You lose live validation, the summary behaviour and the counter.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>Do not validate while someone is still typing their first answer, and do not clear their input on an error (WCAG 3.3.1, 3.3.3).</li>
+  <li>Errors must be reachable without a pointer: the summary links and the inline message cover keyboard and screen reader users.</li>
+  <li>The summary's live announcement and the focus move are the only announcements on submit. Inline errors are read when the field is focused, so they do not interrupt someone who is already moving on.</li>
+</ul>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--ink</code>, <code>--ink-soft</code>, <code>--bad-ink</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--focus</code>, <code>--paper</code>, <code>--space-1</code>, <code>--space-2</code>, <code>--space-3</code>, <code>--space-4</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lh-snug</code>, <code>--appbar-h</code>. The summary also uses everything a <a href="@/components/card.html">card</a> uses.</p>

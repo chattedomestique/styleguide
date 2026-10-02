@@ -1,0 +1,259 @@
+/* ==========================================================================
+   Dialog  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A modal box that stops the flow to ask for ONE decision: "Delete this deck?",
+   "Rename", "You were signed out". It is a native <dialog> opened with
+   showModal(), and it is a .card (the owner's element): same frame, bar, body and
+   tones, so it can never drift from Card. JS: src/js/60-dialog.js.
+
+   <button class="btn" data-sg-open="#archive">Archive deck</button>
+
+   <dialog class="dialog card" id="archive" aria-labelledby="archive-t" aria-describedby="archive-d">
+     <header class="card__bar">
+       <p class="card__label">Confirm</p>
+       <button class="card__ctl" type="button" data-sg-close aria-label="Close"><span class="ic ic--close" aria-hidden="true"></span></button>
+     </header>
+     <div class="card__body">
+       <h2 class="card__title" id="archive-t">Archive “Shapes”?</h2>
+       <p class="card__text" id="archive-d">It leaves your study list. Progress is kept.</p>
+     </div>
+     <div class="dialog__actions">
+       <button class="btn" type="button" data-sg-close value="not now">Not now</button>
+       <button class="btn" data-variant="primary" type="button" data-sg-close value="archive" autofocus>Archive deck</button>
+     </div>
+   </dialog>
+
+   Kinds (one element, different content)
+     confirm    a question and a primary action; `autofocus` on the primary button
+     alert      role="alertdialog" for anything that cannot be undone. `autofocus` on
+                Cancel, so a stray Enter never deletes. Status = icon + words in the bar.
+     form       a <form method="dialog" class="dialog__form"> wraps bar, body and actions
+     required   data-required: no Esc, no backdrop tap, and no close control in the bar.
+                There is still a button for every way out. Use rarely.
+
+   data-size      sm | md (default) | lg       22 / 28 / 40rem, never wider than the screen
+   data-required  see above
+   data-inline    a static preview in the page flow instead of the top layer (docs)
+   data-tone      any tone; the bar flips for "ink" exactly as on a card
+
+   WHAT THE BROWSER DOES, AND THIS FILE THEREFORE DOES NOT FAKE
+   · showModal() makes the page inert, traps Tab, closes on Esc, draws ::backdrop and
+     puts the dialog in the TOP LAYER. That is why there is no z-index here (and no
+     --z-overlay): nothing can sit above a top-layer element but another one.
+   WHAT THIS FILE ADDS
+   · Separation without a blurred shadow: a 2px frame (the card's) and the --scrim
+     behind it. A dialog is a container, so it casts no shadow at all.
+   · Scroll lock while a modal is open (:root:has(dialog:modal)).
+   · Entry and exit with @starting-style and transition-behavior: allow-discrete. Travel
+     is multiplied by --move, so under reduced motion it is a fade (shorter, never
+     instant). Where `overlay` cannot be transitioned (Firefox) the exit is instant and
+     the entry still runs.
+   · Safe-area aware size; actions stack on a narrow dialog WITHOUT reordering, because
+     the tab order must match what you see (WCAG 2.4.3).
+   Everything is a selector on `dialog.dialog` (0,1,1) on purpose: .card sets
+   position: relative and display: flex, which would un-hide a closed dialog and
+   un-fix an open one. The element qualifier wins without depending on file order.
+   ========================================================================== */
+
+@layer sg.components {
+  dialog.dialog {
+    /* 1 · private properties */
+    --_w: 28rem;
+    --_room: var(--chrome-4); /* breathing room kept from each screen edge: chrome, so 200% text keeps the width */
+    --_rise: calc(var(--move) * var(--space-5)); /* closed / entering pose. --move 0 leaves a plain fade. */
+
+    /* The UA centres a modal with margin: auto inside inset: 0. Insetting by the safe areas
+       makes "centred" mean centred in what the person can actually see (notch, home bar). */
+    position: fixed;
+    inset: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+    margin: auto;
+    display: none; /* .card says flex; a closed dialog must stay hidden */
+    inline-size: min(var(--_w), calc(100% - var(--safe-left) - var(--safe-right) - var(--_room) * 2));
+    max-inline-size: none;
+    /* The card's 10rem floor is for shrink-to-fit parents; a dialog has its own width, capped to the screen. At
+       200% text on a 320px phone the floor (320px) won over that cap and the dialog lost its margins. */
+    min-inline-size: 0;
+    max-block-size: calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--_room) * 2);
+    overscroll-behavior: contain;
+
+    opacity: 0;
+    transform: translateY(var(--_rise));
+    /* Leaving: shorter and eased in. display + overlay keep it painted until the fade ends. */
+    transition:
+      opacity var(--dur-hover) var(--ease-in),
+      transform var(--dur-hover) var(--ease-in),
+      overlay var(--dur-hover) allow-discrete,
+      display var(--dur-hover) allow-discrete;
+  }
+
+  dialog.dialog[open] {
+    display: flex;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-enter) var(--ease-out),
+      transform var(--dur-enter) var(--ease-out),
+      overlay var(--dur-enter) allow-discrete,
+      display var(--dur-enter) allow-discrete;
+  }
+
+  @starting-style {
+    dialog.dialog[open] {
+      opacity: 0;
+      transform: translateY(var(--_rise));
+    }
+  }
+
+  dialog.dialog[data-size="sm"] {
+    --_w: 22rem;
+  }
+  dialog.dialog[data-size="lg"] {
+    --_w: 40rem;
+  }
+
+  /* The scrim is the ONLY translucency the system allows. */
+  dialog.dialog::backdrop {
+    background: var(--scrim);
+    opacity: 0;
+    transition:
+      opacity var(--dur-hover) var(--ease-in),
+      overlay var(--dur-hover) allow-discrete,
+      display var(--dur-hover) allow-discrete;
+  }
+  dialog.dialog[open]::backdrop {
+    opacity: 1;
+    transition:
+      opacity var(--dur-enter) var(--ease-out),
+      overlay var(--dur-enter) allow-discrete,
+      display var(--dur-enter) allow-discrete;
+  }
+  @starting-style {
+    dialog.dialog[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* Page scroll lock while ANY modal <dialog> is open (sheets use it too). Where scrollbars take
+     room (desktop), hiding it would widen the page and make it jump sideways behind the scrim:
+     60-dialog.js measures the scrollbar before the dialog opens and hands its width over as
+     --sg-lock-pad, which this pads back in. (scrollbar-gutter: stable would also hold the
+     layout, but it leaves a bright unscrimmed strip down the edge, because ::backdrop stops at
+     the gutter.) */
+  :root:has(dialog:modal) {
+    overflow: hidden;
+    padding-inline-end: var(--sg-lock-pad, 0px);
+  }
+
+  /* Not modal, not in the top layer: a static preview in the page flow (docs, split panes). */
+  dialog.dialog[data-inline] {
+    position: relative;
+    inset: auto;
+    display: flex;
+    inline-size: 100%;
+    max-inline-size: var(--_w);
+    max-block-size: none;
+    margin: 0;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* ---- Parts ------------------------------------------------------------------------ */
+
+  /* A form dialog wraps bar, body and actions in <form method="dialog"> so the browser
+     validates, closes and reports the pressed button in returnValue. */
+  .dialog__form {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-block-size: 0;
+    margin: 0;
+  }
+
+  /* The body is the only part that scrolls; bar and actions stay put. A body that scrolls and
+     holds nothing focusable gets tabindex="0" from SG so the keyboard can reach it (2.1.1);
+     its ring is drawn INSIDE, because the card clips at its frame. */
+  dialog.dialog .card__body {
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    &:focus-visible {
+      --ring-gap: calc(var(--ring) * -1);
+    }
+  }
+  /* The card caps a paragraph at 40ch. In a 40rem (data-size="lg") dialog that left the right half of
+     the body empty beside a column of text, so a dialog reads the system's own measure instead: the
+     widest a paragraph gets, still short enough to read. The smaller dialogs are narrower than this
+     anyway, so they simply fill their width. */
+  dialog.dialog .card__text {
+    max-inline-size: var(--measure);
+    text-wrap: pretty;
+  }
+
+  /* The title: the card's own size, except that its floor (1.375rem, 44px at 200% text) gives way to the
+     dialog's width (14.5cqi; the card is the container) when the dialog is narrow for its text. At 200% text on
+     a 320px phone the floor made Delete “Shapes”? wider than its line, so the last word broke and stranded
+     the question mark on a line of its own. At 100% text, and at 200% on a 390px phone, the size is
+     unchanged (14.5cqi is above the floor there). */
+  dialog.dialog .card__title {
+    font-size: clamp(min(1.375rem, 14.5cqi), 8cqi, 2rem);
+  }
+
+  /* The bar names the KIND of dialog, with an icon when it is a status. Icon + words, never
+     colour alone (WCAG 1.4.1). */
+  dialog.dialog .card__label {
+    display: flex;
+    align-items: center;
+    gap: var(--chrome-2);
+  }
+
+  /* No close control (confirm, alert, required): keep the label off the right-hand frame. */
+  dialog.dialog .card__bar:not(:has(.card__ctl)) {
+    padding-inline-end: var(--card-pad);
+  }
+
+  /* Actions: the foot's 1px rule, then a row of pills, primary last. The insets and the gap are chrome
+     (they stop at their 100% size), so at 200% text a two-word label keeps one line. */
+  .dialog__actions {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--chrome-2);
+    padding: var(--chrome-3) var(--card-pad);
+    border-block-start: var(--bw-thin) solid var(--card-ink);
+  }
+
+  /* Narrow dialog (every phone): full-width pills, stacked in DOM order. Primary ends up
+     at the bottom, under the thumb. The order is NOT reversed: tab order must match. Full width
+     means every label has the whole row, so with two-word labels each pill is one line and the
+     stack is one height throughout. A full-width pill centres its label, so it needs side padding
+     only to keep a label that fills the row off the round ends: 12px instead of the Button's 24
+     (--_px; the end curve is half the pill's height, so a line 12px in is clear of it) gives a
+     two-word label 24px more before it wraps. That keeps "Delete deck" on one line in a preview
+     inside a 320px page at 200% text, where with 16px it broke into two lines that filled the
+     pill from edge to edge. */
+  @container card (max-width: 26rem) {
+    .dialog__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .dialog__actions > .btn {
+      --_px: var(--chrome-3);
+      inline-size: 100%;
+    }
+  }
+
+  /* ---- Forced colours ------------------------------------------------------------------
+     Fills vanish, so the bar (an ink fill) needs a real line under it or it merges with the
+     body; the card's own border already survives. */
+  @media (forced-colors: active) {
+    dialog.dialog {
+      border-color: CanvasText;
+    }
+    dialog.dialog .card__bar {
+      border-block-end: var(--bw) solid CanvasText;
+    }
+  }
+}

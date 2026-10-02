@@ -1,0 +1,204 @@
+<!--{"title":"Icons","group":"Foundations","order":17,"summary":"CSS-mask icons drawn with the frame's 2px line: the five the owner drew, about 150 more from Lucide, names, sizes, colour, how to add one, and the full gallery."}-->
+<style>
+  /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #names-table td:last-child { min-inline-size: 18rem; }
+    #sets-table td:first-child { min-inline-size: 8rem; }
+    #sets-table td:nth-child(2) { min-inline-size: 16rem; }
+    #sets-table td:last-child { min-inline-size: 14rem; }
+  }
+  /* docs.css gives every .docs-article list a left indent and a measure; the gallery grid wants neither */
+  .docs-article .icon-grid { padding-inline-start: 0; }
+  .docs-article .icon-grid > li { max-inline-size: none; }
+  .docs-article .icon-grid > li + li { margin-block-start: 0; }
+
+  /* four specimens: four in a row, two by two, or one per line (large text), never three and a lonely fourth;
+     aligned at the top, so the boxes of one row line up whatever their captions do */
+  .docs-article [data-f="sizes"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: start; margin: 0; padding: 0; list-style: none; }
+  @container (min-width: 15rem) { .docs-article [data-f="sizes"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container (min-width: 24rem) { .docs-article [data-f="sizes"] { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .docs-article [data-f="sizes"] li { display: grid; justify-items: center; gap: var(--space-2); max-inline-size: none; margin: 0; font: var(--type-meta); color: var(--ink-soft); }
+  .docs-article [data-f="sizes"] li + li { margin: 0; }
+  .docs-article [data-f="sizes"] [data-f="box"] { display: grid; place-items: center; min-inline-size: 3.5rem; min-block-size: 3.5rem; border: var(--bw-thin) solid var(--line-soft); background: var(--paper); color: var(--ink); }
+  /* the colour samples: four in a row, two by two, or one per line (never two and a lonely third) */
+  .docs-article [data-f="inks"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3) var(--space-4); margin: 0; padding: 0; list-style: none; }
+  @container (min-width: 19rem) { .docs-article [data-f="inks"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } } /* two columns only where "Payment failed" fits one line */
+  @container (min-width: 34rem) { .docs-article [data-f="inks"] { grid-template-columns: repeat(4, max-content); } }
+  .docs-article [data-f="inks"] li { display: flex; align-items: center; gap: var(--chrome-2); max-inline-size: none; margin: 0; }
+  .docs-article [data-f="inks"] li + li { margin: 0; }
+  /* an icon inside a line of words is part of the line: it grows with the words, and sits on the first line when the words wrap */
+  .docs-article [data-f="iconline"] { display: flex; align-items: flex-start; gap: 0.3em; }
+  .docs-article [data-f="iconline"] > .ic { flex: none; --ic-size: 1em; margin-block-start: calc((1lh - 1em) / 2); }
+  .docs-article [data-f="find"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); max-inline-size: 28rem; }
+  .docs-article [data-f="find"] label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="find"] input { inline-size: 100%; min-inline-size: 0; min-block-size: var(--hit); padding-inline: var(--chrome-3); border: var(--bw) solid var(--line); border-radius: var(--radius-ctl); background: var(--paper); color: var(--ink); font: var(--type-body); }
+  .docs-article [data-f="find"] p { margin: 0; font: var(--type-meta); color: var(--ink-soft); }
+</style>
+
+<h1>Icons</h1>
+<p class="lede">Every symbol is a CSS mask drawn on a 24 grid with a 2px square-cap stroke, the same weight as a frame, so an icon reads as part of the line work and not as a sticker. It takes the text colour, grows with the words it sits beside, and works from <code>file://</code>.</p>
+
+<h2 id="use">Using one</h2>
+<pre aria-label="An icon"><code>&lt;span class="ic ic--plus" aria-hidden="true"&gt;&lt;/span&gt;</code></pre>
+<p><code>.ic</code> is an inline box the size of <code>--ic-size</code> (1.25rem by default) filled with <code>currentColor</code> and cut to shape by a mask, <code>mask: <span data-f="nw">var(--ic)</span> center / contain <span data-f="nw">no-repeat</span></code>. The glyph itself is a custom property, which is why one class per icon is all it takes: <code>.ic--plus</code> sets <code>--ic</code>.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+      <div class="cluster" data-gap="3">
+        <button class="btn" data-variant="primary" type="button"><span class="ic ic--plus" aria-hidden="true"></span>Add funds</button>
+        <button class="btn" type="button">Continue<span class="ic ic--arrow" aria-hidden="true"></span></button>
+      </div>
+      <div class="cluster" data-gap="3">
+        <button class="btn" data-shape="circle" type="button" aria-label="Add card"><span class="ic ic--plus" aria-hidden="true"></span></button>
+        <button class="btn" data-shape="circle" type="button" aria-label="Show password"><span class="ic ic--eye" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="rules">Rules</h2>
+<ol>
+  <li><strong>Symbols are icons.</strong> Never a text arrow, tick or bullet, an emoji, or an icon font. The bundled font has no check marks, no left or right arrows and none of the signs for at most, at least or approximately; emoji draw differently on every device; icon fonts vanish in forced-colours mode. Lint warns on the text glyphs it knows about.</li>
+  <li><strong>Hide decoration, name controls.</strong> Every icon gets <code>aria-hidden="true"</code>. The <em>control</em> that contains it carries the name.</li>
+  <li><strong>Colour is <code>currentColor</code>.</strong> An icon takes the text colour of its parent, so it follows the theme, the tone and the palette.</li>
+  <li><strong>The glyph is not the target.</strong> A 20px icon sits inside a 44px control (the <code>.btn</code> circle, the <code>.card__ctl</code> slot); do not pad an icon to make it tappable.</li>
+  <li><strong>One icon, one meaning.</strong> Use the same icon for the same job everywhere in an app.</li>
+</ol>
+
+<h3 id="names">Accessible names</h3>
+<div class="table-wrap"><table class="docs-table" id="names-table">
+  <caption class="sr-only">How to expose an icon to assistive technology</caption>
+  <thead><tr><th>Situation</th><th>Markup</th></tr></thead>
+  <tbody>
+    <tr><td>Decorative, beside a visible label</td><td><code>&lt;span class="ic ic--plus" aria-hidden="true"&gt;&lt;/span&gt;</code> inside the labelled button or link.</td></tr>
+    <tr><td>Icon-only button</td><td><code>&lt;button class="btn" data-shape="circle" aria-label="Add card"&gt;&lt;span class="ic ic--plus" aria-hidden="true"&gt;&lt;/span&gt;&lt;/button&gt;</code>. A tooltip is not a name.</td></tr>
+    <tr><td>Icon-only link</td><td><code>&lt;a href="/" aria-label="Home"&gt;&lt;span class="ic ic--house" aria-hidden="true"&gt;&lt;/span&gt;&lt;/a&gt;</code></td></tr>
+    <tr><td>Status or state</td><td>The icon <em>and</em> words: a tick with "Saved", a triangle with "Low storage". The icon alone is never the message.</td></tr>
+    <tr><td>Meaning that cannot have words</td><td>Avoid it. If it is unavoidable, <code>role="img"</code> with an <code>aria-label</code> on the <code>.ic</code> element, and say why in a comment.</td></tr>
+  </tbody>
+</table></div>
+<p>The docs lint fails any <code>&lt;button&gt;</code> with neither text nor an <code>aria-label</code>, and the build fails on an icon class that does not exist.</p>
+
+<h2 id="size">Size, weight and colour</h2>
+<p>Set <code>--ic-size</code> on the icon or on any parent. An icon that sits beside words is part of the line, so it grows with the reader's text size: the default <code>1.25rem</code> does, and beside a label that is not body size (a chip, a tag, a toast's status) it is set in <code>em</code>, for example <code><span data-f="nw">--ic-size:</span> 1.15em</code>, so it tracks the label. An icon that is the whole control (a circle button, a dock destination, the glyph in a card's bar control) is chrome: <code>--chrome-ic-sm</code> (20px), <code>--chrome-ic</code> (24px) or <code>--chrome-ic-xs</code> (12px), which stop at their 100% size like the control around them (<a href="@/foundations/space.html#chrome">chrome caps</a>). The drawing is a 2-unit stroke on a 24-unit grid, so the line is exactly 2px at 24px and scales with the icon: about 1.7px at the default 20px, 1px at 12px. That is the one place icons and frames differ; it is a consequence of scaling a drawing, and it is why the smallest icon in the guide (the 12px glyph inside a card's control) sits in a 20px box.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <ul data-f="sizes" role="list">
+      <li><span data-f="box"><span class="ic ic--search" aria-hidden="true" style="--ic-size: 0.75rem"></span></span>0.75rem · 12</li>
+      <li><span data-f="box"><span class="ic ic--search" aria-hidden="true" style="--ic-size: 1rem"></span></span>1rem · 16</li>
+      <li><span data-f="box"><span class="ic ic--search" aria-hidden="true"></span></span>default · 20</li>
+      <li><span data-f="box"><span class="ic ic--search" aria-hidden="true" style="--ic-size: 1.5rem"></span></span>1.5rem · 24</li>
+    </ul>
+  </div>
+</div>
+<p><strong>Colour.</strong> Icons follow <code>color</code>. Use a text role and keep meaningful icons at 3:1 or more (WCAG 1.4.11). In a status the icon is paired with words, and the colour is a third cue.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="stack" data-gap="3">
+      <ul data-f="inks" role="list">
+        <li style="color: var(--ink)"><span class="ic ic--bell" aria-hidden="true"></span>ink</li>
+        <li style="color: var(--ink-soft)"><span class="ic ic--bell" aria-hidden="true"></span>ink-soft</li>
+        <li style="color: var(--accent-ink)"><span class="ic ic--bell" aria-hidden="true"></span>accent-ink</li>
+        <li style="color: var(--bad-ink)"><span class="ic ic--circle-x" aria-hidden="true"></span>Payment failed</li>
+      </ul>
+      <div class="card" data-tone="6">
+        <div class="card__body"><p class="card__title" data-f="iconline"><span class="ic ic--flame" aria-hidden="true"></span>31-day streak</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="t-meta">In forced-colours mode a mask is a background, and forced colours removes backgrounds. <code>.ic</code> opts out with <code>forced-color-adjust: none</code> and paints with the system colour <code>CanvasText</code>, so glyphs stay visible.</p>
+
+<h2 id="sets">Two sets</h2>
+<div class="table-wrap"><table class="docs-table" id="sets-table">
+  <caption class="sr-only">The two icon sets</caption>
+  <thead><tr><th>Set</th><th>Where it lives</th><th>Classes</th></tr></thead>
+  <tbody>
+    <tr><td>The owner's five</td><td>In the main bundle: <code>src/<wbr>base/<wbr>20-icons.css</code>, as data URIs in <code>--icon-arrow</code>, <code>--icon-plus</code>, <code>--icon-minus</code>, <code>--icon-close</code>, <code>--icon-check</code>.</td><td><code>ic--arrow</code> (a diagonal arrow), <code>ic--plus</code>, <code>ic--minus</code>, <code>ic--close</code>, <code>ic--check</code>.</td></tr>
+    <tr><td>About 150 more</td><td><code>dist/icons.css</code>, generated from <code>src/icons/*.svg</code> by the build and re-stroked to the same 2px square-cap weight. Link it only if you need more than five.</td><td><code>ic--&lt;filename&gt;</code>, for example <code>ic--search</code>, <code>ic--wallet</code>, <code>ic--circle-check</code>.</td></tr>
+  </tbody>
+</table></div>
+<p>Where the owner's five and a Lucide file share a name (<code>plus</code>, <code>minus</code>, <code>check</code>), the owner's drawing wins. <code>ic--x</code> is Lucide's cross, a second way to draw what <code>ic--close</code> already draws; prefer <code>ic--close</code>.</p>
+
+<h2 id="add">Add an icon</h2>
+<ol>
+  <li>Find it on <a href="https://lucide.dev/icons">lucide.dev/icons</a> and save its SVG. Use Lucide's <em>current</em> name: several were renamed.</li>
+  <li>Save it as <code>src/<wbr>icons/<wbr>&lt;id&gt;.svg</code>. The file name is the id: lowercase, hyphenated. It must have <code>viewBox="0 0 24 24"</code>; the build fails otherwise. Only the inner shapes are used. Their stroke, caps and joins are replaced by the guide's (2px, square, mitred), so the source file's own <code>stroke</code> and <code>width</code> attributes are ignored.</li>
+  <li>Run <code>npm run build</code>. The icon is in <code>dist/icons.css</code>, in the gallery below, and usable as <code>ic--&lt;id&gt;</code>.</li>
+  <li>Keep <code>src/<wbr>icons/<wbr>LICENSE-lucide.txt</code> next to the files.</li>
+</ol>
+<p>An icon you draw yourself follows the same rules: stroke-only shapes on the 24 grid that still read at 2px with square ends, no fills, no colours, and a couple of units of padding inside the box. Check it at 16px, the smallest size it will be used at.</p>
+
+<h3 id="licence">Licence</h3>
+<p>The icons are from <a href="https://lucide.dev">Lucide</a> (ISC licence); the notice is in <code>src/<wbr>icons/<wbr>LICENSE-lucide.txt</code> and the licence asks that it travels with copies. The owner's five are their own drawings. Archivo, the font, is under the SIL Open Font Licence (<code>src/<wbr>fonts/<wbr>OFL-Archivo.txt</code>).</p>
+
+<h2 id="limits">Limits</h2>
+<ul>
+  <li><strong>One colour.</strong> A mask has a single colour. There are no duotone or multi-colour icons.</li>
+  <li><strong>One weight.</strong> A single stroke style, and no animated icons: a spinner is a CSS ring (see <a href="@/foundations/motion.html#loading">Motion</a>).</li>
+  <li><strong>No automatic mirroring for right-to-left.</strong> An arrow or chevron points the same way in every direction. For RTL, pick the opposite icon or flip it in a <code>[dir="rtl"]</code> rule.</li>
+  <li><strong>A mask is not an image.</strong> There is no <code>alt</code>; naming is the control's job, as above.</li>
+  <li><strong>Only the icons in the gallery.</strong> Add what you need as above.</li>
+</ul>
+
+<h2 id="gallery">All icons</h2>
+<p>Generated from the same sources by the build, so it cannot go stale. Use an icon as <code>ic--&lt;name&gt;</code>. Type to filter by name.</p>
+<div data-f="find">
+  <label for="ic-q">Filter icons</label>
+  <input id="ic-q" type="search" autocomplete="off" spellcheck="false" placeholder="for example: arrow" />
+  <p id="ic-count" role="status">All icons shown.</p>
+</div>
+{{icon-grid}}
+
+<h2 id="dodont">Do and don't</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Pair an icon with a word wherever there is room. Name icon-only controls with <code>aria-label</code>, and let the icon take the text colour.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use an emoji or a text arrow, rely on an icon alone to say "saved" or "failed", put an icon in a tinted circle for decoration, or give two different icons the same job.</p></div>
+  </div>
+</div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--ic-size</code>, <code>--ic</code>, <code>--icon-arrow</code>, <code>--icon-plus</code>, <code>--icon-minus</code>, <code>--icon-close</code>, <code>--icon-check</code>, <code>--hit</code>. Classes: <code>.ic</code>, <code>.ic--&lt;id&gt;</code>.</p>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  var q = document.getElementById('ic-q'), out = document.getElementById('ic-count');
+  var items = Array.prototype.slice.call(document.querySelectorAll('.icon-grid > li'));
+  if (!q || !items.length) return;
+  function filter() {
+    var term = q.value.trim().toLowerCase(), shown = 0;
+    items.forEach(function (li) {
+      var match = !term || li.textContent.toLowerCase().indexOf(term) > -1;
+      li.hidden = !match;
+      if (match) shown++;
+    });
+    out.textContent = term ? shown + ' of ' + items.length + ' icons match “' + q.value.trim() + '”.' : 'All ' + items.length + ' icons shown.';
+  }
+  q.addEventListener('input', filter);
+  filter();
+});
+</script>

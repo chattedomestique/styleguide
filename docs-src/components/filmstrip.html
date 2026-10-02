@@ -1,0 +1,362 @@
+<!--{"title":"Filmstrip","group":"Components","order":122,"summary":"A strip of thumbnails that chooses what the big picture shows: one at a time, native radio buttons, arrow keys."}-->
+<style>
+  /* demo scaffolding only: element and attribute selectors, roles not literals */
+  .phone h3 { margin: 0; }
+  /* state specimens: equal columns, three a row on a phone, six on a wide stage, two at 200% text (never one
+     left over); each caption clear of the lift, the hard shadow and the focus ring by more than 8px */
+  .demo [data-role="states"] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5) var(--space-4); padding: var(--space-2); }
+  .demo [data-role="states"] > div { display: flex; flex-direction: column; align-items: center; gap: var(--chrome-4); text-align: center; }
+  @container (min-width: 36rem) { .demo [data-role="states"] { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  @container (max-width: 15rem) { .demo [data-role="states"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* the sizes demo: strips with no stage above them, so they have no rule to sit under; the label is their heading */
+  #demo-sizes .filmstrip__strip { border-block-start: 0; }
+  #demo-sizes .t-label { margin: 0; }
+</style>
+<h1>Filmstrip</h1>
+<p class="lede">A row of small pictures that chooses what the big picture shows. One choice at a time, so the thumbnails are radio buttons: the browser gives you one tab stop, arrow keys that move and choose, and a value for a form. It is the photo editor’s tray: look at the big picture, pick from the small ones.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it when one picture is the subject and the others are alternatives to it: angles of a product, frames of a roll, backdrops behind a cut-out. The strip is a <em>choice</em>, so it always has exactly one thing chosen.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don’t</strong><p>Use it to browse a set where every picture matters equally (that is a <a href="@/components/gallery.html">Gallery</a>), or to step through in order (a <a href="@/components/carousel.html">Carousel</a>). Do not let a thumbnail do anything but choose.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="photos">Photos</h3>
+<p>Choose a thumbnail with a tap, a click, or the arrow keys. The stage is a <a href="@/components/media.html">Media</a> figure: its picture, alt text and caption follow the choice, and the new picture gets the loading state if it is slow. The thumbnail’s own alt names the <em>choice</em>; <code>data-alt</code> on the radio describes the <em>picture</em> for the stage.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="filmstrip" data-ratio="4:3">
+    <figure class="media" id="photos-stage" data-caption="bar">
+      <div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"></div>
+      <figcaption class="media__caption">
+        <span class="media__label">Mar 29</span>
+        <span class="media__title">Harbour at dawn</span>
+        <span class="media__meta">Out before the first ferry.</span>
+      </figcaption>
+    </figure>
+      <fieldset class="filmstrip__strip" aria-controls="photos-stage">
+        <legend class="sr-only">Choose a photo</legend>
+        <div class="filmstrip__track">
+        <label class="filmstrip__thumb">
+          <input type="radio" name="photos" value="harbour" checked data-full="../assets/media/harbour.svg" data-alt="Three small boats on flat water under a low orange sun" data-label="Mar 29" data-title="Harbour at dawn" data-meta="Out before the first ferry.">
+          <img src="@/assets/media/harbour.svg" alt="Harbour at dawn" width="1200" height="900">
+        </label>
+        <label class="filmstrip__thumb">
+          <input type="radio" name="photos" value="market" data-full="../assets/media/market.svg" data-alt="A market stall with crates of tomatoes under a red and cream awning" data-label="Apr 07" data-title="Tomato stall, number 14" data-meta="Saturday market.">
+          <img src="@/assets/media/market.svg" alt="Tomato stall, number 14" width="1200" height="900">
+        </label>
+        <label class="filmstrip__thumb">
+          <input type="radio" name="photos" value="tram" data-full="../assets/media/tram.svg" data-alt="A yellow tram on a grey street, hills behind" data-label="Apr 11" data-title="Tram on line 28" data-meta="Every eleven minutes.">
+          <img src="@/assets/media/tram.svg" alt="Tram on line 28" width="1200" height="900">
+        </label>
+        <label class="filmstrip__thumb">
+          <input type="radio" name="photos" value="kites" data-full="../assets/media/kites.svg" data-alt="Three kites, red, blue and yellow, over a green ridge" data-label="Apr 19" data-title="Kites on the ridge" data-meta="A bright day; the sky is nearly white.">
+          <img src="@/assets/media/kites.svg" alt="Kites on the ridge" width="1200" height="900">
+        </label>
+        <label class="filmstrip__thumb">
+          <input type="radio" name="photos" value="greenhouse" data-full="../assets/media/greenhouse.svg" data-alt="Rows of seedlings in terracotta pots inside a greenhouse" data-label="Apr 26" data-title="Seedlings, week three" data-meta="Tomatoes first, then basil.">
+          <img src="@/assets/media/greenhouse.svg" alt="Seedlings, week three" width="1200" height="900">
+        </label>
+        <label class="filmstrip__thumb">
+          <input type="radio" name="photos" value="rooftops" data-full="../assets/media/rooftops.svg" data-alt="City rooftops at dusk with lit windows and a crescent moon" data-label="May 02" data-title="Rooftops at dusk" data-meta="The last of the light.">
+          <img src="@/assets/media/rooftops.svg" alt="Rooftops at dusk" width="1200" height="900">
+        </label>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<h3 id="swatches">Swatches</h3>
+<p>A thumbnail does not have to be a photo. Here the stage is a cut-out on a <code>--paper-2</code> mat, and the strip picks the tone behind it. <code>data-shape=<wbr>"circle"</code> makes the thumbnails round, because choosing is acting. The first choice, <em>None</em>, is always offered. A swatch has no picture to name it, so it carries a visually hidden name.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="filmstrip" data-shape="circle" data-size="sm">
+      <figure class="media" id="backdrop-stage" data-ratio="1:1" data-fit="contain" data-tone="1">
+        <div class="media__frame"><img src="@/assets/media/seedling.svg" alt="A seedling in a terracotta pot" width="1200" height="900"></div>
+        <figcaption class="media__caption">
+          <span class="media__label">Backdrop</span>
+          <span class="media__title">Shop listing</span>
+        </figcaption>
+      </figure>
+      <fieldset class="filmstrip__strip" aria-controls="backdrop-stage">
+        <legend class="sr-only">Choose a backdrop</legend>
+        <div class="filmstrip__track">
+          <label class="filmstrip__thumb">
+            <input type="radio" name="backdrop" value="none" data-stage-tone="none" data-title="No backdrop">
+            <span class="ic ic--close" aria-hidden="true"></span>
+            <span class="sr-only">None</span>
+          </label>
+          <label class="filmstrip__thumb" data-tone="1">
+            <input type="radio" name="backdrop" value="1" checked data-stage-tone="1" data-title="Shop listing">
+            <span class="sr-only">Shop listing</span>
+          </label>
+          <label class="filmstrip__thumb" data-tone="2">
+            <input type="radio" name="backdrop" value="2" data-stage-tone="2" data-title="Price label">
+            <span class="sr-only">Price label</span>
+          </label>
+          <label class="filmstrip__thumb" data-tone="3">
+            <input type="radio" name="backdrop" value="3" data-stage-tone="3" data-title="Gift card">
+            <span class="sr-only">Gift card</span>
+          </label>
+          <label class="filmstrip__thumb" data-tone="4">
+            <input type="radio" name="backdrop" value="4" data-stage-tone="4" data-title="Market sign">
+            <span class="sr-only">Market sign</span>
+          </label>
+          <label class="filmstrip__thumb" data-tone="5">
+            <input type="radio" name="backdrop" value="5" data-stage-tone="5" data-title="Newsletter">
+            <span class="sr-only">Newsletter</span>
+          </label>
+          <label class="filmstrip__thumb" data-tone="6">
+            <input type="radio" name="backdrop" value="6" data-stage-tone="6" data-title="Seed swap">
+            <span class="sr-only">Seed swap</span>
+          </label>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+<p class="t-meta">Tones carry rhythm, never meaning. The palette decides each slot’s hue, so name the choices for what they are to the person (“Gift card”, the backdrop kept for gift-card photos), not for their colour.</p>
+
+<h3 id="states">States</h3>
+<p>Each thumbnail is a pressable thing, so it lifts on hover and keyboard focus (the hard shadow, no fill), and a press puts it back on the strip and tints it at once, so a tap on a touch screen shows before the stage changes. The chosen one <strong>doubles its frame and wears a check badge</strong>: two cues that survive a pale photo, the wire palette and forced colours, and the picture itself is never painted over. Unavailable is dashed, with <code>disabled</code> on the radio.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div data-role="states">
+      <div><label class="filmstrip__thumb"><input type="radio" name="s1" aria-label="Rest"><img src="@/assets/media/bread.svg" alt="" width="1200" height="900"></label><span class="t-meta">Rest</span></div>
+      <div><label class="filmstrip__thumb is-hover"><input type="radio" name="s2" aria-label="Hover"><img src="@/assets/media/bread.svg" alt="" width="1200" height="900"></label><span class="t-meta">Hover</span></div>
+      <div><label class="filmstrip__thumb is-focus"><input type="radio" name="s3" aria-label="Focus"><img src="@/assets/media/bread.svg" alt="" width="1200" height="900"></label><span class="t-meta">Focus</span></div>
+      <div><label class="filmstrip__thumb is-active"><input type="radio" name="s4" aria-label="Pressed"><img src="@/assets/media/bread.svg" alt="" width="1200" height="900"></label><span class="t-meta">Pressed</span></div>
+      <div><label class="filmstrip__thumb"><input type="radio" name="s5" checked aria-label="Chosen"><img src="@/assets/media/bread.svg" alt="" width="1200" height="900"></label><span class="t-meta">Chosen</span></div>
+      <div><label class="filmstrip__thumb"><input type="radio" name="s6" disabled aria-label="Unavailable"><img src="@/assets/media/bread.svg" alt="" width="1200" height="900"></label><span class="t-meta">Unavailable</span></div>
+    </div>
+  </div>
+</div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Thumbnail states and the two numbers behind them</caption>
+  <thead><tr><th>State</th><th>What changes</th><th><code>--lift</code></th><th><code>--fill</code></th></tr></thead>
+  <tbody>
+    <tr><td>Rest</td><td>The picture in its 2px frame.</td><td>0</td><td>0</td></tr>
+    <tr><td>Hover, focus</td><td>Raised, with the hard shadow; focus adds the ring.</td><td>1</td><td>0</td></tr>
+    <tr><td>Pressed</td><td>Back on the strip, 15% ink over the picture.</td><td>0</td><td>0.15</td></tr>
+    <tr><td>Chosen</td><td>The frame doubles and the check badge shows; the picture stays as it is.</td><td>0</td><td>0</td></tr>
+    <tr><td>Unavailable</td><td>Dashed, faint frame; the picture goes grey.</td><td>0</td><td>0</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="sizes">Sizes</h3>
+<p><code>data-size</code> is <code>sm</code> (56px), the default 72px, or <code>lg</code> (96px). They keep that size at 200% text (a thumbnail is the frame of a picture, not a word), so the strip shows as many choices as before. The hit area is the whole thumbnail, so even the small one is over 44px.</p>
+<p>When there are more thumbnails than room, the strip scrolls sideways and says so: the first thumbnail past the edge is always cut part way (40 to 70% of it shows), never a whole one ending neatly at the edge, which would look like the end of the strip. The script gets there by setting the gap (from 8px), and only when no gap can do it by changing the thumbnails’ size, by an eighth at most. After every choice, and on load, the strip brings the chosen thumbnail into view with a neighbour cut on each side that has more to show.</p>
+<div class="demo" id="demo-sizes">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+    <p class="t-label">Small, 56px</p>
+    <div class="filmstrip" data-size="sm">
+      <fieldset class="filmstrip__strip">
+        <legend class="sr-only">Small, 56px: choose a photo</legend>
+        <div class="filmstrip__track">
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="harbour" checked>
+            <img src="@/assets/media/harbour.svg" alt="Harbour at dawn" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="market">
+            <img src="@/assets/media/market.svg" alt="Tomato stall" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="tram">
+            <img src="@/assets/media/tram.svg" alt="Tram on line 28" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="kites">
+            <img src="@/assets/media/kites.svg" alt="Kites on the ridge" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="greenhouse">
+            <img src="@/assets/media/greenhouse.svg" alt="Seedlings" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="rooftops">
+            <img src="@/assets/media/rooftops.svg" alt="Rooftops at dusk" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="snow">
+            <img src="@/assets/media/snow.svg" alt="Snow on the pass" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-sm" value="bread">
+            <img src="@/assets/media/bread.svg" alt="Morning bread" width="1200" height="900">
+          </label>
+        </div>
+      </fieldset>
+    </div>
+    <p class="t-label">Default, 72px</p>
+    <div class="filmstrip">
+      <fieldset class="filmstrip__strip">
+        <legend class="sr-only">Default, 72px: choose a photo</legend>
+        <div class="filmstrip__track">
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="harbour" checked>
+            <img src="@/assets/media/harbour.svg" alt="Harbour at dawn" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="market">
+            <img src="@/assets/media/market.svg" alt="Tomato stall" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="tram">
+            <img src="@/assets/media/tram.svg" alt="Tram on line 28" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="kites">
+            <img src="@/assets/media/kites.svg" alt="Kites on the ridge" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="greenhouse">
+            <img src="@/assets/media/greenhouse.svg" alt="Seedlings" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="rooftops">
+            <img src="@/assets/media/rooftops.svg" alt="Rooftops at dusk" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="snow">
+            <img src="@/assets/media/snow.svg" alt="Snow on the pass" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-md" value="bread">
+            <img src="@/assets/media/bread.svg" alt="Morning bread" width="1200" height="900">
+          </label>
+        </div>
+      </fieldset>
+    </div>
+    <p class="t-label">Large, 96px</p>
+    <div class="filmstrip" data-size="lg">
+      <fieldset class="filmstrip__strip">
+        <legend class="sr-only">Large, 96px: choose a photo</legend>
+        <div class="filmstrip__track">
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="harbour" checked>
+            <img src="@/assets/media/harbour.svg" alt="Harbour at dawn" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="market">
+            <img src="@/assets/media/market.svg" alt="Tomato stall" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="tram">
+            <img src="@/assets/media/tram.svg" alt="Tram on line 28" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="kites">
+            <img src="@/assets/media/kites.svg" alt="Kites on the ridge" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="greenhouse">
+            <img src="@/assets/media/greenhouse.svg" alt="Seedlings" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="rooftops">
+            <img src="@/assets/media/rooftops.svg" alt="Rooftops at dusk" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="snow">
+            <img src="@/assets/media/snow.svg" alt="Snow on the pass" width="1200" height="900">
+          </label>
+          <label class="filmstrip__thumb">
+            <input type="radio" name="sizes-lg" value="bread">
+            <img src="@/assets/media/bread.svg" alt="Morning bread" width="1200" height="900">
+          </label>
+        </div>
+      </fieldset>
+    </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>The photo editor’s backdrop tool: its name, the stage, the choices under it, and cancel / apply in the same two corners they are in every tool. The circles act; the stage holds. The name sits above the stage, not between the two circles, so at any text size the circles keep their corners.</p>
+<div class="phone">
+  <div class="phone__screen stack" data-gap="4">
+    <p class="t-label">Backdrop</p>
+    <div class="filmstrip" data-shape="circle" data-size="sm">
+      <figure class="media" id="tool-stage" data-ratio="1:1" data-fit="contain" data-tone="4">
+        <div class="media__frame"><img src="@/assets/media/seedling.svg" alt="A seedling in a terracotta pot" width="1200" height="900"></div>
+      </figure>
+      <fieldset class="filmstrip__strip" aria-controls="tool-stage">
+        <legend class="sr-only">Choose a backdrop</legend>
+        <div class="filmstrip__track">
+          <label class="filmstrip__thumb"><input type="radio" name="tool" value="none" data-stage-tone="none"><span class="ic ic--close" aria-hidden="true"></span><span class="sr-only">None</span></label>
+          <label class="filmstrip__thumb" data-tone="1"><input type="radio" name="tool" value="1" data-stage-tone="1"><span class="sr-only">Shop listing</span></label>
+          <label class="filmstrip__thumb" data-tone="2"><input type="radio" name="tool" value="2" data-stage-tone="2"><span class="sr-only">Price label</span></label>
+          <label class="filmstrip__thumb" data-tone="3"><input type="radio" name="tool" value="3" data-stage-tone="3"><span class="sr-only">Gift card</span></label>
+          <label class="filmstrip__thumb" data-tone="4"><input type="radio" name="tool" value="4" checked data-stage-tone="4"><span class="sr-only">Market sign</span></label>
+          <label class="filmstrip__thumb" data-tone="5"><input type="radio" name="tool" value="5" data-stage-tone="5"><span class="sr-only">Newsletter</span></label>
+          <label class="filmstrip__thumb" data-tone="6"><input type="radio" name="tool" value="6" data-stage-tone="6"><span class="sr-only">Seed swap</span></label>
+        </div>
+      </fieldset>
+    </div>
+    <div class="cluster" data-justify="between">
+      <button class="btn" data-shape="circle" type="button" aria-label="Cancel backdrop"><span class="ic ic--close" aria-hidden="true"></span></button>
+      <button class="btn" data-shape="circle" data-variant="primary" type="button" aria-label="Apply backdrop"><span class="ic ic--check" aria-hidden="true"></span></button>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Frame</strong> <code>.filmstrip</code>: one 2px frame around the stage and the strip, <code>--radius-card</code>, clipped.</li>
+  <li><strong>Stage</strong>: a <code>.media</code> figure with an <code>id</code>. Its picture, alt, tone and caption text follow the choice.</li>
+  <li><strong>Strip</strong> <code>.filmstrip<wbr>__strip</code>: a <code>&lt;fieldset&gt;</code> with a (visually hidden) <code>&lt;legend&gt;</code> naming the choice, and <code>aria-controls</code> pointing at the stage. Closed off by the 2px rule.</li>
+  <li><strong>Track</strong> <code>.filmstrip<wbr>__track</code>: the sideways scroller. Its padding is the room for the focus ring and the doubled frame, which must not clip.</li>
+  <li><strong>Thumbnail</strong> <code>.filmstrip<wbr>__thumb</code>: a <code>&lt;label&gt;</code> around a real <code>&lt;input type="radio"&gt;</code> (stretched over it, invisible: it is the hit area and the focus target) and an <code>img</code>, a swatch tone, or an icon.</li>
+  <li><strong>Check badge</strong>: a pseudo-element on the chosen thumbnail. Ink circle, paper check, drawn with the owner’s own check mask.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Filmstrip attributes</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class=<wbr>"filmstrip"</code></td><td></td><td>The frame around a stage and a strip.</td></tr>
+    <tr><td><code>data-ratio</code></td><td>same as <a href="@/components/media.html#ratios">Media</a></td><td>Inherited by the stage figure.</td></tr>
+    <tr><td><code>data-size</code></td><td><code>sm</code>, <code>lg</code> (default 72px)</td><td>Thumbnail size: 56, 72 or 96px.</td></tr>
+    <tr><td><code>data-shape</code></td><td><code>circle</code></td><td>Round thumbnails, for swatches and choices.</td></tr>
+    <tr><td><code>aria-controls</code></td><td>the stage’s <code>id</code></td><td>On the <code>fieldset</code>: which figure follows the choice.</td></tr>
+    <tr><td><code>data-full</code></td><td>URL</td><td>On the radio: the stage picture’s <code>src</code>.</td></tr>
+    <tr><td><code>data-alt</code></td><td>text</td><td>On the radio: the stage picture’s <code>alt</code>. Describe the picture.</td></tr>
+    <tr><td><code>data-title</code>, <code>data-label</code>, <code>data-meta</code></td><td>text</td><td>On the radio: text for <code>.media__title</code>, <code>.media__label</code>, <code>.media__meta</code> in the stage.</td></tr>
+    <tr><td><code>data-stage-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code>, <code>none</code></td><td>On the radio: sets or clears <code>data-tone</code> on the stage.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code></td><td>On the <em>label</em>: the thumbnail paints that tone (a swatch).</td></tr>
+    <tr><td><code>disabled</code></td><td></td><td>On the radio: dashed, inert, skipped by the arrow keys.</td></tr>
+    <tr><td><code>SG.filmstrip<wbr>.show(input)</code></td><td></td><td>Mirror a radio into its stage from script. Changes are otherwise picked up by a delegated <code>change</code> listener.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<p>Pattern: radio group (WAI-ARIA Authoring Practices), using native radio inputs so nothing is emulated. Without the script the strip is still a working radio group; the stage just does not follow.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Filmstrip keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>One tab stop for the whole strip: the chosen thumbnail. The next <kbd>Tab</kbd> leaves it.</td></tr>
+    <tr><td><kbd>Arrow keys</kbd></td><td>Move focus to the next thumbnail and choose it, wrapping at the ends (the browser does this). The scroller brings it into view.</td></tr>
+    <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First and last thumbnail (added by the script).</td></tr>
+    <tr><td><kbd>Space</kbd></td><td>Chooses the focused thumbnail, if it is not already.</td></tr>
+    <tr><td>Screen reader</td><td>"Choose a photo, group. Harbour at dawn, radio button, checked, 1 of 6." After a change: "Showing Tomato stall, number 14, 2 of 6", because the picture that changed is not where focus is.</td></tr>
+    <tr><td>Touch</td><td>Tap to choose; swipe the strip to see more. No drag is required. The hit area is the whole thumbnail (56px at the smallest).</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the hard shadow and the press tint still show. The new picture fades in, and the strip moves to the choice at once instead of gliding.</td></tr>
+    <tr><td>Forced colours</td><td>The frame is <code>CanvasText</code>, the chosen one gets a 4px frame and the badge keeps its check; hover and focus get a <code>Highlight</code> outline.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--line</code>, <code>--focus</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--ink-faint</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--ring</code>, <code>--ring-offset-in</code>, <code>--radius-card</code>, <code>--radius-tile</code>, <code>--radius-pill</code>, <code>--chrome-1</code>, <code>--chrome-3</code>, <code>--chrome-box</code>, <code>--chrome-ic-sm</code>, <code>--chrome-ic-xs</code>, <code>--space-1</code>, <code>--icon-check</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>.</p>

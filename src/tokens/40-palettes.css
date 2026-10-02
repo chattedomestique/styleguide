@@ -1,0 +1,132 @@
+/* ==========================================================================
+   40 · Palettes  (gate 3's colour handover, as data)
+   --------------------------------------------------------------------------
+   The owner's handover said: point the six tone slots at six hues, set the
+   accent, add dark. A palette is exactly that, expressed as knobs (see
+   10-color.css): a neutral hue, a canvas tint, an accent, and a hue + vividness
+   per tone slot. Switching palette cannot break contrast: lightness gaps are
+   fixed by the shared knobs, and `npm run test:contrast` proves it.
+
+     <html data-palette="mint">            whole app
+     <section data-palette="periwinkle">   one region (islands work)
+
+   No attribute = "default": neutral greys, ink accent, the six Flashcards hues
+   (yellow, blue, coral, green, violet, orange) as pastels.
+
+   MAKE YOUR OWN: copy a block, change the hue/chroma knobs, add the name to
+   PALETTES in tests/contrast.mjs and to the docs switcher. A LIGHT accent (like
+   cream's yellow) must set a DARK --k-on-accent-* and dark --k-accent-ink-*.
+   ========================================================================== */
+
+@layer sg.tokens {
+  /* Shared accent lightness for the palettes whose accent is a colour with white text on it */
+  [data-palette="mint"],
+  [data-palette="periwinkle"] {
+    --k-accent-c: 0.16;
+    --k-accent-fill-l: 0.48;
+    --k-accent-fill-d: 0.76;
+    --k-on-accent-l: 0.99;
+    --k-on-accent-d: 0.18;
+    --k-accent-ink-l: 0.45;
+    --k-accent-ink-d: 0.82;
+    --k-accent-soft-l: 0.92;
+    --k-accent-soft-d: 0.3;
+    --k-on-accent-soft-l: 0.3;
+    --k-on-accent-soft-d: 0.94;
+  }
+
+  /* Mint: fresh green-tinted canvas, deep green accent (wallet / fintech references) */
+  [data-palette="mint"] {
+    --k-neutral-h: 175;
+    --k-neutral-c: 0.012;
+    --k-canvas-l: 0.955;
+    --k-canvas-c-l: 0.042;
+    --k-canvas-c-d: 0.02;
+    --k-accent-h: 165;
+    --k-accent-c: 0.12;
+    --k-accent-fill-l: 0.42;
+    --k-accent-ink-l: 0.4;
+    --tone-h-1: 165; --tone-c-1: 0.12;
+    --tone-h-2: 200; --tone-c-2: 0.11;
+    --tone-h-3: 130; --tone-c-3: 0.15;
+    --tone-h-4: 95;  --tone-c-4: 0.16;
+    --tone-h-5: 235; --tone-c-5: 0.12;
+    --tone-h-6: 20;  --tone-c-6: 0.14;
+  }
+
+  /* Periwinkle: soft blue-violet canvas, violet-blue accent (editor / habits references) */
+  [data-palette="periwinkle"] {
+    --k-neutral-h: 275;
+    --k-neutral-c: 0.012;
+    --k-canvas-c-l: 0.03;
+    --k-canvas-c-d: 0.02;
+    --k-accent-h: 275;
+    --tone-h-1: 275; --tone-c-1: 0.15;
+    --tone-h-2: 235; --tone-c-2: 0.12;
+    --tone-h-3: 315; --tone-c-3: 0.15;
+    --tone-h-4: 200; --tone-c-4: 0.11;
+    --tone-h-5: 350; --tone-c-5: 0.14;
+    --tone-h-6: 75;  --tone-c-6: 0.14;
+  }
+
+  /* Sand: warm grey-green canvas, ink accent, earthy tones (calendar references) */
+  [data-palette="sand"] {
+    --k-neutral-h: 105;
+    --k-neutral-c: 0.008;
+    --k-canvas-l: 0.93;
+    --k-faint-l: 0.58; /* the tinted canvas is darker, so quiet decoration must be too (3:1) */
+    --k-canvas-c-l: 0.013;
+    --k-paper-2-l: 0.955;
+    --k-paper-3-l: 0.9;
+    --k-canvas-c-d: 0.008;
+    --tone-h-1: 75;  --tone-c-1: 0.11;
+    --tone-h-2: 195; --tone-c-2: 0.08;
+    --tone-h-3: 20;  --tone-c-3: 0.1;
+    --tone-h-4: 130; --tone-c-4: 0.1;
+    --tone-h-5: 300; --tone-c-5: 0.07;
+    --tone-h-6: 50;  --tone-c-6: 0.11;
+  }
+
+  /* Cream: the warm paper and yellow accent of the original Flashcards app.
+     Yellow is a LIGHT accent, so its text is dark ink. Frames are ink (2px), so the
+     pale accent never has to separate itself from the canvas by fill alone. */
+  [data-palette="cream"] {
+    --k-neutral-h: 85;
+    --k-neutral-c: 0.008;
+    --k-canvas-l: 0.962;
+    --k-canvas-c-l: 0.04;
+    --k-canvas-c-d: 0.014;
+    --k-accent-h: 95;
+    --k-accent-c: 0.17;
+    --k-accent-fill-l: 0.88;
+    --k-accent-fill-d: 0.84;
+    --k-on-accent-l: 0.2;
+    --k-on-accent-d: 0.2;
+    --k-accent-ink-l: 0.42;
+    --k-accent-ink-d: 0.88;
+    --k-accent-soft-l: 0.93;
+    --k-accent-soft-d: 0.3;
+    --k-on-accent-soft-l: 0.3;
+    --k-on-accent-soft-d: 0.94;
+  }
+
+  /* Wire: the wireframe stage (gates 1-2). Greys only, six slots climbing from light to
+     darker grey, so structure has to work before colour is allowed to help it. Also the
+     squint test: flip to this and the layout must still read. */
+  [data-palette="wire"] {
+    --k-neutral-c: 0;
+    --k-canvas-c-l: 0;
+    --k-canvas-c-d: 0;
+    --k-status-c: 0;
+    --tone-c-1: 0; --tone-c-2: 0; --tone-c-3: 0; --tone-c-4: 0; --tone-c-5: 0; --tone-c-6: 0;
+    --k-tone-l-1: 0.94; --k-tone-l-2: 0.915; --k-tone-l-3: 0.89; --k-tone-l-4: 0.86; --k-tone-l-5: 0.83; --k-tone-l-6: 0.8;
+    --k-tone-ink-l: 0.2; /* the darker slots need darker text to keep the soft line at 4.5:1 */
+    --k-tone-soft-l: 0.3; /* greys climb darker, so secondary text must too (≥ 7:1 on every slot) */
+    --k-tone-soft-d: 0.88;
+    --k-tone-d-1: 0.24; --k-tone-d-2: 0.26; --k-tone-d-3: 0.28; --k-tone-d-4: 0.3; --k-tone-d-5: 0.32; --k-tone-d-6: 0.34;
+  }
+  [data-palette="wire"] [data-tone],
+  [data-palette="wire"][data-tone] {
+    --tc: 0;
+  }
+}

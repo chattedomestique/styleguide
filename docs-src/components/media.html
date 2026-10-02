@@ -1,0 +1,344 @@
+<!--{"title":"Media","group":"Components","order":120,"summary":"A picture in a frame: eight ratios, three captions that never sit on a bare photo, loading and failed states."}-->
+<style>
+  /* demo scaffolding only: element and attribute selectors, roles not literals */
+  .phone h3 { margin: 0; }
+  /* label-over-value pairs: two columns while a value fits on one line in its half, one column at large text
+     (a value like "1/250 at f/4" is never split across lines in a half-width column) */
+  .phone dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: var(--space-3) var(--space-4); margin: 0; }
+  .phone dl > div { min-inline-size: 0; }
+  .phone dt { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; overflow-wrap: break-word; }
+  .phone dd { margin: 0; font: var(--type-body); overflow-wrap: break-word; }
+  .phone [data-role="actions"] { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .phone [data-role="actions"] > .btn { flex: 1 1 auto; }
+  /* the ratios specimen: rows that share one height, each picture as wide as its ratio (a justified row), so
+     every row reads as a row and no tall picture leaves a hole beside a short one. --r is the ratio as one
+     number; the 2px frames are the basis, so the PICTURES come out exactly the same height. Too narrow for
+     that (large text on a phone): one picture per line. */
+  .demo [data-role="ratios"] { display: grid; gap: var(--space-3); }
+  .demo [data-role="ratios"] > div { display: flex; align-items: start; gap: var(--space-3); }
+  .demo [data-role="ratios"] .media { flex: var(--r) 1 calc(2 * var(--bw)); }
+  .demo [data-role="ratios"] [data-ratio="1:1"] { --r: 1; }
+  .demo [data-role="ratios"] :is([data-ratio="4:3"], [data-ratio="free"]) { --r: 1.3333; }
+  .demo [data-role="ratios"] [data-ratio="3:2"] { --r: 1.5; }
+  .demo [data-role="ratios"] [data-ratio="16:9"] { --r: 1.7778; }
+  .demo [data-role="ratios"] [data-ratio="21:9"] { --r: 2.3333; }
+  .demo [data-role="ratios"] [data-ratio="3:4"] { --r: 0.75; }
+  .demo [data-role="ratios"] [data-ratio="4:5"] { --r: 0.8; }
+  /* one inset for every caption in the specimen: the component's inset follows each figure's width (and tightens
+     under 192px), which made the captions of one row end at three different heights */
+  .demo [data-role="ratios"] .media__caption { padding: var(--chrome-2) var(--chrome-3); }
+  @container (max-width: 15rem) {
+    .demo [data-role="ratios"] > div { display: grid; }
+  }
+  /* the crop specimen: two columns at most (four squares read as a 2 x 2 comparison), one when a caption chip
+     (about 7.25rem of mono type in a 28px inset) would not fit its half */
+  .demo [data-role="crop"] { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, max(calc(7.25rem + 28px), calc(50% - var(--space-3) / 2))), 1fr)); }
+  /* state specimens: the state is named under each figure, clear of the lift, the shadow and the ring; three
+     across when they fit, one per line when they do not (never two and one) */
+  .demo :is([data-role="link-states"], [data-role="states"]) { display: grid; gap: var(--space-5) var(--space-4); grid-template-columns: minmax(0, 1fr); }
+  .demo :is([data-role="link-states"], [data-role="states"]) > div { display: grid; grid-template-rows: 1fr auto; gap: var(--space-4); }
+  .demo :is([data-role="link-states"], [data-role="states"]) > div > .t-meta { text-align: center; }
+  @container (min-width: 36rem) { .demo [data-role="link-states"] { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @container (min-width: 28rem) { .demo [data-role="states"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+<h1>Media</h1>
+<p class="lede">A picture, in a frame, with a caption if it needs one. The picture is content, so the frame holds it in a rectangle; the only text that ever touches a photo sits on a solid plate, so contrast never depends on what the photo looks like.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it for any photo, illustration or video that the person came to look at. Pick one ratio per screen, give every picture an <code>alt</code> that says what it shows, and use a caption for what the picture cannot say: when, where, who.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don’t</strong><p>Put words on a bare photo, or bake words into the picture: a screenshot of a sentence cannot be resized, translated or read aloud. For a card with a picture on top, use <a href="@/components/card.html">Card</a>; for many pictures, use a <a href="@/components/gallery.html">Gallery</a> or a <a href="@/components/carousel.html">Carousel</a>.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="ratios">Ratios</h3>
+<p>The frame has a fixed shape and the picture is cropped to it (<code>object-fit: cover</code>), so a column of photos lines up whatever shape the files were. Set the ratio with <code>data-ratio</code>, and the focal point with <code>--pos</code> when the subject is not in the middle. <code>free</code> drops the crop and uses the file’s own shape; give the <code>img</code> its <code>width</code> and <code>height</code> so the page does not jump when it loads.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div data-role="ratios">
+      <div>
+        <figure class="media" data-ratio="4:3"><div class="media__frame"><img src="@/assets/media/market.svg" alt="A market stall with crates of tomatoes under a red and cream awning" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>4:3</code></span></figcaption></figure>
+        <figure class="media" data-ratio="3:2"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street, hills behind" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>3:2</code></span></figcaption></figure>
+        <figure class="media" data-ratio="free"><div class="media__frame"><img src="@/assets/media/snow.svg" alt="A single red tent below a snowy mountain pass" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>free</code></span></figcaption></figure>
+      </div>
+      <div>
+        <figure class="media" data-ratio="16:9"><div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>16:9</code></span></figcaption></figure>
+        <figure class="media" data-ratio="21:9"><div class="media__frame"><img src="@/assets/media/rooftops.svg" alt="City rooftops at dusk with lit windows and a crescent moon" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>21:9</code></span></figcaption></figure>
+      </div>
+      <div>
+        <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>1:1</code></span></figcaption></figure>
+        <figure class="media" data-ratio="4:5"><div class="media__frame"><img src="@/assets/media/bread.svg" alt="Three round loaves and two baguettes on a wooden counter" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>4:5</code></span></figcaption></figure>
+        <figure class="media" data-ratio="3:4"><div class="media__frame"><img src="@/assets/media/greenhouse.svg" alt="Rows of seedlings in terracotta pots inside a greenhouse" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code>3:4</code></span></figcaption></figure>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="t-meta">Landscape, wide, then square and portrait: in each row the pictures share one height, so their widths compare the ratios. Each caption is the figure’s <code>data-ratio</code>; <code>free</code> here is the file’s own 4:3.</p>
+
+<h4 id="crop">Crop and fit</h4>
+<p><code>--pos</code> moves the crop: here <code>10% 50%</code>, the default <code>50% 50%</code>, and <code>92% 50%</code>. <code>data-fit=<wbr>"contain"</code>, the last, shows the whole picture on a <code>--paper-2</code> mat, for logos and product shots where cropping would cut something off.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div data-role="crop">
+      <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Left of the harbour: a pier and one boat" width="1200" height="900" style="--pos: 10% 50%"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">--pos: 10% 50%</code></span></figcaption></figure>
+      <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Centre of the harbour: the sun and two boats" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">--pos: 50% 50%</code></span></figcaption></figure>
+      <figure class="media" data-ratio="1:1"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Right of the harbour: a small boat and open water" width="1200" height="900" style="--pos: 92% 50%"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">--pos: 92% 50%</code></span></figcaption></figure>
+      <figure class="media" data-ratio="1:1" data-fit="contain"><div class="media__frame"><img src="@/assets/media/harbour.svg" alt="The whole harbour, letterboxed" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__meta"><code class="nb">contain</code></span></figcaption></figure>
+    </div>
+  </div>
+</div>
+
+<h3 id="captions">Captions</h3>
+<p>A caption is a <code>&lt;figcaption&gt;</code>, so the figure is named by it. Three kinds, chosen with <code>data-caption</code>; a <code>data-tone</code> on the figure tints the plain strip and the space behind the picture while it loads.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 15rem">
+      <figure class="media">
+        <div class="media__frame"><img src="@/assets/media/harbour.svg" alt="Three small boats on flat water under a low orange sun" width="1200" height="900"></div>
+        <figcaption class="media__caption">
+          <span class="media__label"><time datetime="2026-03-29">Mar 29</time></span>
+          <span class="media__title">Harbour at dawn</span>
+          <span class="media__meta">Three boats out before the first ferry.</span>
+        </figcaption>
+      </figure>
+      <figure class="media" data-tone="4">
+        <div class="media__frame"><img src="@/assets/media/greenhouse.svg" alt="Rows of seedlings in terracotta pots inside a greenhouse" width="1200" height="900"></div>
+        <figcaption class="media__caption">
+          <span class="media__label"><time datetime="2026-04-02">Apr 02</time></span>
+          <span class="media__title">Seedlings, week three</span>
+          <span class="media__meta">Tomatoes first, then basil.</span>
+        </figcaption>
+      </figure>
+      <figure class="media" data-caption="bar">
+        <div class="media__frame"><img src="@/assets/media/market.svg" alt="A market stall with crates of tomatoes under a red and cream awning" width="1200" height="900"></div>
+        <figcaption class="media__caption">
+          <span class="media__label"><time datetime="2026-04-07">Apr 07</time></span>
+          <span class="media__title">Tomato stall, number 14</span>
+          <span class="media__meta">Saturday market, 35 mm.</span>
+        </figcaption>
+      </figure>
+      <figure class="media" data-caption="over">
+        <div class="media__frame"><img src="@/assets/media/snow.svg" alt="A single red tent below a snowy mountain pass" width="1200" height="900"></div>
+        <figcaption class="media__caption">
+          <span class="media__title">Snow on the pass</span>
+          <span class="media__meta">Camp two, 2,310 m.</span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">The three caption kinds</caption>
+  <thead><tr><th>data-caption</th><th>What it is</th><th>Use it for</th></tr></thead>
+  <tbody>
+    <tr><td><code>plain</code> (default)</td><td>A paper strip under the picture, closed off by a 2px rule. Tone-able.</td><td>Most things. Longer captions; anything you may want to select and copy.</td></tr>
+    <tr><td><code>bar</code></td><td>The same strip, solid ink with paper text: the frame made thicker, like the bar on a card.</td><td>A date and a place, editorial tiles, a strong column of pictures.</td></tr>
+    <tr><td><code>over</code></td><td>A flat <code>--scrim-strong</code> band across the bottom of the picture, with <code>--on-media</code> text.</td><td>Small tiles, where a strip under the picture would eat the picture. The snow above is the worst case: near-white, and the caption still reads at 8.5:1.</td></tr>
+  </tbody>
+</table></div>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--eye" aria-hidden="true"></span>
+  <div><strong>Why the plate is not a fade</strong><p>The band is one flat colour at 75% black, so its contrast is the same everywhere: white text over it is at least 8.5:1 even on a pure white photo. A fade from clear to dark would be strongest where the text is not and weakest where the photo is brightest, and the house has no gradients anyway.</p></div>
+</div>
+
+<h3 id="states">States</h3>
+<p>An image has no attribute that says "still loading" or "gave up", so the state is <code>data-state</code> on the figure. <code>src/js/<wbr>70-media.js</code> sets it from the image’s own <code>load</code> and <code>error</code> events; without the script the picture just appears. The frame keeps its ratio the whole time, so nothing around it moves; only when the words need more room than the ratio gives (large text, a narrow tile) does it grow, because the words are never cut off.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div data-role="states">
+      <div>
+        <figure class="media" data-ratio="3:2" data-state="loading" aria-busy="true">
+          <div class="media__frame">
+            <div class="media__status"><p class="media__note">Loading picture</p></div>
+          </div>
+          <figcaption class="media__caption"><span class="media__title">Tram on line 28</span><span class="media__meta">Every eleven minutes.</span></figcaption>
+        </figure>
+        <span class="t-meta">Loading</span>
+      </div>
+      <div>
+        <figure class="media" data-ratio="3:2" data-state="failed">
+          <div class="media__frame">
+            <div class="media__status">
+              <span class="ic ic--image" aria-hidden="true"></span>
+              <p class="media__note">Picture didn’t load</p>
+              <button class="btn" data-size="sm" type="button">Try again</button>
+            </div>
+          </div>
+          <figcaption class="media__caption"><span class="media__title">Kites on the ridge</span><span class="media__meta">A bright day, nearly white sky.</span></figcaption>
+        </figure>
+        <span class="t-meta">Failed</span>
+      </div>
+    </div>
+  </div>
+</div>
+<ul>
+  <li><strong>Loading</strong> is a ring that spins (a slow pulse under reduced motion) and a sentence. The figure is <code>aria-busy</code>. When the picture arrives it fades in over <code>--dur-enter</code>.</li>
+  <li><strong>Failed</strong> is a dashed frame (the house legend for "not here"), an icon, a sentence and a way out. Status is always icon <em>and</em> words. The script also announces the sentence politely, because nothing moved focus.</li>
+  <li><strong>Try again</strong> re-requests the picture. If the button had focus, focus moves to the frame so a keyboard user is not dropped at the top of the page.</li>
+</ul>
+<p>Here is the real thing: an image that cannot decode, caught by the script, with the sentence and the button it built. Press Try again: the picture is requested again, fails again, and the figure says so once more, politely, without moving you.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <figure class="media" data-ratio="3:2">
+      <div class="media__frame"><img src="data:image/png;base64,bm90IGEgcGljdHVyZQ==" alt="Market stall with crates of tomatoes" width="1200" height="900"></div>
+      <figcaption class="media__caption"><span class="media__title">Tomato stall, number 14</span><span class="media__meta">Saturday market.</span></figcaption>
+    </figure>
+  </div>
+</div>
+
+<h3 id="link">A figure that is one link</h3>
+<p>When the whole figure goes somewhere, put <code>data-link</code> on it and <code>class=<wbr>"media__link"</code> on the anchor in the title. The anchor’s <code>::after</code> stretches over the figure: one tab stop, one name, and the hit area is the whole thing. It lifts like a pressable thing, because it is one; the focus ring goes around the figure, not the text. Below, the same figure at rest, hovered and focused (the last two are forced with <code>is-*</code> classes).</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div data-role="link-states">
+      <div>
+        <figure class="media" data-link data-caption="bar">
+          <div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street, hills behind" width="1200" height="900"></div>
+          <figcaption class="media__caption">
+            <span class="media__label">Line 28</span>
+            <a class="media__title media__link" href="#link">Tram to the hills</a>
+          </figcaption>
+        </figure>
+        <span class="t-meta">Rest</span>
+      </div>
+      <div>
+        <figure class="media is-hover" data-link>
+          <div class="media__frame"><img src="@/assets/media/kites.svg" alt="Three kites, red, blue and yellow, over a green ridge" width="1200" height="900"></div>
+          <figcaption class="media__caption">
+            <span class="media__label">Ridge walk</span>
+            <a class="media__title media__link" href="#link">Kites on the ridge</a>
+          </figcaption>
+        </figure>
+        <span class="t-meta">Hover</span>
+      </div>
+      <div>
+        <figure class="media is-focus" data-link>
+          <div class="media__frame"><img src="@/assets/media/bread.svg" alt="Three round loaves and two baguettes on a wooden counter" width="1200" height="900"></div>
+          <figcaption class="media__caption">
+            <span class="media__label">Corner bakery</span>
+            <a class="media__title media__link" href="#link">Morning bread</a>
+          </figcaption>
+        </figure>
+        <span class="t-meta">Focus</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="alt">Alt text</h3>
+<p>Alt text is for the person who cannot see the picture; the caption is for everyone. Do not paste one into the other, and do not write "image of". The test: read the page aloud with the pictures turned into their alt text. Does it still make sense, and is nothing said twice?</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">How to write alt text for each kind of picture</caption>
+  <thead><tr><th>The picture is…</th><th>So the alt is…</th><th>For example</th></tr></thead>
+  <tbody>
+    <tr><td>Information: the reason it is on the page</td><td>One sentence about what matters in it, not what it is made of.</td><td><code>alt="Three small boats on flat water under a low orange sun"</code></td></tr>
+    <tr><td>Already described by the caption next to it</td><td>Empty, so it is not read twice. The figure is still named by its caption.</td><td><code>alt=""</code> beside a caption that says "Tomato stall, number 14"</td></tr>
+    <tr><td>Decoration: a texture, a divider</td><td>Empty, and better still, not an image at all.</td><td><code>alt=""</code></td></tr>
+    <tr><td>A link or a button</td><td>Where it goes or what it does, not what it shows.</td><td><code>alt="Open photo: Snow on the pass"</code></td></tr>
+    <tr><td>A chart, map or diagram</td><td>A short name for it, and the detail in text next to it (<code>aria-describedby</code> or a table).</td><td><code>alt="Steps per day, last week"</code> plus a table of the seven values</td></tr>
+    <tr><td>A picture of text</td><td>The same words. Better: do not do this (WCAG 1.4.5). Real text resizes, translates and is read aloud.</td><td>A screenshot of a menu becomes a list</td></tr>
+  </tbody>
+</table></div>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--eye" aria-hidden="true"></span>
+  <div><strong>Video and sound</strong><p>A <code>&lt;video&gt;</code> goes inside the frame like an image. Keep its native controls, add a captions track (<code>&lt;track kind=<wbr>"captions"&gt;</code>), and never start it with sound. Moving pictures that start on their own and last more than five seconds need a visible pause (WCAG 2.2.2).</p></div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>An entry in a photo journal: the date as a label, the picture with its caption, the settings as label-over-value pairs, and the two things you can do with it. The picture is a favourite, which a <code>.media__badge</code> says in its corner: an icon and a word on a <code>--scrim-strong</code> plate with a thin <code>--on-media</code> line, so it reads on any picture, bright snow or dark rooftops.</p>
+<div class="phone">
+  <div class="phone__screen stack" data-gap="4">
+    <div class="stack" data-gap="1">
+      <p class="t-label"><time datetime="2026-04-07">Apr 07, 2026</time></p>
+      <h3 class="t-title">Tomato stall, number 14</h3>
+    </div>
+    <figure class="media" data-ratio="3:2" data-caption="bar">
+      <div class="media__frame"><img src="@/assets/media/market.svg" alt="A market stall with crates of tomatoes under a red and cream awning" width="1200" height="900"><span class="media__badge"><span class="ic ic--star" aria-hidden="true"></span>Favourite</span></div>
+      <figcaption class="media__caption">
+        <span class="media__label">Saturday market</span>
+        <span class="media__meta">Shot a little before nine, before the crowd.</span>
+      </figcaption>
+    </figure>
+    <dl>
+      <div><dt>Film</dt><dd>Colour 400</dd></div>
+      <div><dt>Exposure</dt><dd>1/250 at f/4</dd></div>
+      <div><dt>Light</dt><dd>Open shade</dd></div>
+      <div><dt>Frame</dt><dd class="num">14 of 36</dd></div>
+    </dl>
+    <div data-role="actions">
+      <button class="btn" type="button">Share</button>
+      <button class="btn" data-variant="primary" type="button">Copy settings</button>
+    </div>
+  </div>
+</div>
+
+<h3 id="corners">Square and soft corners</h3>
+<p>The figure reads <code>--radius-tile</code>, so <code>data-corners</code> changes it with no code in the component. The picture is clipped by the frame, the caption strip by the same frame, and the figure’s own background is the frame’s colour, so no light hairline shows inside a soft corner between the frame and an ink caption bar.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-role="states">
+      <div data-corners="square">
+        <figure class="media" data-ratio="3:2" data-caption="bar"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__label">Line 28</span><span class="media__title">Tram to the hills</span></figcaption></figure>
+        <span class="t-meta">Square corners</span>
+      </div>
+      <div data-corners="soft">
+        <figure class="media" data-ratio="3:2" data-caption="bar"><div class="media__frame"><img src="@/assets/media/tram.svg" alt="A yellow tram on a grey street" width="1200" height="900"></div><figcaption class="media__caption"><span class="media__label">Line 28</span><span class="media__title">Tram to the hills</span></figcaption></figure>
+        <span class="t-meta">Soft corners</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Figure</strong> <code>.media</code>: a 2px frame in <code>--line</code>, <code>--radius-tile</code>, clipped. It is a size container, so it needs a width from its parent (a grid cell, a block), exactly like <a href="@/components/card.html">Card</a>.</li>
+  <li><strong>Frame</strong> <code>.media__frame</code>: the ratio box. The picture is placed absolutely inside it, so the ratio alone decides the height.</li>
+  <li><strong>Picture</strong>: an <code>img</code>, <code>video</code>, <code>canvas</code>, <code>svg</code> or <code>picture</code>. Always has <code>alt</code> (or is a <code>video</code> with captions).</li>
+  <li><strong>Badge</strong> <code>.media__badge</code> (optional): a pill label in the corner on a scrim plate.</li>
+  <li><strong>Status</strong> <code>.media__status</code>: loading or failed, centred over the frame. Hidden unless <code>data-state</code> is set.</li>
+  <li><strong>Caption</strong> <code>.media__caption</code> (optional): a <code>&lt;figcaption&gt;</code> with <code>.media__label</code> (uppercase, structure), <code>.media__title</code> and <code>.media__meta</code> (sentence case).</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Media attributes and properties</caption>
+  <thead><tr><th>Attribute</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="media"</code></td><td></td><td>On a <code>&lt;figure&gt;</code>. Parts: <code>__frame</code>, <code>__badge</code>, <code>__status</code>, <code>__note</code>, <code>__caption</code>, <code>__label</code>, <code>__title</code>, <code>__meta</code>, <code>__link</code>.</td></tr>
+    <tr><td><code>data-ratio</code></td><td><code>1:1</code>, <code>4:3</code> (default), <code>3:2</code>, <code>16:9</code>, <code>21:9</code>, <code>3:4</code>, <code>4:5</code>, <code>free</code></td><td>The frame’s shape. Also accepted on a carousel or filmstrip, where every slide inherits it. <code>--ratio</code> sets any other.</td></tr>
+    <tr><td><code>data-caption</code></td><td><code>plain</code> (default), <code>bar</code>, <code>over</code></td><td>Paper strip, ink bar, or scrim plate on the picture.</td></tr>
+    <tr><td><code>data-fit</code></td><td><code>cover</code> (default), <code>contain</code></td><td>Crop to fill, or show whole on a <code>--paper-2</code> mat.</td></tr>
+    <tr><td><code>--pos</code></td><td><code>50% 50%</code> (default)</td><td>Focal point of the crop (<code>object-position</code>), set on the <code>img</code>.</td></tr>
+    <tr><td><code>data-fill</code></td><td></td><td>Fill the height the parent gives it instead of using a ratio. Gallery tiles do this for you.</td></tr>
+    <tr><td><code>data-tone</code></td><td><code>1</code>…<code>6</code>, <code>ink</code>, <code>ok</code>…</td><td>Colour behind the picture while it loads, and the plain caption strip. Tones carry rhythm, never meaning.</td></tr>
+    <tr><td><code>data-link</code></td><td></td><td>The whole figure is one link (<code>.media__link</code> on the anchor). Lifts on hover and focus.</td></tr>
+    <tr><td><code>data-state</code></td><td><code>loading</code>, <code>failed</code></td><td>Set by <code>SG.media</code>, or write it yourself for a server-rendered error. <code>aria-busy</code> goes with <code>loading</code>.</td></tr>
+    <tr><td><code>data-<wbr>loading-text</code>, <code>data-failed-text</code>, <code>data-retry-text</code></td><td>text</td><td>Words for the status, for translated apps.</td></tr>
+    <tr><td><code>SG.media<wbr>.watch(img)</code></td><td></td><td>Look at an image again after you change its <code>src</code> from script.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Media keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>A plain figure is not a tab stop, because it does nothing. A <code>data-link</code> figure has one (its anchor); a failed one has one (Try again). The ring follows the figure, inside the frame where the frame clips.</td></tr>
+    <tr><td>Screen reader</td><td>"Figure, [caption]". The image is read with its <code>alt</code>. Loading is <code>aria-busy</code>; a failure is announced politely once.</td></tr>
+    <tr><td>Contrast</td><td>Caption text is <code>--ink</code> / <code>--ink-soft</code> on paper (7:1 and up), paper on ink in a bar (its softer second line measured at 8.4:1 in the worst theme and palette), <code>--on-media</code> on <code>--scrim-strong</code> over a photo (8.5:1 at worst). On a tone the tone’s own <code>--tone-ink</code> / <code>--tone-ink-soft</code> apply (the soft one is guaranteed 4.5:1, nearer 5 in the palest palettes). No text is ever placed on a bare photo.</td></tr>
+    <tr><td>Touch</td><td>A linked figure’s hit area is the whole figure. "Try again" is 36px drawn, 44px hit area.</td></tr>
+    <tr><td>Zoom / text size</td><td>Captions are rem and wrap between words (<code>overflow-wrap: break-word</code>). The insets around them and the status icon are chrome and stop at their 100% size, so at 200% text the words keep the room. A badge is chrome as a whole, its word included: it sits on the picture, and a plate that grew with the text would cover what the person came to see. Figures under 192px get a tighter caption through a container query; nothing clips at 200% text.</td></tr>
+    <tr><td>Reduced motion</td><td>No lift travel; the fill still changes. The picture fades in (opacity is safe). The loading ring pulses instead of spinning.</td></tr>
+    <tr><td>Forced colours</td><td>The frame becomes <code>CanvasText</code>. Scrims and fills are replaced by the system palette, so the over caption gets a 2px rule above it. A hovered or focused link figure gets a 4px <code>Highlight</code> outline.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-soft</code>, <code>--line</code>, <code>--scrim-strong</code>, <code>--on-media</code>, <code>--focus</code>, <code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-ink-soft</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--ring-offset-in</code>, <code>--radius-tile</code>, <code>--radius-pill</code>, <code>--ratio-media</code>, <code>--chrome-1</code>…<code>4</code>, <code>--chrome-ic</code>, <code>--type-label</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--fill</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--dur-enter</code>, <code>--ease-out</code>, <code>--move</code>, <code>--anim-spin</code>.</p>

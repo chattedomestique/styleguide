@@ -1,0 +1,76 @@
+<!--{"title":"Changelog","group":"Project","order":5,"summary":"What changed in each version: the owner's sheet, the re-foundation, and what has been added since."}-->
+<style>
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+</style>
+<h1>Changelog</h1>
+<p class="lede">Newest first. The number is typed once, in <code>package.json</code>; the two released entries follow <code>STYLE.md</code> section 8, which is where the owner's record lives.</p>
+
+<h2 id="unreleased">Unreleased</h2>
+<p>Added on top of 0.2.0 and not yet given a version number. Giving it one is the owner's call: bump <code>package.json</code>, then move this list under the new number. The steps are on <a href="@/start/upgrade.html#release">Upgrade</a>.</p>
+<ul>
+  <li><strong>A visual pass at phone size.</strong> Every element's demos were reviewed at 390px with 100% and with 200% text, and the elements were reworked against what the review found. The system gained rules for it (the reasons, and how to undo each, are on <a href="@/project/decisions.html#chrome-caps">Decisions</a>):
+    <ul>
+      <li><strong>Chrome caps.</strong> Words, and an icon inside a line of words, grow with the reader's text size; the insets of controls and containers, icon-only controls and their 44px targets, the slots that hold them and the frames of pictures stop at their 100% size (<code>--chrome-*</code>, on <a href="@/foundations/space.html#chrome">Space</a>).</li>
+      <li><strong>Selection states.</strong> A selection control keeps the solid fill for selected, on or current: hover and focus only raise it, a press tints it. Actions keep the owner's states (<a href="@/foundations/interaction.html#states">Interaction</a>).</li>
+      <li><strong>One-row bars.</strong> A bar or a row of controls never wraps raggedly: it stays one row or switches its whole layout, measured by <code>SG.fit</code> where CSS cannot know (<a href="@/foundations/layout.html#fit">Layout</a>).</li>
+      <li><strong>Words break only when they must.</strong> <code><span data-f="nw">overflow-wrap:</span> <span data-f="nw">break-word</span></code> everywhere; the lint fails <code>anywhere</code> (rule <code>wrap</code>), which had shattered words in flex rows. Running text uses <code><span data-f="nw">text-wrap:</span> pretty</code>, and numbers never break.</li>
+      <li><strong>Pills keep their ends.</strong> A button's radius is half its nominal height, so a label that wraps keeps the pill's shape.</li>
+      <li><strong>Checks and looks kept apart.</strong> The Status page now separates the automated checks from the screenshot review, which a person keeps in <code>docs-src/project/<wbr>visual-review.json</code>; <code>tests/<wbr>design.mjs</code> reports the signs of a broken-looking layout for that review (<a href="@/accessibility/testing.html#design">Testing</a>).</li>
+    </ul></li>
+  <li><strong>Fifty elements</strong>, each with a docs page and an interaction spec in <code>tests/<wbr>components/</code>. <a href="@/project/status.html">Status</a> says how far each one has got:
+    <ul>
+      <li><strong>Forms:</strong> <a href="@/components/field.html">Field</a>, <a href="@/components/input.html">Input</a>, <a href="@/components/select.html">Select</a>, <a href="@/components/choice.html">Choice</a>, <a href="@/components/switch.html">Switch</a>, <a href="@/components/slider.html">Slider</a>, <a href="@/components/stepper.html">Stepper</a>, <a href="@/components/keypad.html">Keypad</a>.</li>
+      <li><strong>Selection and navigation:</strong> <a href="@/components/tabs.html">Tabs</a>, <a href="@/components/chip.html">Chip</a>, <a href="@/components/segmented.html">Segmented control</a>, <a href="@/components/appbar.html">App bar</a>, <a href="@/components/dock.html">Dock</a>, <a href="@/components/breadcrumb.html">Breadcrumb</a>, <a href="@/components/pagination.html">Pagination</a>.</li>
+      <li><strong>Surfaces:</strong> <a href="@/components/tag.html">Tag</a>, <a href="@/components/avatar.html">Avatar</a>, <a href="@/components/divider.html">Divider</a>, <a href="@/components/accordion.html">Accordion</a>, <a href="@/components/tile.html">Tile</a>, <a href="@/components/list.html">List</a>, <a href="@/components/stat.html">Stat</a> (a recipe on Card, no CSS of its own).</li>
+      <li><strong>Overlays:</strong> <a href="@/components/dialog.html">Dialog</a>, <a href="@/components/sheet.html">Sheet</a>, <a href="@/components/menu.html">Menu</a>, <a href="@/components/popover.html">Popover</a>, <a href="@/components/tooltip.html">Tooltip</a>.</li>
+      <li><strong>Feedback:</strong> <a href="@/components/alert.html">Alert</a>, <a href="@/components/toast.html">Toast</a>, <a href="@/components/progress.html">Progress</a>, <a href="@/components/spinner.html">Spinner</a>, <a href="@/components/skeleton.html">Skeleton</a>, <a href="@/components/empty.html">Empty state</a>, <a href="@/components/marquee.html">Marquee</a>.</li>
+      <li><strong>Data:</strong> <a href="@/components/table.html">Table</a>, <a href="@/components/chart-bar.html">Bar chart</a>, <a href="@/components/sparkline.html">Sparkline</a>, <a href="@/components/donut.html">Donut chart</a>, <a href="@/components/legend.html">Legend</a>, <a href="@/components/calendar.html">Calendar</a>, <a href="@/components/agenda.html">Agenda</a>.</li>
+      <li><strong>Media and tools:</strong> <a href="@/components/media.html">Media</a>, <a href="@/components/carousel.html">Carousel</a>, <a href="@/components/filmstrip.html">Filmstrip</a>, <a href="@/components/gallery.html">Gallery</a>, <a href="@/components/toolbar.html">Toolbar</a>, <a href="@/components/scrubber.html">Scrubber</a>, <a href="@/components/swatch.html">Swatch</a>, <a href="@/components/timeline.html">Timeline</a>, <a href="@/components/player.html">Player</a>.</li>
+    </ul>
+  </li>
+  <li><strong>Foundations pages:</strong> <a href="@/foundations/color.html">Colour</a>, <a href="@/foundations/tones.html">Tones</a>, <a href="@/foundations/typography.html">Typography</a>, <a href="@/foundations/space.html">Space</a>, <a href="@/foundations/shape.html">Shape</a>, <a href="@/foundations/interaction.html">Interaction</a>, <a href="@/foundations/motion.html">Motion</a>, <a href="@/foundations/icons.html">Icons</a>, <a href="@/foundations/layout.html">Layout</a>.</li>
+  <li><strong>Start and Accessibility pages:</strong> <a href="@/start/install.html">Install</a>, <a href="@/start/customize.html">Customize</a>, <a href="@/start/upgrade.html">Upgrade</a>, <a href="@/start/pwa.html">PWA</a>, <a href="@/accessibility/checklist.html">Checklist</a>, <a href="@/accessibility/testing.html">Testing</a>, <a href="@/accessibility/manual.html">Manual</a> and <a href="@/accessibility/patterns.html">Patterns</a>.</li>
+  <li><strong>Project pages:</strong> <a href="@/project/status.html">Status</a>, <a href="@/project/decisions.html">Decisions</a>, <a href="@/project/references.html">References</a>, <a href="@/project/contributing.html">Contributing</a>, this changelog, and the <a href="@/project/audit.html">Audit</a>, which the build generates from <code>AUDIT.md</code> so the two cannot disagree.</li>
+  <li><strong>The build.</strong> Besides the everything bundle (<code>styleguide.css</code>, <code>styleguide.js</code>) it now writes <code>core.css</code> (tokens, base, layout, utilities), one file per element in <code>dist/elements/</code>, one file per script in <code>dist/js/</code>, minified scripts, and <code>dist/<wbr>elements/<wbr>manifest.json</code>, which says what each element builds on and which scripts it has. <code>dist/</code> and <code>docs/</code> are committed, and <code>npm run build:check</code> fails when they are stale.</li>
+  <li><strong>CI.</strong> <code>.github/<wbr>workflows/<wbr>ci.yml</code> runs the gate on every push to main and every pull request; see <a href="@/project/decisions.html#ci">Decisions</a>.</li>
+  <li><strong>The gate.</strong> A lint rule can be waived on one line with a written reason, <code>/* <span data-f="nw">lint-allow</span> rule: why */</code> (or for a whole file, <code>lint-allow-file</code>); every run lists the waivers it honoured, so an exception is allowed but never invisible. A private <code>--_x</code> property shared by a family of files (Input and Select) is a warning instead of an error. <code>opacity</code> is flagged only when it dims. Uppercase is judged by where it sits. Comments in scripts are ignored. <code>overflow</code> is no longer flagged by the lint: the accessibility gate measures what it can break, which is the focus ring's contrast and text cut off by a clipping frame.</li>
+  <li><strong>Foundation fixes.</strong> A palette block now starts from the default knobs, so an island that names a palette looks exactly like a page with that palette instead of inheriting the page's (a "sand" island in a mint page kept mint's accent); <code>npm run test:contrast</code> compares every island with a page of the same palette. Higher contrast reaches islands too: a palette inside a higher-contrast page keeps its 7:1 text, and <code>data-contrast="more"</code> works on any element, not only the page. <code>SG.prefs</code> keeps the look an app writes on <code>&lt;html&gt;</code>: choosing the guide's own default (<code>square</code>, <code>default</code>) over it is stored explicitly, <code>reset()</code> puts the app's attributes back, and <code>&lt;html data-sg-prefs-key="myapp:prefs"&gt;</code> keeps two apps on one origin apart.</li>
+  <li><strong>Docs.</strong> Plain tables stack into labelled rows on a phone (the build does it, with ARIA roles); tables that must scroll say so and are focusable only when they do. Page titles are sized from their column and no longer break inside a word. The overview has a start path and a generated index of every page. The Status page is generated from the gates: <code>npm run status</code>.</li>
+  <li><strong>Large text.</strong> A design review of every page found words broken letter by letter, wrapped controls turning into ovals, and cut-off times at 200% text. They are fixed in the elements (Button, Choice, Segmented, Dock, Tag, Toast, Agenda, Calendar, Scrubber, Marquee and others) and pinned by specs; forced <code>.is-focus</code> specimens now draw the same ring as real focus.</li>
+  <li><strong>The accessibility gate</strong> now proves a range input's ring by comparing pixels, understands transparent forced-colours outlines, opens exclusive <code>&lt;details&gt;</code> groups, and lets a demo that cuts text on purpose say so with <code>data-allow-clip</code>. <code>SG_JS=min npm run test:components</code> runs the specs against the minified bundle.</li>
+</ul>
+
+<h2 id="v0-2-0">0.2.0 · 2026-09-30</h2>
+<p>Re-founded on the Flashcards style sheet v0.1.</p>
+<ul>
+  <li>The colour engine: dark, higher contrast, six palettes, status tones, bold emphasis. Every pair is checked in a real browser by <code>npm run test:contrast</code>.</li>
+  <li>Motion is on (gate 4 is open for the guide; see <a href="@/project/decisions.html#motion">Decisions</a>).</li>
+  <li>Button, the reference element every other one copies.</li>
+  <li>The accessibility gate (<code>npm run test:a11y</code>) and the extended checker (<code>npm run lint</code>).</li>
+  <li>Card: <code>study</code> renamed <code>portrait</code> (the old name is kept as an alias); hover rules gated for touch; long words no longer clip at large text.</li>
+  <li>What the audit of the original sheet found, and what was done about each finding, is on the <a href="@/project/audit.html">Audit</a> page.</li>
+</ul>
+
+<h2 id="v0-1-0">0.1.0 · 2026-09-30</h2>
+<p>The owner's sheet, as they wrote it.</p>
+<ul>
+  <li>Foundations: type, space, line, shape, hit targets and motion.</li>
+  <li>The wireframe colour layer with six tone slots.</li>
+  <li>Card: ten variants, six states, two grids.</li>
+  <li>Gates 0 to 2 closed for Cards.</li>
+</ul>

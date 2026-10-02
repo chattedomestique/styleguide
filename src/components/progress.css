@@ -1,0 +1,453 @@
+/* ==========================================================================
+   Progress and Meter  (layer: sg.components)            behaviour: src/js/62-progress.js
+   --------------------------------------------------------------------------
+   Four ways to show "how far", sharing one set of rules and one look: a pill
+   frame, a flat fill, the value ALWAYS also written as text.
+
+     .progress        a task with a known length. The native <progress> inside a framed
+                      track, with a label and the value. Without [value] it is
+                      indeterminate: a segment slides (a pulse under reduced motion).
+     .meter           a scalar inside a known range (cards learned, storage used, budget).
+                      role="meter" + aria-valuemin / -max / -now. The element that replaces
+                      the wireframe kit's .wf-meter; Card's stat recipe uses it.
+     .progress-ring   one figure against a goal in a small space. role="progressbar" + SVG.
+     .progress-steps  "Step 2 of 4" as text, plus a segmented bar that only repeats it.
+
+   <div class="progress">
+     <div class="progress__head">
+       <label class="progress__label" for="up">Uploading photos</label>
+       <span class="progress__value num">68%</span>
+     </div>
+     <div class="progress__track"><progress class="progress__bar" id="up" value="68" max="100">68%</progress></div>
+     <p class="progress__hint">12 of 18 photos</p>
+   </div>
+
+   <div class="meter" role="meter" aria-label="Shapes learned" aria-valuemin="0" aria-valuemax="12"
+        aria-valuenow="5" aria-valuetext="5 of 12" style="--value: 41.6%"></div>
+
+   <div class="progress-ring" role="progressbar" aria-label="Daily goal" aria-valuenow="68"
+        aria-valuemin="0" aria-valuemax="100" style="--value: 68"> <svg …/> <span class="progress-ring__label">…</span> </div>
+
+   data-size      sm | (md) | lg      bar height 10 / 14 / 20px; ring 56 / 88 / 128px
+   data-tone      1…6 | ok | warn | bad | info | ink   fill = --tone-fill, track = --tone-bg.
+                  Inside a .card they need nothing: the fill is the card's ink and the track
+                  is the card's own fill (--card-ink / --card-bg), so a toned card just works.
+   --value        .meter, .progress__track: a percentage WITH the unit ("41.6%").
+                  .progress-ring: a bare number 0-100 (an SVG dash array cannot take a %).
+                  Keep it equal to aria-valuenow / max: SG.progress.set() does it for you.
+
+   WHY .meter IS NOT <meter>  The native element cannot take the flat fill inside a 2px pill
+   frame the same way in Blink, Gecko and WebKit (three different pseudo-element sets, none
+   reachable in forced colours), and the owner's .wf-meter was already this shape. The ARIA
+   role carries exactly what <meter> would: name, range, value and text. <progress> IS native,
+   because its two pseudo-elements are stable.
+
+   RULES THIS FILE ENFORCES
+   - The value is ALWAYS also text (WCAG 1.4.1): a label, a number, and length are three cues.
+   - Filled part vs unfilled part >= 3:1 (WCAG 1.4.11). The fill is ink (or the tone's dark
+     fill) on the track, which is the surface itself; tests/components/progress.mjs measures it.
+   - The track keeps its real 2px frame, so the whole length is visible too. The frame is drawn OVER
+     the fill (a pseudo-element with the border, on top): a fill clipped by the frame's inner curve let
+     a hairline of the track show inside the rounded ends of a full bar and of every filled step.
+   - Not pressable, so: no lift, no shadow. Motion is transform + opacity only, travel x --move.
+   - Forced colours: fills and tracks are given system colours (Highlight on Canvas).
+
+   LARGE TEXT AND NARROW COLUMNS (WCAG 1.4.4, 1.4.10)  Sizes are rem, so everything grows with text and
+   a card's frame (overflow: clip) then has less room than the ring or the value wants. Two things give
+   way instead of being cut off: the head wraps (the value drops under the label, as in Slider), and the
+   ring is capped at its container (max-inline-size: 100%, still square) with its figure sized against
+   the RING, never the page (clamp from a rem floor, so it never drops below the reader's text size).
+
+   PRIVATE PROPERTIES  --_h bar height · --_fill · --_track · --_frame · --_dir (1 | -1 in RTL)
+   ========================================================================== */
+
+@layer sg.components {
+  /* The segment is 40% of the track, so -100% .. 250% of ITSELF runs from fully off one end
+     to fully off the other. Every translate is multiplied by --move (0 under reduced motion);
+     the width then grows to the whole track and the opacity dip (scaled by the inverse of
+     --move) is the only thing that moves: each motion setting animates exactly one of them. */
+  @keyframes sg-progress-slide {
+    0%,
+    100% {
+      transform: translateX(calc(var(--_dir, 1) * var(--move, 1) * -100%));
+      opacity: calc(0.35 + 0.65 * var(--move, 1));
+    }
+    50% {
+      transform: translateX(calc(var(--_dir, 1) * var(--move, 1) * 75%));
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(calc(var(--_dir, 1) * var(--move, 1) * 250%));
+    }
+  }
+
+  /* ---- Shared private properties ------------------------------------------------------- */
+  :is(.progress, .progress-ring, .progress-steps, .meter) {
+    /* bar heights 14 / 10 / 20px: a track is chrome, it does not get easier to read at 200% text, it only
+       takes height from the words (the value is always written out beside it) */
+    --_h: min(0.875rem, 14px);
+    --_fill: var(--card-ink, var(--ink));
+    --_track: var(--card-bg, var(--paper));
+    --_frame: var(--card-ink, var(--line));
+    --_dir: 1;
+
+    &:dir(rtl) {
+      --_dir: -1;
+    }
+    &[data-size="sm"] {
+      --_h: min(0.625rem, 10px);
+    }
+    &[data-size="lg"] {
+      --_h: min(1.25rem, 20px);
+    }
+    /* a tone on the element itself (read here: --tone-* do not inherit) */
+    &[data-tone] {
+      --_fill: var(--tone-fill);
+      --_track: var(--tone-bg);
+      --_frame: var(--line);
+    }
+  }
+
+  /* ---- The framed pill: a track (.progress), the meter itself, a step segment -------------------
+     The pill clips the fill to its OUTER shape, and the 2px frame is a pseudo-element on top of both
+     (border-radius: inherit), so the fill runs under the frame to the very edge. Clipped by the frame's
+     inner curve instead, its antialiased edge let the track's own paper show through as a light hairline
+     arc inside each rounded end of a full bar, in light and dark. isolation keeps the frame's z-index
+     inside the pill. */
+  .progress__track,
+  .meter,
+  .progress-steps__bar > * {
+    position: relative;
+    display: block;
+    block-size: var(--_h);
+    border-radius: var(--radius-pill);
+    background: var(--_track);
+    overflow: clip;
+    isolation: isolate;
+    forced-color-adjust: none;
+  }
+  .progress__track::before,
+  .meter::after,
+  .progress-steps__bar > *::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: var(--bw) solid var(--_frame);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* ---- Linear: label left, value right, bar, hint -------------------------------------------- */
+  .progress {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+  /* The head is a label + value row, above a bar or a meter. At large text or in a narrow column the value
+     drops under the label: a flat row would squeeze the label to a letter per line. A dropped value is alone
+     on its line, and space-between puts a lone item at the START, under the label (the iOS large-text
+     pattern), never right-aligned under left-aligned words. A number never breaks inside itself.
+     GROUPS. The heads that share a parent switch together (62-progress.js measures them with SG.fit and
+     writes data-fit on the parent): "beside" keeps every value beside its label, on one line while it is
+     measured, so a head that does not fit shows as overflow; "under" drops every value under its label.
+     Without JS there is no data-fit and each head wraps on its own. */
+  .progress__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-3);
+    min-inline-size: 0; /* a grid item: its words must not widen the column (and the bar under it) */
+  }
+  [data-fit="beside"] > * > :is(.progress__head, .progress-steps__text) {
+    flex-wrap: nowrap;
+
+    > * {
+      flex: none; /* neither shrinks: a label squeezed under its words would overlap the value instead of overflowing */
+      white-space: nowrap;
+    }
+  }
+  [data-fit="under"] > * > :is(.progress__head, .progress-steps__text) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .progress__label {
+    min-inline-size: 0;
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    overflow-wrap: break-word;
+  }
+  .progress__value {
+    flex: none;
+    max-inline-size: 100%;
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    font-variant-numeric: tabular-nums lining-nums;
+    overflow-wrap: break-word; /* between words only: keep a number and its unit together with a no-break space ("5&nbsp;GB") */
+  }
+  .progress__hint {
+    font: var(--type-meta);
+    color: var(--card-ink-soft, var(--ink-soft));
+  }
+
+  /* A STATUS under a bar or a meter ("almost full", "the connection dropped") is an icon AND words, never
+     words with a colour, never a colour alone (WCAG 1.4.1): the icon's shape says which status, the words
+     say what it means, and a visually hidden status word in front says it to a screen reader. The words take
+     the status ink of a toned bar or meter (--warn-ink ...), and the icon sits beside their first line, the
+     way a field error does. */
+  .progress__status {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--chrome-2);
+    min-inline-size: 0;
+    margin: 0;
+    font: var(--type-meta);
+    font-weight: 600;
+    color: var(--card-ink-soft, var(--ink-soft));
+
+    > .ic {
+      --ic-size: 1.125rem;
+      flex: none;
+      margin-block-start: calc((1lh - var(--ic-size)) / 2);
+    }
+    > span:last-child {
+      min-inline-size: 0;
+      overflow-wrap: break-word;
+    }
+  }
+  /* the status ink of the bar's tone (a meter's tone is on the meter itself, so its status line follows it) */
+  :is(.progress[data-tone="ok"] .progress__status, .meter[data-tone="ok"] ~ .progress__status, .meter[data-tone="ok"] ~ .progress__foot > .progress__status) {
+    color: var(--ok-ink);
+  }
+  :is(.progress[data-tone="warn"] .progress__status, .meter[data-tone="warn"] ~ .progress__status, .meter[data-tone="warn"] ~ .progress__foot > .progress__status) {
+    color: var(--warn-ink);
+  }
+  :is(.progress[data-tone="bad"] .progress__status, .meter[data-tone="bad"] ~ .progress__status, .meter[data-tone="bad"] ~ .progress__foot > .progress__status) {
+    color: var(--bad-ink);
+  }
+  :is(.progress[data-tone="info"] .progress__status, .meter[data-tone="info"] ~ .progress__status, .meter[data-tone="info"] ~ .progress__foot > .progress__status) {
+    color: var(--info-ink);
+  }
+
+  /* The foot: a status and the ONE action that fixes it ("Try again"), on one row while both fit. When they
+     do not, the action drops under the words, at the start (a lone item on its line), never squeezing them. */
+  .progress__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--chrome-2) var(--space-3);
+
+    > .progress__status {
+      flex: 1 1 10rem;
+    }
+    > .btn {
+      flex: none;
+      max-inline-size: 100%;
+    }
+  }
+
+  /* the native bar fills the track; its pseudo-elements paint the fill */
+  .progress__bar {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: var(--_fill);
+    appearance: none;
+
+    &::-webkit-progress-bar {
+      background: transparent;
+    }
+    &::-webkit-progress-value {
+      background: var(--_fill);
+    }
+    &::-moz-progress-bar {
+      background: var(--_fill);
+    }
+  }
+
+  /* Indeterminate: no value attribute. The native element draws nothing, so the segment is the
+     track's ::after. Under reduced motion --move is 0: the segment stops travelling, grows to
+     the full track and only its opacity pulses. */
+  .progress__track:has(> .progress__bar:not([value]))::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: calc(40% + (1 - var(--move, 1)) * 60%);
+    background: var(--_fill);
+    animation: sg-progress-slide calc(1.4s + (1 - var(--move, 1)) * 0.4s) linear infinite;
+  }
+
+  /* ---- Meter: the same pill, with a fill from --value ------------------------------------------ */
+  .meter::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: var(--value, 0%);
+    background: var(--_fill);
+  }
+
+  /* ---- Ring ---------------------------------------------------------------------------------- */
+  .progress-ring {
+    --_d: 5.5rem;
+    --_fs: var(--text-lg);
+    --_fr: 0.23; /* figure size as a fraction of the ring's width at its natural size (20 / 88) */
+
+    container: progress-ring / inline-size; /* the figure sizes itself against the ring, not the page */
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    inline-size: var(--_d);
+    max-inline-size: 100%; /* a ring wider than its card is cut off by the card's frame: it gives way instead, and stays round */
+    aspect-ratio: 1;
+
+    &[data-size="sm"] {
+      --_d: 3.5rem;
+      --_fs: var(--text-sm);
+      --_fr: 0.25; /* 14 / 56 */
+    }
+    &[data-size="lg"] {
+      --_d: 8rem;
+      --_fs: var(--text-2xl);
+      --_fr: 0.41; /* 52 / 128, the widest --text-2xl gets */
+    }
+
+    > svg {
+      position: absolute;
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100%;
+      transform: rotate(-90deg); /* 12 o'clock; static, not an animation */
+      overflow: visible;
+    }
+  }
+  .progress-ring__track,
+  .progress-ring__arc {
+    fill: none;
+    /* lint-allow line: SVG geometry in viewBox units (of a 36 box); it scales with the ring */
+    stroke-width: 4; /* of a 36 box: the ring is as heavy as the bold figure inside it */
+  }
+  .progress-ring__track {
+    stroke: color-mix(in srgb, var(--_fill) 26%, var(--card-bg, var(--canvas)));
+  }
+  .progress-ring__arc {
+    stroke: var(--_fill);
+    stroke-dasharray: var(--value, 0) 100; /* the svg circles use pathLength="100" */
+  }
+  .progress-ring[aria-valuenow="0"] .progress-ring__arc {
+    visibility: hidden; /* a zero-length dash may still paint a hairline in some engines */
+  }
+  .progress-ring__label {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    padding: 14%;
+    text-align: center;
+  }
+  .progress-ring__num {
+    font: var(--type-figure);
+    /* --_fs while the ring is its natural size (--_fr is chosen so the middle value never bites there);
+       once the ring is squeezed the figure follows its width, so it stays inside the stroke.
+       The floor is rem, so the figure never falls below the reader's own text size. */
+    font-size: clamp(0.875rem, calc(var(--_fr) * 100cqi), var(--_fs));
+    letter-spacing: var(--ls-figure);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .progress-ring__cap {
+    font: var(--type-meta);
+    font-size: var(--text-xs);
+    line-height: var(--lh-tight);
+    color: var(--card-ink-soft, var(--ink-soft));
+  }
+  .progress-ring[data-size="sm"] .progress-ring__cap {
+    display: none;
+  }
+
+  /* ---- Steps: "Step 2 of 4" + a segmented bar ------------------------------------------------------
+     The text is the real content. The segments are aria-hidden and repeat it at a glance:
+     done = full, the current step = HALF (a shape difference, not a shade), the rest empty. */
+  .progress-steps {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+  .progress-steps__text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+    min-inline-size: 0;
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .progress-steps__name {
+    font-weight: 400;
+    color: var(--card-ink-soft, var(--ink-soft));
+  }
+  .progress-steps__bar {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+  .progress-steps__bar > * {
+    --_seg: 0%;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inline-size: var(--_seg);
+      background: var(--_fill);
+    }
+    &[data-state="done"] {
+      --_seg: 100%;
+    }
+    &[data-state="current"] {
+      --_seg: 50%;
+    }
+  }
+
+  /* ---- Forced colours ------------------------------------------------------------------------------
+     The user's palette replaces fills, so name every part: Highlight on Canvas keeps the fill and
+     the track apart, and the always-present text carries the value. */
+  @media (forced-colors: active) {
+    .progress__track,
+    .meter,
+    .progress-steps__bar > * {
+      background: Canvas;
+    }
+    .progress__track::before,
+    .meter::after,
+    .progress-steps__bar > *::after {
+      border-color: CanvasText;
+    }
+    .progress__track:has(> .progress__bar:not([value]))::after,
+    .meter::before,
+    .progress-steps__bar > *::before {
+      background: Highlight;
+    }
+    /* one rule per engine: an unknown pseudo-element would drop a whole selector list */
+    .progress__bar::-webkit-progress-value {
+      background: Highlight;
+    }
+    .progress__bar::-moz-progress-bar {
+      background: Highlight;
+    }
+    .progress-ring__track {
+      stroke: GrayText;
+    }
+    .progress-ring__arc {
+      stroke: Highlight;
+    }
+  }
+}

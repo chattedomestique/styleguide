@@ -1,0 +1,183 @@
+<!--{"title":"Manual","group":"Accessibility","order":3,"summary":"The real-device pass no tool can make: iPhone VoiceOver, Android TalkBack, Dynamic Type and font scale, 400% zoom and text spacing, Windows High Contrast, Voice and Switch Control. Scripts, what a pass looks like, and what is not verified."}-->
+<style>
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+</style>
+<h1>Manual testing</h1>
+<p class="lede">The checks that need a person and a device. Every automated test in this repository runs in Chromium on Linux; none has seen a phone, a screen reader or Windows High Contrast. This page is the script for that pass.</p>
+
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div><strong>Nobody has run these scripts</strong><p>Every line below is a script, not a result. Nothing on this page has been verified on a device, and nothing in the guide's claims about Safari, VoiceOver, TalkBack, NVDA, Dynamic Type, Android font scale or Windows High Contrast has been observed. <a href="#unverified">The list of what that covers</a> is at the end. Menu names and gestures change between operating system versions; if a path below is gone, find it in the platform's own help.</p></div>
+</div>
+
+<h2 id="prepare">Before you start</h2>
+<ul>
+  <li><strong>Get the page onto the device.</strong> <code>npm run serve</code> listens on 127.0.0.1 only, so a phone cannot reach it. Put <code>docs/</code> on GitHub Pages (it is served as it is), or use a tunnel or any static host that answers on your network. A service worker and installing need HTTPS (or <code>localhost</code>); everything else works over plain http on a local network.</li>
+  <li><strong>Choose the pages.</strong> Test the screens of your app. To test the guide itself, use the element pages named in each step; the keys and announcements they should give are on <a href="@/accessibility/patterns.html">Patterns</a> and in the Accessibility table of each element's page.</li>
+  <li><strong>Record as you go.</strong> Device and OS version, browser, assistive technology, date, page, pass or fail, and what you heard or saw. <a href="#record">A sheet is at the end</a>.</li>
+  <li><strong>Read "Pass looks like" as a description, not a script.</strong> Screen readers word things differently between versions and languages. What must be conveyed is the <em>name</em>, the <em>role</em>, the <em>state</em> and the <em>position</em>; the exact phrase is not the test.</li>
+</ul>
+
+<h2 id="ios">iPhone: VoiceOver in Safari</h2>
+<p><strong>Set up.</strong> <em>Settings</em>, <em>Accessibility</em>, <em>VoiceOver</em>; or set the Accessibility Shortcut (triple-click the side button) to VoiceOver so you can switch it on and off. Open the page in Safari. Learn five gestures: swipe right or left to move to the next or previous item; double-tap to activate; two-finger swipe up to read from the top; turn two fingers like a dial to change the rotor (Headings, Links, Form controls…) and swipe up or down to move by that unit; a two-finger scrub, a Z shape, to go back or close.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The VoiceOver script for an iPhone in Safari</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Step">1. Skip link</td><td role="cell" data-label="Do">Load the page and swipe right once.</td><td role="cell" data-label="Pass looks like">The first item is the skip link. Activating it moves to the main content; the next swipe is the first thing in <code>&lt;main&gt;</code>.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. Structure</td><td role="cell" data-label="Do">Set the rotor to <em>Headings</em> and swipe down through the page; then to <em>Landmarks</em>.</td><td role="cell" data-label="Pass looks like">Headings come in order with no skipped level and each says what follows; there is a main landmark, a navigation landmark per nav with its own name.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">3. Buttons and icon buttons</td><td role="cell" data-label="Do">Swipe to a <a href="@/components/button.html">Button</a> with text, one with only an icon, a toggle and a busy or unavailable one.</td><td role="cell" data-label="Pass looks like">Each says its <em>name</em> and that it is a button. The icon button says the action ("Add task"), not "plus". A toggle says it is on or off and keeps the same name in both. An unavailable button is still reachable and says so, with its reason readable.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">4. Links</td><td role="cell" data-label="Do">Open the rotor to <em>Links</em> and swipe through them.</td><td role="cell" data-label="Pass looks like">Every link makes sense out of context. The current page is announced as current in a nav.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">5. A form</td><td role="cell" data-label="Do">On a <a href="@/components/field.html">Field</a> page, swipe through a labelled field, a hint, then submit it empty.</td><td role="cell" data-label="Pass looks like">Label, role and hint are read with the field; a required field says so. After a failed submit focus moves to the error summary and its heading and entries are spoken; activating an entry focuses the field; an inline error is read when the field is focused.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">6. A dialog</td><td role="cell" data-label="Do">Open a <a href="@/components/dialog.html">Dialog</a>; swipe around; then close it with the Z scrub and with its button.</td><td role="cell" data-label="Pass looks like">On opening, VoiceOver lands inside and announces its title as a dialog. Swiping never reaches the page behind. Closing returns to the control that opened it.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">7. A toast</td><td role="cell" data-label="Do">Trigger a <a href="@/components/toast.html">Toast</a>, then one with an action, without touching the screen.</td><td role="cell" data-label="Pass looks like">The message is spoken once, without focus moving. An action toast says that the action is available and where to find it. An error is spoken at once.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">8. Tabs and selection</td><td role="cell" data-label="Do">On <a href="@/components/tabs.html">Tabs</a>, <a href="@/components/chip.html">Chip</a> and <a href="@/components/segmented.html">Segmented control</a>: swipe and double-tap.</td><td role="cell" data-label="Pass looks like">A tab says its position ("1 of 3") and whether it is selected; activating one shows its panel. A filter chip says whether it is pressed; a choice says its position in the group. The announced state matches what you see.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">9. A menu and a sheet</td><td role="cell" data-label="Do">Open a <a href="@/components/menu.html">Menu</a> and a <a href="@/components/sheet.html">Sheet</a>.</td><td role="cell" data-label="Pass looks like">The menu button says it is collapsed or expanded; items say "menu item" and their position; a checked item says so. A modal sheet traps the swipe inside it and has a Close you can reach.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">10. Status and loading</td><td role="cell" data-label="Do">Trigger a <a href="@/components/skeleton.html">Skeleton</a> load, a <a href="@/components/progress.html">Progress</a> bar and a filter that changes a count.</td><td role="cell" data-label="Pass looks like">The loaded content is announced once; progress announces milestones, not every tick; a changed count is spoken by the live region without moving focus.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">11. Charts and tables</td><td role="cell" data-label="Do">Swipe through a <a href="@/components/chart-bar.html">Bar chart</a>, a <a href="@/components/sparkline.html">Sparkline</a> and a <a href="@/components/table.html">Table</a>.</td><td role="cell" data-label="Pass looks like">A static chart is one image with a sentence that carries the point, and its data is a table you can reach. A table says its size; headers are read with cells; a sort says the new order.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">12. Media and carousels</td><td role="cell" data-label="Do">Open a <a href="@/components/carousel.html">Carousel</a> and a <a href="@/components/marquee.html">Marquee</a>.</td><td role="cell" data-label="Pass looks like">Slides say "n of N". The carousel does not advance by itself. The ticker has a Pause you can reach before its moving text and is not read out as it scrolls.</td></tr>
+  </tbody>
+</table></div>
+<p><strong>Safari-specific things to look for.</strong> Reset lists keep their list role (<code>role="list"</code>), because Safari drops list semantics when <code>list-style</code> is <code>none</code>. The stretched link on a link card leaves a 2&nbsp;px band at the very edge where a tap does nothing (Safari ignores <code>overflow-clip-margin</code>). Nothing zooms when a field is focused (inputs are 16&nbsp;px). <code>dvh</code> full-height layouts do not hide content behind the toolbar. The inset focus ring in soft corners is clipped by the curve. All of these are expected from the source; none was seen.</p>
+
+<h2 id="ios-pwa">iPhone: the installed app</h2>
+<p>For an app on the <a href="@/start/pwa.html">PWA page</a>'s recipe. In Safari: <em>Share</em>, <em>Add to Home Screen</em>. Then open it from the Home Screen.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The installed-app script for an iPhone</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Step">1. The icon and the name</td><td role="cell" data-label="Do">Look at the Home Screen.</td><td role="cell" data-label="Pass looks like">The icon is the 180 px touch icon, not a screenshot; the name is the short name, not cut off.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. The top strip and the page background</td><td role="cell" data-label="Do">Open the app in light, then dark (set the look in your settings or the system), then back to light.</td><td role="cell" data-label="Pass looks like">The strip above the page matches the canvas, with no band of another colour. If it does not update, note that (WebKit bug 301994: the colour is reported to change only on relaunch).</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">3. Safe areas</td><td role="cell" data-label="Do">Hold the phone in portrait, then landscape, with a sticky bar and a dock on screen.</td><td role="cell" data-label="Pass looks like">Nothing is under the notch, the Dynamic Island or the home indicator; landscape side insets are respected; the bar and dock keep their controls reachable. The page must still work if the top inset reads 0.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">4. No browser chrome</td><td role="cell" data-label="Do">Go two screens deep, then look for a way back and a way to refresh.</td><td role="cell" data-label="Pass looks like">Both exist in the app, with no reliance on an edge swipe.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">5. Offline</td><td role="cell" data-label="Do">Turn on Airplane Mode, then open the app; then reload from inside it.</td><td role="cell" data-label="Pass looks like">The shell loads with its font and icons. The offline banner appears and is announced once; a screen that needs the network says so and keeps what was typed. Coming back shows "Back online".</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">6. An update</td><td role="cell" data-label="Do">Deploy a new version, open the app, leave and return to it.</td><td role="cell" data-label="Pass looks like">The "new version ready" toast appears; pressing Reload loads the new files exactly once.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">7. The keyboard</td><td role="cell" data-label="Do">Focus a field near the bottom.</td><td role="cell" data-label="Pass looks like">The field stays visible above the keyboard and is not zoomed in on.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="android">Android: TalkBack in Chrome and installed</h2>
+<p><strong>Set up.</strong> <em>Settings</em>, <em>Accessibility</em>, <em>TalkBack</em>. Gestures: swipe right or left to move to the next or previous item; double-tap to activate; two-finger swipe to scroll; change the reading control (headings, links, controls) from TalkBack's menu or with a swipe up and down. Repeat the VoiceOver table above with TalkBack, then:</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The extra script for Android with TalkBack</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Step">1. Install from Chrome</td><td role="cell" data-label="Do">Wait for the install offer (it needs a manifest, and a click and some time on the page), or use the browser's menu; install; open from the launcher.</td><td role="cell" data-label="Pass looks like">It opens without the browser bar, with the theme colour in the title bar. Whether Chrome minted a full app (a WebAPK) is worth noting.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. The maskable icon</td><td role="cell" data-label="Do">Look at the launcher, in each icon shape the launcher offers.</td><td role="cell" data-label="Pass looks like">The mark is never cropped; the background reaches every edge.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">3. Back</td><td role="cell" data-label="Do">Use the system back gesture or button after going two screens deep.</td><td role="cell" data-label="Pass looks like">It goes back inside the app, never out of it unexpectedly, and the screen you return to is the one you left.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">4. Edge gestures</td><td role="cell" data-label="Do">Try every control that sits near a screen edge, with gesture navigation on.</td><td role="cell" data-label="Pass looks like">Nothing needs a swipe that the system also uses.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">5. Focus and the keyboard</td><td role="cell" data-label="Do">Swipe to a field, open the keyboard, and swipe on.</td><td role="cell" data-label="Pass looks like">The field stays visible (Chrome resizes the layout when the keyboard opens because the viewport says so).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="dynamic">Dynamic Type and font scale</h2>
+<p>The guide sets the words in <code>rem</code> so that they follow the browser's text size, and stops the chrome around them (insets, icon-only controls, targets) at its 100% size, as the platforms' own apps do (<a href="@/foundations/space.html#chrome">chrome caps</a>). Whether <em>the operating system's</em> text size reaches a web page is exactly what nobody has checked: iOS Safari only follows Dynamic Type through a <code>font: -apple-system-body</code> rule that is in the base layer but <strong>unverified on a device</strong>, and Chrome on Android follows it only with <code>&lt;meta name="text-scale" content="scale"&gt;</code> (Chrome and Edge 146 and later), which is an optional head line. This is the first test to run.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The text size script for iPhone and Android</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Step">1. iPhone: does it follow?</td><td role="cell" data-label="Do"><em>Settings</em>, <em>Accessibility</em>, <em>Display &amp; Text Size</em>, <em>Larger Text</em>. Turn on <em>Larger Accessibility Sizes</em>, drag the slider one notch at a time to the largest, and reload the page in Safari each time.</td><td role="cell" data-label="Pass looks like">Body text changes with the slider. <strong>If it does not</strong>, the Dynamic Type rule is not working for this page: note the iOS version and see <a href="@/start/customize.html#off">Customize</a> for the escape hatch. Repeat in the installed app.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. iPhone: the largest size</td><td role="cell" data-label="Do">At the largest size, walk the main screens.</td><td role="cell" data-label="Pass looks like">No text is cut off, nothing overlaps, no sideways scroll; buttons grow rather than clip, with each icon beside its label; a bar keeps its controls on one row while its title takes two or three lines; the dock keeps one row and drops to icons when its labels do not fit; no word breaks inside unless it alone is wider than the screen; the focused control is not hidden behind a bar.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">3. Android: does it follow?</td><td role="cell" data-label="Do"><em>Settings</em>, <em>Accessibility</em> (or <em>Display</em>), <em>Font size</em> to the largest, and <em>Display size</em> to the largest. Load the page with and without the <code>text-scale</code> meta.</td><td role="cell" data-label="Pass looks like">With the meta, text follows the setting in Chrome 146 or later; without it, only the browser's own text size applies. Note the versions. Layouts that still use <code>px</code> may scroll sideways with the meta on.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">4. Android: the largest size</td><td role="cell" data-label="Do">Walk the main screens.</td><td role="cell" data-label="Pass looks like">The same as step 2.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">5. Mid sizes</td><td role="cell" data-label="Do">Repeat at the size one notch above default.</td><td role="cell" data-label="Pass looks like">Nothing is clipped. Most bugs are not at the extreme.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="zoom">400% zoom and text spacing</h2>
+<p><strong>400% zoom.</strong> Open a desktop browser window 1280&nbsp;px wide and 1024&nbsp;px tall and zoom to 400%: the page now has 320&nbsp;×&nbsp;256 CSS pixels (WCAG 1.4.10). The 320 is the width that content must reflow to; the 256 is the height that content scrolling sideways must still fit. A window shorter than 1024&nbsp;px gives an even shorter viewport, which is a harsher test. On an iPhone, pinch-zoom a page. The gate proves the 320&nbsp;px case; the rest is yours.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The zoom script</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Step">1. 400% in a 1280 × 1024 window</td><td role="cell" data-label="Do">Zoom the page to 400% and scroll the whole page.</td><td role="cell" data-label="Pass looks like">There is no sideways scroll except inside a table, a code block or a scroller that has a label. No content or function is missing.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. Only 256 px tall</td><td role="cell" data-label="Do">At the same 400%, open a dialog, a sheet and a menu.</td><td role="cell" data-label="Pass looks like">Each fits or scrolls inside itself, and its close control is reachable. A floating dock stops floating on very short screens.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">3. Pinch zoom</td><td role="cell" data-label="Do">On a phone, pinch-zoom the page and a dialog.</td><td role="cell" data-label="Pass looks like">Zoom works everywhere; nothing blocks it (<code>touch-action</code> is limited to the control).</td></tr>
+  </tbody>
+</table></div>
+<h3 id="spacing">Text spacing (WCAG 1.4.12)</h3>
+<p>Paste this into the console on a page. It sets the four values of the criterion: line height 1.5, paragraph spacing 2× the font size, letter spacing 0.12em and word spacing 0.16em.</p>
+<pre aria-label="Console snippet that applies the WCAG text spacing values">document.head.insertAdjacentHTML('beforeend',
+  '&lt;style id=&quot;ts&quot;&gt;*{line-height:1.5!important;letter-spacing:.12em!important;word-spacing:.16em!important}p{margin-block-end:2em!important}&lt;/style&gt;')</pre>
+<p><strong>Pass looks like:</strong> no text is cut off, no two lines overlap, nothing scrolls sideways, every label is still whole. The snippet was run on the Button and Card pages and on this site's own pages at 390&nbsp;px wide with every disclosure open, and the gate's clipped-text probe found nothing cut off and no sideways scroll. That is a start, not a test of your screens.</p>
+
+<h2 id="hc">Windows High Contrast and forced colours</h2>
+<p><strong>Set up.</strong> <em>Settings</em>, <em>Accessibility</em>, <em>Contrast themes</em>, pick a theme (the shortcut is Left Alt + Left Shift + Print Screen); or use forced colours in Firefox. Test in Edge or Chrome and in Firefox. The gate's forced-colours appearance emulates this in Chromium with the default system colours only.</p>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The forced colours script</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Step">1. Borders</td><td role="cell" data-label="Do">Look at every card, control, input and tile.</td><td role="cell" data-label="Pass looks like">Every one has a visible edge, although fills and shadows are gone.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. Focus</td><td role="cell" data-label="Do">Tab through a page.</td><td role="cell" data-label="Pass looks like">The ring is a heavy outline in the theme's highlight colour, on every control.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">3. State</td><td role="cell" data-label="Do">Look at a selected tab, an on toggle, a current page, a checked box, a hovered and a pressed button.</td><td role="cell" data-label="Pass looks like">Each is told from its neighbours by a heavier frame, a mark or an outline, not by a fill. Selected does not shift the layout.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">4. Icons</td><td role="cell" data-label="Do">Look at icons on a plain control and on a filled or selected one.</td><td role="cell" data-label="Pass looks like">Icons are drawn in the system text colour. Check that one on a highlighted fill is still visible.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">5. Disabled and unavailable</td><td role="cell" data-label="Do">Find a disabled button and an <code>aria-disabled</code> one.</td><td role="cell" data-label="Pass looks like">Both read as unavailable (grey text, dashed edge) and differ from enabled ones.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">6. Charts and patterns</td><td role="cell" data-label="Do">Open a <a href="@/components/donut.html">Donut</a> and a <a href="@/components/chart-bar.html">Bar chart</a>.</td><td role="cell" data-label="Pass looks like">Sectors and bars still differ by pattern.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="voice">Voice Control, Switch Control and keyboards</h2>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The script for voice, switch and keyboard input</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Step">1. Voice Control</td><td role="cell" data-label="Do">iPhone: <em>Settings</em>, <em>Accessibility</em>, <em>Voice Control</em>. Say "tap" and a button's <em>visible</em> label; then "show numbers".</td><td role="cell" data-label="Pass looks like">Saying the visible words works for every control that has visible text (WCAG 2.5.3). An icon-only control works by its <code>aria-label</code> or by number.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. Switch Control or Switch Access</td><td role="cell" data-label="Do">Turn on Switch Control (iPhone) or Switch Access (Android) with a single switch, and scan a page.</td><td role="cell" data-label="Pass looks like">Everything you can tap is reachable in a sensible order; nothing needs a drag or a pinch; the scan does not stall on a hidden control.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">3. Keyboard only, desktop</td><td role="cell" data-label="Do">Unplug the mouse. Tab through a page, then use the keys in <a href="@/accessibility/patterns.html">Patterns</a> on each element.</td><td role="cell" data-label="Pass looks like">The skip link is first; order follows the visual order; nothing is a trap; <kbd>Esc</kbd> closes every overlay and returns focus to its trigger; focus is never hidden behind a sticky bar; the ring is visible on every control.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">4. NVDA with Firefox or Chrome</td><td role="cell" data-label="Do">Start NVDA. Move through a page with the arrow keys, then with <kbd>H</kbd> for headings, <kbd>D</kbd> for landmarks and <kbd>Tab</kbd> for controls. Try a dialog and a tab list in both browse and focus mode.</td><td role="cell" data-label="Pass looks like">Widgets with a role (tabs, menu, dialog) announce their role, name and state, and their keys work; nothing important is read twice; live messages are spoken.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="prefs">Preferences and conditions</h2>
+<div class="table-wrap"><table class="docs-table" data-stack role="table">
+  <caption class="sr-only">The script for operating system preferences and conditions</caption>
+  <thead role="rowgroup" data-allow-clip><tr role="row"><th role="columnheader">Step</th><th role="columnheader">Do</th><th role="columnheader">Pass looks like</th></tr></thead>
+  <tbody role="rowgroup">
+    <tr role="row"><td role="cell" data-label="Step">1. Reduce Motion</td><td role="cell" data-label="Do">iPhone: <em>Accessibility</em>, <em>Motion</em>, <em>Reduce Motion</em>. Android: <em>Accessibility</em>, <em>Remove animations</em>.</td><td role="cell" data-label="Pass looks like">Travel goes; fades stay; nothing is instant; spinners pulse. Pressing still gives feedback.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">2. Increase Contrast</td><td role="cell" data-label="Do">iPhone: <em>Display &amp; Text Size</em>, <em>Increase Contrast</em>.</td><td role="cell" data-label="Pass looks like">Whether Safari maps it to <code>prefers-contrast: more</code> is not known: note whether text and frames get stronger.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">3. Dark and light</td><td role="cell" data-label="Do">Switch the system appearance while the page is open.</td><td role="cell" data-label="Pass looks like">The page follows without a flash; native controls follow; the toolbar colour follows.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">4. Invert colours and colour correction</td><td role="cell" data-label="Do">Turn on Smart Invert (iPhone) or colour inversion and correction (Android).</td><td role="cell" data-label="Pass looks like">Nothing relies on colour alone; photos are not turned to negatives where it matters.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">5. Landscape and right-to-left</td><td role="cell" data-label="Do">Rotate the phone; set a right-to-left language or add <code>dir="rtl"</code> to <code>&lt;html&gt;</code>.</td><td role="cell" data-label="Pass looks like">Layouts hold in landscape with side insets. In right-to-left, arrows point the way they go, rows mirror and arrow keys are mirrored.</td></tr>
+    <tr role="row"><td role="cell" data-label="Step">6. Thumb reach and daylight</td><td role="cell" data-label="Do">Use the primary actions one-handed outdoors or at full brightness.</td><td role="cell" data-label="Pass looks like">The main actions sit in reach and the frames, not the fills, carry the edges in glare.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="unverified">What is not verified</h2>
+<p>Everything on this page is unverified by definition. Specifically, these claims in the guide rest on source and on Chromium alone:</p>
+<ul>
+  <li><strong>iOS:</strong> Dynamic Type through <code>-apple-system-body</code>; safe areas in an installed app and the status strip (WebKit 301994); <code>apple-mobile-web-app-status-bar-style</code>; the 16&nbsp;px input rule; <code>overflow-clip-margin</code> on the link card; every VoiceOver announcement in the element tables.</li>
+  <li><strong>Android:</strong> <code>text-scale</code>; font scale up to 200%; TalkBack announcements; the maskable icon on real launchers; WebAPK installs.</li>
+  <li><strong>Windows:</strong> High Contrast themes beyond Chromium's emulation of the default colours; NVDA and JAWS announcements.</li>
+  <li><strong>Browsers:</strong> Firefox and Safari for everything, including the features that need a 2024-era browser (container queries, <code>:has()</code>, <code>@property</code>, <code>color-mix()</code>, cascade layers, <code>light-dark()</code>).</li>
+  <li><strong>People:</strong> nobody who uses a screen reader, a switch or Voice Control every day has used the guide.</li>
+</ul>
+
+<h2 id="record">A record sheet</h2>
+<p>Copy this table into your release notes and fill one row per line you ran. Write the result as pass, fail or not run. It stays a table at every width, so it pastes as a table; on a phone, scroll it sideways.</p>
+<div class="table-wrap"><table class="docs-table rec-sheet">
+  <caption class="sr-only">A blank record sheet for a manual pass</caption>
+  <thead><tr><th>Device and OS</th><th>Browser or app</th><th>Assistive technology</th><th>Script and step</th><th>Result</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  </tbody>
+</table></div>
+<style>
+/* Docs-only: a sheet you copy stays a table (no stacking), with blank rows tall enough to write in. */
+.rec-sheet td { block-size: 2.75rem; }
+</style>

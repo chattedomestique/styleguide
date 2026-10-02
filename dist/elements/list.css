@@ -1,0 +1,493 @@
+/*! styleguide v0.2.0 - element: list. Needs core.css. Generated from src/components/list.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   List  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Rows, ruled by 1px lines: a settings screen, a transaction history, a list of
+   decks. And the key / value grid (<dl class="kv">) for facts about one thing.
+   Both are flat containers: rectangles hold, so nothing here lifts or casts a
+   shadow. A row you can press tints instead (hover), and inverts when it is the
+   current one.
+
+   <ul class="list" role="list">
+     <li>
+       <a class="list__row" href="/settings/language">
+         <span class="list__main"><span class="list__title">Language</span></span>
+         <span class="list__trail">
+           <span class="list__value">English</span>
+           <span class="list__chevron" aria-hidden="true"></span>
+         </span>
+       </a>
+     </li>
+     <li>
+       <div class="list__row">                                   a row that is only information
+         <span class="list__lead"><span class="avatar" aria-hidden="true">MO</span></span>
+         <span class="list__main">
+           <span class="list__title">Maya Okafor</span>
+           <span class="list__meta" data-facts><span>Owner</span> <span>joined March</span></span>
+         </span>
+         <span class="list__trail"><span class="tag" data-tone="ok">Synced</span></span>
+       </div>
+     </li>
+   </ul>
+
+   <dl class="kv">
+     <div><dt>Brightness</dt><dd>−24.0</dd></div> …
+   </dl>
+
+   PARTS   .list__lead   icon, avatar or a square tile (data-shape="tile" + data-tone)
+           .list__main   .list__title (600) and .list__meta (soft ink; data-facts and one <span> per fact
+                         draws the dots between facts, and never at the start or end of a line: see FACTS)
+           .list__trail  a value, a tag, a chevron, or ONE control (a button)
+   data-variant  on .list:   framed (a 2px frame and the card radius, for a stand-alone group; the frame is
+                             painted over the rows, so an inverted row under a soft corner shows no seam)
+   data-layout   on .kv:     grid (default: cells wrap to fit) | rows (ruled, key left and value right)
+   data-fit      on .list:   row | stack, written by src/js/46-list.js (see REFLOW); not an API
+
+   ONE CONTROL PER ROW. Either the whole row is the control (an <a>, <button> or <label>) and its
+   trail is only decoration (a value, a chevron), or the row is static and its trail holds one control.
+   Never a control inside a control. A row with two actions is two rows, or a row that opens a page.
+
+   STATES come from ARIA and native attributes:
+     :hover / :focus-visible   tint (8% of the text colour); the ring is drawn INSIDE the row
+     :active                   a deeper tint
+     aria-current / aria-pressed="true"   inverted (text colour as fill) AND a check AND bold title;
+                               the check takes the chevron's place
+     aria-disabled="true"      faint ink, blocked
+   Only --fill is set; there is no --lift, because a row lives inside a frame and does not raise.
+   This is the model for every selection control in the guide: a tint says "you are on it", only
+   the current one is filled, and it carries a structural cue (the check) as well.
+
+   SLOTS. A row is a grid of four slots: lead | main | value | end. The trail is only a wrapper
+   (display: contents): what it holds goes to a slot by what it is.
+     end     things the size of an icon: .list__chevron, an .ic, an icon-only circle button, and the
+             current row's check. They never leave the end of the row, at any text size.
+     value   things made of words: .list__value, a tag, a button with a label. They are what moves
+             when the row is too narrow.
+   A slot that is empty takes no room: the gaps are margins on the parts, not grid gaps.
+   Chrome stops at its 100% size (the lead slot and its tile, the icons, the row's insets and its
+   56px floor), so at 200% text the words keep the width and the lead stays beside the title.
+
+   REFLOW (WCAG 1.4.4, 1.4.10): one layout for the whole list, measured by src/js/46-list.js (SG.fit).
+     row     every value beside its title; titles and meta lines wrap between words, keep at least 6rem
+             and never break inside a word (a row where they cannot overflows its .list__main, which is
+             what the script measures)
+     stack   every value UNDER its title, aligned with the title's first letter (the iOS large-text
+             pattern); the lead and the end slot stay where they are
+   The list switches as a whole, so its rows never disagree. A word is cut only when it cannot fit a
+   line of its own, and a value (an amount, a time, a tag) never wraps while it sits beside a title.
+   Without JS there is no data-fit: a list narrower than 14rem stacks, a wider one keeps its values beside.
+
+   INSIDE A CARD. A list reads the card's own --card-ink, --card-ink-soft and --card-bg when it
+   is inside one, so the same markup is right in a plain card, a toned card and an inverted one.
+
+   PRIVATE PROPERTIES (--_*) hold what states change; the base rules consume them.
+   ========================================================================== */
+
+@layer sg.components {
+  .list {
+    --_ink: var(--card-ink, var(--ink));
+    --_ink-soft: var(--card-ink-soft, var(--ink-soft));
+    --_rule: var(--card-ink, var(--line));
+    --_surface: var(--card-bg, var(--paper));
+
+    display: block;
+    margin: 0;
+    padding: 0;
+    color: var(--_ink);
+    list-style: none;
+    container: list / inline-size; /* the no-JS fallback switches on the list's own width, not the screen's */
+
+    & > li + li {
+      border-block-start: var(--bw-thin) solid var(--_rule);
+    }
+
+    &[data-variant="framed"] {
+      position: relative; /* holds the frame drawn over the rows */
+      background: var(--_surface);
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-card);
+      overflow: clip; /* a row's ring is drawn inside it, so nothing is cut */
+      overflow-clip-margin: border-box;
+    }
+    /* the frame is painted over the rows, as on the card: in soft corners a current (inverted) first or last
+       row showed a hairline arc of the page colour between itself and the rounded frame */
+    &[data-variant="framed"]::after {
+      content: "";
+      position: absolute;
+      inset: calc(var(--bw) * -1);
+      border: inherit;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+  }
+
+  .list__row {
+    --_row-ink: var(--_ink);
+    --_row-soft: var(--_ink-soft);
+    --_row-min: min(3.5rem, 56px); /* chrome: a 56px target, which does not grow with text (the words do) */
+
+    position: relative;
+    isolation: isolate; /* the tint sits behind the row's content, above nothing else */
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "lead main value end";
+    align-items: center;
+    inline-size: 100%; /* a <button> row shrink-wraps unless told otherwise */
+    min-block-size: var(--_row-min);
+    margin: 0;
+    padding: var(--chrome-2) var(--chrome-4);
+    color: var(--_row-ink);
+    font: var(--type-body);
+    text-align: start;
+    text-decoration: none;
+
+    & > .ic {
+      --ic-size: var(--chrome-ic);
+      grid-area: lead;
+      margin-inline-end: var(--chrome-3);
+    }
+  }
+
+  .list__lead {
+    display: grid;
+    grid-area: lead;
+    place-items: center;
+    min-inline-size: var(--chrome-hit);
+    min-block-size: var(--chrome-hit);
+    margin-inline-end: var(--chrome-3);
+
+    & > .ic {
+      --ic-size: var(--chrome-ic);
+    }
+    /* a square tile in a tone: the owner's card tile, holding an icon */
+    &[data-shape="tile"] {
+      inline-size: var(--chrome-hit);
+      block-size: var(--chrome-hit);
+      background: var(--tone-bg, var(--tone-1));
+      color: var(--tone-ink, var(--ink));
+      border: var(--bw) solid var(--_row-ink);
+      border-radius: var(--radius-tile);
+    }
+  }
+
+  .list__main {
+    display: flex;
+    grid-area: main;
+    flex-direction: column;
+    gap: calc(var(--space-1) / 2);
+    min-inline-size: 0;
+  }
+
+  /* a title or a meta line is one short phrase: when large text wraps it, two even lines, never a last line
+     of one word ("Owner · joined / March") */
+  .list__title {
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  .list__meta {
+    color: var(--_row-soft);
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  /* FACTS. A meta line of short facts ("Books · 14 April") is written one <span> per fact, with data-facts on the
+     line. The dot is drawn in the gap before each fact, and a fact that starts a line puts its dot outside the
+     line's start edge, where the line clips it: a wrapped line never starts or ends with a dot. (As text, the dot
+     either ended the first line or started the second, where it read as a bullet: "Books / · 14 April".) A fact
+     stays whole while it fits a line and wraps inside itself only when it alone is wider than the line. The dot
+     is decoration ("" for assistive tech); the facts are read as words. In row mode the clip would hide a word
+     that does not fit, so src/js/46-list.js measures the line itself. */
+  .list__meta[data-facts] {
+    --_sep: 0.8em; /* a space, the dot and a space, as in running text */
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--_sep);
+    overflow-x: clip; /* both inline edges, so it is right in either direction; the block axis stays visible */
+
+    & > * {
+      position: relative;
+      min-inline-size: 0;
+    }
+    & > * + *::before {
+      content: "·" / "";
+      position: absolute;
+      inset-inline-start: calc(var(--_sep) * -1);
+      inline-size: var(--_sep);
+      text-align: center;
+    }
+  }
+
+  /* the trail is a wrapper only: its parts go to the value and end slots */
+  .list__trail {
+    display: contents;
+  }
+
+  /* things made of words: the value slot. Beside the title they keep one line. */
+  .list__trail > :not(.list__chevron, .ic, .btn[data-shape="circle"]) {
+    grid-area: value;
+    justify-self: end;
+    max-inline-size: 100%;
+    margin-inline-start: var(--chrome-3);
+    white-space: nowrap;
+  }
+
+  .list__value {
+    font: var(--type-body);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: end;
+    overflow-wrap: break-word;
+  }
+
+  /* things the size of an icon: the end slot, at every text size */
+  .list__trail > :is(.list__chevron, .ic, .btn[data-shape="circle"]) {
+    grid-area: end;
+    margin-inline-start: var(--chrome-2);
+  }
+
+  /* the standard "goes somewhere" mark, drawn here so it needs no icon file (Lucide chevron-right, 2px square caps) */
+  .list__chevron {
+    flex: none;
+    inline-size: var(--chrome-ic-sm);
+    block-size: var(--chrome-ic-sm);
+    color: var(--_row-soft);
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .list__chevron:dir(rtl) {
+    transform: scaleX(-1); /* the arrow points the way the page reads */
+  }
+  /* any other icon in the trail (download, external link, plus) is quiet and the same size */
+  .list__trail > .ic {
+    --ic-size: var(--chrome-ic-sm);
+    color: var(--_row-soft);
+  }
+
+  /* ---- stack: every value under its title, aligned with its first letter; lead and end stay put ---- */
+  .list[data-fit="stack"] .list__row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "lead main end"
+      "lead value end";
+  }
+  .list[data-fit="stack"] .list__trail > :not(.list__chevron, .ic, .btn[data-shape="circle"]) {
+    justify-self: start;
+    margin-block-start: var(--space-1);
+    margin-inline-start: 0;
+    text-align: start;
+    white-space: normal;
+  }
+  /* measured: the title column may get narrow, its text may not. Beside a value, the title and the meta
+     line keep at least 6rem (so a meta line is not squeezed to a word a line) and never break inside a
+     word, so a row that cannot hold them beside its value shows as overflow of its .list__main, which
+     src/js/46-list.js measures; the list then stacks. (The column used to refuse to shrink instead, and
+     the whole grid overflowed: an overflow smaller than the row's end padding does not change scrollWidth,
+     so a tag could run into the frame at 320px and the list stayed in row mode.) */
+  .list[data-fit="row"] .list__row {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+  }
+  .list[data-fit="row"] .list__main > * {
+    min-inline-size: 6rem;
+    overflow-wrap: normal;
+  }
+
+  /* without JS: a narrow list stacks, a wider one keeps its values beside */
+  @container list (max-width: 14rem) {
+    .list:not([data-fit]) .list__row {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "lead main end"
+        "lead value end";
+    }
+    .list:not([data-fit]) .list__trail > :not(.list__chevron, .ic, .btn[data-shape="circle"]) {
+      justify-self: start;
+      margin-block-start: var(--space-1);
+      margin-inline-start: 0;
+      text-align: start;
+      white-space: normal;
+    }
+  }
+
+  /* ---- a row you can press: a link, a button or a label ---- */
+  :is(a, button, label).list__row {
+    --fill: 0;
+
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    /* the tint: a layer of the text colour, at 0 to 8% (16% while pressed). Decorative only;
+       the text is never faded. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: currentColor;
+      opacity: calc(var(--fill) * var(--_tint, 0.08));
+      pointer-events: none;
+    }
+
+    /* the ring is drawn inside the row: the list clips, and the row is edge to edge. Written out
+       (not left to the base rule) so .is-focus, which the docs use to SHOW the state, draws it too. */
+    &:is(:focus-visible, .is-focus) {
+      --ring-gap: calc(var(--ring) * -1);
+      outline: var(--ring) solid var(--_row-ink);
+      outline-offset: var(--ring-gap);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --fill: 1;
+    }
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --fill: 1;
+      --_tint: 0.16;
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  /* ---- current: inverted (the text colour becomes the fill), bold, and a check. Three cues, none of them colour.
+     The row paints the inversion itself, so hover still tints on top of it (paper at 8% over ink). The check
+     sits in the end slot and takes the chevron's place: a row you are on does not point somewhere else. ---- */
+  .list__row:is([aria-current="page"], [aria-current="true"], [aria-pressed="true"]) {
+    --_row-ink: var(--_surface);
+    --_row-soft: var(--_surface);
+
+    background: var(--_ink);
+
+    .list__title {
+      font-weight: 800;
+    }
+    .list__chevron {
+      display: none;
+    }
+    &::after {
+      content: "";
+      grid-area: end;
+      inline-size: var(--chrome-ic-sm);
+      block-size: var(--chrome-ic-sm);
+      margin-inline-start: var(--chrome-2);
+      background: currentColor;
+      mask: var(--icon-check) center / contain no-repeat;
+    }
+  }
+
+  /* ---- unavailable ---- */
+  .list__row[aria-disabled="true"] {
+    --_row-ink: var(--ink-faint);
+    --_row-soft: var(--ink-faint);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ==== key / value =========================================================================
+     <dl class="kv"> of <div><dt>Key</dt><dd>Value</dd></div> groups. A wrapping grid by
+     default, so it reflows at 320px with no sideways scroll. The key is a label (uppercase in
+     CSS, natural case in the HTML); the value is what you read. */
+  .kv {
+    --_ink: var(--card-ink, var(--ink));
+    --_ink-soft: var(--card-ink-soft, var(--ink-soft));
+    --_rule: var(--card-ink, var(--line));
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--kv-min, 9rem)), 1fr));
+    gap: var(--space-4) var(--space-5);
+    margin: 0;
+    color: var(--_ink);
+    container: kv / inline-size;
+
+    & > div {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      min-inline-size: 0;
+    }
+    & dt {
+      color: var(--_ink-soft);
+      font: var(--type-label);
+      letter-spacing: var(--ls-label);
+      text-transform: uppercase;
+      overflow-wrap: break-word;
+    }
+    & dd {
+      margin: 0;
+      font: var(--type-body);
+      font-variant-numeric: tabular-nums lining-nums;
+      overflow-wrap: break-word;
+    }
+  }
+
+  /* rows: ruled, key left and value right; below 20rem the value drops under its key, aligned with it */
+  .kv[data-layout="rows"] {
+    display: block;
+
+    & > div {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      column-gap: var(--space-4);
+      padding-block: var(--space-3);
+    }
+    & > div + div {
+      border-block-start: var(--bw-thin) solid var(--_rule);
+    }
+    & dd {
+      text-align: end;
+      margin-inline-start: auto;
+    }
+  }
+  @container kv (max-width: 20rem) {
+    .kv[data-layout="rows"] > div {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-1);
+    }
+    .kv[data-layout="rows"] dd {
+      text-align: start;
+      margin-inline-start: 0;
+    }
+  }
+
+  /* ---- forced colours: tints and fills vanish, so focus, hover and current get a line ---- */
+  @media (forced-colors: active) {
+    :is(a, button, label).list__row:is(:hover, .is-hover, :focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: calc(var(--bw-heavy) * -1);
+    }
+    .list[data-variant="framed"] {
+      border-color: CanvasText;
+    }
+    .list > li + li,
+    .kv[data-layout="rows"] > div + div {
+      border-block-start-color: CanvasText;
+    }
+    /* a real border on every pressable row, or forced colours draws no control at all */
+    :is(a, button, label).list__row {
+      border: var(--bw-thin) solid ButtonText;
+    }
+    .list__row:is([aria-current="page"], [aria-current="true"], [aria-pressed="true"]) {
+      border-inline-start: var(--bw-heavy) solid Highlight;
+    }
+    .list__row[aria-disabled="true"] {
+      color: GrayText;
+    }
+    .list__row::after,
+    .list__chevron {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+  }
+}

@@ -1,0 +1,332 @@
+/* ==========================================================================
+   Tile  (layer: sg.components)
+   --------------------------------------------------------------------------
+   The square quick action: an icon and a name, on a field of colour. Send,
+   Bills, Top up, Study. You press it, so it gets what pressable things get:
+   a 2px frame and a hard shadow that appears when it can be pressed. The field
+   is the tone, so a row of tiles gives a screen its colour and rhythm; the tone
+   never says which one matters, the label does.
+
+   <div class="tile-grid">
+     <a class="tile" href="/send" data-tone="1">
+       <span class="ic ic--send" aria-hidden="true"></span>
+       <span class="tile__label">Send</span>
+     </a>
+     <a class="tile" href="/bills">…<span class="tile__badge">3<span class="sr-only"> due</span></span></a>
+     <button class="tile" type="button" aria-pressed="true">…</button>
+   </div>
+
+   CAPTION variant: a field (colour, an icon or a photo) closed by a bar that carries the name.
+   Text never sits on the photo, so its contrast does not depend on the photo. The photo is laid
+   OVER the field (absolute, object-fit: cover), so its natural size never sizes the tile: a caption
+   tile is as square as its siblings. The bar holds room for a two-line name and a meta line, so the
+   bars of a row start at the same height; a third line grows the tile, it never clips.
+   <a class="tile" data-variant="caption" data-tone="3" href="/decks/colours">
+     <span class="tile__field"><span class="ic ic--droplet" aria-hidden="true"></span></span>
+     <span class="tile__bar"><span class="tile__label">Colours</span><span class="tile__meta">8 cards</span></span>
+   </a>
+
+   data-tone     1…6 | ink | ok | warn | bad | info    the field. On / current fills with the tone's own solid.
+   data-variant  quick (default) | caption
+
+   THE GRID. .tile-grid puts tiles four to a row while four tiles of --tile-min (4rem) fit, and two to a row
+   otherwise: never three and a lonely fourth. Made for sets of 2, 4, 8 or 12 (quick actions usually are);
+   --tile-min sets how narrow a tile may get (rem, so larger text drops to two a row sooner), --tile-gap the
+   gap (12px; 8px or more between targets). A grid that holds a badge takes 6rem, so the badge never covers
+   the icon.
+
+   STATES come from ARIA and native attributes, never classes. A tile can be ON (a toggle, or the current
+   place), so only "on" is filled; what a pointer or a keyboard does on the way there is lighter:
+     rest                                                 flat, the tone's field
+     :hover (where a pointer hovers) and :focus-visible   raised: 2px up, 4px hard shadow; NOT filled
+     :active                                              back onto the surface, a light tint (15%)
+     aria-pressed="true" / aria-current                   filled AND the frame doubles (on + hover: raised and filled)
+     aria-disabled="true"                                 dashed frame, faint ink, no lift
+   The .is-hover / .is-focus / .is-active classes force a state for docs and tests; not API.
+   (Hover, focus and pressed used to take the same solid fill as "on": hovering a tile made it look chosen.)
+
+   THE BADGE is a count (or "New"), drawn paper-on-ink-frame so it reads on any field, and
+   its words belong in the tile's name: "Bills, 3 due" (put the unit in .sr-only). A dot with
+   no number is colour-only and is not offered. It is chrome, like the icon beside it: a 24px
+   pill with 14px figures at every text size (the name carries the words, and it grows).
+
+   REFLOW. A tile is square because the grid gives it a width, and it grows taller, never clips, when the
+   label wraps; a tile wider than 10rem stops at 10rem tall instead of becoming a big empty square, and the
+   tiles of one row share one height. It is a size container (so, like a card, it needs a width from its
+   parent: a grid cell): its icon grows from 24px to 48px and its label from 14px to 20px with the tile's
+   own width. Its padding and its icon are chrome (8 to 16px and 24 to 48px, shares of the cell that stop at
+   their 100% size), so at 200% text a label like "Wallet" still fits a tile two to a row and the icon
+   stays clear of the badge. In a narrow tile (four to a phone's row) the label takes the 85% width of the
+   face, so a seven-letter word like "Numbers" fits whole; a word that still cannot fit breaks rather than
+   spilling into the frame.
+
+   PRIVATE PROPERTIES (--_*) hold what variants change; the base rule consumes them.
+   ========================================================================== */
+
+@layer sg.components {
+  /* four to a row, or two: the track minimum is a quarter of the row while four tiles of --tile-min fit
+     (T = 4 x min + 3 x gap), and half of it otherwise. clamp() picks one of the two: the middle term is far
+     below a quarter when the row is wider than T and far above a half when it is narrower. The half pixel
+     keeps rounding from losing a track. */
+  .tile-grid {
+    --tile-min: 4rem;
+    --tile-gap: var(--space-3);
+    --_quarter: calc((100% - 3 * var(--tile-gap)) / 4 - 0.5px);
+    --_half: calc((100% - var(--tile-gap)) / 2 - 0.5px);
+
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(clamp(var(--_quarter), var(--_half) - (100% - 4 * var(--tile-min) - 3 * var(--tile-gap)) * 1000, var(--_half)), 1fr)
+    );
+    gap: var(--tile-gap);
+  }
+  /* a badge needs room beside the icon: in a 65px tile even a "3" covered the icon, and "99+" or "New"
+     did at 75px. A grid that holds a badge keeps its tiles 6rem or wider (two to a phone's row). */
+  .tile-grid:has(.tile__badge) {
+    --tile-min: 6rem;
+  }
+
+  .tile {
+    --lift: 0;
+    --fill: 0;
+    --_rest-bg: var(--tone-bg, var(--paper));
+    --_rest-ink: var(--tone-ink, var(--ink));
+    --_on-bg: var(--tone-fill, var(--accent));
+    --_on-ink: var(--tone-on-fill, var(--on-accent));
+    /* the text changes colour only once the field is more than half filled: a pressed tint (15%) keeps
+       the label's own ink, so it never loses contrast on the way */
+    --_ink-on: clamp(0, (var(--fill) - 0.5) * 1000, 1);
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    --_select: 0 0 0 0 transparent;
+    --_icon: clamp(min(1.5rem, 24px), 26cqi, min(3rem, 48px)); /* chrome: an icon above the words, sized by the tile, not by the text */
+    --_lbl: clamp(var(--text-sm), 9cqi, var(--text-lg)); /* the label's size; the caption bar sizes itself from it */
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    align-self: stretch; /* tiles of one row share one height (an aspect-ratio item otherwise keeps its own) */
+    gap: var(--space-1);
+    inline-size: 100%; /* a <button> shrink-wraps, and a container has no content width to shrink-wrap to */
+    min-inline-size: 0;
+    /* a wide tile stops being square. The automatic minimum (the content) still grows a tile whose label wraps;
+       an explicit min-content would be read through the aspect ratio, and the label would spill. 10rem is
+       taller than any tile's content at any text size, so the cap never clips. */
+    max-block-size: 10rem;
+    container: tile / inline-size; /* the icon and label scale with the tile's own width, as a card's figure does */
+    aspect-ratio: 1 / 1;
+    margin: 0;
+    /* chrome: a percentage of the grid cell's width, 8px in a narrow cell and 16px in a wide one, and never
+       more than that at large text, so a word like "Geography" fits */
+    padding: clamp(var(--chrome-2), 10%, var(--chrome-4));
+    color: color-mix(in srgb, var(--_on-ink) calc(var(--_ink-on) * 100%), var(--_rest-ink));
+    background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-tile);
+    box-shadow: var(--_select), var(--_shadow);
+    font: var(--type-meta);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    & > .ic,
+    & .tile__field > .ic {
+      --ic-size: var(--_icon);
+    }
+
+    /* the ring: the base rule draws it for a real :focus-visible; written out here so .is-focus (how the
+       docs SHOW the state) draws the very same ring, halo and lift */
+    &:is(:focus-visible, .is-focus) {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--focus-shadow, 0 0 0 var(--ring-offset) var(--focus-halo, var(--paper))), var(--_select), var(--_shadow);
+    }
+
+    /* raised: where a pointer can hover, and always on keyboard focus (same lift, so both match). Not filled:
+       the fill is what "on" looks like. */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --lift: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --lift: 1;
+    }
+    /* pressed: back onto the surface, with a light tint of the "on" colour, so a tap shows within 100ms.
+       After hover so it wins. */
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --lift: 0;
+      --fill: 0.15;
+      transition-duration: var(--dur-press);
+    }
+
+    /* on / current: filled, and the frame doubles, so it does not depend on the fill being dark. A pressed
+       tile that is on stays filled. */
+    &:is([aria-pressed="true"], [aria-current="true"], [aria-current="page"]) {
+      --fill: 1;
+      --_select: 0 0 0 var(--bw) var(--line);
+    }
+
+    /* unavailable: dashed = not here. Faint, not opacity. */
+    &[aria-disabled="true"] {
+      --lift: 0;
+      --fill: 0;
+      --_rest-bg: transparent;
+      --_rest-ink: var(--ink-faint);
+      --_shadow: 0 0 0 0 transparent;
+      color: var(--ink-faint);
+      background: transparent;
+      border-color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
+    }
+    &[aria-disabled="true"] .tile__badge {
+      color: var(--ink-faint);
+      border-color: var(--ink-faint);
+      border-style: dashed;
+    }
+  }
+
+  .tile__label {
+    max-inline-size: 100%; /* the label's box stops at the padding, so a word that cannot fit breaks instead of running into the frame */
+    font: var(--type-ctl);
+    font-size: var(--_lbl);
+    line-height: var(--lh-snug);
+    overflow-wrap: break-word; /* a word is cut only when it cannot fit a line of its own */
+    text-wrap: balance;
+  }
+
+  /* Four to a phone's row a tile is about 74px, and its label has 54px: a seven-letter word ("Numbers",
+     "Pressed") is 59px at 14px and ran into the padding. Below 4.5em of room (em is the tile's own text
+     size, so this follows the reader's text size) the label takes a narrower cut of the face, as the
+     card's hero word does, instead of breaking the word or shrinking it. */
+  @container tile (inline-size < 4.5em) {
+    .tile__label {
+      font-stretch: 85%;
+    }
+  }
+
+  .tile__meta {
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word;
+  }
+
+  /* the count: paper with an ink frame, so it reads on any field, filled or not. It is chrome, like the icon it
+     sits beside: a 24px pill with 14px figures that stops at its 100% size. In rem it doubled at 200% text: a 48px
+     "3" beside a 29px icon, and "New" ended 9px from the icon. Its words are in the tile's name ("Bills, 3 due"),
+     and the name grows with the text. */
+  .tile__badge {
+    --_badge: min(1.5rem, 24px);
+
+    position: absolute;
+    inset-block-start: var(--chrome-2);
+    inset-inline-end: var(--chrome-2);
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: var(--_badge);
+    block-size: var(--_badge);
+    padding-inline: var(--chrome-1);
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-pill);
+    font: var(--type-meta);
+    font-size: min(var(--text-sm), 14px);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* ---- caption: a field closed by a bar. The bar swaps polarity when the tile is on. ---- */
+  .tile[data-variant="caption"] {
+    --_on-bg: var(--_rest-bg);
+    --_on-ink: var(--_rest-ink);
+    --_rest-bg: var(--tone-bg, var(--paper-2));
+    --_icon: clamp(min(2rem, 32px), 34cqi, min(4rem, 64px));
+
+    justify-content: stretch;
+    gap: 0;
+    padding: 0;
+    overflow: clip;
+
+    /* The field FILLS what the bar leaves and never sizes the tile: a photo is laid over it
+       (absolute), so its natural height cannot push the tile taller than its square siblings. */
+    .tile__field {
+      position: relative;
+      display: grid;
+      flex: 1 1 0;
+      place-items: center;
+      inline-size: 100%;
+      min-block-size: var(--_icon);
+      overflow: clip;
+
+      & > img {
+        position: absolute;
+        inset: 0;
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+      }
+    }
+
+    /* The bar holds room for a two-line name and a meta line, so bars in one row start at the same
+       height; a third line grows it. 1.3 is --lh-snug on the label (--_lbl) and on the meta (--text-sm).
+       Its insets are chrome. A pressed tint lightens the ink bar a little; "on" turns it to paper. */
+    .tile__bar {
+      display: flex;
+      flex: none;
+      flex-direction: column;
+      gap: var(--space-1);
+      inline-size: 100%;
+      min-block-size: calc(var(--chrome-2) * 2 + var(--bw) + var(--space-1) + var(--lh-snug) * (var(--_lbl) * 2 + var(--text-sm)));
+      padding: var(--chrome-2);
+      color: color-mix(in srgb, var(--ink) calc(var(--_ink-on) * 100%), var(--paper));
+      background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+      border-block-start: var(--bw) solid var(--line);
+    }
+  }
+
+  .tile[data-variant="caption"][aria-disabled="true"] .tile__bar {
+    color: var(--ink-faint);
+    background: transparent;
+    border-block-start: var(--bw) dashed var(--ink-faint);
+  }
+
+  /* ---- forced colours: shadows and fills vanish, so raised / on get a heavier line instead ---- */
+  @media (forced-colors: active) {
+    .tile {
+      border-color: ButtonText;
+      &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &:is([aria-pressed="true"], [aria-current="true"], [aria-current="page"]) {
+        border-width: var(--bw-heavy);
+      }
+      &[aria-disabled="true"] {
+        color: GrayText;
+        border-color: GrayText;
+      }
+    }
+    .tile__badge {
+      border-color: CanvasText;
+    }
+    .tile[data-variant="caption"] .tile__bar {
+      border-block-start-color: CanvasText;
+    }
+  }
+}

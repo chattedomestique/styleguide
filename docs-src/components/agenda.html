@@ -1,0 +1,486 @@
+<!--{"title":"Agenda","group":"Components","order":112,"summary":"What is on, when: tonal day cards with hour columns, and a one-day time grid whose overlapping events sit in lanes or stack."}-->
+<style>
+  /* docs scaffolding only: keep the class names in the API tables whole */
+  .docs-table td:first-child code { overflow-wrap: normal; white-space: nowrap; }
+  /* docs scaffolding only: the docs article pads bare lists; an agenda's lists keep the component's own padding
+     (revert-layer drops this page's unlayered rules for them, the article's included). A fixed value here outranked
+     the component's own reset when the lanes stack, and the stacked events sat 8px in from the day's title. */
+  .demo :is(.agenda, .agenda__slots, .agenda__events, .agenda-day__hours, .agenda-day__events) { padding: revert-layer; }
+  /* only the article's space between list items goes: an event's own 2px end margin (the gap between
+     back-to-back events) is the component's */
+  .demo :is(.agenda, .agenda-day) li { margin-block-start: 0; max-inline-size: none; }
+  .demo .agenda-day__title { margin: 0; }
+  .demo .agenda__num { margin: 0; }
+  .demo__stage:has(> .cal) { padding: var(--chrome-3); }
+  #demo-context .phone__screen { display: grid; gap: var(--space-4); align-content: start; min-block-size: 0; }
+  /* the states specimen: 16px between chips, so a lifted chip's shadow and a ring never touch the next one */
+  #demo-states .agenda__events { gap: var(--space-4); }
+</style>
+<h1>Agenda</h1>
+<p class="lede">An agenda says what is on and when. Two shapes, both built on the <a href="@/components/card.html">Card</a>: a list of days, each a tonal card whose busy hours are columns, and a single day laid out against the clock, where events that overlap sit side by side or, when there is no room, stack in time order.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use the days list for "what is this week like?" and the time grid for "what does Friday look like?". Let every event state its own start and end as text; the ruler is only a guide.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Show more than three overlapping events side by side, use a tone to say what kind of event it is (tones carry rhythm, not meaning), or make people drag an event to move it without a button that does the same.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="days">Days, with hour columns</h3>
+<p>Each day is a Card with a tone. Only the hours that have something are shown, and an all-day event is a slot whose label says so (Friday's rent). On a phone the hours are rows; once the card is 34rem wide they become columns with 1px rules between, and the date becomes a rail (the query is on the card, not the screen). On a narrow card (200% text on a phone) each hour sits on its own line above its events, so a chip keeps the card's whole width. Every chip says its title, then its time under it. Two events in the same hour stack: Friday's 14:00 column holds two. The chips take the card's tone, darker, and lift when pressed like a Button. A day with nothing on says so.</p>
+<div class="demo" id="demo-days">
+  <div class="demo__stage">
+    <ol class="agenda" role="list">
+      <li class="card agenda__day" data-tone="1">
+        <div class="card__body agenda__body">
+          <header class="agenda__date">
+            <p class="agenda__dow">Wednesday</p>
+            <h4 class="agenda__num" id="ag-1"><time datetime="2026-09-30">30<small>Sep</small></time></h4>
+          </header>
+          <ol class="agenda__slots" role="list">
+            <li class="agenda__slot">
+              <time class="agenda__hour" datetime="08:00">8:00</time>
+              <ul class="agenda__events" role="list">
+                <li><a class="agenda__event" href="#">Flashcards: 20 cards due <span class="agenda__len"><time datetime="08:30">8:30</time> &ndash; <time datetime="08:50">8:50</time></span></a></li>
+              </ul>
+            </li>
+            <li class="agenda__slot">
+              <time class="agenda__hour" datetime="18:00">18:00</time>
+              <ul class="agenda__events" role="list">
+                <li><a class="agenda__event" href="#">Study group <span class="agenda__len"><time datetime="18:00">18:00</time> &ndash; <time datetime="19:00">19:00</time></span></a></li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </li>
+      <li class="card agenda__day" data-tone="2">
+        <div class="card__body agenda__body">
+          <header class="agenda__date">
+            <p class="agenda__dow">Thursday</p>
+            <h4 class="agenda__num" id="ag-2"><time datetime="2026-10-01">1<small>Oct</small></time></h4>
+          </header>
+          <ol class="agenda__slots" role="list">
+            <li class="agenda__slot">
+              <time class="agenda__hour" datetime="10:00">10:00</time>
+              <ul class="agenda__events" role="list">
+                <li><a class="agenda__event" href="#">Dentist <span class="agenda__len"><time datetime="10:00">10:00</time> &ndash; <time datetime="11:00">11:00</time></span></a></li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </li>
+      <li class="card agenda__day" data-tone="4">
+        <div class="card__body agenda__body">
+          <header class="agenda__date">
+            <p class="agenda__dow">Friday</p>
+            <h4 class="agenda__num" id="ag-3"><time datetime="2026-10-02">2<small>Oct</small></time></h4>
+          </header>
+          <ol class="agenda__slots" role="list">
+            <li class="agenda__slot">
+              <span class="agenda__hour">All day</span>
+              <ul class="agenda__events" role="list">
+                <li><a class="agenda__event" href="#">Rent due</a></li>
+              </ul>
+            </li>
+            <li class="agenda__slot">
+              <time class="agenda__hour" datetime="09:00">9:00</time>
+              <ul class="agenda__events" role="list">
+                <li><a class="agenda__event" href="#">Standup <span class="agenda__len"><time datetime="09:30">9:30</time> &ndash; <time datetime="10:00">10:00</time></span></a></li>
+              </ul>
+            </li>
+            <li class="agenda__slot">
+              <time class="agenda__hour" datetime="14:00">14:00</time>
+              <ul class="agenda__events" role="list">
+                <li><a class="agenda__event" href="#">Design review <span class="agenda__len"><time datetime="14:00">14:00</time> &ndash; <time datetime="15:30">15:30</time></span></a></li>
+                <li><a class="agenda__event" href="#">1:1 with Sam <span class="agenda__len"><time datetime="14:30">14:30</time> &ndash; <time datetime="15:00">15:00</time></span></a></li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </li>
+      <li class="card agenda__day" data-tone="6">
+        <div class="card__body agenda__body">
+          <header class="agenda__date">
+            <p class="agenda__dow">Saturday</p>
+            <h4 class="agenda__num" id="ag-4"><time datetime="2026-10-03">3<small>Oct</small></time></h4>
+          </header>
+          <p class="card__text">Nothing planned. A good day to catch up on cards.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<h3 id="states">Event states</h3>
+<p>A chip is a link, so it lifts on hover and on keyboard focus (same lift). Pressed, it lies flat and its fill takes 12% of its own ink at once, so a tap on a phone shows straight away (the words keep 7:1 on the tint). The day card itself is not pressable, so it never lifts. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo" id="demo-states">
+  <div class="demo__stage">
+    <ol class="agenda" role="list">
+      <li class="card agenda__day" data-tone="3">
+        <div class="card__body">
+          <ul class="agenda__events" role="list">
+            <li><a class="agenda__event" href="#">Rest <span class="agenda__len">9:00 &ndash; 9:30</span></a></li>
+            <li><a class="agenda__event is-hover" href="#">Hover <span class="agenda__len">9:30 &ndash; 10:00</span></a></li>
+            <li><a class="agenda__event is-focus" href="#">Focus <span class="agenda__len">10:00 &ndash; 10:30</span></a></li>
+            <li><a class="agenda__event is-active" href="#">Pressed <span class="agenda__len">10:30 &ndash; 11:00</span></a></li>
+          </ul>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<h3 id="grid">One day, against the clock</h3>
+<p>Hours run down the side; an event is a tonal Card as tall as it lasts. The grid has a line every 15 minutes, and each event says where it starts and ends with <code>--from</code> and <code>--to</code>. Where events overlap (design review and the slide deck, study block and the landlord's call) they take lanes; where one ends as the next begins (the standup and the review), a 2px gap keeps their frames from fusing into one heavy line. Each event is a whole-card link with one tab stop, so its hit area is the whole card. A quarter hour is <code>2rem</code>, so even a half-hour event in a narrow lane holds its title on two lines and its time line under them; a title that would need a third line is cut with an ellipsis in the grid, and the link's name still carries all of it.</p>
+<div class="demo" id="demo-grid">
+  <div class="demo__stage">
+    <div class="agenda-day" id="grid-fri" role="group" data-lanes="2" style="--steps: 24; --lanes: 2" aria-labelledby="grid-fri-t">
+      <h4 class="agenda-day__title" id="grid-fri-t">Friday 2 October</h4>
+      <div class="agenda-day__grid">
+        <ol class="agenda-day__hours" aria-hidden="true">
+          <li><time datetime="09:00">9:00</time></li>
+          <li><time datetime="10:00">10:00</time></li>
+          <li><time datetime="11:00">11:00</time></li>
+          <li><time datetime="12:00">12:00</time></li>
+          <li><time datetime="13:00">13:00</time></li>
+          <li><time datetime="14:00">14:00</time></li>
+        </ol>
+        <ol class="agenda-day__events" role="list">
+          <li class="card card--link agenda-day__event" data-tone="4" style="--from: 3; --to: 5; --lane: 1; --span: 2">
+            <div class="card__body">
+              <h5 class="card__title"><a class="card__link" href="#">Standup</a></h5>
+              <p class="card__meta"><time datetime="09:30">9:30</time> &ndash; <time datetime="10:00">10:00</time></p>
+            </div>
+          </li>
+          <li class="card card--link agenda-day__event" data-tone="2" style="--from: 5; --to: 11; --lane: 1">
+            <div class="card__body">
+              <h5 class="card__title"><a class="card__link" href="#">Design review</a></h5>
+              <p class="card__meta"><time datetime="10:00">10:00</time> &ndash; <time datetime="11:30">11:30</time></p>
+            </div>
+          </li>
+          <li class="card card--link agenda-day__event" data-tone="5" style="--from: 7; --to: 9; --lane: 2">
+            <div class="card__body">
+              <h5 class="card__title"><a class="card__link" href="#">Slide deck</a></h5>
+              <p class="card__meta"><time datetime="10:30">10:30</time> &ndash; <time datetime="11:00">11:00</time></p>
+            </div>
+          </li>
+          <li class="card card--link agenda-day__event" data-tone="3" style="--from: 15; --to: 19; --lane: 1; --span: 2">
+            <div class="card__body">
+              <h5 class="card__title"><a class="card__link" href="#">Lunch with Sam</a></h5>
+              <p class="card__meta"><time datetime="12:30">12:30</time> &ndash; <time datetime="13:30">13:30</time></p>
+            </div>
+          </li>
+          <li class="card card--link agenda-day__event" data-tone="1" style="--from: 19; --to: 25; --lane: 1">
+            <div class="card__body">
+              <h5 class="card__title"><a class="card__link" href="#">Study block</a></h5>
+              <p class="card__meta"><time datetime="13:30">13:30</time> &ndash; <time datetime="15:00">15:00</time></p>
+            </div>
+          </li>
+          <li class="card card--link agenda-day__event" data-tone="6" style="--from: 21; --to: 23; --lane: 2">
+            <div class="card__body">
+              <h5 class="card__title"><a class="card__link" href="#">Call with landlord</a></h5>
+              <p class="card__meta"><time datetime="14:00">14:00</time> &ndash; <time datetime="14:30">14:30</time></p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="stack">When the lanes do not fit, they stack</h3>
+<p>Drag the corner of the dashed box. Two lanes need about 16rem; narrower, or at large text, the time scale is dropped and the events stack in time order, each still stating its own times in full and its title in as many lines as it needs.</p>
+<div class="demo" id="demo-stack">
+  <div class="demo__stage">
+    <div class="resize-box" style="inline-size: 15rem">
+      <div class="agenda-day" id="grid-fri-narrow" role="group" data-lanes="2" style="--steps: 24; --lanes: 2" aria-labelledby="grid-fri-narrow-t">
+        <h4 class="agenda-day__title" id="grid-fri-narrow-t">Friday 2 October</h4>
+        <div class="agenda-day__grid">
+          <ol class="agenda-day__hours" aria-hidden="true">
+            <li><time datetime="09:00">9:00</time></li>
+            <li><time datetime="10:00">10:00</time></li>
+            <li><time datetime="11:00">11:00</time></li>
+            <li><time datetime="12:00">12:00</time></li>
+            <li><time datetime="13:00">13:00</time></li>
+            <li><time datetime="14:00">14:00</time></li>
+          </ol>
+          <ol class="agenda-day__events" role="list">
+            <li class="card card--link agenda-day__event" data-tone="4" style="--from: 3; --to: 5; --lane: 1; --span: 2">
+              <div class="card__body">
+                <h5 class="card__title"><a class="card__link" href="#">Standup</a></h5>
+                <p class="card__meta"><time datetime="09:30">9:30</time> &ndash; <time datetime="10:00">10:00</time></p>
+              </div>
+            </li>
+            <li class="card card--link agenda-day__event" data-tone="2" style="--from: 5; --to: 11; --lane: 1">
+              <div class="card__body">
+                <h5 class="card__title"><a class="card__link" href="#">Design review</a></h5>
+                <p class="card__meta"><time datetime="10:00">10:00</time> &ndash; <time datetime="11:30">11:30</time></p>
+              </div>
+            </li>
+            <li class="card card--link agenda-day__event" data-tone="5" style="--from: 7; --to: 9; --lane: 2">
+              <div class="card__body">
+                <h5 class="card__title"><a class="card__link" href="#">Slide deck</a></h5>
+                <p class="card__meta"><time datetime="10:30">10:30</time> &ndash; <time datetime="11:00">11:00</time></p>
+              </div>
+            </li>
+            <li class="card card--link agenda-day__event" data-tone="3" style="--from: 15; --to: 19; --lane: 1; --span: 2">
+              <div class="card__body">
+                <h5 class="card__title"><a class="card__link" href="#">Lunch with Sam</a></h5>
+                <p class="card__meta"><time datetime="12:30">12:30</time> &ndash; <time datetime="13:30">13:30</time></p>
+              </div>
+            </li>
+            <li class="card card--link agenda-day__event" data-tone="1" style="--from: 19; --to: 25; --lane: 1">
+              <div class="card__body">
+                <h5 class="card__title"><a class="card__link" href="#">Study block</a></h5>
+                <p class="card__meta"><time datetime="13:30">13:30</time> &ndash; <time datetime="15:00">15:00</time></p>
+              </div>
+            </li>
+            <li class="card card--link agenda-day__event" data-tone="6" style="--from: 21; --to: 23; --lane: 2">
+              <div class="card__body">
+                <h5 class="card__title"><a class="card__link" href="#">Call with landlord</a></h5>
+                <p class="card__meta"><time datetime="14:00">14:00</time> &ndash; <time datetime="14:30">14:30</time></p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 id="context">In context: a week strip and the day</h3>
+<p>A week strip from the <a href="@/components/calendar.html">Calendar</a> chooses the day (<code>data-list="off"</code> hides the calendar's own list) and an agenda shows it. Choose Wednesday or Thursday to swap the day; other days are empty. The phone drawn here is narrower than the screen it sits on (236px on a 320px screen), so its seven day cells are about 27px wide where the same strip on a real 320px phone has 41px; the cells touch and each one's whole box is the target, and the <a href="@/components/calendar.html#a11y">Calendar's touch notes</a> say where seven columns stop reaching 44px.</p>
+<div class="demo" id="demo-context" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="cal" data-sg-calendar data-view="week" data-list="off" data-value="2026-10-02" data-today="2026-09-30" data-first-day="1" data-locale="en-GB">
+          <script type="application/json" data-sg-events>
+{
+  "2026-09-30": [
+    {
+      "title": "Flashcards: 20 cards due",
+      "time": "08:30",
+      "end": "08:50",
+      "tone": 1
+    },
+    {
+      "title": "Bus to campus",
+      "time": "09:00",
+      "end": "09:45",
+      "tone": 6
+    }
+  ],
+  "2026-10-01": [
+    {
+      "title": "Dentist",
+      "time": "10:00",
+      "end": "11:00",
+      "tone": 3
+    }
+  ],
+  "2026-10-02": [
+    {
+      "title": "Standup",
+      "time": "09:30",
+      "end": "10:00",
+      "tone": 4
+    },
+    {
+      "title": "Design review",
+      "time": "10:00",
+      "end": "11:30",
+      "tone": 2
+    },
+    {
+      "title": "Slide deck",
+      "time": "10:30",
+      "end": "11:00",
+      "tone": 5
+    },
+    {
+      "title": "Lunch with Sam",
+      "time": "12:30",
+      "end": "13:30",
+      "tone": 3
+    },
+    {
+      "title": "Study block",
+      "time": "13:30",
+      "end": "15:00",
+      "tone": 1
+    },
+    {
+      "title": "Call with landlord",
+      "time": "14:00",
+      "end": "14:30",
+      "tone": 6
+    }
+  ]
+}
+          </script>
+        </div>
+        <div id="plan">
+        <div class="agenda-day" id="plan-wed" role="group" data-lanes="1" style="--steps: 12; --lanes: 1" aria-labelledby="plan-wed-t" hidden>
+          <h4 class="agenda-day__title" id="plan-wed-t">Wednesday 30 September</h4>
+          <div class="agenda-day__grid">
+            <ol class="agenda-day__hours" aria-hidden="true">
+              <li><time datetime="08:00">8:00</time></li>
+              <li><time datetime="09:00">9:00</time></li>
+              <li><time datetime="10:00">10:00</time></li>
+            </ol>
+            <ol class="agenda-day__events" role="list">
+              <li class="card card--link agenda-day__event" data-tone="1" style="--from: 3; --to: 5; --lane: 1">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Flashcards: 20 cards due</a></h5>
+                  <p class="card__meta"><time datetime="08:30">8:30</time> &ndash; <time datetime="08:50">8:50</time></p>
+                </div>
+              </li>
+              <li class="card card--link agenda-day__event" data-tone="6" style="--from: 5; --to: 8; --lane: 1">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Bus to campus</a></h5>
+                  <p class="card__meta"><time datetime="09:00">9:00</time> &ndash; <time datetime="09:45">9:45</time></p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div class="agenda-day" id="plan-thu" role="group" data-lanes="1" style="--steps: 12; --lanes: 1" aria-labelledby="plan-thu-t" hidden>
+          <h4 class="agenda-day__title" id="plan-thu-t">Thursday 1 October</h4>
+          <div class="agenda-day__grid">
+            <ol class="agenda-day__hours" aria-hidden="true">
+              <li><time datetime="09:00">9:00</time></li>
+              <li><time datetime="10:00">10:00</time></li>
+              <li><time datetime="11:00">11:00</time></li>
+            </ol>
+            <ol class="agenda-day__events" role="list">
+              <li class="card card--link agenda-day__event" data-tone="3" style="--from: 5; --to: 9; --lane: 1">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Dentist</a></h5>
+                  <p class="card__meta"><time datetime="10:00">10:00</time> &ndash; <time datetime="11:00">11:00</time></p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div class="agenda-day" id="plan-fri" role="group" data-lanes="2" style="--steps: 24; --lanes: 2" aria-labelledby="plan-fri-t">
+          <h4 class="agenda-day__title" id="plan-fri-t">Friday 2 October</h4>
+          <div class="agenda-day__grid">
+            <ol class="agenda-day__hours" aria-hidden="true">
+              <li><time datetime="09:00">9:00</time></li>
+              <li><time datetime="10:00">10:00</time></li>
+              <li><time datetime="11:00">11:00</time></li>
+              <li><time datetime="12:00">12:00</time></li>
+              <li><time datetime="13:00">13:00</time></li>
+              <li><time datetime="14:00">14:00</time></li>
+            </ol>
+            <ol class="agenda-day__events" role="list">
+              <li class="card card--link agenda-day__event" data-tone="4" style="--from: 3; --to: 5; --lane: 1; --span: 2">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Standup</a></h5>
+                  <p class="card__meta"><time datetime="09:30">9:30</time> &ndash; <time datetime="10:00">10:00</time></p>
+                </div>
+              </li>
+              <li class="card card--link agenda-day__event" data-tone="2" style="--from: 5; --to: 11; --lane: 1">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Design review</a></h5>
+                  <p class="card__meta"><time datetime="10:00">10:00</time> &ndash; <time datetime="11:30">11:30</time></p>
+                </div>
+              </li>
+              <li class="card card--link agenda-day__event" data-tone="5" style="--from: 7; --to: 9; --lane: 2">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Slide deck</a></h5>
+                  <p class="card__meta"><time datetime="10:30">10:30</time> &ndash; <time datetime="11:00">11:00</time></p>
+                </div>
+              </li>
+              <li class="card card--link agenda-day__event" data-tone="3" style="--from: 15; --to: 19; --lane: 1; --span: 2">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Lunch with Sam</a></h5>
+                  <p class="card__meta"><time datetime="12:30">12:30</time> &ndash; <time datetime="13:30">13:30</time></p>
+                </div>
+              </li>
+              <li class="card card--link agenda-day__event" data-tone="1" style="--from: 19; --to: 25; --lane: 1">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Study block</a></h5>
+                  <p class="card__meta"><time datetime="13:30">13:30</time> &ndash; <time datetime="15:00">15:00</time></p>
+                </div>
+              </li>
+              <li class="card card--link agenda-day__event" data-tone="6" style="--from: 21; --to: 23; --lane: 2">
+                <div class="card__body">
+                  <h5 class="card__title"><a class="card__link" href="#">Call with landlord</a></h5>
+                  <p class="card__meta"><time datetime="14:00">14:00</time> &ndash; <time datetime="14:30">14:30</time></p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+          <p class="card__text" id="plan-none" hidden>Nothing planned. A good day to catch up on cards.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Day card</strong> (<code>.card.agenda__day</code>): the owner's Card with a tone. The body is a grid that changes with the card's width.</li>
+  <li><strong>Date</strong> (<code>.agenda__date</code>): weekday label and a big tabular numeral with the month, in a <code>&lt;time&gt;</code>. A rail at 34rem.</li>
+  <li><strong>Hour</strong> (<code>.agenda__slot</code>, <code>.agenda__hour</code>): a row, or a column with 1px rules. Only busy hours exist.</li>
+  <li><strong>Event chip</strong> (<code>.agenda__event</code>): a link in the card's darker tone (<code>--tone-fill</code>, text <code>--tone-on-fill</code>), 2px frame, with its start and end.</li>
+  <li><strong>Time grid</strong> (<code>.agenda-day__grid</code>): a 15-minute row grid. The ruler (<code>.agenda-day<wbr>__hours</code>) draws 1px lines; the events (<code>.agenda-day<wbr>__events</code>) sit on the same rows in lanes.</li>
+  <li><strong>Event card</strong> (<code>.card.card--link.agenda-day__event</code>): a tonal link card placed by <code>--from</code>, <code>--to</code>, <code>--lane</code>. Title, then the times.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Agenda classes and custom properties</caption>
+  <thead><tr><th>Hook</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>.agenda</code></td><td><code>ol role="list"</code></td><td>The list of day cards.</td></tr>
+    <tr><td><code>.card.agenda__day</code></td><td><code>data-tone="1"</code> to <code>"6"</code>, <code>"ink"</code></td><td>One day. The tone colours the card and, darker, its chips.</td></tr>
+    <tr><td><code>.agenda__slots</code> / <code>.agenda__slot</code></td><td><code>ol</code> / <code>li</code></td><td>The busy hours. <code>.agenda__hour</code> holds the hour as a <code>&lt;time&gt;</code>; <code>.agenda__events</code> the events in it.</td></tr>
+    <tr><td><code>.agenda__event</code></td><td><code>a</code></td><td>A chip. Put the title first and <code>.agenda__len</code> (the start and end) after.</td></tr>
+    <tr><td><code>.agenda-day</code></td><td><code>div role="group"</code> + <code>aria-labelledby</code>; <code>data-lanes="1|2|3"</code>; <code>--steps</code>, <code>--lanes</code></td><td>The one-day view. <code>--steps</code> is 4 x the hours shown; <code>data-lanes</code> is the most events that ever overlap.</td></tr>
+    <tr><td><code>.agenda-day__event</code></td><td><code>li.card.card--link</code>; <code>--from</code>, <code>--to</code>, <code>--lane</code></td><td>Grid lines it starts and ends on (<code>(minutes after the first hour) / 15 + 1</code>) and its lane.</td></tr>
+    <tr><td><code>--step</code></td><td>length, default <code>1.5rem</code></td><td>The height of 15 minutes.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Agenda keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>One stop per event, in time order (the DOM order is the time order, whatever the lane). The day card and the ruler take none. In a card the ring sits inside it; on a chip it follows the chip.</td></tr>
+    <tr><td><kbd>Enter</kbd></td><td>Follows the event's link. A whole-card link needs no second target.</td></tr>
+    <tr><td>Screen reader</td><td>Each day is a card labelled by its date (<code>&lt;time&gt;</code>); the events are a list; each event is a link whose name is the title followed by its start and end. The hour ruler is <code>aria-hidden</code> because every event states its own times.</td></tr>
+    <tr><td>Colour</td><td>Tone is rhythm: two days can share a tone and mean the same. Every fact (day, time, title) is text. Chip text is <code>--tone-on-fill</code>, 7:1 on the chip (checked by the contrast matrix).</td></tr>
+    <tr><td>Touch</td><td>Chips and event cards are at least 44px. A 30-minute event at the default scale is 48px tall. Nothing is moved by dragging.</td></tr>
+    <tr><td>Zoom / text size</td><td>Sizes are rem. The hours reflow from columns to rows at 34rem of card width, and lanes stack below 16rem (two) or 26rem (three), so 200% text trades the time scale for legibility.</td></tr>
+    <tr><td>Reduced motion</td><td>The only motion is the chip or card lifting on hover and focus; its travel is multiplied by <code>--move</code>, so it becomes a hard shadow appearing.</td></tr>
+    <tr><td>Forced colours</td><td>Fills go; chips and cards keep their 2px frames, get a 4px <code>Highlight</code> outline on hover and focus, and the ruler's lines become <code>CanvasText</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--tone-bg</code>, <code>--tone-ink</code>, <code>--tone-fill</code>, <code>--tone-on-fill</code>, <code>--ink</code>, <code>--paper</code>, <code>--ink-soft</code>, <code>--line</code>, <code>--line-soft</code>, <code>--bw</code>, <code>--bw-thin</code>, <code>--bw-heavy</code>, <code>--radius-ctl</code>, <code>--hit</code>, <code>--space-1</code> to <code>--space-5</code>, <code>--type-figure</code>, <code>--type-label</code>, <code>--type-meta</code>, <code>--type-body</code>, <code>--type-title</code>, <code>--ls-figure</code>, <code>--ls-label</code>, <code>--ls-title</code>, <code>--lift</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>, plus the Card's own <code>--card-ink</code>, <code>--card-ink-soft</code> and <code>--card-pad</code>.</p>
+
+<script>
+  /* demo only: the week strip chooses which prebuilt day is shown */
+  (function () {
+    var days = { '2026-09-30': 'plan-wed', '2026-10-01': 'plan-thu', '2026-10-02': 'plan-fri' };
+    document.addEventListener('sg-calendar-select', function (e) {
+      if (!e.target.closest || !e.target.closest('#demo-context')) return;
+      var id = days[e.detail.value];
+      Array.prototype.forEach.call(document.querySelectorAll('#plan > .agenda-day'), function (s) { s.hidden = s.id !== id; });
+      document.getElementById('plan-none').hidden = !!id;
+    });
+  })();
+</script>

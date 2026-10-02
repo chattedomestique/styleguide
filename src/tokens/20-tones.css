@@ -1,0 +1,184 @@
+/* ==========================================================================
+   20 · Tones  (the six slots, plus ink and four status tones)
+   --------------------------------------------------------------------------
+   The owner's API, unchanged:  data-tone="1" … "6" | "ink"  on any element
+   exposes --tone-bg and --tone-ink to THAT element only (registered with
+   inherits:false in 00-foundation.css), and a component decides what to do with
+   them. Six slots stand in for the palette; a palette (40-palettes.css) points
+   each slot at a hue. "ink" is the inverted tone: ink fill, paper text.
+
+   Added on top of that API
+   · --tone-ink-soft   secondary text on the tone (≥ 7:1; an explicit role, never a runtime mix)
+   · --tone-fill / --tone-on-fill   a solid pill or bar that sits ON the tone
+   · data-tone="ok|warn|bad|info"   status tones, same machinery. Status always
+                                    needs an icon or words as well as the colour.
+   · data-emphasis="bold"           a saturated mid-dark fill with near-white text
+                                    instead of a pastel.
+
+   CONTRAST IS BUILT IN. Pastel fill at OKLCH L ≥ 0.92 with ink at L ≤ 0.39 is
+   ≥ 7:1 for every hue and chroma (measured over the whole sRGB gamut); dark
+   mode mirrors it; bold uses L ≈ 0.44 with white-ish ink (≥ 6.5:1). Fills with
+   L 0.56–0.62 cannot carry small text in black OR white, so no tone uses them.
+   Tones carry rhythm, not meaning: never let a tone alone say "error".
+
+   NOTE data-tone and data-emphasis go on the SAME element.
+   ========================================================================== */
+
+@layer sg.tokens {
+  /* Also on every [data-palette]: a palette island starts from these and applies only what its palette changes
+     (see the knobs in 10-color.css). */
+  :root,
+  [data-palette] {
+    /* the six slots: hue and vividness. Palettes override these. */
+    --tone-h-1: 95;  --tone-c-1: 0.17;
+    --tone-h-2: 262; --tone-c-2: 0.15;
+    --tone-h-3: 22;  --tone-c-3: 0.16;
+    --tone-h-4: 158; --tone-c-4: 0.15;
+    --tone-h-5: 305; --tone-c-5: 0.15;
+    --tone-h-6: 55;  --tone-c-6: 0.16;
+
+    /* status hues */
+    --hue-ok: 155;
+    --hue-warn: 80;
+    --hue-bad: 18;
+    --hue-info: 240;
+
+    /* lightness knobs. Per-slot lightness lets the wireframe palette climb from light to darker greys. */
+    --k-tone-l: 0.93;
+    --k-tone-d: 0.27;
+    --k-tone-l-1: var(--k-tone-l); --k-tone-l-2: var(--k-tone-l); --k-tone-l-3: var(--k-tone-l);
+    --k-tone-l-4: var(--k-tone-l); --k-tone-l-5: var(--k-tone-l); --k-tone-l-6: var(--k-tone-l);
+    --k-tone-d-1: var(--k-tone-d); --k-tone-d-2: var(--k-tone-d); --k-tone-d-3: var(--k-tone-d);
+    --k-tone-d-4: var(--k-tone-d); --k-tone-d-5: var(--k-tone-d); --k-tone-d-6: var(--k-tone-d);
+    --k-tone-ink-l: 0.3;
+    --k-tone-ink-d: 0.95;
+    --k-tone-soft-l: 0.4; /* secondary text: still ≥ 7:1 on the pastel, a step lighter than ink */
+    --k-tone-soft-d: 0.8;
+    --k-tone-surface-c: 0.42; /* chroma of the pastel = vividness × this */
+    --k-tone-ink-c: 0.5;
+    --k-tone-fill-l: 0.34;
+    --k-tone-fill-d: 0.82;
+    --k-tone-on-fill-l: 0.97;
+    --k-tone-on-fill-d: 0.2;
+    --k-tone-fill-c: 0.85;
+    /* bold emphasis (same in light and dark) */
+    --k-tone-b-l: 0.42;
+    --k-tone-b-ink: 0.985;
+    --k-tone-b-soft: 0.96;
+    --k-tone-b-c: 0.9;
+  }
+
+  /* ---- Direct slot tokens: --tone-N / --on-tone-N (the owner's names) -------------- */
+  :root,
+  [data-theme],
+  [data-palette],
+  [data-contrast] {
+    --tone-1: light-dark(oklch(var(--k-tone-l-1) calc(var(--tone-c-1) * var(--k-tone-surface-c)) var(--tone-h-1)), oklch(var(--k-tone-d-1) calc(var(--tone-c-1) * var(--k-tone-surface-c) * 0.7) var(--tone-h-1)));
+    --tone-2: light-dark(oklch(var(--k-tone-l-2) calc(var(--tone-c-2) * var(--k-tone-surface-c)) var(--tone-h-2)), oklch(var(--k-tone-d-2) calc(var(--tone-c-2) * var(--k-tone-surface-c) * 0.7) var(--tone-h-2)));
+    --tone-3: light-dark(oklch(var(--k-tone-l-3) calc(var(--tone-c-3) * var(--k-tone-surface-c)) var(--tone-h-3)), oklch(var(--k-tone-d-3) calc(var(--tone-c-3) * var(--k-tone-surface-c) * 0.7) var(--tone-h-3)));
+    --tone-4: light-dark(oklch(var(--k-tone-l-4) calc(var(--tone-c-4) * var(--k-tone-surface-c)) var(--tone-h-4)), oklch(var(--k-tone-d-4) calc(var(--tone-c-4) * var(--k-tone-surface-c) * 0.7) var(--tone-h-4)));
+    --tone-5: light-dark(oklch(var(--k-tone-l-5) calc(var(--tone-c-5) * var(--k-tone-surface-c)) var(--tone-h-5)), oklch(var(--k-tone-d-5) calc(var(--tone-c-5) * var(--k-tone-surface-c) * 0.7) var(--tone-h-5)));
+    --tone-6: light-dark(oklch(var(--k-tone-l-6) calc(var(--tone-c-6) * var(--k-tone-surface-c)) var(--tone-h-6)), oklch(var(--k-tone-d-6) calc(var(--tone-c-6) * var(--k-tone-surface-c) * 0.7) var(--tone-h-6)));
+
+    --on-tone-1: light-dark(oklch(var(--k-tone-ink-l) calc(var(--tone-c-1) * var(--k-tone-ink-c)) var(--tone-h-1)), oklch(var(--k-tone-ink-d) calc(var(--tone-c-1) * 0.12) var(--tone-h-1)));
+    --on-tone-2: light-dark(oklch(var(--k-tone-ink-l) calc(var(--tone-c-2) * var(--k-tone-ink-c)) var(--tone-h-2)), oklch(var(--k-tone-ink-d) calc(var(--tone-c-2) * 0.12) var(--tone-h-2)));
+    --on-tone-3: light-dark(oklch(var(--k-tone-ink-l) calc(var(--tone-c-3) * var(--k-tone-ink-c)) var(--tone-h-3)), oklch(var(--k-tone-ink-d) calc(var(--tone-c-3) * 0.12) var(--tone-h-3)));
+    --on-tone-4: light-dark(oklch(var(--k-tone-ink-l) calc(var(--tone-c-4) * var(--k-tone-ink-c)) var(--tone-h-4)), oklch(var(--k-tone-ink-d) calc(var(--tone-c-4) * 0.12) var(--tone-h-4)));
+    --on-tone-5: light-dark(oklch(var(--k-tone-ink-l) calc(var(--tone-c-5) * var(--k-tone-ink-c)) var(--tone-h-5)), oklch(var(--k-tone-ink-d) calc(var(--tone-c-5) * 0.12) var(--tone-h-5)));
+    --on-tone-6: light-dark(oklch(var(--k-tone-ink-l) calc(var(--tone-c-6) * var(--k-tone-ink-c)) var(--tone-h-6)), oklch(var(--k-tone-ink-d) calc(var(--tone-c-6) * 0.12) var(--tone-h-6)));
+  }
+
+  /* ---- The switch: data-tone sets --th / --tc (hue, vividness) and the two roles -------- */
+  [data-tone="1"] { --th: var(--tone-h-1); --tc: var(--tone-c-1); --tone-bg: var(--tone-1); --tone-ink: var(--on-tone-1); }
+  [data-tone="2"] { --th: var(--tone-h-2); --tc: var(--tone-c-2); --tone-bg: var(--tone-2); --tone-ink: var(--on-tone-2); }
+  [data-tone="3"] { --th: var(--tone-h-3); --tc: var(--tone-c-3); --tone-bg: var(--tone-3); --tone-ink: var(--on-tone-3); }
+  [data-tone="4"] { --th: var(--tone-h-4); --tc: var(--tone-c-4); --tone-bg: var(--tone-4); --tone-ink: var(--on-tone-4); }
+  [data-tone="5"] { --th: var(--tone-h-5); --tc: var(--tone-c-5); --tone-bg: var(--tone-5); --tone-ink: var(--on-tone-5); }
+  [data-tone="6"] { --th: var(--tone-h-6); --tc: var(--tone-c-6); --tone-bg: var(--tone-6); --tone-ink: var(--on-tone-6); }
+
+  /* status tones: same formulas, hue from --hue-* */
+  [data-tone="ok"] { --th: var(--hue-ok); --tc: 0.15; }
+  [data-tone="warn"] { --th: var(--hue-warn); --tc: 0.16; }
+  [data-tone="bad"] { --th: var(--hue-bad); --tc: 0.15; }
+  [data-tone="info"] { --th: var(--hue-info); --tc: 0.12; }
+  :is([data-tone="ok"], [data-tone="warn"], [data-tone="bad"], [data-tone="info"]) {
+    --tone-bg: light-dark(oklch(var(--k-tone-l) calc(var(--tc) * var(--k-tone-surface-c)) var(--th)), oklch(var(--k-tone-d) calc(var(--tc) * var(--k-tone-surface-c) * 0.7) var(--th)));
+    --tone-ink: light-dark(oklch(var(--k-tone-ink-l) calc(var(--tc) * var(--k-tone-ink-c)) var(--th)), oklch(var(--k-tone-ink-d) calc(var(--tc) * 0.12) var(--th)));
+  }
+
+  /* the inverted tone: ink fill, paper text */
+  [data-tone="ink"] {
+    --tone-bg: var(--ink);
+    --tone-ink: var(--paper);
+    --tone-ink-soft: light-dark(oklch(var(--k-soft-d) var(--k-neutral-c) var(--k-neutral-h)), oklch(var(--k-soft-l) var(--k-neutral-c) var(--k-neutral-h)));
+    --tone-fill: var(--paper);
+    --tone-on-fill: var(--ink);
+  }
+
+  /* what every hue tone also exposes: soft ink, and a solid pill/bar that sits on the tone */
+  [data-tone]:not([data-tone="ink"]) {
+    --tone-ink-soft: light-dark(oklch(var(--k-tone-soft-l) calc(var(--tc) * var(--k-tone-ink-c)) var(--th)), oklch(var(--k-tone-soft-d) calc(var(--tc) * 0.12) var(--th)));
+    --tone-fill: light-dark(oklch(var(--k-tone-fill-l) calc(var(--tc) * var(--k-tone-fill-c)) var(--th)), oklch(var(--k-tone-fill-d) calc(var(--tc) * var(--k-tone-fill-c) * 0.8) var(--th)));
+    --tone-on-fill: light-dark(oklch(var(--k-tone-on-fill-l) calc(var(--tc) * 0.08) var(--th)), oklch(var(--k-tone-on-fill-d) calc(var(--tc) * 0.2) var(--th)));
+  }
+
+  /* The SURFACE contract (see 10-color.css): --tone-* are registered inherits:false, so a
+     descendant cannot read them. These three inherit, so anything placed on a toned element can
+     read what it is sitting on. Anything that paints its own background must redefine them.
+
+     The focus ring follows the surface it is drawn on (an ink ring on an ink card vanishes).
+     Only DIRECT children are set; deeper descendants inherit, so a container inside the tone
+     (the card bar, a dock) can override for its own subtree.
+     --tone-* are registered inherits:false, so descendants cannot read them; these two
+     unregistered copies inherit. A focusable thing INSIDE a toned element draws its ring in
+     that tone's ink over a halo in that tone's fill: always the same ≥ 7:1 pair as its text. */
+  [data-tone] {
+    --surface-bg: var(--tone-bg);
+    --surface-ink: var(--tone-ink);
+    --surface-ink-soft: var(--tone-ink-soft);
+  }
+  [data-tone] > * {
+    --focus: var(--surface-ink);
+    --focus-halo: var(--surface-bg);
+  }
+
+  /* bold: a saturated mid-dark fill with near-white text; same in light and dark */
+  [data-tone]:not([data-tone="ink"])[data-emphasis="bold"] {
+    --tone-bg: oklch(var(--k-tone-b-l) calc(var(--tc) * var(--k-tone-b-c)) var(--th));
+    --tone-ink: oklch(var(--k-tone-b-ink) calc(var(--tc) * 0.05) var(--th));
+    --tone-ink-soft: oklch(var(--k-tone-b-soft) calc(var(--tc) * 0.1) var(--th));
+    --tone-fill: oklch(0.97 calc(var(--tc) * 0.05) var(--th));
+    --tone-on-fill: oklch(0.3 calc(var(--tc) * 0.6) var(--th));
+  }
+
+  /* ---- Higher contrast: deepen pastel text, push fills apart (identical blocks; linted) -- */
+  @media (prefers-contrast: more) {
+    :root:not([data-contrast="off"]),
+    :root:not([data-contrast="off"]) [data-palette] {
+      --k-tone-l: 0.96;
+      --k-tone-d: 0.2;
+      --k-tone-ink-l: 0.2;
+      --k-tone-ink-d: 1;
+      --k-tone-soft-l: 0.3;
+      --k-tone-soft-d: 0.92;
+      --k-tone-fill-l: 0.24;
+      --k-tone-fill-d: 0.9;
+      --k-tone-b-l: 0.38;
+      --k-tone-b-soft: 1;
+    }
+  }
+  :root[data-contrast="more"],
+  [data-contrast="more"][data-contrast="more"],
+  :root[data-contrast="more"] [data-palette] {
+    --k-tone-l: 0.96;
+    --k-tone-d: 0.2;
+    --k-tone-ink-l: 0.2;
+    --k-tone-ink-d: 1;
+    --k-tone-soft-l: 0.3;
+    --k-tone-soft-d: 0.92;
+    --k-tone-fill-l: 0.24;
+    --k-tone-fill-d: 0.9;
+    --k-tone-b-l: 0.38;
+    --k-tone-b-soft: 1;
+  }
+}

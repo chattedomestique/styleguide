@@ -1,0 +1,275 @@
+/* ==========================================================================
+   Skeleton  (layer: sg.components)
+   --------------------------------------------------------------------------
+   Flat grey placeholders that mirror the layout of content that is on its way,
+   so the page does not jump when it arrives. Use for waits longer than ~300 ms
+   where you know the shape (list, card, profile). Unknown shape or a short
+   action: Spinner. Known length: Progress.
+
+   <section aria-busy="true" aria-labelledby="recent-h">        the REGION that is loading
+     <h2 id="recent-h">Recent activity</h2>
+     <div class="skeleton" aria-hidden="true">                  decorative: hidden from AT
+       <div class="skeleton__row">
+         <span class="skeleton__tile"></span>
+         <span class="skeleton__stack">
+           <span class="skeleton__line" data-w="60"></span>
+           <span class="skeleton__line" data-w="40"></span>
+         </span>
+       </div>
+     </div>
+   </section>
+
+   parts          skeleton__line (text) · __tile (square slot, like a list's tile) ·
+                  __avatar (circle) · __block (media; data-ratio="16/9|4/3|1/1|21/9") ·
+                  __pill (a button or chip)
+   layout helpers skeleton__row (slot + text, flex; a __line placed directly in it is a
+                  short trailing value) · __stack (lines, grid)
+   data-w         25 | 40 | 60 | 75 | 90 | 100 (default): width of a line, in % of what holds it
+   data-size      avatar: sm (32) | md (48, default) | lg (72)
+   data-layout    list: the rows of a List (list.css): its row height and insets and the same 1px rule
+                  between rows, so the placeholder rows turn into the real ones without moving
+   data-variant   framed (with data-layout="list"): the List's framed variant, its 2px frame and corners
+
+   LARGE TEXT. A line is as tall as the text it stands for, so it grows with the reader's text size. The
+   slots are chrome, as the real ones are (a 44px tile, 32 / 48 / 72px avatars): they stop at their 100%
+   size. In a row the lines take the width that is LEFT beside the slot (flex: 1 1 0) and the trailing value
+   takes a fixed share of the row, so at 200% text a line never shrinks to a sliver and never runs past the
+   frame. A list's rows do what the real List does in a narrow column or at large text: the value drops
+   under the text lines, at their start, so the rows keep their shape when the content lands.
+
+   FLAT, NOT SHIMMER. A shape is a solid fill: the ink mixed 26% into whatever it
+   sits on (the card's own paper or tone, else the canvas). 14% was ~1.3:1 on the
+   stage and ~1.1:1 at the bottom of the pulse: in dark and in the wire palette the
+   rows read as an empty page. 26% rests near 1.9:1 (still quiet, well under the 3:1
+   a control needs) and its lowest step stays clearly there. No gradient sweeps
+   across it. The only motion is a STEPPED opacity pulse: four held levels over
+   1.6 s (1, .75, .55, .75), the same for every piece, so the screen breathes
+   together and nothing ever flashes (WCAG 2.3.1: 2.5 steps a second, each a
+   small change). Under reduced motion the pulse is OFF and the shapes are still.
+
+   WHEN  The group fades in after 300 ms (animation-delay, so no timer to forget).
+   A wait shorter than that shows nothing at all, which is better than a flash of
+   grey boxes.
+
+   SCREEN READERS (WCAG 4.1.3)  The shapes are aria-hidden. Put aria-busy="true"
+   on the region that is loading; when the content lands set it to "false" and call
+   SG.announce("Recent activity loaded") once. Never announce the skeleton itself,
+   and never leave one on screen for ever: after ~10 s swap it for an Empty state
+   with Retry.
+
+   A placeholder is decoration: no frame, no shadow, nothing to press. It has no
+   border of its own, so forced-colours mode paints it in GrayText (backgrounds
+   would otherwise be deleted and leave a blank region).
+   ========================================================================== */
+
+@layer sg.components {
+  @keyframes sg-skeleton-in {
+    from {
+      opacity: 0;
+    }
+  }
+  /* steps(1, end) on each interval = the value HOLDS, then jumps: four discrete levels. */
+  @keyframes sg-skeleton-step {
+    0% {
+      opacity: 1;
+    }
+    25% {
+      opacity: 0.75;
+    }
+    50% {
+      opacity: 0.55;
+    }
+    75% {
+      opacity: 0.75;
+    }
+  }
+
+  .skeleton {
+    /* the surface it sits on: a card's own paper or tone, else the page */
+    --_fill: color-mix(in srgb, var(--card-ink, var(--ink)) 26%, var(--card-bg, var(--canvas)));
+    --_gap: var(--space-4);
+
+    display: grid;
+    gap: var(--_gap);
+    /* `both` holds the from-state (opacity 0) through the 300 ms delay. */
+    animation: sg-skeleton-in var(--dur-enter) var(--ease-out) 300ms both;
+
+    /* the rows of a List (list.css: a 56px minimum, chrome, so it does not grow with text; its block and side
+       insets; a 1px rule between rows), so placeholders turn into real rows without moving anything. The rule
+       and the frame are the list's own structure, not loading content, so they are drawn in the list's
+       colours, not the placeholder grey. */
+    &[data-layout="list"] {
+      --_gap: 0;
+      container: skeleton-list / inline-size;
+
+      > .skeleton__row {
+        min-block-size: min(3.5rem, 56px); /* lint-allow hygiene: chrome, the List's own 56px row minimum (list.css), which does not grow with text */
+        padding: var(--chrome-2) var(--chrome-4);
+      }
+      > .skeleton__row + .skeleton__row {
+        border-block-start: var(--bw-thin) solid var(--card-ink, var(--line));
+      }
+      &[data-variant="framed"] {
+        background: var(--card-bg, var(--paper));
+        border: var(--bw) solid var(--line);
+        border-radius: var(--radius-card);
+        overflow: clip;
+        /* the shapes mix with the frame's own paper, not the page behind it */
+        --_fill: color-mix(in srgb, var(--card-ink, var(--ink)) 26%, var(--card-bg, var(--paper)));
+      }
+    }
+  }
+
+  /* ---- The shapes ------------------------------------------------------------------- */
+  .skeleton__line,
+  .skeleton__tile,
+  .skeleton__avatar,
+  .skeleton__block,
+  .skeleton__pill {
+    display: block;
+    flex: none;
+    background: var(--_fill);
+    animation: sg-skeleton-step 1.6s steps(1, end) infinite;
+  }
+
+  /* A line of text: the height of the glyphs, not of the line box. */
+  .skeleton__line {
+    --_w: 100;
+    inline-size: calc(var(--_w) * 1%);
+    max-inline-size: 100%;
+    block-size: 0.875rem;
+    border-radius: var(--radius-ctl);
+
+    &[data-w="25"] {
+      --_w: 25;
+    }
+    &[data-w="40"] {
+      --_w: 40;
+    }
+    &[data-w="60"] {
+      --_w: 60;
+    }
+    &[data-w="75"] {
+      --_w: 75;
+    }
+    &[data-w="90"] {
+      --_w: 90;
+    }
+  }
+
+  /* The square slot at the head of a row: the size of a list's tile (chrome: 44px at every text size). */
+  .skeleton__tile {
+    inline-size: var(--chrome-hit);
+    block-size: var(--chrome-hit);
+    border-radius: var(--radius-tile);
+  }
+
+  /* avatars are pictures: chrome, like the real ones */
+  .skeleton__avatar {
+    --_s: min(3rem, 48px);
+    inline-size: var(--_s);
+    block-size: var(--_s);
+    border-radius: var(--radius-pill);
+
+    &[data-size="sm"] {
+      --_s: min(2rem, 32px);
+    }
+    &[data-size="lg"] {
+      --_s: min(4.5rem, 72px);
+    }
+  }
+
+  /* Media / card image. The ratio reserves the space so nothing shifts on arrival. */
+  .skeleton__block {
+    --_ratio: 16 / 9;
+    inline-size: 100%;
+    aspect-ratio: var(--_ratio);
+    border-radius: var(--radius-tile);
+
+    &[data-ratio="4/3"] {
+      --_ratio: 4 / 3;
+    }
+    &[data-ratio="1/1"] {
+      --_ratio: 1 / 1;
+    }
+    &[data-ratio="21/9"] {
+      --_ratio: 21 / 9;
+    }
+  }
+
+  .skeleton__pill {
+    inline-size: 5rem;
+    block-size: var(--ctl);
+    border-radius: var(--radius-pill);
+  }
+
+  /* ---- Layout helpers --------------------------------------------------------------------- */
+  .skeleton__row {
+    display: flex;
+    align-items: center;
+    gap: var(--chrome-3);
+    min-inline-size: 0;
+  }
+  /* the lines beside a slot take the width that is left (basis 0), so their percentages are of a real width */
+  .skeleton__stack {
+    display: grid;
+    flex: 1 1 0;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+  /* A line placed directly in a row is the trailing value (an amount, a time): a fixed share of the row. */
+  .skeleton__row > .skeleton__line {
+    flex: none;
+    inline-size: 22%;
+  }
+
+  /* A NARROW LIST (200% text on a phone, a 320px phone): the real List drops each row's value under its title,
+     at the start (src/js/46-list.js measures its rows). Placeholder rows that kept the value beside two short
+     lines turned, on arrival, into rows twice as tall and of another shape. So below the width at which a List
+     row holds a value beside its title, the placeholder's value line goes under the text lines too, and the
+     slot spans both. That width is the List's own arithmetic for a typical row: the title's 6rem floor and a
+     5rem value, beside 104px of chrome (the 44px tile, two 12px gaps, the 16px insets and the 2px frame). */
+  @container skeleton-list (max-width: calc(11rem + 104px)) {
+    .skeleton[data-layout="list"] > .skeleton__row:has(> .skeleton__stack + .skeleton__line) {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: var(--space-2) var(--chrome-3);
+      /* the real row's 8px inset plus the half-leading above its first line of words: a bar is only as tall
+         as the glyphs, so without it the first bar sat against the rule */
+      padding-block: var(--space-3);
+
+      > :is(.skeleton__tile, .skeleton__avatar) {
+        grid-row: span 2;
+      }
+      > .skeleton__line {
+        grid-column: 2;
+        inline-size: 40%;
+      }
+    }
+  }
+
+  /* ---- Reduced motion: the pulse is OFF, the shapes are still --------------------------------
+     The 300 ms fade-in stays (opacity only). Two blocks, identical on purpose: the OS setting
+     and the app's data-motion switch, exactly like src/tokens/60-motion.css. */
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="full"]) :is(.skeleton__line, .skeleton__tile, .skeleton__avatar, .skeleton__block, .skeleton__pill) {
+      animation: none;
+    }
+  }
+  :root[data-motion="reduced"] :is(.skeleton__line, .skeleton__tile, .skeleton__avatar, .skeleton__block, .skeleton__pill) {
+    animation: none;
+  }
+
+  /* ---- Forced colours: backgrounds are removed, so the shapes need a real paint. --------------- */
+  @media (forced-colors: active) {
+    .skeleton__line,
+    .skeleton__tile,
+    .skeleton__avatar,
+    .skeleton__block,
+    .skeleton__pill {
+      forced-color-adjust: none;
+      background: GrayText;
+    }
+  }
+}

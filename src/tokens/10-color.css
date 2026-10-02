@@ -1,0 +1,263 @@
+/* ==========================================================================
+   10 · Colour roles  (gate 3: colour)
+   --------------------------------------------------------------------------
+   The role NAMES are the owner's (Flashcards style sheet v0.1): --canvas,
+   --paper, --ink, --ink-soft, --ink-faint, --line, --line-soft, --focus,
+   --accent, --on-accent, and (in 20-tones.css) --tone-1…6 / --on-tone-1…6.
+   Components read roles and nothing else. Only files in src/tokens contain a
+   colour literal.
+
+   HOW THE VALUES ARE BUILT
+   1. KNOBS (--k-*) are plain numbers: OKLCH lightness, chroma, hue. Palettes,
+      the contrast mode and the theme change knobs and nothing else.
+   2. ROLES are derived from knobs with light-dark(oklch(...)).
+   3. Roles are re-declared on every scope element (:root, [data-theme],
+      [data-palette], [data-contrast]) because a custom property holding var()
+      is resolved where it is declared. A <section data-palette="mint"> therefore
+      gets its own roles, while knobs it does not set still inherit.
+
+   CONTRAST BY CONSTRUCTION (WCAG 2.2). Lightness decides contrast, so each pair
+   keeps a fixed lightness gap; hue and chroma add personality only. Checked for
+   every palette × theme × contrast mode by `npm run test:contrast`, with colours
+   resolved by a real browser:
+
+     --ink        ≥ 7:1  on canvas, paper, paper-2            text and frames
+     --ink-soft   ≥ 7:1  on canvas, paper, paper-2            secondary text
+     --ink-mute   ≥ 4.5:1 on canvas, paper, paper-2           placeholder, tertiary text
+     --ink-faint  ≥ 3:1  on canvas, paper                     disabled, quiet decoration (never text that matters)
+     --line-soft  = --ink-faint                                quiet dividers
+
+   Never draw text with opacity; use a solid role. Colour never carries meaning
+   alone (WCAG 1.4.1): pair it with an icon, text or shape.
+   ========================================================================== */
+
+@layer sg.tokens {
+  :root {
+    color-scheme: light dark;
+  }
+
+  /* ---- Knobs: defaults = the "default" palette (neutral greys, ink accent) ----
+     Declared on every [data-palette] too, so a palette block is SELF-CONTAINED: an island that names a palette
+     starts from these defaults and applies only what its palette changes, instead of inheriting the page's
+     palette (a "sand" island inside a mint page kept mint's accent). The palette blocks come later in the same
+     layer with the same specificity, so they still win. The higher-contrast blocks below re-assert their
+     knobs on islands. tests/contrast.mjs compares an island with a page of the same palette. */
+  :root,
+  [data-palette] {
+    --k-neutral-h: 95;
+    --k-neutral-c: 0; /* chroma of paper-2/3, ink… */
+    --k-canvas-c-l: 0; /* extra tint on the canvas, light */
+    --k-canvas-c-d: 0; /* … and dark */
+    --k-paper-c-l: 0;
+
+    /* light lightness (OKLCH L) */
+    --k-canvas-l: 0.97;
+    --k-paper-l: 1;
+    --k-paper-2-l: 0.94;
+    --k-paper-3-l: 0.905;
+    --k-ink-l: 0.2;
+    --k-soft-l: 0.4;
+    --k-mute-l: 0.47;
+    --k-faint-l: 0.62;
+
+    /* dark lightness */
+    --k-canvas-d: 0.165;
+    --k-paper-d: 0.22;
+    --k-paper-2-d: 0.27;
+    --k-paper-3-d: 0.32;
+    --k-ink-d: 0.96;
+    --k-soft-d: 0.8;
+    --k-mute-d: 0.7;
+    --k-faint-d: 0.62;
+
+    /* accent: the one "press this" colour. The default palette keeps it ink
+       (black on light, white on dark), as in the wireframe stage. */
+    --k-accent-h: 95;
+    --k-accent-c: 0;
+    --k-accent-fill-l: 0.2;
+    --k-accent-fill-d: 0.94;
+    --k-on-accent-l: 0.98;
+    --k-on-accent-d: 0.18;
+    --k-accent-ink-l: 0.2;
+    --k-accent-ink-d: 0.94;
+    --k-accent-soft-l: 0.92;
+    --k-accent-soft-d: 0.3;
+    --k-on-accent-soft-l: 0.2;
+    --k-on-accent-soft-d: 0.94;
+
+    /* status text lightness (hue comes from the tone hues in 20-tones.css) */
+    --k-status-ink-l: 0.44;
+    --k-status-ink-d: 0.8;
+    --k-status-c: 0.16;
+  }
+
+  /* ---- Roles ---------------------------------------------------------------- */
+  :root,
+  [data-theme],
+  [data-palette],
+  [data-contrast] {
+    --canvas: light-dark(
+      oklch(var(--k-canvas-l) var(--k-canvas-c-l) var(--k-neutral-h)),
+      oklch(var(--k-canvas-d) var(--k-canvas-c-d) var(--k-neutral-h))
+    ); /* the page behind everything */
+    --paper: light-dark(
+      oklch(var(--k-paper-l) var(--k-paper-c-l) var(--k-neutral-h)),
+      oklch(var(--k-paper-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* a card's default fill */
+    /* added: a recessed or secondary fill (track, input, segmented well) and its pressed shade */
+    --paper-2: light-dark(
+      oklch(var(--k-paper-2-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-paper-2-d) var(--k-neutral-c) var(--k-neutral-h))
+    );
+    --paper-3: light-dark(
+      oklch(var(--k-paper-3-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-paper-3-d) var(--k-neutral-c) var(--k-neutral-h))
+    );
+
+    --ink: light-dark(
+      oklch(var(--k-ink-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-ink-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* text and frames */
+    --ink-soft: light-dark(
+      oklch(var(--k-soft-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-soft-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* secondary text on canvas or paper */
+    --ink-mute: light-dark(
+      oklch(var(--k-mute-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-mute-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* added: placeholder and tertiary text, the 4.5:1 floor */
+    --ink-faint: light-dark(
+      oklch(var(--k-faint-l) var(--k-neutral-c) var(--k-neutral-h)),
+      oklch(var(--k-faint-d) var(--k-neutral-c) var(--k-neutral-h))
+    ); /* disabled, quiet decoration */
+
+    /* added: the SURFACE contract. Whatever an element is painted on, these three say what to draw
+       on it: a fill, the ink that contrasts 7:1, and the quieter ink. [data-tone] and anything that
+       paints its own background (card, bar, sheet) redefine them; everything else just reads them,
+       so a tag, a meter or an icon adapts to where it is placed. Default: the page. */
+    --surface-bg: var(--canvas);
+    --surface-ink: var(--ink);
+    --surface-ink-soft: var(--ink-soft);
+
+    --line: var(--ink); /* frames */
+    --line-soft: var(--ink-faint); /* decoration that must stay quiet */
+    --focus: var(--ink); /* focus ring */
+
+    --accent: light-dark(
+      oklch(var(--k-accent-fill-l) var(--k-accent-c) var(--k-accent-h)),
+      oklch(var(--k-accent-fill-d) var(--k-accent-c) var(--k-accent-h))
+    );
+    --on-accent: light-dark(
+      oklch(var(--k-on-accent-l) calc(var(--k-accent-c) * 0.15) var(--k-accent-h)),
+      oklch(var(--k-on-accent-d) calc(var(--k-accent-c) * 0.15) var(--k-accent-h))
+    );
+    /* added: the accent used AS text or an icon on canvas/paper (links, active label) */
+    --accent-ink: light-dark(
+      oklch(var(--k-accent-ink-l) var(--k-accent-c) var(--k-accent-h)),
+      oklch(var(--k-accent-ink-d) var(--k-accent-c) var(--k-accent-h))
+    );
+    /* added: a soft accent wash (selected row) and the text that sits on it */
+    --accent-soft: light-dark(
+      oklch(var(--k-accent-soft-l) calc(var(--k-accent-c) * 0.3) var(--k-accent-h)),
+      oklch(var(--k-accent-soft-d) calc(var(--k-accent-c) * 0.45) var(--k-accent-h))
+    );
+    --on-accent-soft: light-dark(
+      oklch(var(--k-on-accent-soft-l) calc(var(--k-accent-c) * 0.5) var(--k-accent-h)),
+      oklch(var(--k-on-accent-soft-d) calc(var(--k-accent-c) * 0.3) var(--k-accent-h))
+    );
+
+    /* added: status text on canvas/paper. Always shown with an icon or words. */
+    --ok-ink: light-dark(oklch(var(--k-status-ink-l) calc(var(--k-status-c) * 0.75) var(--hue-ok)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.75) var(--hue-ok)));
+    --warn-ink: light-dark(oklch(calc(var(--k-status-ink-l) - 0.02) calc(var(--k-status-c) * 0.7) var(--hue-warn)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-warn)));
+    --bad-ink: light-dark(oklch(var(--k-status-ink-l) var(--k-status-c) var(--hue-bad)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-bad)));
+    --info-ink: light-dark(oklch(var(--k-status-ink-l) var(--k-status-c) var(--hue-info)), oklch(var(--k-status-ink-d) calc(var(--k-status-c) * 0.85) var(--hue-info)));
+
+    /* added: overlays. The one sanctioned translucency: a modal backdrop and the plate that
+       keeps white text/icons ≥ 4.5:1 over ANY photo (black at ≥ 0.55 over pure white). */
+    --scrim: oklch(0 0 0 / 0.6);
+    --scrim-strong: oklch(0 0 0 / 0.75);
+    --on-media: oklch(1 0 0);
+  }
+
+  /* ---- Theme switching. Absent attribute = follow the operating system. ------- */
+  :root[data-theme="light"],
+  [data-theme="light"] {
+    color-scheme: light;
+  }
+  :root[data-theme="dark"],
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+  /* A nested theme island must paint itself, or it would show the parent's canvas. */
+  [data-theme]:not(:root) {
+    background-color: var(--canvas);
+    color: var(--ink);
+  }
+
+  /* ---- Higher contrast ---------------------------------------------------------
+     Follows the OS (prefers-contrast: more) or data-contrast="more". Only knobs
+     change, so every palette and tone gets the boost. Text ≥ 7:1 everywhere, and
+     the accent collapses to ink whatever the palette. Keep the two blocks below
+     identical; tests/lint.mjs asserts it.
+
+     ISLANDS. A palette block and these knobs have the same specificity, so an island
+     that sets its own [data-palette] inside a higher-contrast page would undo the
+     inherited knobs (its accent kept 6.6:1 where 7:1 is promised). The second selector
+     of each block re-asserts them on any palette inside a higher-contrast page. The
+     doubled attribute in the middle one lets any element ask for more contrast on a
+     normal page, and still beat a palette on the same element. tests/contrast.mjs
+     checks both island cases. */
+  @media (prefers-contrast: more) {
+    :root:not([data-contrast="off"]),
+    :root:not([data-contrast="off"]) [data-palette] {
+      --k-ink-l: 0.1;
+      --k-soft-l: 0.22;
+      --k-mute-l: 0.32;
+      --k-faint-l: 0.44;
+      --k-ink-d: 1;
+      --k-soft-d: 0.95;
+      --k-mute-d: 0.9;
+      --k-faint-d: 0.78;
+      --k-paper-2-l: 0.93;
+      --k-paper-3-l: 0.88;
+      --k-status-ink-l: 0.32;
+      --k-status-ink-d: 0.88;
+      --k-accent-fill-l: 0.12;
+      --k-accent-fill-d: 1;
+      --k-on-accent-l: 0.99;
+      --k-on-accent-d: 0.1;
+      --k-accent-ink-l: 0.12;
+      --k-accent-ink-d: 1;
+      --k-accent-soft-l: 0.92;
+      --k-accent-soft-d: 0.25;
+      --k-on-accent-soft-l: 0.1;
+      --k-on-accent-soft-d: 1;
+    }
+  }
+  :root[data-contrast="more"],
+  [data-contrast="more"][data-contrast="more"],
+  :root[data-contrast="more"] [data-palette] {
+    --k-ink-l: 0.1;
+    --k-soft-l: 0.22;
+    --k-mute-l: 0.32;
+    --k-faint-l: 0.44;
+    --k-ink-d: 1;
+    --k-soft-d: 0.95;
+    --k-mute-d: 0.9;
+    --k-faint-d: 0.78;
+    --k-paper-2-l: 0.93;
+    --k-paper-3-l: 0.88;
+    --k-status-ink-l: 0.32;
+    --k-status-ink-d: 0.88;
+    --k-accent-fill-l: 0.12;
+    --k-accent-fill-d: 1;
+    --k-on-accent-l: 0.99;
+    --k-on-accent-d: 0.1;
+    --k-accent-ink-l: 0.12;
+    --k-accent-ink-d: 1;
+    --k-accent-soft-l: 0.92;
+    --k-accent-soft-d: 0.25;
+    --k-on-accent-soft-l: 0.1;
+    --k-on-accent-soft-d: 1;
+  }
+}

@@ -1,0 +1,392 @@
+/*! styleguide v0.2.0 - element: menu. Needs core.css. Generated from src/components/menu.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Menu  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A short list of commands opened from a button: the WAI-ARIA APG "Menu Button"
+   pattern, with the native popover attribute as the container. Use it for actions
+   ("Rename", "Sort by", "Delete"), never for navigation (that is a list of links) and
+   never for choosing a value in a form (that is a select or a radio group).
+   JS: src/js/63-menu.js (keys, roving focus, type-ahead, aria-checked).
+
+   <button class="btn" id="b" aria-haspopup="menu" aria-expanded="false" aria-controls="m" popovertarget="m">
+     Deck options<span class="ic ic--chevron-down menu__chevron" aria-hidden="true"></span></button>
+   <div class="menu" id="m" popover role="menu" aria-labelledby="b">
+     <button class="menu__item" role="menuitem" type="button"><span class="ic ic--pencil" aria-hidden="true"></span>Rename</button>
+     <hr class="menu__sep" role="separator" />
+     <button class="menu__item" role="menuitem" type="button" data-tone="bad">
+       <span class="ic ic--trash-2" aria-hidden="true"></span>Delete deck</button>
+   </div>
+
+   .menu__item       role="menuitem" | "menuitemcheckbox" | "menuitemradio" (aria-checked)
+   data-tone="bad"   on an item: destructive. ALWAYS an icon plus the word; the red is a bonus.
+   data-variant      "cancel" on the last item of an action sheet: the framed dismiss row
+   .menu__check      leading icon that appears only while aria-checked="true" (the check is the
+                     structural cue; bold text is the second)
+   .menu__meta       trailing secondary text: a shortcut, a value, or WHY an item is unavailable. On the
+                     row's line, at its end, while it fits; when it does not (large text, a narrow
+                     menu) it drops under the label, aligned with the label's start (measured by
+                     63-menu.js through SG.fit: data-fit="inline" or "stack" on the row)
+   .menu__label      non-interactive group caption (aria-hidden; name the role="group" with it)
+   .menu__sep        a 2px rule between groups (a border, so it survives forced colours)
+   .menu__chevron    the arrow on the button; turns over while open (not under reduced motion)
+   data-placement    bottom-start (default) … see popover.css
+   data-presentation sheet | auto   the same menu as an ACTION SHEET: docked to the bottom with big
+                     rows, a scrim and a Cancel row. `auto` does it below 40em, so one menu is a
+                     dropdown on a desktop and an action sheet on a phone.
+   data-keep-open    (menu or item) activating does not close it
+
+   LARGE TEXT. The words grow; the row's chrome does not (--chrome-*): its padding, the gap, the 20px leading
+   icon and the 44px target stay at their 100% size, so at 200% text a label keeps the room.
+
+   A ROW IS A PILL-LESS BUTTON. Rows are not pills (they do not stand alone) and do not lift:
+   the menu's frame clips them, and a hard shadow inside a frame would be a shadow on a
+   container. They do the other half of the press language: --fill, which inverts the row to
+   the accent on hover, on keyboard focus and while pressed. On keyboard focus a ring is also
+   drawn INSIDE the row in the row's own text colour, because an ink ring on an ink row
+   vanishes. Rows are contiguous 44px targets separated by a 1px rule, like any list.
+
+   Placement comes from popover.css (the anchor contract): below the button, flipped above when
+   there is no room, by CSS anchor positioning where supported and a JS measure where not.
+
+   SEPARATION. The menu is a container: a 2px frame and no shadow. Radius is --radius-tile, so
+   it is square by default and softly rounded in `soft` (rows are clipped to it).
+   ========================================================================== */
+
+@layer sg.components {
+  [popover].menu {
+    /* 1 · private properties */
+    --_edge: calc(max(var(--gutter), var(--safe-left)) + max(var(--gutter), var(--safe-right)));
+    --_rise: calc(var(--move) * var(--space-2)); /* a settle, not a slide. --move 0 leaves a fade. */
+
+    position: fixed;
+    display: none; /* a closed menu stays hidden while the exit animation needs display to be discrete */
+    box-sizing: border-box;
+    /* min-width beats max-width, so the minimum must also respect the screen: at 200% text 12rem
+       is wider than a phone and the menu would run off the right edge */
+    min-inline-size: min(12rem, calc(100vw - var(--_edge)));
+    max-inline-size: min(22rem, calc(100vw - var(--_edge)));
+    max-block-size: min(28rem, calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--space-6)));
+    padding: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-tile);
+    font: var(--type-ctl);
+
+    opacity: 0;
+    transform: translateY(var(--_rise));
+    transition:
+      opacity var(--dur-press) var(--ease-in),
+      transform var(--dur-press) var(--ease-in),
+      overlay var(--dur-press) allow-discrete,
+      display var(--dur-press) allow-discrete;
+  }
+
+  [popover].menu:popover-open {
+    display: block;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-hover) var(--ease-out),
+      transform var(--dur-hover) var(--ease-out),
+      overlay var(--dur-hover) allow-discrete,
+      display var(--dur-hover) allow-discrete;
+  }
+
+  @starting-style {
+    [popover].menu:popover-open {
+      opacity: 0;
+      transform: translateY(var(--_rise));
+    }
+  }
+
+  /* Not in the top layer: a static preview. Its width is its container's, not the viewport's: the viewport-based
+     minimum above is right for the real popover (it floats over the page) and wrong for a preview inside a
+     narrower frame, where it ran past the frame and was clipped (the row's right edge and its meta text). */
+  [popover].menu[data-inline] {
+    position: relative;
+    inset: auto;
+    display: block;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    margin: 0;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* At least as wide as its button, so a "Sort: Newest" button and its menu line up. */
+  @supports (position-area: block-end) and (anchor-name: --a) {
+    [popover].menu[data-anchored]:not([data-anchor-js]) {
+      min-inline-size: max(min(12rem, calc(100vw - var(--_edge))), anchor-size(inline));
+    }
+  }
+
+  /* ---- Rows -------------------------------------------------------------------------- */
+  .menu__item {
+    --fill: 0;
+    --_rest-ink: var(--ink);
+    --_on-bg: var(--accent);
+    --_on-ink: var(--on-accent);
+
+    display: flex;
+    align-items: center;
+    gap: var(--chrome-3);
+    inline-size: 100%;
+    min-block-size: var(--chrome-hit);
+    margin: 0;
+    padding-block: var(--chrome-2);
+    padding-inline: var(--chrome-4);
+    color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
+    background: color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--paper));
+    /* the top edge is the 1px rule between rows; transparent on the first, so every row has a
+       real border (the forced-colours rule below makes them all visible) */
+    border: 0;
+    border-block-start: var(--bw-thin) solid transparent;
+    border-radius: 0;
+    font: var(--type-ctl);
+    /* a reading line-height, not the control's 1: a label that wraps, or a 32px label at 200% text, keeps its
+       leading clear of the rules between rows (with line-height 1 it nearly touched them) */
+    line-height: var(--lh-snug);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    & + & {
+      border-block-start-color: var(--line);
+    }
+
+    /* the icon on a row follows the row's text colour (a mask on currentColor); a leading slot, so chrome */
+    & > .ic {
+      --ic-size: var(--chrome-ic-sm);
+    }
+
+    /* hover (gated), keyboard focus, pressed: the row inverts */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not([aria-disabled="true"]) {
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not([aria-disabled="true"]) {
+      --fill: 1;
+    }
+    &:is(:active, .is-active):not([aria-disabled="true"]) {
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* The ring is drawn inside the row (the menu clips) in the row's own text colour, so it
+       shows on the inverted row. A lone ring on the ink row would be ink on ink. */
+    &:is(:focus-visible, .is-focus) {
+      --ring-gap: calc(var(--ring) * -1 - var(--bw));
+      outline: var(--ring) solid color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--focus));
+      outline-offset: var(--ring-gap);
+    }
+
+    /* Checked: the check icon shows (set on .menu__check) and the label is bolder, so it is
+       never colour alone. */
+    &[aria-checked="true"] {
+      font-weight: 800;
+    }
+
+    /* Destructive: the trash icon and the word "Delete" carry the meaning; red is a bonus. */
+    &[data-tone] {
+      --_rest-ink: var(--bad-ink);
+      --_on-bg: var(--tone-fill);
+      --_on-ink: var(--tone-on-fill);
+    }
+
+    /* Unavailable: dashed = not here. Still focusable so people can find out why (SG.guard
+       makes it inert). Faint ink, not opacity. */
+    &[aria-disabled="true"] {
+      --fill: 0;
+      --_rest-ink: var(--ink-faint);
+      outline: var(--bw) dashed var(--ink-faint);
+      outline-offset: calc(var(--bw) * -2);
+      cursor: not-allowed;
+    }
+    &[aria-disabled="true"]:focus-visible {
+      outline: var(--ring) solid var(--focus);
+      outline-offset: calc(var(--ring) * -1 - var(--bw));
+    }
+  }
+
+  .menu__check {
+    visibility: hidden;
+  }
+  .menu__item[aria-checked="true"] > .menu__check {
+    visibility: visible;
+  }
+
+  .menu__meta {
+    margin-inline-start: auto;
+    padding-inline-start: var(--chrome-3);
+    color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--ink-soft));
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums;
+    /* Never narrower than its longest word: at min-inline-size 0 a reason shrank to nothing and printed one letter
+       a line, a 500px-tall row at 200% text. When it does not fit beside the label it drops under it (below). */
+    text-align: end;
+    overflow-wrap: break-word;
+  }
+
+  /* A row with a reason or a shortcut, measured (SG.fit in 63-menu.js): "inline" keeps the reason at the end of
+     the row's line, and the row does not wrap while it is measured. The reason is the one part that may give:
+     when the row is short of room it shrinks below its words, so they overflow IT, where the measure sees them
+     (a row that only ran into its own end padding did not overflow, and "After review" sat 4px from the frame
+     at 200% text). "stack" then puts it under the label, aligned with the label's start (a value that drops
+     under its label starts where the label starts, never at the far edge). */
+  .menu__item[data-fit="inline"] {
+    white-space: nowrap;
+
+    & > .menu__meta {
+      flex: 0 1 auto;
+      min-inline-size: 0;
+    }
+  }
+  .menu__item[data-fit="stack"] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--chrome-3);
+
+    & > .menu__meta {
+      grid-column: 2;
+      margin: 0;
+      padding: 0;
+      text-align: start;
+    }
+    &:not(:has(> .ic)) {
+      grid-template-columns: minmax(0, 1fr);
+
+      & > .menu__meta {
+        grid-column: 1;
+      }
+    }
+  }
+  .menu__item[aria-disabled="true"] > .menu__meta {
+    color: var(--ink-faint);
+  }
+
+  .menu__label {
+    display: block;
+    padding: var(--chrome-3) var(--chrome-4) var(--chrome-1);
+    color: var(--ink-soft);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+
+  .menu__sep {
+    margin: 0;
+    border: 0;
+    border-block-start: var(--bw) solid var(--line);
+  }
+  .menu__sep:first-child {
+    display: none;
+  }
+
+  /* The little arrow on the button. Turns over while open; under reduced motion the open menu
+     itself is the cue (aria-expanded is announced either way). */
+  .menu__chevron {
+    transition: rotate var(--dur-hover) var(--ease-out);
+  }
+  [aria-expanded="true"] > .menu__chevron {
+    rotate: calc(var(--move) * 180deg);
+  }
+
+  /* ---- Action sheet presentation -------------------------------------------------------------
+     The same menu, docked to the bottom edge of a phone: full-width big rows, a scrim and a
+     Cancel row, because a thumb cannot hit a small dropdown and a touch screen has no Esc.
+     data-sheet is set by 63-menu.js when data-presentation says so. Flat, framed, no handle
+     (nothing here drags, and a picture of a handle would be decoration). */
+  [popover].menu[data-sheet] {
+    --_rise: calc(var(--move) * 100%);
+
+    inset: auto var(--safe-right) 0 var(--safe-left);
+    margin: 0;
+    inline-size: auto;
+    min-inline-size: 0;
+    max-inline-size: none;
+    max-block-size: calc(100dvh - var(--safe-top) - var(--space-8));
+    padding-block-end: var(--safe-bottom);
+    border-block-end-width: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+    transform: translateY(var(--_rise));
+  }
+  [popover].menu[data-sheet]:popover-open {
+    transform: none;
+    transition:
+      opacity var(--dur-enter) var(--ease-out),
+      transform var(--dur-enter) var(--ease-out),
+      overlay var(--dur-enter) allow-discrete,
+      display var(--dur-enter) allow-discrete;
+  }
+  @starting-style {
+    [popover].menu[data-sheet]:popover-open {
+      transform: translateY(var(--_rise));
+    }
+  }
+  [popover].menu[data-sheet]::backdrop {
+    background: var(--scrim);
+    opacity: 0;
+    transition:
+      opacity var(--dur-hover) var(--ease-in),
+      overlay var(--dur-hover) allow-discrete,
+      display var(--dur-hover) allow-discrete;
+  }
+  [popover].menu[data-sheet]:popover-open::backdrop {
+    opacity: 1;
+    transition:
+      opacity var(--dur-enter) var(--ease-out),
+      overlay var(--dur-enter) allow-discrete,
+      display var(--dur-enter) allow-discrete;
+  }
+  @starting-style {
+    [popover].menu[data-sheet]:popover-open::backdrop {
+      opacity: 0;
+    }
+  }
+  [popover].menu[data-sheet] .menu__item {
+    min-block-size: var(--chrome-ctl-lg);
+    font-size: var(--text-lg);
+  }
+  [popover].menu[data-sheet] .menu__item[data-variant="cancel"] {
+    justify-content: center;
+    border-block-start-color: var(--line);
+  }
+
+  /* ---- Forced colours ---------------------------------------------------------------------------
+     Fills vanish: every row shows its rule, the hover / focus / checked row gets a heavy Highlight
+     line, and an unavailable row is GrayText with a dashed line. */
+  @media (forced-colors: active) {
+    [popover].menu {
+      border-color: CanvasText;
+    }
+    .menu__item {
+      border-block-start-color: ButtonText;
+      &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: calc(var(--bw-heavy) * -1);
+      }
+      &[aria-checked="true"] {
+        border-inline-start: var(--bw-heavy) solid Highlight;
+      }
+      &[aria-disabled="true"] {
+        color: GrayText;
+        outline-color: GrayText;
+      }
+    }
+    .menu__sep {
+      border-color: CanvasText;
+    }
+  }
+}

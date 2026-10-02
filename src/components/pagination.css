@@ -1,0 +1,292 @@
+/* ==========================================================================
+   Pagination  (layer: sg.components)                 move through a long list
+   --------------------------------------------------------------------------
+   Previous, a few numbered pages, Next. It is NAVIGATION: a <nav> landmark with a label, a list of
+   links (real hrefs, so Back and deep links work), and the current page marked aria-current="page".
+   Every link is a .btn: the numbers are circles, Previous and Next are pills.
+
+   <nav class="pagination" aria-label="Decks pages">
+     <ul class="pagination__list" role="list">
+       <li class="pagination__prev"><a class="btn" href="?page=1" rel="prev"><span class="ic ic--arrow-left" aria-hidden="true"></span><span class="pagination__label">Previous</span></a></li>
+       <li class="pagination__page"><a class="btn" data-shape="circle" href="?page=1" aria-label="Page 1">1</a></li>
+       <li class="pagination__page"><a class="btn" data-shape="circle" href="?page=2" aria-label="Page 2" aria-current="page">2</a></li>
+       <li class="pagination__gap" aria-hidden="true">…</li>
+       <li class="pagination__page"><a class="btn" data-shape="circle" href="?page=12" aria-label="Page 12">12</a></li>
+       <li class="pagination__status">Page 2 of 12</li>
+       <li class="pagination__next"><a class="btn" href="?page=3" rel="next"><span class="pagination__label">Next</span><span class="ic ic--arrow-right" aria-hidden="true"></span></a></li>
+     </ul>
+   </nav>
+
+   Unavailable (first page has no Previous): <button class="btn" type="button" aria-disabled="true"
+   aria-describedby="why">…</button> with the reason in sr-only text. It stays in the tab order, so a
+   keyboard user can find out why; the guard (src/js/20-guard.js) makes it inert.
+
+   ONE ROW, THE RICHEST THAT FITS. A pager never wraps and never runs out of its frame. src/js/47-pagination.js
+   measures the row (SG.fit) and writes the form that fits to data-fit, richest first:
+     full      Previous and Next with their words, every number in the markup
+     compact   Previous and Next as circles (their words kept as their names), every number
+     fewer     the circles, and only the first, the current and the last page, with … for what is left out
+     short     the circles around one line of text, "Page 2 of 12": three big targets on any phone
+   The row does not wrap while it is measured, so "does not fit" shows up as overflow. It re-checks when
+   the nav's width or the text size changes. In the short form the status may wrap onto two lines BETWEEN
+   the circles; it never drops under them. Without JS there is no data-fit and a container query stands in:
+   under 38rem of the nav's own width the short form, otherwise the full row (which then wraps).
+
+   LARGE TEXT (WCAG 1.4.4). The page numbers are words (a circle that holds a number grows with the text,
+   button.css); Previous and Next as circles are chrome (44px, a 20px arrow), and so are the row's gaps.
+   RIGHT-TO-LEFT: the arrows mirror.
+
+   CURRENT PAGE is filled AND its frame doubles: a 2px ring in the surface colour just inside the border (the
+   .btn "on" look draws that ring outside, which made the current circle 4px larger than the numbers beside
+   it), and the status line says it in words. Never colour alone. Numbers are tabular. The fill means current, so another
+   page number only lifts on hover (and tints when pressed): a pointer over "6" must not make it look like the
+   page you are on. Previous and Next are actions and keep Button's fill on hover.
+   Links throughout; the only script is the layout measure.
+
+   data-variant="switcher" is the same parts, always in the short form, for a value that is not a page
+   number (a month): see the docs.
+
+   Private properties: --_status-w (set by the script: the room of the status's longest form); it also sets the
+   .btn ones (--_selw, --_select, --_halo, --_h, --_cap) for the current page and the circles.
+   ========================================================================== */
+
+@layer sg.components {
+  .pagination {
+    container: pagination / inline-size;
+    min-inline-size: 0;
+  }
+
+  .pagination__list {
+    display: flex;
+    flex-wrap: wrap; /* only without JS (no data-fit): the measured forms below never wrap */
+    align-items: center;
+    justify-content: center;
+    gap: var(--chrome-2);
+    margin: 0;
+    padding: var(--chrome-2);
+    list-style: none;
+
+    /* :where() keeps this at zero specificity, so a class like .pagination__status can set display itself */
+    & > :where(li) {
+      display: flex;
+      align-items: center;
+      min-inline-size: 0;
+    }
+    & .btn {
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+  }
+  /* measured: one row of items that keep their size (none shrinks into its neighbour), and "safe" centring, so
+     a row that is too wide overflows at its end, where the measure sees it. Only the status line may give. */
+  .pagination[data-fit] .pagination__list {
+    flex-wrap: nowrap;
+    justify-content: safe center;
+
+    & > :where(li) {
+      flex: none;
+    }
+  }
+
+  /* the page you are on: filled, and its frame doubled inside, so it is the size of the numbers beside it */
+  .pagination .btn[aria-current="page"] {
+    --fill: 1;
+    --_selw: var(--bw);
+    --_select: inset 0 0 0 var(--bw) var(--paper);
+    --_halo: 0 0 0 calc(var(--lift) * var(--fill) * var(--bw)) var(--focus-halo, var(--paper)); /* Button's gap, outside the frame */
+  }
+  /* the fill means "you are here": another page number lifts on hover and tints when pressed, it never fills */
+  .pagination .pagination__page .btn:not([aria-current="page"]) {
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --fill: 0;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --fill: 0;
+    }
+    &:is(:active, .is-active) {
+      --fill: 0.15;
+    }
+  }
+
+  /* pages left out: a gap in the numbers, not a control */
+  .pagination__gap {
+    min-inline-size: var(--space-4);
+    justify-content: center;
+    font: var(--type-ctl);
+  }
+
+  /* the short form of the current position; shown only when there is no room for the numbers */
+  .pagination__status {
+    --_status-w: auto; /* the script sets it (inline) in the short form: the room of the longest form */
+
+    display: none;
+    font: var(--type-ctl);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: center;
+    text-wrap: balance; /* two short lines ("Page 5 / of 12"), not a long one and an orphan */
+    overflow-wrap: break-word;
+  }
+
+  /* ---- Previous / Next as circles (compact, fewer, short, the switcher) ----------------------------------
+     A 44px circle with a 20px arrow: chrome, so it does not grow with the text. The word stays in the DOM as
+     the button's name: visually hidden as the button's own box (the usual 1px nowrap box leaves "Previous"
+     laid out past the frame of a narrow demo), clip-path paints none of it. Its type is tiny (1px at 100%), so the
+     hidden word stays laid out inside the circle at any text size (at 200% it wrapped into lines below the
+     circle, past the bottom of its frame); a screen reader reads it all the same. */
+  :is(.pagination[data-fit="compact"], .pagination[data-fit="fewer"], .pagination[data-fit="short"], .pagination[data-variant="switcher"]) :is(.pagination__prev, .pagination__next) .btn {
+    --_h: var(--chrome-ctl);
+    --_cap: var(--chrome-ctl);
+    --_hit: var(--chrome-hit); /* the target is 44px too; a rem target (88px at 200%) reached past the row */
+    --_r: var(--radius-pill);
+
+    inline-size: var(--chrome-ctl);
+    min-inline-size: var(--chrome-ctl);
+    min-block-size: var(--chrome-ctl);
+    padding: 0;
+
+    & > .ic {
+      --ic-size: var(--chrome-ic-sm);
+    }
+  }
+  :is(.pagination[data-fit="compact"], .pagination[data-fit="fewer"], .pagination[data-fit="short"], .pagination[data-variant="switcher"]) .pagination__label {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    clip-path: inset(50%);
+    font-size: 0.0625rem; /* the hidden word's own layout, never painted: it must not grow past the circle */
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* ---- fewer: the first, the current and the last page; one … for each run that is left out ------------
+     A page left out is drawn as "…" unless the item before it already says so (a gap, or another page left
+     out), so a run of missing pages is one gap whatever the markup's own window was. */
+  .pagination[data-fit="fewer"] {
+    & .pagination__page:not(:has(> [aria-current="page"]), .pagination__prev + *, .pagination__list > :first-child, :has(+ :is(.pagination__status, .pagination__next)), :last-child) {
+      min-inline-size: var(--space-4);
+      justify-content: center;
+      font: var(--type-ctl);
+
+      & > * {
+        display: none;
+      }
+      &::before {
+        content: "\2026" / "";
+      }
+    }
+    & :is(.pagination__gap, .pagination__page:not(:has(> [aria-current="page"]), .pagination__prev + *, .pagination__list > :first-child, :has(+ :is(.pagination__status, .pagination__next)), :last-child)) + .pagination__page:not(:has(> [aria-current="page"]), .pagination__prev + *, .pagination__list > :first-child, :has(+ :is(.pagination__status, .pagination__next)), :last-child),
+    & .pagination__page:not(:has(> [aria-current="page"]), .pagination__prev + *, .pagination__list > :first-child, :has(+ :is(.pagination__status, .pagination__next)), :last-child) + .pagination__gap {
+      display: none;
+    }
+  }
+
+  /* ---- short: the circles around one line of text ------------------------------------------------- */
+  .pagination[data-fit="short"] {
+    & .pagination__page,
+    & .pagination__gap {
+      display: none;
+    }
+    & .pagination__status {
+      display: block;
+      flex: 0 1 auto;
+      min-inline-size: 0;
+      /* the room of its longest form (47-pagination.js): pagers of one list share a width and a height */
+      inline-size: var(--_status-w);
+
+      &[data-lines="2"] {
+        align-content: center; /* a block box: its words still wrap at the box, they are not a flex item's floor */
+        min-block-size: 2lh;
+      }
+    }
+    & .pagination__list {
+      gap: var(--chrome-4);
+    }
+  }
+
+  /* ---- Without JS: a container query stands in for the measure ---------------------------------------- */
+  @container pagination (max-width: 38rem) {
+    .pagination:not([data-fit], [data-variant="switcher"]) {
+      & .pagination__page,
+      & .pagination__gap {
+        display: none;
+      }
+      & .pagination__status {
+        display: block;
+        flex: 0 1 auto;
+        min-inline-size: 0;
+      }
+      & .pagination__list {
+        flex-wrap: nowrap;
+        gap: var(--chrome-4);
+      }
+      & :is(.pagination__prev, .pagination__next) .btn {
+        --_h: var(--chrome-ctl);
+        --_cap: var(--chrome-ctl);
+        --_hit: var(--chrome-hit);
+        --_r: var(--radius-pill);
+
+        inline-size: var(--chrome-ctl);
+        min-inline-size: var(--chrome-ctl);
+        min-block-size: var(--chrome-ctl);
+        padding: 0;
+
+        & > .ic {
+          --ic-size: var(--chrome-ic-sm);
+        }
+      }
+      & .pagination__label {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        padding: 0;
+        clip-path: inset(50%);
+        font-size: 0.0625rem; /* as above: the hidden word stays inside the circle */
+        line-height: 1;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  /* ---- Switcher: the same parts, always in the short form ---------------------------------------------
+     A previous / next pair around ONE current value that is not a page number: a month, a week, a
+     deck. No numbers, so the status is the label and it is the biggest thing in the row. One row at every
+     size: the value wraps between the circles, it never drops under them.
+     <nav class="pagination" data-variant="switcher" aria-label="Month"> with buttons (the view changes
+     in place) and the status as a polite live region, so a screen reader hears the new value. */
+  .pagination[data-variant="switcher"] {
+    & .pagination__list {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: var(--chrome-3);
+    }
+    & :is(.pagination__page, .pagination__gap) {
+      display: none;
+    }
+    & .pagination__status {
+      display: block;
+      flex: 1 1 auto;
+      min-inline-size: 0;
+      font: var(--type-title);
+      /* A display value: on a narrow phone it shrinks to hold one line between the arrows ("September 2026" is
+         7.5em wide; the arrows, the gaps and the padding are 128px of chrome) instead of wrapping, but never below
+         the reader's body size, so at large text it wraps rather than shrinks. */
+      font-size: max(var(--text-md), min(var(--text-xl), calc((100cqi - 2 * var(--chrome-ctl) - 2 * var(--chrome-3) - 2 * var(--chrome-2)) / 7.5)));
+      text-align: center;
+      white-space: normal;
+      overflow-wrap: break-word;
+    }
+  }
+
+  /* ---- Right-to-left: Previous / Next arrows point the other way ---------------------------------- */
+  .pagination .ic:is(.ic--arrow-left, .ic--arrow-right, .ic--chevron-left, .ic--chevron-right):dir(rtl) {
+    transform: scaleX(-1);
+  }
+
+  @media (forced-colors: active) {
+    .pagination .btn[aria-current="page"] {
+      border-width: var(--bw-heavy);
+    }
+  }
+}

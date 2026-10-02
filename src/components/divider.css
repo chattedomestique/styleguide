@@ -1,0 +1,138 @@
+/* ==========================================================================
+   Divider  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A line that separates, and optionally says what comes next. Flat, static,
+   no shadow. The line takes the colour of the text around it (currentColor),
+   so the same divider is ink on a card, paper on an inverted card and follows
+   any tone, with no role to pick.
+
+   <hr class="divider">                                        a thin rule (the 1px --bw-thin divides)
+   <hr class="divider" data-weight="frame">                    the 2px --bw: a section break, same weight as a frame
+   <hr class="divider" data-quiet>                             --line-soft: decoration that must stay out of the way
+   <p class="divider">or</p>                                   labelled, centred
+   <h3 class="divider" data-align="start">Yesterday</h3>       labelled, label first (a heading when it names the group below)
+   <hr class="divider" data-orientation="vertical">            between items in a row
+
+   THE LABELLED DIVIDER IS TEXT, NOT A SEPARATOR. Its lines are drawn by ::before and
+   ::after, so assistive tech reads the label as content ("Yesterday") instead of
+   hiding it inside a role="separator" (whose children are presentational). If the
+   label names the group that follows, make the element a heading. If it is just
+   "or", a paragraph is right. A bare <hr> keeps its implicit separator role.
+
+   data-weight     thin (default) | frame
+   data-quiet      --line-soft. Decoration only: never the only thing that marks a boundary.
+   data-align      center (default) | start | end       where a labelled divider puts its label. Aligned to a side,
+                                                        a label that cannot keep its rule beside it takes the rule
+                                                        under it (start) or over it (end), full width.
+   data-orientation  horizontal (default) | vertical    vertical needs a row to stretch in (flex or grid)
+
+   A ROW WITH VERTICAL RULES never wraps: a wrapped row put a rule at the start or the end of a line
+   ("| Settings"), where it separates nothing. src/js/48-divider.js measures the row (SG.fit) and writes
+   data-fit on it: "row" keeps everything on one line; "stack" turns the row into a column and lays the
+   rules flat between the items. Either way a rule only ever sits between two items. Without JS the row
+   wraps as it did.
+   ========================================================================== */
+
+@layer sg.components {
+  .divider {
+    --_w: var(--bw-thin);
+    --_c: currentColor;
+
+    margin: 0;
+    max-inline-size: none; /* a <p> carries a reading measure in most apps' prose rules; a rule between two full-width controls must span them */
+    color: inherit;
+
+    &[data-weight="frame"] {
+      --_w: var(--bw);
+    }
+    &[data-quiet] {
+      --_c: var(--line-soft);
+    }
+
+    /* the rule itself */
+    &:is(hr) {
+      block-size: 0;
+      border: 0;
+      border-block-start: var(--_w) solid var(--_c);
+    }
+
+    /* labelled: text between two rules (or one, when it is aligned to a side) */
+    &:not(hr) {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font: var(--type-label);
+      letter-spacing: var(--ls-label);
+      text-transform: uppercase;
+      text-wrap: balance;
+      overflow-wrap: break-word;
+
+      &::before,
+      &::after {
+        content: "";
+        flex: 1 1 var(--space-5);
+        min-inline-size: var(--space-3);
+        border-block-start: var(--_w) solid var(--_c);
+      }
+      /* aligned to a side: the label is flush, only the far rule is drawn */
+      &[data-align="start"]::before,
+      &[data-align="end"]::after {
+        display: none;
+      }
+      /* ...and when the label cannot keep that rule beside it (a long label at large text), the rule goes on its own
+         line, full width, under a start label or over an end label. Squeezed onto one line, the label wrapped in a
+         box as wide as the row ("STUDYING / WITH YOU" in a 275px box), and the rule was a 40px stub at the far end,
+         detached from the words. */
+      &:is([data-align="start"], [data-align="end"]) {
+        flex-wrap: wrap;
+        row-gap: var(--space-2);
+      }
+      &[data-align="end"] {
+        justify-content: flex-end;
+        text-align: end;
+      }
+    }
+
+    /* vertical: a rule between siblings in a row */
+    &[data-orientation="vertical"] {
+      align-self: stretch;
+      inline-size: 0;
+      block-size: auto;
+      min-block-size: 1.5rem;
+      border: 0;
+      border-inline-start: var(--_w) solid var(--_c);
+    }
+  }
+
+  /* the row that holds vertical rules (whatever flex row it is), measured by 48-divider.js: one line, its items
+     whole, so a row that does not fit shows up as overflow ... */
+  [data-fit="row"]:has(> .divider[data-orientation="vertical"]) {
+    flex-wrap: nowrap;
+
+    & > :not(.divider) {
+      flex: none;
+      white-space: nowrap;
+    }
+  }
+  /* ... or a column, with the rules lying flat between the items */
+  [data-fit="stack"]:has(> .divider[data-orientation="vertical"]) {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+
+    & > .divider[data-orientation="vertical"] {
+      align-self: stretch;
+      inline-size: auto;
+      min-block-size: 0;
+      border-inline-start: 0;
+      border-block-start: var(--_w) solid var(--_c);
+    }
+  }
+
+  /* forced colours: the rule is a border, so it survives; quiet rules get the system text colour */
+  @media (forced-colors: active) {
+    .divider {
+      --_c: CanvasText;
+    }
+  }
+}

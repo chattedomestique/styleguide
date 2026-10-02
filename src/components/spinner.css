@@ -1,0 +1,216 @@
+/* ==========================================================================
+   Spinner  (layer: sg.components)
+   --------------------------------------------------------------------------
+   An indeterminate "working on it" indicator, for waits that have no known
+   length and no layout to mirror. Known length: use Progress. Known shape of
+   what is coming: use Skeleton. A button that is working needs neither: it
+   takes aria-busy="true" and draws its own (see button.css).
+
+   <span class="spinner" role="status">
+     <span class="spinner__ring" aria-hidden="true"></span>
+     <span class="spinner__label">Loading tasks</span>      (or class="sr-only")
+   </span>
+
+   <div class="spinner-overlay" data-delay>
+     <span class="spinner" role="status">…</span>
+   </div>
+
+   data-size      sm (16) | md (24, default) | lg (40) | xl (56)
+   data-delay     fade in only after 300 ms, so a wait under 300 ms never flashes
+                  a spinner. On .spinner or .spinner-overlay.
+   data-fixed     (overlay) cover the viewport instead of the positioned parent.
+
+   WHY A MASK, NOT A BORDER: in forced-colours mode a border-based spinner turns
+   into a solid circle, because border colours are forced and its transparent gap
+   is not. A masked arc keeps its gap in every mode, and a mask needs no <svg>
+   in the markup. Same technique as .ic (src/base/20-icons.css).
+
+   MOTION  The arc turns with var(--anim-spin), which is a rotation normally and
+   an opacity pulse under reduced motion (src/tokens/60-motion.css), so nothing
+   here needs a motion media query. Only the arc animates; the track stays put.
+   Loading indicators are exempt from WCAG 2.2.2 (essential), but a wait that
+   lasts more than a few seconds has to say so in words.
+
+   NAME  A spinner always has a text name, visible or .sr-only. The overlay keeps
+   its label VISIBLE on a solid plate: text never sits directly on the dimmed
+   content behind it (WCAG 1.4.3). The scrim is the one translucency the system
+   allows; the plate is paper with a 2px frame, like every other overlay.
+
+   LARGE TEXT AND SMALL REGIONS (WCAG 1.4.4, 1.4.10)  The label is the content, so it grows with the
+   reader's text size and is never squeezed to a letter per line or cut off. A ring on its own is chrome:
+   it marks the wait, it does not get easier to read at 200% text, so the four sizes stop at 16 / 24 /
+   40 / 56px and a row of them stays a row. A ring that LEADS A VISIBLE LABEL (the default size) is part
+   of that line of words, so it grows with it: 1.15em, never under 24px, the same mark as the spinner in a
+   busy Button (button.css, 1.1em). At 200% text a 24px ring beside a 32px label was a second, smaller
+   "working" mark. The label sits beside the ring and wraps there; when its longest word does not fit
+   beside it, it drops under it (flex-basis: min-content makes that the test).
+   The overlay is a size container. Over a SMALL region (a card: under 16rem tall) the plate covers the
+   whole region: a scrim over a few lines of text with a plate across the middle of them left cut letters
+   peeking out above and below the plate, which reads as broken. Over a large region (a list, a screen)
+   the scrim dims everything and the plate sits in the middle, clearly a separate thing.
+
+   Not pressable, so it lifts nothing and casts no shadow. Roles only. A spinner
+   has no border of its own to lose in forced-colours mode: the track and arc are
+   given system colours there instead.
+   ========================================================================== */
+
+@layer sg.components {
+  @keyframes sg-spinner-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .spinner {
+    --_size: var(--chrome-ic); /* 24 */
+    /* full ring and a 28% arc (pathLength 100: dash 28, gap 72), stroke 2.75 of 24 */
+    --_ring: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.75'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3C/svg%3E");
+    --_arc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.75'%3E%3Ccircle cx='12' cy='12' r='9' pathLength='100' stroke-dasharray='28 72' transform='rotate(-90 12 12)'/%3E%3C/svg%3E");
+
+    display: inline-flex;
+    flex-wrap: wrap; /* label under the ring when its longest word will not sit beside it */
+    align-items: center;
+    gap: var(--chrome-2);
+    vertical-align: middle;
+    color: inherit;
+    font: var(--type-ctl);
+    line-height: var(--lh-snug); /* a wrapped label needs more than --type-ctl's 1 */
+
+    &[data-size="sm"] {
+      --_size: min(1rem, 16px);
+      font-size: var(--text-sm);
+    }
+    &[data-size="lg"] {
+      --_size: min(2.5rem, 40px);
+    }
+    &[data-size="xl"] {
+      --_size: var(--chrome-ctl-lg); /* 56 */
+    }
+    /* leading a visible label: the ring is part of the line (LARGE TEXT above); em of the label's own size */
+    &:not([data-size]):has(> .spinner__label) {
+      --_size: max(var(--chrome-ic), 1.15em);
+    }
+    &[data-delay] {
+      animation: sg-spinner-in var(--dur-enter) var(--ease-out) 300ms both;
+    }
+  }
+
+  /* The ring is the track (a quiet full circle); its ::after is the arc. The mask on
+     the ring clips the arc too, which is harmless: the arc lies inside the ring. */
+  .spinner__ring {
+    position: relative;
+    flex: none;
+    inline-size: var(--_size);
+    block-size: var(--_size);
+    background: var(--line-soft);
+    mask: var(--_ring) center / contain no-repeat;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: currentColor;
+      mask: var(--_arc) center / contain no-repeat;
+      animation: var(--anim-spin);
+    }
+  }
+
+  .spinner__label {
+    /* min-content as the basis: beside the ring while the longest word fits, under it when not.
+       (overflow-wrap: anywhere would make min-content one letter and the row would squeeze the label first.)
+       min-inline-size: 0 and break-word are the last resort for a word wider than the whole line. */
+    flex: 1 1 min-content;
+    min-inline-size: 0;
+    overflow-wrap: break-word;
+  }
+
+  /* ---- Overlay: covers the busy region ---------------------------------------------
+     The parent must be position: relative (or use data-fixed). Set aria-busy="true"
+     on the region, and make what is underneath inert so a keyboard cannot reach
+     controls the person cannot see. */
+  .spinner-overlay {
+    /* the plate answers to the region it covers, not the page. A SIZE container is safe here: the overlay is
+       absolutely (or fixed) positioned with inset 0, so its size comes from the region, never from its content. */
+    container: spinner-overlay / size;
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-raised);
+    display: grid;
+    place-items: center;
+    border-radius: inherit;
+    background: var(--scrim);
+    cursor: progress;
+
+    &[data-fixed] {
+      position: fixed;
+      z-index: var(--z-overlay);
+    }
+    &[data-delay] {
+      animation: sg-spinner-in var(--dur-enter) var(--ease-out) 300ms both;
+    }
+
+    /* the plate: solid, framed, readable on anything. The breathing room around it is its margin,
+       not the overlay's padding, because a container cannot restyle itself in its own query (below). */
+    > .spinner {
+      justify-content: center;
+      margin: var(--chrome-4);
+      padding: var(--chrome-3) var(--chrome-5);
+      text-align: center;
+      color: var(--ink);
+      background: var(--paper);
+      border: var(--bw) solid var(--line);
+      border-radius: var(--radius-card);
+      /* the overlay already fades in; the plate must not wait a second 300 ms */
+      animation: none;
+    }
+  }
+
+  /* A narrow region (a card at large text, a narrow phone): the plate takes the width it can get, so the
+     label keeps whole words instead of breaking them. One 6rem word plus the plate's full margin,
+     padding and frame is about 11rem, so below 12rem the plate tightens. It is rem, so it follows text size. */
+  @container spinner-overlay (max-width: 12rem) {
+    .spinner-overlay > .spinner {
+      margin: var(--chrome-1);
+      padding-inline: var(--chrome-2);
+    }
+  }
+
+  /* A short region (a card): the plate IS the overlay. It covers the region edge to edge, so nothing of the
+     content under it shows (see LARGE TEXT above); the region's own frame is the frame, so the plate drops
+     its border and follows the region's corners. rem, so a card at 200% text (twice as tall) still counts. */
+  @container spinner-overlay (max-height: 16rem) {
+    .spinner-overlay > .spinner {
+      place-self: stretch;
+      margin: 0;
+      border: 0;
+      border-radius: inherit;
+
+      /* the ring and the label stay together in the middle: the label does not take the spare width */
+      > .spinner__label {
+        flex-grow: 0;
+      }
+    }
+  }
+
+  /* ---- Forced colours: backgrounds are removed, and a mask paints with one. ------------ */
+  @media (forced-colors: active) {
+    .spinner__ring {
+      forced-color-adjust: none;
+      background: GrayText;
+
+      &::after {
+        background: Highlight;
+      }
+    }
+    .spinner-overlay {
+      forced-color-adjust: none;
+      background: Canvas;
+
+      > .spinner {
+        color: CanvasText;
+        background: Canvas;
+        border-color: CanvasText;
+      }
+    }
+  }
+}

@@ -1,0 +1,477 @@
+/*! styleguide v0.2.0 - element: media. Needs core.css. Generated from src/components/media.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Media  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A figure: one picture (or video) in a 2px frame, with an optional caption.
+   It holds, so it is a rectangle with --radius-tile and no shadow. The only
+   time it lifts is when the WHOLE figure is one link (data-link), because a
+   hard shadow means "you can press this".
+
+   <figure class="media" data-ratio="4:3">
+     <div class="media__frame"><img src="…" alt="Three boats under a low sun" width="1200" height="900"></div>
+     <figcaption class="media__caption">
+       <span class="media__label"><time datetime="2026-03-29">Mar 29</time></span>
+       <span class="media__title">Harbour at dawn</span>
+       <span class="media__meta">Three boats, flat water.</span>
+     </figcaption>
+   </figure>
+
+   data-ratio     1:1 | 4:3 (default) | 3:2 | 16:9 | 21:9 | 3:4 | 4:5 | free (the file's own shape)
+                  Also works on .carousel / .filmstrip: the ratio is inherited through --ratio.
+   data-caption   plain (default: paper strip) | bar (solid ink bar, paper text) | over (a --scrim-strong
+                  plate over the bottom of the picture; below 10rem wide it becomes the plain strip under the
+                  picture, so large text cannot hide the picture). Text NEVER sits on a bare photo (1.4.3).
+   data-fit       cover (default) | contain (letterboxed on --paper-2: logos, product shots)
+   data-fill      fill the height the parent gives it (gallery tiles); the ratio is ignored
+   data-tone      1…6 | ink | ok | … : the colour behind the picture while it loads, and the caption strip
+   data-link      the whole figure is one link: put class="media__link" on the title's <a>
+   --pos          focal point, e.g. style="--pos: 50% 20%" (object-position)
+
+   STATES come from data-state on the figure (an image has no native "loading" or "failed" attribute):
+     data-state="loading"   skeleton + spinner (a pulse under reduced motion); aria-busy on the figure
+     data-state="failed"    dashed frame, an icon, words ("Picture didn’t load") and a "Try again" button.
+                            Status = icon + words; a tile under 192px keeps the words and the button only.
+   src/js/70-media.js sets both for you from the img's load / error events. Without it the picture simply
+   shows; nothing here depends on it.
+
+   PARTS  .media__frame (the ratio box) · .media__badge (a corner label on a --scrim-strong plate)
+          .media__status (loading / failed) · .media__caption > .media__label .media__title .media__meta
+
+   THE PICTURE COVERS ITS FRAME. The ratio is the frame's SMALLEST height, not a fixed one: when a parent
+   stretches the figure (the slides of a carousel are as tall as the tallest one, whose caption may wrap to
+   three lines at 200% text), the frame row takes the extra height and the picture is cropped to it. The
+   frame never stops short of the caption with a band of empty paper above the rule.
+
+   LARGE TEXT. Captions and titles grow with the reader's text size; the insets around them (caption
+   padding, the status padding), the status icon and the whole badge (its word too: it sits on the
+   picture, and a growing plate would cover it) are chrome and stop at their 100% size (--chrome-*).
+
+   THE FIGURE'S OWN BACKGROUND IS THE LINE COLOUR. With soft corners the 2px frame and a clipped child (an ink
+   caption bar, a dark picture) both anti-alias along the same inner curve, and the figure's background shows
+   through the two half-covered pixels: a light hairline arc inside the corner. A background in the frame's
+   own colour makes those pixels part of the frame. Nothing else ever shows it (the frame and the caption
+   cover the figure), except the gaps of a dashed (failed) frame, which go back to paper.
+
+   PRIVATE PROPERTIES
+     --_bg / --_bg-ink            what the frame shows before the picture (tone, else --paper-2) and its text
+     --_cap-bg / -ink / -soft     caption strip colours (tone, else paper); the bar and over variants swap them
+     --_pad                       caption padding, from the figure's width (cqi lives on parts, never on .media)
+     --_badge-text / --_badge-ic  the badge's word and icon, capped at their 100% size (a badge is chrome)
+   They are read on the figure because --tone-* are registered inherits:false: a child cannot see them.
+
+   FOUNDATION REQUEST  a role for "always-dark ink" would let a filled control sit on a photo in both themes;
+   until then, controls on media use --scrim-strong with --on-media and a --on-media frame.
+   ========================================================================== */
+
+@layer sg.components {
+  /* ratio presets: one place, inherited by anything inside (a carousel sets it for every slide) */
+  :where(.media, .carousel, .filmstrip)[data-ratio="1:1"] {
+    --ratio: 1 / 1;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="4:3"] {
+    --ratio: 4 / 3;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="3:2"] {
+    --ratio: 3 / 2;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="16:9"] {
+    --ratio: 16 / 9;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="21:9"] {
+    --ratio: 21 / 9;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="3:4"] {
+    --ratio: 3 / 4;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="4:5"] {
+    --ratio: 4 / 5;
+  }
+  :where(.media, .carousel, .filmstrip)[data-ratio="free"] {
+    --ratio: auto;
+  }
+
+  .media {
+    --lift: 0;
+    --fill: 0;
+    --_bg: var(--tone-bg, var(--paper-2));
+    --_bg-ink: var(--tone-ink-soft, var(--ink-soft));
+    --_cap-bg: var(--tone-bg, var(--paper));
+    --_cap-ink: var(--tone-ink, var(--ink));
+    --_cap-soft: var(--tone-ink-soft, var(--ink-soft));
+    --_pad: clamp(var(--chrome-3), 4cqi, var(--chrome-4));
+    --_badge-text: min(var(--text-xs), 13px); /* the badge is chrome: see the badge */
+    --_badge-ic: min(0.875rem, 14px);
+    /* the hard shadow and the lift are chrome (4px at every text size): a doubled 8px shadow at 200% text stood
+       out past the focus ring's halo and stepped its corner */
+    --_shadow: calc(var(--lift) * var(--chrome-1)) calc(var(--lift) * var(--chrome-1)) 0 0 var(--line);
+
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    /* the picture's row takes any height a parent adds (1fr), so a stretched figure never shows a band of
+       paper between the picture and its caption; an unstretched figure is exactly picture + caption */
+    grid-template-rows: 1fr auto;
+    min-inline-size: 0;
+    isolation: isolate;
+    container: media / inline-size;
+    color: var(--ink);
+    background: var(--line); /* the seam at a soft inner corner takes the frame's colour (see the header) */
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-tile);
+    overflow: clip;
+    box-shadow: var(--_shadow);
+  }
+
+  /* the inverted tone flips the bar, or it would vanish into the figure (same move as .card) */
+  .media[data-caption="bar"] {
+    --_cap-bg: var(--ink);
+    --_cap-ink: var(--paper);
+    --_cap-soft: color-mix(in srgb, var(--paper) 80%, var(--ink));
+  }
+  .media[data-caption="bar"][data-tone="ink"] {
+    --_cap-bg: var(--paper);
+    --_cap-ink: var(--ink);
+    --_cap-soft: color-mix(in srgb, var(--ink) 80%, var(--paper));
+  }
+
+  /* the frame has to fit a ring inside it (it clips), and the bar is ink, so its ring is paper */
+  .media :focus-visible {
+    --ring-gap: var(--ring-offset-in);
+  }
+  .media[data-caption="bar"] .media__caption :focus-visible {
+    outline-color: var(--_cap-ink);
+  }
+
+  /* ---- frame ------------------------------------------------------------------- */
+  .media__frame {
+    position: relative;
+    grid-area: 1 / 1;
+    /* the ratio sets the row's height; stretch then fills the row when a parent made the figure taller */
+    align-self: stretch;
+    min-block-size: 0;
+    aspect-ratio: var(--ratio, var(--ratio-media));
+    color: var(--_bg-ink);
+    background: var(--_bg);
+    overflow: clip;
+  }
+
+  /* absolutely placed: the ratio alone sizes the frame, so a picture's own size can never stretch a
+     grid row (gallery) or fight the ratio. `free` switches back to normal flow below. */
+  .media__frame > :is(img, video, canvas, svg, iframe),
+  .media__frame > .media__link > :is(img, video, canvas, svg, iframe),
+  .media__frame picture > img {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    object-position: var(--pos, 50% 50%);
+    transition: opacity var(--dur-enter) var(--ease-out);
+  }
+  .media__frame > picture {
+    display: contents;
+  }
+  .media[data-fit="contain"] .media__frame > :is(img, video, picture > img),
+  .media[data-fit="contain"] .media__frame > .media__link > img {
+    object-fit: contain;
+  }
+
+  :where([data-ratio="free"]) .media__frame > :is(img, video, svg),
+  :where([data-ratio="free"]) .media__frame > .media__link > :is(img, video, svg),
+  :where([data-ratio="free"]) .media__frame picture > img {
+    position: static;
+    block-size: auto;
+  }
+
+  .media[data-fill] {
+    block-size: 100%;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .media[data-fill] > .media__frame {
+    aspect-ratio: auto;
+  }
+
+  /* ---- badge: a label on the picture, on a plate (never bare text on a photo) -----
+     A badge is chrome, like a badge on an icon (and like the badges a phone's photo library puts on a picture):
+     all of it, its word too, stops at its 100% size. With the word in rem, 200% text made "Favourite" a plate
+     across most of a narrow picture, and the picture is what the person came to see. Its words are short and
+     are read out with the figure; the caption is where text grows. */
+  .media__badge {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: var(--chrome-2);
+    inset-inline-start: var(--chrome-2);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--chrome-1);
+    min-block-size: var(--chrome-ic);
+    padding-inline: var(--chrome-2);
+    color: var(--on-media);
+    background: var(--scrim-strong);
+    border: var(--bw-thin) solid var(--on-media);
+    border-radius: var(--radius-pill);
+    font: var(--type-label);
+    font-size: var(--_badge-text);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+
+  .media__badge > .ic {
+    --ic-size: var(--_badge-ic);
+  }
+
+  /* ---- caption ---------------------------------------------------------------------- */
+  .media__caption {
+    z-index: 1; /* a grid item honours z-index without position: the over variant stacks on the frame */
+    grid-area: 2 / 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--chrome-1);
+    padding: var(--_pad);
+    color: var(--_cap-ink);
+    background: var(--_cap-bg);
+    border-block-start: var(--bw) solid var(--line);
+    font: var(--type-meta);
+    overflow-wrap: break-word;
+  }
+
+  .media__label {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .media__title {
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    text-wrap: balance;
+  }
+
+  .media__meta {
+    color: var(--_cap-soft);
+    font-variant-numeric: tabular-nums;
+    text-wrap: pretty;
+  }
+
+  /* over: the caption sits on the bottom of the picture, on a scrim plate. --scrim-strong is black at 0.75:
+     white text stays >= 8.5:1 even over a pure white photo. The plate is a flat band, not a fade. */
+  .media[data-caption="over"] > .media__caption {
+    grid-area: 1 / 1;
+    align-self: end;
+    color: var(--on-media);
+    background: var(--scrim-strong);
+    border-block-start: 0;
+    --_cap-soft: var(--on-media);
+  }
+
+  /* ---- states: loading and failed ---------------------------------------------------- */
+  /* The status sits IN FLOW, stacked on the picture in one grid cell, so the frame is at least as tall as
+     the words it has to show: the ratio is a minimum and the frame grows past it. It used to be absolutely
+     placed in a frame with a fixed `min-block-size: 8rem`; through the aspect-ratio that minimum height was
+     turned into a minimum WIDTH (8rem x 3/2 = 12rem), so at 200% text the frame was wider than its figure
+     and the clipping figure cut "Loading photo" and "Try again" off the side (WCAG 1.4.4 / 1.4.10).
+     Never give an aspect-ratio box a min-block-size to make room for text: put the room on its content. */
+  .media__status {
+    position: relative;
+    z-index: 2; /* above a stretched link (z 1), or "Try again" could not be pressed on a linked tile */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--chrome-2);
+    padding: var(--chrome-3);
+    color: var(--_bg-ink);
+    font: var(--type-meta);
+    text-align: center;
+    overflow-wrap: break-word;
+  }
+
+  .media__note {
+    max-inline-size: 28ch;
+    text-wrap: balance;
+  }
+
+  .media:is([data-state="loading"], [data-state="failed"]) > .media__frame {
+    display: grid;
+    min-block-size: auto; /* the status counts towards the frame's height: it grows past its ratio, it never clips the words */
+  }
+  /* one cell: the status covers the (hidden) picture instead of starting a second row under it */
+  .media:is([data-state="loading"], [data-state="failed"]) > .media__frame > * {
+    grid-area: 1 / 1;
+  }
+  .media:is([data-state="loading"], [data-state="failed"]) .media__status {
+    display: flex;
+  }
+  .media:is([data-state="loading"], [data-state="failed"]) .media__frame > :is(img, video, canvas, svg, iframe),
+  .media:is([data-state="loading"], [data-state="failed"]) .media__frame > .media__link > :is(img, video, canvas, svg, iframe),
+  .media:is([data-state="loading"], [data-state="failed"]) .media__frame picture > img {
+    opacity: 0;
+  }
+
+  /* loading: a ring that spins (pulses under reduced motion). Shape + motion, never colour alone. */
+  .media[data-state="loading"] .media__status::before {
+    content: "";
+    inline-size: calc(var(--chrome-ic) + var(--chrome-1)); /* 28px, chrome: it does not grow with the text */
+    block-size: calc(var(--chrome-ic) + var(--chrome-1));
+    border: var(--bw) solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: var(--radius-pill);
+    animation: var(--anim-spin);
+  }
+  .media[data-state="loading"] .media__status > :is(.ic, .btn) {
+    display: none;
+  }
+
+  /* failed: dashed = not here (the house legend), plus an icon and a sentence and a way out. The gaps of the
+     dashes show the figure's background, which is the line colour elsewhere (see the header): paper here, or
+     the dashed frame would read as a solid one. */
+  .media[data-state="failed"] {
+    background: var(--paper);
+    border-style: dashed;
+  }
+  .media__status > .ic {
+    --ic-size: calc(var(--chrome-ic) + var(--chrome-1)); /* 28px, stands alone above the words: chrome */
+  }
+
+  /* Small tiles: a tighter caption; keep the sentence and the button, drop the icon. In px, not rem: "small" is
+     the tile's size on the screen. At 12rem, 200% text made every figure narrower than 384px "small", so a
+     full-width failed figure lost its icon, and status is always an icon AND words. */
+  @container media (max-width: 192px) {
+    .media__caption {
+      padding: var(--chrome-2);
+    }
+    .media__title {
+      font-size: var(--text-sm);
+    }
+    .media__status {
+      gap: var(--chrome-1);
+      padding: var(--chrome-2);
+      font-size: var(--text-xs);
+    }
+    .media__status > .ic {
+      display: none;
+    }
+  }
+
+  /* over → plain, when the plate would swallow the picture. The plate is sized by the TEXT (rem) and the
+     picture by the figure's width, so the share of the picture the plate hides is set by the figure's width
+     in rem: a 4:3 picture 10rem wide is 7.5rem tall under a title and a line of meta that need about 3.5rem.
+     Below 10rem (a phone at 200 % text: a carousel slide is 7rem wide, so the plate hid all but a strip of the
+     harbour) the caption drops below the picture as the plain strip, and the picture keeps its ratio. Same
+     answer as the bar: a caption is text first, and text never wins by covering what it describes. (A gallery
+     tile is excepted: its cell sets the size and crops the picture to it.) */
+  @container media (max-width: 10rem) {
+    /* not in a gallery: there the cell is the size and the picture is cropped to it, so the plate is a part of the cell
+       and a caption strip would take half of a 7rem tile */
+    .media[data-caption="over"]:not(:where(.gallery *)) > .media__caption {
+      grid-area: 2 / 1;
+      color: var(--_cap-ink);
+      background: var(--_cap-bg);
+      border-block-start: var(--bw) solid var(--line);
+      --_cap-soft: var(--tone-ink-soft, var(--ink-soft));
+    }
+  }
+
+  /* ---- variant: the whole figure is one link -------------------------------------------
+     The anchor lives in the title and its ::after stretches over the figure: one tab stop, one name,
+     the hit area is the whole thing (same move as .card--link). */
+  .media[data-link] {
+    cursor: pointer;
+    overflow-clip-margin: border-box;
+    transform: translate(
+      calc(var(--lift) * var(--chrome-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--chrome-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+  }
+  .media[data-link]:active {
+    transition-duration: var(--dur-press);
+  }
+
+  .media__link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.18em;
+    text-decoration-color: color-mix(in srgb, currentColor calc(var(--fill) * 100%), transparent);
+  }
+  .media__link::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--bw) * -1);
+  }
+  /* an image-only link lives in the frame, which is positioned: stretch it over the figure all the same */
+  .media__frame > .media__link {
+    position: static;
+    display: block;
+    block-size: 100%;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .media[data-link]:hover {
+      --lift: 1;
+      --fill: 1;
+      z-index: 1;
+    }
+  }
+  .media[data-link]:is(.is-hover, .is-focus, :has(.media__link:focus-visible)) {
+    --lift: 1;
+    --fill: 1;
+    z-index: 1;
+  }
+  .media[data-link]:is(:active, .is-active) {
+    --lift: 0;
+    --fill: 1;
+  }
+
+  /* the figure wears the focus ring, not the anchor inside it. The halo (paper, in the ring's offset) goes in
+     front of the hard shadow, as on a Button: without it the 4px shadow poked out between the frame and the
+     3px-offset ring along two sides, and the ring's corner read as a step. */
+  .media[data-link]:is(.is-focus, :has(.media__link:focus-visible)) {
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-offset);
+    box-shadow: 0 0 0 var(--ring-offset) var(--focus-halo, var(--paper)), var(--_shadow);
+  }
+  @supports selector(:has(*)) {
+    .media__link:focus-visible {
+      outline: 0;
+      box-shadow: none;
+    }
+  }
+
+  /* ---- inside a card: the card already has the frame. Same rule under the picture as .card__media ---- */
+  .card > .media {
+    border-width: 0 0 var(--bw);
+    border-color: var(--card-ink, var(--ink));
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* ---- forced colours: fills, scrims and shadows vanish, so lines do the work ----------------- */
+  @media (forced-colors: active) {
+    .media {
+      border-color: CanvasText;
+    }
+    .media__caption {
+      border-block-start-color: CanvasText;
+    }
+    .media[data-caption="over"] > .media__caption {
+      border-block-start: var(--bw) solid CanvasText;
+    }
+    .media__badge {
+      border-color: CanvasText;
+    }
+    .media[data-link]:is(:hover, .is-hover, .is-focus, :has(.media__link:focus-visible)) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+}

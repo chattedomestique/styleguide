@@ -1,0 +1,118 @@
+/* ==========================================================================
+   Tooltip  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A few words that appear next to a control on hover or keyboard focus and say what
+   it does, or why it is unavailable. It is the native popover attribute
+   (popover="manual", shown by JS), so it sits in the top layer above dialogs with no
+   z-index. JS: src/js/64-tooltip.js. Placement: the anchor contract in popover.css.
+
+   <button class="btn" data-shape="circle" type="button" aria-label="Flip card" aria-describedby="tip-flip">
+     <span class="ic ic--rotate-cw" aria-hidden="true"></span></button>
+   <div class="tooltip" id="tip-flip" role="tooltip" popover="manual">Flip the card <kbd>Space</kbd></div>
+
+   data-placement   top (default) | bottom | start | end, and the -start / -end forms (popover.css)
+
+   A TOOLTIP IS NEVER THE ONLY NAME. The control has its own accessible name (visible text or
+   aria-label) and the tooltip is wired with aria-describedby, so a screen reader hears name,
+   then description. Put in it what the name cannot say: a shortcut, a consequence, the reason
+   a control is unavailable. Touch screens have no hover, so nothing essential may live here.
+
+   WCAG 1.4.13 (content on hover or focus), all three parts:
+     dismissible   Esc hides it without moving the pointer or focus (and stops there: a dialog
+                   around the control stays open for the next Esc)
+     hoverable     the pointer can travel onto the tooltip without it vanishing
+     persistent    it stays until the pointer and focus have left, or Esc, or the control is pressed
+
+   LOOK. The inverted tone: an ink box with paper text, framed in paper so it stays separate on
+   an ink bar too. A tooltip is not something you press and not something you hold, so it has no
+   shadow and no arrow (nothing decorative): the 8px gap and the frame say where it belongs.
+   Motion is a 4px settle multiplied by --move, so reduced motion is a fade.
+   ========================================================================== */
+
+@layer sg.components {
+  [popover].tooltip {
+    /* 1 · private properties */
+    --_rise: calc(var(--move) * var(--space-1));
+    /* the same gutter the popover keeps from the screen's edges (popover.css --_edge) */
+    --_edge: calc(max(var(--gutter), var(--safe-left)) + max(var(--gutter), var(--safe-right)));
+    --_screen-gap: max(var(--gutter), var(--safe-left), var(--safe-right));
+
+    position: fixed;
+    display: none; /* a closed tooltip stays hidden while the exit animation needs display to be discrete */
+    box-sizing: border-box;
+    max-inline-size: min(20rem, calc(100vw - var(--_edge)));
+    margin: 0;
+    padding: var(--chrome-2) var(--chrome-3); /* chrome: the words grow with the text size, the box around them does not */
+    overflow: visible;
+    color: var(--paper);
+    background: var(--ink);
+    border: var(--bw) solid var(--paper);
+    border-radius: var(--radius-ctl);
+    font: var(--type-meta);
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+
+    opacity: 0;
+    transform: translateY(var(--_rise));
+    transition:
+      opacity var(--dur-press) var(--ease-in),
+      transform var(--dur-press) var(--ease-in),
+      overlay var(--dur-press) allow-discrete,
+      display var(--dur-press) allow-discrete;
+  }
+
+  [popover].tooltip:popover-open {
+    display: block;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-hover) var(--ease-out),
+      transform var(--dur-hover) var(--ease-out),
+      overlay var(--dur-hover) allow-discrete,
+      display var(--dur-hover) allow-discrete;
+  }
+
+  @starting-style {
+    [popover].tooltip:popover-open {
+      opacity: 0;
+      transform: translateY(var(--_rise));
+    }
+  }
+
+  /* A TOOLTIP KEEPS ITS OWN WIDTH. A box that only shrinks to fit is squeezed into whatever strip a placement
+     leaves it: at 200% text on a phone "Before it." wrapped beside its button and ran flush to the glass, and a
+     long hint lined up with a button near the edge became a column of one word a line. Anchored, it keeps its
+     natural width (one line, up to max-inline-size), so a place without room for that overflows, and the anchor
+     contract (popover.css) moves on to the next: beside, then below or above, then the script's centred place
+     inside the gutters. The gutter and the clearance of the app bar and the dock come from the contract too.
+     Native placement only: the script measures the same natural width. */
+  [popover].tooltip[data-anchored]:not([data-anchor-js]) {
+    inline-size: max-content;
+  }
+
+  /* Not in the top layer: a static preview in the page flow. */
+  [popover].tooltip[data-inline] {
+    position: relative;
+    inset: auto;
+    display: inline-block;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* A key cap inside the tooltip: the base <kbd> is paper on paper here, so invert it. */
+  .tooltip kbd {
+    padding: 0 0.35em;
+    color: var(--ink);
+    background: var(--paper);
+    border-color: var(--paper);
+  }
+
+  /* ---- Forced colours --------------------------------------------------------------------------
+     The ink fill is gone; the frame (and the text) are system colours. */
+  @media (forced-colors: active) {
+    [popover].tooltip {
+      border-color: CanvasText;
+    }
+  }
+}

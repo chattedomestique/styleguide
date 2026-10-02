@@ -1,0 +1,345 @@
+/*! styleguide v0.2.0 - element: button. Needs core.css. Generated from src/components/button.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Button  (layer: sg.components)              *** THE REFERENCE COMPONENT ***
+   --------------------------------------------------------------------------
+   Every other element copies this file's structure. Read it once.
+
+   A button is something you PRESS, so by the house rules it gets what pressable
+   things get: a 2px frame, a pill or circle shape, and a hard shadow that appears
+   when it can be pressed (hover / focus) and sinks away when it is.
+
+   <button class="btn">Add funds</button>                       secondary (outline; fills on hover)
+   <button class="btn" data-variant="primary">Start</button>    filled with the accent
+   <button class="btn" data-variant="tone" data-tone="3">…      filled with the tone's pill colours
+   <button class="btn" data-shape="circle" aria-label="Add"><span class="ic ic--plus" aria-hidden="true"></span></button>
+   <button class="btn"><span class="btn__label"><span class="ic ic--plus" aria-hidden="true"></span>Add funds</span></button>
+   <button class="btn">Continue<span class="ic ic--arrow" aria-hidden="true"></span></button>      an icon after the words
+
+   .btn__label    the words, and an icon BEFORE them (see "an icon before the words" below)
+   data-variant   secondary (default) | primary | tone (+ data-tone="bad" for a danger button: with an icon and a
+                  verb that says what is lost, because the tone is never the only cue)
+   data-size      sm (36, hit area still 44) | md (44, default) | lg (56)
+   data-shape     pill (default) | circle (square box, one icon, aria-label required)
+   data-block     full width
+
+   LARGE TEXT. The label grows with the reader's text size, and so does an icon that sits in the label (it
+   is part of the line of words). The chrome does not grow past its 100% size (--chrome-* tokens: side
+   padding, the icon gap, and the whole of an ICON-ONLY circle with its target), so at 200% text the words
+   keep the room. The icon always stays beside its words, never above or below them (flex-wrap: nowrap, and
+   in .btn__label it is part of the first line). A label wraps at word boundaries (overflow-wrap: break-word)
+   and a word breaks only if it alone is wider than the row. The button is never wider than its row
+   (max-inline-size), so a row of buttons moves a BUTTON to the next line before it squeezes a label. The
+   radius is HALF THE NOMINAL HEIGHT, not 999px: a button that grows taller keeps the pill's end curve
+   instead of turning into an oval. A circle is a square box at every size; a circle that holds a number
+   or a letter (a keypad key, a page number) grows with the text, a circle that holds an icon does not.
+
+   AN ICON BEFORE THE WORDS goes INSIDE the label: <span class="btn__label"><span class="ic …"></span>Add funds</span>.
+   The icon and the words are then one line of text, so when the label wraps the icon leads its first line
+   and the lines are centred and balanced as one group ("[+] Add / funds"). As two flex items (icon | words),
+   the icon was centred on the whole wrapped block, and the block, as wide as the room left, could only start
+   its lines at the icon (the group then sat off-centre: "Delete deck" 18px from one end of the pill, 86px
+   from the other) or centre them away from it (the icon stranded at the far edge of a full-width button).
+   Without the label (older markup) a wrapped label still starts right after its icon (text-align: start).
+   An icon AFTER the words (an onward arrow, a menu's chevron) stays outside, at the end of the label.
+   A full-width button pads its sides less (--chrome-4): its label is centred anyway, and the 16px it gives
+   back keeps a short label on one line in a phone frame at 200% text.
+
+   STATES come from ARIA and native attributes, never classes:
+     :disabled / aria-disabled="true"   dashed frame, faint ink, no shadow, no hover
+     aria-pressed="true"                on: filled AND the frame doubles (a second cue that survives pale accents)
+     aria-busy="true"                   working: spinner (a pulse under reduced motion), ignores taps
+   The .is-hover / .is-focus / .is-active classes force a state for docs and tests; not API.
+
+   A TOGGLE IS A SELECTION CONTROL (aria-pressed, or role="radio" with aria-checked). An action button fills
+   on hover because filling is what pressing it does. A toggle that filled on hover would look ON to a mouse
+   user who is only passing over it, so a toggle that is off only RAISES on hover and keyboard focus
+   (outline and hard shadow), a press tints it lightly (visible within 100 ms), and the solid fill means
+   "on" and nothing else. On = filled AND the doubled frame: a ring of the resting colour just inside the
+   frame, so the frame and the edge of the fill read as two outlines in every palette, also where the accent
+   is as dark as the frame. A primary toggle (filled at rest: play / pause) keeps the action look, and its
+   icon says the state.
+
+   THE PATTERN (copy it)
+   1. Two registered numbers drive interaction: --lift (geometry) and --fill (colour).
+      Every state just sets them; ONE transition animates both (gate 4).
+   2. Private properties (--_*) hold what variants change; the base rule consumes them.
+   3. Colours are ROLES only. Radii are roles. Lines are --bw / --bw-thin.
+   4. Hit area: a ::after that grows to --hit (44px) when the drawn size is smaller.
+   5. Focus: the base ring + halo. A component that draws its own shadow keeps it:
+      box-shadow: var(--focus-shadow), <own shadow>.
+   6. Travel is multiplied by --move, so reduced motion becomes a plain fill change.
+   7. A real border always exists, so forced-colours (which deletes shadows and fills)
+      still shows the control.
+   ========================================================================== */
+
+@layer sg.components {
+  .btn {
+    --lift: 0;
+    --fill: 0;
+    /* a press on something already filled: 12% of the resting colour comes into the FILL only, so the label keeps
+       its full on-colour and its contrast stays at AA on every accent (lowering --fill also faded the label: 3.9:1
+       on a mid-green accent) */
+    --_press: 0;
+    --_rest-bg: var(--paper);
+    --_rest-ink: var(--ink);
+    --_on-bg: var(--accent);
+    --_on-ink: var(--on-accent);
+    --_h: var(--ctl);
+    --_cap: var(--chrome-ctl); /* the most an ICON-ONLY circle of this size may measure (see shape) */
+    --_hit: var(--hit);
+    --_px: var(--chrome-5);
+    --_r: min(var(--radius-pill), calc(var(--_h) / 2));
+    /* A FILLED button that is raised would fuse with its own hard shadow (an ink fill beside an ink shadow
+       is one lump). So the lift opens a gap in the colour of the surface: a ring that grows with
+       --lift x --fill (outline buttons keep the owner's flush shadow), and the shadow moves out by the
+       same amount so it keeps its 4px. --_selw is the width of the doubled "on" frame: a ring of the
+       resting colour INSIDE the frame. (Drawn outside it, in ink, it merged with an ink fill into one fat
+       edge: the "on" cue vanished exactly where the accent is darkest.) */
+    --_selw: 0px;
+    --_gap: calc(var(--lift) * var(--fill) * var(--bw));
+    --_halo: 0 0 0 var(--_gap) var(--focus-halo, var(--paper));
+    --_shadow: calc(var(--lift) * var(--space-1) + var(--_gap)) calc(var(--lift) * var(--space-1) + var(--_gap)) 0 0 var(--line);
+    --_select: inset 0 0 0 var(--_selw) var(--_rest-bg);
+
+    position: relative;
+    display: inline-flex;
+    flex-wrap: nowrap; /* the icon stays beside the label; the label wraps beside it */
+    align-items: center;
+    justify-content: center;
+    gap: var(--chrome-1) var(--chrome-2);
+    min-block-size: var(--_h);
+    min-inline-size: var(--hit);
+    max-inline-size: 100%; /* clamps the flex min-content too: the row wraps the button, the button never overflows it */
+    /* vertical padding only matters once a label wraps past two lines (one or two fit inside --_h):
+       the lines then keep clear of the frame and of the rounded ends */
+    padding: var(--chrome-2) var(--_px);
+    margin: 0;
+    color: color-mix(in srgb, var(--_on-ink) calc(var(--fill) * 100%), var(--_rest-ink));
+    background: color-mix(in srgb, color-mix(in srgb, var(--_on-bg) calc(var(--fill) * 100%), var(--_rest-bg)) calc(100% - var(--_press) * 12%), var(--_rest-bg));
+    border: var(--bw) solid var(--line);
+    border-radius: var(--_r);
+    box-shadow: var(--_select), var(--_halo), var(--_shadow);
+    font: var(--type-ctl);
+    text-wrap: balance; /* a long label wraps (and the button grows) rather than being clipped at large text */
+    overflow-wrap: break-word; /* words first: "anywhere" lets the button shrink below its longest word and shatter it */
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition:
+      --lift var(--dur-hover) var(--ease-out),
+      --fill var(--dur-hover) var(--ease-out);
+
+    /* hit area */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--_hit)) / 2));
+      inset-inline: min(0px, calc((100% - var(--_hit)) / 2));
+    }
+
+    /* .is-focus (docs and tests) draws the very same ring: the base layer gives it the outline and
+       --focus-shadow, this keeps the button's own shadow beside it */
+    &:is(:focus-visible, .is-focus) {
+      box-shadow: var(--focus-shadow), var(--_select), var(--_halo), var(--_shadow);
+    }
+
+    /* raised: where a pointer can hover, and always on keyboard focus (same lift, so both match) */
+    @media (hover: hover) {
+      &:is(:hover, .is-hover):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        --lift: 1;
+        --fill: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+      --lift: 1;
+      --fill: 1;
+    }
+
+    /* pressed: back onto the surface, the fill stays. After hover so it wins. */
+    &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+      --lift: 0;
+      --fill: 1;
+      transition-duration: var(--dur-press);
+    }
+
+    /* A toggle that is OFF raises on hover and focus but does not fill (the fill means "on"), and a press
+       tints it lightly. See the header. */
+    &:is([aria-pressed], [role="radio"]):not([aria-pressed="true"], [aria-checked="true"], [data-variant="primary"]) {
+      @media (hover: hover) {
+        &:is(:hover, .is-hover):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+          --fill: 0;
+        }
+      }
+      &:is(:focus-visible, .is-focus):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        --fill: 0;
+      }
+      &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        --fill: 0.15;
+      }
+    }
+
+    /* on: filled, and the frame doubles (a ring of the resting colour inside the frame), so "on" does not
+       depend on the accent being dark. Raised on hover and focus like any button; a press lightens the
+       fill a little (--_press), so a tap on an "on" toggle shows before it turns off. */
+    &:is([aria-pressed="true"], [role="radio"][aria-checked="true"]) {
+      --fill: 1;
+      --_selw: var(--bw);
+      &:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+        --_press: 1;
+      }
+    }
+
+    /* working */
+    &[aria-busy="true"] {
+      cursor: progress;
+      pointer-events: none;
+      &::before {
+        content: "";
+        inline-size: 1.1em;
+        block-size: 1.1em;
+        flex: none;
+        border: var(--bw) solid currentColor;
+        border-inline-end-color: transparent;
+        border-radius: var(--radius-pill);
+        animation: var(--anim-spin);
+      }
+    }
+
+    /* unavailable: dashed = not here. Faint, not opacity. */
+    &:disabled,
+    &[aria-disabled="true"] {
+      --lift: 0;
+      --fill: 0;
+      --_rest-bg: transparent;
+      --_rest-ink: var(--ink-faint);
+      --_shadow: 0 0 0 0 transparent;
+      --_halo: 0 0 0 0 transparent;
+      color: var(--ink-faint);
+      background: transparent;
+      border-color: var(--ink-faint);
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+    &[aria-disabled="true"] {
+      pointer-events: none; /* keyboard activation is blocked by SG (src/js/20-guard.js) */
+    }
+
+    /* ---- variants ---- */
+    &[data-variant="primary"] {
+      --fill: 1;
+    }
+    /* A primary button is flat and filled at rest, so the press (lift 0, fill 1) looked exactly like rest and a tap on
+       a touch screen showed nothing (golden rule 14: feedback within 100 ms). The press lightens the fill a little
+       (--_press), as it does on an "on" toggle. */
+    &[data-variant="primary"]:is(:active, .is-active):not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+      --_press: 1;
+    }
+    &[data-variant="tone"] {
+      --_rest-bg: var(--tone-bg);
+      --_rest-ink: var(--tone-ink);
+      --_on-bg: var(--tone-fill);
+      --_on-ink: var(--tone-on-fill);
+    }
+    /* ---- sizes ---- */
+    &[data-size="sm"] {
+      --_h: var(--ctl-sm);
+      --_cap: var(--chrome-ctl-sm);
+      --_px: var(--chrome-4);
+      font-size: var(--text-sm);
+    }
+    &[data-size="lg"] {
+      --_h: var(--ctl-lg);
+      --_cap: var(--chrome-ctl-lg);
+      --_px: var(--chrome-6);
+      font-size: var(--text-lg);
+    }
+    &[data-block] {
+      --_px: var(--chrome-4);
+      display: flex;
+      inline-size: 100%;
+    }
+    /* a label beside an icon wraps from the icon's side, not centred away from it (older markup, see the header) */
+    &:has(> .ic):not([data-shape="circle"]) {
+      text-align: start;
+    }
+    /* The label: the icon and the words in one line of text, centred and balanced as one group (see the header).
+       It may shrink below its longest word, so a word breaks only when it alone is wider than the button. */
+    & > .btn__label {
+      min-inline-size: 0;
+      text-align: center;
+
+      /* The icon's margin box is one em tall and sits exactly on the line (line-height 1): Archivo's line runs from
+         0.835em above the baseline to 0.165em below it ((1 + ascent 0.88 - descent 0.21) / 2), so the icon is
+         centred where a flex layout centres it and does not make the first line taller than the others. */
+      & > .ic {
+        margin-block: calc((1em - var(--ic-size, 1.25rem)) / 2);
+        margin-inline-end: var(--chrome-2);
+        vertical-align: -0.165em;
+      }
+    }
+
+    /* ---- shape: a circle is a square box holding one icon (or one short number, like a keypad key) ---- */
+    &[data-shape="circle"] {
+      --_r: var(--radius-pill);
+      inline-size: var(--_box, var(--_h));
+      min-inline-size: var(--_box, var(--_h)); /* a small (36px) circle is round: its 44px target is the ::after, not its width */
+      min-block-size: var(--_box, var(--_h));
+      padding: 0;
+    }
+    /* An ICON-ONLY circle is chrome: an icon does not get easier to read at 200% text, it only takes the
+       room the words need (two 88px circles leave a phone's title a few letters a line). It stops at its
+       100% size, and so does its target, which would otherwise overlap its neighbour's. :where() keeps this
+       at the specificity of .btn, so a component that sizes its own circles still wins; one that sets --_h
+       for a circle sets --_cap to the same cell (the dock does). */
+    &:where([data-shape="circle"]:has(> .ic)) {
+      --_box: min(var(--_h), var(--_cap));
+      --_hit: var(--chrome-hit);
+      & > .ic {
+        --ic-size: var(--chrome-ic-sm);
+      }
+    }
+  }
+
+  /* forced colours: fills and shadows vanish, so raised/on get a heavier line instead */
+  @media (forced-colors: active) {
+    .btn {
+      border-color: ButtonText;
+      &:is(:hover, .is-hover, :focus-visible, .is-focus) {
+        outline: var(--bw-heavy) solid Highlight;
+        outline-offset: 0;
+      }
+      &:is([aria-pressed="true"], [role="radio"][aria-checked="true"]) {
+        border-width: var(--bw-heavy);
+      }
+      &:disabled,
+      &[aria-disabled="true"] {
+        color: GrayText;
+        border-color: GrayText;
+      }
+    }
+  }
+
+  /* shared keyframes for loading */
+  @keyframes sg-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes sg-pulse {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}

@@ -1,0 +1,776 @@
+<!--{"title":"Colour","group":"Foundations","order":10,"summary":"Knobs, roles and components: every colour pair keeps a fixed lightness gap, so contrast is decided before a hue is picked."}-->
+<style>
+  /* Docs-only scaffolding for this page. Roles and tokens only; no colour literals. */
+  /* docs.css changes asked of the lead in the docs group's report: delete this block once docs.css has them.
+     The inset of a note, a code block and a stacked table row is chrome (Space: chrome caps), so 200% text keeps the
+     width for the words. On a phone at large text a note's body runs under its icon, which stays beside the first
+     line of the note's title. */
+  .docs-article .note { gap: var(--chrome-3); padding: var(--chrome-4); }
+  .docs-article pre, .docs-article .demo__code pre { padding: var(--chrome-4); }
+  .docs-article code [data-f="nw"] { white-space: nowrap; } /* a hyphenated word in a code chip never breaks after its leading hyphens ("--" / "fill: 0") */
+  @media (max-width: 40em) { .docs-article .docs-table[data-stack] tr { padding: var(--chrome-3) var(--chrome-4); } }
+  /* a token swatch's inset and its colour chip are chrome too (the chip is the frame of a picture) */
+  .docs-article .swatch { gap: var(--chrome-2) var(--chrome-3); padding: var(--chrome-3); }
+  .docs-article .swatch__chip { inline-size: var(--chrome-ctl); block-size: var(--chrome-ctl); }
+  .docs-article .swatch__pass { white-space: nowrap; } /* "Pass 7" is one verdict: never "Pass" at a line end and a lonely 7 below */
+  @container article (max-width: 16rem) {
+    .docs-article .note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .docs-article .note > .ic { margin-block-start: 0; }
+    .docs-article .note > div { display: contents; }
+    .docs-article .note > div > * { grid-column: 1 / -1; min-inline-size: 0; }
+    .docs-article .note > div > strong:first-child { grid-column: 2; margin-block-start: calc((1.25rem - 1lh) / 2); }
+    .docs-article .note :is(ul, ol) { padding-inline-start: 1.1em; }
+  }
+  /* Islands re-point --line at their own ink, which would make a dark island's frame vanish against a light page.
+     A registered <color> resolves light-dark() where it is declared, so islands inherit the PAGE's ink. */
+  @property --page-line { syntax: "<color>"; inherits: true; initial-value: transparent; }
+  .docs-article { --page-line: var(--ink); }
+  .docs-article > pre, .docs-article [data-f] pre { margin-block-end: 0; padding: var(--chrome-4); overflow-x: auto; border: var(--bw) solid var(--line); background: var(--paper-2); font-size: var(--text-sm); line-height: 1.55; }
+  /* Column widths for the wide table only. Stacked on a phone, a cell with a fixed minimum ran past the table's frame at 200% text and hid its words behind a sideways scroll. */
+  @media (min-width: 40em) {
+    .docs-table td:first-child code { white-space: nowrap; }
+    #lines-table td:nth-child(2) code { white-space: nowrap; }
+    #pal-table td:nth-child(2), #pal-table td:nth-child(3) { min-inline-size: 11rem; }
+    #pal-table td:nth-child(4) { min-inline-size: 14.5rem; }
+  }
+  /* these tables do not stack (a table of numbers scrolls sideways on a phone), so their columns keep their widths */
+  .docs-table:not([data-stack]) td:first-child code { white-space: nowrap; }
+  #floors-table td:nth-child(2) { min-inline-size: 11rem; }
+  #floors-table td:nth-child(3) { min-inline-size: 13rem; }
+  #lightness-table td:last-child { min-inline-size: 14rem; }
+  .docs-article [data-f="island"] { display: grid; gap: var(--space-3); align-content: start; min-inline-size: 0; padding: var(--chrome-4); border: var(--bw) solid var(--page-line); }
+  .docs-article [data-f="island"] > p { margin: 0; max-inline-size: none; color: var(--ink-soft); }
+  /* Swatch groups lay out evenly: four as two by two, five as three and two, three in a row, one column on a phone.
+     The shared .swatches grid fills as many 14rem columns as fit, which left a lonely fourth or fifth swatch on a
+     desk. Grouped swatches (each container has its own contrast floor) join one grid; a row shares one height. */
+  .docs-article [data-f^="sw"] > [data-swatches] { display: contents; }
+  .docs-article :is([data-f="sw3"], [data-f="sw4"], [data-f="sw5"]) { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 1fr); }
+  @container article (min-width: 30rem) { .docs-article [data-f="sw4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container article (min-width: 42rem) { .docs-article :is([data-f="sw3"], [data-f="sw5"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .docs-article [data-f="pals"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: var(--space-4); }
+  /* a sample card's two buttons: one row, or one per line at the card's full width when the card is narrower than
+     both labels (about 14rem at 100% text); never a ragged wrap with two pills of different widths */
+  .docs-article :is([data-f="pals"], [data-f="lab"]) .card .cluster { flex-wrap: nowrap; }
+  @container card (inline-size <= 14.5rem) { .docs-article :is([data-f="pals"], [data-f="lab"]) .card .cluster { flex-direction: column; align-items: stretch; } }
+  /* the same for a row of buttons straight inside an island (the cream sample) */
+  .docs-article [data-f="island"]:has(> .cluster) { container-type: inline-size; inline-size: 100%; } /* a container has no intrinsic width: fill the stage */
+  .docs-article [data-f="island"] > .cluster { flex-wrap: nowrap; }
+  @container (max-width: 17rem) { .docs-article [data-f="island"] > .cluster { flex-direction: column; align-items: stretch; } }
+  .docs-article [data-f="pair"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--space-2); }
+  /* the eight colour samples are swatches, the frames of pictures: chrome, so they stay one row of 20px squares at 200% text */
+  .docs-article [data-f="dots"] { display: flex; flex-wrap: wrap; gap: var(--chrome-1); }
+  .docs-article [data-f="dots"] i { inline-size: var(--chrome-box); block-size: var(--chrome-box); border: var(--bw-thin) solid var(--line); }
+  .docs-article [data-f="read"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); margin: 0; padding: 0; list-style: none; font: var(--type-meta); }
+  .docs-article [data-f="read"] li { display: flex; align-items: flex-start; gap: var(--space-2); max-inline-size: none; margin: 0; color: var(--ink); }
+  .docs-article [data-f="read"] .ic { margin-block-start: 0.125rem; }
+  .docs-article [data-f="read"] b { font-variant-numeric: tabular-nums lining-nums; }
+
+  .docs-article [data-f="calc"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  .docs-article [data-f="calc"] label { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="calc"] output { font-variant-numeric: tabular-nums lining-nums; }
+  .docs-article [data-f="row"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+  /* a transparent border keeps a range input's edge in forced-colours mode */
+  .docs-article [data-f="calc"] input[type="range"], .docs-article [data-f="lab"] input[type="range"] { inline-size: 100%; block-size: var(--hit); margin: 0; border: var(--bw) solid transparent; }
+  .docs-article [data-f="sample"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding: var(--chrome-5); border: var(--bw) solid var(--line); background: var(--sample-bg, var(--canvas)); color: var(--sample-fg, var(--ink)); }
+  .docs-article [data-f="sample"] strong { font: var(--type-title); }
+  .docs-article [data-f="big"] { margin: 0; font: var(--type-figure); font-size: var(--text-2xl); font-variant-numeric: tabular-nums lining-nums; }
+
+  .docs-article [data-f="lab"] { display: grid; gap: var(--space-4); }
+  .docs-article [data-f="lab"] > * { min-inline-size: 0; }
+  .docs-article [data-f="controls"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--space-4); align-items: start; }
+  .docs-article [data-f="controls"] [data-f="row"] > label, .docs-article [data-f="controls"] legend { font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="controls"] fieldset { display: grid; gap: var(--space-1); min-inline-size: 0; }
+
+  .docs-article [data-f="op"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--space-3); }
+  .docs-article [data-f="op"] > div { padding: var(--chrome-4); border: var(--bw) solid var(--line); background: var(--paper); }
+  .docs-article [data-f="op"] p { margin: 0; max-inline-size: none; display: flex; align-items: flex-start; gap: var(--space-2); }
+  .docs-article [data-f="op"] p > .ic { flex: none; margin-block-start: calc((1lh - var(--ic-size, 1.25rem)) / 2); } /* on the first line when the words wrap */
+  /* a token in a sample breaks at the space before it, never inside it ("var(- / -ink-soft)") */
+  .docs-article [data-f="nw"] { white-space: nowrap; }
+  .docs-article [data-f="op"] small { display: block; margin-block-start: var(--space-2); color: var(--ink-soft); font: var(--type-meta); }
+  .docs-article [data-f="faded"] { color: var(--ink); opacity: 0.6; }
+  .docs-article [data-f="solid"] { color: var(--ink-soft); }
+
+  .docs-article [data-f="photo"] { display: grid; gap: var(--space-3); padding: var(--chrome-6) var(--chrome-4) var(--chrome-4); border: var(--bw) solid var(--line); background: var(--on-media); }
+  .docs-article [data-f="photo"] p { margin: 0; max-inline-size: none; padding: var(--chrome-3); color: var(--on-media); font: var(--type-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+  .docs-article [data-f="photo"] code { background: none; border: 0; padding: 0; color: inherit; text-transform: none; letter-spacing: 0; } /* a token keeps its case */
+
+  .docs-article [data-f="status"] .ic { flex: none; }
+  .docs-article [data-f="status"] span { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .docs-table td.num, .docs-table th.num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+  .docs-table th[scope="colgroup"] { background: var(--paper-3); color: var(--ink); }
+</style>
+
+<h1>Colour</h1>
+<p class="lede">Every colour in the guide is chosen by lightness first and hue second. Lightness is what WCAG contrast measures, so each pair of roles keeps a fixed lightness gap and cannot drop below its floor, whatever palette, theme or contrast setting is active.</p>
+<p>Open <strong>Appearance</strong> (top right) while you read. Every swatch, ratio and demo on this page is read from the real tokens, and recomputes when you change theme, palette or contrast.</p>
+
+<h2 id="model">Knobs, roles, components</h2>
+<p>Colour is built in three steps. Each step reads only the one before it, which is why a palette can change every colour in a product without touching a component.</p>
+<div class="grid" style="--grid-min: 15rem">
+  <section class="card">
+    <div class="card__body">
+      <p class="card__eyebrow">Step 1</p>
+      <p class="card__title">Knobs</p>
+      <p class="card__text">Plain numbers: OKLCH lightness, chroma and hue, named <code>--k-*</code>. A <code>-l</code> or <code>-d</code> suffix means the light or the dark theme. Palettes, the contrast mode and the theme change knobs and nothing else.</p>
+    </div>
+  </section>
+  <section class="card">
+    <div class="card__body">
+      <p class="card__eyebrow">Step 2</p>
+      <p class="card__title">Roles</p>
+      <p class="card__text">Colours with a job: <code>--ink</code>, <code>--paper</code>, <code>--accent</code>. Each is one <code>light-dark(oklch(…), oklch(…))</code> built from knobs.</p>
+    </div>
+  </section>
+  <section class="card">
+    <div class="card__body">
+      <p class="card__eyebrow">Step 3</p>
+      <p class="card__title">Components</p>
+      <p class="card__text">Read roles and nothing else. No hex, no <code>oklch()</code>, no <code>opacity</code> on text. A component never knows which palette, theme or contrast mode is active.</p>
+    </div>
+  </section>
+</div>
+
+<p>One role through all three steps (from <code>src/<wbr>tokens/<wbr>10-color.css</code>):</p>
+<pre aria-label="One role through knobs, role and component"><code>/* 1 · knobs: plain numbers */
+--k-ink-l: 0.2;   --k-ink-d: 0.96;
+--k-neutral-c: 0; --k-neutral-h: 95;
+
+/* 2 · role: derived, declared on :root, [data-theme], [data-palette], [data-contrast] */
+--ink: light-dark(
+  oklch(var(--k-ink-l) var(--k-neutral-c) var(--k-neutral-h)),
+  oklch(var(--k-ink-d) var(--k-neutral-c) var(--k-neutral-h))
+);
+
+/* 3 · component */
+.card__title { color: var(--ink); }</code></pre>
+
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Knob families and what changes them</caption>
+  <thead><tr><th>Knob family</th><th>Names</th><th>Changed by</th></tr></thead>
+  <tbody>
+    <tr><td>Neutral tint</td><td><code>--k-neutral-h</code>, <code>--k-neutral-c</code>, <code>--k-canvas-c-l</code>, <code>--k-canvas-c-d</code>, <code>--k-paper-c-l</code></td><td>Palettes</td></tr>
+    <tr><td>Neutral lightness, light</td><td><code>--k-canvas-l</code>, <code>--k-paper-l</code>, <code>--k-paper-2-l</code>, <code>--k-paper-3-l</code>, <code>--k-ink-l</code>, <code>--k-soft-l</code>, <code>--k-mute-l</code>, <code>--k-faint-l</code></td><td>Higher contrast; the sand palette</td></tr>
+    <tr><td>Neutral lightness, dark</td><td><code>--k-canvas-d</code>, <code>--k-paper-d</code>, <code>--k-paper-2-d</code>, <code>--k-paper-3-d</code>, <code>--k-ink-d</code>, <code>--k-soft-d</code>, <code>--k-mute-d</code>, <code>--k-faint-d</code></td><td>Higher contrast</td></tr>
+    <tr><td>Accent</td><td><code>--k-accent-h</code>, <code>--k-accent-c</code>, <code><span data-f="nw">--k-</span>accent-fill-l</code> / <code>-d</code>, <code>--k-on-accent-l</code> / <code>-d</code>, <code>--k-accent-ink-l</code> / <code>-d</code>, <code><span data-f="nw">--k-</span>accent-soft-l</code> / <code>-d</code>, <code><span data-f="nw">--k-</span>on-accent-soft-l</code> / <code>-d</code></td><td>Palettes, higher contrast</td></tr>
+    <tr><td>Status text</td><td><code>--k-status-c</code>, <code>--k-status-ink-l</code> / <code>-d</code>; hues <code>--hue-ok</code>, <code>--hue-warn</code>, <code>--hue-bad</code>, <code>--hue-info</code></td><td>Higher contrast; the wire palette (chroma 0)</td></tr>
+    <tr><td>Tones</td><td><code>--k-tone-*</code>, <code>--tone-h-1</code> to <code>--tone-h-6</code> (see <a href="@/foundations/tones.html">Tones</a>)</td><td>Palettes, higher contrast</td></tr>
+  </tbody>
+</table></div>
+
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div>
+    <strong>Why roles are declared again on every scope</strong>
+    <p>A custom property whose value contains <code>var()</code> is resolved on the element where it is declared. A nested <code>&lt;section data-palette="mint"&gt;</code> therefore needs its own copy of every role, computed from its own knobs; otherwise it would inherit the parent's finished colours. That is why the role block in <code>10-color.css</code> lists <code>:root, <span data-f="nw">[data-theme],</span> <span data-f="nw">[data-palette],</span> <span data-f="nw">[data-contrast]</span></code>. The palette islands further down are the proof.</p>
+  </div>
+</div>
+
+<h2 id="lightness">Contrast by construction</h2>
+<p>WCAG contrast is a ratio of relative luminance, <code>(Y1 + 0.05) / (Y2 + 0.05)</code>. For neutral colours OKLCH lightness <code>L</code> is close to the cube root of luminance, so <code>Y</code> is roughly <code>L</code> cubed. That turns contrast into a lightness gap you can reason about, and it holds whatever the hue, because hue and chroma barely move luminance at the low chroma the neutrals use.</p>
+
+<div class="table-wrap"><table class="docs-table" id="lightness-table">
+  <caption class="sr-only">Lightness of each neutral knob in the light and dark theme, with and without higher contrast</caption>
+  <thead>
+    <tr><th rowspan="2" scope="col">Role</th><th colspan="2" scope="colgroup">Normal</th><th colspan="2" scope="colgroup">Higher contrast</th><th rowspan="2" scope="col">Why that value</th></tr>
+    <tr><th scope="col" class="num">Light</th><th scope="col" class="num">Dark</th><th scope="col" class="num">Light</th><th scope="col" class="num">Dark</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>--canvas</code></td><td class="num">0.97</td><td class="num">0.165</td><td class="num">0.97</td><td class="num">0.165</td><td>The page. Off-white and off-black: less glare, and a card can be lighter than it in both themes.</td></tr>
+    <tr><td><code>--paper</code></td><td class="num">1</td><td class="num">0.22</td><td class="num">1</td><td class="num">0.22</td><td>A card. One step above the canvas, in light and in dark.</td></tr>
+    <tr><td><code>--paper-2</code></td><td class="num">0.94</td><td class="num">0.27</td><td class="num">0.93</td><td class="num">0.27</td><td>Recessed: a track, an input, a code block.</td></tr>
+    <tr><td><code>--paper-3</code></td><td class="num">0.905</td><td class="num">0.32</td><td class="num">0.88</td><td class="num">0.32</td><td>The pressed shade, and the deepest surface text is tested on.</td></tr>
+    <tr><td><code>--ink</code></td><td class="num">0.2</td><td class="num">0.96</td><td class="num">0.1</td><td class="num">1</td><td>A gap of 0.77 to the canvas: far past 7:1.</td></tr>
+    <tr><td><code>--ink-soft</code></td><td class="num">0.4</td><td class="num">0.8</td><td class="num">0.22</td><td class="num">0.95</td><td>A gap of 0.57: still over 7:1, visibly quieter than ink.</td></tr>
+    <tr><td><code>--ink-mute</code></td><td class="num">0.47</td><td class="num">0.7</td><td class="num">0.32</td><td class="num">0.9</td><td>A gap of 0.5: the 4.5:1 floor, for hints and placeholders.</td></tr>
+    <tr><td><code>--ink-faint</code></td><td class="num">0.62</td><td class="num">0.62</td><td class="num">0.44</td><td class="num">0.78</td><td>3:1 against the page. Disabled controls and quiet decoration, never text that matters.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="calc">Try the gap</h3>
+<p>Move the two sliders. The ratio is measured from the colours the browser actually paints; the estimate uses only <code>Y = L</code> cubed. On this light canvas a text lightness of 0.44 or less gives 7:1, 0.55 or less gives 4.5:1, and 0.65 or less gives 3:1.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="calc" id="calc-box">
+      <div data-f="row">
+        <label for="calc-bg">Background lightness <output id="calc-bg-out" for="calc-bg">0.97</output></label>
+        <input id="calc-bg" type="range" min="0" max="1" step="0.005" value="0.97" aria-describedby="calc-big calc-est" />
+      </div>
+      <div data-f="row">
+        <label for="calc-fg">Text lightness <output id="calc-fg-out" for="calc-fg">0.40</output></label>
+        <input id="calc-fg" type="range" min="0" max="1" step="0.005" value="0.4" aria-describedby="calc-big calc-est" />
+      </div>
+      <div data-f="sample" id="calc-sample">
+        <strong>Weekly summary</strong>
+        <span>Nine of ten tasks done before lunch.</span>
+      </div>
+      <p data-f="big" id="calc-big">8.44:1</p>
+      <ul data-f="read" role="list" id="calc-out">
+        <li data-t="7"><span class="ic ic--circle-check" aria-hidden="true"></span><span>Passes 7:1 (body text, the guide's default)</span></li>
+        <li data-t="4.5"><span class="ic ic--circle-check" aria-hidden="true"></span><span>Passes 4.5:1 (WCAG AA text)</span></li>
+        <li data-t="3"><span class="ic ic--circle-check" aria-hidden="true"></span><span>Passes 3:1 (frames and icons)</span></li>
+      </ul>
+      <p class="t-meta" id="calc-est">Estimate from Y = L cubed: 8.4:1</p>
+    </div>
+  </div>
+</div>
+<p>The same arithmetic, solved for the lightest text each target allows on this page's canvas in each theme (light 0.97, dark 0.165):</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Lightness a neutral needs to reach each contrast target against the canvas</caption>
+  <thead><tr><th>Target</th><th class="num">Light theme: L at most</th><th class="num">Dark theme: L at least</th></tr></thead>
+  <tbody>
+    <tr><td>7:1 (body text)</td><td class="num">0.44</td><td class="num">0.69</td></tr>
+    <tr><td>4.5:1 (AA text)</td><td class="num">0.55</td><td class="num">0.58</td></tr>
+    <tr><td>3:1 (frames, icons)</td><td class="num">0.65</td><td class="num">0.48</td></tr>
+  </tbody>
+</table></div>
+<p>So <code>--ink-soft</code> at 0.4 clears 7:1, <code>--ink-mute</code> at 0.47 sits between 7:1 and 4.5:1 on purpose, and <code>--ink-faint</code> at 0.62 clears 3:1 with little to spare. The estimate is for neutrals. Accent and status hues carry more chroma, so they are not taken on trust: <code>npm run test:contrast</code> resolves every pair in a real browser.</p>
+
+<h2 id="roles">Every colour role</h2>
+<p>Each group below is rendered from the real tokens. The ratio on a swatch is measured against the colour named in the heading, for whichever appearance is active now, and the label says whether it meets the floor for that pair. The table after the groups lists every floor and the worst case the test has measured.</p>
+
+<h3 id="surfaces">Surfaces</h3>
+<p>Depth comes from lightness steps and a 2px frame, not from saturated colour or shadow. Ratios below are <code>--ink</code> against each surface.</p>
+<div data-swatches="--canvas --paper --paper-2 --paper-3" data-on="--ink" data-min="7" data-f="sw4"></div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Surface roles and what they are for</caption>
+  <thead><tr><th>Role</th><th>Use it for</th><th>Do not use it for</th></tr></thead>
+  <tbody>
+    <tr><td><code>--canvas</code></td><td>The page, behind everything. <code>html</code> and <code>body</code> paint it.</td><td>A card background.</td></tr>
+    <tr><td><code>--paper</code></td><td>A card's default fill, the resting fill of a control.</td><td>The page itself.</td></tr>
+    <tr><td><code>--paper-2</code></td><td>A recessed or secondary fill: a track, an input, a segmented well, a code block.</td><td>A container that holds other cards.</td></tr>
+    <tr><td><code>--paper-3</code></td><td>The pressed shade of <code>--paper-2</code>.</td><td>Large areas. It is the deepest surface text is tested on.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="text-roles">Text and icons</h3>
+<div data-f="sw4">
+  <div data-swatches="--ink --ink-soft" data-on="--canvas" data-min="7"></div>
+  <div data-swatches="--ink-mute" data-on="--canvas" data-min="4.5"></div>
+  <div data-swatches="--ink-faint" data-on="--canvas" data-min="3"></div>
+</div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Text roles and what they are for</caption>
+  <thead><tr><th>Role</th><th>Use it for</th><th>Do not use it for</th></tr></thead>
+  <tbody>
+    <tr><td><code>--ink</code></td><td>Body text, titles, frames and meaningful icons.</td><td>Faded text (use <code>--ink-soft</code>).</td></tr>
+    <tr><td><code>--ink-soft</code></td><td>Captions, meta lines, eyebrows, helper text. <code>.t-meta</code> and <code>.card__meta</code> use it.</td><td>Anything that has to stand out.</td></tr>
+    <tr><td><code>--ink-mute</code></td><td>Placeholders and tertiary text. The lowest colour text may use.</td><td>Content people must read to finish a task.</td></tr>
+    <tr><td><code>--ink-faint</code></td><td>Disabled controls (with a dashed frame) and quiet decoration.</td><td>Any text that matters. Its floor is 3:1, not a text floor.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="lines">Lines and focus</h3>
+<div data-swatches="--line --line-soft --focus" data-on="--canvas" data-min="3" data-f="sw3"></div>
+<div class="table-wrap"><table class="docs-table" id="lines-table">
+  <caption class="sr-only">Line and focus roles and what they are for</caption>
+  <thead><tr><th>Role</th><th>Is</th><th>Use it for</th></tr></thead>
+  <tbody>
+    <tr><td><code>--line</code></td><td><code>--ink</code></td><td>Every frame: cards, controls, tiles, the hard shadow. Anything that defines a control.</td></tr>
+    <tr><td><code>--line-soft</code></td><td><code>--ink-faint</code></td><td>Decoration that must stay quiet: rules between items, the cells of the icon gallery. If removing the line would make a control unfindable, use <code>--line</code>.</td></tr>
+    <tr><td><code>--focus</code></td><td><code>--ink</code></td><td>The focus ring, at 3:1 or more on every surface. Drawn with a paper halo so it shows on an ink bar too. See <a href="@/foundations/interaction.html#focus">Interaction</a>.</td></tr>
+  </tbody>
+</table></div>
+<p>They are aliases on purpose: a component that needs an edge colour reads <code>--line</code>, and a region that sits on ink (the docs bar, the ink card bar) re-points it with one declaration.</p>
+
+<h3 id="accent">Accent</h3>
+<p>The accent is the one "press this" colour: the primary button, the thing you are pointing at. In the default palette it is ink (black on light, white on dark); the other palettes give it a hue.</p>
+<div data-f="sw5">
+  <div data-swatches="--accent"></div>
+  <div data-swatches="--on-accent" data-on="--accent" data-min="4.5"></div>
+  <div data-swatches="--accent-ink" data-on="--canvas" data-min="4.5"></div>
+  <div data-swatches="--accent-soft"></div>
+  <div data-swatches="--on-accent-soft" data-on="--accent-soft" data-min="4.5"></div>
+</div>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Accent roles and what they are for</caption>
+  <thead><tr><th>Role</th><th>Use it for</th><th>Always paired with</th></tr></thead>
+  <tbody>
+    <tr><td><code>--accent</code></td><td>A filled primary button, a toggled-on control.</td><td><code>--on-accent</code> for anything drawn on it, and the 2px <code>--line</code> frame, so a pale accent still has an edge.</td></tr>
+    <tr><td><code>--accent-ink</code></td><td>The accent as text or an icon on the canvas or a card.</td><td>Words or an underline; never hue alone (WCAG 1.4.1).</td></tr>
+    <tr><td><code>--accent-soft</code></td><td>A soft wash: a selected row, a highlighted entry.</td><td><code>--on-accent-soft</code> for the text on it, plus a second cue for "selected".</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="status">Status</h3>
+<p>Four status inks for text and icons on the canvas or a card: <code>--ok-ink</code>, <code>--warn-ink</code>, <code>--bad-ink</code> and <code>--info-ink</code>. Each is shown here with an icon and words, which is the rule in the product too. For whole cards in a status hue, see <a href="@/foundations/tones.html#status">Tones</a>.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 12rem" data-f="status">
+      <span style="color: var(--ok-ink)"><span class="ic ic--circle-check" aria-hidden="true"></span>Deck saved</span>
+      <span style="color: var(--warn-ink)"><span class="ic ic--triangle-alert" aria-hidden="true"></span>Low storage</span>
+      <span style="color: var(--bad-ink)"><span class="ic ic--circle-x" aria-hidden="true"></span>Payment failed</span>
+      <span style="color: var(--info-ink)"><span class="ic ic--info" aria-hidden="true"></span>Synced 2&nbsp;min ago</span>
+    </div>
+  </div>
+</div>
+<div data-swatches="--ok-ink --warn-ink --bad-ink --info-ink" data-on="--paper" data-min="4.5" data-f="sw4"></div>
+
+<h3 id="overlays">Overlays and media</h3>
+<p>Text or an icon over a photo, video or map never goes straight on the image. A scrim gives it a known background. <code>--scrim</code> is black at 60% and <code>--scrim-strong</code> at 75%; <code>--on-media</code> is white. The scrim is the one translucency the guide allows, and it is also the modal backdrop.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="photo">
+      <p style="background: var(--scrim)">Text on <code>--scrim</code></p>
+      <p style="background: var(--scrim-strong)">Text on <code>--scrim-strong</code></p>
+    </div>
+  </div>
+</div>
+<p class="t-meta">The photo here is the worst case, pure white. White on <code>--scrim</code> over it measures 5.74:1 and on <code>--scrim-strong</code> 10.37:1, both over the 4.5:1 floor. A swatch cannot rate a translucent colour, so the contrast test does it by compositing over white.</p>
+
+<h2 id="floors">What is guaranteed, and against what</h2>
+<p>The floor columns are what <code>tests/<wbr>contrast.mjs</code> enforces for every theme, both contrast modes and all six palettes. The measured columns are the lowest ratio across those six palettes, as <em>light / dark</em>. A floor is a promise; a measured value is a fact about today's knobs and moves if you change them. Measured on 2026-09-30, all passing; <code>node tests/contrast.mjs <span data-f="nw">--all</span></code> prints every pair.</p>
+<div class="table-wrap"><table class="docs-table" id="floors-table">
+  <caption class="sr-only">Contrast floors enforced by the test and the worst ratios measured</caption>
+  <thead><tr><th>Text or shape</th><th>Against</th><th>Used for</th><th class="num">Floor</th><th class="num">Floor, higher contrast</th><th class="num">Worst, light / dark</th><th class="num">Worst, higher contrast</th></tr></thead>
+  <tbody>
+    <tr><th scope="colgroup" colspan="7">Text on surfaces</th></tr>
+    <tr><td><code>--ink</code></td><td>canvas, paper, paper-2, paper-3</td><td>Body text, titles, frames</td><td class="num">7:1</td><td class="num">7:1</td><td class="num">13.43 / 11.20</td><td class="num">14.33 / 12.42</td></tr>
+    <tr><td><code>--ink-soft</code></td><td>canvas, paper, paper-2</td><td>Secondary text</td><td class="num">7:1</td><td class="num">7:1</td><td class="num">7.48 / 8.04</td><td class="num">14.04 / 13.00</td></tr>
+    <tr><td><code>--ink-soft</code></td><td>paper-3</td><td>Secondary text on the pressed shade</td><td class="num">4.5:1</td><td class="num">7:1</td><td class="num">6.81 / 6.74</td><td class="num">11.97 / 10.89</td></tr>
+    <tr><td><code>--ink-mute</code></td><td>canvas, paper, paper-2</td><td>Placeholders, tertiary text</td><td class="num">4.5:1</td><td class="num">7:1</td><td class="num">5.55 / 5.64</td><td class="num">10.30 / 11.11</td></tr>
+    <tr><td><code>--ink-mute</code></td><td>paper-3</td><td>Tertiary text on the pressed shade</td><td class="num">4.5:1</td><td class="num">7:1</td><td class="num">5.05 / 4.72</td><td class="num">8.78 / 9.38</td></tr>
+    <tr><td><code>--accent-ink</code></td><td>canvas, paper, paper-2</td><td>Accent text and icons</td><td class="num">4.5:1</td><td class="num">7:1</td><td class="num">6.56 / 7.98</td><td class="num">15.50 / 13.09</td></tr>
+    <tr><td><code>--accent-ink</code></td><td>paper-3</td><td>Accent text on the pressed shade</td><td class="num">4.5:1</td><td class="num">7:1</td><td class="num">5.89 / 6.75</td><td class="num">13.32 / 10.97</td></tr>
+    <tr><td><code>--ok-ink</code>, <code>--warn-ink</code>, <code>--bad-ink</code>, <code>--info-ink</code></td><td>canvas, paper, paper-2, paper-3</td><td>Status text, always with an icon or words</td><td class="num">4.5:1</td><td class="num">7:1</td><td class="num">5.34 / 6.13</td><td class="num">8.05 / 7.38</td></tr>
+    <tr><th scope="colgroup" colspan="7">Frames and quiet decoration</th></tr>
+    <tr><td><code>--ink-faint</code></td><td>canvas, paper, paper-2</td><td>Disabled frames, <code>--line-soft</code></td><td class="num">3:1</td><td class="num">3:1</td><td class="num">3.04 / 4.11</td><td class="num">6.29 / 7.53</td></tr>
+    <tr><td><code>--focus</code> (and <code>--line</code>)</td><td>canvas, paper, paper-2, paper-3</td><td>The focus ring; frames. Both are aliases of <code>--ink</code>.</td><td class="num">3:1</td><td class="num">3:1</td><td class="num">13.43 / 11.20</td><td class="num">14.33 / 12.42</td></tr>
+    <tr><th scope="colgroup" colspan="7">Text on fills</th></tr>
+    <tr><td><code>--on-accent</code></td><td>accent</td><td>A primary button's label</td><td class="num">4.5:1</td><td class="num">7:1</td><td class="num">6.60 / 8.21</td><td class="num">18.39 / 17.88</td></tr>
+    <tr><td><code>--on-accent-soft</code></td><td>accent-soft</td><td>A selected row's text</td><td class="num">4.5:1</td><td class="num">7:1</td><td class="num">10.66 / 11.33</td><td class="num">16.08 / 15.13</td></tr>
+    <tr><td><code>--ink</code></td><td>accent-soft</td><td>Primary text on the soft wash</td><td class="num">7:1</td><td class="num">7:1</td><td class="num">14.16 / 11.97</td><td class="num">16.13 / 15.53</td></tr>
+    <tr><td><code>--paper</code></td><td>ink</td><td>The inverted tone, the card bar</td><td class="num">7:1</td><td class="num">7:1</td><td class="num">18.04 / 15.37</td><td class="num">20.59 / 17.07</td></tr>
+    <tr><th scope="colgroup" colspan="7">Overlays</th></tr>
+    <tr><td><code>--on-media</code></td><td>scrim over a white photo</td><td>White text or icon on the scrim</td><td class="num">4.5:1</td><td class="num">4.5:1</td><td class="num">5.74 / 5.74</td><td class="num">5.74 / 5.74</td></tr>
+    <tr><td><code>--on-media</code></td><td>scrim-strong over a white photo</td><td>White text or icon on the strong scrim</td><td class="num">4.5:1</td><td class="num">4.5:1</td><td class="num">10.37 / 10.37</td><td class="num">10.37 / 10.37</td></tr>
+  </tbody>
+</table></div>
+<p>Tone pairs have their own table on <a href="@/foundations/tones.html#guarantees">Tones</a>. Three things to know when reading this one:</p>
+<ul>
+  <li><code>--ink-soft</code> and <code>--ink-mute</code> measure lowest on <code>--paper-3</code>. On the canvas, a card and <code>--paper-2</code>, <code>--ink-soft</code> is over 7:1 in both themes; put secondary text on a pressed shade and expect the lower number.</li>
+  <li><code>--accent</code> against the canvas is not a rule. A pale accent (cream's yellow) is only about 1.3:1 against a cream canvas, so the fill never works alone: every filled control keeps its 2px <code>--line</code> frame, and "on" adds a second cue.</li>
+  <li>Ratios come from 8-bit sRGB pixels as painted by Chromium. A display with a colour profile can differ a little. Nothing here is verified in Safari or Firefox.</li>
+</ul>
+
+<h2 id="dark">Dark</h2>
+<p>Dark is not a second design. It is the same roles with the second half of each <code>light-dark()</code> value, so every rule above holds in both. The theme follows the operating system unless the app sets <code>data-theme="light"</code> or <code>data-theme="dark"</code> on <code>&lt;html&gt;</code>, or on any element to make an island (an island paints its own <code>--canvas</code> and <code>--ink</code>, or it would show the parent's page behind it).</p>
+<ul>
+  <li><strong>Depth stays lightness.</strong> The canvas is 0.165 and a card is 0.22, then 0.27 and 0.32 for recessed and pressed. Cards are lighter than the page in both themes, and there is no shadow to lean on.</li>
+  <li><strong>No pure black, no pure white.</strong> Ink is 0.96, not 1, and the page is 0.165, not 0. Less glare, and halation on OLED stays low.</li>
+  <li><strong>Tones mirror.</strong> A pastel tone is light at 0.93 with dark text in the light theme and dark at 0.27 with light text in the dark theme (see <a href="@/foundations/tones.html">Tones</a>). A bold tone is the same in both.</li>
+  <li><strong>The default accent swaps.</strong> Black with a white label in light, white with a dark label in dark, which is why the accent is a role and never a colour you write.</li>
+  <li><strong>The browser chrome follows.</strong> <code>SG.prefs</code> keeps <code>&lt;meta name="theme-color"&gt;</code> in step with <code>--canvas</code> when the user overrides the OS theme.</li>
+</ul>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="grid" style="--grid-min: 15rem">
+      <div data-f="island" data-theme="light">
+        <p class="t-label">Light</p>
+        <article class="card">
+          <div class="card__body">
+            <p class="card__eyebrow">Streak</p>
+            <p class="card__figure num">12<small>days</small></p>
+            <p class="card__meta">Best: 31 days</p>
+          </div>
+        </article>
+        <article class="card" data-tone="4">
+          <div class="card__body">
+            <p class="card__eyebrow">Deck · 8 cards</p>
+            <p class="card__title">Colours</p>
+          </div>
+        </article>
+      </div>
+      <div data-f="island" data-theme="dark">
+        <p class="t-label">Dark</p>
+        <article class="card">
+          <div class="card__body">
+            <p class="card__eyebrow">Streak</p>
+            <p class="card__figure num">12<small>days</small></p>
+            <p class="card__meta">Best: 31 days</p>
+          </div>
+        </article>
+        <article class="card" data-tone="4">
+          <div class="card__body">
+            <p class="card__eyebrow">Deck · 8 cards</p>
+            <p class="card__title">Colours</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="higher-contrast">Higher contrast</h2>
+<p>Higher contrast is a further tier of the same palette, not a second design. It turns on when the operating system asks for more contrast (<code>prefers-contrast: more</code>) or when the app sets <code>data-contrast="more"</code> on <code>&lt;html&gt;</code>. It changes knobs only, so every palette, tone and status inherits it.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Knobs that change in higher contrast</caption>
+  <thead><tr><th>What</th><th>Normal (light / dark)</th><th>Higher contrast (light / dark)</th></tr></thead>
+  <tbody>
+    <tr><td>Text</td><td>ink 0.2 / 0.96, ink-soft 0.4 / 0.8, ink-mute 0.47 / 0.7</td><td>ink 0.1 / 1, ink-soft 0.22 / 0.95, ink-mute 0.32 / 0.9. Every text role is 7:1 or more.</td></tr>
+    <tr><td>Quiet decoration</td><td>ink-faint 0.62 / 0.62</td><td>0.44 / 0.78: hairlines become real lines</td></tr>
+    <tr><td>Surfaces</td><td>paper-2 0.94, paper-3 0.905 (light)</td><td>0.93 and 0.88: more separation from the card. Dark surfaces are unchanged.</td></tr>
+    <tr><td>Accent</td><td>The palette's hue</td><td>Collapses to ink in every palette: fill 0.12 / 1, label 0.99 / 0.1, accent text 0.12 / 1</td></tr>
+    <tr><td>Status text</td><td>0.44 / 0.8</td><td>0.32 / 0.88</td></tr>
+    <tr><td>Tones</td><td>See <a href="@/foundations/tones.html">Tones</a></td><td>Pastel text and fills pushed apart; bold fill darker (0.38)</td></tr>
+  </tbody>
+</table></div>
+<p>Two rules keep the tier trustworthy. First, the OS query block and the <code>data-contrast="more"</code> block in each token file are copies of each other, and <code>tests/lint.mjs</code> fails if they differ. Second, <code>tests/<wbr>contrast.mjs</code> renders each palette with the media query and with the attribute and fails if any role differs. <code>data-contrast="off"</code> is honoured by the CSS (it ignores the OS request), but <code>SG.prefs</code> and the Appearance panel only offer <em>System</em> and <em>More</em>.</p>
+<div class="note" data-kind="a11y">
+  <span class="ic ic--info" aria-hidden="true"></span>
+  <div>
+    <strong>Higher contrast reaches islands</strong>
+    <p>A region can ask for more contrast with <code>&lt;div data-contrast="more"&gt;</code> on a normal page (measured: <code>--k-ink-l</code> goes from 0.2 to 0.1 inside it), and a palette island inside a higher-contrast page gets the boost as well, because the knob block is repeated for <code>[data-palette]</code>. <code>tests/<wbr>contrast.mjs</code> checks both cases. Motion is the exception: <code>data-motion</code> works on <code>&lt;html&gt;</code> only.</p>
+  </div>
+</div>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <p>Preview it on this page. This is the same switch as <strong>Contrast</strong> in Appearance and is saved in the same place.</p>
+    <p><button class="btn" type="button" id="hc-toggle" aria-pressed="false"><span class="ic ic--contrast" aria-hidden="true"></span>Contrast</button></p>
+  </div>
+</div>
+
+<h2 id="no-opacity">Why text never uses opacity</h2>
+<p>A faded colour is a guess about what is behind it. <code>opacity</code> and alpha colours blend with whatever is underneath, so the ratio depends on the surface, the theme and the palette, and it changes the moment the text moves onto a toned card. A role is a fixed colour with a tested ratio on a known set of surfaces.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="op">
+      <div>
+        <p data-f="solid" id="op-solid"><span class="ic ic--circle-check" aria-hidden="true"></span>Due on Friday</p>
+        <small>Do: <code>color: <span data-f="nw">var(--ink-soft)</span></code>. <output id="op-solid-out">Measured: n/a</output></small>
+      </div>
+      <div>
+        <p data-f="faded" id="op-faded"><span class="ic ic--circle-x" aria-hidden="true"></span>Due on Friday</p>
+        <small>Don't: <code>color: <span data-f="nw">var(--ink);</span> <span data-f="nw">opacity: 0.6</span></code>. <output id="op-faded-out">Measured: n/a</output></small>
+      </div>
+    </div>
+  </div>
+</div>
+<ul>
+  <li>Opacity also stacks: a faded child inside a faded parent is lighter than either alone would suggest.</li>
+  <li>Browsers dim <code>::placeholder</code> on their own. The base layer resets it to <code>opacity: 1</code> and colours it <code>--ink-mute</code>, so it still measures 4.5:1.</li>
+  <li>Disabled text is exempt from WCAG contrast, but the guide still uses <code>--ink-faint</code> and a dashed frame, so it stays legible and says "not here" twice.</li>
+</ul>
+
+<h2 id="palettes">The six palettes</h2>
+<p>A palette is a handful of knobs: the neutral hue and tint, the accent hue and chroma (and for a pale accent, a dark label), and a hue and vividness for each of the six tone slots. Nothing else. Each pair below is a real island, <code>&lt;div data-palette="mint" data-theme="light"&gt;</code> and its dark twin, built from the same markup. Tab through them: every button keeps its focus ring on every canvas.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="pals">
+      <div data-f="pair">
+        <div data-f="island" data-palette="default" data-theme="light" data-corners="square">
+          <p class="t-label">Default, light</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+        <div data-f="island" data-palette="default" data-theme="dark" data-corners="square">
+          <p class="t-label">Default, dark</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+      </div>
+      <div data-f="pair">
+        <div data-f="island" data-palette="mint" data-theme="light" data-corners="square">
+          <p class="t-label">Mint, light</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+        <div data-f="island" data-palette="mint" data-theme="dark" data-corners="square">
+          <p class="t-label">Mint, dark</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+      </div>
+      <div data-f="pair">
+        <div data-f="island" data-palette="periwinkle" data-theme="light" data-corners="square">
+          <p class="t-label">Periwinkle, light</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+        <div data-f="island" data-palette="periwinkle" data-theme="dark" data-corners="square">
+          <p class="t-label">Periwinkle, dark</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+      </div>
+      <div data-f="pair">
+        <div data-f="island" data-palette="sand" data-theme="light" data-corners="square">
+          <p class="t-label">Sand, light</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+        <div data-f="island" data-palette="sand" data-theme="dark" data-corners="square">
+          <p class="t-label">Sand, dark</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+      </div>
+      <div data-f="pair">
+        <div data-f="island" data-palette="cream" data-theme="light" data-corners="square">
+          <p class="t-label">Cream, light</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+        <div data-f="island" data-palette="cream" data-theme="dark" data-corners="square">
+          <p class="t-label">Cream, dark</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+      </div>
+      <div data-f="pair">
+        <div data-f="island" data-palette="wire" data-theme="light" data-corners="square">
+          <p class="t-label">Wire, light</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+        <div data-f="island" data-palette="wire" data-theme="dark" data-corners="square">
+          <p class="t-label">Wire, dark</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <div data-f="dots" aria-hidden="true"><i style="background: var(--accent)"></i><i style="background: var(--accent-soft)"></i><i style="background: var(--tone-1)"></i><i style="background: var(--tone-2)"></i><i style="background: var(--tone-3)"></i><i style="background: var(--tone-4)"></i><i style="background: var(--tone-5)"></i><i style="background: var(--tone-6)"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="note" data-kind="warn">
+  <span class="ic ic--triangle-alert" aria-hidden="true"></span>
+  <div>
+    <strong>Islands layer on the page; they do not reset it</strong>
+    <p>A palette block starts from the default knobs and changes only what it lists, so an island looks the same as a page with that palette, whatever palette the page has: a <code>mint</code> island inside a <code>wire</code> page is mint, and a <code>data-palette="default"</code> island inside a mint page is the default. <code>npm run test:contrast</code> compares every island with a page of the same palette. Corner style layers the other way: an island on a soft page has soft corners unless it sets <code>data-corners="square"</code>, which the islands here do. Use island palettes for a region that differs from the page.</p>
+  </div>
+</div>
+<div class="table-wrap"><table class="docs-table" id="pal-table">
+  <caption class="sr-only">What each palette sets</caption>
+  <thead><tr><th>Palette</th><th>Canvas and neutrals</th><th>Accent</th><th>Tone slots 1 to 6 (hue / chroma)</th></tr></thead>
+  <tbody>
+    <tr><td><code>default</code> (no attribute)</td><td>Neutral greys, hue 95, chroma 0</td><td>Ink: black on light, white on dark</td><td>95 / 0.17, 262 / 0.15, 22 / 0.16, 158 / 0.15, 305 / 0.15, 55 / 0.16 (yellow, blue, coral, green, violet, orange: the Flashcards six)</td></tr>
+    <tr><td><code>mint</code></td><td>Green-tinted canvas (hue 175)</td><td>Deep green, hue 165, chroma 0.12, fill 0.42 / 0.76</td><td>165 / 0.12, 200 / 0.11, 130 / 0.15, 95 / 0.16, 235 / 0.12, 20 / 0.14</td></tr>
+    <tr><td><code>periwinkle</code></td><td>Blue-violet canvas (hue 275)</td><td>Violet-blue, hue 275, chroma 0.16, fill 0.48 / 0.76</td><td>275 / 0.15, 235 / 0.12, 315 / 0.15, 200 / 0.11, 350 / 0.14, 75 / 0.14</td></tr>
+    <tr><td><code>sand</code></td><td>Warm grey-green (hue 105), the darkest light canvas (0.93)</td><td>Ink</td><td>75 / 0.11, 195 / 0.08, 20 / 0.10, 130 / 0.10, 300 / 0.07, 50 / 0.11</td></tr>
+    <tr><td><code>cream</code></td><td>Warm paper (hue 85)</td><td>Yellow, hue 95, fill 0.88 / 0.84: a pale accent with a dark label (<a href="#light-accents">below</a>)</td><td>The default six</td></tr>
+    <tr><td><code>wire</code></td><td>Greys only</td><td>Ink</td><td>Chroma 0; lightness climbs from 0.94 to 0.8 (light) and 0.26 to 0.41 (dark), so the slots are told apart by value. Also the squint test: flip to it and the layout must still read.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="own-palette">Make your own palette</h2>
+<ol>
+  <li>Open <code>src/<wbr>tokens/<wbr>40-palettes.css</code> and copy the block closest to what you want: <code>mint</code> for a coloured accent, <code>cream</code> for a pale one, <code>sand</code> for a tinted neutral with an ink accent.</li>
+  <li>Rename the selector to <code>[data-palette="yourname"]</code>.</li>
+  <li>Set the hue knobs: <code>--k-neutral-h</code> and <code>--k-neutral-c</code> tint every neutral; <code>--k-canvas-c-l</code> and <code>--k-canvas-c-d</code> tint the canvas more than the rest; <code>--k-accent-h</code> and <code>--k-accent-c</code> colour the accent; <code>--tone-h-1</code> and <code>--tone-c-1</code> (up to 6) point the six tone slots at hues.</li>
+  <li>Keep the accent <em>lightness</em> knobs inside the shared group at the top of that file (fill 0.48 / 0.76, label 0.99 / 0.18, accent text 0.45 / 0.82). Contrast was designed around those values. If your accent is pale, follow the next section instead.</li>
+  <li>Add the name to <code>PALETTES</code> in <code>tests/<wbr>contrast.mjs</code> and to <code>OPTIONS.palette</code> in <code>docs-src/<wbr>assets/<wbr>docs.js</code> so the Appearance panel offers it.</li>
+  <li>Run <code>npm run test:contrast</code>. Fix the knob that fails, not the component that shows it.</li>
+</ol>
+<p>The lab below writes the block for you and measures the four ratios that decide whether an accent works, in both themes. It is two islands, <code>data-palette="lab"</code> with light and dark themes, whose knobs are set on their parent with inline custom properties.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div data-f="lab" id="lab">
+      <div data-f="controls">
+        <div data-f="row">
+          <label for="lab-hue">Hue <output id="lab-hue-out" for="lab-hue">165</output></label>
+          <input id="lab-hue" type="range" min="0" max="360" step="5" value="165" />
+        </div>
+        <div data-f="row">
+          <label for="lab-chroma">Accent chroma <output id="lab-chroma-out" for="lab-chroma">0.12</output></label>
+          <input id="lab-chroma" type="range" min="0.02" max="0.2" step="0.01" value="0.12" />
+        </div>
+        <fieldset>
+          <legend>Accent lightness</legend>
+          <label class="choice"><input type="radio" name="lab-mode" value="deep" checked><span class="choice__label">Deep accent, light label</span></label>
+          <label class="choice"><input type="radio" name="lab-mode" value="pale"><span class="choice__label">Pale accent, dark label (cream)</span></label>
+        </fieldset>
+      </div>
+      <div data-f="pair" id="lab-islands">
+        <div data-f="island" data-palette="lab" data-theme="light" data-corners="square" id="lab-light">
+          <p class="t-label">Your palette, light</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <ul data-f="read" role="list" data-read></ul>
+        </div>
+        <div data-f="island" data-palette="lab" data-theme="dark" data-corners="square" id="lab-dark">
+          <p class="t-label">Your palette, dark</p>
+          <article class="card"><div class="card__body"><p class="card__eyebrow">Weekly goal</p><p class="card__title">Read 20 pages</p><div class="cluster"><button class="btn" data-variant="primary" data-size="sm" type="button">Continue</button><button class="btn" data-size="sm" type="button">Later</button></div></div></article>
+          <ul data-f="read" role="list" data-read></ul>
+        </div>
+      </div>
+      <pre aria-label="The palette block the lab generates"><code id="lab-css">/* needs JavaScript */</code></pre>
+    </div>
+  </div>
+</div>
+<p class="t-meta">The lab is a teaching aid. It does not replace <code>npm run test:contrast</code>, which also covers higher contrast, tones and every surface.</p>
+
+<h2 id="light-accents">Rules for light accents</h2>
+<p>Cream's yellow is a pale accent. Three things follow from that, and all three are set in the <code>cream</code> block of <code>40-palettes.css</code>. Copy them whenever an accent fill is lighter than about 0.75.</p>
+<ol>
+  <li><strong>The label is dark.</strong> <code>--k-on-accent-l</code> and <code>-d</code> are 0.2, so text on the yellow is well over 7:1. White on a pale fill would fail.</li>
+  <li><strong>Accent text is a dark shade of the hue.</strong> <code>--k-accent-ink-l</code> is 0.42 (light) and 0.88 (dark), so accent-coloured text reads on the canvas. A pale fill cannot be used as text.</li>
+  <li><strong>The frame carries the shape.</strong> A pale accent is only about 1.3:1 against a cream canvas, so the fill alone cannot show a pressed or selected control (WCAG 1.4.11). Every pressable thing already has a 2px <code>--line</code> frame, and "on" adds a doubled frame, so nothing depends on the fill.</li>
+</ol>
+<div class="demo" data-layout="row" data-nocode>
+  <div class="demo__stage">
+    <div data-f="island" data-palette="cream" data-theme="light" data-corners="square">
+      <p class="t-label">Cream, light</p>
+      <div class="cluster">
+        <button class="btn" data-variant="primary" type="button">Save deck</button>
+        <button class="btn" type="button" aria-pressed="true">Favourite</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="rules">Do and don't</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Pick a colour by its job: <code>--ink-soft</code> for a caption, <code>--line</code> for an edge. Change a look by changing a knob or a palette, and let <code>npm run test:contrast</code> tell you if it broke something.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Write a hex or <code>oklch()</code> outside <code>src/tokens</code>, fade text with <code>opacity</code>, or let a colour alone say "selected", "error" or "done". Lint fails the first; the second and third are on you.</p></div>
+  </div>
+</div>
+
+<h2 id="adding-a-role">Adding a role</h2>
+<ol>
+  <li>Add the knobs to <code>10-color.css</code> (light and dark), then the role in the shared block, with a comment saying what it is for.</li>
+  <li>If the role is higher-contrast sensitive, add its knobs to <strong>both</strong> the <code>prefers-contrast</code> block and the <code>data-contrast="more"</code> block, identically.</li>
+  <li>If it is text, a frame, or something drawn on a fill, add its pair to <code>buildPairs()</code> in <code>tests/<wbr>contrast.mjs</code> with the floor it must meet. A colour role that is not listed there is unverified.</li>
+  <li>Show it on this page, with a swatch and a row in the floors table.</li>
+</ol>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  var SG = window.SG;
+  if (!SG) return;
+
+  /* ---- helpers ---------------------------------------------------------------------- */
+  function rgb(hex) { return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)]; }
+  function lum(c) {
+    var f = function (v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+  }
+  function ratio(a, b) { var x = lum(a), y = lum(b); return ((x > y ? x : y) + 0.05) / ((x > y ? y : x) + 0.05); }
+  function fmt(n) { return n.toFixed(2); }
+  function mark(li, pass) {
+    var ic = li.querySelector('.ic');
+    if (ic) ic.className = 'ic ' + (pass ? 'ic--circle-check' : 'ic--circle-x');
+  }
+
+  /* ---- 1 · Try the gap ---------------------------------------------------------------- */
+  (function () {
+    var bg = document.getElementById('calc-bg'), fg = document.getElementById('calc-fg');
+    if (!bg || !fg) return;
+    var sample = document.getElementById('calc-sample'), big = document.getElementById('calc-big'), est = document.getElementById('calc-est');
+    var rows = document.querySelectorAll('#calc-out li');
+    function update() {
+      var b = parseFloat(bg.value), f = parseFloat(fg.value);
+      document.getElementById('calc-bg-out').textContent = b.toFixed(2);
+      document.getElementById('calc-fg-out').textContent = f.toFixed(2);
+      var bgCss = 'oklch(' + b + ' 0 95)', fgCss = 'oklch(' + f + ' 0 95)';
+      sample.style.setProperty('--sample-bg', bgCss);
+      sample.style.setProperty('--sample-fg', fgCss);
+      var r = ratio(rgb(SG.colorToHex(fgCss)), rgb(SG.colorToHex(bgCss)));
+      big.textContent = fmt(r) + ':1';
+      var x = Math.pow(b, 3), y = Math.pow(f, 3);
+      est.textContent = 'Estimate from Y = L cubed: ' + (((Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05))).toFixed(1) + ':1';
+      Array.prototype.forEach.call(rows, function (li) {
+        var t = parseFloat(li.getAttribute('data-t')), pass = r >= t;
+        mark(li, pass);
+        li.lastElementChild.textContent = (pass ? 'Passes ' : 'Fails ') + t + ':1 ' + ({ 7: '(body text, the guide’s default)', 4.5: '(WCAG AA text)', 3: '(frames and icons)' })[t];
+      });
+    }
+    bg.addEventListener('input', update);
+    fg.addEventListener('input', update);
+    update();
+  })();
+
+  /* ---- 2 · Higher contrast toggle ---------------------------------------------------------- */
+  (function () {
+    var btn = document.getElementById('hc-toggle');
+    if (!btn) return;
+    function sync() { btn.setAttribute('aria-pressed', String(SG.prefs.get('contrast') === 'more')); }
+    btn.addEventListener('click', function () {
+      var on = btn.getAttribute('aria-pressed') === 'true';
+      SG.prefs.set('contrast', on ? 'system' : 'more');
+      SG.announce(on ? 'Higher contrast off' : 'Higher contrast on');
+    });
+    SG.prefs.onChange(sync);
+    sync();
+  })();
+
+  /* ---- 3 · Opacity vs a role ---------------------------------------------------------------- */
+  function measureOpacity() {
+    var solid = document.getElementById('op-solid'), faded = document.getElementById('op-faded');
+    if (!solid || !faded) return;
+    var canvas = rgb(SG.tokenToHex('--canvas')), deep = rgb(SG.tokenToHex('--paper-3'));
+    var inkSoft = rgb(SG.tokenToHex('--ink-soft'));
+    var ink = rgb(SG.tokenToHex('--ink'));
+    var a = 0.6;
+    var over = function (bg) { return ink.map(function (v, i) { return Math.round(v * a + bg[i] * (1 - a)); }); };
+    /* the token is a code chip of its own, so it never breaks after its leading hyphens */
+    function say(out, onCanvas, onDeep) {
+      var tok = document.createElement('code');
+      tok.className = 'nb';
+      tok.textContent = '--paper-3';
+      out.textContent = 'Measured: ' + fmt(onCanvas) + ':1 on the canvas, ' + fmt(onDeep) + ':1 on ';
+      out.append(tok, '.');
+    }
+    say(document.getElementById('op-solid-out'), ratio(inkSoft, canvas), ratio(inkSoft, deep));
+    say(document.getElementById('op-faded-out'), ratio(over(canvas), canvas), ratio(over(deep), deep));
+  }
+  measureOpacity();
+  SG.prefs.onChange(measureOpacity);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', measureOpacity);
+
+  /* ---- 4 · Palette lab ---------------------------------------------------------------------- */
+  (function () {
+    var lab = document.getElementById('lab');
+    if (!lab) return;
+    var hue = document.getElementById('lab-hue'), chroma = document.getElementById('lab-chroma');
+    var DEEP = { '--k-accent-fill-l': 0.48, '--k-accent-fill-d': 0.76, '--k-on-accent-l': 0.99, '--k-on-accent-d': 0.18, '--k-accent-ink-l': 0.45, '--k-accent-ink-d': 0.82, '--k-accent-soft-l': 0.92, '--k-accent-soft-d': 0.3, '--k-on-accent-soft-l': 0.3, '--k-on-accent-soft-d': 0.94 };
+    var PALE = { '--k-accent-fill-l': 0.88, '--k-accent-fill-d': 0.84, '--k-on-accent-l': 0.2, '--k-on-accent-d': 0.2, '--k-accent-ink-l': 0.42, '--k-accent-ink-d': 0.88, '--k-accent-soft-l': 0.93, '--k-accent-soft-d': 0.3, '--k-on-accent-soft-l': 0.3, '--k-on-accent-soft-d': 0.94 };
+    var PAIRS = [
+      ['--on-accent', '--accent', 4.5, 'Label on the accent'],
+      ['--accent-ink', '--canvas', 4.5, 'Accent text on the canvas'],
+      ['--on-accent-soft', '--accent-soft', 4.5, 'Text on the soft wash'],
+      ['--ink', '--accent-soft', 7, 'Ink on the soft wash']
+    ];
+    function update() {
+      var h = parseFloat(hue.value), c = parseFloat(chroma.value);
+      var pale = lab.querySelector('input[name="lab-mode"]:checked').value === 'pale';
+      var knobs = { '--k-neutral-h': h, '--k-neutral-c': 0.012, '--k-canvas-c-l': 0.03, '--k-canvas-c-d': 0.02, '--k-accent-h': h, '--k-accent-c': c };
+      var lightness = pale ? PALE : DEEP;
+      Object.keys(knobs).forEach(function (k) { lab.style.setProperty(k, knobs[k]); });
+      Object.keys(lightness).forEach(function (k) { lab.style.setProperty(k, lightness[k]); });
+      document.getElementById('lab-hue-out').textContent = h;
+      document.getElementById('lab-chroma-out').textContent = c.toFixed(2);
+      ['lab-light', 'lab-dark'].forEach(function (id) {
+        var isle = document.getElementById(id), list = isle.querySelector('[data-read]');
+        list.innerHTML = '';
+        PAIRS.forEach(function (p) {
+          var r = ratio(rgb(SG.tokenToHex(p[0], isle)), rgb(SG.tokenToHex(p[1], isle)));
+          var pass = r >= p[2];
+          var li = document.createElement('li');
+          var icon = document.createElement('span');
+          icon.className = 'ic ' + (pass ? 'ic--circle-check' : 'ic--circle-x');
+          icon.setAttribute('aria-hidden', 'true');
+          var text = document.createElement('span');
+          var num = document.createElement('b');
+          num.textContent = fmt(r) + ':1';
+          text.append(p[3] + ': ', num, ', ' + (pass ? 'passes ' : 'fails ') + p[2] + ':1');
+          li.append(icon, text);
+          list.appendChild(li);
+        });
+      });
+      /* one declaration per line, so the block reads on a phone without scrolling sideways */
+      var lines = ['[data-palette="yourname"] {', '  --k-neutral-h: ' + h + ';', '  --k-neutral-c: 0.012;', '  --k-canvas-c-l: 0.03;', '  --k-canvas-c-d: 0.02;', '  --k-accent-h: ' + h + ';', '  --k-accent-c: ' + c.toFixed(2) + ';'];
+      Object.keys(lightness).forEach(function (k) { lines.push('  ' + k + ': ' + lightness[k] + ';'); });
+      lines.push('}');
+      document.getElementById('lab-css').textContent = lines.join('\n');
+    }
+    hue.addEventListener('input', update);
+    chroma.addEventListener('input', update);
+    lab.addEventListener('change', function (e) { if (e.target.name === 'lab-mode') update(); });
+    update();
+  })();
+});
+</script>

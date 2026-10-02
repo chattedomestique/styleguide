@@ -1,0 +1,294 @@
+/* ==========================================================================
+   Toast  (layer: sg.components)                  behaviour: src/js/63-toast.js
+   --------------------------------------------------------------------------
+   A short, passing message that confirms something the person just did ("Deck
+   saved", "Link copied"). It never takes focus and never blocks anything.
+
+     SG.toast.show({ message: "Deck saved", status: "success" })
+     SG.toast.show({ message: "Card deleted", action: { label: "Undo", onClick: undo } })
+     SG.toast.show({ message: "Could not save. Check your connection.", status: "danger" })
+
+   JS builds this markup; the CSS also works on static markup (the docs show it):
+
+   <section class="toast-region" aria-label="Notifications" popover="manual">
+     <ol class="toast-list" role="list">
+       <li class="toast" data-tone="ok">
+         <span class="ic ic--circle-check toast__icon" aria-hidden="true"></span>
+         <p class="toast__msg"><span class="sr-only">Success: </span>Deck saved</p>
+         <button class="btn toast__action" data-variant="tone" data-tone="ok" data-size="sm" type="button">Undo</button>
+         <button class="btn toast__close" data-variant="tone" data-tone="ok" data-shape="circle" data-size="sm"
+                 type="button" aria-label="Dismiss notification"><span class="ic ic--close" aria-hidden="true"></span></button>
+       </li>
+     </ol>
+   </section>
+
+   data-tone    ink (or none) = the plain toast: an ink frame, ink fill, paper text, so it stands
+                apart from the page in light AND dark. ok | warn | bad | info = a status: the tone's
+                fill and its own icon shape. Put the SAME tone on the buttons (data-variant="tone").
+   data-state   "leaving" while the exit transition plays (set by JS)
+
+   A TOAST IS NOT PRESSABLE, so it gets no shadow and no lift (only the buttons inside do). It
+   separates from the page with a 2px frame, the way every overlay in this system does, and
+   needs no scrim because it blocks nothing.
+
+   PLACEMENT  bottom centre, ABOVE the dock and the safe area: --dock-h and --safe-bottom are
+   the same variables the dock sets, so a toast never covers navigation. The region is in the
+   TOP LAYER (popover="manual") where supported, which puts it above <dialog> modals without a
+   z-index war; elsewhere it falls back to position: fixed at --z-overlay.
+
+   STATUS IS NEVER COLOUR ALONE (WCAG 1.4.1): an icon with its own shape (check circle, warning
+   triangle, alert circle, information circle) plus words in the message, and a visually hidden
+   status word for screen readers.
+
+   WHAT IT IS NOT  a place for the only copy of important information, or for a message the
+   person must act on. Errors and toasts with an action stay until they are dismissed; see the
+   docs page for the rules, and SG.announce for updates that need no visible toast.
+
+   FOCUS  The plain toast is an ink surface, where the page's ink ring would vanish, so inside it
+   the ring is paper and the halo is ink: the ring follows the surface. On a status tone the
+   default ring already contrasts.
+   ========================================================================== */
+
+@layer sg.components {
+  @keyframes sg-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(calc(var(--move, 1) * 0.75rem));
+    }
+  }
+
+  /* ---- Region ---------------------------------------------------------------------- */
+  .toast-region {
+    /* Undo the UA popover box (centred, bordered, padded, Canvas-coloured). */
+    position: fixed;
+    inset: auto;
+    inset-inline: 0;
+    inset-block-end: calc(var(--dock-h) + var(--safe-bottom) + var(--space-4));
+    z-index: var(--z-overlay); /* fallback layer when popover is unsupported */
+    inline-size: auto;
+    block-size: auto;
+    max-block-size: none;
+    margin: 0;
+    padding-block: 0;
+    padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+    border: 0;
+    background: transparent;
+    color: inherit;
+    overflow: visible;
+    /* Clicks fall through the empty strip around and between toasts. */
+    pointer-events: none;
+  }
+  /* Two rules, not a selector list: an unknown pseudo-class would drop a whole list. */
+  .toast-region:not([popover]) {
+    display: flex;
+    justify-content: center;
+  }
+  .toast-region:popover-open {
+    display: flex;
+    justify-content: center;
+  }
+
+  .toast-list {
+    display: flex;
+    flex-direction: column; /* newest last = closest to the thumb */
+    gap: var(--space-2);
+    inline-size: min(100%, 28rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    /* Toasts adapt to the width of THEIR list, not the screen (see the query below). */
+    container-type: inline-size;
+  }
+
+  /* ---- Toast -----------------------------------------------------------------------
+     LARGE TEXT. The words grow with the reader's text size, and so does the status icon, because it
+     leads a line of them: 1.25 times the message's size, never under 24px (24 at 100% text, 40 at
+     200%; capped at 24 it was a speck beside 32px words). The chrome does not grow (00-foundation.css,
+     chrome caps): the insets, the gaps and the dismiss circle stop at their 100% size, so at 200% text
+     the sentence keeps the room. The status icon and the dismiss circle stay on the FIRST LINE of the
+     message at every size: every part is aligned to the middle of one row as tall as the circle, the
+     icon or a line of the message, whichever is tallest (--_row), so a message that wraps to three
+     lines keeps its icon beside line one and its close button level with it. They never move onto a
+     row of their own above the words. A message that wraps is balanced, so it never leaves one word
+     alone on its last line. Where even that leaves the message too narrow for its longest word, the
+     dismiss circle moves down (see "Too narrow for a word" below). */
+  .toast {
+    /* no tone = the plain (ink) toast */
+    --_bg: var(--tone-bg, var(--ink));
+    --_ink: var(--tone-ink, var(--paper));
+    --_ic: max(var(--chrome-ic), calc(var(--text-md) * 1.25)); /* the status icon: it leads the message's first line, so it grows with it */
+    --_c: var(--chrome-ctl-sm); /* the dismiss circle (the small icon-only Button, chrome-capped) */
+    --_line: calc(var(--text-md) * var(--lh-snug)); /* one line of the message */
+    --_row: max(var(--_c), var(--_line), var(--_ic)); /* the first row: everything centres on it */
+    --_gap: var(--chrome-2);
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--_gap);
+    min-block-size: calc(var(--chrome-ctl-sm) + var(--chrome-3));
+    padding-block: var(--chrome-2);
+    padding-inline: var(--chrome-4) var(--chrome-2);
+    color: var(--_ink);
+    background: var(--_bg);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+    pointer-events: auto;
+    animation: sg-toast-in var(--dur-enter) var(--ease-out);
+    transition:
+      opacity var(--dur-enter) var(--ease-in),
+      transform var(--dur-enter) var(--ease-in);
+
+    &[data-state="leaving"] {
+      opacity: 0;
+      transform: translateY(calc(var(--move) * 0.5rem));
+      pointer-events: none;
+    }
+    /* an action on the same row (a wide list) is the tallest thing on it */
+    &:has(> .toast__action) {
+      --_row: max(var(--_c), var(--_line), var(--_ic), var(--ctl-sm));
+    }
+  }
+
+  .toast__icon {
+    --ic-size: var(--_ic);
+    flex: none;
+    margin-block-start: calc((var(--_row) - var(--_ic)) / 2);
+  }
+
+  .toast__msg {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    margin-block-start: calc((var(--_row) - var(--_line)) / 2);
+    font: var(--type-body);
+    font-weight: 600;
+    line-height: var(--lh-snug);
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  /* The buttons are the Button element, small. Their hit areas reach 44px; the gap keeps 8px
+     between those areas (a 36px circle grows 4px each side). The dismiss circle's size is the
+     Button's own (an icon-only circle is chrome-capped at 36 x 36, button.css): setting a width
+     here made it a 72 x 36 oval at 200% text. It must not SHRINK either: in a flex row a long
+     message would squeeze it into an oval with its glyph spilling out (rule 3: circles act), so
+     it is flex: none and the message column (min-inline-size: 0) is the one that wraps. */
+  .toast__close {
+    flex: none;
+    margin-block-start: calc((var(--_row) - var(--_c)) / 2);
+    margin-inline-start: var(--chrome-1);
+  }
+  .toast__action {
+    flex: none;
+    max-inline-size: 100%;
+    margin-block-start: calc((var(--_row) - var(--ctl-sm)) / 2);
+    padding-block: var(--chrome-1);
+    white-space: normal; /* at 200% text a long label wraps instead of clipping (WCAG 1.4.4) */
+    line-height: var(--lh-snug);
+  }
+
+  /* The plain toast is an ink surface: a button's ink frame would vanish on it, so the
+     frame, and the ring, follow the surface. */
+  .toast:not([data-tone]) .btn,
+  .toast[data-tone="ink"] .btn {
+    --line: var(--paper);
+  }
+  .toast:not([data-tone]) :is(a, button):focus-visible,
+  .toast[data-tone="ink"] :is(a, button):focus-visible {
+    --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--ink);
+    outline-color: var(--paper);
+  }
+
+  /* ---- Narrow lists: the message keeps the whole row; the action drops below it, into the
+     message's column (under the words, not under the icon). On a 390px phone an icon, an action
+     and a 44px dismiss button leave ~70px for the sentence. The first row is then the icon, the
+     message and the close only, so it centres on the taller of the circle and a line. ---------- */
+  @container (max-width: 24rem) {
+    .toast:has(> .toast__action) {
+      --_row: max(var(--_c), var(--_line), var(--_ic));
+
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "icon msg close"
+        ".    action action";
+      align-items: start;
+      column-gap: var(--_gap);
+      row-gap: var(--chrome-2);
+
+      > .toast__icon {
+        grid-area: icon;
+      }
+      > .toast__msg {
+        grid-area: msg;
+      }
+      > .toast__close {
+        grid-area: close;
+      }
+      > .toast__action {
+        grid-area: action;
+        justify-self: start;
+        margin-block: 0 var(--chrome-1);
+      }
+
+      &:not(:has(> .toast__icon)) {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "msg close"
+          "action action";
+      }
+    }
+  }
+
+  /* ---- Too narrow for a word (measured for the whole list, 63-toast.js): every part stays, the dismiss
+     circle moves down. While SG.fit tries the row, a word may not break, so one that does not fit shows as
+     overflow. When it does not fit, the icon and the message keep the first row (the icon still beside its
+     first line, the words the whole width beside it), and the dismiss circle goes to the end of the action
+     row, or to a row of its own at the end. The toasts of one list switch together. Never a word broken
+     inside itself, never the icon alone above the words. */
+  .toast-list[data-fit="row"] > .toast > .toast__msg {
+    overflow-wrap: normal;
+  }
+  .toast-list[data-fit="narrow"] > .toast {
+    --_row: max(var(--_line), var(--_ic));
+
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "icon msg    msg"
+      ".    action close";
+    align-items: center;
+    column-gap: var(--_gap);
+    row-gap: var(--chrome-2);
+
+    > .toast__icon {
+      grid-area: icon;
+      align-self: start;
+    }
+    > .toast__msg {
+      grid-area: msg;
+      align-self: start;
+    }
+    > .toast__action {
+      grid-area: action;
+      justify-self: start;
+      margin-block: 0;
+    }
+    > .toast__close {
+      grid-area: close;
+      margin-block: 0;
+    }
+    &:not(:has(> .toast__icon)) {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "msg    msg"
+        "action close";
+    }
+  }
+
+  /* ---- Forced colours: the fill disappears; the frame and the buttons' own borders stay. ---- */
+  @media (forced-colors: active) {
+    .toast {
+      border-color: CanvasText;
+    }
+  }
+}

@@ -1,0 +1,538 @@
+/* ==========================================================================
+   Table  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A real <table> inside a scroll region. Rows of the same kind of thing,
+   compared by eye: transactions, decks, sessions. Not a layout grid.
+
+   <div class="tbl">
+     <p class="tbl__title" id="t1">Transactions, April</p>
+     <div class="tbl__scroll" role="region" aria-labelledby="t1" tabindex="0">
+       <table aria-labelledby="t1" class="tbl__table">
+         <thead><tr>
+           <th scope="col" aria-sort="none"><button class="tbl__sort" type="button">Name</button></th>
+           <th scope="col" data-align="end">Amount</th>
+         </tr></thead>
+         <tbody><tr><th scope="row">Sports outlet</th><td data-align="end" class="num">−$142.00</td></tr></tbody>
+       </table>
+     </div>
+   </div>
+
+   .tbl[data-select]     a leading checkbox column (.tbl__sel > label.tbl__check). Rows are
+                         aria-selected; the header checkbox is select-all (tri-state).
+   th/td [data-align=end] right-aligned, tabular figures. Numbers line up on the decimal.
+   th[aria-sort]         ascending | descending. The sorted label is underlined AND the icon
+                         flips, so the state never rests on colour.
+   td[data-wrap]         a cell of prose that may wrap. Every other value cell stays on ONE line (see below).
+   .tbl__empty           a single row that says why there is nothing. Put its sentence in a .tbl__empty-msg
+                         so it is as wide as the visible region (the cell spans a table that may be wider).
+   .tbl__hint            "scroll sideways": shown by SG.table only while the region overflows. Put one in every
+                         table that can be narrower than its columns: it is the cue that the cut column is "more".
+   .tbl[data-more]       set by SG.table while there is more to scroll toward the end: the frame opens on that side.
+   th[data-lead]         set by SG.table on a number column whose header is wider than its values, while the region
+                         scrolls: the values start at the column's start (--_lead on the cells), see below.
+
+   THE LOOK  the owner's rules, applied to data: a 2px frame around everything, a bar of ink
+   for the header row (uppercase labels are structure), 1px rules between rows. No zebra, so
+   nothing depends on telling two greys apart. The first column is sticky so the row's name
+   never scrolls away; its 1px right rule is a real border, so it survives forced colours.
+
+   STATES come from ARIA and native attributes:
+     aria-sort="ascending|descending"   sorted column (underline + arrow)
+     tr[aria-selected="true"]           selected row: accent-soft wash AND a checked box
+     input:checked / :indeterminate     the checkbox
+   Hover and focus on the sort buttons set --fill (ink bar -> paper), like a Button; focus adds the
+   ring inside; pressed sinks one step further (paper toward ink). Rows do not lift: only pressable
+   things lift, and a row is held, not pressed.
+
+   WHY VALUES DO NOT WRAP  The region scrolls, so a value never has to wrap to fit: "Card ending 4021" on two
+   lines beside "Wallet" on one made rows of different heights for nothing. Value cells are nowrap (the table
+   grows and scrolls); the row's name may wrap between words, never inside a word.
+   WHY THE NAME COLUMN IS CAPPED  It is sticky, so whatever it takes is gone for the values. At 200% text an uncapped
+   "Sports outlet" took 263 of 275px and the next column showed as a 10px sliver; letting go of the sticky edge
+   instead lost the row names on scroll. Capped at two thirds of the region (minus the check column), the names
+   stay and the next column always shows a real slice. Put the key value second, so that slice is what matters.
+   WHY THE CHROME STOPS GROWING  Words grow with the reader's text size; the 44px row and target, the cell
+   insets and the drawn checkbox are chrome (--chrome-*), so 200% text spends the room on words, not on air.
+   A squeezed region (under 14rem) tightens the side insets from 12px to 8px for the same reason.
+   WHY border-collapse: separate  Sticky cells lose their borders under collapse (the border
+   belongs to the table grid, not the cell), so rules are drawn on the cells themselves.
+   WHY scroll-padding  A focused control scrolled under the sticky column would be hidden
+   (WCAG 2.4.11); the region reserves room for the sticky column and header.
+
+   PRIVATE  --_col1  width reserved for sticky columns (scroll-padding)   --_min  min table width (none)
+            --_name-max  the name column's cap   --_name-min  its longest unbreakable piece (SG.table)
+            --_lead  a number column's spare width (SG.table)
+   ========================================================================== */
+
+@layer sg.components {
+  /* --tbl-min as a length: authors write "--tbl-min: 0", and a bare 0 is a number, which makes max(100%, 0)
+     invalid and drops the whole minimum. Registered as <length>, the 0 is 0px. */
+  @property --_tmin {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+  }
+
+  .tbl {
+    --_min: 0px; /* no floor: values stay on one line, so the content already sets the width (see the table rule) */
+    --_sel: var(--chrome-hit);
+    --_px: var(--chrome-3); /* a cell's side inset; the sort button cancels it to fill the cell */
+    --_name-max: min(11rem, 66cqi); /* the sticky name column leaves a third of the region to the values */
+    --_name-min: 0px; /* SG.table writes the column's longest unbreakable piece here; the cap never goes below it */
+    container: tbl / inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+
+  .tbl__title {
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    letter-spacing: var(--ls-title);
+  }
+
+  /* the frame. The scroll region is focusable so keyboard users can scroll it (2.1.1) */
+  .tbl__scroll {
+    --_col1: 8rem;
+    overflow: auto;
+    overscroll-behavior-x: contain;
+    max-block-size: var(--tbl-max-h, none);
+    scroll-padding-inline-start: var(--_col1);
+    scroll-padding-block-start: var(--chrome-hit);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-card);
+  }
+
+  .tbl[data-select] .tbl__scroll {
+    --_col1: 10rem;
+  }
+
+  /* More to the end (SG.table sets data-more): the frame is open on that side, so the rows and the header bar run
+     on past the edge like a cropped page, and the table never looks complete when the edge happens to fall
+     between two columns (S4: the cut item is clearly "more"). The 2px border becomes 2px of padding, so the scroll
+     range is the same open or closed. At the end, the frame closes. */
+  .tbl[data-more] .tbl__scroll {
+    padding-inline-end: var(--bw);
+    border-inline-end-width: 0;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .tbl[data-select] {
+    --_name-max: min(11rem, 66cqi - var(--_sel));
+  }
+
+  /* As wide as its content needs (values on one line, names up to their cap), and never narrower than the
+     region or --tbl-min. With width: 100% the auto layout made the one column that can wrap (the row's name)
+     absorb the whole shortfall, so "Computer shop" broke onto two lines while every value stayed whole.
+     No floor by default: a floor in rem (it was 36rem) doubled at 200% text and spread a scrolling table's
+     columns apart, so the slice of a cut column at the region's edge showed blank cells (an end-aligned
+     "12" sat 70px past its column's start) instead of values. */
+  .tbl__table {
+    --_tmin: var(--tbl-min, var(--_min));
+    inline-size: max-content;
+    min-inline-size: max(100%, var(--_tmin));
+    border-collapse: separate;
+    border-spacing: 0;
+    font: var(--type-body);
+  }
+
+  /* ---- cells ---------------------------------------------------------------- */
+  .tbl__table :is(th, td) {
+    block-size: var(--chrome-hit);
+    padding: var(--chrome-2) var(--_px);
+    text-align: start;
+    vertical-align: middle;
+    background: var(--paper);
+    border-block-end: var(--bw-thin) solid var(--line);
+  }
+
+  .tbl__table tbody tr:last-child > * {
+    border-block-end: 0;
+  }
+
+  /* a value stays on one line: the region scrolls, so wrapping would only make rows uneven */
+  .tbl__table tbody td {
+    white-space: nowrap;
+  }
+
+  .tbl__table tbody td[data-wrap] {
+    max-inline-size: 20rem; /* prose wraps at a reading width instead of stretching the table */
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .tbl__table tbody th {
+    font-weight: 600;
+  }
+
+  .tbl__table :is(th, td)[data-align="end"],
+  .tbl__table .num {
+    text-align: end;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* While the region scrolls, a number column whose header is wider than its values starts them at the column's
+     start (SG.table measures the spare width into --_lead), and its header starts with them. The values stay
+     end-aligned among themselves, so the decimals line up; what changes is that the edge of the region cuts
+     through values instead of blank cells ('DUE TODA' over nothing read as an empty column). */
+  .tbl__table td[data-align="end"] {
+    --_lead: 0px; /* SG.table writes a number column's spare width on its cells while the region scrolls */
+    padding-inline-end: calc(var(--_px) + var(--_lead));
+  }
+
+  .tbl__table th[data-lead] {
+    text-align: start;
+  }
+
+  /* the first column stays put. Opaque, so scrolled cells never show through. */
+  .tbl__table :is(th, td):first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    border-inline-end: var(--bw-thin) solid var(--line);
+  }
+
+  /* The row's name: sticky, so it is capped to leave the scrolling columns a real slice of the region (a third
+     of it at least), and it wraps between words to stay inside the cap. A cell's max-width beats its min-content
+     (Chromium), so the cap alone broke a long word ('Selecte / d') or let a nowrap name run into the next column:
+     SG.table measures the column's longest unbreakable piece into --_name-min and the cap never goes below it.
+     Without the script only a word wider than the cap breaks (break-word), never a shorter one. */
+  .tbl__table tbody th:first-child {
+    max-inline-size: max(var(--_name-max), var(--_name-min));
+    overflow-wrap: break-word;
+  }
+
+  /* with a checkbox column, the name column is the second sticky one */
+  /* the check cell IS its 44px target: no padding round it, so a row with a checkbox is as tall as one without */
+  .tbl[data-select] .tbl__table :is(th, td):first-child {
+    inline-size: var(--_sel);
+    min-inline-size: var(--_sel);
+    padding: 0;
+    border-inline-end: 0;
+  }
+
+  .tbl[data-select] .tbl__table :is(th, td):nth-child(2) {
+    position: sticky;
+    inset-inline-start: var(--_sel);
+    z-index: 1;
+    border-inline-end: var(--bw-thin) solid var(--line);
+  }
+
+  .tbl[data-select] .tbl__table tbody th:nth-child(2) {
+    max-inline-size: max(var(--_name-max), var(--_name-min));
+    overflow-wrap: break-word;
+  }
+
+  /* ---- header: the ink bar --------------------------------------------------- */
+  .tbl__table thead th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    padding-block: 0;
+    color: var(--paper);
+    background: var(--ink);
+    border-block-end: 0;
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .tbl__table thead th:first-child {
+    z-index: 3;
+    border-inline-end: 0;
+  }
+
+  .tbl[data-select] .tbl__table thead th:nth-child(2) {
+    z-index: 3;
+    border-inline-end: 0;
+  }
+
+  /* ---- sort button: the whole header cell is the target ----------------------- */
+  .tbl__sort {
+    --fill: 0;
+    --_up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='m5 12 7-7 7 7'/%3E%3Cpath d='M12 19V5'/%3E%3C/svg%3E");
+    --_down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 5v14'/%3E%3Cpath d='m19 12-7 7-7-7'/%3E%3C/svg%3E");
+    --_both: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='m7 15 5 5 5-5'/%3E%3Cpath d='m7 9 5-5 5 5'/%3E%3C/svg%3E");
+    --_dir: var(--_both);
+
+    display: flex;
+    align-items: center;
+    gap: var(--chrome-2);
+    inline-size: calc(100% + var(--_px) * 2);
+    min-block-size: var(--chrome-hit);
+    margin-inline: calc(var(--_px) * -1);
+    padding-inline: var(--_px);
+    border: var(--bw) solid transparent; /* a real border, so forced colours can draw the edge */
+    color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper));
+    background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    text-align: start;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: --fill var(--dur-hover) var(--ease-out);
+
+    &::after {
+      content: "";
+      flex: none;
+      inline-size: 1rem;
+      block-size: 1rem;
+      background: currentColor;
+      mask: var(--_dir) center / contain no-repeat;
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --fill: 1;
+      }
+    }
+    /* the ring is drawn inside the button (the header clips), in ink on the paper fill. Written out
+       so .is-focus, which the docs use to SHOW the state, draws it too. */
+    &:is(:focus-visible, .is-focus) {
+      --fill: 1;
+      --ring-gap: calc(var(--ring) * -1);
+      outline: var(--ring) solid var(--ink);
+      outline-offset: var(--ring-gap);
+    }
+    /* pressed: the paper fill sinks a step toward ink, straight away. Hover and focus are a clean
+       paper fill, so without this the three states looked the same. (The header never lifts.) */
+    &:is(:active, .is-active) {
+      --fill: 1;
+      background: color-mix(in srgb, var(--ink) 16%, var(--paper));
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  .tbl__table th[data-align="end"]:not([data-lead]) .tbl__sort {
+    justify-content: flex-end;
+  }
+
+  /* sorted: an arrow for the direction AND an underline on the label (two cues) */
+  .tbl__table th[aria-sort="ascending"] .tbl__sort {
+    --_dir: var(--_up);
+  }
+  .tbl__table th[aria-sort="descending"] .tbl__sort {
+    --_dir: var(--_down);
+  }
+  .tbl__table th:is([aria-sort="ascending"], [aria-sort="descending"]) .tbl__sort {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.3em;
+  }
+
+  /* ---- selection --------------------------------------------------------------- */
+  /* chrome: a 44px target round a 20px box with a 12px mark, at every text size (the card bar control's numbers) */
+  .tbl__check {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: var(--chrome-hit);
+    block-size: var(--chrome-hit);
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .tbl__check > input {
+    position: absolute;
+    z-index: 1; /* above the drawn box, so the real input is what a pointer (and a probe) hits */
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .tbl__box {
+    --lift: 0;
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: var(--chrome-box);
+    block-size: var(--chrome-box);
+    color: var(--on-accent);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+    box-shadow: var(--_shadow);
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition: --lift var(--dur-hover) var(--ease-out);
+
+    &::after {
+      content: "";
+      inline-size: var(--chrome-ic-xs);
+      block-size: var(--chrome-ic-xs);
+      background: currentColor;
+      mask: var(--icon-check) center / contain no-repeat;
+      visibility: hidden;
+    }
+  }
+
+  /* The header box sits on the ink bar, so its frame follows the surface: a paper frame round an ink inside.
+     (A paper box with the usual ink frame read as one solid white square: the frame vanished into the bar, and
+     an empty "select all" looked filled.) Checked, it fills with paper and the mark is ink (below). */
+  .tbl__table thead .tbl__box {
+    --_shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--paper);
+    background: var(--ink);
+    border-color: var(--paper);
+  }
+
+  @media (hover: hover) {
+    .tbl__check:hover > input:not(:disabled) + .tbl__box {
+      --lift: 1;
+    }
+  }
+  .tbl__check > input:focus-visible + .tbl__box {
+    --lift: 1;
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-offset);
+    box-shadow: var(--focus-shadow, 0 0 0 var(--ring-offset) var(--paper)), var(--_shadow);
+  }
+  .tbl__table thead .tbl__check > input:focus-visible + .tbl__box {
+    outline-color: var(--paper);
+    box-shadow: none;
+  }
+  .tbl__check > input:active + .tbl__box {
+    --lift: 0;
+    transition-duration: var(--dur-press);
+  }
+
+  /* on: filled, a check, and (in the row) the row wash: three cues, none of them only colour */
+  .tbl__check > input:is(:checked, :indeterminate) + .tbl__box {
+    background: var(--accent);
+    box-shadow: 0 0 0 var(--bw-thin) var(--line), var(--_shadow);
+  }
+  .tbl__check > input:checked + .tbl__box::after {
+    visibility: visible;
+  }
+  .tbl__check > input:indeterminate + .tbl__box::after {
+    visibility: visible;
+    mask-image: var(--icon-minus);
+  }
+  .tbl__table thead .tbl__check > input:is(:checked, :indeterminate) + .tbl__box {
+    color: var(--ink);
+    background: var(--paper);
+    box-shadow: var(--_shadow);
+  }
+
+  .tbl__table tbody tr[aria-selected="true"] > * {
+    color: var(--on-accent-soft);
+    background: var(--accent-soft);
+  }
+
+  /* ---- empty / hint -------------------------------------------------------------- */
+  .tbl__table .tbl__empty > td {
+    block-size: auto;
+    padding: var(--chrome-6) var(--chrome-4);
+    border-inline-end: 0; /* it spans every column: the sticky column's rule would only add a pixel of sideways scroll */
+    color: var(--ink-soft);
+    text-align: center;
+    font: var(--type-body);
+    white-space: normal;
+  }
+
+  /* The sentence that explains the empty table. The cell spans the whole table, and a table that is wider
+     than its region would centre the sentence over the part you have to scroll to (the reader sees half
+     of it). Wrapped in .tbl__empty-msg it is only as wide as the REGION, sticks to its start edge while
+     the table scrolls, and wraps there. 100cqi is the .tbl; the frame and the cell padding come off. */
+  .tbl__empty-msg {
+    position: sticky;
+    inset-inline-start: 0;
+    inline-size: calc(100cqi - var(--bw) * 2 - var(--chrome-4) * 2);
+    max-inline-size: 100%;
+    margin: 0;
+    margin-inline-end: auto;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+  }
+
+  /* "Scroll sideways": the arrow points the way the table scrolls (sideways, toward the inline end; mirrored in
+     right-to-left), is the size of the words, and sits on their FIRST line when the sentence wraps (a 1lh box). */
+  .tbl__hint {
+    --_next: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M4 12h15M13 6l6 6-6 6'/%3E%3C/svg%3E");
+    display: none;
+    align-items: flex-start;
+    gap: var(--chrome-2);
+    font: var(--type-meta);
+    color: var(--ink-soft);
+  }
+
+  .tbl[data-scrollable] .tbl__hint {
+    display: flex;
+  }
+
+  .tbl__hint::before {
+    content: "";
+    flex: none;
+    inline-size: 1.15em;
+    block-size: 1lh;
+    background: currentColor;
+    mask: var(--_next) center / 1.15em no-repeat;
+  }
+
+  .tbl__hint:dir(rtl)::before {
+    transform: scaleX(-1);
+  }
+
+  /* ---- a squeezed container (a narrow column, or big text in a phone): the side inset steps down from 12px to
+     8px (the calendar head does the same), so the room goes to words. rem-based, so 200% text trips it exactly
+     when it should. The name column STAYS sticky: it is capped at two thirds of the region (above), so the next
+     column always shows a real slice beside it. (It used to let go of the edge here, and then scrolling right lost
+     the row names; and uncapped it took 263 of 275px, leaving a 10px sliver of the next column.) ---- */
+  @container tbl (max-width: 14rem) {
+    .tbl__table {
+      --_px: var(--chrome-2);
+    }
+  }
+
+  /* ---- forced colours: fills and masks are deleted, so lines and system colours carry it ----- */
+  @media (forced-colors: active) {
+    .tbl__scroll {
+      border-color: CanvasText;
+    }
+    .tbl__table :is(th, td) {
+      border-color: CanvasText;
+    }
+    .tbl__table thead th {
+      border-block-end: var(--bw) solid CanvasText;
+    }
+    .tbl__sort::after,
+    .tbl__box::after,
+    .tbl__hint::before {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+    .tbl__sort:is(.is-hover, :focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: calc(var(--bw-heavy) * -1);
+    }
+    .tbl__sort {
+      border-color: ButtonText;
+    }
+    .tbl__box {
+      border-color: CanvasText;
+    }
+    .tbl__check > input:is(:checked, :indeterminate) + .tbl__box {
+      border-width: var(--bw-heavy);
+    }
+    .tbl__table tbody tr[aria-selected="true"] > :first-child {
+      border-inline-start: var(--bw-heavy) solid Highlight;
+    }
+  }
+
+  @media (forced-colors: active) and (hover: hover) {
+    .tbl__sort:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: calc(var(--bw-heavy) * -1);
+    }
+  }
+}

@@ -1,0 +1,2106 @@
+{
+ "about": "Cases from the tooling audit of the owner's checker (gate-fuzz). V = a violation the lint must flag; L = legitimate CSS/HTML it must not. files[0] says which kind of file the snippet is written into.",
+ "knownMisses": {
+  "u02": "by design: var(--x, fallback) is an override hook and may name a token that does not exist yet",
+  "k11": "needs context: a class that exists but is used outside its parent (tests/a11y.mjs and review catch the visual result)",
+  "d07": "prose numbers in docs are not machine-checked; STYLE.md is generated from / checked against the CSS only for names",
+  "d08": "prose numbers in docs are not machine-checked",
+  "x02": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x03": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x04": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x05": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x06": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x07": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x08": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x09": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x10": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x11": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x12": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x13": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x14": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x17": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x18": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x20": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x22": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x24": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x25": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)",
+  "x26": "colour contrast is not judged statically: tests/contrast.mjs resolves every role pair in a real browser for every theme, contrast mode, palette and tone (and src/tokens may hold any colour form)"
+ },
+ "cases": [
+  {
+   "id": "c01",
+   "kind": "V",
+   "what": "hex uppercase short  #FFF",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:#FFF;}"
+   ]
+  },
+  {
+   "id": "c02",
+   "kind": "V",
+   "what": "hex 8-digit #FFFFFF80",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:#FFFFFF80;}"
+   ]
+  },
+  {
+   "id": "c03",
+   "kind": "V",
+   "what": "hex 4-digit #ffff",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:#ffff;}"
+   ]
+  },
+  {
+   "id": "c04",
+   "kind": "V",
+   "what": "rgb() inside a data: url()",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect fill='rgb(255,0,0)' width='9' height='9'/%3E%3C/svg%3E\");}"
+   ]
+  },
+  {
+   "id": "c05",
+   "kind": "V",
+   "what": "hex (%23) inside a data: url() used as background",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect fill='%23ff0000' width='9' height='9'/%3E%3C/svg%3E\");}"
+   ]
+  },
+  {
+   "id": "c06",
+   "kind": "V",
+   "what": "color-mix with literal #fff",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:color-mix(in srgb, var(--ink) 50%, #fff);}"
+   ]
+  },
+  {
+   "id": "c07",
+   "kind": "V",
+   "what": "color-mix with named colour white",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:color-mix(in srgb, var(--ink) 50%, white);}"
+   ]
+  },
+  {
+   "id": "c08",
+   "kind": "V",
+   "what": "named colour  color:red",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:red;}"
+   ]
+  },
+  {
+   "id": "c09",
+   "kind": "V",
+   "what": "named colour  background:white",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{background:white;}"
+   ]
+  },
+  {
+   "id": "c10",
+   "kind": "V",
+   "what": "named colour  rebeccapurple",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-color:rebeccapurple;}"
+   ]
+  },
+  {
+   "id": "c11",
+   "kind": "V",
+   "what": "light-dark(white, black)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:light-dark(white, black);}"
+   ]
+  },
+  {
+   "id": "c12",
+   "kind": "V",
+   "what": "rgb(0 0 0 / 50%)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:rgb(0 0 0 / 50%);}"
+   ]
+  },
+  {
+   "id": "c13",
+   "kind": "V",
+   "what": "hsl()",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:hsl(0 0% 0%);}"
+   ]
+  },
+  {
+   "id": "c14",
+   "kind": "V",
+   "what": "oklch()",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:oklch(0.5 0.1 200);}"
+   ]
+  },
+  {
+   "id": "c15",
+   "kind": "V",
+   "what": "color(display-p3 ..)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:color(display-p3 1 0 0);}"
+   ]
+  },
+  {
+   "id": "c16",
+   "kind": "V",
+   "what": "oklab()",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:oklab(0.5 0.1 0.1);}"
+   ]
+  },
+  {
+   "id": "c17",
+   "kind": "V",
+   "what": "colour literal in base.css",
+   "files": [
+    "base"
+   ],
+   "snippets": [
+    "a{color:#c00;}"
+   ]
+  },
+  {
+   "id": "c18",
+   "kind": "V",
+   "what": "colour literal in a custom property inside a component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--c: navy; color: var(--c);}"
+   ]
+  },
+  {
+   "id": "c19",
+   "kind": "V",
+   "what": "accent-color / caret-color named",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{accent-color:tomato;caret-color:gold;}"
+   ]
+  },
+  {
+   "id": "c20",
+   "kind": "V",
+   "what": "svg fill hex in css",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{fill:#f00;}"
+   ]
+  },
+  {
+   "id": "c21",
+   "kind": "L",
+   "what": "legit: currentColor, transparent, system colours",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:currentColor;background:transparent;border-color:CanvasText;outline-color:Highlight;}"
+   ]
+  },
+  {
+   "id": "c22",
+   "kind": "L",
+   "what": "legit: id selector that looks like hex (#add-btn)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "#add-btn{margin:0;}"
+   ]
+  },
+  {
+   "id": "c23",
+   "kind": "L",
+   "what": "legit: id selector #face",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "#face{margin:0;}"
+   ]
+  },
+  {
+   "id": "c24",
+   "kind": "V",
+   "what": "hex in inline style=\"\" in index.html",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "<h1 class=\"t-display\" style=\"color:#c00\">Cards</h1>"
+   ]
+  },
+  {
+   "id": "c25",
+   "kind": "V",
+   "what": "hex in inline <svg fill=\"#f00\"> in index.html",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "<h1 class=\"t-display\">Cards</h1><svg width=\"9\" height=\"9\" aria-hidden=\"true\"><rect width=\"9\" height=\"9\" fill=\"#f00\"/></svg>"
+   ]
+  },
+  {
+   "id": "c26",
+   "kind": "V",
+   "what": "remote @import of a web font (third-party request)",
+   "files": [
+    "other:css/fonts.css"
+   ],
+   "snippets": [
+    "@import url(\"https://fonts.googleapis.com/css2?family=Inter&display=swap\");"
+   ]
+  },
+  {
+   "id": "c27",
+   "kind": "V",
+   "what": "@font-face src from a CDN",
+   "files": [
+    "other:css/fonts.css"
+   ],
+   "snippets": [
+    "@font-face{font-family:\"Archivo\";src:url(https://cdn.example.com/a.woff2) format(\"woff2\");}"
+   ]
+  },
+  {
+   "id": "c28",
+   "kind": "V",
+   "what": "colour literal, UPPERCASE property and function: COLOR:RGB(0,0,0)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{COLOR:RGB(0,0,0);}"
+   ]
+  },
+  {
+   "id": "a01",
+   "kind": "V",
+   "what": "blurred box-shadow 0 8px 24px var(--ink)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:0 8px 24px var(--ink);}"
+   ]
+  },
+  {
+   "id": "a02",
+   "kind": "V",
+   "what": "box-shadow blur 1px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:0 0 1px var(--ink);}"
+   ]
+  },
+  {
+   "id": "a03",
+   "kind": "V",
+   "what": "blur in a --shadow-* token",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--shadow-soft:0 4px 12px var(--ink);}"
+   ]
+  },
+  {
+   "id": "a04",
+   "kind": "V",
+   "what": "blur hidden behind a non --shadow token (--elev) + var()",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--elev:0 4px 12px var(--ink);box-shadow:var(--elev);}"
+   ]
+  },
+  {
+   "id": "a05",
+   "kind": "V",
+   "what": "box-shadow with blur and NO colour (0 0 8px)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:0 0 8px;}"
+   ]
+  },
+  {
+   "id": "a06",
+   "kind": "V",
+   "what": "second shadow in a list has the blur",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:4px 4px 0 var(--ink), 0 0 12px var(--ink);}"
+   ]
+  },
+  {
+   "id": "a07",
+   "kind": "V",
+   "what": "filter: blur(4px)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{filter:blur(4px);}"
+   ]
+  },
+  {
+   "id": "a08",
+   "kind": "V",
+   "what": "filter: drop-shadow(0 4px 8px var(--ink))",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{filter:drop-shadow(0 4px 8px var(--ink));}"
+   ]
+  },
+  {
+   "id": "a09",
+   "kind": "V",
+   "what": "backdrop-filter: blur",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{backdrop-filter:blur(8px);}"
+   ]
+  },
+  {
+   "id": "a10",
+   "kind": "V",
+   "what": "-webkit-backdrop-filter: saturate (glass w/o blur)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{-webkit-backdrop-filter:saturate(2);}"
+   ]
+  },
+  {
+   "id": "a11",
+   "kind": "V",
+   "what": "mask-image gradient",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{mask-image:linear-gradient(var(--ink),transparent);}"
+   ]
+  },
+  {
+   "id": "a12",
+   "kind": "V",
+   "what": "gradient inside image-set()",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{background:image-set(linear-gradient(var(--ink),var(--paper)) 1x);}"
+   ]
+  },
+  {
+   "id": "a13",
+   "kind": "V",
+   "what": "linear-gradient(ink, paper) in a component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{background:linear-gradient(var(--ink),var(--paper));}"
+   ]
+  },
+  {
+   "id": "a14",
+   "kind": "L",
+   "what": "legit flat: hard-stop progress fill  linear-gradient(ink 0 50%, paper 0)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{background:linear-gradient(90deg,var(--ink) 0 50%,var(--paper) 0);}"
+   ]
+  },
+  {
+   "id": "a15",
+   "kind": "V",
+   "what": "radial-gradient",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{background:radial-gradient(circle,var(--ink),var(--paper));}"
+   ]
+  },
+  {
+   "id": "a16",
+   "kind": "V",
+   "what": "-webkit-linear-gradient",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{background:-webkit-linear-gradient(var(--ink),var(--paper));}"
+   ]
+  },
+  {
+   "id": "a17",
+   "kind": "V",
+   "what": "text-shadow",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{text-shadow:0 0 1px var(--ink);}"
+   ]
+  },
+  {
+   "id": "a18",
+   "kind": "V",
+   "what": "font shorthand with Inter:  font: 400 1rem/1.5 Inter, sans-serif",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{font:400 1rem/1.5 Inter, sans-serif;}"
+   ]
+  },
+  {
+   "id": "a19",
+   "kind": "V",
+   "what": "font-family: Inter",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{font-family:Inter, sans-serif;}"
+   ]
+  },
+  {
+   "id": "a20",
+   "kind": "V",
+   "what": "--font-sans: Inter first",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--font-sans:Inter, sans-serif;}"
+   ]
+  },
+  {
+   "id": "a21",
+   "kind": "V",
+   "what": "other font token --font-display: \"Space Grotesk\"",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ":root{--font-display:\"Space Grotesk\", sans-serif;}"
+   ]
+  },
+  {
+   "id": "a22",
+   "kind": "V",
+   "what": "--font-sans: Figtree (AI-default not on the deny list)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--font-sans:Figtree, sans-serif;}"
+   ]
+  },
+  {
+   "id": "a23",
+   "kind": "V",
+   "what": "--font-sans: -apple-system, \"Segoe UI\" (system stack)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--font-sans:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;}"
+   ]
+  },
+  {
+   "id": "a24",
+   "kind": "L",
+   "what": "legit: font-family: var(--font-mono)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{font-family:var(--font-mono);}"
+   ]
+  },
+  {
+   "id": "a25",
+   "kind": "V",
+   "what": "PROPERTY NAME in caps: BOX-SHADOW / BACKDROP-FILTER",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{BOX-SHADOW:0 8px 24px var(--ink);BACKDROP-FILTER:blur(8px);}"
+   ]
+  },
+  {
+   "id": "a26",
+   "kind": "V",
+   "what": "translucency (rule 2): opacity:.5 on a card",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{opacity:.5;}"
+   ]
+  },
+  {
+   "id": "a27",
+   "kind": "V",
+   "what": "accent stripe via inset box-shadow (banned tell)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:inset 4px 0 0 var(--ink);}"
+   ]
+  },
+  {
+   "id": "a28",
+   "kind": "V",
+   "what": "accent stripe via border-left: 4px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-left:4px solid var(--ink);}"
+   ]
+  },
+  {
+   "id": "a29",
+   "kind": "V",
+   "what": "accent stripe via border-inline-start: 4px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-inline-start:4px solid var(--ink);}"
+   ]
+  },
+  {
+   "id": "a30",
+   "kind": "V",
+   "what": "svg filter:url(#blur) in a component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{filter:url(#b);}"
+   ]
+  },
+  {
+   "id": "s01",
+   "kind": "V",
+   "what": "border-radius: 12px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-radius:12px;}"
+   ]
+  },
+  {
+   "id": "s02",
+   "kind": "V",
+   "what": "border-top-left-radius: 12px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-top-left-radius:12px;}"
+   ]
+  },
+  {
+   "id": "s03",
+   "kind": "V",
+   "what": "border-start-start-radius: 12px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-start-start-radius:12px;}"
+   ]
+  },
+  {
+   "id": "s04",
+   "kind": "V",
+   "what": "border-radius: 50%",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-radius:50%;}"
+   ]
+  },
+  {
+   "id": "s05",
+   "kind": "V",
+   "what": "border-radius: var(--radius-2) (primitive, not a role)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-radius:var(--radius-2);}"
+   ]
+  },
+  {
+   "id": "s06",
+   "kind": "L",
+   "what": "legit: inner radius calc(var(--radius-card) - var(--bw))",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-radius:calc(var(--radius-card) - var(--bw));}"
+   ]
+  },
+  {
+   "id": "s07",
+   "kind": "L",
+   "what": "legit: per-corner shorthand 0 0 card card",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-radius:0 0 var(--radius-card) var(--radius-card);}"
+   ]
+  },
+  {
+   "id": "s08",
+   "kind": "L",
+   "what": "legit: border-top-left-radius: var(--radius-card)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-top-left-radius:var(--radius-card);}"
+   ]
+  },
+  {
+   "id": "s09",
+   "kind": "V",
+   "what": "border: 0.25rem solid (rem)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border:0.25rem solid var(--ink);}"
+   ]
+  },
+  {
+   "id": "s10",
+   "kind": "V",
+   "what": "border: thick solid",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border:thick solid var(--ink);}"
+   ]
+  },
+  {
+   "id": "s11",
+   "kind": "V",
+   "what": "border-width: 3px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-width:3px;}"
+   ]
+  },
+  {
+   "id": "s12",
+   "kind": "V",
+   "what": "outline: 2px solid",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{outline:2px solid var(--ink);}"
+   ]
+  },
+  {
+   "id": "s13",
+   "kind": "V",
+   "what": "line weight as box-shadow spread 0 0 0 3px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:0 0 0 3px var(--ink);}"
+   ]
+  },
+  {
+   "id": "s14",
+   "kind": "V",
+   "what": "third weight via custom prop  --w:3px; border:var(--w) solid",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--w:3px;border:var(--w) solid var(--ink);}"
+   ]
+  },
+  {
+   "id": "s15",
+   "kind": "V",
+   "what": "text-decoration-thickness: 5px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{text-decoration-thickness:5px;}"
+   ]
+  },
+  {
+   "id": "s16",
+   "kind": "V",
+   "what": "svg stroke-width: 5 (owner has 3.5 in wire.css)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{stroke-width:5;}"
+   ]
+  },
+  {
+   "id": "s17",
+   "kind": "V",
+   "what": "radius in base.css (role check only scans components)",
+   "files": [
+    "base"
+   ],
+   "snippets": [
+    "a{border-radius:12px;}"
+   ]
+  },
+  {
+   "id": "s18",
+   "kind": "V",
+   "what": "border 1.5px",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border:1.5px solid var(--ink);}"
+   ]
+  },
+  {
+   "id": "s19",
+   "kind": "L",
+   "what": "legit: border: 0 / border-width:0",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border:0;border-width:0;}"
+   ]
+  },
+  {
+   "id": "s20",
+   "kind": "V",
+   "what": "clip-path round 12px (rounded corner by other means)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{clip-path:inset(0 round 12px);}"
+   ]
+  },
+  {
+   "id": "m01",
+   "kind": "V",
+   "what": "transition in component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{transition:opacity 200ms;}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m02",
+   "kind": "V",
+   "what": "@keyframes in component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "@keyframes spin{to{opacity:0;}}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m03",
+   "kind": "V",
+   "what": "transition in base.css",
+   "files": [
+    "base"
+   ],
+   "snippets": [
+    "a{transition:opacity 200ms;}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m04",
+   "kind": "V",
+   "what": "@keyframes + animation in base.css",
+   "files": [
+    "base"
+   ],
+   "snippets": [
+    "@keyframes spin{to{opacity:0;}} a{animation:spin 1s infinite;}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m05",
+   "kind": "V",
+   "what": "animation in icons.css",
+   "files": [
+    "base"
+   ],
+   "snippets": [
+    ".ic{animation:none 1s;}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m06",
+   "kind": "V",
+   "what": "TRANSITION caps in component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{TRANSITION:opacity 200ms;}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m07",
+   "kind": "V",
+   "what": "scroll-behavior:smooth / view-transition-name in component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{scroll-behavior:smooth;view-transition-name:a;}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m08",
+   "kind": "V",
+   "what": "transition via custom prop used in component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--t:opacity 200ms;transition:var(--t);}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m09",
+   "kind": "V",
+   "what": "transition set in tokens (:root)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    ":root{transition:opacity 200ms;}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "m10",
+   "kind": "V",
+   "what": "@starting-style + transition-behavior",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{transition-behavior:allow-discrete;}@starting-style{.x{opacity:0;}}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "u01",
+   "kind": "V",
+   "what": "undefined var inside calc()",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{padding:calc(var(--spce-3) * 2);}"
+   ]
+  },
+  {
+   "id": "u02",
+   "kind": "V",
+   "what": "typo with fallback var(--spce-3, 1rem) (by design allowed)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{padding:var(--spce-3, 1rem);}"
+   ]
+  },
+  {
+   "id": "u03",
+   "kind": "V",
+   "what": "fallback use elsewhere legalises undefined use (hooks set)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{padding:var(--spce-3, 1rem)} .y{padding:var(--spce-3)}"
+   ]
+  },
+  {
+   "id": "u04",
+   "kind": "V",
+   "what": "typo in a private --_ token",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--_pad:4px;padding:var(--_padd);}"
+   ]
+  },
+  {
+   "id": "u05",
+   "kind": "V",
+   "what": "token defined only in sheet.css (not shipped) used by component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{padding:var(--sg-pad);}"
+   ]
+  },
+  {
+   "id": "u06",
+   "kind": "V",
+   "what": "plain undefined var(--nonexist) in a component",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{padding:var(--nonexist);}"
+   ]
+  },
+  {
+   "id": "u07",
+   "kind": "V",
+   "what": "token defined only in sheet.css, used in component (real)",
+   "files": [
+    "sheet",
+    "component"
+   ],
+   "snippets": [
+    ":root{--only-in-sheet:3px}",
+    ".x{padding:var(--only-in-sheet)}"
+   ]
+  },
+  {
+   "id": "u08",
+   "kind": "V",
+   "what": "typo in uppercase letters var(--Space-3)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{padding:var(--Space-3);}"
+   ]
+  },
+  {
+   "id": "u09",
+   "kind": "L",
+   "what": "legit: var( --space-3 ) with spaces",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{padding:var( --space-3 );}"
+   ]
+  },
+  {
+   "id": "u10",
+   "kind": "L",
+   "what": "legit: token set by JS at runtime, used with fallback",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{height:var(--vh, 100vh);}"
+   ]
+  },
+  {
+   "id": "u11",
+   "kind": "V",
+   "what": "undefined token in tokens dir",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    ".x{padding:var(--typo-token);}"
+   ]
+  },
+  {
+   "id": "l01",
+   "kind": "V",
+   "what": "component uses .wf-media",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x .wf-media{color:var(--ink);}"
+   ]
+  },
+  {
+   "id": "l02",
+   "kind": "V",
+   "what": "component reads --grey-3",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:var(--grey-3);}"
+   ]
+  },
+  {
+   "id": "l03",
+   "kind": "V",
+   "what": "component reads primitive via spaces var( --grey-3 )",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:var( --grey-3 );}"
+   ]
+  },
+  {
+   "id": "l04",
+   "kind": "V",
+   "what": "component reads --radius-2 primitive in clip-path",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{clip-path:inset(0 round var(--radius-2));}"
+   ]
+  },
+  {
+   "id": "l05",
+   "kind": "V",
+   "what": "sheet.css reading --grey-3 (exempt from 6 too)",
+   "files": [
+    "sheet"
+   ],
+   "snippets": [
+    ".sg-x{color:var(--grey-3);}"
+   ]
+  },
+  {
+   "id": "k01",
+   "kind": "V",
+   "what": "unknown class in body markup",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "<h1 class=\"t-display ghost-xyz\">Cards</h1>"
+   ]
+  },
+  {
+   "id": "k02",
+   "kind": "V",
+   "what": "unknown class inside JS template string \"double quotes\"",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "document.documentElement.classList.add(\"js\"); var t = '<div class=\"ghost-xyz\"></div>';"
+   ]
+  },
+  {
+   "id": "k03",
+   "kind": "V",
+   "what": "unknown class via el.className = ...",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "document.documentElement.classList.add(\"js\"); document.body.className = 'ghost-xyz';"
+   ]
+  },
+  {
+   "id": "k04",
+   "kind": "V",
+   "what": "unknown class via classList.add",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "document.documentElement.classList.add(\"js\"); document.body.classList.add('ghost-xyz');"
+   ]
+  },
+  {
+   "id": "k05",
+   "kind": "V",
+   "what": "unknown class in single-quoted attribute",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "<h1 class='t-display ghost-xyz'>Cards</h1>"
+   ]
+  },
+  {
+   "id": "k06",
+   "kind": "V",
+   "what": "unknown class in a backtick template literal",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "document.documentElement.classList.add(\"js\"); var t = `<div class=ghost-xyz></div>`;"
+   ]
+  },
+  {
+   "id": "k07",
+   "kind": "V",
+   "what": "unknown class in a second HTML page",
+   "files": [
+    "html"
+   ],
+   "snippets": []
+  },
+  {
+   "id": "k08",
+   "kind": "V",
+   "what": "invalid data-tone value  data-tone=\"9\" (no CSS for it)",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "<article class=\"card\" data-tone=\"9\" data-sg-code>\n              <div class=\"card__body\">\n                <p class=\"card__eyebrow\">Deck · 12 cards</p>"
+   ]
+  },
+  {
+   "id": "k09",
+   "kind": "V",
+   "what": "unknown class written with newline/extra spaces",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "<h1 class=\"t-display\n   ghost-xyz\">Cards</h1>"
+   ]
+  },
+  {
+   "id": "k10",
+   "kind": "L",
+   "what": "legit: template placeholder class=\"{{cls}}\" in a script string",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "var t = '<div class=\"{{cls}}\"></div>';"
+   ]
+  },
+  {
+   "id": "k11",
+   "kind": "V",
+   "what": "class defined only for another element (card__title on a <div> outside a card)",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "<h1 class=\"t-display\">Cards</h1><div class=\"card__bar card__foot\">x</div>"
+   ]
+  },
+  {
+   "id": "d01",
+   "kind": "V",
+   "what": "STYLE.md names a token that does not exist",
+   "files": [
+    "md"
+   ],
+   "snippets": [
+    "See `--ghost-token`."
+   ]
+  },
+  {
+   "id": "d02",
+   "kind": "V",
+   "what": "STYLE.md names a class that does not exist",
+   "files": [
+    "md"
+   ],
+   "snippets": [
+    "See `.ghost-class`."
+   ]
+  },
+  {
+   "id": "d03",
+   "kind": "V",
+   "what": "STYLE.md names a compound selector with a fake class",
+   "files": [
+    "md"
+   ],
+   "snippets": [
+    "See `.card .ghost-class` and `.card__bar:hover`."
+   ]
+  },
+  {
+   "id": "d04",
+   "kind": "V",
+   "what": "STYLE.md wrong NUMBER: --hit 2.75rem (44px) -> 3rem (48px)",
+   "files": [
+    "md"
+   ],
+   "snippets": [
+    "`--hit` 3rem (48px)"
+   ]
+  },
+  {
+   "id": "d05",
+   "kind": "V",
+   "what": "STYLE.md wrong NUMBER: contrast table tone-6 8.4 -> 14.0",
+   "files": [
+    "md"
+   ],
+   "snippets": [
+    "| tone-1 | 15.5 : 1 | | tone-6 | 14.0 : 1 |"
+   ]
+  },
+  {
+   "id": "d06",
+   "kind": "V",
+   "what": "STYLE.md wrong hex: --grey-9 #505050 -> #999999",
+   "files": [
+    "md"
+   ],
+   "snippets": [
+    "`#999999`"
+   ]
+  },
+  {
+   "id": "d07",
+   "kind": "V",
+   "what": "index.html wrong number: \"22 to 32px\" -> \"10 to 12px\"",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "Weight 500, 10 to 12px depending"
+   ]
+  },
+  {
+   "id": "d08",
+   "kind": "V",
+   "what": "README wrong claim: \"Holds from 360 to 1440px\" (in index) -> 900",
+   "files": [
+    "html"
+   ],
+   "snippets": [
+    "Holds from 900 to 1440px."
+   ]
+  },
+  {
+   "id": "d09",
+   "kind": "V",
+   "what": "STYLE.md names a token with capital letter `--space-N` (exists today); fake `--Ghost-N`",
+   "files": [
+    "md"
+   ],
+   "snippets": [
+    "See `--Ghost-N`."
+   ]
+  },
+  {
+   "id": "d10",
+   "kind": "V",
+   "what": "STYLE.md names a fake class inside a fenced code block / html example",
+   "files": [
+    "md"
+   ],
+   "snippets": [
+    "\n```html\n<div class=\"card ghost-class\"></div>\n```\n"
+   ]
+  },
+  {
+   "id": "x01",
+   "kind": "V",
+   "what": "--ink-soft -> grey-7 (#afafaf, ~2:1)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: var(--grey-7);"
+   ]
+  },
+  {
+   "id": "x02",
+   "kind": "V",
+   "what": "--ink-soft #707070 (4.5:1: passes gate, fails the 7:1 target)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--grey-9: #707070;"
+   ]
+  },
+  {
+   "id": "x03",
+   "kind": "V",
+   "what": "role uses light-dark(): --ink: light-dark(#141414,#ffffff) -> FAIL in dark",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink: light-dark(#141414, #ffffff);"
+   ]
+  },
+  {
+   "id": "x04",
+   "kind": "V",
+   "what": "all tone text: --on-tone-6 light-dark(#141414,#141414) while tone-6 dark = #202020",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--tone-6: light-dark(#afafaf, #202020);"
+   ]
+  },
+  {
+   "id": "x05",
+   "kind": "V",
+   "what": "8-digit hex on a role (alpha ignored/unparsed): --ink-soft:#00000040",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: #00000040;"
+   ]
+  },
+  {
+   "id": "x06",
+   "kind": "V",
+   "what": "rgb() with alpha: --ink-soft: rgb(0 0 0 / 0.25)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: rgb(0 0 0 / 0.25);"
+   ]
+  },
+  {
+   "id": "x07",
+   "kind": "V",
+   "what": "oklch() with alpha: --ink-soft: oklch(0.2 0 0 / 0.25)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: oklch(0.2 0 0 / 0.25);"
+   ]
+  },
+  {
+   "id": "x08",
+   "kind": "V",
+   "what": "named colour on a role: --ink-soft: lightgray",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: lightgray;"
+   ]
+  },
+  {
+   "id": "x09",
+   "kind": "V",
+   "what": "hsl() on a role that fails: --ink-soft: hsl(0 0% 70%)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: hsl(0 0% 70%);"
+   ]
+  },
+  {
+   "id": "x10",
+   "kind": "V",
+   "what": "color-mix() role that fails: --ink-soft: color-mix(in srgb, #141414 20%, #fff)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: color-mix(in srgb, #141414 20%, #fff);"
+   ]
+  },
+  {
+   "id": "x11",
+   "kind": "V",
+   "what": "var() with fallback on a role: --ink-soft: var(--nope, #cccccc)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: var(--nope, #cccccc);"
+   ]
+  },
+  {
+   "id": "x12",
+   "kind": "V",
+   "what": "handover trap: real palette in color.css (fails) next to color.wire.css (passes)",
+   "files": [
+    "token",
+    "other:css/flashcards.css"
+   ],
+   "snippets": [
+    "@import url(\"tokens/color.css\") layer(tokens);"
+   ]
+  },
+  {
+   "id": "x13",
+   "kind": "V",
+   "what": "handover done right: color.wire.css deleted, color.css (white-on-white) imported",
+   "files": [
+    "token",
+    "other:css/flashcards.css",
+    "token"
+   ],
+   "snippets": [
+    "@import url(\"tokens/color.css\") layer(tokens);"
+   ]
+  },
+  {
+   "id": "x14",
+   "kind": "V",
+   "what": "focus ring #6e6e6e: 4.6:1 on canvas (gate ok) but 2.3:1 on tone-6 where the in-card ring lands",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--focus: #6e6e6e;"
+   ]
+  },
+  {
+   "id": "x15",
+   "kind": "V",
+   "what": "--accent a pale colour so the hover-filled action is invisible on paper",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--accent: var(--grey-2);"
+   ]
+  },
+  {
+   "id": "x16",
+   "kind": "V",
+   "what": "accent #c7c7c7 w/ ink on-accent: fill is 1.7:1 vs paper, gate has no accent-vs-surface pair",
+   "files": [
+    "token",
+    "token"
+   ],
+   "snippets": [
+    "--accent: var(--grey-5);",
+    "--on-accent: var(--ink);"
+   ]
+  },
+  {
+   "id": "x17",
+   "kind": "V",
+   "what": "dark mode via media query override in colour file (prefers-color-scheme) that fails",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "@media (prefers-color-scheme: dark){:root{--paper:#111;--ink:#222;--canvas:#111;--ink-soft:#333}}"
+   ]
+  },
+  {
+   "id": "x18",
+   "kind": "V",
+   "what": "role defined inside @media/[data-theme] block overrides (ignored by gate)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    ":root[data-theme=\"dark\"]{--ink:#222222;--paper:#1a1a1a;--canvas:#1a1a1a}"
+   ]
+  },
+  {
+   "id": "x19",
+   "kind": "V",
+   "what": "--ink-faint so light the disabled text is 1.2:1 (gate allows 3:1 only vs paper)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-faint: var(--grey-2); /* disabled, placeholder lines */"
+   ]
+  },
+  {
+   "id": "x20",
+   "kind": "V",
+   "what": "tone-6 darkened so soft-ink (72% mix) on it is 4.4:1 but ink 7.1:1",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--tone-6: #a0a0a0;"
+   ]
+  },
+  {
+   "id": "n01",
+   "kind": "V",
+   "what": "NO TRAILING ; : box-shadow blur 0 8px 24px var(--ink)}",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:0 8px 24px var(--ink)}"
+   ]
+  },
+  {
+   "id": "n02",
+   "kind": "V",
+   "what": "NO TRAILING ; : border-radius:12px}",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-radius:12px}"
+   ]
+  },
+  {
+   "id": "n03",
+   "kind": "V",
+   "what": "NO TRAILING ; : border-width:3px}",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-width:3px}"
+   ]
+  },
+  {
+   "id": "n04",
+   "kind": "V",
+   "what": "NO TRAILING ; : font-family:Inter}",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{font-family:Inter}"
+   ]
+  },
+  {
+   "id": "n05",
+   "kind": "V",
+   "what": "NO TRAILING ; : --font-sans:Inter}",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--font-sans:Inter,sans-serif}"
+   ]
+  },
+  {
+   "id": "n06",
+   "kind": "V",
+   "what": "NO TRAILING ; : outline:2px solid}",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{outline:2px solid var(--ink)}"
+   ]
+  },
+  {
+   "id": "n07",
+   "kind": "V",
+   "what": "NO TRAILING ; : transition:opacity 1s}  (regex needs no ;)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{transition:opacity 1s}"
+   ],
+   "gates": {
+    "motion": false
+   }
+  },
+  {
+   "id": "n08",
+   "kind": "V",
+   "what": "NO TRAILING ; : hex colour }  (regex needs no ;)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:#c00}"
+   ]
+  },
+  {
+   "id": "n09",
+   "kind": "V",
+   "what": "NO TRAILING ; : text-shadow (no ; needed)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{text-shadow:0 0 4px var(--ink)}"
+   ]
+  },
+  {
+   "id": "x22",
+   "kind": "V",
+   "what": "light ink-soft #ccc FAILS, but a later dark-mode @media block with a good value hides it",
+   "files": [
+    "token",
+    "token"
+   ],
+   "snippets": [
+    "--grey-9: #cccccc;",
+    "@media (prefers-color-scheme: dark){:root{--ink-soft:#505050;}}"
+   ]
+  },
+  {
+   "id": "x23",
+   "kind": "V",
+   "what": "last decl w/o ; in colour file: --on-tone-6: var(--grey-7) (1:1 on tone-6) not parsed",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--on-tone-6: var(--grey-7)\n}"
+   ]
+  },
+  {
+   "id": "x24",
+   "kind": "V",
+   "what": "8-digit hex on tone text: --on-tone-3:#14141480 (50% alpha ink on tone-3 ~ 3.5:1)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--on-tone-3: #14141480;"
+   ]
+  },
+  {
+   "id": "x25",
+   "kind": "V",
+   "what": "oklch w/ percent chroma  --ink-soft: oklch(80% 10% 0)  (unparsed => skipped)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--ink-soft: oklch(80% 10% 0);"
+   ]
+  },
+  {
+   "id": "x26",
+   "kind": "V",
+   "what": "ALL roles as oklch(): parsed? (should be OK and pass)",
+   "files": [
+    "token"
+   ],
+   "snippets": [
+    "--grey-9: oklch(0.4 0 0);"
+   ]
+  },
+  {
+   "id": "p01",
+   "kind": "L",
+   "what": "legit: font-family: inherit (form control reset)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{font-family:inherit;}"
+   ]
+  },
+  {
+   "id": "p02",
+   "kind": "L",
+   "what": "legit: border-spacing: 0 8px (table rows)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-spacing:0 8px;}"
+   ]
+  },
+  {
+   "id": "p03",
+   "kind": "V",
+   "what": "a bare outline:0 with no other indicator in the same rule (WCAG 2.4.7). Reclassified: the original checker called this legitimate",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{outline:0;}"
+   ]
+  },
+  {
+   "id": "p04",
+   "kind": "L",
+   "what": "legit: border-image-width / border-collapse",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-collapse:collapse;}"
+   ]
+  },
+  {
+   "id": "p05",
+   "kind": "L",
+   "what": "legit: box-shadow: var(--shadow-lift) single token",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:var(--shadow-lift);}"
+   ]
+  },
+  {
+   "id": "p06",
+   "kind": "L",
+   "what": "legit: box-shadow: 0 0 0 var(--ring) var(--focus)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:0 0 0 var(--ring) var(--focus);}"
+   ]
+  },
+  {
+   "id": "p07",
+   "kind": "L",
+   "what": "legit: box-shadow: 0 0 0 0 (rem zero) \"0rem\" blur",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{box-shadow:4px 4px 0rem var(--ink);}"
+   ]
+  },
+  {
+   "id": "p08",
+   "kind": "L",
+   "what": "legit: a11y clip: rect() / sr-only style",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{clip-path:inset(50%);clip:rect(0 0 0 0);}"
+   ]
+  },
+  {
+   "id": "p09",
+   "kind": "L",
+   "what": "legit: @media (prefers-reduced-motion: reduce){ transition:none } (gate 5 closed)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "@media (prefers-reduced-motion: reduce){.x{transition:none;}}"
+   ]
+  },
+  {
+   "id": "p10",
+   "kind": "L",
+   "what": "legit: animation: none / transition: none reset",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{animation:none;transition:none;}"
+   ]
+  },
+  {
+   "id": "p11",
+   "kind": "L",
+   "what": "legit: font shorthand from token  font: var(--type-body)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{font:var(--type-body);}"
+   ]
+  },
+  {
+   "id": "p12",
+   "kind": "L",
+   "what": "legit: SVG currentColor data-URI mask with stroke %23000 (as icons.css)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{mask:url(\"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 stroke=%27%23000%27%3E%3C/svg%3E\") center/contain no-repeat;}"
+   ]
+  },
+  {
+   "id": "p13",
+   "kind": "L",
+   "what": "legit: attr selector with hash a[href^=\"#\"]",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "a[href^=\"#\"]{text-decoration:none;}"
+   ]
+  },
+  {
+   "id": "p14",
+   "kind": "L",
+   "what": "legit: :root token defined in component for private use  --_gap",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--_gap:var(--space-2);gap:var(--_gap);}"
+   ]
+  },
+  {
+   "id": "p15",
+   "kind": "L",
+   "what": "legit: @supports + :has() selector",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "@supports selector(:has(*)){.x:has(.y){color:var(--ink);}}"
+   ]
+  },
+  {
+   "id": "p16",
+   "kind": "L",
+   "what": "legit: CSS nesting  .x{ &:hover{ color:var(--ink) } } (gated: ours warns on an ungated :hover)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "@media (hover: hover){ .x{ &:hover{ color:var(--ink);} } }"
+   ]
+  },
+  {
+   "id": "p17",
+   "kind": "L",
+   "what": "legit: tokens with hue names like --ink-900 / --grey-900 in a component (alias)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{color:var(--ink);}"
+   ]
+  },
+  {
+   "id": "p18",
+   "kind": "L",
+   "what": "legit: scale transform  transform: scale(var(--press-scale)) (private token)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{--_press:.98;transform:scale(var(--_press));}"
+   ]
+  },
+  {
+   "id": "p19",
+   "kind": "L",
+   "what": "legit: @font-face in fonts.css with a 2nd script subset",
+   "files": [
+    "other:css/fonts.css"
+   ],
+   "snippets": [
+    "@font-face{font-family:\"Archivo\";font-weight:100 900;src:url(\"../fonts/archivo-latin-ext-var.woff2\") format(\"woff2\");unicode-range:U+0100-02AF;}"
+   ]
+  },
+  {
+   "id": "p20",
+   "kind": "L",
+   "what": "legit: border-radius: inherit / 0",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{border-radius:inherit;}"
+   ]
+  },
+  {
+   "id": "p21",
+   "kind": "L",
+   "what": "legit: CSS @container style query  @container card style(--x: 1)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "@container card (min-width: 20rem){.x{color:var(--ink);}}"
+   ]
+  },
+  {
+   "id": "p22",
+   "kind": "L",
+   "what": "legit: line-height: 1.5 with unitless & aspect-ratio",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x{aspect-ratio:16/9;line-height:1.5;}"
+   ]
+  },
+  {
+   "id": "p23",
+   "kind": "L",
+   "what": "legit: border-color: CanvasText / Highlight in forced-colors",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    "@media (forced-colors: active){.x{border-color:CanvasText;outline-color:Highlight;}}"
+   ]
+  },
+  {
+   "id": "p24",
+   "kind": "L",
+   "what": "legit: a third-party-free @font-face via data URI",
+   "files": [
+    "other:css/fonts.css"
+   ],
+   "snippets": [
+    "@font-face{font-family:\"X\";src:url(data:font/woff2;base64,AAAA) format(\"woff2\");}"
+   ]
+  },
+  {
+   "id": "w01",
+   "kind": "V",
+   "what": "overflow-wrap: anywhere on text in a component (words shatter in flex rows at 200% text)",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x__label{overflow-wrap:anywhere;}"
+   ]
+  },
+  {
+   "id": "w02",
+   "kind": "L",
+   "what": "legit: break-word, and anywhere waived for a code token",
+   "files": [
+    "component"
+   ],
+   "snippets": [
+    ".x__label{overflow-wrap:break-word;}\n.x__code{overflow-wrap:anywhere; /* lint-allow wrap: a code token may split anywhere */}"
+   ]
+  }
+ ]
+}

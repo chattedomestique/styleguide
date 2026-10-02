@@ -1,0 +1,300 @@
+<!--{"title":"Swatch","group":"Components","order":132,"summary":"Pick one colour from a set: round chips, each with its name, the chosen one marked by a check, a second ring and an underlined name."}-->
+<!-- lint-allow-file colour: swatches are user data; the inline --swatch colours are the demo content -->
+<style>
+  /* docs only: the editor mock. Its picture's backdrop is the checked swatch's colour (the colours are the --sw-* set on the mock). */
+  .sw-editor__photo { display: grid; place-items: center; aspect-ratio: 16 / 10; margin: 0; background: var(--sw-backdrop, var(--paper-2)); overflow: clip; }
+  .sw-editor__photo > img { inline-size: 100%; block-size: 100%; object-fit: contain; }
+  .sw-editor:has(input[value="sky"]:checked) { --sw-backdrop: var(--sw-sky); }
+  .sw-editor:has(input[value="blush"]:checked) { --sw-backdrop: var(--sw-blush); }
+  .sw-editor:has(input[value="sage"]:checked) { --sw-backdrop: var(--sw-sage); }
+  .sw-editor:has(input[value="sand"]:checked) { --sw-backdrop: var(--sw-sand); }
+  .sw-editor:has(input[value="cream"]:checked) { --sw-backdrop: var(--sw-cream); }
+  .sw-editor:has(input[value="terracotta"]:checked) { --sw-backdrop: var(--sw-terracotta); }
+  .sw-editor:has(input[value="ochre"]:checked) { --sw-backdrop: var(--sw-ochre); }
+  .sw-editor:has(input[value="slate"]:checked) { --sw-backdrop: var(--sw-slate); }
+</style>
+<h1>Swatch</h1>
+<p class="lede">A swatch set lets someone pick one colour: the backdrop behind a cut-out, the cover of a deck, the colour of a label. It is a group of radio buttons, so the keyboard, the screen reader and the form all already know how it works. What the guide adds is a chip you can see, a name you can read, and a choice that does not rest on hue.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it when the colours are the content and there are about four to twelve. Give every swatch a real name (<em>Terracotta</em>, not <em>Colour 6</em>): it is what a screen reader says and what a person uses to tell two greens apart.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it to choose a theme or a status (those are roles, not user colours), or to pick among two or three options (use a segmented control). For any colour at all, open the browser's own colour picker from a button.</p></div>
+  </div>
+</div>
+
+<h2 id="set">A set of swatches</h2>
+<p>The fieldset's legend names the choice. <code>--swatch</code> on each label is its colour. The chosen swatch has a check, a second ring separated by a gap, and an underlined name: three cues, none of them colour. The chip keeps its size at any text size and the names grow; the columns are sized for the names, so twelve colours are four rows of three on a small phone, three rows of four on a phone, six rows of two at 200% text and two rows of six on a wide screen. The rows always come out even: a set is never five to a row, and a set of four, six or eight picks a count that divides it.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <fieldset class="swatch-set">
+      <legend>Backdrop</legend>
+      <div class="swatch-set__list">
+        <label class="swatch-set__opt" style="--swatch: #b4c8dc">
+          <input type="radio" name="backdrop" value="sky" checked>
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Sky</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #e3b5b0">
+          <input type="radio" name="backdrop" value="blush">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Blush</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #a8bfa0">
+          <input type="radio" name="backdrop" value="sage">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Sage</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #e0cfa8">
+          <input type="radio" name="backdrop" value="sand">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Sand</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #f4efe2">
+          <input type="radio" name="backdrop" value="cream">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Cream</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #b4532a">
+          <input type="radio" name="backdrop" value="terracotta">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Terracotta</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #c9973a">
+          <input type="radio" name="backdrop" value="ochre">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Ochre</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #6d3a5d">
+          <input type="radio" name="backdrop" value="plum">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Plum</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #5b6b7a">
+          <input type="radio" name="backdrop" value="slate">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Slate</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #2f6e6a">
+          <input type="radio" name="backdrop" value="teal">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Teal</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #3d503b">
+          <input type="radio" name="backdrop" value="moss">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Moss</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #2a2a2a">
+          <input type="radio" name="backdrop" value="charcoal">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Charcoal</span>
+        </label>
+      </div>
+    </fieldset>
+  </div>
+</div>
+
+<h2 id="why">Why a swatch may take its colour from data</h2>
+<p>Every other element in this guide reads <em>roles</em>, never a colour. A swatch is the one exception, for the same reason an <code>&lt;img&gt;</code> is: the colour is the user's content, and the guide cannot know it. There is no role for "the colour of this person's third deck". So the swatch takes <code>--swatch</code> from the element and nothing else in the component is data-driven: the frame, the selection ring, the focus ring, the name and the check's backing are roles, so the chip always has an edge and the choice is always visible, on any surface, in any palette, in dark and in forced colours. The swatch colour itself does not change with theme or palette, because it is not part of the theme.</p>
+<p>Pale and very dark swatches are the test. Cream on a paper card and Charcoal on a dark stage both keep a 2px edge. The check is black or white, whichever contrasts more with that swatch.</p>
+<div class="demo" data-layout="stack">
+  <div class="demo__stage">
+    <fieldset class="swatch-set">
+      <legend>Paper card</legend>
+      <div class="swatch-set__list">
+        <label class="swatch-set__opt" style="--swatch: #f4efe2">
+          <input type="radio" name="edges" value="cream" checked>
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Cream</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #2a2a2a">
+          <input type="radio" name="edges" value="charcoal">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Charcoal</span>
+        </label>
+      </div>
+    </fieldset>
+    <div data-theme="dark" class="card"><div class="card__body">
+      <fieldset class="swatch-set">
+        <legend>Dark stage</legend>
+        <div class="swatch-set__list">
+          <label class="swatch-set__opt" style="--swatch: #f4efe2">
+            <input type="radio" name="edges-dark" value="cream">
+            <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+            <span class="swatch-set__name">Cream</span>
+          </label>
+          <label class="swatch-set__opt" style="--swatch: #2a2a2a">
+            <input type="radio" name="edges-dark" value="charcoal" checked>
+            <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+            <span class="swatch-set__name">Charcoal</span>
+          </label>
+        </div>
+      </fieldset>
+    </div></div>
+  </div>
+</div>
+
+<h2 id="states">States</h2>
+<p>The chip is a circle you press: it raises with a hard shadow on hover and on keyboard focus, and when pressed it sits back down while the whole option takes a light tint, so a tap shows at once. A colour is the content, so no state paints over it: chosen is the check, the second ring and the underlined name, and a chosen swatch raises like any other. Unavailable swatches (a colour a plan does not include) are dashed. The <code>is-*</code> classes only force a state for this page.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <fieldset class="swatch-set">
+      <legend>Deck colour</legend>
+      <div class="swatch-set__list">
+        <label class="swatch-set__opt" style="--swatch: #b4532a">
+          <input type="radio" name="st" value="rest">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Rest</span>
+        </label>
+        <label class="swatch-set__opt is-hover" style="--swatch: #b4532a">
+          <input type="radio" name="st" value="hover">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Hover</span>
+        </label>
+        <label class="swatch-set__opt is-focus" style="--swatch: #b4532a">
+          <input type="radio" name="st" value="focus">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Focus</span>
+        </label>
+        <label class="swatch-set__opt is-active" style="--swatch: #b4532a">
+          <input type="radio" name="st" value="active">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Pressed</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #b4532a">
+          <input type="radio" name="st" value="on" checked>
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Chosen</span>
+        </label>
+        <label class="swatch-set__opt is-selected is-hover" style="--swatch: #b4532a">
+          <input type="radio" name="st" value="on-hover">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Chosen, hover</span>
+        </label>
+        <label class="swatch-set__opt is-selected is-focus" style="--swatch: #b4532a">
+          <input type="radio" name="st" value="on-focus">
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Chosen, focus</span>
+        </label>
+        <label class="swatch-set__opt" style="--swatch: #b4532a">
+          <input type="radio" name="st" value="off" disabled>
+          <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+          <span class="swatch-set__name">Unavailable</span>
+        </label>
+      </div>
+    </fieldset>
+  </div>
+</div>
+
+<h2 id="context">In context</h2>
+<p>The Backdrop tool of a photo editor: the picture's backdrop follows the choice as it changes (try it), and Cancel and Apply stay where they are on every tool. Eight colours: four to a row on a phone, two to a row on a small phone or at large text, so the rows always come out even.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone sw-editor" data-theme="dark" style="--sw-sky: #b4c8dc; --sw-blush: #e3b5b0; --sw-sage: #a8bfa0; --sw-sand: #e0cfa8; --sw-cream: #f4efe2; --sw-terracotta: #b4532a; --sw-ochre: #c9973a; --sw-slate: #5b6b7a">
+      <div class="phone__screen stack" data-gap="4">
+        <figure class="sw-editor__photo">
+          <img src="@/assets/media/seedling.svg" alt="Photo: a seedling in a clay pot, on the chosen backdrop">
+        </figure>
+        <p class="t-title">Backdrop</p>
+        <fieldset class="swatch-set">
+          <legend>Colour</legend>
+          <div class="swatch-set__list">
+            <label class="swatch-set__opt" style="--swatch: var(--sw-sky)">
+              <input type="radio" name="ctx" value="sky">
+              <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+              <span class="swatch-set__name">Sky</span>
+            </label>
+            <label class="swatch-set__opt" style="--swatch: var(--sw-blush)">
+              <input type="radio" name="ctx" value="blush">
+              <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+              <span class="swatch-set__name">Blush</span>
+            </label>
+            <label class="swatch-set__opt" style="--swatch: var(--sw-sage)">
+              <input type="radio" name="ctx" value="sage" checked>
+              <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+              <span class="swatch-set__name">Sage</span>
+            </label>
+            <label class="swatch-set__opt" style="--swatch: var(--sw-sand)">
+              <input type="radio" name="ctx" value="sand">
+              <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+              <span class="swatch-set__name">Sand</span>
+            </label>
+            <label class="swatch-set__opt" style="--swatch: var(--sw-cream)">
+              <input type="radio" name="ctx" value="cream">
+              <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+              <span class="swatch-set__name">Cream</span>
+            </label>
+            <label class="swatch-set__opt" style="--swatch: var(--sw-terracotta)">
+              <input type="radio" name="ctx" value="terracotta">
+              <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+              <span class="swatch-set__name">Terracotta</span>
+            </label>
+            <label class="swatch-set__opt" style="--swatch: var(--sw-ochre)">
+              <input type="radio" name="ctx" value="ochre">
+              <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+              <span class="swatch-set__name">Ochre</span>
+            </label>
+            <label class="swatch-set__opt" style="--swatch: var(--sw-slate)">
+              <input type="radio" name="ctx" value="slate">
+              <span class="swatch-set__chip"><span class="ic ic--check" aria-hidden="true"></span></span>
+              <span class="swatch-set__name">Slate</span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="cluster" data-justify="between">
+          <button class="btn" data-shape="circle" type="button" aria-label="Cancel Backdrop changes"><span class="ic ic--close" aria-hidden="true"></span></button>
+          <button class="btn" data-shape="circle" data-variant="primary" type="button" aria-label="Apply Backdrop changes"><span class="ic ic--check" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Set</strong> (<code>fieldset.<wbr>swatch-set</code> with a <code>&lt;legend&gt;</code>): names the choice. The browser groups the radios by <code>name</code>.</li>
+  <li><strong>Option</strong> (<code>label.<wbr>swatch-set__opt</code>): the whole label is the target, never under 44px. <code>--swatch</code> goes here. It takes a light tint while it is pressed.</li>
+  <li><strong>Radio</strong> (<code>input[type=radio]</code>): invisible, stretched over the label, so it is the hit area and the thing that takes focus.</li>
+  <li><strong>Chip</strong> (<code>.swatch-set__chip</code>): a 44px circle in the swatch colour with a 2px <code>--line</code> frame, so any colour has an edge.</li>
+  <li><strong>Check</strong> (<code>.ic--check</code>): shown only on the chosen swatch, black or white by the swatch's lightness, or on a paper plate in forced colours.</li>
+  <li><strong>Selection ring</strong> (<code>::after</code> of the chip): the doubled frame. A gap of one line width, then a second 2px line.</li>
+  <li><strong>Name</strong> (<code>.swatch-set__name</code>): sentence case, visible, 20px under the chip (10px clear of the focus ring around a chosen chip), wraps between words. Underlined when chosen.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Swatch classes and attributes</caption>
+  <thead><tr><th>Part</th><th>Attribute</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>fieldset.swatch-set</code></td><td><code>&lt;legend&gt;</code> (required)</td><td>The group. Names the choice for assistive tech.</td></tr>
+    <tr><td><code>.swatch-set__list</code></td><td></td><td>A wrapping grid of options. A column holds a 4rem name ("Terracotta") and never less than the chip, and the row shows six at most, so a name is never cut inside a word.</td></tr>
+    <tr><td><code>label.swatch-set__opt</code></td><td><code>style="--swatch: #b4532a"</code></td><td>The swatch colour: any CSS colour. The only colour in the component that is not a role.</td></tr>
+    <tr><td><code>input[type=radio]</code></td><td><code>name</code>, <code>value</code>, <code>checked</code>, <code>disabled</code></td><td>The state. Everything visual follows <code>:checked</code>, <code>:focus-visible</code> and <code>:disabled</code>.</td></tr>
+    <tr><td>Custom property</td><td><code>--swatch</code></td><td>Falls back to <code>--paper-2</code> if you forget it, so a missing colour is visibly empty rather than invisible.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Swatch keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd></td><td>Enters the group on the chosen swatch (or the first when none is chosen); the next <kbd>Tab</kbd> leaves it. Native radio behaviour.</td></tr>
+    <tr><td><kbd>Left</kbd> <kbd>Right</kbd> <kbd>Up</kbd> <kbd>Down</kbd></td><td>Move to the next or previous swatch and choose it, wrapping at the ends. Native.</td></tr>
+    <tr><td><kbd>Space</kbd></td><td>Chooses the focused swatch if none is chosen.</td></tr>
+    <tr><td>Screen reader</td><td>"Backdrop, group. Sky, radio button, checked, 1 of 12." The name is the visible word, so it is read and can be spoken to select.</td></tr>
+    <tr><td>Touch</td><td>Tap the chip or its name: the whole label is at least 44px wide and tall. No gesture.</td></tr>
+    <tr><td>Zoom / text size</td><td>The chip, the check and the insets keep their size; the names grow, and the columns are sized for them, so at 200% text on a phone a set is two to a row (not one big circle a row) and a name never breaks inside a word.</td></tr>
+    <tr><td>Reduced motion</td><td>The chip does not travel when it lifts; the shadow and the pressed tint still show.</td></tr>
+    <tr><td>Forced colours</td><td>Swatches keep their colour; frames become <code>CanvasText</code>; the chosen one has a 4px frame, a <code>Highlight</code> ring and its check on a Canvas plate.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--paper</code>, <code>--paper-2</code>, <code>--ink</code>, <code>--ink-faint</code>, <code>--line</code>, <code>--focus</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--ring</code>, <code>--ring-offset</code>, <code>--radius-pill</code>, <code>--radius-tile</code>, <code>--chrome-ctl</code>, <code>--chrome-hit</code>, <code>--chrome-ic-sm</code>, <code>--chrome-1</code> to <code>--chrome-4</code>, <code>--space-2</code>, <code>--fill</code>, <code>--type-ctl</code>, <code>--type-meta</code>, <code>--lift</code>, <code>--dur-hover</code>, <code>--dur-press</code>, <code>--ease-out</code>, <code>--move</code>. The one non-role input is <code>--swatch</code>.</p>

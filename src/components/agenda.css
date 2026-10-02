@@ -1,0 +1,506 @@
+/* ==========================================================================
+   Agenda  (layer: sg.components)
+   --------------------------------------------------------------------------
+   What is on, when. Two layouts built on the owner's Card, for two questions:
+
+   1 · DAYS (.agenda)      "what is this week like?" A list of tonal day cards; in each, the
+                           hours that have something are columns (rows on a phone) and the events
+                           in an hour stack.
+   2 · ONE DAY (.agenda-day)  "what does Friday look like?" A time grid: hours down the side, event
+                           cards as tall as they last, overlapping events side by side in lanes.
+                           When the lanes cannot fit, they stack into a plain list in time order.
+
+   Days list
+   <ol class="agenda" role="list">
+     <li class="card agenda__day" data-tone="1">
+       <div class="card__body agenda__body">
+         <header class="agenda__date">
+           <p class="agenda__dow">Wednesday</p>
+           <h3 class="agenda__num"><time datetime="2026-09-30">30<small>Sep</small></time></h3>
+         </header>
+         <ol class="agenda__slots" role="list">
+           <li class="agenda__slot">
+             <time class="agenda__hour" datetime="08:00">8:00</time>
+             <ul class="agenda__events" role="list">
+               <li><a class="agenda__event" href="#">Cards due<span class="agenda__len">20 min</span></a></li>
+             </ul>
+           </li>
+         </ol>
+       </div>
+     </li>
+   </ol>
+
+   One day
+   <div class="agenda-day" role="group" aria-labelledby="t" data-lanes="2" style="--steps: 24; --lanes: 2">
+     <h3 id="t">Friday 2 October</h3>
+     <div class="agenda-day__grid">
+       <ol class="agenda-day__hours" aria-hidden="true"><li><time>9:00</time></li> … one per hour</ol>
+       <ol class="agenda-day__events" role="list">
+         <li class="card card--link agenda-day__event" data-tone="4" style="--from: 3; --to: 5; --lane: 1">
+           <div class="card__body">
+             <h4 class="card__title"><a class="card__link" href="#">Standup</a></h4>
+             <p class="card__meta"><time datetime="09:30">9:30</time> to <time datetime="10:00">10:00</time></p>
+           </div>
+         </li>
+       </ol>
+     </div>
+   </div>
+
+   --from / --to   the grid lines the event starts and ends on; the grid has a line every 15 minutes
+                   (from = minutes after the first hour / 15 + 1). --lane is 1, 2, 3 ... and --span
+                   how many lanes wide it is (default 1). SG.agenda.layout() works all four out.
+   --steps         how many 15-minute rows the grid has (4 x the hours shown)
+   --lanes  and  data-lanes  how many events ever overlap (1 to 3). data-lanes lets CSS know when
+                   the lanes no longer fit: 2 lanes need 16rem, 3 lanes 26rem of width.
+   --step          the height of 15 minutes (default 2rem; an hour is 8rem). A 30-minute event is two steps, 4rem:
+                   inside its frame and padding that is room for a title on two lines AND its time line, which is
+                   what a half-hour event in a narrow lane (a phone: ~7rem wide) needs. At 1.75rem the time line
+                   fell onto the bottom frame, and in soft corners the corner cut its first digits.
+
+   WHY THE EVENT CARDS ARE CARDS  They are the owner's element: a 2px frame, a tone, the stretched
+   link with one tab stop, the lift on hover. Each event keeps the whole card's hit area. Nothing is
+   re-implemented; only its size is decided here (grid rows), and its body is tightened.
+   WHY OVERLAPS STACK BELOW A WIDTH  Two lanes at 10rem each read fine; three at 6rem do not. Rather
+   than shrink the text, the lanes give up the time scale and stack in time order: every event still
+   shows its own start and end. Under 12rem (200 % text on a phone) that holds for any lane count, since
+   even one lane cannot fit a title and two times inside a 15-minute row.
+   WHY THE HOUR LABELS ARE aria-hidden  Every event states its own times as text, so the ruler on
+   the side is a visual aid; reading it aloud would add 6 meaningless "9:00, 10:00" stops.
+
+   WHY THE TIME IS ALWAYS UNDER THE TITLE  An event says what, then when, the same way everywhere: in a chip,
+   in a lane, in the stacked list. When a time sat beside its title wherever it happened to fit, one chip read
+   "Study group 18:00 – 19:00" and the next "Design review" over "14:00 – 15:30": the eye had to hunt.
+   WHY THE HOUR GOES ABOVE ITS EVENTS ON A NARROW CARD  Beside a 3.5rem hour label, a chip at 200% text on a
+   phone had a sliver left and its words came out one letter per line. Under about 15.5rem of card the hour
+   label takes its own line and the chips get the whole width (a container query on the card). The weekday is
+   over the date on every card at every size, so the dates line up down the list.
+   WHY BACK-TO-BACK EVENTS HAVE A GAP  Two frames that touch read as one 4px line: each event stops 2px short
+   of its end, so a standup and the review after it stay two things.
+   LARGE TEXT  Words grow; the chips' insets, their 44px height and the rows' padding are chrome (--chrome-*).
+
+   STATES  events in the days list are links: hover and keyboard focus lift them (--lift) and pressing
+   puts them down with a 12% tint of their own ink, at once; the day card itself is not pressable, so it never
+   lifts. They are actions, not choices, so they keep their fill in every state (the selection-control recipe
+   does not apply).
+   ========================================================================== */
+
+@layer sg.components {
+  /* =========================================================================
+     1 · DAYS
+     ========================================================================= */
+  .agenda {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* the card's own tone decides the chip colours: read on the element that has data-tone */
+  .agenda__day {
+    --_fill: var(--tone-fill, var(--ink));
+    --_on-fill: var(--tone-on-fill, var(--paper));
+    --_rule: var(--card-ink);
+  }
+
+  /* two classes: Card sets .card__body to a flex column, and this file sorts before card.css */
+  .card__body.agenda__body {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  /* the weekday over the date on every card and at every size, so the dates line up down the list (in a row,
+     "30" followed WEDNESDAY and "2" followed FRIDAY, and the numbers zigzagged) */
+  .agenda__date {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .agenda__dow {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--card-ink-soft);
+  }
+
+  .agenda__num {
+    font: var(--type-figure);
+    font-size: clamp(2.25rem, 16cqi, 4rem);
+    letter-spacing: var(--ls-figure);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .agenda__num small {
+    margin-inline-start: 0.25em;
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--card-ink-soft);
+  }
+
+  /* the hours that have something: rows on a phone */
+  .agenda__slots {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .agenda__slot {
+    display: grid;
+    align-content: start;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: var(--chrome-2) var(--chrome-3);
+    padding-block: var(--chrome-2);
+    border-block-start: var(--bw-thin) solid var(--_rule);
+  }
+
+  /* a narrow card (200% text on a phone): the hour takes its own line above its events, so a chip gets the
+     card's whole width instead of a sliver beside the label */
+  @container card (max-width: 15.5rem) {
+    .agenda__slot {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .agenda__slot > .agenda__hour {
+      padding-block-start: 0;
+    }
+  }
+
+  .agenda__hour {
+    padding-block-start: calc(var(--chrome-2) + var(--bw)); /* on the chip's first line: its frame and inset */
+    font: var(--type-meta);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .agenda__events {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* an event: a filled chip you press, its title over its time. Hard shadow and lift only while it can be pressed. */
+  .agenda__event {
+    --lift: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--chrome-1);
+    min-block-size: var(--chrome-hit);
+    padding: var(--chrome-2) var(--chrome-3);
+    color: var(--_on-fill);
+    background: var(--_fill);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+    box-shadow: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    font: var(--type-body);
+    font-weight: 600;
+    font-size: var(--text-md);
+    line-height: var(--lh-snug);
+    overflow-wrap: break-word;
+    text-decoration: none;
+    transform: translate(
+      calc(var(--lift) * var(--space-1) / -2 * var(--move)),
+      calc(var(--lift) * var(--space-1) / -2 * var(--move))
+    );
+    transition: --lift var(--dur-hover) var(--ease-out);
+
+    &:focus-visible {
+      box-shadow: var(--focus-shadow), calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    }
+
+    @media (hover: hover) {
+      &:is(:hover, .is-hover) {
+        --lift: 1;
+      }
+    }
+    &:is(:focus-visible, .is-focus) {
+      --lift: 1;
+    }
+    /* .is-focus forces the state on the docs page: it has to show the ring a real focus gets, or "Focus" looks like "Hover" */
+    &.is-focus {
+      --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+      outline: var(--ring) solid var(--focus);
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: var(--focus-shadow), calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--line);
+    }
+    /* pressed: down, and the fill takes 12% of its own ink at once. A chip already lies flat at rest, so
+       "--lift 0" alone changed nothing and a tap on a phone showed no feedback (golden rule 14). Its words
+       keep 7:1 on the tint in every tone and theme. */
+    &:is(:active, .is-active) {
+      --lift: 0;
+      background: color-mix(in srgb, var(--_fill) 88%, var(--_on-fill));
+      transition-duration: var(--dur-press);
+    }
+  }
+
+  .agenda__len {
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* a time never breaks inside itself: "14:00" stays whole, a range may break after its dash */
+  .agenda__len > time,
+  .agenda-day__event .card__meta > time {
+    white-space: nowrap;
+  }
+
+  /* wide: the hours become columns with 1px rules between, and the date is a rail on the left.
+     The query is on the CARD (every .card is a size container named "card"). */
+  @container card (min-width: 34rem) {
+    .card__body.agenda__body {
+      grid-template-columns: 8.5rem minmax(0, 1fr);
+      align-items: start;
+      column-gap: var(--space-5);
+    }
+    /* room inside the scroller for a chip's 4px shadow and the focus ring, which overflow clipping would cut off */
+    .agenda__slots {
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(9rem, 1fr);
+      margin: calc(var(--space-2) * -1);
+      padding: var(--space-2);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+    }
+    .agenda__slot {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-2);
+      padding: 0 var(--space-3);
+      border-block-start: 0;
+      border-inline-start: var(--bw-thin) solid var(--_rule);
+    }
+    .agenda__slot:first-child {
+      border-inline-start: 0;
+      padding-inline-start: 0;
+    }
+    .agenda__hour {
+      padding-block-start: 0;
+    }
+  }
+
+  /* =========================================================================
+     2 · ONE DAY
+     ========================================================================= */
+  .agenda-day {
+    --step: 2rem; /* 15 minutes; an hour is 8rem. See the header: 2 steps must hold a two-line title and the time */
+    container: agenda-day / inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-inline-size: 0;
+  }
+
+  .agenda-day__title {
+    font: var(--type-title);
+    font-size: var(--text-lg);
+    letter-spacing: var(--ls-title);
+  }
+
+  .agenda-day__grid {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    grid-template-rows: repeat(var(--steps, 24), var(--step));
+  }
+
+  /* the ruler: one row per hour, each spanning four 15-minute rows, across the whole width */
+  .agenda-day__hours {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .agenda-day__hours > li {
+    grid-row: span 4;
+    padding-block-start: var(--chrome-1);
+    border-block-start: var(--bw-thin) solid var(--line-soft);
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--ink-soft);
+  }
+
+  .agenda-day__hours > li:last-child {
+    border-block-end: var(--bw-thin) solid var(--line-soft);
+  }
+
+  /* the events sit in the second column, on the same rows, in lanes */
+  .agenda-day__events {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+    grid-template-columns: repeat(var(--lanes, 1), minmax(0, 1fr));
+    column-gap: var(--chrome-2);
+    margin: 0;
+    padding: 0 0 0 var(--chrome-2);
+    list-style: none;
+  }
+
+  .agenda-day__event {
+    grid-row: var(--from, auto) / var(--to, auto);
+    grid-column: var(--lane, 1) / span var(--span, 1);
+    --card-pad: var(--chrome-2);
+    --card-gap: 0;
+    z-index: 1;
+    margin-block-end: calc(var(--chrome-1) / 2); /* 2px short of its end: back-to-back frames never fuse into one 4px line */
+  }
+
+  /* An event takes the tile corners: the card radius (24px when soft) is most of a half-hour event's height and it cut the
+     first digits of the time. Two classes, because card.css sorts after this file and sets --card-radius on .card. */
+  .agenda-day .agenda-day__event {
+    --card-radius: var(--radius-tile);
+  }
+
+  /* the title over its times, in every event (see the header); the title keeps to two lines so a 30-minute
+     event never spills into the next */
+  .agenda-day__event.card--link .card__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start; /* the times right under the title, not pushed to the card's foot */
+    gap: 0;
+    min-block-size: 0;
+    padding: calc(var(--chrome-1) / 2) var(--chrome-2);
+  }
+
+  .agenda-day__event .card__title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font: var(--type-body);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: var(--lh-snug);
+  }
+
+  .agenda-day__event .card__meta {
+    font-size: var(--text-xs);
+    line-height: var(--lh-snug);
+    white-space: nowrap;
+  }
+
+  /* A column too narrow for the text size, whatever the lane count (200 % text on a phone): an event's title and
+     times need more room than its length on a fixed time scale, and the card would cut them off (WCAG 1.4.4 / 1.4.10).
+     Give up the scale, keep the order. 12rem is in rem, so bigger text stacks sooner. */
+  @container agenda-day (max-width: 12rem) {
+    .agenda-day .agenda-day__grid {
+      display: block;
+    }
+    .agenda-day .agenda-day__hours {
+      display: none;
+    }
+    .agenda-day .agenda-day__events {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none; /* the parent is a block now: a subgrid of it has no rows, and every card would collapse to its borders */
+      gap: var(--space-2);
+      padding: 0;
+    }
+    .agenda-day .agenda-day__event {
+      grid-row: auto;
+      grid-column: auto;
+      min-block-size: var(--chrome-hit);
+      margin-block-end: 0;
+    }
+    .agenda-day .agenda-day__event .card__title {
+      display: block; /* stacked cards grow with their words, so the two-line clamp that protects the time scale goes */
+      overflow: visible;
+    }
+    .agenda-day .agenda-day__event .card__meta {
+      white-space: normal;
+    }
+  }
+
+  /* the lanes do not fit: give up the time scale, keep the order. Every event says its own times.
+     Two lanes need about 16rem, three about 26rem (rem, so bigger text stacks sooner). */
+  @container agenda-day (max-width: 16rem) {
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__grid {
+      display: block;
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__hours {
+      display: none;
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__events {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none; /* the parent is a block now: a subgrid of it has no rows, and every card would collapse to its borders */
+      gap: var(--space-2);
+      padding: 0;
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__event {
+      grid-row: auto;
+      grid-column: auto;
+      min-block-size: var(--chrome-hit);
+      margin-block-end: 0;
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__event .card__title {
+      display: block; /* stacked cards grow with their words, so the two-line clamp that protects the time scale goes */
+      overflow: visible;
+    }
+    .agenda-day:is([data-lanes="2"], [data-lanes="3"]) .agenda-day__event .card__meta {
+      white-space: normal;
+    }
+  }
+
+  @container agenda-day (max-width: 26rem) {
+    .agenda-day[data-lanes="3"] .agenda-day__grid {
+      display: block;
+    }
+    .agenda-day[data-lanes="3"] .agenda-day__hours {
+      display: none;
+    }
+    .agenda-day[data-lanes="3"] .agenda-day__events {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none; /* the parent is a block now: a subgrid of it has no rows, and every card would collapse to its borders */
+      gap: var(--space-2);
+      padding: 0;
+    }
+    .agenda-day[data-lanes="3"] .agenda-day__event {
+      grid-row: auto;
+      grid-column: auto;
+      min-block-size: var(--chrome-hit);
+      margin-block-end: 0;
+    }
+    .agenda-day[data-lanes="3"] .agenda-day__event .card__title {
+      display: block; /* stacked cards grow with their words, so the two-line clamp that protects the time scale goes */
+      overflow: visible;
+    }
+  }
+
+  /* ---- forced colours: fills go, so the chip keeps a system-colour frame and a heavier one on focus ---- */
+  @media (forced-colors: active) {
+    .agenda__event {
+      border-color: ButtonText;
+      color: ButtonText;
+    }
+    .agenda__event:is(.is-hover, :focus-visible, .is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+    .agenda__slot {
+      border-color: CanvasText;
+    }
+    .agenda-day__hours > li {
+      border-color: CanvasText;
+    }
+  }
+
+  @media (forced-colors: active) and (hover: hover) {
+    .agenda__event:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+}

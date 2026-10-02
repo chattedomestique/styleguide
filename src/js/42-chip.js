@@ -1,0 +1,202 @@
+/* ==========================================================================
+   Chips  (filter toggles, removable input chips, "+N" disclosure)
+   --------------------------------------------------------------------------
+   Markup and look are in src/components/chip.css. Everything here is opt-in per
+   row: put data-sg-chips on the .chips container (or any ancestor). An app that
+   handles its own clicks simply leaves the attribute off.
+
+   FILTER CHIPS   <button class="chip" aria-pressed="false">
+     click / Enter / Space flips aria-pressed.   Event  sg:chip-toggle  detail { chip, pressed }
+   (Choice chips are native radios and need no script.)
+
+   INPUT CHIPS    <li class="chip" data-kind="input"> … <button class="chip__remove" aria-label="Remove Anna">
+     Activating the remove button (click, Enter, Space, or Delete / Backspace while it
+     is focused) removes the chip and then:
+       1. moves focus to the NEXT chip's remove button, else the PREVIOUS one, else
+          the element named by data-empty-focus on the row, else the row itself
+          (it gets tabindex="-1"; give it an aria-label so its name is announced);
+       2. announces "Anna removed. 2 left." through SG.announce. Override the wording with
+          data-removed-text="{label} removed, {count} remaining" on the row.
+     Event  sg:chip-remove  detail { chip, label }   bubbles and is CANCELABLE: call
+     preventDefault() to keep the chip (for example while a server call confirms), and
+     remove it yourself later.
+
+   "+N" DISCLOSURE  <button class="chip" data-kind="more" aria-expanded="false" aria-controls="ids">
+     flips aria-expanded and the hidden attribute of every element named in aria-controls
+     (a space-separated list) through SG.disclose (43-disclose.js). Focus stays on the button.
+
+   SCROLLING ROW  (.chips.scroller, needs no data attribute)
+     When a chip takes focus inside a horizontally scrolling row, the row scrolls so the whole
+     chip shows, with a sliver of the next one. Browsers leave a partly visible chip where it
+     is, which cuts its focus ring in half. Uses SG.revealInline (40-tabs.js), which honours
+     SG.motion.reduced(). The chip that peeks in at the edge is the sign that the row goes on,
+     so where it is cut is not luck: at rest every chip's side padding changes by the same small
+     amount (--_grow on the row, half a side) until that chip shows between 30% and 60% of
+     itself and at least 24px (never a sliver, never a chip missing only its round end); a row
+     that misses by a few pixels is tightened (at most 4px a side) until it fits. Re-measured
+     when the row or a chip changes size (rotation, text size, fonts).
+   ========================================================================== */
+(function (SG) {
+  'use strict';
+
+  function rowOf(el) {
+    return el.closest('[data-sg-chips]');
+  }
+
+  /* ---- filter toggle ---------------------------------------------------------------------- */
+  function toggle(chip) {
+    var on = chip.getAttribute('aria-pressed') !== 'true';
+    chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+    chip.dispatchEvent(new CustomEvent('sg:chip-toggle', { bubbles: true, detail: { chip: chip, pressed: on } }));
+  }
+
+  /* ---- "+N" disclosure: the generic one (43-disclose.js) does the work --------------------------- */
+  function disclose(button) {
+    return SG.disclose(button);
+  }
+
+  /* ---- input chip removal ---------------------------------------------------------------------- */
+  function labelOf(chip, button) {
+    var explicit = chip.getAttribute('data-label');
+    if (explicit) return explicit;
+    var el = chip.querySelector('.chip__label');
+    if (el && el.textContent.trim()) return el.textContent.trim();
+    var name = (button.getAttribute('aria-label') || '').replace(/^\s*remove\s+/i, '').trim();
+    return name || chip.textContent.trim();
+  }
+
+  function removable(row) {
+    return SG.qsa('.chip', row).filter(function (c) { return c.querySelector('.chip__remove'); });
+  }
+
+  function remove(button, row) {
+    var chip = button.closest('.chip');
+    if (!chip) return;
+    var label = labelOf(chip, button);
+    var ok = chip.dispatchEvent(new CustomEvent('sg:chip-remove', { bubbles: true, cancelable: true, detail: { chip: chip, label: label } }));
+    if (!ok) return; // the app keeps the chip for now
+
+    var chips = removable(row);
+    var i = chips.indexOf(chip);
+    var neighbour = chips[i + 1] || chips[i - 1] || null;
+    var target = neighbour && neighbour.querySelector('.chip__remove');
+    if (!target) {
+      var sel = row.getAttribute('data-empty-focus');
+      target = (sel && document.querySelector(sel)) || row;
+      if (target === row && !row.hasAttribute('tabindex')) row.setAttribute('tabindex', '-1');
+    }
+
+    chip.remove();          // remove first: a focused element that disappears drops focus to <body>
+    target.focus();
+
+    var left = chips.length - 1;
+    var template = row.getAttribute('data-removed-text');
+    var message = template
+      ? template.replace(/\{label\}/g, label).replace(/\{count\}/g, String(left))
+      : label + ' removed. ' + (left ? left + ' left.' : 'None left.');
+    SG.announce(message);
+  }
+
+  /* ---- wiring (delegated, so chips added later just work) ----------------------------------------- */
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var rm = t.closest('.chip__remove');
+    if (rm) {
+      var r = rowOf(rm);
+      if (r) remove(rm, r);
+      return;
+    }
+    var chip = t.closest('.chip');
+    if (!chip || !rowOf(chip)) return;
+    if (chip.hasAttribute('aria-expanded') && chip.hasAttribute('aria-controls')) disclose(chip);
+    else if (chip.hasAttribute('aria-pressed')) toggle(chip);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    var rm = e.target.closest && e.target.closest('.chip__remove');
+    var row = rm && rowOf(rm);
+    if (!row) return;
+    e.preventDefault();
+    remove(rm, row);
+  });
+
+  document.addEventListener('focusin', function (e) {
+    var t = e.target;
+    var row = t && t.closest && t.closest('.chips.scroller');
+    if (!row || !SG.revealInline) return;
+    var item = t;
+    while (item.parentElement && item.parentElement !== row) item = item.parentElement;
+    if (item.parentElement === row) SG.revealInline(item, row, 24);
+  });
+
+  /* ---- scrolling row: a deliberate cut at rest -------------------------------------------------------------- */
+  var SHRINK = -8;
+  var GROW = 48;
+  function cut(row) {
+    row.style.removeProperty('--_grow');
+    if (row.scrollWidth <= row.clientWidth + 1) return;
+    var cs = getComputedStyle(row);
+    var rtl = cs.direction === 'rtl';
+    var box = row.getBoundingClientRect();
+    var padS = parseFloat(cs.paddingInlineStart) || 0;
+    var room = box.width - padS - (parseFloat(cs.paddingInlineEnd) || 0);
+    var edge = box.width - padS; // the clipping edge at rest, in content coordinates
+    var pos = Math.abs(row.scrollLeft);
+    var items = SG.qsa('.chip', row).filter(function (c) { return c.getClientRects().length; }).map(function (c) {
+      var r = c.getBoundingClientRect();
+      return { s: (rtl ? box.right - r.right : r.left - box.left) - padS + pos, w: r.width };
+    });
+    function at(grow) { // the first chip that is not whole inside the row's padding when every chip is `grow` wider
+      for (var i = 0; i < items.length; i++) {
+        var s = items[i].s + i * grow;
+        var w = items[i].w + grow;
+        if (s + w > room + 0.5) return { v: edge - s, w: w };
+      }
+      return null;
+    }
+    var chosen = null;
+    if (!at(SHRINK)) {
+      for (var f = 0; f >= SHRINK; f -= 0.5) if (!at(f)) { chosen = f; break; }
+    } else {
+      for (var d = 0; d <= GROW && chosen === null; d += 0.5) {
+        [d, -d].some(function (grow) {
+          if (grow < SHRINK) return false;
+          var c = at(grow);
+          if (c && c.v >= Math.max(24, 0.3 * c.w) && c.v <= 0.6 * c.w) { chosen = grow; return true; }
+          return false;
+        });
+      }
+    }
+    if (chosen) row.style.setProperty('--_grow', chosen + 'px');
+  }
+  // one re-fit per row per frame, outside the ResizeObserver callback (it changes the sizes it watches)
+  var queued = [];
+  function later(row) {
+    if (queued.indexOf(row) > -1) return;
+    queued.push(row);
+    if (queued.length === 1) requestAnimationFrame(function () {
+      var rows = queued;
+      queued = [];
+      rows.forEach(cut);
+    });
+  }
+  function watch(row) {
+    if (row.hasAttribute('data-sg-cut')) return;
+    row.setAttribute('data-sg-cut', '');
+    cut(row);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(function () { later(row); });
+      ro.observe(row);
+      SG.qsa('.chip', row).forEach(function (c) { ro.observe(c); });
+    }
+  }
+  SG.ready(function () { SG.qsa('.chips.scroller').forEach(watch); });
+  if (document.fonts && document.fonts.addEventListener) {
+    document.fonts.addEventListener('loadingdone', function () { SG.qsa('.chips.scroller').forEach(later); });
+  }
+
+  SG.chips = { toggle: toggle, disclose: disclose, fit: cut };
+})((window.SG = window.SG || {}));

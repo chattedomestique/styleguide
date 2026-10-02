@@ -1,0 +1,179 @@
+/*! styleguide v0.2.0 - element: keypad. Needs core.css. Generated from src/components/keypad.css. */
+@layer sg.reset, sg.tokens, sg.base, sg.layout, sg.wire, sg.components, sg.utilities;
+
+/* ==========================================================================
+   Keypad  (layer: sg.components)
+   --------------------------------------------------------------------------
+   A numeric keypad for entering an amount with one thumb: twelve round keys in the phone-standard
+   3 x 4 order (1 2 3 / 4 5 6 / 7 8 9 / . 0 delete), an amount display, and (optionally) a confirm
+   button that the keypad keeps switched off until there is an amount.
+
+   <div class="keypad" data-sg-keypad data-currency="USD" data-decimals="2" data-max="5000">
+     <div class="keypad__screen">
+       <label class="keypad__label" for="amt">Amount to send</label>
+       <output class="keypad__display" id="amt" aria-live="polite" aria-atomic="true">$0</output>
+       <p class="t-meta" id="amt-hint">Available: $2,568.00</p>
+     </div>
+     <div class="keypad__keys" role="group" aria-label="Number pad">
+       <button class="btn keypad__key" type="button" data-shape="circle" data-key="1">1</button> …
+       <button class="btn keypad__key" type="button" data-shape="circle" data-key="." aria-label="Decimal point">.</button>
+       <button class="btn keypad__key" type="button" data-shape="circle" data-key="0">0</button>
+       <button class="btn keypad__key" type="button" data-shape="circle" data-key="back" aria-label="Delete last digit">
+         <span class="ic ic--delete" aria-hidden="true"></span></button>
+     </div>
+     <button class="btn" data-variant="primary" data-block type="button" data-sg-keypad-confirm aria-describedby="amt-hint">Send money</button>
+   </div>
+
+   data-currency    ISO 4217 code: prefix / suffix and grouping come from Intl in the page language
+   data-decimals    digits after the point: 2 (default), 0 hides the point key (aria-disabled)
+   data-max         largest value; a key press that would pass it is refused and announced
+   data-max-digits  most digits in all (default 9)
+   data-min         smallest value that enables the confirm button (default: anything above 0)
+   name="…" on a hidden <input> inside .keypad receives the plain value ("12.50") for a form
+
+   THE KEYS ARE BUTTONS. Circles act, so each key is an ordinary circle .btn (outline at rest, fills and
+   lifts on hover and focus, sinks when pressed); this file only sizes them and sets their figures. Keys
+   are at least 44 px, at most 88, with a 12 px gap: a big key whose neighbours touch is how people
+   mis-tap a payment. (Squeezed under 12rem, a phone frame at 200% text, the keypad tightens the gap and
+   lets the figures follow the key: the keys are drawn a little under 44 px, their ::after hit area still
+   reaches 44, and the amount stays on one line.) The DOM order IS the visual order, and the visible text of a key is its name
+   (WCAG 2.5.3). The decimal key is punctuation, so it gets a spoken name ("Decimal point").
+
+   THE DISPLAY is an <output>: a live region (polite, atomic) that reads the whole amount after each key.
+   It is not editable and not focusable; it is a readout. A hardware keyboard works too: digits,
+   the point or comma, Backspace and Delete, while focus is anywhere in the keypad. Enter still
+   presses the focused button (that is how keyboard-only people use the keys); the confirm button is
+   its own stop.
+
+   NOT FOR PINs OR PASSWORDS. A custom pad blocks paste and password managers, which fails WCAG 3.3.8.
+   Use a native <input type="password" inputmode="numeric" autocomplete="one-time-code"> for those.
+   ========================================================================== */
+
+@layer sg.components {
+  .keypad {
+    container: keypad / inline-size;
+    display: grid;
+    gap: var(--space-5);
+    inline-size: 100%;
+    max-inline-size: 22rem;
+    min-inline-size: 0;
+    /* a capped pad sits in the middle of a wider screen (a tablet, a docs stage), not against its left edge;
+       on a phone it is already full width, so nothing moves */
+    margin-inline: auto;
+  }
+
+  .keypad__screen {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+
+  .keypad__label {
+    font: var(--type-ctl);
+    line-height: var(--lh-snug);
+    overflow-wrap: break-word; /* a caption wraps between words; only the amount below may break anywhere */
+  }
+
+  /* The amount. A rectangle that holds, flat, figure type, sized from the keypad's own width. */
+  .keypad__display {
+    --_inset: 0 0 0 0 transparent;
+
+    display: block;
+    min-inline-size: 0;
+    padding: var(--space-3) var(--space-4);
+    color: var(--ink);
+    background: var(--paper);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--radius-ctl);
+    box-shadow: var(--_inset);
+    font: var(--type-figure);
+    font-size: clamp(2.25rem, 13cqi, 3.5rem);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--ls-figure);
+    font-variant-numeric: tabular-nums lining-nums;
+    text-align: end;
+    overflow-wrap: break-word;
+  }
+  /* nothing typed yet: the zero is a placeholder (--ink-mute is still 4.5:1) */
+  .keypad[data-empty] .keypad__display {
+    color: var(--ink-mute);
+  }
+  /* a key press was refused (limit reached): the frame doubles in bad-ink for a moment, and the
+     message is announced. The words are the cue; the frame only points at them. */
+  .keypad[data-state="limit"] .keypad__display {
+    --_inset: inset 0 0 0 var(--bw) var(--bad-ink);
+    border-color: var(--bad-ink);
+  }
+
+  /* The 3 x 4 grid. Columns are at most 88 px, centred, so the gap is 12 px both ways whatever the
+     width (a circle inside a wider cell leaves uneven gaps, and uneven gaps read as a loose pad). */
+  .keypad__keys {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 5.5rem));
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  /* Keys are .btn circles; this sizes and sets them. (Three classes beat .btn[data-shape]'s two
+     without relying on file order.) */
+  .keypad__keys > .btn.keypad__key {
+    inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 1;
+    /* A .btn never shrinks below --hit, which is 88 px at 200 % text: in a narrow column (a 320 px phone at
+       large text) the keys would overflow their cells and overlap. Let the column size them; the ::after
+       hit area still reaches --hit, and the 12 px gap keeps neighbours' hit areas apart. */
+    min-inline-size: 0;
+    min-block-size: 0;
+    font-size: clamp(1.5rem, 8cqi, 2rem);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  /* The delete key is a KEY, not an icon-only control: its glyph is as big as the digits beside it and
+     follows them (an icon-only circle's chrome cap left a 20px mark in a 110px key at 200% text). */
+  .keypad__keys > .btn.keypad__key > .ic {
+    --ic-size: 1.1em;
+  }
+
+  /* the point is the smallest glyph on the pad and the one people miss: draw it bigger and bolder */
+  .keypad__keys > .btn.keypad__key[data-key="."] {
+    font-size: clamp(2rem, 11cqi, 2.75rem);
+    font-weight: 900;
+  }
+
+  /* A keypad squeezed by large text in a narrow frame (under 12rem of width: a phone frame at 200 %
+     text is about 5rem). Sizes are rem, so every gap and glyph doubled while the frame did not:
+     three 44 px keys and two 24 px gaps no longer fit, the digits grew past their circles, and the
+     amount broke into one character per line. So: a smaller gap, the display's side padding gives
+     room to the figure (its floor drops from 2.25rem to 1.25rem, still following the keypad's width),
+     and the key glyphs take a lower floor. 44 px hit areas and >= 8 px between them hold. */
+  @container keypad (max-width: 12rem) {
+    .keypad__display {
+      padding-inline: var(--space-2);
+      font-size: clamp(1.25rem, 13cqi, 3.5rem);
+    }
+    .keypad__keys {
+      gap: var(--space-2);
+    }
+    .keypad__keys > .btn.keypad__key {
+      font-size: clamp(1rem, 8cqi, 2rem);
+    }
+    .keypad__keys > .btn.keypad__key[data-key="."] {
+      font-size: clamp(1.25rem, 11cqi, 2.75rem);
+    }
+    /* the confirm button: its longest word ("transfer") has to fit between the frame and itself, so it
+       drops from the large size to the body size and keeps 8 px of side padding. Wrapped, never broken. */
+    .keypad > .btn[data-block] {
+      padding-inline: var(--space-2);
+      font-size: var(--text-md);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .keypad__display {
+      border-color: CanvasText;
+    }
+    .keypad[data-state="limit"] .keypad__display {
+      border-width: var(--bw-heavy);
+    }
+  }
+}

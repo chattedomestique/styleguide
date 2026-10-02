@@ -1,0 +1,241 @@
+/* ==========================================================================
+   Base  (layer: sg.base)
+   Element defaults, type styles, focus, accessibility helpers.
+   From the owner's base.css, plus: the focus halo, skip link, hit-area, link
+   underline, forced-colours focus, Dynamic Type. Selectors are wrapped in
+   :where() so an app can override with a plain selector, no !important.
+   ========================================================================== */
+
+@layer sg.base {
+  :where(html) {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    color: var(--ink);
+    background: var(--canvas);
+    accent-color: var(--accent);
+    -webkit-tap-highlight-color: transparent; /* safe only because every control has a pressed state */
+    /* Keep the focused element clear of sticky chrome (WCAG 2.4.11). Set --appbar-h /
+       --dock-h from the components that are sticky or fixed. */
+    scroll-padding-block: calc(var(--appbar-h) + var(--space-3)) calc(var(--dock-h) + var(--safe-bottom) + var(--space-3));
+  }
+  /* No 300ms tap delay and no double-tap-to-zoom on controls (pinch zoom still works: WCAG 1.4.4). */
+  :where(a, button, summary, label, input, select, textarea, [role="button"], [role="tab"], [role="switch"], [role="slider"]) {
+    touch-action: manipulation;
+  }
+  /* iOS: follow Dynamic Type. -apple-system-body is the reader's chosen text size. Desktop
+     Safari resolves it to 13px, so that case is pinned back to 100%.
+     UNVERIFIED ON A DEVICE: if it misbehaves in your app, delete these two blocks; layouts
+     are in rem, so everything still scales with browser zoom. */
+  @supports (font: -apple-system-body) {
+    :where(html) {
+      font: -apple-system-body;
+      font-family: var(--font-sans);
+    }
+  }
+  @supports (font: -apple-system-body) and (not (-webkit-touch-callout: default)) {
+    :where(html) {
+      font-size: 100%;
+    }
+  }
+
+  :where(body) {
+    min-block-size: 100dvh;
+    font: var(--type-body);
+    color: var(--ink);
+    background: var(--canvas);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headings inherit a sensible default; the .t-* classes below are the real API. */
+  :where(h1, h2, h3) {
+    font: var(--type-title);
+    letter-spacing: var(--ls-title);
+    text-wrap: balance;
+  }
+  :where(h4, h5, h6) {
+    font: var(--type-body);
+    font-weight: 700;
+  }
+
+  /* Links are always underlined: colour alone must never be the only cue (WCAG 1.4.1). */
+  :where(a:not([class])) {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw);
+    text-underline-offset: 0.18em;
+  }
+
+  /* inverse of the surface, so selected text shows on an ink card and an ink bar too */
+  :where(::selection) {
+    background: var(--surface-ink, var(--ink));
+    color: var(--surface-bg, var(--paper));
+  }
+
+  :where(::placeholder) {
+    color: var(--ink-mute);
+    opacity: 1; /* some browsers dim placeholders; that would drop it under 4.5:1 */
+  }
+
+  :where(hr) {
+    border-color: var(--line-soft);
+  }
+
+  :where(code, kbd, samp, pre) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+  :where(kbd) {
+    padding: 0.05em 0.4em;
+    border: var(--bw-thin) solid var(--line);
+    background: var(--paper-2); /* a label for a key, not a control: a thicker bottom edge read as a pressable key cap */
+  }
+
+  /* --- type styles --------------------------------------------------------------
+     Uppercase is structure: display, labels, index numbers. Content is sentence
+     case; case is applied here in CSS, never typed into the HTML. */
+
+  :where(.t-display) {
+    font: var(--type-display);
+    letter-spacing: var(--ls-display);
+    text-transform: uppercase;
+    /* Poster type is wide. On a phone the width axis narrows (expanded -> condensed) so an
+       eight-letter title such as "Settings" still fits one line; a longer word wraps instead of
+       running off the screen. */
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  @media (max-width: 48em) {
+    :where(.t-display) {
+      font-stretch: 100%;
+    }
+  }
+  @media (max-width: 30em) {
+    :where(.t-display) {
+      font-stretch: 75%;
+    }
+  }
+  :where(.t-title) {
+    font: var(--type-title);
+    letter-spacing: var(--ls-title);
+    text-wrap: balance;
+  }
+  :where(.t-label) {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+  :where(.t-body) {
+    font: var(--type-body);
+    text-wrap: pretty;
+  }
+  :where(.t-meta) {
+    font: var(--type-meta);
+    font-variant-numeric: tabular-nums;
+    color: var(--surface-ink-soft, var(--ink-soft));
+  }
+  :where(.t-figure) {
+    font: var(--type-figure);
+    letter-spacing: var(--ls-figure);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  :where(.t-mono) {
+    font-family: var(--font-mono);
+  }
+  :where(.prose) {
+    max-inline-size: var(--measure);
+  }
+  :where(.prose > * + *) {
+    margin-block-start: var(--space-4);
+  }
+
+  /* --- focus ------------------------------------------------------------------------
+     The owner's ring: 3px solid --focus, offset 3px. Added: a --paper HALO fills the
+     offset gap, so the ring is still visible on surfaces where --focus vanishes (an ink
+     bar, a dock, a dark photo): the halo IS the ring there. Inside a [data-tone] element
+     both follow the tone (see 20-tones.css): --focus = its ink, --focus-halo = its fill. Components that clip or draw
+     their own box-shadow set --ring-gap / keep var(--focus-shadow). Never write
+     `outline: none` without a replacement (WCAG 2.4.7). */
+  :where(:focus-visible) {
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-gap, var(--ring-offset));
+  }
+  /* The same ring for a FORCED focus (.is-focus: the docs' state specimens and the specs), on the
+     controls that can really take focus. A specimen that shows no ring teaches nothing about the most
+     important state. Zero specificity, so a component that draws its own still wins. A range input is left
+     out: its focus is drawn on the thumb by its component (slider, scrubber), and the a11y gate tells
+     "is a ring drawn?" for a range by comparing it focused and not, which a forced ring would hide. */
+  :where(:is(a, button, input:not([type="range"]), select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"]).is-focus) {
+    outline: var(--ring) solid var(--focus);
+    outline-offset: var(--ring-gap, var(--ring-offset));
+  }
+  :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"]):is(:focus-visible, .is-focus:not([type="range"])) {
+    --focus-shadow: 0 0 0 var(--ring-gap, var(--ring-offset)) var(--focus-halo, var(--paper));
+    box-shadow: var(--focus-shadow);
+  }
+  :where([tabindex="-1"]):focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* --- accessibility helpers ----------------------------------------------------------- */
+  /* Becomes visible on keyboard focus: the first tabbable element on every page. */
+  :where(.skip-link) {
+    position: fixed;
+    inset-block-start: calc(var(--safe-top) + var(--space-2));
+    inset-inline-start: var(--space-2);
+    z-index: var(--z-overlay);
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--hit);
+    padding-inline: var(--space-4);
+    color: var(--paper);
+    background: var(--ink);
+    border: var(--bw) solid var(--paper);
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+  :where(.skip-link):focus {
+    transform: none;
+  }
+
+  /* Extends a small control's tappable area to --hit (44px) without changing how it looks.
+     Put on any control whose visible size is under 44px. */
+  :where(.hit-area) {
+    position: relative;
+  }
+  :where(.hit-area)::after {
+    content: "";
+    position: absolute;
+    inset-block: min(0px, calc((100% - var(--hit)) / 2));
+    inset-inline: min(0px, calc((100% - var(--hit)) / 2));
+  }
+
+  /* Interactive elements never wait for a double-tap-zoom decision. */
+  :where(a, button, [role="button"], input, select, summary, label) {
+    touch-action: manipulation;
+  }
+
+  /* --- forced colours ------------------------------------------------------------------
+     The browser replaces colours with the reader's palette and deletes shadows and
+     backgrounds. Structure lives in real borders and outlines, not shadows. */
+  @media (forced-colors: active) {
+    :where(:focus-visible),
+    :where(:is(a, button, input:not([type="range"]), select, textarea, summary, [tabindex], [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], [role="menuitem"], [role="option"]).is-focus) {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: var(--ring-gap, var(--ring-offset));
+      box-shadow: none;
+    }
+    :where(.skip-link) {
+      border-color: CanvasText;
+    }
+  }
+
+  /* Smooth scrolling only when motion is welcome. */
+  @media (prefers-reduced-motion: no-preference) {
+    :where(html:not([data-motion="reduced"])) {
+      scroll-behavior: smooth;
+    }
+  }
+}

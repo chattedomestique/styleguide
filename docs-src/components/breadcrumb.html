@@ -1,0 +1,178 @@
+<!--{"title":"Breadcrumb","group":"Components","order":46,"summary":"The trail from the top of a hierarchy to this page, with a way up at every step. A labelled nav, an ordered list, aria-current on the last item."}-->
+<h1>Breadcrumb</h1>
+<p class="lede">A breadcrumb shows where a page sits in a hierarchy and gives a way up to every level above it. It answers "where am I?" and "how do I go back up?", which the back button cannot.</p>
+
+<h2 id="when">When to use</h2>
+<div class="dodont">
+  <div class="note" data-kind="do">
+    <span class="ic ic--check" aria-hidden="true"></span>
+    <div><strong>Do</strong><p>Use it when content is nested three or more levels deep and people arrive from search or a link: <em>Library / Decks / Shapes</em>. Put it above the page title. Name each level the way the page itself is named.</p></div>
+  </div>
+  <div class="note" data-kind="dont">
+    <span class="ic ic--close" aria-hidden="true"></span>
+    <div><strong>Don't</strong><p>Use it for the app's main navigation (the <a href="@/components/dock.html">dock</a>), for steps in a process, or where the structure is flat: a two-level app only needs Back in its <a href="@/components/appbar.html">app bar</a>. Don't show the trail of pages the reader happened to visit: it is the path through the <em>structure</em>, not their history.</p></div>
+  </div>
+</div>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="basic">Basic</h3>
+<p>Every level above the page is a link, underlined. The page itself is bold and not underlined, so the two are told apart by more than colour, and it carries <code>aria-current="page"</code>. The chevrons are drawn by CSS and are not in the markup.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <ol class="breadcrumb__list" role="list">
+        <li><a href="#basic">Library</a></li>
+        <li><a href="#basic">Decks</a></li>
+        <li><a href="#basic" aria-current="page">Shapes</a></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<h3 id="collapsed">A long trail</h3>
+<p>When the trail is deeper than fits, keep the first level, the last two, and fold the middle into one <strong>…</strong> button. It is drawn at the scale of the words around it (its target is still 44px), and it is a disclosure (<code>aria-expanded</code>, <code>aria-controls</code> naming the hidden items): one press shows every level in place, and the button keeps its name, <em>Earlier levels</em>, so nothing is announced twice. While open it keeps a light tint.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <nav class="breadcrumb" aria-label="Breadcrumb, long">
+      <ol class="breadcrumb__list" role="list">
+        <li><a href="#collapsed">Library</a></li>
+        <li><button class="breadcrumb__more" type="button" data-sg-disclose aria-expanded="false" aria-controls="crumb-a crumb-b" aria-label="Earlier levels"><span class="ic ic--ellipsis" aria-hidden="true"></span></button></li>
+        <li id="crumb-a" hidden><a href="#collapsed">Languages</a></li>
+        <li id="crumb-b" hidden><a href="#collapsed">Spanish</a></li>
+        <li><a href="#collapsed">Verbs</a></li>
+        <li><a href="#collapsed" aria-current="page">Stem-changing</a></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<h3 id="wrap">It wraps, it never truncates</h3>
+<p>A trail in a narrow column drops onto a second line. Nothing is cut off with an ellipsis, because a clipped name is not a link anyone can use. The box starts at 14rem on every screen, so it wraps on all of them; drag its corner wider to watch the trail close up.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="resize-box" style="inline-size: min(100%, 14rem)">
+      <nav class="breadcrumb" aria-label="Breadcrumb, narrow">
+        <ol class="breadcrumb__list" role="list">
+          <li><a href="#wrap">Library</a></li>
+          <li><a href="#wrap">Languages</a></li>
+          <li><a href="#wrap">Spanish</a></li>
+          <li><a href="#wrap" aria-current="page">Irregular verbs</a></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<h3 id="surfaces">On a card, and on ink</h3>
+<p>The trail takes its colour from where it sits (<code>currentColor</code>), so it works on any surface without a variant, and the card already keeps the focus ring visible on ink.</p>
+<div class="demo">
+  <div class="demo__stage">
+    <div class="stack" data-gap="4">
+      <article class="card" data-tone="2">
+        <div class="card__body">
+          <nav class="breadcrumb" aria-label="Breadcrumb, on a tonal card">
+            <ol class="breadcrumb__list" role="list">
+              <li><a href="#surfaces">Wallet</a></li>
+              <li><a href="#surfaces">Pots</a></li>
+              <li><a href="#surfaces" aria-current="page">Holiday</a></li>
+            </ol>
+          </nav>
+          <p class="card__title">Holiday pot</p>
+        </div>
+      </article>
+      <article class="card" data-tone="ink">
+        <div class="card__body">
+          <nav class="breadcrumb" aria-label="Breadcrumb, on ink">
+            <ol class="breadcrumb__list" role="list">
+              <li><a href="#surfaces">Wallet</a></li>
+              <li><a href="#surfaces">Pots</a></li>
+              <li><a href="#surfaces" aria-current="page">Holiday</a></li>
+            </ol>
+          </nav>
+          <p class="card__title">Holiday pot</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<h3 id="context">In context</h3>
+<p>Above the page title, under the app bar. The bar's Back goes one step; the trail goes to any level.</p>
+<div class="demo" data-nocode>
+  <div class="demo__stage">
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="stack" data-gap="3">
+          <nav class="breadcrumb" aria-label="Breadcrumb, in a screen">
+            <ol class="breadcrumb__list" role="list">
+              <li><a href="#context">Library</a></li>
+              <li><a href="#context">Decks</a></li>
+              <li><a href="#context" aria-current="page">Shapes</a></li>
+            </ol>
+          </nav>
+          <p class="t-title">Shapes</p>
+          <p class="t-meta">12 cards ·&nbsp;5 known ·&nbsp;last studied yesterday</p>
+          <a class="btn" data-variant="primary" href="#context">Study now</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="anatomy">Anatomy</h2>
+<ol>
+  <li><strong>Landmark</strong> (<code>&lt;nav class="breadcrumb" aria-label="Breadcrumb"&gt;</code>): a labelled navigation region. The label distinguishes it from the main navigation.</li>
+  <li><strong>List</strong> (<code>&lt;ol class="breadcrumb__list" role="list"&gt;</code>): ordered, because the order is the meaning.</li>
+  <li><strong>Ancestor</strong>: a link, underlined, 44px tall with a hit area 44px wide even for a short word.</li>
+  <li><strong>Separator</strong>: a chevron in front of every item after the first, drawn by CSS, flipped in right-to-left layouts, invisible to assistive technology.</li>
+  <li><strong>Current page</strong>: the last item, bold, not underlined, with <code>aria-current="page"</code>. It may be plain text or a link to itself.</li>
+  <li><strong>Earlier levels</strong> (optional, <code>breadcrumb__more</code>): a small circle with an ellipsis, at the scale of the words, in place of the middle of a long trail. A disclosure button with a 44px target.</li>
+</ol>
+
+<h2 id="api">API</h2>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Breadcrumb classes and attributes</caption>
+  <thead><tr><th>Name</th><th>Values</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>class="breadcrumb"</code></td><td>on a <code>&lt;nav aria-label&gt;</code></td><td>The landmark; sets the type (14px).</td></tr>
+    <tr><td><code>breadcrumb__list</code></td><td>an <code>&lt;ol role="list"&gt;</code></td><td>The wrapping row of items and separators.</td></tr>
+    <tr><td><code>aria-current="page"</code></td><td>on the last item</td><td>Bold, no underline. Exactly one.</td></tr>
+    <tr><td><code>breadcrumb__more</code></td><td>a <code>&lt;button&gt;</code> holding an <code>ic--ellipsis</code>, with an <code>aria-label</code></td><td>The collapsed middle: a small circle drawn at text scale, a 44px target.</td></tr>
+    <tr><td><code>data-sg-disclose</code></td><td>on a button with <code>aria-expanded</code> and <code>aria-controls</code></td><td>Shows or hides the listed items (<code>43-disclose.js</code>).</td></tr>
+    <tr><td><code>sg:disclose</code></td><td><code>{ button, open }</code></td><td>Fired after the disclosure flips.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="a11y">Accessibility</h2>
+<p>The <a href="https://www.w3.org/WAI/ARIA/apg/patterns/breadcrumb/">APG Breadcrumb</a> pattern.</p>
+<div class="table-wrap"><table class="docs-table">
+  <caption class="sr-only">Breadcrumb keyboard and screen reader behaviour</caption>
+  <thead><tr><th>Interaction</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Each link is a tab stop, in trail order. It is ordinary navigation: no arrow-key model.</td></tr>
+    <tr><td><kbd>Enter</kbd></td><td>Follows a link. <kbd>Enter</kbd> or <kbd>Space</kbd> on the "Earlier levels" button shows the hidden levels; focus stays on the button.</td></tr>
+    <tr><td>Screen reader</td><td>"Breadcrumb, navigation; list, 3 items; Library, link; Decks, link; Shapes, current page, link". The separators are never read.</td></tr>
+    <tr><td>Touch</td><td>44px tall links, each with a 44px-wide hit area and more than 8px between them.</td></tr>
+    <tr><td>Zoom / text size</td><td>The trail wraps between items, never inside a word. At 200% text and at 320px nothing is clipped or truncated; the 44px targets do not grow with the text, so a wrapped trail keeps its lines close.</td></tr>
+    <tr><td>Reduced motion</td><td>Nothing moves. On hover and press the underline steps away from the word.</td></tr>
+    <tr><td>Forced colours</td><td>Links use the system link colour; the chevrons use <code>CanvasText</code>; the current page keeps a rule under it as well as its weight.</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>Give the <code>&lt;nav&gt;</code> a label that is not "navigation", so it is told apart from the main one. If a page has more than one breadcrumb, label each uniquely.</li>
+  <li>The last item is the current page; do not link the trail's final item to a different page.</li>
+  <li>Keep the trail the same on every page that shares a level (WCAG 3.2.3).</li>
+</ul>
+
+<p><strong>Icons.</strong> The <code>ellipsis</code> of the &ldquo;Earlier levels&rdquo; button comes from <code>dist/icons.css</code>; the main bundle ships only <code>plus</code>, <code>minus</code>, <code>close</code>, <code>check</code> and <code>arrow</code>. Link <code>icons.css</code> in your app, or define the masks yourself: an <code>.ic</code> with no mask paints a solid square.</p>
+
+<h2 id="tokens">Tokens used</h2>
+<p><code>--type-meta</code>, <code>--bw</code>, <code>--bw-heavy</code>, <code>--radius-pill</code>, <code>--chrome-hit</code>, <code>--space-1</code>, and whatever colour the surroundings set (<code>currentColor</code>), the "…" included.</p>
+
+<h2 id="related">Related</h2>
+<ul>
+  <li><a href="@/components/appbar.html">App bar</a>: Back, one step up.</li>
+  <li><a href="@/components/pagination.html">Pagination</a>: moving through a long list at one level.</li>
+  <li><a href="@/components/dock.html">Dock</a>: the top-level areas.</li>
+</ul>

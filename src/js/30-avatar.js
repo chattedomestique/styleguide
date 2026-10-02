@@ -1,0 +1,35 @@
+/* ==========================================================================
+   Avatar photo fallback
+   --------------------------------------------------------------------------
+   An avatar is its initials with an optional photo laid over them:
+
+     <span class="avatar" role="img" aria-label="Maya Okafor">MO<img src="maya.jpg" alt=""></span>
+
+   If the photo fails to load (offline, expired link, deleted file) a browser
+   paints its broken-image icon over the initials. This hides a photo that has
+   failed, so the initials underneath are what people see. Nothing else changes:
+   the name is on the avatar, not the photo, so assistive tech never noticed.
+
+   Progressive enhancement: without this script a working photo still shows, and
+   a broken one shows the browser's icon over the initials.
+   ========================================================================== */
+(function (SG) {
+  'use strict';
+
+  var SELECTOR = '.avatar > img';
+
+  function failed(img) {
+    return img.complete && img.naturalWidth === 0 && (img.currentSrc || img.getAttribute('src'));
+  }
+
+  // error does not bubble, so listen in the capture phase: covers photos added later too
+  document.addEventListener('error', function (e) {
+    var t = e.target;
+    if (t && t.nodeType === 1 && t.matches && t.matches(SELECTOR)) t.hidden = true;
+  }, true);
+
+  // photos that failed before this script ran
+  SG.ready(function () {
+    SG.qsa(SELECTOR).forEach(function (img) { if (failed(img)) img.hidden = true; });
+  });
+})((window.SG = window.SG || {}));
