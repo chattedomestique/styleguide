@@ -164,7 +164,7 @@ function splitTop(s, sep) {
         if (+w[1] !== 0) problems.push(`${at(m.index)} literal ${w[0]} in ${m[1]}: use --bw, --bw-thin, --bw-heavy or --ring`);
       }
     }
-    if (isComponent(p) || isWire(p)) {
+    if (isComponent(p) || isWire(p) || isSheet(p)) {
       for (const m of s.matchAll(/(?<![\w-])border-radius\s*:\s*([^;]+);/g)) {
         if (!ROLES.test(m[1].trim())) problems.push(`${at(m.index)} border-radius "${m[1].trim()}": use --radius-card, -tile, -ctl or -pill`);
       }

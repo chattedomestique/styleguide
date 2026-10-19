@@ -11,7 +11,7 @@
     />
     <style>
 /* ==========================================================================
-   flashcards.css — the one file an app links to.
+   flashcards.css — the entry file. Apps link its bundled copy, dist/flashcards.css.
 
    The layer order below IS the architecture. Later layers win, so nothing
    ever needs a specificity fight to override something beneath it.
@@ -58,7 +58,7 @@
 :root {
   /* --- type ---------------------------------------------------------------
      One family, three widths. Archivo's width axis does the work a second
-     typeface usually does: expanded for big figures, normal for reading,
+     typeface usually does: wider for big figures, normal for reading,
      condensed for labels. Sizes are fixed rem, never vw: resizing a window
      must not resize text. Cards scale with their own width (cqi) instead. */
   --font-sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -81,8 +81,8 @@
   --ls-figure: -0.03em;
   --ls-label: 0.08em;
 
-  /* Whole text styles as `font` shorthands. `expanded` / `condensed` are the
-     keyword forms of font-stretch: 125% / 75%, both inside Archivo's range. */
+  /* Whole text styles as `font` shorthands. `semi-expanded` / `condensed` are
+     keyword forms of font-stretch: 112.5% / 75%, both inside Archivo's range. */
   --type-heading: 600 var(--text-2xl) / var(--lh-tight) var(--font-sans);
   --type-title: 500 var(--text-xl) / var(--lh-tight) var(--font-sans);
   --type-label: 700 condensed var(--text-xs) / 1.2 var(--font-sans);
@@ -352,6 +352,9 @@ label {
   font: var(--type-heading);
   letter-spacing: var(--ls-title);
   text-wrap: balance;
+  /* at the largest text sizes one long word is wider than a phone; let it break
+     rather than push the screen sideways, even inside a grid or flex row */
+  overflow-wrap: anywhere;
 }
 
 .t-title {
@@ -732,6 +735,11 @@ label {
   padding-inline: var(--space-2);
 }
 
+/* its bottom edge is the card's clip edge, so the ring goes inside */
+.card__foot :is(a, button):not(.card__action):focus-visible {
+  outline-offset: calc(var(--ring) * -1);
+}
+
 /* layout helpers inside a body */
 .card__row {
   display: flex;
@@ -766,7 +774,7 @@ label {
   justify-content: space-between;
   gap: var(--space-3);
   min-block-size: var(--hit);
-  padding-inline: var(--card-pad);
+  padding: var(--space-2) var(--card-pad);
   text-decoration: none;
 }
 
@@ -918,8 +926,6 @@ label {
    fits under them. svh, so it is sized once and doesn't jump as bars hide. */
 
 .card--study {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
   aspect-ratio: var(--ratio-study);
   max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7);
 }
@@ -929,6 +935,12 @@ label {
   place-items: center;
   min-block-size: 0;
   padding: var(--card-pad);
+}
+
+/* 5:7 is a floor, not a cage: at large text sizes the stage grows and the
+   card gets taller, instead of the answer sliding under the hint. */
+.card--study .card__stage {
+  flex: 1 0 auto;
 }
 
 .card--study .card__foot {
@@ -1567,6 +1579,8 @@ label {
     min-inline-size: 0;
     background: var(--paper);
     border: var(--bw-thin) solid var(--ink);
+    /* token samples are fixed sizes: at extreme text sizes the box scrolls, not the page */
+    overflow-x: auto;
   }
 
   .sg-box--wide {
@@ -1575,6 +1589,7 @@ label {
 
   .sg-box__head {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: var(--space-3);
     padding: var(--space-2) var(--space-4);
@@ -1811,6 +1826,7 @@ label {
   /* markup, read live from the specimens */
   .sg-markup {
     grid-column: 1 / -1;
+    min-inline-size: 0;
     border: var(--bw-thin) solid var(--ink);
   }
 
@@ -2025,6 +2041,7 @@ label {
   .sg-foot {
     display: flex;
     flex-wrap: wrap;
+    overflow-wrap: anywhere;
     gap: var(--space-2) var(--space-6);
     padding-block: var(--space-5) var(--space-7);
     font: var(--type-meta);
@@ -2105,7 +2122,8 @@ label {
           <li>
             <strong>Rectangles hold, circles act.</strong>
             <p>
-              Containers are square rectangles. Buttons and handles are circles or pills.
+              Containers are square rectangles. Buttons and handles are circles or pills; the one
+              exception is the bar's small square control, which belongs to the frame.
             </p>
           </li>
           <li>
@@ -2587,6 +2605,7 @@ label {
                   aria-valuemin="0"
                   aria-valuemax="12"
                   aria-valuenow="5"
+                  aria-valuetext="5 of 12 learned"
                   style="--value: 41.6%"
                 ></div>
                 <p class="card__meta">Seven to go.</p>
@@ -3095,6 +3114,9 @@ label {
       (function () {
         "use strict";
         document.documentElement.classList.add("js");
+
+        // iOS Safari only applies :active when a touchstart listener exists.
+        document.addEventListener("touchstart", function () {}, { passive: true });
 
         // Demo links must not jump the page.
         document.addEventListener("click", function (e) {

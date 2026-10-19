@@ -342,6 +342,8 @@
     min-inline-size: 0;
     background: var(--paper);
     border: var(--bw-thin) solid var(--ink);
+    /* token samples are fixed sizes: at extreme text sizes the box scrolls, not the page */
+    overflow-x: auto;
   }
 
   .sg-box--wide {
@@ -350,6 +352,7 @@
 
   .sg-box__head {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: var(--space-3);
     padding: var(--space-2) var(--space-4);
@@ -586,6 +589,7 @@
   /* markup, read live from the specimens */
   .sg-markup {
     grid-column: 1 / -1;
+    min-inline-size: 0;
     border: var(--bw-thin) solid var(--ink);
   }
 
@@ -800,6 +804,7 @@
   .sg-foot {
     display: flex;
     flex-wrap: wrap;
+    overflow-wrap: anywhere;
     gap: var(--space-2) var(--space-6);
     padding-block: var(--space-5) var(--space-7);
     font: var(--type-meta);

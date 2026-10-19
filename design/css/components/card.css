@@ -239,6 +239,11 @@
   padding-inline: var(--space-2);
 }
 
+/* its bottom edge is the card's clip edge, so the ring goes inside */
+.card__foot :is(a, button):not(.card__action):focus-visible {
+  outline-offset: calc(var(--ring) * -1);
+}
+
 /* layout helpers inside a body */
 .card__row {
   display: flex;
@@ -273,7 +278,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   min-block-size: var(--hit);
-  padding-inline: var(--card-pad);
+  padding: var(--space-2) var(--card-pad);
   text-decoration: none;
 }
 
@@ -425,8 +430,6 @@
    fits under them. svh, so it is sized once and doesn't jump as bars hide. */
 
 .card--study {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
   aspect-ratio: var(--ratio-study);
   max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7);
 }
@@ -436,6 +439,12 @@
   place-items: center;
   min-block-size: 0;
   padding: var(--card-pad);
+}
+
+/* 5:7 is a floor, not a cage: at large text sizes the stage grows and the
+   card gets taller, instead of the answer sliding under the hint. */
+.card--study .card__stage {
+  flex: 1 0 auto;
 }
 
 .card--study .card__foot {

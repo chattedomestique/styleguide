@@ -13,11 +13,12 @@ the mechanical kind.
 > - **Six roles carry every colour:** `--canvas` (the page), `--paper` (a card), `--ink`
 >   (text), `--ink-soft` (secondary text), `--line` (frames), `--accent` (the one "press
 >   this"). Fills come from `data-tone="1"` … `"6"` or `"ink"`.
-> - **Five classes build a screen:** `.card-grid`, `.card`, `.card__body`, `.card__title`,
->   `.card__link`.
-> - **House rule 1:** read roles, never a hex.
-> - **House rule 2:** use only the tokens and classes named here. If you need one that isn't,
->   its element hasn't been through the pipeline yet: say so instead of improvising it.
+> - **Six classes build a screen:** `.card-grid`, `.card`, `.card__body`, `.card__title`,
+>   and `.card--link` with `.card__link` in the title. Copy markup from `index.html`: every
+>   specimen prints its own.
+> - **Always:** read roles, never a hex.
+> - **Never improvise:** use only the tokens and classes named here. If you need one that
+>   isn't, its element hasn't been through the pipeline yet: say so instead.
 > - **Before you finish,** run `node design/tools/check.mjs`. It must pass.
 
 ---
@@ -46,7 +47,8 @@ not a mood:
    means "you can press this". Nothing else gets one. Hover and press never move the hit
    box: the lift is the shadow alone, never a `transform`.
 3. **Rectangles hold, circles act.** Containers are square. Buttons, handles and action
-   slots are circles or pills.
+   slots are circles or pills; the one exception is the bar's small square control, which
+   belongs to the frame.
 4. **Uppercase is structure.** Bar labels and index numbers. Everything you read is sentence
    case.
 5. **Say something real.** No lorem ipsum, no "John Doe", no "seamless". Copy comes from the
@@ -165,7 +167,7 @@ place:
 | Role | Value | Used by |
 | --- | --- | --- |
 | `--radius-card` | 0 | the card frame |
-| `--radius-tile` | 0 | icon tiles, media inset |
+| `--radius-tile` | 0 | icon tiles |
 | `--radius-ctl` | 0 | the square bar control |
 
 Why square: "rectangles hold, circles act" only reads when the rectangles really are square.
@@ -237,8 +239,9 @@ brutalist default. The tokens are there so gate 4 doesn't have to invent them:
 `--dur-press` 130ms · `--dur-hover` 200ms · `--dur-move` 520ms ·
 `--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)` · `--ease-flip` `cubic-bezier(0.83, 0, 0.17, 1)`.
 
-- **Only `transform` and `opacity` move things.** States animate through `--lift` and
-  `--fill`, which are registered numbers, so one `transition` covers hover, focus and press.
+- **Only `transform` and `opacity` move things.** Card states don't move: `--lift` draws a
+  shadow and `--fill` a colour, both registered numbers, so one `transition` covers hover,
+  focus and press.
 - **The flip:** `perspective` on the flip's direct parent, both faces hidden from behind
   (`backface-visibility: hidden`), eased with `--ease-flip`.
 - **Reduced motion is gentler, not instant.** The flip becomes a crossfade of 150ms or less.
@@ -298,7 +301,7 @@ Nine parts, all optional except the frame. A card is whichever of them it needs.
 | 4 | Body | `.card__body` | `padding: clamp(1rem, 5cqi, 1.5rem)`; flex column, `gap: 8px`; grows to fill. |
 | | Head | `.card__head` | Same padding as the body. The study card's top strip. |
 | 5 | Eyebrow | `.card__eyebrow` | `--type-meta`, soft ink. What kind of thing this is. |
-| 6 | Title | `.card__title` | `--type-title` at `clamp(1.375rem, 8cqi, 2rem)` (22–32px); balanced; breaks long words. |
+| 6 | Title | `.card__title` | `--type-title` at `clamp(1.375rem, 8cqi, 2rem)` (22–32px); 20px (`--text-lg`) in a row or ghost card; balanced; breaks long words. |
 | 7 | Text | `.card__text` | `--type-body`, 40ch max, pretty-wrapped. |
 | | Meta | `.card__meta` | `--type-meta`, tabular, soft ink. |
 | | Figure | `.card__figure` | `--type-figure` at `clamp(3rem, 27cqi, 6.5rem)`; tabular. A `<small>` inside is 0.42em, weight 500, soft ink. |
@@ -323,7 +326,7 @@ under Variants (3.1–3.8).
 | Stat | recipe: eyebrow, `.card__figure`, optional meter, meta; `.card--square` in a grid | One number. | `.card--square` works on any card: `aspect-ratio: 1 / 1`, and the body spaces its first and last children apart. |
 | Row | `.card--row` + `.card__tile`, `.card__main`, `.card__trail` | A thing in a list. | Below 18rem the trail drops under the title (children move between grid cells; the card can't re-template itself). |
 | Link | `.card--link` + `.card__link` in the title | The whole card goes somewhere. | Eyebrow at the top, title group at the bottom. See below. |
-| Ghost | `.card--ghost` (the card is the `<a>` or `<button>`) | An empty slot that asks to be filled. | Dashed; firms up on hover, focus and press. |
+| Ghost | `.card--ghost` (the card is the `<a>` or `<button>`) | An empty slot that asks to be filled. | Dashed; firms up on hover and focus; its circle fills on press. |
 | Study | `.card--study` + `.card__head`, `.card__stage`, `.card__answer` | The flashcard. 5 / 7. | Static faces; the flip is gate 4. Fits a phone: `max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7)`. |
 
 **Link card.** One anchor, inside the title; its `::after` is stretched over the whole card
@@ -388,7 +391,7 @@ A collection is **navigable or selectable, never both.**
 
 | Class | Does |
 | --- | --- |
-| `.card-grid` | `grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min, 16rem)), 1fr))`; `gap: var(--gutter)`. Places cards; never styles them. |
+| `.card-grid` | `--card-min: 16rem`, set on the grid itself; `grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min)), 1fr))`; `gap: var(--gutter)`. Places cards; never styles them. |
 | `.card-grid--tiled` | `gap: 0`. Negative start margins on each item (`> :is(.card, li)`) overlap each frame onto its neighbour's, so two frames read as one 2px line, and a short last row still closes. |
 
 ### Responsive behaviour
@@ -470,6 +473,9 @@ Cards answer to their own width, not the window:
 - **Never blank.** Empty is a ghost card that offers the first step. Offline or error is a
   plain card that says what happened, with "Try again" in its foot.
 - **Text size follows the reader:** Dynamic Type is on (§2 Type). Test at the largest size.
+- **Pressed states need a listener on iOS.** Safari only applies `:active` when a `touchstart`
+  listener exists, so the shell adds `document.addEventListener("touchstart", () => {}, { passive: true })`.
+  Not yet checked on a device.
 
 ### macOS: Mac-first, web shell or SwiftUI
 
@@ -541,13 +547,13 @@ generate-a-design-system workflow or its scripts.
 
 | Skill | Load it | Take | Ignore |
 | --- | --- | --- | --- |
-| ui-ux-pro-max | For a final checklist pass on a finished screen, or to see if a choice is a named template in its `styles.csv`. | Touch targets, hover vs tap, viewport meta, readable sizes, no sideways scroll at 375 and 1440, stable hover, safe areas, `dvh`, overscroll, 8px between targets. | Its styles, palettes and pairings; floating navbars; glass; Tailwind-only rules; emoji and icon-set rules; 150–300ms transitions before gate 4. |
+| ui-ux-pro-max | For a final checklist pass on a finished screen, or to see if a choice is a named template in its `styles.csv`. | Touch targets, hover vs tap, viewport meta, readable sizes, no sideways scroll at 375 and 1440, stable hover, safe areas, `dvh`, overscroll, 8px between targets. | Its styles, palettes and pairings; floating navbars; glass; Tailwind-only rules; its icon-set picks; 150–300ms transitions before gate 4. |
 | neobrutalist-web-designer | When a state must stay hard-edged (hover, pressed, selected), or to check nothing has gone soft or glassy. | Zero-blur shadows, opaque flat fills, a physical pressed state, focus visible in every state, its negatives (no blur, gradients or transparency). | 3–4px borders, shadows at rest, borders that grow with the breakpoint, the primary palette, its fonts, uppercase headings, `transition: all`. |
 | retro-css-architecture | Rarely: only when reorganising the entry stylesheet or the file layout. | One entry stylesheet every surface imports, semantic roles with a dark variant each, fixed px for line work. | Everything 8-bit (pixel fonts, pixelated images, pixel borders), Tailwind-first, `@import` of Google Fonts. |
 | typography | When changing type tokens, font files or loading, measure, or dark-mode type. | Size floors, line-height bands (body 1.5, headings 1.1–1.3, labels 1.2), caps tracking, 45–75ch, preload with `crossorigin`, smoothing on dark only, the dark weight drop. | Its font picks, serif + sans pairing, `vw`-fluid app sizes, the Tailwind sections. |
 | web-design-guidelines | When writing or reviewing an element's HTML and CSS, and for each gate's keyboard and touch pass. | Focus, heading order, skip link, semantics; targets, viewport and reflow; hover parity, tap highlight, `touch-action`. | Its sample colours and soft-shadow hover, the global reduced-motion kill switch, "44px = WCAG 2.5.8" (2.5.8 is 24px), the React and performance sections. |
 | interaction-design | When specifying states, gestures, lists and grids, keyboard paths, drag, menus, empty and error states; and at gate 4. | A state table per element, the keyboard as the foundation, roving tabindex, ⌘ and ⇧ selection, a visible alternative to every gesture, "explain why" for disabled, its timings. | Opacity for disabled, the 2px blue ring, springs and overshoot, a "shadow + scale" lift, haptics, VR, the theory chapters. |
-| swiftui-expert-skill | When writing or reviewing a native SwiftUI screen, or porting a token or component. | Modern APIs (`foregroundStyle`, `Button` over `onTapGesture`), `@Observable` and private `@State`, `ViewThatFits` and `containerRelativeFrame`, scoped animation at gate 4. | Liquid Glass on content, `Animation.bouncy`, iOS-first defaults on the Mac (44pt everywhere, no menus or windows). |
+| swiftui-expert-skill | When writing or reviewing a native SwiftUI screen, or porting a token or component. | Modern APIs (`foregroundStyle`, `Button` over `onTapGesture`), `@Observable` and private `@State`, `containerRelativeFrame` over `GeometryReader`, scoped animation at gate 4. | Liquid Glass on content, `Animation.bouncy`, its iOS-only scope (nothing on menus, windows or Mac control sizes). |
 
 ---
 
@@ -560,9 +566,9 @@ generate-a-design-system workflow or its scripts.
 | Disabled is reduced opacity (interaction-design) | Dashed frame, faint ink, hatch, and the reason in words | Opacity is translucency (rule 2) and vanishes in forced colours. |
 | Float the navbar (ui-ux-pro-max) | Bars run edge to edge and own the safe-area inset | Content scrolling behind a floating bar needs blur or a shadow to separate it, and the gap costs about 32px on a small phone. |
 | Glass cards and buttons (swiftui-expert-skill) | Glass only as the system's own chrome | Glass is the navigation layer; cards are content. |
-| System type and colour everywhere (macOS guidance) | SF and system colours in native chrome only; Archivo and our roles in content | Platform convention wins for chrome; content keeps its voice. |
+| System type and colour everywhere (macos-app-design) | SF and system colours in native chrome only; Archivo and our roles in content | Platform convention wins for chrome; content keeps its voice. |
 | `.spring(…)` for interaction, `Animation.bouncy` for play (swiftui-expert-skill) | `--ease-out` as a timing curve, or a spring with no bounce | Bounce is decoration (rule 7). |
-| Archivo with Space Grotesk; pair by contrast (typography, neobrutalist-web-designer) | One family; the width axis supplies the contrast | One 90 KB file, one fallback chain. Space Grotesk is a banned default. |
+| Archivo with Space Grotesk (ui-ux-pro-max `typography.csv`; neobrutalist-web-designer pairs Archivo Black with it); pair by contrast (typography) | One family; the width axis supplies the contrast | One 90 KB file, one fallback chain. Space Grotesk is a banned default. |
 
 ---
 

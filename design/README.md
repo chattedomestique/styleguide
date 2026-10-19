@@ -48,7 +48,7 @@ colour, and colour can't quietly rearrange the layout.
 | **0 Brief** | The job, the slots, the variants, real copy from the product. | | Slots and variants are listed in `STYLE.md`. |
 | **1 Wireframe** | Structure, type, space, line, shape. Greys only. | Colour, motion. | Squint test. `check.mjs` clean. Holds from 320 to 1440px. |
 | **2 States** | Rest, hover, focus, pressed, selected, disabled. Still grey. | Colour, motion. | Every state legible in grey. Keyboard-only pass. |
-| **3 Colour** | Tones, accent, dark. | New structure. | Contrast passes (the sheet prints it live). The diff touches `tokens/` only. |
+| **3 Colour** | Tones, accent, dark. | New structure. | Contrast passes (the sheet prints it live). Nothing in `components/` changes. |
 | **4 Motion** | Transitions, the flip, reduced motion. | | Reduced-motion pass. Only transform and opacity move. |
 | **5 Freeze** | Nothing new. | Everything. | `index.html` and `STYLE.md` agree. Version bumped. |
 
@@ -94,7 +94,8 @@ is the bug to fix first.
 3. Point the six tone slots at six hues, and set each `--on-tone-N` to `--ink` or `--paper`,
    whichever passes.
 4. Set `--accent`: the one "press this" colour. It drives the action fill.
-5. Add dark: `color-scheme: light dark` and `light-dark()` in the roles.
+5. Add dark: `color-scheme: light dark` and `light-dark()` in the roles, and remove
+   `color-scheme: light` from `base.css` (it sits in a later layer and would win).
 6. In `flashcards.css`, change the `color.wire.css` import to `color.css`.
 7. Open `index.html`. The tone swatches recompute their contrast from the live tokens, and
    none may read FAIL. Run `check.mjs`.

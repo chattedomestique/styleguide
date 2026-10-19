@@ -81,7 +81,8 @@
           <li>
             <strong>Rectangles hold, circles act.</strong>
             <p>
-              Containers are square rectangles. Buttons and handles are circles or pills.
+              Containers are square rectangles. Buttons and handles are circles or pills; the one
+              exception is the bar's small square control, which belongs to the frame.
             </p>
           </li>
           <li>
@@ -563,6 +564,7 @@
                   aria-valuemin="0"
                   aria-valuemax="12"
                   aria-valuenow="5"
+                  aria-valuetext="5 of 12 learned"
                   style="--value: 41.6%"
                 ></div>
                 <p class="card__meta">Seven to go.</p>
@@ -1071,6 +1073,9 @@
       (function () {
         "use strict";
         document.documentElement.classList.add("js");
+
+        // iOS Safari only applies :active when a touchstart listener exists.
+        document.addEventListener("touchstart", function () {}, { passive: true });
 
         // Demo links must not jump the page.
         document.addEventListener("click", function (e) {
