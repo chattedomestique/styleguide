@@ -233,7 +233,7 @@
     display: inline-flex;
     align-items: center;
     min-block-size: var(--hit);
-    padding-inline: var(--space-4);
+    padding-inline: min(var(--space-4), 2.5vw); /* three options fit a phone at 200% text */
     font: 600 var(--text-sm) / 1 var(--font-sans);
     cursor: pointer;
   }
@@ -668,6 +668,27 @@
     border: var(--bw) solid var(--ink);
   }
 
+  /* screens.html's key: the slot, the stand-in and system text, at key size */
+  .sg-key .wf-slot {
+    --wf-under: var(--paper);
+    inline-size: 4rem;
+    min-block-size: 0;
+    border: var(--bw-thin) solid var(--line-soft);
+  }
+
+  .sg-key .wf-meter {
+    block-size: 0.875rem;
+  }
+
+  .sg-key .sg-key__text {
+    inline-size: auto;
+    block-size: auto;
+    font: 600 var(--text-sm) / 1 var(--font-sans);
+    font-style: normal;
+    color: var(--ink-soft);
+    border: 0;
+  }
+
   /* --- anatomy ------------------------------------------------------------- */
 
   .sg-anat-wrap {
@@ -797,6 +818,201 @@
   .sg-widths > figure {
     inline-size: var(--w);
     max-inline-size: 100%;
+  }
+
+  /* --- screens.html: the switches ----------------------------------------- */
+
+  /* seven letters, not five: the poster line steps down to stay on a phone */
+  .sg-display--long {
+    font-size: min(var(--sg-text-display), 14vw);
+  }
+
+  :root:has(#labels-off:checked) .wf-slot::before {
+    content: none;
+  }
+
+  /* text only: the devices keep their size, as a phone does at a large
+     Dynamic Type setting */
+  :root:has(#text-150:checked) {
+    font-size: 150%;
+  }
+
+  :root:has(#text-200:checked) {
+    font-size: 200%;
+  }
+
+  /* a pinned bar three rows deep would cover a third of the screen */
+  :root:has(:is(#text-150, #text-200):checked) .sg-top {
+    position: static;
+  }
+
+  /* --- screens.html: device frames -----------------------------------------
+     A frame stands in for a viewport, so it re-points the three things that
+     read the real one: the safe areas (env), the gutter (vw) and the study
+     card's height (svh). Device sizes are px, because a device is a fixed
+     number of points; the text inside still follows the reader's size. */
+
+  .sg-devices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6) var(--gutter);
+    justify-content: center;
+    align-items: start;
+  }
+
+  .sg-shot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr); /* or the device's px width sets the track */
+    gap: var(--space-3);
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+
+  .sg-device {
+    position: relative;
+    max-inline-size: 100%;
+    overflow: clip;
+    background: var(--canvas);
+    border: var(--bw) solid var(--ink);
+  }
+
+  .sg-device .app {
+    block-size: 100%;
+  }
+
+  .sg-phone {
+    --safe-top: 47px;
+    --safe-bottom: 34px;
+    --gutter: clamp(1rem, 0.6rem + 1.6cqi, 1.75rem);
+    container: screen / size;
+    inline-size: 390px;
+    block-size: 844px;
+  }
+
+  .sg-phone .card--study {
+    max-inline-size: min(22rem, (100cqb - var(--chrome, 0px)) * 5 / 7);
+  }
+
+  /* the system's own chrome: drawn, not designed. Grey text, no frame. */
+  .sg-phone__status {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    block-size: 47px;
+    padding-inline: 28px;
+    font: 600 var(--text-sm) / 1 var(--font-sans);
+    color: var(--ink-soft);
+    pointer-events: none;
+  }
+
+  .sg-phone__batt {
+    inline-size: 1.5rem;
+    block-size: 0.75rem;
+    padding: var(--bw);
+    background: currentColor;
+    background-clip: content-box;
+    border: var(--bw-thin) solid currentColor;
+  }
+
+  .sg-phone__home {
+    position: absolute;
+    inset: auto 0 0.5rem;
+    z-index: 2;
+    inline-size: 134px;
+    block-size: 5px;
+    margin-inline: auto;
+    background: var(--ink);
+    border-radius: var(--radius-pill);
+    pointer-events: none;
+  }
+
+  .sg-mac {
+    --gutter: clamp(1rem, 0.6rem + 1.6cqi, 1.75rem);
+    container: window / inline-size;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    inline-size: 1080px;
+    block-size: 720px;
+  }
+
+  .sg-mac__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-block-size: 52px;
+    padding-inline: var(--space-4);
+    color: var(--ink-soft);
+    background: var(--paper);
+    border-block-end: var(--bw-thin) solid var(--line-soft);
+  }
+
+  .sg-mac__lights {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .sg-mac__lights i {
+    inline-size: 0.75rem;
+    block-size: 0.75rem;
+    border: var(--bw-thin) solid currentColor;
+    border-radius: var(--radius-pill);
+  }
+
+  .sg-mac__search {
+    inline-size: min(14rem, 40%);
+    margin-inline-start: auto;
+    padding: var(--space-1) var(--space-3);
+    font: var(--type-meta);
+    border: var(--bw-thin) solid var(--line-soft);
+    border-radius: var(--radius-pill);
+  }
+
+  .sg-mac__body {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    min-block-size: 0;
+  }
+
+  .sg-mac__side {
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+    padding: var(--space-4) var(--space-3);
+    font: var(--type-meta);
+    color: var(--ink-soft);
+    background: var(--paper);
+    border-inline-end: var(--bw-thin) solid var(--line-soft);
+  }
+
+  .sg-mac__side p {
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .sg-mac__side .sg-mac__group {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+
+  .sg-mac__side .sg-mac__on {
+    color: var(--ink);
+    border: var(--bw-thin) solid var(--line-soft);
+    border-radius: var(--radius-pill);
+  }
+
+  /* a narrow window folds its sidebar away, as a split view does */
+  @container window (max-width: 700px) {
+    .sg-mac__body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sg-mac__side {
+      display: none;
+    }
   }
 
   /* --- footer --------------------------------------------------------------- */

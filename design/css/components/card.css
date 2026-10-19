@@ -454,12 +454,15 @@
 
 .card__answer {
   font: var(--type-title);
-  font-size: clamp(2.25rem, 17cqi, 3.75rem);
+  /* The floor gives way to the card's width: at large text sizes one word
+     still fits on a line, instead of breaking in the middle ("Hexag-on"). */
+  font-size: clamp(min(2.25rem, 13cqi), 17cqi, 3.75rem);
   font-weight: 700;
   letter-spacing: var(--ls-title);
   text-align: center;
   text-wrap: balance;
-  overflow-wrap: anywhere; /* one big word: at large text sizes it has to break */
+  hyphens: auto; /* when a word must break, break it at a syllable, with a hyphen */
+  overflow-wrap: anywhere; /* and where hyphenation isn't available, anywhere beats overflow */
 }
 
 /* --- states ----------------------------------------------------------------

@@ -14,10 +14,11 @@
      5  the gate order        transitions and keyframes before gate 4 opens
      6  layering              components/ must not reach for .wf-* or --grey-*
      7  doc drift             tokens and classes named in the .md files that don't exist
-     8  markup                classes used in index.html that no CSS defines
+     8  markup                classes used in index.html or screens.html that no CSS defines
      9  contrast              the colour file's role pairs, against WCAG AA
 
-   Checks 2–5 cover sheet.css too: the page that teaches the rules keeps them.
+   Checks 2–5 cover sheet.css and screens.css too: the pages that teach the
+   rules keep them.
    ========================================================================== */
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -47,12 +48,15 @@ const lineOf = (s, i) => s.slice(0, i).split("\n").length;
 const cssFiles = walk(CSS).filter((p) => p.endsWith(".css"));
 const isColourFile = (p) => /tokens[\\/]color[^\\/]*\.css$/.test(p);
 const isSheet = (p) => basename(p) === "sheet.css";
+const isPage = (p) => isSheet(p) || basename(p) === "screens.css"; // the pages' own CSS
 const isWire = (p) => basename(p) === "wire.css";
 const isComponent = (p) => /components[\\/]/.test(p);
 const shipped = cssFiles.filter((p) => !isSheet(p)); // what an app links: check 6 only
 
 const files = Object.fromEntries(cssFiles.map((p) => [p, stripComments(read(p))]));
-const html = read(join(ROOT, "index.html"));
+const PAGES = ["index.html", "screens.html"];
+const pages = Object.fromEntries(PAGES.map((n) => [n, read(join(ROOT, n))]));
+const html = Object.values(pages).join("\n");
 
 /* ---- results --------------------------------------------------------------- */
 
@@ -164,7 +168,7 @@ function splitTop(s, sep) {
         if (+w[1] !== 0) problems.push(`${at(m.index)} literal ${w[0]} in ${m[1]}: use --bw, --bw-thin, --bw-heavy or --ring`);
       }
     }
-    if (isComponent(p) || isWire(p) || isSheet(p)) {
+    if (isComponent(p) || isWire(p) || isPage(p)) {
       for (const m of s.matchAll(/(?<![\w-])border-radius\s*:\s*([^;]+);/g)) {
         if (!ROLES.test(m[1].trim())) problems.push(`${at(m.index)} border-radius "${m[1].trim()}": use --radius-card, -tile, -ctl or -pill`);
       }
@@ -178,7 +182,7 @@ function splitTop(s, sep) {
   const problems = [];
   if (!GATES.motion) {
     for (const p of cssFiles) {
-      if (!isComponent(p) && !isWire(p) && !isSheet(p)) continue;
+      if (!isComponent(p) && !isWire(p) && !isPage(p)) continue;
       const s = files[p];
       for (const m of s.matchAll(/(?<![\w-])(transition|animation)(-[a-z-]+)?\s*:|@keyframes/g)) {
         problems.push(`${rel(p)}:${lineOf(s, m.index)} "${m[0].replace(/\s*:$/, "")}": motion is gate 4, and it isn't open`);
@@ -226,12 +230,14 @@ for (const s of Object.values(files)) {
 /* ---- 8 markup ---------------------------------------------------------------- */
 {
   const problems = [];
-  for (const m of html.matchAll(/class="([^"]*)"/g)) {
-    for (const c of m[1].split(/\s+/).filter(Boolean)) {
-      if (!classes.has(c)) problems.push(`index.html:${lineOf(html, m.index)} class "${c}" has no CSS`);
+  for (const [name, page] of Object.entries(pages)) {
+    for (const m of page.matchAll(/class="([^"]*)"/g)) {
+      for (const c of m[1].split(/\s+/).filter(Boolean)) {
+        if (!classes.has(c)) problems.push(`${name}:${lineOf(page, m.index)} class "${c}" has no CSS`);
+      }
     }
   }
-  check("every class in index.html is defined", [...new Set(problems)]);
+  check("every class in the pages is defined", [...new Set(problems)]);
 }
 
 /* ---- 9 contrast -------------------------------------------------------------- */
