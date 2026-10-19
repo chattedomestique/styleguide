@@ -45,9 +45,16 @@
     padding: var(--space-5) var(--pad-end) var(--space-7) var(--pad-start);
     overflow-y: auto;
     overscroll-behavior: contain;
-    /* Tab scrolls a card into view flush with the edge, which cuts its focus
-       ring off; this leaves room for it */
-    scroll-padding-block: var(--space-4);
+    /* room for a focus ring when Tab scrolls something into view. It helps,
+       but Tab scrolls the card's link into view, not the card that wears the
+       ring, so a tall tile can still lose its bottom edge (see findings). */
+    scroll-padding-block: var(--space-4) var(--space-7);
+  }
+
+  /* at large text sizes the region itself becomes a tab stop; the frame
+     clips, so its ring goes inside */
+  .app__scroll:focus-visible {
+    outline-offset: calc(var(--ring) * -1);
   }
 
   .app__bottom {
@@ -118,8 +125,10 @@
     --chrome: calc(var(--safe-top) + var(--safe-bottom) + 10rem);
   }
 
+  /* safe: when the card is taller than the room, it starts at the top
+     instead of overflowing both ways, where its top can't be scrolled to */
   .app--study .app__scroll {
-    align-content: center;
+    align-content: safe center;
   }
 
   /* a card takes its width from its parent: give it one, then centre it */

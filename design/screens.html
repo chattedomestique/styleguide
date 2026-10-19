@@ -81,7 +81,7 @@
           </li>
           <li>
             <strong>Card: gates 0–2</strong>
-            <p>Eight variants, six states. Every black frame on this page is a card.</p>
+            <p>Eight variants, six states. Inside the screens, every black box is a card.</p>
           </li>
           <li>
             <strong>Button: next</strong>
@@ -125,7 +125,8 @@
           <h2 class="sg-sec__title" id="h-phone">Phone, installed</h2>
           <p class="sg-sec__note">
             A PWA on the home screen: no browser bars, so the app draws its own. 390 by 844 points,
-            with the safe areas of a phone with a notch. Scroll inside the screen.
+            with the safe areas of a phone with a notch. Scroll inside the screen. On a narrow
+            window the frame narrows with it, so it shows a smaller phone than that.
           </p>
         </div>
 
@@ -304,7 +305,7 @@
           <p class="sg-sec__note">
             The same app on a Mac, in a web shell or SwiftUI. The toolbar, sidebar and search field
             belong to macOS, in its font and colours. Only the content is ours. Under 700 points
-            wide the sidebar folds away.
+            wide the sidebar folds away; a narrow browser window shows that, not a real Mac.
           </p>
         </div>
 
@@ -502,8 +503,9 @@
             <strong>Frame is the biggest gap.</strong>
             <p>Every screen needed the same rows, safe areas and scroll region (<code>.app</code> in
               screens.css). A root screen with no top bar must still keep clear of the status bar,
-              or content scrolls under the clock. The scroll region needs scroll padding, or a card
-              tabbed into view loses the edge of its focus ring.</p>
+              or content scrolls under the clock. And Tab scrolls a card's link into view, not the
+              card that wears the focus ring, so a tall tile near the bottom can lose the bottom of
+              its ring. Scroll padding only softens that.</p>
           </li>
           <li>
             <strong>The study card's <code>--chrome</code> is a guess.</strong>
@@ -534,9 +536,9 @@
           </li>
           <li>
             <strong>Fixed: the answer broke mid-word.</strong>
-            <p>At 200% text the study card set "Hexagon" as "Hexag / on". The answer's size floor
-              now gives way to the card's width, and <code>hyphens: auto</code> breaks a word that
-              still can't fit at a syllable.</p>
+            <p>At 200% text the study card set "Hexagon" as "Hexag / on". The answer now has no
+              rem floor: its size follows the card's width, not the text size. A word that still
+              can't fit breaks at a syllable, with <code>hyphens: auto</code>.</p>
           </li>
           <li>
             <strong>Fixed: headings past h4 kept their margins.</strong>

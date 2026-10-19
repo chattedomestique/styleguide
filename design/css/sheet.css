@@ -255,6 +255,15 @@
     background: var(--ink);
   }
 
+  /* forced colours drops the black fill, which is the only sign of "on" */
+  @media (forced-colors: active) {
+    .sg-seg label:has(input:checked) {
+      forced-color-adjust: none;
+      color: HighlightText;
+      background: Highlight;
+    }
+  }
+
   /* the ring sits inside the pill: the pill clips, and the ring must show on
      both the white and the black state */
   .sg-seg label:has(input:focus-visible) {
@@ -974,6 +983,7 @@
   .sg-mac__body {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr); /* or the content grows past the window instead of scrolling */
     min-block-size: 0;
   }
 

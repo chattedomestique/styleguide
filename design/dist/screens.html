@@ -952,9 +952,10 @@ label {
 
 .card__answer {
   font: var(--type-title);
-  /* The floor gives way to the card's width: at large text sizes one word
-     still fits on a line, instead of breaking in the middle ("Hexag-on"). */
-  font-size: clamp(min(2.25rem, 13cqi), 17cqi, 3.75rem);
+  /* No rem floor: the size comes from the card's width alone (up to 60px),
+     so at large text sizes one word still fits on a line instead of breaking
+     in the middle ("Hexag-on"). It's already display size. */
+  font-size: min(17cqi, 3.75rem);
   font-weight: 700;
   letter-spacing: var(--ls-title);
   text-align: center;
@@ -1336,9 +1337,16 @@ label {
     padding: var(--space-5) var(--pad-end) var(--space-7) var(--pad-start);
     overflow-y: auto;
     overscroll-behavior: contain;
-    /* Tab scrolls a card into view flush with the edge, which cuts its focus
-       ring off; this leaves room for it */
-    scroll-padding-block: var(--space-4);
+    /* room for a focus ring when Tab scrolls something into view. It helps,
+       but Tab scrolls the card's link into view, not the card that wears the
+       ring, so a tall tile can still lose its bottom edge (see findings). */
+    scroll-padding-block: var(--space-4) var(--space-7);
+  }
+
+  /* at large text sizes the region itself becomes a tab stop; the frame
+     clips, so its ring goes inside */
+  .app__scroll:focus-visible {
+    outline-offset: calc(var(--ring) * -1);
   }
 
   .app__bottom {
@@ -1409,8 +1417,10 @@ label {
     --chrome: calc(var(--safe-top) + var(--safe-bottom) + 10rem);
   }
 
+  /* safe: when the card is taller than the room, it starts at the top
+     instead of overflowing both ways, where its top can't be scrolled to */
   .app--study .app__scroll {
-    align-content: center;
+    align-content: safe center;
   }
 
   /* a card takes its width from its parent: give it one, then centre it */
@@ -1694,6 +1704,15 @@ label {
   .sg-seg label:has(input:checked) {
     color: var(--paper);
     background: var(--ink);
+  }
+
+  /* forced colours drops the black fill, which is the only sign of "on" */
+  @media (forced-colors: active) {
+    .sg-seg label:has(input:checked) {
+      forced-color-adjust: none;
+      color: HighlightText;
+      background: Highlight;
+    }
   }
 
   /* the ring sits inside the pill: the pill clips, and the ring must show on
@@ -2415,6 +2434,7 @@ label {
   .sg-mac__body {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr); /* or the content grows past the window instead of scrolling */
     min-block-size: 0;
   }
 
@@ -2541,7 +2561,7 @@ label {
           </li>
           <li>
             <strong>Card: gates 0–2</strong>
-            <p>Eight variants, six states. Every black frame on this page is a card.</p>
+            <p>Eight variants, six states. Inside the screens, every black box is a card.</p>
           </li>
           <li>
             <strong>Button: next</strong>
@@ -2585,7 +2605,8 @@ label {
           <h2 class="sg-sec__title" id="h-phone">Phone, installed</h2>
           <p class="sg-sec__note">
             A PWA on the home screen: no browser bars, so the app draws its own. 390 by 844 points,
-            with the safe areas of a phone with a notch. Scroll inside the screen.
+            with the safe areas of a phone with a notch. Scroll inside the screen. On a narrow
+            window the frame narrows with it, so it shows a smaller phone than that.
           </p>
         </div>
 
@@ -2764,7 +2785,7 @@ label {
           <p class="sg-sec__note">
             The same app on a Mac, in a web shell or SwiftUI. The toolbar, sidebar and search field
             belong to macOS, in its font and colours. Only the content is ours. Under 700 points
-            wide the sidebar folds away.
+            wide the sidebar folds away; a narrow browser window shows that, not a real Mac.
           </p>
         </div>
 
@@ -2962,8 +2983,9 @@ label {
             <strong>Frame is the biggest gap.</strong>
             <p>Every screen needed the same rows, safe areas and scroll region (<code>.app</code> in
               screens.css). A root screen with no top bar must still keep clear of the status bar,
-              or content scrolls under the clock. The scroll region needs scroll padding, or a card
-              tabbed into view loses the edge of its focus ring.</p>
+              or content scrolls under the clock. And Tab scrolls a card's link into view, not the
+              card that wears the focus ring, so a tall tile near the bottom can lose the bottom of
+              its ring. Scroll padding only softens that.</p>
           </li>
           <li>
             <strong>The study card's <code>--chrome</code> is a guess.</strong>
@@ -2994,9 +3016,9 @@ label {
           </li>
           <li>
             <strong>Fixed: the answer broke mid-word.</strong>
-            <p>At 200% text the study card set "Hexagon" as "Hexag / on". The answer's size floor
-              now gives way to the card's width, and <code>hyphens: auto</code> breaks a word that
-              still can't fit at a syllable.</p>
+            <p>At 200% text the study card set "Hexagon" as "Hexag / on". The answer now has no
+              rem floor: its size follows the card's width, not the text size. A word that still
+              can't fit breaks at a syllable, with <code>hyphens: auto</code>.</p>
           </li>
           <li>
             <strong>Fixed: headings past h4 kept their margins.</strong>

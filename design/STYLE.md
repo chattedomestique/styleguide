@@ -74,6 +74,7 @@ Run it on any screen before calling it done.
 
 The class prefix and the system's name (which includes the `flashcards.css` filename) are
 still the owner's call. Until then the names stay as they are. Corners are decided: square.
+Also open: arrow keys in a grid of link cards on the Mac, where Tab skips links by default.
 
 ---
 
@@ -114,7 +115,7 @@ are the keyword forms of `font-stretch` (112.5% and 75%).
 | `--type-meta` | 400 · 100% | `--text-sm` 14px | 1.3 | 0 | `.t-meta`. Tabular figures. `--ink-soft`. |
 | `--type-label` | 700 · 75% | `--text-xs` 13px | 1.2 | +0.08em | `.t-label`. Uppercase. 1–4 words. |
 | `--type-figure` | 600 · 112.5% | `--text-3xl` 48px | 0.85 | −0.03em | `.t-figure`. Tabular. |
-| (answer) | 700 · 100% | up to 60px, by card width | 1.1 | −0.015em | `.card__answer` only: the study card's answer. Centred. |
+| (answer) | 700 · 100% | up to 3.75rem (60px), by card width | 1.1 | −0.015em | `.card__answer` only: the study card's answer. Centred. |
 
 Size scale, all fixed `rem`: `--text-xs` 0.8125rem (13px) · `--text-sm` 0.875rem (14) ·
 `--text-md` 1rem (16) · `--text-lg` 1.25rem (20) · `--text-xl` 1.5rem (24) · `--text-2xl`
@@ -402,9 +403,9 @@ Cards answer to their own width, not the window:
 
 - Padding: `clamp(1rem, 5cqi, 1.5rem)`.
 - Title: `clamp(1.375rem, 8cqi, 2rem)`. Figure: `clamp(3rem, 27cqi, 6.5rem)`. Answer:
-  `clamp(min(2.25rem, 13cqi), 17cqi, 3.75rem)`: the floor gives way to the card's width, so at
-  large text sizes a long word stays whole where it can. Where it can't, `hyphens: auto` breaks
-  it at a syllable ("Hexa-gon"), so the page needs its `lang`.
+  `min(17cqi, 3.75rem)`, with no rem floor: it follows the card's width, not the text size, so
+  at large text sizes a long word stays whole where it can. Where it can't, `hyphens: auto`
+  breaks it at a syllable ("Hexa-gon"), so the page needs its `lang`.
 - Row: `@container card (max-width: 18rem)` moves the trail to row 2, column 2.
 - The bar, `.card__row`, the foot and the ghost wrap (`flex-wrap: wrap`) when text grows.
 - Holds from 320px up with no horizontal scroll. At 320px with 200% text, no card clips a
@@ -582,8 +583,8 @@ generate-a-design-system workflow or its scripts.
 
 - **0.2.1** · 2026-10-19 · `screens.html`: a phone (Today, Study) and a Mac window built from
   the system, with `.wf-slot` marking every missing element, and a findings list. Fixes it
-  found: the study answer no longer breaks mid-word at large text sizes (its floor gives way
-  to the card's width, plus `hyphens: auto`), and `base.css` resets `h5` and `h6`. The gate
+  found: the study answer no longer breaks mid-word at large text sizes (no rem floor, plus
+  `hyphens: auto`), and `base.css` resets `h5` and `h6`. The gate
   and the bundle cover the new page.
 
 - **0.2.0** · 2026-10-19 · Corners decided: square; the soft mode is gone. Cut the Notch and
