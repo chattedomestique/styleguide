@@ -17,7 +17,7 @@
      8  markup                classes used in index.html that no CSS defines
      9  contrast              the colour file's role pairs, against WCAG AA
 
-   sheet.css is exempt from 2–5: the "not this" specimen breaks them on purpose.
+   Checks 2–5 cover sheet.css too: the page that teaches the rules keeps them.
    ========================================================================== */
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -49,7 +49,7 @@ const isColourFile = (p) => /tokens[\\/]color[^\\/]*\.css$/.test(p);
 const isSheet = (p) => basename(p) === "sheet.css";
 const isWire = (p) => basename(p) === "wire.css";
 const isComponent = (p) => /components[\\/]/.test(p);
-const shipped = cssFiles.filter((p) => !isSheet(p));
+const shipped = cssFiles.filter((p) => !isSheet(p)); // what an app links: check 6 only
 
 const files = Object.fromEntries(cssFiles.map((p) => [p, stripComments(read(p))]));
 const html = read(join(ROOT, "index.html"));
@@ -91,7 +91,7 @@ const known = new Set([...defined, ...hooks]);
 {
   const problems = [];
   const re = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/gi;
-  for (const p of shipped) {
+  for (const p of cssFiles) {
     if (isColourFile(p)) continue;
     const s = stripUrls(files[p]);
     for (const m of s.matchAll(re)) {
@@ -102,14 +102,6 @@ const known = new Set([...defined, ...hooks]);
 }
 
 /* ---- 3 the AI tells ---------------------------------------------------------- */
-function balanced(s, open) {
-  let depth = 0;
-  for (let i = open; i < s.length; i++) {
-    if (s[i] === "(") depth++;
-    else if (s[i] === ")" && --depth === 0) return s.slice(open + 1, i);
-  }
-  return "";
-}
 function splitTop(s, sep) {
   const out = [];
   let depth = 0, cur = "";
@@ -127,15 +119,12 @@ function splitTop(s, sep) {
 {
   const problems = [];
   const BAD_FONTS = /^(inter|roboto|open sans|lato|poppins|space grotesk|dm sans|plus jakarta sans|manrope|montserrat|geist|system-ui|ui-sans-serif|arial|helvetica(?: neue)?)$/i;
-  for (const p of shipped) {
+  for (const p of cssFiles) {
     const s = stripUrls(files[p]);
     const at = (i) => `${rel(p)}:${lineOf(s, i)}`;
 
     for (const m of s.matchAll(/\b(?:repeating-)?(?:linear|radial|conic)-gradient\(/g)) {
-      const inner = balanced(s, m.index + m[0].length - 1);
-      const args = splitTop(inner, ",");
-      const flat = args.length === 2 && args[0] === args[1]; // two identical stops: a flat fill, not a gradient
-      if (!isWire(p) && !flat) problems.push(`${at(m.index)} gradient outside wire.css`);
+      if (!isWire(p)) problems.push(`${at(m.index)} gradient outside wire.css`);
     }
     for (const m of s.matchAll(/backdrop-filter|\bblur\(|text-shadow/g)) {
       problems.push(`${at(m.index)} "${m[0]}" is banned (flat, no glass, no glow)`);
@@ -165,7 +154,7 @@ function splitTop(s, sep) {
 {
   const problems = [];
   const ROLES = /^(0|inherit|var\(--radius-(card|tile|ctl|pill)\)|var\(--card-radius\))$/;
-  for (const p of shipped) {
+  for (const p of cssFiles) {
     if (p.includes(`tokens${"/"}`) || p.includes(`tokens\\`)) continue;
     const s = files[p];
     const at = (i) => `${rel(p)}:${lineOf(s, i)}`;
@@ -188,8 +177,8 @@ function splitTop(s, sep) {
 {
   const problems = [];
   if (!GATES.motion) {
-    for (const p of shipped) {
-      if (!isComponent(p) && !isWire(p)) continue;
+    for (const p of cssFiles) {
+      if (!isComponent(p) && !isWire(p) && !isSheet(p)) continue;
       const s = files[p];
       for (const m of s.matchAll(/(?<![\w-])(transition|animation)(-[a-z-]+)?\s*:|@keyframes/g)) {
         problems.push(`${rel(p)}:${lineOf(s, m.index)} "${m[0].replace(/\s*:$/, "")}": motion is gate 4, and it isn't open`);
@@ -220,11 +209,6 @@ const classes = new Set();
 for (const s of Object.values(files)) {
   for (const m of stripUrls(s).matchAll(/\.([a-z][\w-]*)/gi)) classes.add(m[1]);
 }
-/* the docs may name the app's own classes (the migration note does); the sheet's markup may not use them */
-const appClasses = new Set();
-try {
-  for (const m of stripUrls(stripComments(read(join(ROOT, "..", "styles.css")))).matchAll(/\.([a-z][\w-]*)/gi)) appClasses.add(m[1]);
-} catch {}
 {
   const problems = [];
   for (const name of ["STYLE.md", "README.md"]) {
@@ -233,7 +217,7 @@ try {
     for (const c of code) {
       if (/^--[a-z0-9-]+$/.test(c) && !known.has(c)) problems.push(`${name}: token \`${c}\` is not in the CSS`);
       const cls = c.match(/^\.([a-z][\w-]*)$/i);
-      if (cls && !classes.has(cls[1]) && !appClasses.has(cls[1])) problems.push(`${name}: class \`${c}\` is not in the CSS`);
+      if (cls && !classes.has(cls[1])) problems.push(`${name}: class \`${c}\` is not in the CSS`);
     }
   }
   check("STYLE.md and README.md name only real tokens and classes", [...new Set(problems)]);
@@ -278,8 +262,10 @@ const mix = (a, b, pa) => a.map((v, i) => Math.round(v * pa + b[i] * (1 - pa)));
   const problems = [];
   const skipped = [];
   const decl = {};
+  /* base values only: an @media override (prefers-contrast) can only raise contrast */
+  const topLevel = (s) => s.replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "");
   for (const p of cssFiles.filter(isColourFile)) {
-    for (const m of files[p].matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) decl[m[1]] = m[2].trim();
+    for (const m of topLevel(files[p]).matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) decl[m[1]] = m[2].trim();
   }
   const resolve = (name, depth = 0) => {
     const v = decl[name];

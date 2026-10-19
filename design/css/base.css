@@ -14,14 +14,21 @@ html {
   color-scheme: light;
 }
 
+/* iOS: follow the reader's Dynamic Type size (17px by default). Every size
+   is rem, so the whole scale follows. The touch-callout guard keeps it off
+   the Mac, where -apple-system-body is 13px. */
+@supports (-webkit-touch-callout: none) {
+  html {
+    font: -apple-system-body;
+  }
+}
+
 body {
   margin: 0;
   min-block-size: 100dvh;
   font: var(--type-body);
   color: var(--ink);
   background: var(--canvas);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 h1,
@@ -60,12 +67,22 @@ textarea {
   color: inherit;
 }
 
-button {
-  cursor: pointer;
+/* under 16px, iOS zooms the page when a field takes focus */
+:is(input, select, textarea) {
+  font-size: max(1rem, 1em);
 }
 
 a {
   color: inherit;
+}
+
+/* every control draws its own :active look instead of the browser's
+   translucent flash */
+a,
+button,
+summary,
+label {
+  -webkit-tap-highlight-color: transparent;
 }
 
 :focus-visible {
@@ -89,13 +106,14 @@ a {
 }
 
 /* --- type styles ----------------------------------------------------------
-   Uppercase is structure: display, labels, index numbers. Content is
-   sentence case. */
+   Uppercase is structure: labels and index numbers. Content is sentence
+   case. */
 
-.t-display {
-  font: var(--type-display);
-  letter-spacing: var(--ls-display);
-  text-transform: uppercase;
+/* one per screen: it has to fit the longest real word at 320px */
+.t-heading {
+  font: var(--type-heading);
+  letter-spacing: var(--ls-title);
+  text-wrap: balance;
 }
 
 .t-title {
@@ -111,6 +129,7 @@ a {
 }
 
 .t-body {
+  max-inline-size: var(--measure);
   font: var(--type-body);
   text-wrap: pretty;
 }
@@ -118,12 +137,13 @@ a {
 .t-meta {
   font: var(--type-meta);
   font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
 }
 
 .t-figure {
   font: var(--type-figure);
   letter-spacing: var(--ls-figure);
-  font-variant-numeric: tabular-nums lining-nums;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- tone ------------------------------------------------------------------
@@ -164,4 +184,7 @@ a {
 [data-tone="ink"] {
   --tone-bg: var(--ink);
   --tone-ink: var(--paper);
+  /* light on dark only: on paper, antialiasing thins small text on a Mac */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

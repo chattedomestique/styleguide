@@ -21,12 +21,14 @@
      components  one file per element. Reads roles only, never a raw colour.
      wire        wireframe placeholders (.wf-*). Disposable: each one is
                  deleted when the real element ships.
+     app         your app's own CSS. Put it here: unlayered CSS beats every
+                 layer, so it would silently override card states.
      sheet       the style-sheet page's own chrome. Not shipped to the app.
 
    Gate 3 (colour) swaps ONE line: color.wire.css -> color.css.
    ========================================================================== */
 
-@layer tokens, base, components, wire, sheet;
+@layer tokens, base, components, wire, app, sheet;
 
 /* Archivo, variable on both axes: weight 100-900, width 62-125%.
    One file covers every weight and width the system uses, so there is no
@@ -56,8 +58,9 @@
 :root {
   /* --- type ---------------------------------------------------------------
      One family, three widths. Archivo's width axis does the work a second
-     typeface usually does: expanded for posters, normal for reading,
-     condensed for labels. */
+     typeface usually does: expanded for big figures, normal for reading,
+     condensed for labels. Sizes are fixed rem, never vw: resizing a window
+     must not resize text. Cards scale with their own width (cqi) instead. */
   --font-sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; /* docs + code only */
 
@@ -65,32 +68,29 @@
   --text-sm: 0.875rem; /* 14 */
   --text-md: 1rem; /* 16 */
   --text-lg: 1.25rem; /* 20 */
-  --text-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem); /* 24 -> 32 */
-  --text-2xl: clamp(2rem, 1.5rem + 2.2vw, 3.25rem); /* 32 -> 52 */
-  --text-3xl: clamp(3rem, 1.6rem + 5.6vw, 6.5rem); /* 48 -> 104 */
-  --text-4xl: clamp(4.25rem, 1rem + 15vw, 15rem); /* 68 -> 240, poster */
+  --text-xl: 1.5rem; /* 24 */
+  --text-2xl: 2rem; /* 32 */
+  --text-3xl: 3rem; /* 48 */
 
   --lh-none: 0.85;
   --lh-tight: 1.1;
   --lh-snug: 1.3;
   --lh-body: 1.5;
 
-  --ls-display: -0.035em;
   --ls-title: -0.015em;
   --ls-figure: -0.03em;
   --ls-label: 0.08em;
 
   /* Whole text styles as `font` shorthands. `expanded` / `condensed` are the
      keyword forms of font-stretch: 125% / 75%, both inside Archivo's range. */
-  --type-display: 900 expanded var(--text-4xl) / var(--lh-none) var(--font-sans);
+  --type-heading: 600 var(--text-2xl) / var(--lh-tight) var(--font-sans);
   --type-title: 500 var(--text-xl) / var(--lh-tight) var(--font-sans);
-  --type-label: 700 condensed var(--text-xs) / 1 var(--font-sans);
+  --type-label: 700 condensed var(--text-xs) / 1.2 var(--font-sans);
   --type-body: 400 var(--text-md) / var(--lh-body) var(--font-sans);
   --type-meta: 400 var(--text-sm) / var(--lh-snug) var(--font-sans);
   --type-figure: 600 semi-expanded var(--text-3xl) / var(--lh-none) var(--font-sans);
 
   /* --- space: 4px grid ---------------------------------------------------- */
-  --space-0: 0;
   --space-1: 0.25rem; /* 4 */
   --space-2: 0.5rem; /* 8 */
   --space-3: 0.75rem; /* 12 */
@@ -99,7 +99,6 @@
   --space-6: 2rem; /* 32 */
   --space-7: 3rem; /* 48 */
   --space-8: 4rem; /* 64 */
-  --space-9: 6rem; /* 96 */
   --gutter: clamp(1rem, 0.6rem + 1.6vw, 1.75rem);
   --measure: 62ch;
 
@@ -110,12 +109,9 @@
   --bw-heavy: 4px;
 
   /* --- shape ---------------------------------------------------------------
-     Circles and pills are always round. Everything else follows these three
-     roles, which are the only radii a component may read. The decision is
-     open (square or soft): change the three lines, nothing else moves. */
-  --radius-1: 0.375rem; /* 6  — controls */
-  --radius-2: 0.75rem; /* 12 — tiles, media */
-  --radius-3: 1.5rem; /* 24 — cards */
+     Square, decided. Circles and pills are always round. Everything else
+     reads these three roles, the only radii a component may use, so no
+     component ever hard-codes a corner. */
   --radius-pill: 999px;
 
   --radius-card: 0;
@@ -128,9 +124,15 @@
   --ring-offset: 3px;
   --ring-offset-in: 2px; /* inside a card, which clips: the ring has to fit */
 
+  /* --- safe areas: for bars and the app frame, never cards ----------------- */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
   /* --- ratios --------------------------------------------------------------- */
   --ratio-media: 4 / 3;
-  --ratio-study: 5 / 7; /* the flashcard: same as the app */
+  --ratio-study: 5 / 7; /* the flashcard */
 
   /* --- motion (gate 4: declared, not yet used — states change instantly) ---- */
   --dur-press: 130ms;
@@ -138,6 +140,21 @@
   --dur-move: 520ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-flip: cubic-bezier(0.83, 0, 0.17, 1);
+}
+
+/* Interaction, as two numbers that every pressable element reads. --lift is
+   the hard shadow (0 flat, 1 raised; never a move, so the hit box stays put);
+   --fill is colour (0 outline, 1 filled). Registered so gate 4 can animate. */
+@property --lift {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --fill {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
 }
 
 /* [data-tone] sets these two for whatever it is on. They must not inherit, or
@@ -209,6 +226,14 @@
   --on-tone-5: var(--ink);
   --on-tone-6: var(--ink);
 }
+
+/* More contrast asked for: soft ink and soft lines become plain ink. */
+@media (prefers-contrast: more) {
+  :root {
+    --ink-soft: var(--ink);
+    --line-soft: var(--ink);
+  }
+}
 }
 @layer base {
 /* ==========================================================================
@@ -227,14 +252,21 @@ html {
   color-scheme: light;
 }
 
+/* iOS: follow the reader's Dynamic Type size (17px by default). Every size
+   is rem, so the whole scale follows. The touch-callout guard keeps it off
+   the Mac, where -apple-system-body is 13px. */
+@supports (-webkit-touch-callout: none) {
+  html {
+    font: -apple-system-body;
+  }
+}
+
 body {
   margin: 0;
   min-block-size: 100dvh;
   font: var(--type-body);
   color: var(--ink);
   background: var(--canvas);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 h1,
@@ -273,12 +305,22 @@ textarea {
   color: inherit;
 }
 
-button {
-  cursor: pointer;
+/* under 16px, iOS zooms the page when a field takes focus */
+:is(input, select, textarea) {
+  font-size: max(1rem, 1em);
 }
 
 a {
   color: inherit;
+}
+
+/* every control draws its own :active look instead of the browser's
+   translucent flash */
+a,
+button,
+summary,
+label {
+  -webkit-tap-highlight-color: transparent;
 }
 
 :focus-visible {
@@ -302,13 +344,14 @@ a {
 }
 
 /* --- type styles ----------------------------------------------------------
-   Uppercase is structure: display, labels, index numbers. Content is
-   sentence case. */
+   Uppercase is structure: labels and index numbers. Content is sentence
+   case. */
 
-.t-display {
-  font: var(--type-display);
-  letter-spacing: var(--ls-display);
-  text-transform: uppercase;
+/* one per screen: it has to fit the longest real word at 320px */
+.t-heading {
+  font: var(--type-heading);
+  letter-spacing: var(--ls-title);
+  text-wrap: balance;
 }
 
 .t-title {
@@ -324,6 +367,7 @@ a {
 }
 
 .t-body {
+  max-inline-size: var(--measure);
   font: var(--type-body);
   text-wrap: pretty;
 }
@@ -331,12 +375,13 @@ a {
 .t-meta {
   font: var(--type-meta);
   font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
 }
 
 .t-figure {
   font: var(--type-figure);
   letter-spacing: var(--ls-figure);
-  font-variant-numeric: tabular-nums lining-nums;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- tone ------------------------------------------------------------------
@@ -377,6 +422,9 @@ a {
 [data-tone="ink"] {
   --tone-bg: var(--ink);
   --tone-ink: var(--paper);
+  /* light on dark only: on paper, antialiasing thins small text on a Mac */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 }
 @layer base {
@@ -452,44 +500,32 @@ a {
 
    House rules for this file
    · Reads ROLES only (--paper, --ink, --tone-N ...). No colour literals.
-   · One shape gesture per card: round it OR notch it. Never both.
    · A hard shadow means "you can press this". Nothing else gets one.
+   · Hover and press never move the hit box: lift is the shadow alone.
+   · :hover lives inside @media (hover: hover), or it sticks after a tap.
    · Never put cqi on .card itself: its container is its PARENT. Padding and
      sizes that use cqi live on the parts, where the container is the card.
    · States change instantly. Transitions belong to gate 4.
    ========================================================================== */
-
-@property --lift {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-
-@property --fill {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
 
 .card {
   /* component roles: the only things a variant, tone or theme overrides */
   --card-bg: var(--tone-bg, var(--paper));
   --card-ink: var(--tone-ink, var(--ink));
   --card-line: var(--line);
-  --card-ink-soft: color-mix(in srgb, var(--card-ink) 72%, var(--card-bg));
+  --card-ink-soft: var(--ink-soft);
   --card-bar-bg: var(--ink);
   --card-bar-ink: var(--paper);
   --card-radius: var(--radius-card);
   --card-pad: clamp(1rem, 5cqi, 1.5rem);
   --card-gap: var(--space-2);
 
-  /* interaction, as two numbers. --lift is geometry (0 flat, 1 raised);
-     --fill is colour (0 outline, 1 filled). Every state just sets them. */
+  /* interaction, as two numbers (see foundation.css). Every state just sets
+     them. The lift is in px, like the frame: 4px of hard shadow. */
   --lift: 0;
   --fill: 0;
-  --shadow-lift: calc(var(--lift) * var(--space-1)) calc(var(--lift) * var(--space-1)) 0 0 var(--card-line);
+  --shadow-lift: calc(var(--lift) * var(--bw) * 2) calc(var(--lift) * var(--bw) * 2) 0 0 var(--card-line);
   --shadow-select: 0 0 0 0 transparent;
-  --shadow-stack: 0 0 0 0 transparent;
 
   position: relative;
   display: flex;
@@ -501,7 +537,13 @@ a {
   border: var(--bw) solid var(--card-line);
   border-radius: var(--card-radius);
   overflow: clip;
-  box-shadow: var(--shadow-select), var(--shadow-lift), var(--shadow-stack);
+  overflow-wrap: break-word; /* it clips: a word too long for it breaks, not vanishes */
+  box-shadow: var(--shadow-select), var(--shadow-lift);
+}
+
+/* on a tone, soft text is a mix of the tone's own ink, so it works on any fill */
+.card[data-tone] {
+  --card-ink-soft: color-mix(in srgb, var(--card-ink) 72%, var(--card-bg));
 }
 
 /* the inverted tone swaps the bar too, or it would vanish into the card */
@@ -518,20 +560,24 @@ a {
   outline-offset: var(--ring-offset-in);
 }
 
-.card__bar :focus-visible {
-  outline-color: var(--card-bar-ink);
-  outline-offset: calc(var(--ring) * -1);
-}
-
 .card[data-tone="ink"] :focus-visible {
   outline-color: var(--card-ink);
 }
 
+/* after the ink rule, at the same weight, so a bar on an ink card still gets
+   the bar's ink and not the card's */
+.card .card__bar :focus-visible {
+  outline-color: var(--card-bar-ink);
+  outline-offset: calc(var(--ring) * -1);
+}
+
 /* --- parts ----------------------------------------------------------------- */
 
-/* bar: the frame, thickened, with a label and one control. */
+/* bar: the frame, thickened, with a label and one control. Wraps at large
+   text sizes; the control keeps to the end. Light on dark, so antialiased. */
 .card__bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -539,6 +585,17 @@ a {
   padding-inline-start: var(--card-pad);
   color: var(--card-bar-ink);
   background: var(--card-bar-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.card__bar > .card__ctl {
+  margin-inline-start: auto;
+}
+
+/* room above a label that has wrapped onto its own row; one line stays 44px */
+.card__bar > .card__label {
+  padding-block: var(--space-2);
 }
 
 .card__label {
@@ -559,7 +616,6 @@ a {
   color: inherit;
   background: none;
   border: 0;
-  cursor: pointer;
 }
 
 .card__ctl::before,
@@ -621,7 +677,6 @@ a {
   font-size: clamp(1.375rem, 8cqi, 2rem);
   letter-spacing: var(--ls-title);
   text-wrap: balance;
-  overflow-wrap: break-word;
 }
 
 .card__text {
@@ -640,7 +695,7 @@ a {
   font: var(--type-figure);
   font-size: clamp(3rem, 27cqi, 6.5rem);
   letter-spacing: var(--ls-figure);
-  font-variant-numeric: tabular-nums lining-nums;
+  font-variant-numeric: tabular-nums;
 }
 
 .card__figure > small {
@@ -654,6 +709,7 @@ a {
 /* foot: one 1px rule, then the small print. */
 .card__foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -664,15 +720,22 @@ a {
   border-block-start: var(--bw-thin) solid var(--card-ink);
 }
 
-.card__foot :is(a, button) {
+/* a foot link is the card's main action: a full 44px target. The negative
+   margins spend the foot's own padding (and its rule) so the foot stays 44px,
+   and keep its text in line with the rest when it wraps. */
+.card__foot :is(a, button):not(.card__action) {
   display: inline-flex;
   align-items: center;
-  min-block-size: 1.5rem;
+  min-block-size: var(--hit);
+  margin-block: calc(-1 * var(--space-2) - var(--bw-thin)) calc(-1 * var(--space-2));
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
 }
 
 /* layout helpers inside a body */
 .card__row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
@@ -684,14 +747,9 @@ a {
   gap: var(--space-1);
 }
 
-/* a list of links, ruled. Used in panels. */
+/* a list of links, ruled. Used in panels. The whole row is the link, count
+   included, so a tap anywhere on it lands: <a><span>Name</span><span>12</span></a> */
 .card__list > li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  min-block-size: var(--hit);
-  padding-inline: var(--card-pad);
   font: var(--type-body);
   font-variant-numeric: tabular-nums;
   border-block-start: var(--bw-thin) solid var(--card-ink);
@@ -703,9 +761,12 @@ a {
 
 .card__list a {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  flex: 1;
+  justify-content: space-between;
+  gap: var(--space-3);
   min-block-size: var(--hit);
+  padding-inline: var(--card-pad);
   text-decoration: none;
 }
 
@@ -722,7 +783,7 @@ a {
   justify-content: space-between;
 }
 
-/* action: the round slot. Decorative on a link card, a real button in a notch. */
+/* action: the round slot. A real button, or the mark inside a ghost card. */
 .card__action {
   display: inline-grid;
   place-items: center;
@@ -735,10 +796,9 @@ a {
   border: var(--bw) solid var(--card-ink);
   border-radius: var(--radius-pill);
   text-decoration: none;
-  cursor: pointer;
 }
 
-.card__action:is(:hover, .is-hover) {
+.card__action.is-hover {
   --fill: 1;
 }
 
@@ -800,14 +860,9 @@ a {
    above it (position: relative; z-index: 1). */
 
 .card--link {
-  cursor: pointer;
   /* let the stretched link's ::after reach over the 2px border, or a click on
      the very edge of the card does nothing (Safari ignores this: 2px dead band) */
   overflow-clip-margin: border-box;
-  transform: translate(
-    calc(var(--lift) * var(--space-1) / -2),
-    calc(var(--lift) * var(--space-1) / -2)
-  );
 }
 
 .card--link .card__body {
@@ -842,6 +897,7 @@ a {
 
 .card--ghost {
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4);
@@ -849,86 +905,23 @@ a {
   background: transparent;
   border-style: dashed;
   text-decoration: none;
-  cursor: pointer;
 }
 
 .card--ghost .card__title {
   font-size: var(--text-lg);
 }
 
-/* --- variant: stack --------------------------------------------------------
-   Two sheets behind the card, drawn with box-shadow so the modifier needs no
-   wrapper and follows the radius for free. The sheets spill out of the box:
-   the margin reserves their room. */
-
-.card--stack {
-  --stack: 0.375rem;
-  --shadow-stack:
-    var(--stack) var(--stack) 0 0 var(--card-bg),
-    var(--stack) var(--stack) 0 var(--bw) var(--card-line),
-    calc(var(--stack) * 2) calc(var(--stack) * 2) 0 0 var(--card-bg),
-    calc(var(--stack) * 2) calc(var(--stack) * 2) 0 var(--bw) var(--card-line);
-  margin-inline-end: calc(var(--stack) * 2 + var(--bw));
-  margin-block-end: calc(var(--stack) * 2 + var(--bw));
-}
-
-/* --- variant: notch --------------------------------------------------------
-   A corner cut out of the frame, with a round control sitting in the cut. The
-   silhouette is painted, not clipped: four flat layers (two ink, two inset
-   fill) so the line turns the corner at exactly --bw and no wrapper is needed.
-   Square only: the cut IS the shape gesture, so --card-radius is ignored.
-   Not a whole-card link: the control in the notch is the interactive part. */
-
-.card--notch {
-  --notch-w: 4.5rem;
-  --notch-h: 4.5rem;
-  border-color: transparent;
-  border-radius: 0;
-  background-color: transparent;
-  background-repeat: no-repeat;
-  background-origin: border-box;
-  background-image:
-    linear-gradient(var(--card-bg), var(--card-bg)),
-    linear-gradient(var(--card-bg), var(--card-bg)),
-    linear-gradient(var(--card-line), var(--card-line)),
-    linear-gradient(var(--card-line), var(--card-line));
-  background-position:
-    var(--bw) var(--bw),
-    var(--bw) calc(var(--notch-h) + var(--bw)),
-    0 0,
-    0 var(--notch-h);
-  background-size:
-    calc(100% - var(--notch-w) - var(--bw) * 2) calc(100% - var(--bw) * 2),
-    calc(100% - var(--bw) * 2) calc(100% - var(--notch-h) - var(--bw) * 2),
-    calc(100% - var(--notch-w)) 100%,
-    100% calc(100% - var(--notch-h));
-  box-shadow: none;
-  overflow: visible;
-}
-
-.card--notch > .card__head {
-  min-block-size: calc(var(--notch-h) - var(--bw));
-  padding-inline-end: calc(var(--notch-w) + var(--space-2));
-}
-
-/* the control sits centred in the cut, out on the page */
-.card--notch > .card__action {
-  --card-bg: var(--paper);
-  --card-ink: var(--ink);
-  position: absolute;
-  inset-block-start: calc(var(--notch-h) / 2 - var(--hit) / 2 - var(--bw));
-  inset-inline-end: calc(var(--notch-w) / 2 - var(--hit) / 2 - var(--bw));
-}
-
 /* --- variant: study --------------------------------------------------------
    The flashcard itself: 5:7, one subject, one hint. The flip is motion, so it
-   is designed at gate 4; the faces here are static. */
+   is designed at gate 4; the faces here are static. It never outgrows a
+   phone: set --chrome to the height of the screen's bars and the whole card
+   fits under them. svh, so it is sized once and doesn't jump as bars hide. */
 
 .card--study {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   aspect-ratio: var(--ratio-study);
-  max-inline-size: 22rem;
+  max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7);
 }
 
 .card__stage {
@@ -950,21 +943,35 @@ a {
   letter-spacing: var(--ls-title);
   text-align: center;
   text-wrap: balance;
+  overflow-wrap: anywhere; /* one big word: at large text sizes it has to break */
 }
 
 /* --- states ----------------------------------------------------------------
    .is-* classes force a state for documentation and tests. They are not an
    API; real states come from :hover, :focus-visible, :active and aria-*. */
 
+/* hover only where a pointer can hover: on touch it would stick after a tap */
 @media (hover: hover) {
   :is(.card--link, .card--ghost):hover {
     --lift: 1;
     --fill: 1;
     z-index: 1;
   }
+
+  .card__action:hover {
+    --fill: 1;
+  }
+
+  .card--ghost:hover {
+    color: var(--card-ink);
+    background: var(--card-bg);
+    border-style: solid;
+  }
 }
 
-.card--link:is(.is-hover, .is-focus, :has(.card__link:focus-visible)) {
+/* keyboard gets exactly what the pointer gets */
+.card--link:is(.is-hover, .is-focus, :has(.card__link:focus-visible)),
+.card--ghost:is(.is-hover, :focus-visible, .is-focus) {
   --lift: 1;
   --fill: 1;
   z-index: 1;
@@ -977,41 +984,66 @@ a {
 }
 
 .card--ghost:is(.is-hover, :focus-visible, .is-focus) {
-  --fill: 1;
-}
-
-.card--ghost:is(:hover, .is-hover, :focus-visible, .is-focus) {
   color: var(--card-ink);
   background: var(--card-bg);
   border-style: solid;
 }
 
-/* pressed: back onto the surface, colour stays. After hover so it wins. */
-.card--link:is(:active, .is-active) {
+/* pressed: every control answers a press. A lifted card goes back onto the
+   surface and its colour stays. After hover so it wins. */
+:is(.card--link, .card--ghost):is(:active, .is-active) {
   --lift: 0;
   --fill: 1;
 }
 
-/* selected: the frame doubles. A ring, not a wider border, so nothing shifts. */
-.card:is([aria-selected="true"], [aria-current="true"], .is-selected) {
+.card__action:active {
+  --fill: 1;
+}
+
+.card__ctl:active::before {
+  background: currentColor;
+}
+
+.card__list a:active,
+.card__foot :is(a, button):not(.card__action):active {
+  color: var(--card-bg);
+  background: var(--card-ink);
+}
+
+/* selected: the frame doubles. A ring, not a wider border, so nothing shifts.
+   aria-selected only on a role="option" card in a listbox; in a navigable
+   collection, aria-current goes on the card's link. */
+.card:is([aria-selected="true"], .is-selected),
+.card:has(.card__link[aria-current]:not([aria-current="false"])) {
   --shadow-select: 0 0 0 var(--bw) var(--card-line);
   z-index: 1;
 }
 
-/* disabled: dashed, muted, inert. The hatch is the wireframe kit's job. */
-.card:is([aria-disabled="true"], .is-disabled) {
+/* disabled: dashed, muted, inert, and not a link (no href). It says why in
+   .card__meta. aria-disabled only on a role="option" card. The hatch is the
+   wireframe kit's job. */
+.card:is(.card--disabled, [aria-disabled="true"]) {
   --card-line: var(--ink-faint);
   color: var(--ink-faint);
   border-style: dashed;
   pointer-events: none;
-  cursor: not-allowed;
 }
 
-.card:is([aria-disabled="true"], .is-disabled) :is(.card__eyebrow, .card__meta, .card__text, .card__title) {
+.card:is(.card--disabled, [aria-disabled="true"]) :is(.card__eyebrow, .card__meta, .card__text, .card__title) {
   color: inherit;
 }
 
+/* more contrast asked for: soft text becomes the card's own ink, tones too */
+@media (prefers-contrast: more) {
+  .card,
+  .card[data-tone] {
+    --card-ink-soft: var(--card-ink);
+  }
+}
+
 /* --- card-grid ---------------------------------------------------------------
+   A collection is a list: <ul class="card-grid" role="list">, one <li> per
+   card. Each li is a grid too, so its card still stretches.
    Loose by default. --tiled shares borders instead of leaving a gap: negative
    start margins overlap each card's frame onto its neighbour's, so two frames
    read as one 2px line and a short last row still closes cleanly. */
@@ -1024,14 +1056,17 @@ a {
   align-items: stretch;
 }
 
+.card-grid > li {
+  display: grid;
+}
+
 .card-grid--tiled {
   gap: 0;
   padding-block-start: var(--bw);
   padding-inline-start: var(--bw);
 }
 
-.card-grid--tiled > .card {
-  --card-radius: 0;
+.card-grid--tiled > :is(.card, li) {
   margin-block-start: calc(var(--bw) * -1);
   margin-inline-start: calc(var(--bw) * -1);
 }
@@ -1045,19 +1080,31 @@ a {
     border-color: CanvasText;
   }
 
-  .card--link:is(:hover, .is-hover, .is-focus, :has(.card__link:focus-visible)) {
+  .card--link:is(.is-hover, .is-focus, :has(.card__link:focus-visible)) {
     outline: var(--bw-heavy) solid Highlight;
     outline-offset: 0;
   }
 
-  .card:is([aria-selected="true"], [aria-current="true"], .is-selected) {
+  @media (hover: hover) {
+    .card--link:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+
+  .card:is([aria-selected="true"], .is-selected),
+  .card:has(.card__link[aria-current]:not([aria-current="false"])) {
     border-width: var(--bw-heavy);
   }
 
-  .card--notch {
-    border-color: CanvasText;
-    border-radius: 0;
-    background-image: none;
+  /* dashed alone reads as "empty" here: GrayText says "unavailable" */
+  .card:is(.card--disabled, [aria-disabled="true"]) {
+    border-color: GrayText;
+    color: GrayText;
+  }
+
+  .card:is(.card--disabled, [aria-disabled="true"]) .ic {
+    background-color: GrayText;
   }
 }
 }
@@ -1106,7 +1153,7 @@ a {
   border: var(--bw-thin) solid var(--ink);
 }
 
-/* an illustration: the app's own shapes, drawn from decks.js paths */
+/* an illustration: stands in for the product's own illustrations */
 .wf-shape {
   inline-size: min(72%, 13rem);
   aspect-ratio: 1;
@@ -1165,7 +1212,7 @@ a {
 
 /* disabled, as hatch. Lighter than the text on purpose: the words have to
    stay readable through it. */
-.card:is([aria-disabled="true"], .is-disabled) {
+.card:is(.card--disabled, [aria-disabled="true"]) {
   background-image: repeating-linear-gradient(
     135deg,
     transparent 0 0.4375rem,
@@ -1179,14 +1226,19 @@ a {
 /* ==========================================================================
    Sheet chrome — the style-sheet page's own furniture (.sg-*).
 
-   Not shipped to the app. Exempt from tools/check.mjs, because the "not this"
-   specimen has to break every rule on purpose. Everything else here still
-   reads the same tokens, so the page can't drift from the system it shows.
+   Not shipped to the app, but tools/check.mjs holds it to the same rules: the
+   page that teaches them keeps them. It reads the same tokens, so it can't
+   drift from the system it shows. The fluid (vw) sizes live here as --sg-*,
+   because a page can scale with the window and an app's text must not.
    ========================================================================== */
 
 @layer sheet {
   :root {
     --sg-pad: clamp(1rem, 3vw, 2.5rem);
+    --sg-stage-pad: min(var(--space-5), 5vw); /* stays small on a phone at large text */
+    --sg-text-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem); /* 24 -> 32 */
+    --sg-text-2xl: min(clamp(2rem, 1.5rem + 2.2vw, 3.25rem), 10vw); /* 32 -> 52 */
+    --sg-text-display: clamp(4.25rem, 1rem + 15vw, 15rem); /* 68 -> 240 */
     scroll-padding-block-start: 3.5rem;
   }
 
@@ -1200,19 +1252,11 @@ a {
     background: var(--paper);
   }
 
-  /* --- the two switches ---------------------------------------------------
-     Corners is an open decision, so flipping it remaps the three shape roles
-     and nothing else. Show boxes outlines every element in every stage. */
-
-  :root:has(#shape-soft:checked) {
-    --radius-card: var(--radius-3);
-    --radius-tile: var(--radius-2);
-    --radius-ctl: var(--radius-1);
-  }
+  /* --- the switch: Show boxes outlines every element in every stage ------- */
 
   :root:has(#boxes-on:checked) .sg-stage * {
-    outline: 1px dashed var(--ink-faint);
-    outline-offset: -1px;
+    outline: var(--bw-thin) dashed var(--ink-faint);
+    outline-offset: calc(var(--bw-thin) * -1);
   }
 
   /* --- basics -------------------------------------------------------------- */
@@ -1222,10 +1266,11 @@ a {
     margin-inline: auto;
   }
 
+  /* never under 13px, even inside small print */
   code,
   kbd {
     font-family: var(--font-mono);
-    font-size: 0.85em;
+    font-size: max(0.85em, 0.8125rem);
   }
 
   :not(pre) > code {
@@ -1233,6 +1278,13 @@ a {
     white-space: nowrap;
     background: var(--canvas);
     border: var(--bw-thin) solid var(--line-soft);
+  }
+
+  @media (max-width: 40rem) {
+    :not(pre) > code {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
   }
 
   /* --- skip link: invisible until it has focus ------------------------------ */
@@ -1264,6 +1316,8 @@ a {
     z-index: 20;
     color: var(--paper);
     background: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .sg-top__in {
@@ -1282,20 +1336,16 @@ a {
     white-space: nowrap;
   }
 
+  /* the nav wraps rather than scroll: a hidden scrollbar hides links */
   .sg-top nav {
     flex: 1;
     min-inline-size: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .sg-top nav::-webkit-scrollbar {
-    display: none;
   }
 
   .sg-top ul {
     display: flex;
-    gap: var(--space-2);
+    flex-wrap: wrap;
+    column-gap: var(--space-2);
   }
 
   .sg-top a {
@@ -1306,9 +1356,11 @@ a {
     text-decoration: none;
   }
 
-  .sg-top a:hover {
-    text-decoration: underline;
-    text-underline-offset: 0.25em;
+  @media (hover: hover) {
+    .sg-top a:hover {
+      text-decoration: underline;
+      text-underline-offset: 0.25em;
+    }
   }
 
   .sg-top :focus-visible {
@@ -1316,7 +1368,13 @@ a {
     outline-offset: calc(var(--ring) * -1);
   }
 
+  /* on a phone the nav takes two rows (more at large text), too much to pin */
   @media (max-width: 52rem) {
+    .sg-top {
+      position: static;
+    }
+
+    .sg-top__brand,
     .sg-top__status {
       display: none;
     }
@@ -1340,6 +1398,14 @@ a {
     margin-inline-start: -0.03em;
   }
 
+  /* the hero line: a poster size, sheet only (an app screen uses .t-heading).
+     The 19vw cap keeps it on a phone even at 200% text. */
+  .sg-display {
+    font: 900 expanded min(var(--sg-text-display), 19vw) / var(--lh-none) var(--font-sans);
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+  }
+
   .sg-hero__row {
     display: grid;
     gap: var(--space-5) var(--gutter);
@@ -1354,7 +1420,7 @@ a {
 
   .sg-hero__lede {
     max-inline-size: 36ch;
-    font: 400 var(--text-xl) / var(--lh-snug) var(--font-sans);
+    font: 400 var(--sg-text-xl) / var(--lh-snug) var(--font-sans);
     letter-spacing: var(--ls-title);
     text-wrap: balance;
   }
@@ -1421,13 +1487,6 @@ a {
     outline-offset: -6px;
   }
 
-  .sg-hero__hint {
-    flex-basis: 100%;
-    max-inline-size: 46ch;
-    font: var(--type-meta);
-    color: var(--ink-soft);
-  }
-
   /* --- sections ------------------------------------------------------------ */
 
   .sg-sec {
@@ -1441,6 +1500,7 @@ a {
     gap: var(--space-2) var(--space-4);
     align-items: baseline;
     margin-block-end: var(--space-6);
+    overflow-wrap: break-word; /* 320px at 200% text: break rather than scroll sideways */
   }
 
   .sg-sec__idx {
@@ -1449,7 +1509,7 @@ a {
   }
 
   .sg-sec__title {
-    font: 600 var(--text-2xl) / 1 var(--font-sans);
+    font: 600 var(--sg-text-2xl) / 1 var(--font-sans);
     letter-spacing: var(--ls-title);
   }
 
@@ -1546,16 +1606,8 @@ a {
     }
   }
 
-  .sg-type > :first-child {
-    overflow-wrap: anywhere;
-  }
-
-  .sg-type--display > :first-child {
-    font-size: clamp(3rem, 12vw, 6rem);
-  }
-
   .sg-spec {
-    font: 400 0.75rem / 1.4 var(--font-mono);
+    font: 400 0.8125rem / 1.4 var(--font-mono);
     color: var(--ink-soft);
   }
 
@@ -1574,6 +1626,7 @@ a {
   .sg-space i {
     display: block;
     inline-size: var(--w);
+    max-inline-size: 100%;
     block-size: 0.75rem;
     background: var(--ink);
   }
@@ -1610,7 +1663,6 @@ a {
     block-size: 5rem;
     background: var(--tone-1);
     border: var(--bw) solid var(--ink);
-    border-radius: var(--r, 0);
   }
 
   .sg-shapes p {
@@ -1619,7 +1671,7 @@ a {
 
   .sg-tones {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
     padding-block-start: var(--bw-thin);
     padding-inline-start: var(--bw-thin);
   }
@@ -1678,7 +1730,7 @@ a {
   }
 
   .sg-entry__name {
-    font: 600 var(--text-2xl) / 1 var(--font-sans);
+    font: 600 var(--sg-text-2xl) / 1 var(--font-sans);
     letter-spacing: var(--ls-title);
   }
 
@@ -1703,7 +1755,7 @@ a {
 
   .sg-stage {
     min-inline-size: 0;
-    padding: var(--space-5);
+    padding: var(--sg-stage-pad);
     background: var(--canvas);
     border: var(--bw-thin) solid var(--ink);
   }
@@ -1719,7 +1771,7 @@ a {
   .sg-states {
     display: grid;
     gap: var(--space-6) var(--gutter);
-    padding: var(--space-6) var(--space-5);
+    padding: var(--space-6) var(--sg-stage-pad);
     background: var(--canvas);
     border: var(--bw-thin) solid var(--ink);
   }
@@ -1775,7 +1827,6 @@ a {
     font: var(--type-label);
     letter-spacing: var(--ls-label);
     text-transform: uppercase;
-    cursor: pointer;
     list-style: none;
   }
 
@@ -1854,7 +1905,7 @@ a {
 
   .sg-anat {
     position: relative;
-    padding: var(--space-6) var(--space-5);
+    padding: var(--space-6) var(--sg-stage-pad);
     background: var(--canvas);
     border: var(--bw-thin) solid var(--ink);
   }
@@ -1872,7 +1923,7 @@ a {
     flex: none;
     inline-size: 1.375rem;
     block-size: 1.375rem;
-    font: 700 0.75rem / 1 var(--font-sans);
+    font: 700 0.8125rem / 1 var(--font-sans);
     color: var(--ink);
     background: var(--paper);
     border: var(--bw) solid var(--ink);
@@ -1911,7 +1962,7 @@ a {
     translate: none;
   }
 
-  /* the action's badge sits off its top corner, so the arrow stays visible */
+  /* the action's badge sits off its top corner, so the glyph stays visible */
   .sg-anat .card__action[data-n]::after {
     inset-block-start: -0.375rem;
     inset-inline-end: -0.375rem;
@@ -1955,158 +2006,18 @@ a {
     text-wrap: pretty;
   }
 
-  /* --- layout demos --------------------------------------------------------- */
+  /* --- layout demos: the same cards at fixed widths ---------------------- */
 
-  .sg-resize {
-    inline-size: 28rem;
-    min-inline-size: 12rem;
-    max-inline-size: 100%;
-    padding: var(--space-4);
-    overflow: auto;
-    resize: horizontal;
-    background: var(--paper);
-    border: var(--bw-thin) dashed var(--ink);
-  }
-
-  /* --- not this ------------------------------------------------------------ */
-
-  .sg-compare {
-    display: grid;
-    gap: var(--gutter);
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-    align-items: start;
-  }
-
-  .sg-compare figure {
-    display: flex;
-    flex-direction: column;
-    min-inline-size: 0;
-  }
-
-  .sg-compare .sg-stage {
-    display: grid;
-    flex: 1;
-    align-content: center;
-    min-block-size: 16rem;
-    padding: var(--space-6) var(--space-5);
-  }
-
-  /* The generic card. Every line below is a tell, on purpose. */
-  .sg-bad {
-    display: grid;
-    gap: 12px;
-    padding: 22px;
-    background: linear-gradient(145deg, #ffffff, #efefef);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-left: 4px solid #6f6f6f;
-    border-radius: 12px;
-    box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.14),
-      0 2px 6px rgba(0, 0, 0, 0.08);
-  }
-
-  .sg-bad__icon {
-    display: grid;
-    place-items: center;
-    inline-size: 44px;
-    block-size: 44px;
-    color: #ffffff;
-    background: linear-gradient(135deg, #b5b5b5, #6a6a6a);
-    border-radius: 50%;
-  }
-
-  .sg-bad h4 {
-    margin: 0;
-    font: 600 20px / 1.3 var(--font-sans);
-  }
-
-  .sg-bad p {
-    margin: 0;
-    color: #6b6b6b;
-    font: 400 15px / 1.5 var(--font-sans);
-  }
-
-  .sg-tells {
-    display: grid;
-    gap: var(--space-2);
-    margin-block-start: var(--space-4);
-    counter-reset: tell;
-  }
-
-  .sg-tells li {
-    display: grid;
-    grid-template-columns: 1.375rem minmax(0, 1fr);
-    gap: var(--space-3);
-    align-items: start;
-    counter-increment: tell;
-  }
-
-  .sg-tells li::before {
-    content: counter(tell);
-    display: grid;
-    place-items: center;
-    inline-size: 1.375rem;
-    block-size: 1.375rem;
-    font: 700 0.75rem / 1 var(--font-sans);
-    border: var(--bw) solid var(--ink);
-    border-radius: var(--radius-pill);
-  }
-
-  /* --- pipeline table ------------------------------------------------------- */
-
-  .sg-scroll {
-    overflow-x: auto;
-  }
-
-  .sg-table {
-    inline-size: 100%;
-    min-inline-size: 44rem;
-    border-collapse: collapse;
-    font: var(--type-meta);
-  }
-
-  .sg-table th {
-    padding: var(--space-2) var(--space-4) var(--space-2) 0;
-    font: var(--type-label);
-    letter-spacing: var(--ls-label);
-    text-align: start;
-    text-transform: uppercase;
-    border-block-end: var(--bw) solid var(--ink);
-  }
-
-  .sg-table td {
-    padding: var(--space-3) var(--space-4) var(--space-3) 0;
-    vertical-align: top;
-    border-block-end: var(--bw-thin) solid var(--ink);
-  }
-
-  .sg-table td:first-child {
-    font: 700 var(--text-md) / 1.2 var(--font-sans);
-    white-space: nowrap;
-  }
-
-  .sg-tag {
-    display: inline-flex;
-    align-items: center;
-    min-block-size: 1.5rem;
-    padding-inline: var(--space-3);
-    font: var(--type-label);
-    letter-spacing: var(--ls-label);
-    text-transform: uppercase;
-    border: var(--bw-thin) solid var(--ink);
-    border-radius: var(--radius-pill);
-  }
-
-  .sg-tag[data-s="done"] {
-    color: var(--paper);
-    background: var(--ink);
-  }
-
-  .sg-next {
+  .sg-widths {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-block-start: var(--space-4);
+    gap: var(--space-5) var(--gutter);
+    align-items: start;
+  }
+
+  .sg-widths > figure {
+    inline-size: var(--w);
+    max-inline-size: 100%;
   }
 
   /* --- footer --------------------------------------------------------------- */
@@ -2131,17 +2042,15 @@ a {
         <span class="sg-top__brand">Flashcards / Style sheet</span>
         <nav aria-label="Contents">
           <ul role="list">
-            <li><a href="#rules">00 Rules</a></li>
-            <li><a href="#tokens">01 Tokens</a></li>
-            <li><a href="#anatomy">02 Anatomy</a></li>
-            <li><a href="#variants">03 Variants</a></li>
-            <li><a href="#states">04 States</a></li>
-            <li><a href="#layout">05 Layout</a></li>
-            <li><a href="#not-this">06 Not this</a></li>
-            <li><a href="#pipeline">07 Pipeline</a></li>
+            <li><a href="#rules">Rules</a></li>
+            <li><a href="#tokens">Tokens</a></li>
+            <li><a href="#anatomy">Anatomy</a></li>
+            <li><a href="#variants">Variants</a></li>
+            <li><a href="#states">States</a></li>
+            <li><a href="#layout">Layout</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.1 · Wireframe</span>
+        <span class="sg-top__status">v0.2 · Wireframe</span>
       </div>
     </div>
 
@@ -2149,7 +2058,7 @@ a {
       <p class="sg-hero__kicker t-label">
         <span>Element 01</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
       </p>
-      <h1 class="t-display">Cards</h1>
+      <h1 class="sg-display">Cards</h1>
       <div class="sg-hero__row">
         <p class="sg-hero__lede">
           A card holds one idea. The frame is fixed; what goes inside is a slot. This chapter is
@@ -2157,22 +2066,12 @@ a {
         </p>
         <div class="sg-controls">
           <fieldset class="sg-ctl">
-            <legend>Corners</legend>
-            <div class="sg-seg">
-              <label><input type="radio" name="shape" id="shape-square" checked />Square</label>
-              <label><input type="radio" name="shape" id="shape-soft" />Soft</label>
-            </div>
-          </fieldset>
-          <fieldset class="sg-ctl">
             <legend>Show boxes</legend>
             <div class="sg-seg">
               <label><input type="radio" name="boxes" id="boxes-off" checked />Off</label>
               <label><input type="radio" name="boxes" id="boxes-on" />On</label>
             </div>
           </fieldset>
-          <p class="sg-hero__hint">
-            Corners is still open. Flip it, look at everything below, pick one.
-          </p>
         </div>
       </div>
     </header>
@@ -2200,24 +2099,24 @@ a {
             <strong>Flat.</strong>
             <p>
               No gradients, no blur, no glass. A shadow is hard-edged and means “you can press
-              this”.
+              this”. Hover and press never move the hit box.
             </p>
           </li>
           <li>
             <strong>Rectangles hold, circles act.</strong>
             <p>
-              Containers are rectangles, square or soft. Buttons and handles are circles or pills.
+              Containers are square rectangles. Buttons and handles are circles or pills.
             </p>
           </li>
           <li>
             <strong>Uppercase is structure.</strong>
             <p>
-              Bar labels, index numbers and the display line. Everything you read is sentence case.
+              Bar labels and index numbers. Everything you read is sentence case.
             </p>
           </li>
           <li>
             <strong>Say something real.</strong>
-            <p>No lorem ipsum, no “John Doe”, no “seamless”. Copy comes from the app.</p>
+            <p>No lorem ipsum, no “John Doe”, no “seamless”. Copy comes from the product.</p>
           </li>
           <li>
             <strong>Colour is a swap.</strong>
@@ -2248,19 +2147,19 @@ a {
 
         <div class="sg-grid">
           <div class="sg-box sg-box--wide">
-            <div class="sg-box__head"><span>Type</span><span>Archivo · one file · three widths</span></div>
+            <div class="sg-box__head"><span>Type</span><span>Archivo · one file · three widths · fixed rem</span></div>
             <div class="sg-box__body">
-              <div class="sg-type sg-type--display">
-                <p class="t-display">Cards</p>
-                <p class="sg-spec">--type-display<br />900 · 125% wide · uppercase<br />one per page</p>
+              <div class="sg-type">
+                <p class="t-heading">Settings</p>
+                <p class="sg-spec">--type-heading<br />600 · 32px · one per screen</p>
               </div>
               <div class="sg-type">
                 <p class="t-title">Shapes</p>
-                <p class="sg-spec">--type-title<br />500 · 24 to 32px · balanced</p>
+                <p class="sg-spec">--type-title<br />500 · 24px · balanced</p>
               </div>
               <div class="sg-type">
                 <p class="t-body">Circle to crescent. Swipe through them and tap to see the name.</p>
-                <p class="sg-spec">--type-body<br />400 · 16px on 1.5</p>
+                <p class="sg-spec">--type-body<br />400 · 16px on 1.5 · 62ch at most</p>
               </div>
               <div class="sg-type">
                 <p class="t-meta">12 cards · 5 known</p>
@@ -2268,11 +2167,11 @@ a {
               </div>
               <div class="sg-type">
                 <p class="t-label">Deck 01</p>
-                <p class="sg-spec">--type-label<br />700 · 75% condensed · 13px · +0.08em</p>
+                <p class="sg-spec">--type-label<br />700 · 75% condensed · 13px on 1.2 · +0.08em · 1 to 4 words</p>
               </div>
               <div class="sg-type">
                 <p class="t-figure">5<span class="t-title">/12</span></p>
-                <p class="sg-spec">--type-figure<br />600 · 112.5% · 48 to 104px · tabular</p>
+                <p class="sg-spec">--type-figure<br />600 · 112.5% · 48px · tabular</p>
               </div>
             </div>
           </div>
@@ -2314,21 +2213,16 @@ a {
           </div>
 
           <div class="sg-box">
-            <div class="sg-box__head"><span>Shape</span><span>open decision</span></div>
+            <div class="sg-box__head"><span>Shape</span><span>decided</span></div>
             <div class="sg-box__body">
               <div class="sg-shapes">
                 <figure>
                   <i></i>
                   <figcaption class="sg-spec"><b>Square</b><br />card 0 · tile 0 · control 0</figcaption>
                 </figure>
-                <figure>
-                  <i style="--r: var(--radius-3)"></i>
-                  <figcaption class="sg-spec"><b>Soft</b><br />card 24 · tile 12 · control 6</figcaption>
-                </figure>
               </div>
               <p class="sg-spec">
-                Pills and circles are always round. A card gets one shape gesture: rounded or
-                notched, never both.
+                Containers are square. Pills and circles are always round.
               </p>
             </div>
           </div>
@@ -2404,7 +2298,7 @@ a {
               <span class="sg-n sg-anat__frame" aria-hidden="true">1</span>
               <article class="card">
                 <header class="card__bar" data-n="2">
-                  <h4 class="card__label">07 — Diamond</h4>
+                  <p class="card__label">07 — Diamond</p>
                   <button class="card__ctl" type="button" aria-label="Collapse">
                     <span class="ic ic--minus"></span>
                   </button>
@@ -2420,17 +2314,17 @@ a {
                 </div>
                 <div class="card__body" data-n="4">
                   <p class="card__eyebrow" data-n="5">Shape 07</p>
-                  <h4 class="card__title" data-n="6">Diamond</h4>
+                  <h3 class="card__title" data-n="6">Diamond</h3>
                   <p class="card__text" data-n="7">
                     Taller than it is wide, on purpose. Equal diagonals is just a square on its
                     corner.
                   </p>
                 </div>
                 <footer class="card__foot" data-n="8">
-                  <span>Known since Tuesday</span>
-                  <span class="card__action" data-n="9" aria-hidden="true">
-                    <span class="ic ic--arrow"></span>
-                  </span>
+                  <span>Seen on Tuesday</span>
+                  <button type="button" class="card__action" aria-label="Mark as known" data-n="9">
+                    <span class="ic ic--check"></span>
+                  </button>
                 </footer>
               </article>
             </div>
@@ -2507,7 +2401,7 @@ a {
                 <strong>Foot</strong><code>.card__foot</code>
                 <p>
                   A 1px rule, then the small print. Sticks to the bottom, so cards in a row end on
-                  one line.
+                  one line. A link in it gets the full 44px target.
                 </p>
               </div>
             </li>
@@ -2516,8 +2410,8 @@ a {
               <div>
                 <strong>Action</strong><code>.card__action</code>
                 <p>
-                  A 44px circle. Round means it does something. On a link card it's decoration; in
-                  a notch it's a real button.
+                  A 44px circle. Round means it does something, so it is always a real button. In a
+                  ghost card it marks the card, which is the button.
                 </p>
               </div>
             </li>
@@ -2531,7 +2425,7 @@ a {
           <span class="sg-sec__idx">03</span>
           <h2 class="sg-sec__title" id="h-variants">Variants</h2>
           <p class="sg-sec__note">
-            Ten cards, one idea each. The markup under every specimen is read from the live
+            Eight cards, one idea each. The markup under every specimen is read from the live
             element, so it can't drift from what you're looking at.
           </p>
         </div>
@@ -2541,7 +2435,7 @@ a {
           <li><i style="background: var(--tone-3)"></i>Flat grey: a tone slot</li>
           <li><i style="background: var(--ink)"></i>Black: the inverted tone</li>
           <li><i style="border-style: dashed"></i>Dashed: empty, or not yet</li>
-          <li><i class="card is-disabled" style="min-inline-size: 0; container-type: normal"></i>Hatch: disabled</li>
+          <li><i class="card card--disabled" style="min-inline-size: 0; container-type: normal"></i>Hatch: disabled</li>
         </ul>
 
         <!-- 3.1 -->
@@ -2614,10 +2508,10 @@ a {
                 </button>
               </header>
               <ul class="card__list" role="list">
-                <li><a href="#">Shapes</a><span>12</span></li>
-                <li><a href="#">Colours</a><span>8</span></li>
-                <li><a href="#">Numbers to twenty</a><span>20</span></li>
-                <li><a href="#">Farm animals</a><span>15</span></li>
+                <li><a href="#"><span>Shapes</span><span>12</span></a></li>
+                <li><a href="#"><span>Colours</span><span>8</span></a></li>
+                <li><a href="#"><span>Numbers to twenty</span><span>20</span></a></li>
+                <li><a href="#"><span>Farm animals</span><span>15</span></a></li>
               </ul>
             </section>
           </div>
@@ -2770,21 +2664,19 @@ a {
             <h3 class="sg-entry__name">Link</h3>
             <p class="sg-entry__use">The whole card goes somewhere.</p>
             <p class="sg-entry__classes">
-              <code>.card--link</code> <code>.card__link</code> <code>.card__action</code>
+              <code>.card--link</code> <code>.card__link</code>
             </p>
             <p class="sg-entry__note">
               One anchor, in the title, stretched over the card with <code>::after</code>. One tab
               stop, one accessible name, and the whole card is the target. The card wears the focus
-              ring, not the anchor. Anything else clickable inside must sit above it.
+              ring, not the anchor. Anything else clickable inside must sit above it. The title's
+              underline on hover and focus is the cue; no arrow needed.
             </p>
           </header>
           <div class="sg-stage sg-cols" style="--col: 13rem">
             <article class="card card--link" data-tone="1" data-sg-code>
               <div class="card__body">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 12 cards</p>
-                  <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
-                </div>
+                <p class="card__eyebrow">Deck · 12 cards</p>
                 <div class="card__group">
                   <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
                   <p class="card__meta">5 known</p>
@@ -2793,10 +2685,7 @@ a {
             </article>
             <article class="card card--link" data-tone="3">
               <div class="card__body">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 8 cards</p>
-                  <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
-                </div>
+                <p class="card__eyebrow">Deck · 8 cards</p>
                 <div class="card__group">
                   <h4 class="card__title"><a class="card__link" href="#">Colours</a></h4>
                   <p class="card__meta">New</p>
@@ -2805,10 +2694,7 @@ a {
             </article>
             <article class="card card--link" data-tone="5">
               <div class="card__body">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 20 cards</p>
-                  <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
-                </div>
+                <p class="card__eyebrow">Deck · 20 cards</p>
                 <div class="card__group">
                   <h4 class="card__title"><a class="card__link" href="#">Numbers to twenty</a></h4>
                   <p class="card__meta">11 known</p>
@@ -2819,71 +2705,15 @@ a {
         </article>
 
         <!-- 3.7 -->
-        <article class="sg-entry" id="notch">
-          <header class="sg-entry__meta">
-            <p class="sg-entry__idx">3.7</p>
-            <h3 class="sg-entry__name">Notch</h3>
-            <p class="sg-entry__use">One action that matters, tucked into the corner.</p>
-            <p class="sg-entry__classes">
-              <code>.card--notch</code> <code>.card__head</code> <code>.card__action</code>
-            </p>
-            <p class="sg-entry__note">
-              The silhouette is painted, not clipped: four flat layers, so the line turns the
-              corner at exactly 2px and no wrapper is needed. It stays square in both corner modes,
-              because the cut is this card's shape gesture. Not a link card: the button in the notch
-              is the control.
-            </p>
-          </header>
-          <div class="sg-stage sg-cols" style="--col: 17rem">
-            <article class="card card--notch" data-sg-code>
-              <div class="card__head">
-                <p class="card__eyebrow">Due today</p>
-              </div>
-              <div class="card__body">
-                <p class="card__figure">24</p>
-                <p class="card__meta">cards are ready to review</p>
-              </div>
-              <button class="card__action" type="button" aria-label="Start review">
-                <span class="ic ic--arrow"></span>
-              </button>
-            </article>
-          </div>
-        </article>
-
-        <!-- 3.8 -->
-        <article class="sg-entry" id="stack">
-          <header class="sg-entry__meta">
-            <p class="sg-entry__idx">3.8</p>
-            <h3 class="sg-entry__name">Stack</h3>
-            <p class="sg-entry__use">A deck, not a single card.</p>
-            <p class="sg-entry__classes"><code>.card--stack</code></p>
-            <p class="sg-entry__note">
-              Two sheets behind the card, drawn with <code>box-shadow</code>, so there's no wrapper
-              and it follows the corner mode for free. The sheets spill outside the box; the margin
-              reserves their room.
-            </p>
-          </header>
-          <div class="sg-stage sg-cols" style="--col: 17rem">
-            <article class="card card--stack" data-tone="1" data-sg-code>
-              <div class="card__body">
-                <p class="card__eyebrow">Deck</p>
-                <h4 class="card__title">Shapes</h4>
-                <p class="card__meta">12 cards</p>
-              </div>
-            </article>
-          </div>
-        </article>
-
-        <!-- 3.9 -->
         <article class="sg-entry" id="ghost">
           <header class="sg-entry__meta">
-            <p class="sg-entry__idx">3.9</p>
+            <p class="sg-entry__idx">3.7</p>
             <h3 class="sg-entry__name">Ghost</h3>
             <p class="sg-entry__use">The empty slot that asks to be filled.</p>
             <p class="sg-entry__classes"><code>.card--ghost</code></p>
             <p class="sg-entry__note">
-              Dashed means nothing here yet. The card is the anchor or the button itself, and it
-              firms up on hover and focus.
+              Dashed means nothing here yet. The card is the anchor or the button itself. On hover
+              and on focus alike it firms up and lifts.
             </p>
           </header>
           <div class="sg-stage sg-cols" style="--col: 17rem">
@@ -2894,19 +2724,20 @@ a {
           </div>
         </article>
 
-        <!-- 3.10 -->
+        <!-- 3.8 -->
         <article class="sg-entry" id="study">
           <header class="sg-entry__meta">
-            <p class="sg-entry__idx">3.10</p>
+            <p class="sg-entry__idx">3.8</p>
             <h3 class="sg-entry__name">Study</h3>
             <p class="sg-entry__use">The flashcard itself. 5:7, one subject, one hint.</p>
             <p class="sg-entry__classes">
               <code>.card--study</code> <code>.card__stage</code> <code>.card__answer</code>
             </p>
             <p class="sg-entry__note">
-              Static faces only. The flip is motion, so it's designed at gate 4; the rules in the
-              app's README (perspective on the parent, backfaces hidden,
-              <code>cubic-bezier(.83, 0, .17, 1)</code>) carry over unchanged.
+              Static faces only. The flip is motion, so it's designed at gate 4: perspective on the
+              parent, backfaces hidden, <code>cubic-bezier(.83, 0, .17, 1)</code>, and under reduced
+              motion a short crossfade instead. The card never grows taller than the screen: set
+              <code>--chrome</code> to the height of the screen's bars.
             </p>
           </header>
           <div class="sg-stage sg-cols" style="--col: 14rem">
@@ -2921,7 +2752,7 @@ a {
                     />
                   </svg>
                 </div>
-                <footer class="card__foot"><span class="card__meta">Tap to flip</span></footer>
+                <footer class="card__foot"><span class="card__meta">Turn over</span></footer>
               </article>
               <p class="sg-caption"><b>Front.</b> Shape only.</p>
             </div>
@@ -2947,8 +2778,8 @@ a {
           <span class="sg-sec__idx">04</span>
           <h2 class="sg-sec__title" id="h-states">States</h2>
           <p class="sg-sec__note">
-            One card, six states. Keyboard and pointer get the same lift. Still grey: colour
-            doesn't get to carry a state until gate 3.
+            One card, six states. Keyboard and pointer get the same lift, and the card never
+            moves. Still grey: colour doesn't get to carry a state until gate 3.
           </p>
         </div>
 
@@ -2956,12 +2787,9 @@ a {
           <div>
             <article class="card card--link" data-tone="1">
               <div class="card__body">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 12 cards</p>
-                  <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
-                </div>
+                <p class="card__eyebrow">Deck · 12 cards</p>
                 <div class="card__group">
-                  <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+                  <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
                 </div>
               </div>
             </article>
@@ -2970,26 +2798,20 @@ a {
           <div>
             <article class="card card--link is-hover" data-tone="1">
               <div class="card__body">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 12 cards</p>
-                  <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
-                </div>
+                <p class="card__eyebrow">Deck · 12 cards</p>
                 <div class="card__group">
-                  <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+                  <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
                 </div>
               </div>
             </article>
-            <p class="sg-caption"><b>Hover.</b> Lifts 2px, 4px hard shadow, action fills, title underlines.</p>
+            <p class="sg-caption"><b>Hover.</b> A 4px hard shadow and the title underlines. The card doesn't move.</p>
           </div>
           <div>
             <article class="card card--link is-focus" data-tone="1">
               <div class="card__body">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 12 cards</p>
-                  <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
-                </div>
+                <p class="card__eyebrow">Deck · 12 cards</p>
                 <div class="card__group">
-                  <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+                  <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
                 </div>
               </div>
             </article>
@@ -2998,50 +2820,44 @@ a {
           <div>
             <article class="card card--link is-active" data-tone="1">
               <div class="card__body">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 12 cards</p>
-                  <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
-                </div>
+                <p class="card__eyebrow">Deck · 12 cards</p>
                 <div class="card__group">
-                  <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+                  <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
                 </div>
               </div>
             </article>
-            <p class="sg-caption"><b>Pressed.</b> Back onto the surface. The fill stays.</p>
+            <p class="sg-caption"><b>Pressed.</b> Back onto the surface: the shadow goes, the underline stays.</p>
           </div>
           <div>
-            <article class="card card--link" data-tone="1" aria-current="true">
+            <article class="card card--link" data-tone="1">
               <div class="card__body">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 12 cards</p>
-                  <span class="card__action" aria-hidden="true"><span class="ic ic--arrow"></span></span>
-                </div>
+                <p class="card__eyebrow">Deck · 12 cards</p>
                 <div class="card__group">
-                  <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+                  <h3 class="card__title"><a class="card__link" href="#" aria-current="true">Shapes</a></h3>
                 </div>
               </div>
             </article>
-            <p class="sg-caption"><b>Selected.</b> A ring doubles the frame. Nothing shifts.</p>
+            <p class="sg-caption"><b>Selected.</b> A ring doubles the frame. Nothing shifts. Here, <code>aria-current</code> on its link.</p>
           </div>
           <div>
-            <article class="card is-disabled" data-tone="1" aria-disabled="true">
+            <article class="card card--disabled" data-tone="1">
               <div class="card__body" style="min-block-size: 11rem; justify-content: space-between">
-                <div class="card__row">
-                  <p class="card__eyebrow">Deck · 12 cards</p>
-                </div>
+                <p class="card__eyebrow">Deck · 12 cards</p>
                 <div class="card__group">
-                  <h4 class="card__title">Shapes</h4>
+                  <h3 class="card__title">Shapes</h3>
+                  <p class="card__meta">Unlocks after Colours</p>
                 </div>
               </div>
             </article>
-            <p class="sg-caption"><b>Disabled.</b> Dashed, hatched, inert. Not an anchor.</p>
+            <p class="sg-caption"><b>Disabled.</b> Dashed, hatched, inert, and it says why. Not a link.</p>
           </div>
         </div>
         <p class="sg-caption" style="max-inline-size: 70ch">
           The <code>.is-*</code> classes force a state for this page and for tests. They are not
-          API: real states come from <code>:hover</code>, <code>:focus-visible</code>,
-          <code>:active</code> and <code>aria-current</code>, <code>aria-selected</code>,
-          <code>aria-disabled</code>.
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>aria-current</code> on a card's
+          link, <code>aria-selected</code> on a card that is an option in a listbox, and the
+          <code>.card--disabled</code> modifier.
         </p>
       </section>
 
@@ -3065,36 +2881,44 @@ a {
             </p>
           </header>
           <div class="sg-stage">
-            <div class="card-grid" style="--card-min: 13rem" data-sg-code>
-              <article class="card" data-tone="1">
-                <div class="card__body">
-                  <p class="card__eyebrow">Deck</p>
-                  <h4 class="card__title">Shapes</h4>
-                  <p class="card__meta">12 cards</p>
-                </div>
-              </article>
-              <article class="card" data-tone="3">
-                <div class="card__body">
-                  <p class="card__eyebrow">Deck</p>
-                  <h4 class="card__title">Colours</h4>
-                  <p class="card__meta">8 cards</p>
-                </div>
-              </article>
-              <article class="card">
-                <div class="card__body">
-                  <p class="card__eyebrow">Deck</p>
-                  <h4 class="card__title">Numbers to twenty</h4>
-                  <p class="card__meta">20 cards</p>
-                </div>
-              </article>
-              <article class="card" data-tone="5">
-                <div class="card__body">
-                  <p class="card__eyebrow">Deck</p>
-                  <h4 class="card__title">Farm animals</h4>
-                  <p class="card__meta">15 cards</p>
-                </div>
-              </article>
-            </div>
+            <ul class="card-grid" role="list" style="--card-min: 13rem" data-sg-code>
+              <li>
+                <article class="card" data-tone="1">
+                  <div class="card__body">
+                    <p class="card__eyebrow">Deck</p>
+                    <h4 class="card__title">Shapes</h4>
+                    <p class="card__meta">12 cards</p>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="3">
+                  <div class="card__body">
+                    <p class="card__eyebrow">Deck</p>
+                    <h4 class="card__title">Colours</h4>
+                    <p class="card__meta">8 cards</p>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">Deck</p>
+                    <h4 class="card__title">Numbers to twenty</h4>
+                    <p class="card__meta">20 cards</p>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="5">
+                  <div class="card__body">
+                    <p class="card__eyebrow">Deck</p>
+                    <h4 class="card__title">Farm animals</h4>
+                    <p class="card__meta">15 cards</p>
+                  </div>
+                </article>
+              </li>
+            </ul>
           </div>
         </article>
 
@@ -3106,55 +2930,68 @@ a {
             <p class="sg-entry__classes"><code>.card-grid--tiled</code></p>
             <p class="sg-entry__note">
               Negative start margins overlap each frame onto its neighbour's, so two frames read as
-              one 2px line, and a short last row still closes cleanly. Corners go square here in
-              either mode.
+              one 2px line, and a short last row still closes cleanly.
             </p>
           </header>
           <div class="sg-stage">
-            <div class="card-grid card-grid--tiled" style="--card-min: 11rem" data-sg-code>
-              <article class="card">
-                <div class="card__body">
-                  <p class="card__eyebrow">01</p>
-                  <h4 class="card__title">Circle</h4>
-                </div>
-              </article>
-              <article class="card" data-tone="1">
-                <div class="card__body">
-                  <p class="card__eyebrow">02</p>
-                  <h4 class="card__title">Square</h4>
-                </div>
-              </article>
-              <article class="card">
-                <div class="card__body">
-                  <p class="card__eyebrow">03</p>
-                  <h4 class="card__title">Triangle</h4>
-                </div>
-              </article>
-              <article class="card" data-tone="ink">
-                <div class="card__body">
-                  <p class="card__eyebrow">04</p>
-                  <h4 class="card__title">Rectangle</h4>
-                </div>
-              </article>
-              <article class="card">
-                <div class="card__body">
-                  <p class="card__eyebrow">05</p>
-                  <h4 class="card__title">Star</h4>
-                </div>
-              </article>
-              <article class="card" data-tone="3">
-                <div class="card__body">
-                  <p class="card__eyebrow">06</p>
-                  <h4 class="card__title">Heart</h4>
-                </div>
-              </article>
-              <article class="card">
-                <div class="card__body">
-                  <p class="card__eyebrow">07</p>
-                  <h4 class="card__title">Diamond</h4>
-                </div>
-              </article>
-            </div>
+            <ul class="card-grid card-grid--tiled" role="list" style="--card-min: 11rem" data-sg-code>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">01</p>
+                    <h4 class="card__title">Circle</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="1">
+                  <div class="card__body">
+                    <p class="card__eyebrow">02</p>
+                    <h4 class="card__title">Square</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">03</p>
+                    <h4 class="card__title">Triangle</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="ink">
+                  <div class="card__body">
+                    <p class="card__eyebrow">04</p>
+                    <h4 class="card__title">Rectangle</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">05</p>
+                    <h4 class="card__title">Star</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="3">
+                  <div class="card__body">
+                    <p class="card__eyebrow">06</p>
+                    <h4 class="card__title">Heart</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">07</p>
+                    <h4 class="card__title">Diamond</h4>
+                  </div>
+                </article>
+              </li>
+            </ul>
           </div>
         </article>
 
@@ -3165,180 +3002,90 @@ a {
             <p class="sg-entry__use">A card answers to its own width, not the window.</p>
             <p class="sg-entry__classes"><code>cqi</code> <code>@container card</code></p>
             <p class="sg-entry__note">
-              Drag the corner of the dashed box. Padding, titles and the big figure scale with the
-              card; the row's value drops under its title below 18rem. Nothing here looks at the
-              viewport.
+              The same two cards at three widths (each one capped by the stage on a small screen).
+              Padding, titles and the big figure scale with the card; the row's value drops under
+              its title at 18rem and below. Nothing here looks at the viewport.
             </p>
           </header>
           <div class="sg-stage">
-            <div class="sg-resize">
-              <div class="sg-stack">
-                <article class="card card--row">
-                  <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
-                  <div class="card__main">
-                    <h4 class="card__title">Hexagon</h4>
-                    <p class="card__meta">Card 10 · six sides</p>
-                  </div>
-                  <div class="card__trail">
-                    <p>Known</p>
-                    <p class="card__meta">Today</p>
-                  </div>
-                </article>
-                <article class="card" data-tone="1">
-                  <div class="card__body">
-                    <p class="card__eyebrow">Learned so far</p>
-                    <p class="card__figure">5<small>/12</small></p>
-                    <p class="card__meta">Seven to go.</p>
-                  </div>
-                </article>
-              </div>
+            <div class="sg-widths">
+              <figure style="--w: 14rem">
+                <div class="sg-stack">
+                  <article class="card card--row">
+                    <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                    <div class="card__main">
+                      <h4 class="card__title">Hexagon</h4>
+                      <p class="card__meta">Card 10 · six sides</p>
+                    </div>
+                    <div class="card__trail">
+                      <p>Known</p>
+                      <p class="card__meta">Today</p>
+                    </div>
+                  </article>
+                  <article class="card" data-tone="1">
+                    <div class="card__body">
+                      <p class="card__eyebrow">Learned so far</p>
+                      <p class="card__figure">5<small>/12</small></p>
+                      <p class="card__meta">Seven to go.</p>
+                    </div>
+                  </article>
+                </div>
+                <figcaption class="sg-caption"><b>14rem.</b></figcaption>
+              </figure>
+              <figure style="--w: 18rem">
+                <div class="sg-stack">
+                  <article class="card card--row">
+                    <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                    <div class="card__main">
+                      <h4 class="card__title">Hexagon</h4>
+                      <p class="card__meta">Card 10 · six sides</p>
+                    </div>
+                    <div class="card__trail">
+                      <p>Known</p>
+                      <p class="card__meta">Today</p>
+                    </div>
+                  </article>
+                  <article class="card" data-tone="1">
+                    <div class="card__body">
+                      <p class="card__eyebrow">Learned so far</p>
+                      <p class="card__figure">5<small>/12</small></p>
+                      <p class="card__meta">Seven to go.</p>
+                    </div>
+                  </article>
+                </div>
+                <figcaption class="sg-caption"><b>18rem.</b></figcaption>
+              </figure>
+              <figure style="--w: 24rem">
+                <div class="sg-stack">
+                  <article class="card card--row">
+                    <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                    <div class="card__main">
+                      <h4 class="card__title">Hexagon</h4>
+                      <p class="card__meta">Card 10 · six sides</p>
+                    </div>
+                    <div class="card__trail">
+                      <p>Known</p>
+                      <p class="card__meta">Today</p>
+                    </div>
+                  </article>
+                  <article class="card" data-tone="1">
+                    <div class="card__body">
+                      <p class="card__eyebrow">Learned so far</p>
+                      <p class="card__figure">5<small>/12</small></p>
+                      <p class="card__meta">Seven to go.</p>
+                    </div>
+                  </article>
+                </div>
+                <figcaption class="sg-caption"><b>24rem.</b></figcaption>
+              </figure>
             </div>
           </div>
         </article>
       </section>
-
-      <!-- 06 ------------------------------------------------------------- -->
-      <section class="sg-wrap sg-sec" id="not-this" aria-labelledby="h-not">
-        <div class="sg-sec__head">
-          <span class="sg-sec__idx">06</span>
-          <h2 class="sg-sec__title" id="h-not">Not this</h2>
-          <p class="sg-sec__note">
-            What the sheet is steering away from. The left card is deliberately generic, and it's
-            the only place on this page where the rules are broken on purpose.
-          </p>
-        </div>
-
-        <div class="sg-compare">
-          <figure>
-            <div class="sg-stage">
-              <div class="sg-bad">
-                <span class="sg-bad__icon"><span class="ic ic--check"></span></span>
-                <h4>Seamless sync</h4>
-                <p>Your decks, everywhere you are. Pick up right where you left off.</p>
-              </div>
-            </div>
-            <figcaption class="sg-caption"><b>Generic.</b> Could be any product.</figcaption>
-          </figure>
-          <figure>
-            <div class="sg-stage">
-              <article class="card">
-                <div class="card__body">
-                  <p class="card__eyebrow">Deck · 12 cards</p>
-                  <h4 class="card__title">Pick up at card 6</h4>
-                  <p class="card__text">You stopped on the hexagon yesterday. Five known, seven to go.</p>
-                </div>
-                <footer class="card__foot"><span>Shapes</span><a href="#">Carry on</a></footer>
-              </article>
-            </div>
-            <figcaption class="sg-caption"><b>Ours.</b> Specific, flat, one line weight.</figcaption>
-          </figure>
-        </div>
-
-        <ol class="sg-tells" role="list">
-          <li><span><b>Blur shadows,</b> two of them, soft. Ours are hard or absent.</span></li>
-          <li><span><b>Gradient fills.</b> Ours are flat.</span></li>
-          <li><span><b>An icon in a tinted circle</b> that says nothing. Ours: circles are for actions.</span></li>
-          <li><span><b>A coloured stripe down the left edge.</b> Ours: the frame is the frame.</span></li>
-          <li><span><b>One mid-size radius on everything.</b> Ours: containers are square or soft, controls are circles or pills.</span></li>
-          <li><span><b>Copy that fits any product.</b> Ours comes from the app.</span></li>
-        </ol>
-      </section>
-
-      <!-- 07 ------------------------------------------------------------- -->
-      <section class="sg-wrap sg-sec" id="pipeline" aria-labelledby="h-pipeline">
-        <div class="sg-sec__head">
-          <span class="sg-sec__idx">07</span>
-          <h2 class="sg-sec__title" id="h-pipeline">Pipeline</h2>
-          <p class="sg-sec__note">
-            One element at a time. A gate closes before the next one opens, and each gate says what
-            it is not allowed to touch yet.
-          </p>
-        </div>
-
-        <div class="sg-scroll">
-          <table class="sg-table">
-            <thead>
-              <tr>
-                <th scope="col">Gate</th>
-                <th scope="col">Decides</th>
-                <th scope="col">Not yet</th>
-                <th scope="col">Exit check</th>
-                <th scope="col">Cards</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>0 Brief</td>
-                <td>The job, the slots, the variants, real copy.</td>
-                <td>—</td>
-                <td>Slots and variants listed in STYLE.md.</td>
-                <td><span class="sg-tag" data-s="done">Done</span></td>
-              </tr>
-              <tr>
-                <td>1 Wireframe</td>
-                <td>Structure, type, space, line, shape.</td>
-                <td>Colour, motion.</td>
-                <td>Squint test. <code>check.mjs</code> clean. Holds from 360 to 1440px.</td>
-                <td><span class="sg-tag" data-s="done">Done</span></td>
-              </tr>
-              <tr>
-                <td>2 States</td>
-                <td>Rest, hover, focus, pressed, selected, disabled.</td>
-                <td>Colour, motion.</td>
-                <td>Every state legible in grey. Keyboard pass.</td>
-                <td><span class="sg-tag" data-s="done">Done</span></td>
-              </tr>
-              <tr>
-                <td>3 Colour</td>
-                <td>Tones, accent, dark.</td>
-                <td>New structure.</td>
-                <td>Contrast table passes. The diff touches <code>tokens/</code> only.</td>
-                <td><span class="sg-tag">Open</span></td>
-              </tr>
-              <tr>
-                <td>4 Motion</td>
-                <td>Transitions, the flip, reduced motion.</td>
-                <td>—</td>
-                <td>Reduced-motion pass. Only transform and opacity move.</td>
-                <td><span class="sg-tag">Open</span></td>
-              </tr>
-              <tr>
-                <td>5 Freeze</td>
-                <td>Nothing new.</td>
-                <td>Everything.</td>
-                <td>This page and STYLE.md agree. Version bumped.</td>
-                <td><span class="sg-tag">Open</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <p class="sg-caption" style="margin-block-start: var(--space-5)"><b>Next up.</b> Each one replaces a placeholder the cards are using today.</p>
-        <div class="sg-next">
-          <span class="sg-tag">Button</span>
-          <span class="sg-tag">Tag</span>
-          <span class="sg-tag">Meter</span>
-          <span class="sg-tag">Field</span>
-          <span class="sg-tag">Nav bar</span>
-          <span class="sg-tag">Frame</span>
-        </div>
-
-        <p class="sg-caption" style="margin-block-start: var(--space-5)"><b>Open decisions.</b></p>
-        <ol class="sg-tells" role="list">
-          <li><span><b>Corners.</b> Square or soft. Flip the switch at the top.</span></li>
-          <li>
-            <span
-              ><b>Class prefix.</b> <code>.card</code> is already taken by the app's current
-              <code>styles.css</code>. Prefix these, or retire the old ones when the app adopts the
-              sheet.</span
-            >
-          </li>
-        </ol>
-      </section>
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards style sheet · Cards v0.1</span>
+      <span>Flashcards style sheet · Cards v0.2</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>
