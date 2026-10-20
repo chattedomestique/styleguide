@@ -75,7 +75,7 @@ element together, because colour, motion and the freeze are decisions about the 
 | 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | ✓ | ✓ | | | |
 | 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | ✓ | ✓ | | | |
 | 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | ✓ | ✓ | | | |
-| 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | | | | | |
+| 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | ✓ | ✓ | | | |
 | 5 | PWA platform | ✓ | | | | | |
 | 6 | Colour and dark mode, for everything | | | | | | |
 | 7 | Motion, for everything | | | | | | |

@@ -1,6 +1,6 @@
 # Flashcards style sheet
 
-v0.6 · wireframe stage · 21 of 27 elements built · 2026-10-20
+v0.7 · wireframe stage · 26 of 27 elements built · 2026-10-20
 
 The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
 to look at: live specimens, every state, the markup read straight off the page. **This file**
@@ -44,8 +44,10 @@ not a mood:
 
 1. **Two line weights.** `--bw` 2px frames what you press or what contains. `--bw-thin` 1px
    only divides. `--bw-heavy` 4px exists for forced-colours mode and nothing else.
-2. **Flat.** No gradients, no blur, no translucency. A shadow is hard-edged (zero blur) and
-   means "you can press this". Nothing else gets one. Hover and press never move the hit
+2. **Flat.** No gradients, no blur, no translucency, with one exception: the `--scrim` behind a
+   modal dialog or sheet, a flat ink layer at 60%, so the page reads as "still there, but not
+   now". A shadow is hard-edged (zero blur) and means "you can press this". Nothing else gets
+   one. Hover and press never move the hit
    box: the lift is the shadow alone, never a `transform`.
 3. **Rectangles hold, circles act.** Containers are square. Buttons, handles and action
    slots are circles or pills. Two exceptions: the card bar's small square control, which
@@ -88,7 +90,8 @@ weights are `px` so a 2px rule stays 2px.
 Apps link `dist/flashcards.css`: one flat file built by `node design/tools/bundle.mjs`, with
 no `@import` chain to wait on. `css/flashcards.css` is its source. Elements that need script
 (Field's clear button, Checkbox's "select all", Stepper's − and +, Form's error summary,
-Frame's measured `--chrome`, Tabs' arrow keys) ship
+Frame's measured `--chrome`, Tabs' arrow keys, Dialog's opener and focus return, Toast's queue
+and timer) ship
 it in `dist/flashcards.js`, built from `js/components/`: vanilla, no dependencies, and
 everything still works without it. The file tree is in
 `README.md`.
@@ -224,6 +227,7 @@ contract: components read roles, never a primitive.
 | `--line-soft` | decoration that must stay quiet |
 | `--focus` | the focus ring (ink in the wireframe) |
 | `--accent` / `--on-accent` | the one "press this" colour; ink until gate 3 |
+| `--scrim` | behind a modal dialog or sheet: ink at 60%, the one translucency (rule 2) |
 | `--tone-1` … `--tone-6` | six fill slots: the future palette |
 | `--on-tone-1` … `--on-tone-6` | text that sits on each slot |
 
@@ -310,6 +314,11 @@ and the brief for each one, is in `elements/README.md`.
 | Tabs | `elements/tabs.md` | Gates 0–2 |
 | Disclosure | `elements/disclosure.md` | Gates 0–2 |
 | Menu | `elements/menu.md` | Gates 0–2 |
+| Dialog | `elements/dialog.md` | Gates 0–2 |
+| Sheet | `elements/sheet.md` | Gates 0–2 |
+| Toast | `elements/toast.md` | Gates 0–2 |
+| Banner | `elements/banner.md` | Gates 0–2 |
+| Empty, loading and error | `elements/states.md` | Gates 0–2 |
 
 Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
 pass gate 2.
@@ -332,6 +341,10 @@ pass gate 2.
   button, not pull-to-refresh.
 - **No browser chrome.** Standalone has no back or refresh button, so every screen past the
   root shows a back control.
+- **Overlays are native.** Dialogs and sheets are `<dialog>` with `showModal()`, opened by
+  `commandfor` and `command="show-modal"`; `dialog.js` covers browsers without them and gives
+  focus back where a click doesn't focus. A bottom sheet owns the bottom safe area, as a bar
+  does. Drag to dismiss waits for gate 4, so a sheet always shows Close.
 - **Never blank.** Empty is a ghost card that offers the first step. Offline or error is a
   plain card that says what happened, with "Try again" in its foot.
 - **Text size follows the reader:** Dynamic Type is on (§2 Type). Test at the largest size.
@@ -437,6 +450,11 @@ generate-a-design-system workflow or its scripts.
 ---
 
 ## 8. Changelog
+
+- **0.7.0** · 2026-10-20 · Wave 4: Dialog, Sheet, Toast, Banner, and Empty, loading and error
+  pass gates 0–2. Overlays are native `<dialog>`s over the new `--scrim` role, the one
+  translucency rule 2 allows. Toasts queue one at a time, pause while hovered or focused and
+  never are the only way to undo. Every screen state has words and a way forward.
 
 - **0.6.0** · 2026-10-20 · Wave 3: Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure and
   Menu pass gates 0–2. Frame is the app shell (bars that own their safe areas, one scroller,

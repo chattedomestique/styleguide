@@ -1,0 +1,104 @@
+/* ==========================================================================
+   Banner — wave 4. Spec: elements/banner.md · page: elements/banner.html
+   --------------------------------------------------------------------------
+   News about the whole screen: you're offline, a new version is ready,
+   something didn't load. Inline at the top of the scroll region, under the
+   top bar, edge to edge. It scrolls away with the content; it never floats.
+
+     <div class="frame__scroll">
+       <div class="banner" role="status">
+         <span class="ic ic--offline banner__icon" aria-hidden="true"></span>
+         <p class="banner__text"><strong>You're offline.</strong> Changes are saved on this device.</p>
+       </div>
+       …
+     </div>
+
+   House rules for this file
+   · A band, so square: paper, the full width, a 2px rule below. Under the
+     top bar it reads as a second band of the bar, and the content starts
+     under its rule.
+   · A glyph and words, always. The palette is monochrome, so nothing is
+     said by colour: the glyph says which kind before you read, the words
+     say what happened and what to do.
+   · At most one action, a Button. No close: a banner goes when it stops
+     being true (online again, reloaded, loaded).
+   · Straight in a Frame's scroll region it reaches over the region's side
+     padding and its top padding, as a plain List does, and takes the side
+     padding as its own, so its words line up with the content below.
+   ========================================================================== */
+
+.banner {
+  /* the surface its Button reads */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-2);
+  padding-inline: var(--gutter);
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border-block-end: var(--bw) solid var(--line);
+  overflow-wrap: break-word;
+}
+
+/* Empty, it is a live region waiting for news. A region speaks when it
+   changes, not when it arrives, so the app keeps the band in the markup
+   with nothing inside (not even a space: :empty) and fills it to raise it.
+   Out of the flow and undrawn, it costs the screen nothing, not even the
+   scroll region's 32px gap. */
+.banner:empty {
+  position: absolute;
+  padding: 0;
+  border: 0;
+}
+
+/* the glyph and the first line of words centre on a 44px row, the height
+   of the action beside them, so a banner is as tall with or without one */
+.banner__icon {
+  margin-block: calc((var(--hit) - var(--ic-size, 1.25rem)) / 2);
+}
+
+/* 10rem beside an action before the action moves under the words; never
+   more than the row less the glyph, so the words can't leave the glyph */
+.banner__text {
+  flex: 1 1 min(10rem, 100% - var(--ic-size, 1.25rem) - var(--space-3));
+  min-inline-size: 0;
+  max-inline-size: var(--measure);
+  padding-block: max(0px, (var(--hit) - 1lh) / 2);
+  text-wrap: pretty;
+}
+
+/* the news, then what it means: "You're offline. Changes are saved…" */
+.banner__text > strong {
+  font-weight: 600;
+}
+
+/* at the trailing end; under the words, at the end, when they need the row */
+.banner__action {
+  margin-inline-start: auto;
+}
+
+/* --- in a frame -------------------------------------------------------------- */
+
+.frame__scroll > .banner {
+  margin-inline: calc(var(--frame-pad-start) * -1) calc(var(--frame-pad-end) * -1);
+  padding-inline: var(--frame-pad-start) var(--frame-pad-end);
+}
+
+/* first in the region, it meets the top bar's rule: it spends the region's
+   24px top padding (frame.css, .frame__scroll) */
+.frame__scroll > .banner:first-child {
+  margin-block-start: calc(var(--space-5) * -1);
+}
+
+/* --- forced colours ------------------------------------------------------------ */
+
+@media (forced-colors: active) {
+  .banner {
+    border-block-end-color: CanvasText;
+  }
+}

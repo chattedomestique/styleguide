@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Empty, loading and error · Flashcards design system</title>
+    <meta
+      name="description"
+      content="Empty, loading and error in the Flashcards design system: what a screen shows before there's anything, and when something fails. Never blank."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#states-patterns">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Empty, loading and error</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#states-patterns">Patterns</a></li>
+            <li><a href="#states-states">States</a></li>
+            <li><a href="#states-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Empty, loading and error · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-states">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 26</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">States</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Empty, loading and error: what a screen shows before there's anything, and when
+            something fails. Never blank, and always a way forward.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="states-patterns" aria-labelledby="h-states-patterns">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-states-patterns">Patterns</h2>
+          <p class="sg-sec__note">
+            Six, made of elements that already exist: Card, Button, Spinner, Banner, Field, and
+            Frame with its Top bar and Tab bar. The only new class is <code>.state</code>, which
+            keeps a state's words next to its way forward. Each is shown on the Decks screen of a
+            phone; the markup printed is the pattern's own.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="states-empty">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Empty</h3>
+            <p class="sg-entry__use">Nothing here yet: the first time a screen has nothing to show.</p>
+            <p class="sg-entry__classes"><code>.state</code> <code>.card--ghost</code></p>
+            <p class="sg-entry__note">
+              One line that says so, and a ghost card in the place the first deck will go: dashed means nothing here yet, and the whole card is the link to the first step. Its name is the step, "Make your first deck", not the state.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="state" data-sg-code>
+                      <p class="t-body">No decks yet.</p>
+                      <a class="card card--ghost" href="#">
+                        <span class="card__action" aria-hidden="true"><span class="ic ic--plus"></span></span>
+                        <span class="card__title">Make your first deck</span>
+                      </a>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.2 -->
+        <article class="sg-entry" id="states-search">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">Empty search</h3>
+            <p class="sg-entry__use">A search that found nothing.</p>
+            <p class="sg-entry__classes"><code>.state</code> <code>role="status"</code> <code>.btn</code></p>
+            <p class="sg-entry__note">
+              Under the field: what was searched for, in its own words, and Clear search, which does what the field's clear button does (empties it, puts focus back in it, brings the decks back). The line is a status, so as the list changes a screen reader hears it without leaving the field.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <search>
+                      <div class="field">
+                        <label class="field__label" for="states-search-input">Search decks</label>
+                        <div class="field__box">
+                          <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                          <input
+                            class="field__input"
+                            id="states-search-input"
+                            type="search"
+                            name="q"
+                            value="hexa"
+                            placeholder="Shapes, colours, numbers"
+                            autocomplete="off"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            enterkeyhint="search"
+                          />
+                          <button class="field__clear" type="button" aria-label="Clear search" hidden>
+                            <span class="ic ic--close" aria-hidden="true"></span>
+                          </button>
+                        </div>
+                      </div>
+                    </search>
+                    <div class="state" data-sg-code>
+                      <p class="t-body" role="status">No decks match “hexa”.</p>
+                      <div class="btn-row">
+                        <button class="btn" type="button">Clear search</button>
+                      </div>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.3 -->
+        <article class="sg-entry" id="states-loading">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">Loading</h3>
+            <p class="sg-entry__use">Working on it, when it takes long enough to notice.</p>
+            <p class="sg-entry__classes"><code>.spinner</code> <code>role="status"</code></p>
+            <p class="sg-entry__note">
+              Meter's spinner and its words, where the content will be. Only after about 300ms, so a quick load never flashes it (the delay is timing, so gate 4 sets it). No shimmer and no skeleton boxes: they move, and they promise a layout that may not come.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="spinner" role="status" data-sg-code>Loading decks…</p>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.4 -->
+        <article class="sg-entry" id="states-failed">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.4</p>
+            <h3 class="sg-entry__name">Failed</h3>
+            <p class="sg-entry__use">It didn't load, and there's nothing to show instead.</p>
+            <p class="sg-entry__classes"><code>.card</code> <code>.card__foot</code> <code>role="alert"</code></p>
+            <p class="sg-entry__note">
+              A plain card where the content would be: what happened as its title, what to do if trying again doesn't work, and Try again in its foot. An alert, because nothing on the screen works until it does. Pressed, Try again goes busy (Button's busy) and the card stays until there's something to replace it.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="card" role="alert" data-sg-code>
+                      <div class="card__body">
+                        <h5 class="card__title">Couldn't load your decks</h5>
+                        <p class="card__text">If trying again doesn't work, close the app and open it again.</p>
+                      </div>
+                      <footer class="card__foot">
+                        <button class="btn" type="button">Try again</button>
+                      </footer>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.5 -->
+        <article class="sg-entry" id="states-offline">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.5</p>
+            <h3 class="sg-entry__name">Offline</h3>
+            <p class="sg-entry__use">No connection, and the decks on this device.</p>
+            <p class="sg-entry__classes"><code>.banner</code> <code>ic--offline</code></p>
+            <p class="sg-entry__note">
+              Offline isn't an error. The screen shows what this device has, with Banner's offline band first in the scroll region, under the top bar. It stays while it's true and has no close; it scrolls away with the decks.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="banner" role="status" data-sg-code>
+                      <span class="ic ic--offline banner__icon" aria-hidden="true"></span>
+                      <p class="banner__text"><strong>You're offline.</strong> Changes are saved on this device.</p>
+                    </div>
+                    <div class="list">
+                      <ul class="list__rows" role="list">
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                            <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards · new</span></span>
+                            <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards · 11 known</span></span>
+                            <span class="list__trail">3 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Farm animals</span><span class="list__meta">15 cards · all known</span></span>
+                            <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.6 -->
+        <article class="sg-entry" id="states-first">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.6</p>
+            <h3 class="sg-entry__name">First run</h3>
+            <p class="sg-entry__use">The very first screen: what this is, in one line, and one thing to do.</p>
+            <p class="sg-entry__classes"><code>.frame--task</code> <code>.state</code> <code>.btn--primary</code></p>
+            <p class="sg-entry__note">
+              Frame's focused task, with no top bar and no tab bar, so there's nowhere to wander off to. One line, one primary action at the foot, in reach of a thumb. Once a deck exists it never shows again; the Decks screen takes over.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame frame--task">
+                  <div class="frame__scroll">
+                    <div class="state" data-sg-code>
+                      <h4 class="t-heading">Flashcards</h4>
+                      <p class="t-body">Make a deck of cards about anything, then learn it a few minutes a day.</p>
+                    </div>
+                  </div>
+                  <div class="frame__bottom">
+                    <div class="btn-row" data-sg-code>
+                      <a class="btn btn--primary btn--block" href="#">Make your first deck</a>
+                    </div>
+                  </div>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="states-states" aria-labelledby="h-states-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-states-states">States</h2>
+          <p class="sg-sec__note">
+            One screen moves between the patterns. What shows, what a screen reader hears, and where
+            focus is at each moment. Nothing moves on screen until gate 4: each appears in place.
+          </p>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Opening, the first 300ms</strong>
+            <p><b>Shows:</b> Nothing new: the bars are already there.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Still loading</strong>
+            <p><b>Shows:</b> The spinner and “Loading decks…” where the content will be.</p>
+            <p><b>Heard:</b> “Loading decks…”, politely, once.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Loaded</strong>
+            <p><b>Shows:</b> The decks, in place of the spinner.</p>
+            <p><b>Heard:</b> Nothing: they're there when you look.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Loaded, nothing there</strong>
+            <p><b>Shows:</b> “No decks yet.” and the ghost card.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Where it was; the ghost card is the next stop.</p>
+          </li>
+          <li>
+            <strong>Didn't load</strong>
+            <p><b>Shows:</b> The plain card, Try again in its foot.</p>
+            <p><b>Heard:</b> At once (<code>role="alert"</code>).</p>
+            <p><b>Focus:</b> Where it was; Try again is the next stop.</p>
+          </li>
+          <li>
+            <strong>Trying again</strong>
+            <p><b>Shows:</b> The card stays; Try again goes busy, its label kept.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> On Try again. When the decks come, on the scroll region (the screen's <code>&lt;main&gt;</code>), so it isn't lost.</p>
+          </li>
+          <li>
+            <strong>Searching, no match</strong>
+            <p><b>Shows:</b> The no-match line and Clear search, under the field.</p>
+            <p><b>Heard:</b> The line, politely, each time the list changes.</p>
+            <p><b>Focus:</b> In the field.</p>
+          </li>
+          <li>
+            <strong>Search cleared</strong>
+            <p><b>Shows:</b> The field empties; the decks come back.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Back in the field.</p>
+          </li>
+          <li>
+            <strong>Offline</strong>
+            <p><b>Shows:</b> The offline banner first, the decks on this device under it.</p>
+            <p><b>Heard:</b> “You're offline. Changes are saved on this device.”, politely, once.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Online again</strong>
+            <p><b>Shows:</b> The banner goes.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>First run</strong>
+            <p><b>Shows:</b> One line, one action, no bars to wander off with.</p>
+            <p><b>Heard:</b> The heading and the line, read in order.</p>
+            <p><b>Focus:</b> The action is the first stop.</p>
+          </li>
+        </ol>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          At 200% text each pattern wraps and grows taller, never wider. In forced colours the cards'
+          and the banner's frames and rules, the ghost card's dashes and every glyph stay, in system
+          colours.
+        </p>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="states-usage" aria-labelledby="h-states-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-states-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Say what's going on, where the content would be, and offer the way forward. Keep the
+              bars: a state is the content of a screen, never a screen without its way back.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't leave a screen blank, don't shimmer or draw skeleton boxes, don't say "Something
+              went wrong" on its own, and don't say one failure twice (a banner and a card).
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Never blank (<code>STYLE.md</code> §4): empty is a ghost card offering the first step;
+              an error is a plain card with Try again in its foot. Offline is not an error: show
+              what's on the device, under the banner.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              The same patterns in the window's content. SwiftUI's <code>ContentUnavailableView</code>
+              is the native one; we draw ours from the cards instead, because it centres a large
+              symbol, which is decoration here. Loading is a <code>ProgressView</code> with its words.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Empty, loading and error</span>
+      <span>Spec: design/elements/states.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+    <script src="../js/components/field.js"></script>
+  </body>
+</html>

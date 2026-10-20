@@ -208,6 +208,9 @@
   --focus: var(--ink);
   --accent: var(--ink); /* the one "press this" colour; ink until gate 3 */
   --on-accent: var(--paper);
+  /* behind a modal dialog or sheet: the one translucency the system allows
+     (rule 2). The page reads as "still there, but not now". */
+  --scrim: color-mix(in srgb, var(--ink) 60%, transparent);
 
   /* --- tone slots: what a card, tile or bar can be filled with ------------- */
   --tone-1: var(--grey-2);
@@ -4998,6 +5001,626 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
   }
 }
 }
+@layer components {
+/* ==========================================================================
+   Dialog — wave 4. Spec: elements/dialog.md · page: elements/dialog.html
+   --------------------------------------------------------------------------
+   Stop and decide. A native <dialog> opened with showModal(): the browser
+   moves focus in, keeps Tab inside, closes on Escape, makes the page inert
+   and gives focus back. A <form method="dialog"> closes it with the
+   button's value as its returnValue. No script needed to close.
+
+     <button class="btn" type="button" commandfor="delete-shapes"
+             command="show-modal">Delete deck…</button>
+     <dialog class="dialog" id="delete-shapes" role="alertdialog"
+             aria-labelledby="delete-shapes-title" aria-describedby="delete-shapes-text">
+       <h2 class="dialog__title" id="delete-shapes-title">Delete Shapes?</h2>
+       <p class="dialog__text" id="delete-shapes-text">Its 12 cards go too.</p>
+       <form class="dialog__actions" method="dialog">
+         <button class="btn" value="delete">Delete deck</button>
+         <button class="btn btn--primary" value="keep" autofocus>Keep it</button>
+       </form>
+     </dialog>
+
+   House rules for this file
+   · The surface holds, so it is a container: square, a 2px frame on paper,
+     and no shadow (a shadow means pressable). The buttons act: Button's.
+   · Behind it, --scrim: flat ink at 60%, the one translucency (STYLE rule
+     2). Under forced colours the scrim is gone, so the frame goes to 4px
+     and carries the edge alone.
+   · Centred, at most 28rem wide, and never taller than the screen: past
+     that it scrolls inside, never the page sideways.
+   · Buttons say the action. The safe one is focused first (autofocus);
+     a destructive one is never primary. Primary last on a wide row; on a
+     narrow one, full width with the primary on top, as in Form.
+   · Reads roles only. No transitions: it appears in place (gate 4).
+   ========================================================================== */
+
+.dialog {
+  /* the buttons read the surface they sit on: this one, not the card the
+     opener happened to sit in (custom properties follow the DOM) */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+  --card-ink-soft: var(--ink-soft);
+  /* the room kept round it, and inside it; both stay small on a phone at
+     large text, where 16px of rem is 32px */
+  --dialog-edge: min(var(--space-4), 5vw);
+  --dialog-pad: min(var(--space-5), 6vw);
+
+  container: dialog / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  /* % is the screen for an open modal, and the stage for a picture of one */
+  inline-size: min(28rem, 100% - var(--dialog-edge) * 2);
+  max-inline-size: none;
+  max-block-size: calc(100% - var(--dialog-edge) * 2);
+  margin: auto;
+  padding: var(--dialog-pad);
+  overflow: auto;
+  overscroll-behavior: contain;
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* author display beats the browser's "a closed dialog is hidden" */
+dialog.dialog:not([open]) {
+  display: none;
+}
+
+.dialog::backdrop {
+  background: var(--scrim);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* the title is the question: "Delete Shapes?". An optional leading glyph
+   (ic--warning) when it reports a failure, centred on the first line. */
+.dialog__title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font: var(--type-title);
+  letter-spacing: var(--ls-title);
+  text-wrap: balance;
+  /* at the largest text sizes a long word may be wider than a phone's
+     dialog: break it rather than clip it, even as a flex item */
+  overflow-wrap: anywhere;
+}
+
+.dialog__title > .ic {
+  --ic-size: 1.5rem;
+  margin-block-start: calc((1lh - var(--ic-size)) / 2);
+}
+
+/* what happened, and what to do: one or two sentences. At 28rem the
+   dialog itself keeps the line short. */
+.dialog__text {
+  text-wrap: pretty;
+}
+
+/* the buttons. A <form method="dialog">, so each one closes the dialog by
+   itself. Narrow: full width, stacked, the primary (last in the markup) on
+   top, in reach of a thumb. 17rem is two short labels side by side. */
+.dialog__actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+@container dialog (width >= 17rem) {
+  /* wide: one row at the end, primary last. If the labels can't share the
+     row, the primary still wraps to the top. */
+  .dialog__actions {
+    flex-direction: row;
+    flex-wrap: wrap-reverse;
+    justify-content: flex-end;
+  }
+}
+
+/* with a field: Form's inline form holds the field and the actions, which
+   take a row of their own under the field whenever they can't fit beside
+   it (always, at 28rem) */
+.form--inline > .dialog__actions {
+  flex: 1 1 auto;
+}
+
+/* --- states -----------------------------------------------------------------
+   Open and closed are the browser's. Everything inside keeps its own
+   states (Button's, Field's). A .dialog that isn't a <dialog> just sits in
+   place, as an open one looks: the page uses that to draw one. */
+
+/* --- forced colours ----------------------------------------------------------
+   The scrim vanishes, so the page behind shows at full strength: the frame
+   doubles to 4px, so the dialog still reads as on top. */
+
+@media (forced-colors: active) {
+  .dialog {
+    border: var(--bw-heavy) solid CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Sheet — wave 4. Spec: elements/sheet.md · page: elements/sheet.html
+   --------------------------------------------------------------------------
+   A task on top of a screen. A native <dialog> opened with showModal(), as
+   Dialog is: focus moves in and stays in, Escape closes, the page behind
+   is inert, focus goes back. From the bottom on a phone; from the side
+   once the window is 45rem wide (where Frame swaps the tab bar for the
+   sidebar). Inside, the top bar's layout with a close button you can
+   always see: drag to dismiss waits for gate 4, and is never the only way.
+
+     <dialog class="sheet" id="add-card" aria-labelledby="add-card-title">
+       <header class="topbar">
+         <h2 class="topbar__title" id="add-card-title">Add a card</h2>
+         <form class="topbar__actions" method="dialog">
+           <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+             <span class="ic ic--close" aria-hidden="true"></span>
+           </button>
+         </form>
+       </header>
+       <div class="sheet__body">…</div>
+     </dialog>
+
+   House rules for this file
+   · The surface holds, so it is a container: square, paper, a 2px frame on
+     the edge that faces the page, no shadow. Behind it, --scrim (STYLE
+     rule 2). Under forced colours the scrim is gone and the frame goes to
+     4px.
+   · A bottom sheet runs edge to edge and owns the bottom safe area, as a
+     bar does; it stops short of the status bar, so its top bar pads none.
+     A side sheet runs top to bottom, so its top bar pads the top one.
+   · The top bar stays put; the body scrolls, inside the sheet, never the
+     page sideways.
+   · The window decides bottom or side only for an open modal. A .sheet
+     that isn't one (the page's pictures) is drawn as the bottom sheet;
+     .sheet--side pins the side sheet.
+   · The action sheet is the phone's Menu: Menu's items and rule, Menu's
+     no-anchor geometry (edge to edge, 30rem and centred when wider).
+   · Reads roles only. No transitions: it appears in place (gate 4).
+   ========================================================================== */
+
+.sheet {
+  /* the buttons read this surface, not the card the opener sat in */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+  --card-ink-soft: var(--ink-soft);
+  /* the frame's weight: 4px under forced colours (below) */
+  --sheet-bw: var(--bw);
+  /* a bottom sheet never reaches the status bar */
+  --safe-top: 0px;
+
+  display: flex;
+  flex-direction: column;
+  /* the bottom sheet: along the bottom edge, edge to edge, as tall as its
+     content up to 90% of the screen. % is the screen for an open modal,
+     and the device frame for a picture of one. */
+  inset: auto 0 0;
+  inline-size: auto;
+  max-inline-size: none;
+  block-size: auto;
+  max-block-size: min(90%, 90dvh);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: 0;
+  border-block-start: var(--sheet-bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* author display beats the browser's "a closed dialog is hidden" */
+dialog.sheet:not([open]) {
+  display: none;
+}
+
+.sheet::backdrop {
+  background: var(--scrim);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* the top bar (Top bar's element, standard layout): the title centred, the
+   close button trailing, in a <form method="dialog"> that is the bar's
+   actions slot. It never shrinks; the body gives way. */
+.sheet > .topbar {
+  flex: none;
+}
+
+/* the task. Scrolls inside the sheet, and keeps its scroll to itself. Its
+   end pads the bottom safe area, plus a little, so the last button clears
+   the home indicator. */
+.sheet__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-5);
+  flex: 1 1 auto;
+  min-block-size: 0;
+  padding-block: var(--space-5) max(var(--space-5), var(--safe-bottom) + var(--space-2));
+  padding-inline: max(var(--space-4), var(--safe-left)) max(var(--space-4), var(--safe-right));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: var(--space-4);
+}
+
+/* --- variant: side sheet ------------------------------------------------------
+   Along the end edge, top to bottom, 28rem at most, and a sliver of the
+   page always left in view (48px, or 15% of a narrow window). Pinned with
+   .sheet--side; an open .sheet becomes one from 45rem of window (below). */
+
+.sheet--side {
+  --safe-top: inherit;
+  --safe-left: 0px;
+
+  inset-block: 0;
+  inset-inline: auto 0;
+  inline-size: min(28rem, 100% - min(var(--space-7), 15%));
+  block-size: auto;
+  max-block-size: none;
+  border: 0;
+  border-inline-start: var(--sheet-bw) solid var(--line);
+}
+
+@media (width >= 45rem) {
+  .sheet:modal:not(.sheet--action) {
+    --safe-top: inherit;
+    --safe-left: 0px;
+
+    inset-block: 0;
+    inset-inline: auto 0;
+    inline-size: min(28rem, 100% - min(var(--space-7), 15%));
+    block-size: auto;
+    max-block-size: none;
+    border: 0;
+    border-inline-start: var(--sheet-bw) solid var(--line);
+  }
+}
+
+/* --- variant: action sheet ------------------------------------------------------
+   The phone's Menu. Menu's items (.menu__item: quiet block Buttons, words
+   at the start) and rule (.menu__rule) in a <form method="dialog">, 8px
+   in and 4px apart as in a menu, so each item closes the sheet with its
+   value. Always from the bottom. */
+
+.sheet--action > .sheet__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block: var(--space-2) max(var(--space-2), var(--safe-bottom));
+  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+}
+
+/* on a window wider than it, it stops at 30rem, centred, framed on three
+   sides: Menu's no-anchor sheet */
+@media (width >= 30rem) {
+  .sheet--action:modal {
+    max-inline-size: 30rem;
+    margin-inline: auto;
+    border-inline: var(--sheet-bw) solid var(--line);
+  }
+}
+
+/* --- states -----------------------------------------------------------------
+   Open and closed are the browser's; everything inside keeps its own
+   states (Button's, Field's, Menu's items). */
+
+/* --- forced colours ----------------------------------------------------------
+   The scrim vanishes and the page behind shows at full strength: the frame
+   on the edge facing the page goes to 4px. */
+
+@media (forced-colors: active) {
+  .sheet {
+    --sheet-bw: var(--bw-heavy);
+    border-color: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Toast — wave 4. Spec: elements/toast.md · page: elements/toast.html
+   --------------------------------------------------------------------------
+   It's done, with Undo. One line about what just happened, at most one
+   action, and a way to send it off. js/components/toast.js builds it and
+   shows one at a time, in a region that is always there:
+
+     <div class="frame">
+       <header class="frame__top topbar">…</header>
+       <div class="frame__scroll">…</div>
+       <div class="toasts" role="status"></div>
+       <nav class="frame__bottom tabbar" aria-label="Places">…</nav>
+     </div>
+
+     <div class="toast">
+       <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+       <p class="toast__text">Deck deleted.</p>
+       <div class="toast__actions">
+         <button class="btn toast__action" type="button" aria-keyshortcuts="Alt+T">Undo</button>
+         <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+           <span class="ic ic--close" aria-hidden="true"></span>
+         </button>
+       </div>
+     </div>
+
+   House rules for this file
+   · A container, so square: a 2px frame on paper. No shadow: a shadow says
+     "press this", and the frame already parts it from what's under it.
+   · The region places, the toast draws. In a frame the region shares the
+     scroll region's grid cell and sits at its foot, so the toast is above
+     the bottom bar whatever that bar's height, with nothing measured. With
+     no bottom bar it keeps clear of the home indicator itself. Outside a
+     frame it is fixed to the foot of the viewport.
+   · The region never hides: display: none would take the live region out
+     of the accessibility tree, and the next toast wouldn't be heard. It
+     lets clicks through to the content round the toast.
+   · The action and Dismiss are Buttons: pills, because they act.
+   · Appears in place. No motion until gate 4.
+   ========================================================================== */
+
+/* --- the region ---------------------------------------------------------------
+   Outside a frame: the foot of the viewport, clear of the home indicator. */
+
+.toasts {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding-block: var(--space-3) calc(var(--space-3) + var(--safe-bottom));
+  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  pointer-events: none;
+}
+
+/* In a frame: the scroll region's cell, at its foot, in the content column
+   (the last one, so a wide frame's sidebar is left alone). The bars are in
+   rows of their own, so the toast can't cover them, and the bottom bar owns
+   the safe area under it. */
+.frame > .toasts {
+  position: relative;
+  inset: auto;
+  z-index: 2;
+  grid-row: 2;
+  grid-column: -2;
+  align-self: end;
+  padding-block-end: var(--space-3);
+  /* never taller than the room between the bars: at large text on a small
+     phone a long toast scrolls inside it rather than cover the way back */
+  max-block-size: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The scroll region is placed in its row but not in a column, so a second
+   item in its cell would push it into a new column beside the region. Pin
+   it to the content column, as the frame's status band is, so the two share
+   the cell. (Frame could own this line: elements/toast.md, Known limits.) */
+.frame:has(> .toasts) > .frame__scroll {
+  grid-column: -2;
+}
+
+/* no bottom bar (or the wide frame's, hidden beside its sidebar): the toast
+   keeps clear of the home indicator itself */
+.frame:not(:has(> .frame__bottom)) > .toasts {
+  padding-block-end: calc(var(--space-3) + var(--safe-bottom));
+}
+
+@container frame (width >= 45rem) {
+  .frame--wide > .toasts {
+    padding-block-end: calc(var(--space-3) + var(--safe-bottom));
+  }
+}
+
+/* a trigger that only raises a toast can wait hidden until toast.js shows
+   it; Button's display would otherwise beat the hidden attribute */
+[data-toast][hidden] {
+  display: none;
+}
+
+/* --- the toast ------------------------------------------------------------------ */
+
+.toast {
+  /* the surface its Buttons read, wherever the region sits */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 var(--space-3);
+  inline-size: min(100%, 32rem);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4) var(--space-2);
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+  overflow-wrap: break-word;
+  pointer-events: auto;
+}
+
+/* the glyph and the first line of words centre on the 44px row the buttons
+   make, so a second line of words hangs below instead of pushing them up */
+.toast__icon {
+  margin-block: calc((var(--hit) - var(--ic-size, 1.25rem)) / 2);
+}
+
+/* 6rem: "Deck deleted." and Undo share a line even on a 320pt phone, and
+   longer words take the room the buttons leave. When the words need more
+   than that, the buttons move under them, at the end. Never more than the
+   row less the glyph, so the words can't leave the glyph. */
+.toast__text {
+  flex: 1 1 min(6rem, 100% - var(--ic-size, 1.25rem) - var(--space-3));
+  min-inline-size: 0;
+  padding-block: max(0px, (var(--hit) - 1lh) / 2);
+  text-wrap: pretty;
+}
+
+.toast__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* 12px a side, as in a bar: short of room, and the frame still reads */
+.toast .toast__action {
+  padding-inline: var(--space-3);
+}
+
+/* --- forced colours --------------------------------------------------------------
+   The frame is a border, so the system paints it; the glyphs are icons.css's.
+   Under it the page is Canvas too, so the frame is all that parts them. */
+
+@media (forced-colors: active) {
+  .toast {
+    border-color: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Banner — wave 4. Spec: elements/banner.md · page: elements/banner.html
+   --------------------------------------------------------------------------
+   News about the whole screen: you're offline, a new version is ready,
+   something didn't load. Inline at the top of the scroll region, under the
+   top bar, edge to edge. It scrolls away with the content; it never floats.
+
+     <div class="frame__scroll">
+       <div class="banner" role="status">
+         <span class="ic ic--offline banner__icon" aria-hidden="true"></span>
+         <p class="banner__text"><strong>You're offline.</strong> Changes are saved on this device.</p>
+       </div>
+       …
+     </div>
+
+   House rules for this file
+   · A band, so square: paper, the full width, a 2px rule below. Under the
+     top bar it reads as a second band of the bar, and the content starts
+     under its rule.
+   · A glyph and words, always. The palette is monochrome, so nothing is
+     said by colour: the glyph says which kind before you read, the words
+     say what happened and what to do.
+   · At most one action, a Button. No close: a banner goes when it stops
+     being true (online again, reloaded, loaded).
+   · Straight in a Frame's scroll region it reaches over the region's side
+     padding and its top padding, as a plain List does, and takes the side
+     padding as its own, so its words line up with the content below.
+   ========================================================================== */
+
+.banner {
+  /* the surface its Button reads */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-2);
+  padding-inline: var(--gutter);
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border-block-end: var(--bw) solid var(--line);
+  overflow-wrap: break-word;
+}
+
+/* Empty, it is a live region waiting for news. A region speaks when it
+   changes, not when it arrives, so the app keeps the band in the markup
+   with nothing inside (not even a space: :empty) and fills it to raise it.
+   Out of the flow and undrawn, it costs the screen nothing, not even the
+   scroll region's 32px gap. */
+.banner:empty {
+  position: absolute;
+  padding: 0;
+  border: 0;
+}
+
+/* the glyph and the first line of words centre on a 44px row, the height
+   of the action beside them, so a banner is as tall with or without one */
+.banner__icon {
+  margin-block: calc((var(--hit) - var(--ic-size, 1.25rem)) / 2);
+}
+
+/* 10rem beside an action before the action moves under the words; never
+   more than the row less the glyph, so the words can't leave the glyph */
+.banner__text {
+  flex: 1 1 min(10rem, 100% - var(--ic-size, 1.25rem) - var(--space-3));
+  min-inline-size: 0;
+  max-inline-size: var(--measure);
+  padding-block: max(0px, (var(--hit) - 1lh) / 2);
+  text-wrap: pretty;
+}
+
+/* the news, then what it means: "You're offline. Changes are saved…" */
+.banner__text > strong {
+  font-weight: 600;
+}
+
+/* at the trailing end; under the words, at the end, when they need the row */
+.banner__action {
+  margin-inline-start: auto;
+}
+
+/* --- in a frame -------------------------------------------------------------- */
+
+.frame__scroll > .banner {
+  margin-inline: calc(var(--frame-pad-start) * -1) calc(var(--frame-pad-end) * -1);
+  padding-inline: var(--frame-pad-start) var(--frame-pad-end);
+}
+
+/* first in the region, it meets the top bar's rule: it spends the region's
+   24px top padding (frame.css, .frame__scroll) */
+.frame__scroll > .banner:first-child {
+  margin-block-start: calc(var(--space-5) * -1);
+}
+
+/* --- forced colours ------------------------------------------------------------ */
+
+@media (forced-colors: active) {
+  .banner {
+    border-block-end-color: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Empty, loading and error — wave 4. Spec: elements/states.md · page: elements/states.html
+   --------------------------------------------------------------------------
+   Patterns, not parts: what a screen shows before there's anything, and
+   when something fails, built from Card, Button, Spinner, Banner, Field
+   and Frame. Nothing here draws. The one class keeps a state's words next
+   to its way forward, closer than the scroll region's 32px between things:
+
+     <div class="state">
+       <p class="t-body">No decks yet.</p>
+       <a class="card card--ghost" href="…">…Make your first deck</a>
+     </div>
+
+   House rules for this file
+   · Never blank: every state says what's going on, and offers a way on.
+   · No new look: a ghost card is empty, a plain card is a failure, the
+     spinner is waiting, the banner is news about the whole screen.
+   ========================================================================== */
+
+.state {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-3);
+  max-inline-size: var(--measure);
+}
+}
 @layer wire {
 /* ==========================================================================
    Wireframe kit — placeholders for things that don't exist yet.
@@ -6213,14 +6836,14 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
             <li><a href="screens.html">Screens</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.6 · Wireframe</span>
+        <span class="sg-top__status">v0.7 · Wireframe</span>
       </div>
     </div>
 
     <main id="top">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Design system</span><span>Wireframe</span><span>21 of 27 elements built</span>
+          <span>Design system</span><span>Wireframe</span><span>26 of 27 elements built</span>
         </p>
         <h1 class="sg-display sg-display--long">System</h1>
         <div class="sg-hero__row">
@@ -6252,8 +6875,9 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
           <li>
             <strong>Flat.</strong>
             <p>
-              No gradients, no blur, no glass. A shadow is hard-edged and means “you can press
-              this”. Hover and press never move the hit box.
+              No gradients, no blur, no glass, and one translucency only: the scrim behind a modal.
+              A shadow is hard-edged and means “you can press this”. Hover and press never move the
+              hit box.
             </p>
           </li>
           <li>
@@ -6566,29 +7190,29 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
               <td>Gates 0–2</td>
             </tr>
             <tr>
-              <th scope="row">Dialog</th>
+              <th scope="row"><a href="#el-dialog">Dialog</a></th>
               <td>Stop and decide: confirm or acknowledge.</td>
-              <td>Wave 4</td>
+              <td>Gates 0–2</td>
             </tr>
             <tr>
-              <th scope="row">Sheet</th>
+              <th scope="row"><a href="#el-sheet">Sheet</a></th>
               <td>A task on top of a screen; from the bottom on a phone.</td>
-              <td>Wave 4</td>
+              <td>Gates 0–2</td>
             </tr>
             <tr>
-              <th scope="row">Toast</th>
+              <th scope="row"><a href="#el-toast">Toast</a></th>
               <td>It’s done, with Undo.</td>
-              <td>Wave 4</td>
+              <td>Gates 0–2</td>
             </tr>
             <tr>
-              <th scope="row">Banner</th>
+              <th scope="row"><a href="#el-banner">Banner</a></th>
               <td>News about the whole screen: offline, an update ready, a failure.</td>
-              <td>Wave 4</td>
+              <td>Gates 0–2</td>
             </tr>
             <tr>
-              <th scope="row">Empty, loading and error</th>
+              <th scope="row"><a href="#el-states">Empty, loading and error</a></th>
               <td>What a screen shows before there’s anything, and when something fails.</td>
-              <td>Wave 4</td>
+              <td>Gates 0–2</td>
             </tr>
             <tr>
               <th scope="row">PWA platform</th>
@@ -15681,10 +16305,2645 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
         </ol>
       </section>
     </section>
+<section id="el-dialog">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 22</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Dialog</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Stop and decide. One question over a dimmed screen, answered with buttons that say what
+            they do. The browser’s own dialog keeps focus inside and gives it back.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="dialog-anatomy" aria-labelledby="h-dialog-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-dialog-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A framed box on paper over the scrim: the question, what follows from it, and the
+            buttons. Drawn here as it opens over a deck.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 600px" inert>
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h3 class="topbar__title">Shapes</h3>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="More for Shapes">
+                        <span class="ic ic--more" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                    <ul class="card-grid" role="list" style="--card-min: 9rem">
+                      <li>
+                        <article class="card card--square" data-tone="1">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 1</p>
+                            <h4 class="card__title">Triangle</h4>
+                          </div>
+                        </article>
+                      </li>
+                      <li>
+                        <article class="card card--square">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 2</p>
+                            <h4 class="card__title">Square</h4>
+                          </div>
+                        </article>
+                      </li>
+                      <li>
+                        <article class="card card--square">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 3</p>
+                            <h4 class="card__title">Circle</h4>
+                          </div>
+                        </article>
+                      </li>
+                      <li>
+                        <article class="card card--square" data-tone="3">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 4</p>
+                            <h4 class="card__title">Star</h4>
+                          </div>
+                        </article>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div style="position: absolute; inset: 0; z-index: 1; display: grid; grid-template-rows: minmax(0, 1fr); background: var(--scrim)">
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 6.5rem auto auto 1rem">1</span>
+                  <div
+                    style="position: relative; display: flex; flex-direction: column; inline-size: min(28rem, 100% - 2 * min(var(--space-4), 5vw)); max-block-size: calc(100% - 2 * min(var(--space-4), 5vw)); margin: auto"
+                  >
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: -0.6875rem auto auto -0.6875rem; z-index: 3">2</span>
+                    <div class="dialog" style="inline-size: 100%; min-block-size: 0">
+                      <h4 class="dialog__title" data-n="3">Delete Shapes?</h4>
+                      <p class="dialog__text" data-n="4">Its 12 cards go too.</p>
+                      <div class="dialog__actions">
+                        <button class="btn" type="button">Delete deck</button>
+                        <button class="btn btn--primary is-focus" type="button">Keep it</button>
+                      </div>
+                    </div>
+                    <span
+                      class="sg-n"
+                      aria-hidden="true"
+                      style="position: absolute; inset: auto auto calc(min(var(--space-5), 6vw) + 1.375rem) -0.6875rem; translate: 0 50%; z-index: 3"
+                      >5</span
+                    >
+                  </div>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Scrim</strong><code>::backdrop</code> <code>--scrim</code>
+                <p>
+                  Flat ink at 60%, the one translucency the system allows: the deck is still there,
+                  but not now. The page behind is inert: no taps, no Tab, nothing for a screen
+                  reader. A tap on it does nothing; a decision needs a button.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Surface</strong><code>.dialog</code> <code>&lt;dialog&gt;</code>
+                <p>
+                  A container, so square: a 2px frame on paper and no shadow, since a shadow means
+                  “press this”. Centred, at most 28rem wide, 16px clear of the screen’s edges;
+                  taller than the screen, it scrolls inside. Under forced colours the scrim is gone,
+                  so the frame goes to 4px.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Title</strong><code>.dialog__title</code>
+                <p>
+                  The question, in an <code>h2</code> that names the dialog
+                  (<code>aria-labelledby</code>): “Delete Shapes?”, never “Are you sure?”. A failure
+                  may lead with <code>ic--warning</code>.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Text</strong><code>.dialog__text</code>
+                <p>
+                  What follows from the answer, or what happened and what to do, in a sentence or
+                  two. It describes the dialog (<code>aria-describedby</code>).
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Actions</strong><code>.dialog__actions</code> <code>&lt;form method="dialog"&gt;</code>
+                <p>
+                  Buttons that say the action; each closes the dialog with its
+                  <code>value</code>. The safe one is primary, last, and focused first. The
+                  destructive one is a plain button whose words carry it. Narrow, they stack full
+                  width with the primary on top.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="dialog-variants" aria-labelledby="h-dialog-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-dialog-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three questions, each drawn as it looks and live under it. The button opens the real
+            modal: Tab stays inside, Escape closes, and focus goes back to the button.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="dialog-confirm">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Confirm</h3>
+            <p class="sg-entry__use">A choice that can’t be taken back: deleting a deck.</p>
+            <p class="sg-entry__classes">
+              <code>.dialog</code> <code>role="alertdialog"</code> <code>.dialog__actions</code>
+              <code>autofocus</code>
+            </p>
+            <p class="sg-entry__note">
+              Keep it is primary and has <code>autofocus</code>, so Return keeps the deck. Delete
+              deck is a plain secondary button: never primary, never red; its words say what goes.
+              The opener’s ellipsis promises the question.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div inert style="padding-block: var(--space-6); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Delete Shapes?</h4>
+                <p class="dialog__text">Its 12 cards go too.</p>
+                <div class="dialog__actions">
+                  <button class="btn" type="button">Delete deck</button>
+                  <button class="btn btn--primary" type="button">Keep it</button>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="dialog-delete" command="show-modal" data-sg-code>Delete deck…</button>
+              <p class="t-meta" aria-live="polite" data-sg-return="dialog-delete">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog
+              class="dialog"
+              id="dialog-delete"
+              role="alertdialog"
+              aria-labelledby="dialog-delete-title"
+              aria-describedby="dialog-delete-text"
+              data-sg-code
+            >
+              <h2 class="dialog__title" id="dialog-delete-title">Delete Shapes?</h2>
+              <p class="dialog__text" id="dialog-delete-text">Its 12 cards go too.</p>
+              <form class="dialog__actions" method="dialog">
+                <button class="btn" value="delete">Delete deck</button>
+                <button class="btn btn--primary" value="keep" autofocus>Keep it</button>
+              </form>
+            </dialog>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="dialog-acknowledge">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Acknowledge</h3>
+            <p class="sg-entry__use">Something didn’t work, and there’s nothing to choose: a failed import.</p>
+            <p class="sg-entry__classes">
+              <code>.dialog__title</code> with <code>ic--warning</code> <code>.btn--primary</code>
+            </p>
+            <p class="sg-entry__note">
+              One button. The title says what happened, the text why and what to do next. The
+              warning glyph marks a failure without colour. Here the button opens it at once; in the
+              app it follows an import that failed.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div inert style="padding-block: var(--space-6); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title"><span class="ic ic--warning" aria-hidden="true"></span>Can’t import that file</h4>
+                <p class="dialog__text">It isn’t a deck export. Choose a file saved with Export.</p>
+                <div class="dialog__actions">
+                  <button class="btn btn--primary" type="button">OK</button>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="dialog-import" command="show-modal" data-sg-code>Import a deck…</button>
+              <p class="t-meta" aria-live="polite" data-sg-return="dialog-import">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog
+              class="dialog"
+              id="dialog-import"
+              role="alertdialog"
+              aria-labelledby="dialog-import-title"
+              aria-describedby="dialog-import-text"
+              data-sg-code
+            >
+              <h2 class="dialog__title" id="dialog-import-title">
+                <span class="ic ic--warning" aria-hidden="true"></span>Can’t import that file
+              </h2>
+              <p class="dialog__text" id="dialog-import-text">It isn’t a deck export. Choose a file saved with Export.</p>
+              <form class="dialog__actions" method="dialog">
+                <button class="btn btn--primary" value="ok">OK</button>
+              </form>
+            </dialog>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="dialog-field">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">With a field</h3>
+            <p class="sg-entry__use">One value to type before it goes on: renaming a deck.</p>
+            <p class="sg-entry__classes">
+              <code>.form--inline</code> <code>.field</code> <code>.dialog__actions</code>
+              <code>formnovalidate</code>
+            </p>
+            <p class="sg-entry__note">
+              Form’s inline form, with the actions as its last row. Focus starts in the field;
+              Return renames. An empty name gets Field’s error and the dialog stays open. Cancel
+              belongs to a second, empty <code>method="dialog"</code> form, so Return in the field
+              can’t reach it: Return presses the first submit button of the field’s own form.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div inert style="padding-block: var(--space-6); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Rename deck</h4>
+                <div class="form form--inline">
+                  <div class="field">
+                    <label class="field__label">Deck name</label>
+                    <input class="field__input" type="text" value="Shapes" />
+                  </div>
+                  <div class="dialog__actions">
+                    <button class="btn btn--quiet" type="button">Cancel</button>
+                    <button class="btn btn--primary" type="button">Rename</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="dialog-rename" command="show-modal" data-sg-code>Rename</button>
+              <p class="t-meta" aria-live="polite" data-sg-return="dialog-rename">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog class="dialog" id="dialog-rename" aria-labelledby="dialog-rename-title" data-sg-code>
+              <h2 class="dialog__title" id="dialog-rename-title">Rename deck</h2>
+              <form class="form form--inline" method="dialog">
+                <div class="field">
+                  <label class="field__label" for="dialog-rename-name">Deck name</label>
+                  <p class="field__error" id="dialog-rename-name-error" hidden>
+                    <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+                  </p>
+                  <input
+                    class="field__input"
+                    id="dialog-rename-name"
+                    name="name"
+                    type="text"
+                    value="Shapes"
+                    required
+                    autocomplete="off"
+                    autocapitalize="sentences"
+                    enterkeyhint="done"
+                  />
+                </div>
+                <div class="dialog__actions">
+                  <button class="btn btn--quiet" form="dialog-rename-cancel" value="cancel">Cancel</button>
+                  <button class="btn btn--primary" value="rename">Rename</button>
+                </div>
+              </form>
+              <form id="dialog-rename-cancel" method="dialog" hidden></form>
+            </dialog>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="dialog-states" aria-labelledby="h-dialog-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-dialog-states">States</h2>
+          <p class="sg-sec__note">
+            Open and closed are the browser’s; what’s inside keeps Button’s and Field’s states.
+            Drawn at a phone’s width, where the buttons stack with the primary on top.
+          </p>
+        </div>
+
+        <div class="sg-states" inert>
+          <div>
+            <div class="btn-row">
+              <button class="btn" type="button">Delete deck…</button>
+            </div>
+            <p class="sg-caption"><b>Closed.</b> Only the button that opens it, saying what it will ask about. The ellipsis promises a question.</p>
+          </div>
+          <div>
+            <div style="padding-block: var(--space-5); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Delete Shapes?</h4>
+                <p class="dialog__text">Its 12 cards go too.</p>
+                <div class="dialog__actions">
+                  <button class="btn" type="button">Delete deck</button>
+                  <button class="btn btn--primary is-focus" type="button">Keep it</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Open.</b> Focus starts on the safe choice, with Button’s ring. Tab moves between the buttons and never leaves the dialog.</p>
+          </div>
+          <div>
+            <div style="padding-block: var(--space-5); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Delete Shapes?</h4>
+                <p class="dialog__text">Its 12 cards go too.</p>
+                <div class="dialog__actions">
+                  <button class="btn is-hover" type="button">Delete deck</button>
+                  <button class="btn btn--primary" type="button">Keep it</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> Button’s lift and fill, pointers only. Destructive or not, it looks like any secondary button.</p>
+          </div>
+          <div>
+            <div style="padding-block: var(--space-5); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Delete Shapes?</h4>
+                <p class="dialog__text">Its 12 cards go too.</p>
+                <div class="dialog__actions">
+                  <button class="btn is-active" type="button">Delete deck</button>
+                  <button class="btn btn--primary" type="button">Keep it</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> Down and filled, with the inner ring. On release the dialog closes, and its <code>returnValue</code> is “delete”.</p>
+          </div>
+          <div>
+            <div style="padding-block: var(--space-5); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Rename deck</h4>
+                <div class="form form--inline">
+                  <div class="field">
+                    <label class="field__label">Deck name</label>
+                    <p class="field__error"><span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name</p>
+                    <input class="field__input" type="text" value="" aria-invalid="true" />
+                  </div>
+                  <div class="dialog__actions">
+                    <button class="btn btn--quiet" type="button">Cancel</button>
+                    <button class="btn btn--primary" type="button">Rename</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Invalid.</b> Rename with no name: Field’s error above the input, focus back in the field, and the dialog stays open.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          Escape closes any of them with no value, which the app reads as the safe choice. Taller
+          than the screen (a phone at 200% text), the dialog scrolls inside and the page never
+          scrolls sideways. Under forced colours the scrim disappears and the frame goes to 4px.
+          The <code>.is-*</code> classes force a state for this page; they are not API.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="dialog-usage" aria-labelledby="h-dialog-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-dialog-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Ask one question in the title and answer it with verbs: “Delete Shapes?” with Delete
+              deck and Keep it. Say what goes with it. Make the safe choice primary, last and
+              focused.
+            </p>
+          </li>
+          <li>
+            <strong>Don’t</strong>
+            <p>
+              Don’t ask “Are you sure?” or label the buttons Yes and No. Don’t make the destructive
+              button primary or red. Don’t stop anyone for news that needs no answer (a toast or a
+              banner says it), and prefer Undo to a question when the action can be undone.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Centred on a phone too, with the buttons stacked full width and the primary on top, in
+              reach of a thumb. A phone has no Escape key, so every dialog has a button that closes
+              it. It appears in place; gate 4 gives it an entrance.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Alerts are system chrome: SwiftUI’s <code>.alert</code> or
+              <code>.confirmationDialog</code>, with <code>Button(role: .destructive)</code> and a
+              cancel button. This element is the web shell’s. Return presses the focused button;
+              Escape cancels.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <script>
+        /* The page's demo (a real app owns this): when a live dialog closes, the line
+           beside its button says which button closed it. Inside <main>, so the bundled
+           style sheet keeps it. */
+        Array.prototype.forEach.call(document.querySelectorAll("#el-dialog [data-sg-return]"), function (out) {
+          var dialog = document.getElementById(out.getAttribute("data-sg-return"));
+          dialog.addEventListener("close", function () {
+            out.textContent = dialog.returnValue
+              ? "Closed with returnValue “" + dialog.returnValue + "”."
+              : "Closed with Escape: no returnValue.";
+            dialog.returnValue = "";
+          });
+        });
+      </script>
+    </section>
+<section id="el-sheet">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 23</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">Sheet</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            A task on top of a screen: from the bottom on a phone, from the side on a wide screen,
+            with a close button you can always see.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="sheet-anatomy" aria-labelledby="h-sheet-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-sheet-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A modal dialog shaped as a panel: the top bar’s layout, a body that scrolls, and the
+            bottom safe area. Drawn here over a deck, on a phone.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 640px" inert>
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h3 class="topbar__title">Shapes</h3>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="Add a card">
+                        <span class="ic ic--plus" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                    <ul class="card-grid" role="list" style="--card-min: 9rem">
+                      <li>
+                        <article class="card card--square" data-tone="1">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 1</p>
+                            <h4 class="card__title">Triangle</h4>
+                          </div>
+                        </article>
+                      </li>
+                      <li>
+                        <article class="card card--square">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 2</p>
+                            <h4 class="card__title">Square</h4>
+                          </div>
+                        </article>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
+                <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 6.5rem auto auto 1rem; z-index: 1">1</span>
+                <div class="sheet" style="position: absolute; z-index: 1; overflow: visible">
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: -0.6875rem auto auto var(--space-4); z-index: 3">2</span>
+                  <header class="topbar" style="position: relative">
+                    <h4 class="topbar__title">Add a card</h4>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                        <span class="ic ic--close" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: auto auto -0.6875rem var(--space-4); z-index: 3">3</span>
+                    <span
+                      class="sg-n"
+                      aria-hidden="true"
+                      style="position: absolute; inset-block-start: calc(var(--space-2) + var(--hit) / 2); inset-inline-end: calc(var(--hit) + var(--space-3)); translate: 0 -50%"
+                      >4</span
+                    >
+                  </header>
+                  <div class="sheet__body" style="position: relative">
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 0.125rem 0.25rem auto auto">5</span>
+                    <div class="form">
+                      <div class="field">
+                        <label class="field__label">Front</label>
+                        <p class="field__help">What you see first.</p>
+                        <input class="field__input" type="text" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label">Back</label>
+                        <p class="field__help">What you say back.</p>
+                        <input class="field__input" type="text" />
+                      </div>
+                      <div class="form__actions">
+                        <button class="btn btn--primary" type="button">Add card</button>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: auto var(--space-4) 0.375rem auto">6</span>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Scrim</strong><code>::backdrop</code> <code>--scrim</code>
+                <p>
+                  Flat ink at 60%, as behind a Dialog: the deck is still there, but not now, and
+                  inert. A tap on it closes an action sheet, never a form.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Surface</strong><code>.sheet</code> <code>&lt;dialog&gt;</code>
+                <p>
+                  A container, so square: paper, a 2px frame on the edge that faces the page, no
+                  shadow. Edge to edge along the bottom, as tall as the task up to 90% of the
+                  screen. From 45rem of window it comes from the side instead.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Top bar</strong><code>.topbar</code>
+                <p>
+                  Top bar’s standard layout: the task as the title, in an <code>h2</code> that names
+                  the sheet, centred. It stays put while the body scrolls. A bottom sheet stops short
+                  of the status bar, so the bar pads no safe area.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Close</strong><code>.btn--icon</code> <code>ic--close</code>
+                <p>
+                  Button, quiet and icon-only, named “Close”, in a <code>&lt;form
+                  method="dialog"&gt;</code> that is the bar’s actions slot. Always visible: drag to
+                  dismiss waits for gate 4, and is never the only way out.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Body</strong><code>.sheet__body</code>
+                <p>
+                  The task: here Form, with its submit row last. It scrolls inside the sheet and
+                  keeps its scroll to itself; the page never moves, sideways or down.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">6</span>
+              <div>
+                <strong>Bottom safe area</strong><code>--safe-bottom</code>
+                <p>
+                  The sheet’s, as a bar’s: the body pads it, plus 8px, so the last button clears the
+                  home indicator.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="sheet-variants" aria-labelledby="h-sheet-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-sheet-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three, each drawn and live. The button opens the real modal: focus moves in and stays
+            in, Escape or Close shuts it, and focus goes back to the button.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="sheet-bottom">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Bottom sheet</h3>
+            <p class="sg-entry__use">A short task over the screen it belongs to, on a phone: add a card to this deck.</p>
+            <p class="sg-entry__classes"><code>.sheet</code> <code>.topbar</code> <code>.sheet__body</code> <code>autofocus</code></p>
+            <p class="sg-entry__note">
+              The same markup is the side sheet once the window is 45rem wide, so on this screen the
+              live one may come from the side: narrow the window to see it rise from the bottom.
+              Focus starts in Front (<code>autofocus</code>): the task is typing. No light dismiss,
+              so a stray tap can’t throw away what you typed.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 600px" inert>
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h4 class="topbar__title">Shapes</h4>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="Add a card">
+                        <span class="ic ic--plus" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                  </div>
+                </div>
+                <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
+                <div class="sheet" style="position: absolute; z-index: 1">
+                  <header class="topbar">
+                    <h4 class="topbar__title">Add a card</h4>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                        <span class="ic ic--close" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="sheet__body">
+                    <div class="form">
+                      <div class="field">
+                        <label class="field__label">Front</label>
+                        <p class="field__help">What you see first.</p>
+                        <input class="field__input" type="text" value="Three sides, three corners" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label">Back</label>
+                        <p class="field__help">What you say back.</p>
+                        <input class="field__input" type="text" value="Triangle" />
+                      </div>
+                      <div class="form__actions">
+                        <button class="btn btn--primary" type="button">Add card</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+            <div class="btn-row" style="flex-basis: 100%; justify-content: center">
+              <button class="btn" type="button" commandfor="sheet-add" command="show-modal" data-sg-code>
+                <span class="ic ic--plus" aria-hidden="true"></span>Add a card
+              </button>
+              <p class="t-meta" aria-live="polite" data-sg-return="sheet-add">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog class="sheet" id="sheet-add" aria-labelledby="sheet-add-title" data-sg-code>
+              <header class="topbar">
+                <h2 class="topbar__title" id="sheet-add-title">Add a card</h2>
+                <form class="topbar__actions" method="dialog">
+                  <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+                    <span class="ic ic--close" aria-hidden="true"></span>
+                  </button>
+                </form>
+              </header>
+              <div class="sheet__body">
+                <form class="form" method="dialog">
+                  <div class="field">
+                    <label class="field__label" for="sheet-add-front">Front</label>
+                    <p class="field__help" id="sheet-add-front-help">What you see first.</p>
+                    <p class="field__error" id="sheet-add-front-error" hidden>
+                      <span class="ic ic--warning" aria-hidden="true"></span>Write the front of the card
+                    </p>
+                    <input
+                      class="field__input"
+                      id="sheet-add-front"
+                      name="front"
+                      type="text"
+                      required
+                      autofocus
+                      autocomplete="off"
+                      autocapitalize="sentences"
+                      enterkeyhint="next"
+                      aria-describedby="sheet-add-front-help"
+                    />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="sheet-add-back">Back</label>
+                    <p class="field__help" id="sheet-add-back-help">What you say back.</p>
+                    <p class="field__error" id="sheet-add-back-error" hidden>
+                      <span class="ic ic--warning" aria-hidden="true"></span>Write the back of the card
+                    </p>
+                    <input
+                      class="field__input"
+                      id="sheet-add-back"
+                      name="back"
+                      type="text"
+                      required
+                      autocomplete="off"
+                      autocapitalize="sentences"
+                      enterkeyhint="done"
+                      aria-describedby="sheet-add-back-help"
+                    />
+                  </div>
+                  <div class="form__actions">
+                    <button class="btn btn--primary" value="add">Add card</button>
+                  </div>
+                </form>
+              </div>
+            </dialog>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="sheet-side">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Side sheet</h3>
+            <p class="sg-entry__use">The same task on a wide screen, where the deck stays in view beside it.</p>
+            <p class="sg-entry__classes"><code>.sheet</code> from 45rem, or <code>.sheet--side</code></p>
+            <p class="sg-entry__note">
+              Along the end edge, top to bottom, 28rem at most, framed on the side that faces the
+              page. It runs from the top, so its top bar pads the top safe area. An open
+              <code>.sheet</code> becomes one by itself; <code>.sheet--side</code> pins it whatever
+              the width, as the live one here does.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-device" style="inline-size: 100%; block-size: 32rem" inert>
+              <div class="frame">
+                <header class="frame__top topbar">
+                  <a class="btn btn--quiet topbar__back" href="#">
+                    <span class="ic ic--back" aria-hidden="true"></span>Decks
+                  </a>
+                  <h4 class="topbar__title">Shapes</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Add a card">
+                      <span class="ic ic--plus" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="frame__scroll">
+                  <p class="t-meta">12 cards · 5 known · 7 due</p>
+                  <ul class="card-grid" role="list" style="--card-min: 9rem">
+                    <li>
+                      <article class="card card--square" data-tone="1">
+                        <div class="card__body">
+                          <p class="card__eyebrow">Card 1</p>
+                          <h5 class="card__title">Triangle</h5>
+                        </div>
+                      </article>
+                    </li>
+                    <li>
+                      <article class="card card--square">
+                        <div class="card__body">
+                          <p class="card__eyebrow">Card 2</p>
+                          <h5 class="card__title">Square</h5>
+                        </div>
+                      </article>
+                    </li>
+                    <li>
+                      <article class="card card--square">
+                        <div class="card__body">
+                          <p class="card__eyebrow">Card 3</p>
+                          <h5 class="card__title">Circle</h5>
+                        </div>
+                      </article>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
+              <div class="sheet sheet--side" style="position: absolute; z-index: 1">
+                <header class="topbar">
+                  <h4 class="topbar__title">Add a card</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="sheet__body">
+                  <div class="form">
+                    <div class="field">
+                      <label class="field__label">Front</label>
+                      <p class="field__help">What you see first.</p>
+                      <input class="field__input" type="text" value="Four equal sides" />
+                    </div>
+                    <div class="field">
+                      <label class="field__label">Back</label>
+                      <p class="field__help">What you say back.</p>
+                      <input class="field__input" type="text" />
+                    </div>
+                    <div class="form__actions">
+                      <button class="btn btn--primary" type="button">Add card</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="sheet-add-side" command="show-modal" data-sg-code>
+                <span class="ic ic--plus" aria-hidden="true"></span>Add a card
+              </button>
+              <p class="t-meta" aria-live="polite" data-sg-return="sheet-add-side">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog class="sheet sheet--side" id="sheet-add-side" aria-labelledby="sheet-add-side-title" data-sg-code>
+              <header class="topbar">
+                <h2 class="topbar__title" id="sheet-add-side-title">Add a card</h2>
+                <form class="topbar__actions" method="dialog">
+                  <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+                    <span class="ic ic--close" aria-hidden="true"></span>
+                  </button>
+                </form>
+              </header>
+              <div class="sheet__body">
+                <form class="form" method="dialog">
+                  <div class="field">
+                    <label class="field__label" for="sheet-add-side-front">Front</label>
+                    <p class="field__help" id="sheet-add-side-front-help">What you see first.</p>
+                    <p class="field__error" id="sheet-add-side-front-error" hidden>
+                      <span class="ic ic--warning" aria-hidden="true"></span>Write the front of the card
+                    </p>
+                    <input
+                      class="field__input"
+                      id="sheet-add-side-front"
+                      name="front"
+                      type="text"
+                      required
+                      autofocus
+                      autocomplete="off"
+                      autocapitalize="sentences"
+                      enterkeyhint="next"
+                      aria-describedby="sheet-add-side-front-help"
+                    />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="sheet-add-side-back">Back</label>
+                    <p class="field__help" id="sheet-add-side-back-help">What you say back.</p>
+                    <p class="field__error" id="sheet-add-side-back-error" hidden>
+                      <span class="ic ic--warning" aria-hidden="true"></span>Write the back of the card
+                    </p>
+                    <input
+                      class="field__input"
+                      id="sheet-add-side-back"
+                      name="back"
+                      type="text"
+                      required
+                      autocomplete="off"
+                      autocapitalize="sentences"
+                      enterkeyhint="done"
+                      aria-describedby="sheet-add-side-back-help"
+                    />
+                  </div>
+                  <div class="form__actions">
+                    <button class="btn btn--primary" value="add">Add card</button>
+                  </div>
+                </form>
+              </div>
+            </dialog>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="sheet-action">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Action sheet</h3>
+            <p class="sg-entry__use">A thing’s actions on a phone, in reach of a thumb: the phone’s Menu.</p>
+            <p class="sg-entry__classes">
+              <code>.sheet--action</code> <code>.menu__item</code> <code>.menu__rule</code>
+              <code>closedby="any"</code>
+            </p>
+            <p class="sg-entry__note">
+              Menu’s items, order and rule, with the destructive item last; Menu’s no-anchor shape:
+              edge to edge on a phone, 30rem and centred on a wider window. The body is a
+              <code>&lt;form method="dialog"&gt;</code>, so each item closes the sheet with its
+              value. A tap on the scrim closes it too, as a click outside closes a menu.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 600px" inert>
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h4 class="topbar__title">Shapes</h4>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="More for Shapes">
+                        <span class="ic ic--more" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                  </div>
+                </div>
+                <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
+                <div class="sheet sheet--action" style="position: absolute; z-index: 1">
+                  <header class="topbar">
+                    <h4 class="topbar__title">Deck options</h4>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                        <span class="ic ic--close" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="sheet__body">
+                    <button class="btn btn--quiet btn--block menu__item" type="button">Rename</button>
+                    <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
+                    <button class="btn btn--quiet btn--block menu__item" type="button">Export</button>
+                    <hr class="menu__rule" />
+                    <button class="btn btn--quiet btn--block menu__item" type="button">Delete deck…</button>
+                  </div>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+            <div class="btn-row" style="flex-basis: 100%; justify-content: center">
+              <button
+                class="btn btn--quiet btn--icon"
+                type="button"
+                commandfor="sheet-options"
+                command="show-modal"
+                aria-label="More for Shapes"
+                data-sg-code
+              >
+                <span class="ic ic--more" aria-hidden="true"></span>
+              </button>
+              <p class="t-meta" aria-live="polite" data-sg-return="sheet-options">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog class="sheet sheet--action" id="sheet-options" aria-labelledby="sheet-options-title" closedby="any" data-sg-code>
+              <header class="topbar">
+                <h2 class="topbar__title" id="sheet-options-title">Deck options</h2>
+                <form class="topbar__actions" method="dialog">
+                  <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+                    <span class="ic ic--close" aria-hidden="true"></span>
+                  </button>
+                </form>
+              </header>
+              <form class="sheet__body" method="dialog">
+                <button class="btn btn--quiet btn--block menu__item" value="rename">Rename</button>
+                <button class="btn btn--quiet btn--block menu__item" value="duplicate">Duplicate</button>
+                <button class="btn btn--quiet btn--block menu__item" value="export">Export</button>
+                <hr class="menu__rule" />
+                <button class="btn btn--quiet btn--block menu__item" value="delete">Delete deck…</button>
+              </form>
+            </dialog>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="sheet-states" aria-labelledby="h-sheet-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-sheet-states">States</h2>
+          <p class="sg-sec__note">
+            Open and closed are the browser’s; what’s inside keeps Button’s, Field’s and Menu’s
+            states. Drawn in place, at a phone’s width.
+          </p>
+        </div>
+
+        <div class="sg-states" inert>
+          <div>
+            <div style="padding-block-start: var(--space-6); background: var(--scrim)">
+              <div class="sheet">
+                <header class="topbar">
+                  <h4 class="topbar__title">Add a card</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="sheet__body">
+                  <div class="field">
+                    <label class="field__label">Front</label>
+                    <input class="field__input is-focus" type="text" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Open, with a form.</b> Focus starts in the first field: the task is typing. Tab goes on through the form, then round to Close.</p>
+          </div>
+          <div>
+            <div style="padding-block-start: var(--space-6); background: var(--scrim)">
+              <div class="sheet sheet--action">
+                <header class="topbar">
+                  <h4 class="topbar__title">Deck options</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon is-focus" type="button" aria-label="Close">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="sheet__body">
+                  <button class="btn btn--quiet btn--block menu__item" type="button">Rename</button>
+                  <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Open, no field.</b> Focus starts on Close, the safe way out: Button’s quiet focus, filled and ringed.</p>
+          </div>
+          <div>
+            <div style="padding-block-start: var(--space-6); background: var(--scrim)">
+              <div class="sheet sheet--action">
+                <header class="topbar">
+                  <h4 class="topbar__title">Deck options</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon is-hover" type="button" aria-label="Close">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="sheet__body">
+                  <button class="btn btn--quiet btn--block menu__item" type="button">Rename</button>
+                  <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Close, hover.</b> Button’s quiet icon hover: the circle fills and lifts. Pointers only.</p>
+          </div>
+          <div>
+            <div style="padding-block-start: var(--space-6); background: var(--scrim)">
+              <div class="sheet sheet--action">
+                <header class="topbar">
+                  <h4 class="topbar__title">Deck options</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="sheet__body">
+                  <button class="btn btn--quiet btn--block menu__item is-active" type="button">Rename</button>
+                  <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Item, pressed.</b> Menu’s item: down and filled, with the inner ring. On release the sheet closes, and its <code>returnValue</code> is “rename”.</p>
+          </div>
+          <div>
+            <div style="padding-block-start: var(--space-6); background: var(--scrim)">
+              <div class="sheet" style="max-block-size: 15rem">
+                <header class="topbar">
+                  <h4 class="topbar__title">Add a card</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="sheet__body">
+                  <div class="form">
+                    <div class="field">
+                      <label class="field__label">Front</label>
+                      <p class="field__help">What you see first.</p>
+                      <input class="field__input" type="text" value="Three sides, three corners" />
+                    </div>
+                    <div class="field">
+                      <label class="field__label">Back</label>
+                      <p class="field__help">What you say back.</p>
+                      <input class="field__input" type="text" value="Triangle" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Taller than the room.</b> At 90% of the screen it stops growing: the top bar stays and the body scrolls inside, never the page.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          Escape closes any sheet with no value. Under forced colours the scrim disappears and the
+          frame on the edge facing the page goes to 4px. The last picture is held short with an
+          inline height to stand for a small screen. The <code>.is-*</code> classes force a state
+          for this page; they are not API.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="sheet-usage" aria-labelledby="h-sheet-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-sheet-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Use a sheet for a short task that belongs to the screen under it, such as adding a card
+              to this deck. Title it with the task, keep Close in view, and end the form with its own
+              button.
+            </p>
+          </li>
+          <li>
+            <strong>Don’t</strong>
+            <p>
+              Don’t open a sheet from a sheet, or make a drag the only way out. A question is a
+              Dialog, news is a Toast or a Banner, and a task with screens of its own is a screen
+              with a back link, not a sheet.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              From the bottom, edge to edge, owning the home indicator’s safe area; at most 90% of
+              the screen, so the deck still shows above it. On a phone, a thing’s actions open as an
+              action sheet; on a wide window, as a Menu. Drag and detents wait for gate 4.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Sheets are system chrome on the Mac: SwiftUI’s <code>.sheet</code>, with
+              <code>.inspector</code> for a side panel and <code>.confirmationDialog</code> for an
+              action sheet. This element is the phone’s and the web shell’s.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <script>
+        /* The page's demo (a real app owns this): when a live sheet closes, the line
+           beside its button says which button closed it. Inside <main>, so the bundled
+           style sheet keeps it. */
+        Array.prototype.forEach.call(document.querySelectorAll("#el-sheet [data-sg-return]"), function (out) {
+          var sheet = document.getElementById(out.getAttribute("data-sg-return"));
+          sheet.addEventListener("close", function () {
+            out.textContent = sheet.returnValue
+              ? "Closed with returnValue “" + sheet.returnValue + "”."
+              : "Closed with Escape or a tap outside: no returnValue.";
+            sheet.returnValue = "";
+          });
+        });
+      </script>
+    </section>
+<section id="el-toast">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 24</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">Toast</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            It's done, with Undo. One line about what just happened, above the tab bar for a few
+            seconds, and never the only way to act on it.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="toast-anatomy" aria-labelledby="h-toast-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-toast-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A region that is always there, and in it, one at a time, a framed line of words with
+            at most one action and a way to send it off. Shown here in place, as one looks just
+            after a deck was deleted.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 600px">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h3 class="topbar__title">Decks</h3>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="list">
+                      <ul class="list__rows" role="list">
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                            <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards · new</span></span>
+                            <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards · 11 known</span></span>
+                            <span class="list__trail">3 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Farm animals</span><span class="list__meta">15 cards · all known</span></span>
+                            <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="toasts" style="outline: var(--bw-thin) dashed var(--ink-soft); outline-offset: calc(var(--bw-thin) * -1)">
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -0.6875rem; inset-inline-start: 0.25rem; z-index: 3">1</span>
+                    <div class="toast" style="position: relative">
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-end: -0.6875rem; inset-inline-start: -0.6875rem; z-index: 3">2</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -0.6875rem; inset-inline-start: 0.9375rem; z-index: 3">3</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -0.6875rem; inset-inline-start: 3rem; z-index: 3">4</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -0.6875rem; inset-inline-end: 5.0625rem; z-index: 3">5</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -0.6875rem; inset-inline-end: 1.3125rem; z-index: 3">6</span>
+                      <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+                      <p class="toast__text">Deck deleted.</p>
+                      <div class="toast__actions">
+                        <button class="btn toast__action" type="button">Undo</button>
+                        <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                          <span class="ic ic--close" aria-hidden="true"></span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Region</strong><code>.toasts</code> <code>role="status"</code>
+                <p>
+                  Always there, empty until it's needed: one per frame, after the scroll region. It
+                  shares the scroll region's grid cell and sits at its foot, so a toast is 12px above
+                  the tab bar whatever the bar's height. With no bottom bar it adds the home
+                  indicator's safe area; outside a frame it is fixed to the foot of the window.
+                  Polite: putting a toast in is what a screen reader announces. Taps pass through it.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Surface</strong><code>.toast</code>
+                <p>
+                  A container, so square: a 2px frame on paper and no shadow, since a shadow means
+                  "press this". It floats over the content, and the frame is what parts the two. At
+                  most 32rem wide; the content's width on a phone.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Glyph</strong><code>.toast__icon</code>
+                <p>
+                  <code>ic--check</code> when it's done, <code>ic--warning</code> when it failed. The
+                  palette is monochrome, so the glyph tells the two apart before you read.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Words</strong><code>.toast__text</code>
+                <p>
+                  What happened, in one short sentence: "Deck deleted." Body type, wrapped, never cut.
+                  The glyph and the first line centre on the buttons' 44px row.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Action</strong><code>.toast__action</code>
+                <p>
+                  At most one, a Button with a frame, 12px a side. A verb: Undo, Try again. Pressing
+                  it does it and closes the toast. Never the only way to do it.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">6</span>
+              <div>
+                <strong>Dismiss</strong><code>.btn--quiet.btn--icon</code>
+                <p>
+                  Button, quiet and icon-only, named "Dismiss", last in <code>.toast__actions</code>.
+                  On every toast, so it can go before its time and stop covering what's under it.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="toast-variants" aria-labelledby="h-toast-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-toast-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three, told apart by their words, their glyph and whether they offer anything. All
+            three are polite: none of them stops you doing what you were doing. The script builds
+            this markup; the page prints it.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="toast-done">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Done, with Undo</h3>
+            <p class="sg-entry__use">Something just happened that can be taken back.</p>
+            <p class="sg-entry__classes"><code>.toast</code> <code>.toast__action</code> <code>ic--check</code></p>
+            <p class="sg-entry__note">
+              Ten seconds, for time to reach the action. Undo here is a shortcut, not the only way
+              back: the app needs one that doesn't run out (on the Mac, Edit › Undo, ⌘Z).
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="toast" data-sg-code>
+              <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Deck deleted.</p>
+              <div class="toast__actions">
+                <button class="btn toast__action" type="button" aria-keyshortcuts="Alt+T">Undo</button>
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="toast-saved">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Done</h3>
+            <p class="sg-entry__use">It worked, and there is nothing to do about it.</p>
+            <p class="sg-entry__classes"><code>.toast</code> <code>ic--check</code></p>
+            <p class="sg-entry__note">
+              Six seconds, then it goes. Dismiss is its only button. If the words say nothing the
+              screen doesn't already show, leave the toast out.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="toast" data-sg-code>
+              <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Saved on this device.</p>
+              <div class="toast__actions">
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss" aria-keyshortcuts="Alt+T">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="toast-failed">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Failed, with a retry</h3>
+            <p class="sg-entry__use">Something in the background didn't work, and nothing is lost.</p>
+            <p class="sg-entry__classes"><code>.toast</code> <code>.toast__action</code> <code>ic--warning</code></p>
+            <p class="sg-entry__note">
+              Polite all the same: a sync that failed doesn't stop you studying. Try again is also
+              wherever sync lives in the app, and the app tries again by itself. A failure that
+              does stop you is a Banner or a Dialog, not a toast.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="toast" data-sg-code>
+              <span class="ic ic--warning toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Couldn't sync.</p>
+              <div class="toast__actions">
+                <button class="btn toast__action" type="button" aria-keyshortcuts="Alt+T">Try again</button>
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="toast-states" aria-labelledby="h-toast-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-toast-states">States</h2>
+          <p class="sg-sec__note">
+            The surface doesn't press or lift; its buttons are Button's. What changes is time: a
+            toast waits while you're on it, and only one shows at a time. Forced here with
+            <code>.is-*</code> on the buttons; live in the phone below.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div style="max-inline-size: 24rem">
+            <div class="toast">
+              <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Deck deleted.</p>
+              <div class="toast__actions">
+                <button class="btn toast__action" type="button">Undo</button>
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Showing.</b> It appears in place, with no motion, and is announced once, as it goes into the region. 10 s with an action, 6 s without.</p>
+          </div>
+          <div style="max-inline-size: 24rem">
+            <div class="toast">
+              <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Deck deleted.</p>
+              <div class="toast__actions">
+                <button class="btn toast__action is-hover" type="button">Undo</button>
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Pointer on it.</b> Its clock stops, with nothing drawn: a countdown would be motion. The button under the pointer lifts, as Button's do. Off it, the clock goes on, with at least 2 s left.</p>
+          </div>
+          <div style="max-inline-size: 24rem">
+            <div class="toast">
+              <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Deck deleted.</p>
+              <div class="toast__actions">
+                <button class="btn toast__action is-focus" type="button">Undo</button>
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Focus in it.</b> The clock stops while focus is anywhere inside. <kbd>⌥T</kbd> (<kbd>Alt+T</kbd>) jumps here from anywhere; <kbd>Escape</kbd> closes it and puts focus back.</p>
+          </div>
+          <div style="max-inline-size: 24rem">
+            <div class="toast">
+              <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Deck deleted.</p>
+              <div class="toast__actions">
+                <button class="btn toast__action is-active" type="button">Undo</button>
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Action pressed.</b> Button's press. It does the thing, the toast goes, and focus goes back to where it was before it went in.</p>
+          </div>
+          <div style="max-inline-size: 15rem">
+            <div class="toast">
+              <span class="ic ic--warning toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Couldn't sync.</p>
+              <div class="toast__actions">
+                <button class="btn toast__action" type="button">Try again</button>
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Narrow, or large text.</b> The buttons move under the words, at the end. The words wrap and are never cut; the toast grows taller, never wider.</p>
+          </div>
+          <div style="max-inline-size: 24rem">
+            <div class="toast">
+              <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+              <p class="toast__text">Saved on this device.</p>
+              <div class="toast__actions">
+                <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                  <span class="ic ic--close" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Next in line.</b> Raised while another shows, it waits its turn: one at a time, a 0.3 s beat between them, each announced as it goes in.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          In forced colours the frame is a border, so the system paints it, and the glyphs stay
+          (icons are drawn in <code>CanvasText</code>). The <code>.is-*</code> classes force a state
+          for this page and for tests; they are not API.
+        </p>
+
+        <article class="sg-entry" id="toast-live">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">Live</p>
+            <h3 class="sg-entry__name">Try it</h3>
+            <p class="sg-entry__use">The three buttons raise the three toasts in this phone's region.</p>
+            <p class="sg-entry__classes"><code>data-toast</code> <code>Flashcards.toast()</code></p>
+            <p class="sg-entry__note">
+              Press two or three quickly: they queue and show one at a time. Rest the pointer on a
+              toast or Tab into it, and it waits. <kbd>⌥T</kbd> jumps to it from anywhere on the
+              page; <kbd>Escape</kbd> closes it. Undo only closes it here; in the app it puts the deck
+              back. Without script the buttons aren't shown, because they couldn't do anything.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h4 class="topbar__title">Shapes</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                    <div class="btn-row" data-sg-code>
+                      <button class="btn" type="button" data-toast="Saved on this device." hidden>Save</button>
+                      <button class="btn" type="button" data-toast="Couldn't sync." data-toast-action="Try again" data-toast-failed hidden>Sync now</button>
+                      <button class="btn" type="button" data-toast="Deck deleted." data-toast-action="Undo" hidden>Delete deck</button>
+                    </div>
+                  </div>
+                  <div class="toasts" role="status" data-sg-code></div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="sg-entry" id="toast-nobar">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">Placement</p>
+            <h3 class="sg-entry__name">No bottom bar</h3>
+            <p class="sg-entry__use">A screen past the root with no tab bar: the toast clears the home indicator itself.</p>
+            <p class="sg-entry__classes"><code>.frame:not(:has(&gt; .frame__bottom)) &gt; .toasts</code></p>
+            <p class="sg-entry__note">
+              The region adds <code>--safe-bottom</code> under its 12px, so the toast sits above the
+              home indicator, never on it. Content never reads the safe area; the region does, as a
+              bar would.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Shapes
+                    </a>
+                    <h4 class="topbar__title">Edit deck</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="field">
+                      <label class="field__label" for="toast-nobar-name">Deck name</label>
+                      <input class="field__input" id="toast-nobar-name" type="text" value="Shapes" autocomplete="off" enterkeyhint="done" />
+                    </div>
+                    <div class="btn-row">
+                      <button class="btn btn--primary" type="button">Save</button>
+                    </div>
+                  </div>
+                  <div class="toasts">
+                    <div class="toast">
+                      <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+                      <p class="toast__text">Saved on this device.</p>
+                      <div class="toast__actions">
+                        <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                          <span class="ic ic--close" aria-hidden="true"></span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="toast-usage" aria-labelledby="h-toast-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-toast-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Say what happened in a few words, past tense, and offer the one thing worth doing
+              about it. Raise it after the work is done, and after any dialog or sheet has closed:
+              the page behind a modal is inert, and so is its region.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't make it the only way to undo or retry (WCAG 2.2.1), don't put a question or a
+              form in it, don't use it for a failure that stops you, and don't stack two. No shadow,
+              no round corners, no motion.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Above the tab bar, clear of the home indicator when there is no bar. Its clock stops
+              while the app is in the background, so a toast raised as you switch away is still
+              there when you come back.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              The action is a command first: Edit › Undo with <kbd>⌘Z</kbd>, in the menu bar. The
+              toast mirrors it. In SwiftUI it is a custom overlay at the bottom of the window,
+              announced with an accessibility announcement; there is no system toast.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </section>
+<section id="el-banner">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 25</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Banner</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            News about the whole screen, at the top of it: you're offline, a new version is
+            ready, your decks didn't load. A glyph and words, never colour, and it's there for as
+            long as it's true.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="banner-anatomy" aria-labelledby="h-banner-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-banner-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A band across the top of the scroll region, under the top bar: a glyph, the words, and
+            at most one action. It is part of the content, so it scrolls away with it.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 560px">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h3 class="topbar__title">Decks</h3>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="banner" role="status" style="position: relative">
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-end: -0.6875rem; inset-inline-end: 0.25rem; z-index: 3">1</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-end: -0.6875rem; inset-inline-start: 0.9375rem; z-index: 3">2</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-end: -0.6875rem; inset-inline-start: 3rem; z-index: 3">3</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-end: -0.6875rem; inset-inline-end: 3.125rem; z-index: 3">4</span>
+                      <span class="ic ic--refresh banner__icon" aria-hidden="true"></span>
+                      <p class="banner__text"><strong>A new version is ready.</strong></p>
+                      <button class="btn banner__action" type="button">Reload</button>
+                    </div>
+                    <div class="list">
+                      <ul class="list__rows" role="list">
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                            <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards · new</span></span>
+                            <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards · 11 known</span></span>
+                            <span class="list__trail">3 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Band</strong><code>.banner</code>
+                <p>
+                  First in the scroll region, against the top bar's rule, edge to edge: it reaches over
+                  the region's padding and takes its side padding as its own, so the words line up
+                  with the content below. Paper, a 2px rule under it, square. Part of the content: it
+                  scrolls away with it and never floats over it.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Glyph</strong><code>.banner__icon</code>
+                <p>
+                  Which kind, before you read: <code>ic--offline</code>, <code>ic--refresh</code> or
+                  <code>ic--warning</code>. Never colour: the palette is monochrome.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Words</strong><code>.banner__text</code>
+                <p>
+                  What's true, then what it means for you: "You're offline. Changes are saved on this
+                  device." The news is a <code>&lt;strong&gt;</code> (600). Body type, wrapped at the
+                  measure; the glyph and the first line centre on a 44px row.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Action</strong><code>.banner__action</code>
+                <p>
+                  At most one Button, at the trailing end, or under the words when they need the row.
+                  Reload, Try again. No close: a banner goes when it stops being true.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="banner-variants" aria-labelledby="h-banner-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-banner-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three, told apart by their glyph and words. Each is shown under a top bar, where it
+            lives; on a screen it is the first thing in the scroll region.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="banner-offline">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Offline</h3>
+            <p class="sg-entry__use">No connection. Everything still works, from this device.</p>
+            <p class="sg-entry__classes"><code>.banner</code> <code>ic--offline</code> <code>role="status"</code></p>
+            <p class="sg-entry__note">
+              Up for as long as it's true, and no close: closing it wouldn't make it untrue. No
+              action either, because there's nothing to do. Wave 5's service worker raises it, and
+              takes it down when the connection is back.
+            </p>
+          </header>
+          <div class="sg-stage" style="padding: 0">
+            <header class="topbar topbar--root">
+              <h4 class="topbar__title">Decks</h4>
+            </header>
+            <div class="banner" role="status" data-sg-code>
+              <span class="ic ic--offline banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>You're offline.</strong> Changes are saved on this device.</p>
+            </div>
+            <p class="t-meta" style="padding: var(--space-5) var(--gutter)">4 decks on this device</p>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="banner-update">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Update ready</h3>
+            <p class="sg-entry__use">A new version has downloaded and is waiting.</p>
+            <p class="sg-entry__classes"><code>.banner</code> <code>ic--refresh</code> <code>.banner__action</code> <code>role="status"</code></p>
+            <p class="sg-entry__note">
+              Reload swaps it in. It can wait for the end of a session, so it never interrupts: it
+              sits at the top and scrolls away. An installed app has no reload button of its own,
+              so this is the way to the new version short of closing the app.
+            </p>
+          </header>
+          <div class="sg-stage" style="padding: 0">
+            <header class="topbar topbar--root">
+              <h4 class="topbar__title">Decks</h4>
+            </header>
+            <div class="banner" role="status" data-sg-code>
+              <span class="ic ic--refresh banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>A new version is ready.</strong></p>
+              <button class="btn banner__action" type="button">Reload</button>
+            </div>
+            <p class="t-meta" style="padding: var(--space-5) var(--gutter)">4 decks on this device</p>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="banner-failure">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Failure</h3>
+            <p class="sg-entry__use">Something about the whole screen didn't work.</p>
+            <p class="sg-entry__classes"><code>.banner</code> <code>ic--warning</code> <code>.banner__action</code> <code>role="status"</code></p>
+            <p class="sg-entry__note">
+              Status while the screen still shows something you can use (the decks from the last
+              time); <code>role="alert"</code> only when it blocks (States, below). When there is
+              nothing to show at all, the failed card in the content says it instead: once, where
+              the decks would be.
+            </p>
+          </header>
+          <div class="sg-stage" style="padding: 0">
+            <header class="topbar topbar--root">
+              <h4 class="topbar__title">Decks</h4>
+            </header>
+            <div class="banner" role="status" data-sg-code>
+              <span class="ic ic--warning banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>Couldn't load your decks.</strong></p>
+              <button class="btn banner__action" type="button">Try again</button>
+            </div>
+            <p class="t-meta" style="padding: var(--space-5) var(--gutter)">Showing your decks from Sunday</p>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="banner-states" aria-labelledby="h-banner-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-banner-states">States</h2>
+          <p class="sg-sec__note">
+            The band doesn't press or lift; its action is Button's. What changes is how loudly it
+            speaks and how it fits. Forced here with <code>.is-*</code> on the button.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div style="max-inline-size: 24rem">
+            <div class="banner">
+              <span class="ic ic--refresh banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>A new version is ready.</strong></p>
+              <button class="btn banner__action" type="button">Reload</button>
+            </div>
+            <p class="sg-caption"><b>Rest.</b> Appears in place, no motion. A status: read out once, politely, when it goes up.</p>
+          </div>
+          <div style="max-inline-size: 24rem">
+            <div class="banner">
+              <span class="ic ic--refresh banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>A new version is ready.</strong></p>
+              <button class="btn banner__action is-hover" type="button">Reload</button>
+            </div>
+            <p class="sg-caption"><b>Action, hover.</b> Button's: the pill fills and lifts. Pointers only.</p>
+          </div>
+          <div style="max-inline-size: 24rem">
+            <div class="banner">
+              <span class="ic ic--refresh banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>A new version is ready.</strong></p>
+              <button class="btn banner__action is-focus" type="button">Reload</button>
+            </div>
+            <p class="sg-caption"><b>Action, focus.</b> The hover look and the ring, which fits inside the band's 8px.</p>
+          </div>
+          <div style="max-inline-size: 24rem">
+            <div class="banner">
+              <span class="ic ic--refresh banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>A new version is ready.</strong></p>
+              <button class="btn banner__action is-active" type="button">Reload</button>
+            </div>
+            <p class="sg-caption"><b>Action, pressed.</b> Down, filled, the inner ring. Then the app reloads.</p>
+          </div>
+          <div style="max-inline-size: 15rem">
+            <div class="banner">
+              <span class="ic ic--offline banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>You're offline.</strong> Changes are saved on this device.</p>
+            </div>
+            <p class="sg-caption"><b>Narrow, or large text.</b> The words wrap beside the glyph; an action moves under them, at the end. The band grows taller, never wider.</p>
+          </div>
+          <div style="max-inline-size: 24rem">
+            <div class="banner" role="alert">
+              <span class="ic ic--warning banner__icon" aria-hidden="true"></span>
+              <p class="banner__text"><strong>Couldn't load your decks.</strong></p>
+              <button class="btn banner__action" type="button">Try again</button>
+            </div>
+            <p class="sg-caption"><b>Blocking.</b> The same band with <code>role="alert"</code>: read out at once, because nothing on the screen works until it does. The only assertive banner.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          Waiting: <code>&lt;div class="banner" role="status"&gt;&lt;/div&gt;</code>, with nothing
+          inside, takes no room and draws nothing; filling it raises it and is what's read out.
+          In forced colours the rule is <code>CanvasText</code> and the glyph is drawn in it too;
+          the band's paper becomes the system's background, so the rule is what sets it off. The
+          <code>.is-*</code> classes force a state for this page and for tests; they are not API.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="banner-usage" aria-labelledby="h-banner-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-banner-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Put it first in the scroll region. Say what's true and what it means for you, offer one
+              way on, and take it down the moment it stops being true. One at a time: the one that
+              changes what you can do now (a blocking failure, then offline, then an update).
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't float it, pin it or lay it over content; don't give the offline banner a close;
+              don't use one for "it's done" (that's a Toast) or for a question (that's a Dialog). No
+              tinted fill to say what kind: the glyph and the words say it.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Wave 5's service worker raises offline and update ready for real. Keep the band in the
+              markup, empty, and fill it: a live region speaks when it changes, not when it arrives.
+              Empty, it takes no room and draws nothing.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              The same band at the top of the window's content, under the toolbar, scrolling with it:
+              in SwiftUI, the first row of the <code>ScrollView</code>, not a
+              <code>safeAreaInset</code>, which would pin it.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </section>
+<section id="el-states">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 26</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">States</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Empty, loading and error: what a screen shows before there's anything, and when
+            something fails. Never blank, and always a way forward.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="states-patterns" aria-labelledby="h-states-patterns">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-states-patterns">Patterns</h2>
+          <p class="sg-sec__note">
+            Six, made of elements that already exist: Card, Button, Spinner, Banner, Field, and
+            Frame with its Top bar and Tab bar. The only new class is <code>.state</code>, which
+            keeps a state's words next to its way forward. Each is shown on the Decks screen of a
+            phone; the markup printed is the pattern's own.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="states-empty">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Empty</h3>
+            <p class="sg-entry__use">Nothing here yet: the first time a screen has nothing to show.</p>
+            <p class="sg-entry__classes"><code>.state</code> <code>.card--ghost</code></p>
+            <p class="sg-entry__note">
+              One line that says so, and a ghost card in the place the first deck will go: dashed means nothing here yet, and the whole card is the link to the first step. Its name is the step, "Make your first deck", not the state.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="state" data-sg-code>
+                      <p class="t-body">No decks yet.</p>
+                      <a class="card card--ghost" href="#">
+                        <span class="card__action" aria-hidden="true"><span class="ic ic--plus"></span></span>
+                        <span class="card__title">Make your first deck</span>
+                      </a>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.2 -->
+        <article class="sg-entry" id="states-search">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">Empty search</h3>
+            <p class="sg-entry__use">A search that found nothing.</p>
+            <p class="sg-entry__classes"><code>.state</code> <code>role="status"</code> <code>.btn</code></p>
+            <p class="sg-entry__note">
+              Under the field: what was searched for, in its own words, and Clear search, which does what the field's clear button does (empties it, puts focus back in it, brings the decks back). The line is a status, so as the list changes a screen reader hears it without leaving the field.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <search>
+                      <div class="field">
+                        <label class="field__label" for="states-search-input">Search decks</label>
+                        <div class="field__box">
+                          <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                          <input
+                            class="field__input"
+                            id="states-search-input"
+                            type="search"
+                            name="q"
+                            value="hexa"
+                            placeholder="Shapes, colours, numbers"
+                            autocomplete="off"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            enterkeyhint="search"
+                          />
+                          <button class="field__clear" type="button" aria-label="Clear search" hidden>
+                            <span class="ic ic--close" aria-hidden="true"></span>
+                          </button>
+                        </div>
+                      </div>
+                    </search>
+                    <div class="state" data-sg-code>
+                      <p class="t-body" role="status">No decks match “hexa”.</p>
+                      <div class="btn-row">
+                        <button class="btn" type="button">Clear search</button>
+                      </div>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.3 -->
+        <article class="sg-entry" id="states-loading">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">Loading</h3>
+            <p class="sg-entry__use">Working on it, when it takes long enough to notice.</p>
+            <p class="sg-entry__classes"><code>.spinner</code> <code>role="status"</code></p>
+            <p class="sg-entry__note">
+              Meter's spinner and its words, where the content will be. Only after about 300ms, so a quick load never flashes it (the delay is timing, so gate 4 sets it). No shimmer and no skeleton boxes: they move, and they promise a layout that may not come.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="spinner" role="status" data-sg-code>Loading decks…</p>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.4 -->
+        <article class="sg-entry" id="states-failed">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.4</p>
+            <h3 class="sg-entry__name">Failed</h3>
+            <p class="sg-entry__use">It didn't load, and there's nothing to show instead.</p>
+            <p class="sg-entry__classes"><code>.card</code> <code>.card__foot</code> <code>role="alert"</code></p>
+            <p class="sg-entry__note">
+              A plain card where the content would be: what happened as its title, what to do if trying again doesn't work, and Try again in its foot. An alert, because nothing on the screen works until it does. Pressed, Try again goes busy (Button's busy) and the card stays until there's something to replace it.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="card" role="alert" data-sg-code>
+                      <div class="card__body">
+                        <h5 class="card__title">Couldn't load your decks</h5>
+                        <p class="card__text">If trying again doesn't work, close the app and open it again.</p>
+                      </div>
+                      <footer class="card__foot">
+                        <button class="btn" type="button">Try again</button>
+                      </footer>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.5 -->
+        <article class="sg-entry" id="states-offline">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.5</p>
+            <h3 class="sg-entry__name">Offline</h3>
+            <p class="sg-entry__use">No connection, and the decks on this device.</p>
+            <p class="sg-entry__classes"><code>.banner</code> <code>ic--offline</code></p>
+            <p class="sg-entry__note">
+              Offline isn't an error. The screen shows what this device has, with Banner's offline band first in the scroll region, under the top bar. It stays while it's true and has no close; it scrolls away with the decks.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar topbar--root">
+                    <h4 class="topbar__title">Decks</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="banner" role="status" data-sg-code>
+                      <span class="ic ic--offline banner__icon" aria-hidden="true"></span>
+                      <p class="banner__text"><strong>You're offline.</strong> Changes are saved on this device.</p>
+                    </div>
+                    <div class="list">
+                      <ul class="list__rows" role="list">
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                            <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards · new</span></span>
+                            <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards · 11 known</span></span>
+                            <span class="list__trail">3 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Farm animals</span><span class="list__meta">15 cards · all known</span></span>
+                            <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- 1.6 -->
+        <article class="sg-entry" id="states-first">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.6</p>
+            <h3 class="sg-entry__name">First run</h3>
+            <p class="sg-entry__use">The very first screen: what this is, in one line, and one thing to do.</p>
+            <p class="sg-entry__classes"><code>.frame--task</code> <code>.state</code> <code>.btn--primary</code></p>
+            <p class="sg-entry__note">
+              Frame's focused task, with no top bar and no tab bar, so there's nowhere to wander off to. One line, one primary action at the foot, in reach of a thumb. Once a deck exists it never shows again; the Decks screen takes over.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame frame--task">
+                  <div class="frame__scroll">
+                    <div class="state" data-sg-code>
+                      <h4 class="t-heading">Flashcards</h4>
+                      <p class="t-body">Make a deck of cards about anything, then learn it a few minutes a day.</p>
+                    </div>
+                  </div>
+                  <div class="frame__bottom">
+                    <div class="btn-row" data-sg-code>
+                      <a class="btn btn--primary btn--block" href="#">Make your first deck</a>
+                    </div>
+                  </div>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="states-states" aria-labelledby="h-states-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-states-states">States</h2>
+          <p class="sg-sec__note">
+            One screen moves between the patterns. What shows, what a screen reader hears, and where
+            focus is at each moment. Nothing moves on screen until gate 4: each appears in place.
+          </p>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Opening, the first 300ms</strong>
+            <p><b>Shows:</b> Nothing new: the bars are already there.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Still loading</strong>
+            <p><b>Shows:</b> The spinner and “Loading decks…” where the content will be.</p>
+            <p><b>Heard:</b> “Loading decks…”, politely, once.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Loaded</strong>
+            <p><b>Shows:</b> The decks, in place of the spinner.</p>
+            <p><b>Heard:</b> Nothing: they're there when you look.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Loaded, nothing there</strong>
+            <p><b>Shows:</b> “No decks yet.” and the ghost card.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Where it was; the ghost card is the next stop.</p>
+          </li>
+          <li>
+            <strong>Didn't load</strong>
+            <p><b>Shows:</b> The plain card, Try again in its foot.</p>
+            <p><b>Heard:</b> At once (<code>role="alert"</code>).</p>
+            <p><b>Focus:</b> Where it was; Try again is the next stop.</p>
+          </li>
+          <li>
+            <strong>Trying again</strong>
+            <p><b>Shows:</b> The card stays; Try again goes busy, its label kept.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> On Try again. When the decks come, on the scroll region (the screen's <code>&lt;main&gt;</code>), so it isn't lost.</p>
+          </li>
+          <li>
+            <strong>Searching, no match</strong>
+            <p><b>Shows:</b> The no-match line and Clear search, under the field.</p>
+            <p><b>Heard:</b> The line, politely, each time the list changes.</p>
+            <p><b>Focus:</b> In the field.</p>
+          </li>
+          <li>
+            <strong>Search cleared</strong>
+            <p><b>Shows:</b> The field empties; the decks come back.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Back in the field.</p>
+          </li>
+          <li>
+            <strong>Offline</strong>
+            <p><b>Shows:</b> The offline banner first, the decks on this device under it.</p>
+            <p><b>Heard:</b> “You're offline. Changes are saved on this device.”, politely, once.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Online again</strong>
+            <p><b>Shows:</b> The banner goes.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>First run</strong>
+            <p><b>Shows:</b> One line, one action, no bars to wander off with.</p>
+            <p><b>Heard:</b> The heading and the line, read in order.</p>
+            <p><b>Focus:</b> The action is the first stop.</p>
+          </li>
+        </ol>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          At 200% text each pattern wraps and grows taller, never wider. In forced colours the cards'
+          and the banner's frames and rules, the ghost card's dashes and every glyph stay, in system
+          colours.
+        </p>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="states-usage" aria-labelledby="h-states-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-states-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Say what's going on, where the content would be, and offer the way forward. Keep the
+              bars: a state is the content of a screen, never a screen without its way back.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't leave a screen blank, don't shimmer or draw skeleton boxes, don't say "Something
+              went wrong" on its own, and don't say one failure twice (a banner and a card).
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Never blank (<code>STYLE.md</code> §4): empty is a ghost card offering the first step;
+              an error is a plain card with Try again in its foot. Offline is not an error: show
+              what's on the device, under the banner.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              The same patterns in the window's content. SwiftUI's <code>ContentUnavailableView</code>
+              is the native one; we draw ours from the cards instead, because it centres a large
+              symbol, which is decoration here. Loading is a <code>ProgressView</code> with its words.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </section>
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards design system · v0.6</span>
+      <span>Flashcards design system · v0.7</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>
@@ -15851,6 +19110,53 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
     });
     sync();
   });
+})();
+
+/* ==========================================================================
+   dialog.js — opens a modal from its button, and gives focus back.
+   Spec: elements/dialog.md (Sheet uses it too: elements/sheet.md)
+   --------------------------------------------------------------------------
+   The markup is the standard, invoker commands:
+
+     <button type="button" commandfor="delete-shapes" command="show-modal">…</button>
+
+   A browser that has them opens the dialog with no script at all. This
+   file does two small things on top:
+
+   1. Where the browser doesn't know commandfor yet, a click on such a
+      button calls showModal() itself.
+   2. When the dialog closes, the browser puts focus back where it was. A
+      clicked button doesn't take focus in Safari, so there "where it was"
+      is nowhere and focus falls to the page. Then this puts it back on
+      the button that opened the dialog, if that button is still there.
+
+   Closing needs nothing: <form method="dialog"> and Escape are native.
+   ========================================================================== */
+(function () {
+  "use strict";
+  if (!window.HTMLDialogElement) return;
+  var native = "command" in HTMLButtonElement.prototype;
+  var openers = new WeakMap();
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest('button[commandfor][command="show-modal"]');
+    if (!btn) return;
+    var dialog = document.getElementById(btn.getAttribute("commandfor"));
+    if (!dialog || dialog.localName !== "dialog") return;
+    openers.set(dialog, btn);
+    if (!native && !dialog.open) dialog.showModal();
+  });
+
+  // close doesn't bubble: listen on the way down. Lost focus is still on
+  // the hidden button inside the dialog at this point, or already on body.
+  document.addEventListener("close", function (e) {
+    var btn = openers.get(e.target);
+    if (!btn) return;
+    openers.delete(e.target);
+    var now = document.activeElement;
+    var lost = !now || now === document.body || e.target.contains(now);
+    if (lost && btn.isConnected) btn.focus();
+  }, true);
 })();
 
 /* ==========================================================================
@@ -16165,6 +19471,125 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
     var start = fromHash();
     select(start === -1 ? 0 : start, false);
   });
+})();
+
+/* ==========================================================================
+   Toast — "it's done", with Undo. Spec: elements/toast.md
+
+   One at a time, put into a polite live region that is always there
+   (<div class="toasts" role="status">, one per frame, after the scroll
+   region): going in is what a screen reader announces, once. 6 s, 10 s with
+   an action; the clock stops while a pointer is on it, focus is in it or the
+   page is hidden. Its action runs and closes it; Dismiss or Escape closes
+   it; Alt+T (⌥T) jumps to it. Focus goes back to where it was.
+
+     var t = Flashcards.toast({ text: "Deck deleted.", action: "Undo", onAction: fn });
+     <button type="button" data-toast="Couldn't sync." data-toast-action="Try again"
+             data-toast-failed>Sync now</button>   (its action fires "toastaction")
+
+   A trigger that only raises a toast may carry hidden; this shows it. The
+   one global is window.Flashcards.
+   ========================================================================== */
+(function () {
+  "use strict";
+  var NS = (window.Flashcards = window.Flashcards || {});
+  var queue = [], now = null;
+
+  function button(cls, label, fn) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn " + cls;
+    b.textContent = label;
+    b.addEventListener("click", fn);
+    return b;
+  }
+  function run(t) { // start or resume the clock, unless something holds it
+    if (t !== now || t.timer || t.hover || t.focus || document.hidden) return;
+    t.start = Date.now();
+    t.timer = setTimeout(function () { close(t); }, t.left);
+  }
+  function hold(t) { // stop it, keeping at least 2 s for when it resumes
+    if (!t.timer) return;
+    clearTimeout(t.timer);
+    t.timer = 0;
+    t.left = Math.max(t.left - (Date.now() - t.start), 2000);
+  }
+  function close(t) {
+    if (queue.indexOf(t) !== -1) return void queue.splice(queue.indexOf(t), 1);
+    if (t !== now) return;
+    clearTimeout(t.timer);
+    now = null;
+    var had = t.el.contains(document.activeElement);
+    t.el.remove();
+    if (had && t.back && t.back.isConnected) t.back.focus();
+    setTimeout(next, 300); // a beat between two, so new words read as a new toast
+  }
+
+  function next() {
+    if (now || !queue.length) return;
+    var t = queue[0], o = t.opts;
+    var region = o.region || document.querySelector('.toasts[role="status"]');
+    if (!region) { // a region made now speaks from its next change: wait for that
+      region = document.body.appendChild(document.createElement("div"));
+      region.className = "toasts";
+      region.setAttribute("role", "status");
+      return void setTimeout(next, 150);
+    }
+    now = queue.shift();
+    var el = (t.el = document.createElement("div"));
+    el.className = "toast";
+    el.innerHTML = '<span class="ic toast__icon" aria-hidden="true"></span><p class="toast__text"></p><div class="toast__actions"></div>';
+    el.firstChild.classList.add(o.failed ? "ic--warning" : "ic--check");
+    el.children[1].textContent = o.text;
+    var acts = el.lastChild;
+    if (o.action) acts.appendChild(button("toast__action", o.action, function () { if (o.onAction) o.onAction(); close(t); }));
+    var x = acts.appendChild(button("btn--quiet btn--icon", "", function () { close(t); }));
+    x.setAttribute("aria-label", "Dismiss");
+    x.innerHTML = '<span class="ic ic--close" aria-hidden="true"></span>';
+    acts.firstChild.setAttribute("aria-keyshortcuts", "Alt+T");
+    el.addEventListener("pointerenter", function () { t.hover = true; hold(t); });
+    el.addEventListener("pointerleave", function () { t.hover = false; run(t); });
+    el.addEventListener("focusin", function (e) {
+      if (!t.focus && !el.contains(e.relatedTarget)) t.back = e.relatedTarget;
+      t.focus = true;
+      hold(t);
+    });
+    el.addEventListener("focusout", function (e) {
+      if (!el.contains(e.relatedTarget)) { t.focus = false; run(t); }
+    });
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { e.preventDefault(); close(t); }
+    });
+    region.appendChild(el); // the one change the region announces
+    run(t);
+  }
+
+  NS.toast = function (opts) { // { text, action, onAction, failed, region, duration }
+    var t = { opts: opts, left: Math.max(opts.action ? 10000 : 6000, opts.duration || 0) };
+    queue.push(t);
+    next();
+    return { dismiss: function () { close(t); } };
+  };
+
+  document.addEventListener("visibilitychange", function () {
+    if (now) (document.hidden ? hold : run)(now);
+  });
+  document.addEventListener("keydown", function (e) { // Alt+T, by the key's place
+    if (!now || !e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.code !== "KeyT") return;
+    e.preventDefault();
+    now.el.querySelector("button").focus();
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-toast]"), frame = b && b.closest(".frame");
+    if (b) NS.toast({
+      text: b.getAttribute("data-toast"),
+      action: b.getAttribute("data-toast-action"),
+      failed: b.hasAttribute("data-toast-failed"),
+      region: frame && frame.querySelector(':scope > .toasts[role="status"]'),
+      onAction: function () { b.dispatchEvent(new CustomEvent("toastaction", { bubbles: true })); }
+    });
+  });
+  document.querySelectorAll("[data-toast][hidden]").forEach(function (b) { b.hidden = false; });
 })();
 </script>
   </body>
