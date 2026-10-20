@@ -13,7 +13,8 @@ open design/screens.html         the test bed: the system on a phone and a Mac
 design/STYLE.md                  the rules, foundations and platforms, in words
 design/elements/README.md        how an element is built, and every element's brief
 node design/tools/check.mjs      the gate (see below)
-node design/tools/bundle.mjs     one CSS file + two self-contained pages → dist/
+node design/tools/bundle.mjs     the CSS and JS (+ min files) and two self-contained pages → dist/
+node design/tools/serve.mjs      the PWA starter at http://localhost:8000/pwa/
 ```
 
 ```
@@ -43,9 +44,11 @@ design/
     components/         element script, where HTML can't do it → dist/flashcards.js
     sheet.js            the pages' own script: markup, contrast (not shipped)
   fonts/                Archivo woff2 + OFL licence
+  pwa/                  the starter app; copy it with dist/ and fonts/ (pwa/README.md)
   tools/
     check.mjs           the gate
-    bundle.mjs          the build: dist/flashcards.css and .js, style-sheet.html, screens.html
+    bundle.mjs          the build: dist/ (+ .min files), the starter's colours and worker version, the budget
+    serve.mjs           static server for design/ on localhost
   dist/                 bundle output, what an app links (generated)
 ```
 
@@ -76,7 +79,7 @@ element together, because colour, motion and the freeze are decisions about the 
 | 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | ✓ | ✓ | | | |
 | 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | ✓ | ✓ | | | |
 | 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | ✓ | ✓ | | | |
-| 5 | PWA platform | ✓ | | | | | |
+| 5 | PWA platform | ✓ | ✓ | ✓ | | | |
 | 6 | Colour and dark mode, for everything | | | | | | |
 | 7 | Motion, for everything | | | | | | |
 | 8 | Freeze: v1.0 | | | | | | |

@@ -1,0 +1,24 @@
+/* ==========================================================================
+   PWA platform — wave 5. Spec: elements/pwa.md · script: js/components/pwa.js
+   --------------------------------------------------------------------------
+   No look of its own: what pwa.js drives is other elements (Banner, Button,
+   Card, List). Two rules make its waiting honest.
+
+   · What it drives ships hidden and appears once it works. A Button, a Card
+     or a list row sets display, which beats the hidden attribute, so hidden
+     is restated for its hooks.
+   · Install is never offered inside the installed app. pwa.js knows that
+     too; this keeps it hidden even before the script runs.
+   ========================================================================== */
+
+[data-pwa][hidden],
+[data-share][hidden] {
+  display: none;
+}
+
+/* :not([hidden]) only lifts it over a list row's display */
+@media (display-mode: standalone) {
+  [data-pwa~="install"]:not([hidden]) {
+    display: none;
+  }
+}

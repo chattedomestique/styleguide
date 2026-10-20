@@ -1,6 +1,6 @@
 # Flashcards style sheet
 
-v0.7 · wireframe stage · 26 of 27 elements built · 2026-10-20
+v0.8 · wireframe stage · 27 of 27 elements built · 2026-10-20
 
 The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
 to look at: live specimens, every state, the markup read straight off the page. **This file**
@@ -88,10 +88,13 @@ weights are `px` so a 2px rule stays 2px.
 ### Files and layers
 
 Apps link `dist/flashcards.css`: one flat file built by `node design/tools/bundle.mjs`, with
-no `@import` chain to wait on. `css/flashcards.css` is its source. Elements that need script
+no `@import` chain to wait on. `css/flashcards.css` is its source. A served app links
+`dist/flashcards.min.css` and `dist/flashcards.min.js`: the same code with comments and spare
+whitespace out, inside the budget in `elements/pwa.md`. Elements that need script
 (Field's clear button, Checkbox's "select all", Stepper's − and +, Form's error summary,
-Frame's measured `--chrome`, Tabs' arrow keys, Dialog's opener and focus return, Toast's queue
-and timer) ship
+Frame's measured `--chrome` and keyboard, Tabs' arrow keys, Dialog's opener and focus return,
+Toast's queue and timer, and the PWA platform's worker, bands, install, share and storage in
+`pwa.js`) ship
 it in `dist/flashcards.js`, built from `js/components/`: vanilla, no dependencies, and
 everything still works without it. The file tree is in
 `README.md`.
@@ -319,6 +322,7 @@ and the brief for each one, is in `elements/README.md`.
 | Toast | `elements/toast.md` | Gates 0–2 |
 | Banner | `elements/banner.md` | Gates 0–2 |
 | Empty, loading and error | `elements/states.md` | Gates 0–2 |
+| PWA platform | `elements/pwa.md` | Gates 0–2 |
 
 Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
 pass gate 2.
@@ -329,28 +333,64 @@ pass gate 2.
 
 ### PWA: installed, touch first
 
-- **Edge to edge.** The viewport meta adds `viewport-fit=cover`. Bars and the app frame pad
-  by the safe-area tokens (§2 Space); cards never read them.
-- **One canvas.** `theme-color` and the manifest's `background_color` are `--canvas`.
-- **Viewport units.** `dvh` for the app frame only (`.frame`), so it tracks the browser bars. Anything
-  sized once uses `svh`, so it doesn't jump when the bars move (the study card).
+The patterns are on `elements/pwa.html`, the spec is `elements/pwa.md`, and `design/pwa/` is a
+starter app that installs and works offline (serve it with `node design/tools/serve.mjs`).
+
+- **Edge to edge, and room for the keyboard.** The viewport meta is
+  `width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content`.
+  Bars and the app frame pad by the safe-area tokens (§2 Space); cards never read them.
+  `resizes-content` makes Android end the page at the keyboard instead of covering it.
+- **One canvas.** `theme-color` and the manifest's `theme_color` and `background_color` are
+  `--canvas`. `tools/bundle.mjs` writes the hex in from the colour file, so it lives in one place.
+- **Viewport units.** `dvh` for the app frame only (`.frame`), so it tracks the browser bars.
+  Anything sized once uses `svh`, so it doesn't jump when the bars move (the study card).
 - **Inputs are 16px or more,** or iOS zooms on focus: `base.css` sets
   `:is(input, select, textarea) { font-size: max(1rem, 1em) }`.
+- **The keyboard takes the Tab bar's room.** While the on-screen keyboard is up the Tab bar hides,
+  and the focused field scrolls clear with Frame's scroll padding. `frame.js` sees the keyboard as
+  lost viewport height (`visualViewport`) and sets `data-keyboard` on the frame; without script,
+  or where the browser shows nothing, the bar stays. Not yet checked on a device.
 - **Scrolling stays put.** One scroller per screen (`.frame__scroll`), with
-  `overscroll-behavior: contain`. Refresh is a
-  button, not pull-to-refresh.
-- **No browser chrome.** Standalone has no back or refresh button, so every screen past the
-  root shows a back control.
+  `overscroll-behavior: contain`. Refresh is a button, not pull-to-refresh.
+- **No browser chrome.** Standalone has no back, address or refresh. Every screen past the root
+  shows Top bar's back. A link that leaves the app opens in the browser and is marked ↗
+  (`ic--arrow`), with "opens in your browser" in its name. A deep link inside `scope` opens that
+  screen; the home screen always opens `start_url`.
+- **Installed from Settings, never by a pop-up.** The manifest says `display: standalone` and
+  `orientation: any`, with `start_url` and `scope` at the app's root and icons any and maskable.
+  Install is a row in Settings that appears only when the browser can: Chromium's own prompt, kept
+  from `beforeinstallprompt`; on iOS a Sheet with the Add to Home Screen steps. Never on load,
+  never inside the installed app.
+- **Offline is not an error.** The service worker precaches the app shell (cache first), serves
+  the rest of its origin stale-while-revalidate, and never touches another origin's requests.
+  Offline, the offline Banner sits over what's on the device; a page never opened gets
+  `offline.html`, a plain card with Try again.
+- **Updates wait for the person.** A new worker waits; the update Banner says "A new version is
+  ready." with Reload, which hands over and reloads once. Never an automatic reload.
+- **Ask after, never on load.** Notifications are asked for from a card after something the person
+  did ("A reminder at 8pm on days you haven't studied", Not now, Turn on), and storage persistence
+  after real use. If notifications are blocked, the setting says how to allow them. On iOS, web
+  push needs the app on the Home Screen.
+- **Badge, share and export.** The due count goes on the icon's badge and on the Decks
+  tab. Share opens the system sheet, or copies the link and a Toast says "Link copied." Export and
+  Import a JSON file in Settings, with the room the decks take in words.
+- **Any orientation.** Never locked. On its side a phone's notch moves to one end, and the bars
+  and the scroll region pad by the side safe areas; from 45rem of frame the wide variant takes over.
 - **Overlays are native.** Dialogs and sheets are `<dialog>` with `showModal()`, opened by
   `commandfor` and `command="show-modal"`; `dialog.js` covers browsers without them and gives
   focus back where a click doesn't focus. A bottom sheet owns the bottom safe area, as a bar
   does. Drag to dismiss waits for gate 4, so a sheet always shows Close.
-- **Never blank.** Empty is a ghost card that offers the first step. Offline or error is a
-  plain card that says what happened, with "Try again" in its foot.
+- **Never blank.** Empty is a ghost card that offers the first step. Offline or error is a plain
+  card that says what happened, with "Try again" in its foot.
 - **Text size follows the reader:** Dynamic Type is on (§2 Type). Test at the largest size.
 - **Pressed states need a listener on iOS.** Safari only applies `:active` when a `touchstart`
   listener exists, so the shell adds `document.addEventListener("touchstart", () => {}, { passive: true })`.
   Not yet checked on a device.
+- **A budget, enforced.** `tools/bundle.mjs` writes `dist/flashcards.min.css` and
+  `dist/flashcards.min.js`, which a served app links, prints gzipped sizes and fails over budget:
+  CSS at most 30 KB (about 13 now), JS at most 10 KB (about 6), the font at most 90 KB (88),
+  preloaded with `crossorigin`. First load on a mid-range phone under 2.5 s to the largest paint,
+  measured on a device; the worker makes later loads instant.
 
 ### macOS: Mac-first, web shell or SwiftUI
 
@@ -451,6 +491,16 @@ generate-a-design-system workflow or its scripts.
 
 ## 8. Changelog
 
+- **0.8.0** · 2026-10-20 · Wave 5: the PWA platform passes gates 0–2, so all 27 elements have.
+  `design/pwa/` is a starter app that installs and works offline: a manifest whose colours the
+  bundle writes from `--canvas`, icons drawn on the card's grid, a service worker (shell cache
+  first, the rest stale-while-revalidate, `offline.html`, updates that wait for Reload) and
+  `pwa.js` (the bands, install from Settings, share, the permission pre-prompt, badge, storage,
+  export and import). Frame hides the Tab bar while the on-screen keyboard is up, replacing the
+  focus-only guess; every page's viewport gains `interactive-widget=resizes-content`. The bundle
+  writes `flashcards.min.css` and `flashcards.min.js`, prints gzip sizes and fails over budget.
+  `tools/serve.mjs` serves `design/` on localhost. Form errors now clear as soon as the value is
+  right, so the submit button no longer moves under the click that blurs a field.
 - **0.7.0** · 2026-10-20 · Wave 4: Dialog, Sheet, Toast, Banner, and Empty, loading and error
   pass gates 0–2. Overlays are native `<dialog>`s over the new `--scrim` role, the one
   translucency rule 2 allows. Toasts queue one at a time, pause while hovered or focused and

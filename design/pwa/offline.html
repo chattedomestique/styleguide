@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <!-- The worker serves this for a page that isn't saved on this device when
+       the network fails, at the address that was asked for, with a <base> at
+       the app's scope added to the head so these relative links still work. -->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <title>Offline · Flashcards</title>
+    <meta name="theme-color" content="#f4f4f4" />
+    <meta name="flashcards-sw" content="sw.js" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="preload" href="../fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../dist/flashcards.min.css" />
+    <script>
+      // iOS Safari applies :active only once a touchstart listener exists (STYLE.md §4)
+      document.addEventListener("touchstart", function () {}, { passive: true });
+    </script>
+  </head>
+  <body>
+    <div class="frame">
+      <main class="frame__scroll" id="offline-main" style="--frame-column: var(--measure)">
+        <article class="card" aria-labelledby="offline-title">
+          <div class="card__body">
+            <h1 class="card__title" id="offline-title">This page isn't on this device</h1>
+            <p class="card__text">
+              You're offline, and it hasn't been opened here before. Your decks are still on this
+              device.
+            </p>
+          </div>
+          <footer class="card__foot">
+            <a href="decks.html">Go to your decks</a>
+            <button class="btn" type="button" data-pwa="reload" hidden>Try again</button>
+          </footer>
+        </article>
+      </main>
+    </div>
+    <script src="../dist/flashcards.min.js"></script>
+  </body>
+</html>

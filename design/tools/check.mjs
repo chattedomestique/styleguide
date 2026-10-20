@@ -55,11 +55,13 @@ const isComponent = (p) => /components[\\/]/.test(p);
 const shipped = cssFiles.filter((p) => !isSheet(p)); // what an app links: check 6 only
 
 const files = Object.fromEntries(cssFiles.map((p) => [p, stripComments(read(p))]));
-/* the pages: the hub, the test bed and one page per element (_name.html is a template) */
+/* the pages: the hub, the test bed, one page per element (_name.html is a
+   template) and the PWA starter's screens */
 const ELEMENTS = join(ROOT, "elements");
 const elementFiles = (ext) =>
   readdirSync(ELEMENTS).filter((n) => n.endsWith(ext) && !n.startsWith("_") && n !== "README.md").sort();
-const PAGES = ["index.html", "screens.html", ...elementFiles(".html").map((n) => `elements/${n}`)];
+const STARTER = ["pwa/index.html", "pwa/decks.html", "pwa/settings.html", "pwa/offline.html"];
+const PAGES = ["index.html", "screens.html", ...elementFiles(".html").map((n) => `elements/${n}`), ...STARTER];
 const pages = Object.fromEntries(PAGES.map((n) => [n, read(join(ROOT, n))]));
 const html = Object.values(pages).join("\n");
 

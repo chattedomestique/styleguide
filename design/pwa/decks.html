@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <title>Decks · Flashcards</title>
+    <meta name="description" content="Your decks of cards, kept on this device." />
+    <meta name="theme-color" content="#f4f4f4" />
+    <meta name="flashcards-sw" content="sw.js" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="preload" href="../fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../dist/flashcards.min.css" />
+    <script>
+      // iOS Safari applies :active only once a touchstart listener exists (STYLE.md §4)
+      document.addEventListener("touchstart", function () {}, { passive: true });
+    </script>
+  </head>
+  <body>
+    <div class="frame frame--wide">
+      <!-- wide: the same places as a sidebar; under 45rem of frame it folds away and the tab bar shows -->
+      <nav class="frame__side sidebar" aria-label="Places">
+        <div class="sidebar__body">
+          <ul class="sidebar__list" role="list">
+            <li>
+              <a class="btn btn--quiet sidebar__link" href="./"><span class="ic ic--today" aria-hidden="true"></span>Today</a>
+            </li>
+            <li>
+              <a class="btn btn--quiet sidebar__link" href="decks.html" aria-current="page"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a>
+            </li>
+            <li>
+              <a class="btn btn--quiet sidebar__link" href="settings.html"><span class="ic ic--settings" aria-hidden="true"></span>Settings</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <main class="frame__scroll" id="decks-main" tabindex="-1" style="--frame-column: var(--measure)">
+        <div class="banner" role="status" data-pwa="offline update"></div>
+        <h1 class="t-heading">Decks</h1>
+        <div class="state" id="decks-state">
+          <p class="t-body">No decks yet.</p>
+          <button class="card card--ghost" type="button" commandfor="decks-new" command="show-modal">
+            <span class="card__action" aria-hidden="true"><span class="ic ic--plus"></span></span>
+            <span class="card__title">Make your first deck</span>
+          </button>
+        </div>
+      </main>
+      <div class="toasts" role="status"></div>
+      <nav class="frame__bottom tabbar" aria-label="Places">
+        <ul class="tabbar__list" role="list">
+          <li>
+            <a class="tabbar__link" href="./">
+              <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+              <span class="tabbar__label">Today</span>
+            </a>
+          </li>
+          <li>
+            <a class="tabbar__link" href="decks.html" aria-current="page">
+              <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+              <span class="tabbar__label">Decks</span>
+            </a>
+          </li>
+          <li>
+            <a class="tabbar__link" href="settings.html">
+              <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+              <span class="tabbar__label">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <dialog class="sheet" id="decks-new" aria-labelledby="decks-new-title">
+      <header class="topbar">
+        <h2 class="topbar__title" id="decks-new-title">New deck</h2>
+        <form class="topbar__actions" method="dialog">
+          <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+            <span class="ic ic--close" aria-hidden="true"></span>
+          </button>
+        </form>
+      </header>
+      <div class="sheet__body">
+        <form class="form" method="dialog">
+          <div class="field">
+            <label class="field__label" for="decks-new-name">Deck name</label>
+            <p class="field__help" id="decks-new-name-help">Shown on the deck's card.</p>
+            <p class="field__error" id="decks-new-name-error" hidden>
+              <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+            </p>
+            <input
+              class="field__input"
+              id="decks-new-name"
+              name="name"
+              type="text"
+              required
+              pattern=".*\S.*"
+              maxlength="60"
+              autofocus
+              autocomplete="off"
+              autocapitalize="sentences"
+              enterkeyhint="done"
+              aria-describedby="decks-new-name-help"
+            />
+          </div>
+          <div class="form__actions">
+            <button class="btn btn--primary" value="make">Make deck</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <script src="../dist/flashcards.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

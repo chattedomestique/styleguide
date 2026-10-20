@@ -8,19 +8,42 @@
 
      flashcards.js      every js/components/*.js: the script elements need.
      flashcards.css     tokens + base + components + wire, imports inlined and
-                        wrapped in their layers. What an app links. Fonts stay
-                        as files: ../fonts/archivo-latin-var.woff2.
+                        wrapped in their layers. Fonts stay as files:
+                        ../fonts/archivo-latin-var.woff2.
+     flashcards.min.css the same, with comments and spare whitespace taken out
+                        and nothing else changed. What a served app links.
+     flashcards.min.js  flashcards.js with comments, indentation and blank
+                        lines out, and nothing else changed. What a served
+                        app links; the comments are the documentation, so
+                        the sources keep them.
      style-sheet.html   the hub and every element page joined into one page, with
                         the CSS, the font and the script inlined. One file you can
                         email, drop in a chat, or open offline.
      screens.html       screens.html, the same way. The two link to each other.
 
+   And rewrites in place, in the PWA starter (pwa/), only these values:
+
+     manifest.webmanifest  theme_color and background_color, and
+     pwa/*.html            <meta name="theme-color">: all --canvas, resolved
+                           through the colour file css/flashcards.css imports.
+     sw.js                 its VERSION line: a hash of the files it precaches,
+                           so changing any of them makes a new worker.
+
+   Then it prints every file's gzip size, and fails (exit 1) over the
+   performance budget (elements/pwa.md): the min CSS over 30 KB gzipped,
+   the min JS over 10 KB gzipped, or the font over 90 KB (woff2 is
+   compressed already, so it's served as it is and counted as it is).
+   A KB here is 1024 bytes.
+
    Nothing here is needed to USE the sheet. index.html opens straight from disk.
    ========================================================================== */
 
-import { readFileSync, writeFileSync, mkdirSync, statSync, readdirSync } from "node:fs";
-import { join, dirname, resolve } from "node:path";
+import { readFileSync, writeFileSync, mkdirSync, statSync, readdirSync, existsSync } from "node:fs";
+import { join, dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
+import vm from "node:vm";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -94,17 +117,175 @@ sheet = sheet.replace("    </main>", parts.join("") + "    </main>");
 sheet = sheet.replace('    <script src="js/sheet.js"></script>', `    <script src="js/sheet.js"></script>\n    <script>\n${jsBundle}</script>`);
 sheet = sheet
   .replace(/href="elements\/[\w-]+\.html#([^"]+)"/g, 'href="#$1"')
-  .replace(/href="elements\/([\w-]+)\.html"/g, 'href="#el-$1"');
+  .replace(/href="elements\/([\w-]+)\.html"/g, 'href="#el-$1"')
+  .replace(/href="pwa\//g, 'href="../pwa/'); // the starter runs from design/pwa/, served
 writeFileSync(join(DIST, "style-sheet.html"), stamp(inlineAssets(sheet, ROOT), "index.html and elements/*.html"));
 
-/* screens.html: links to the hub or an element point into style-sheet.html */
+/* screens.html: links to the hub or an element point into style-sheet.html,
+   and one to the starter back out of dist/ */
 let screens = read(join(ROOT, "screens.html"))
   .replace(/href="index\.html"/g, 'href="style-sheet.html"')
-  .replace(/href="elements\/([\w-]+)\.html"/g, 'href="style-sheet.html#el-$1"');
+  .replace(/href="elements\/([\w-]+)\.html"/g, 'href="style-sheet.html#el-$1"')
+  .replace(/href="pwa\//g, 'href="../pwa/');
 writeFileSync(join(DIST, "screens.html"), stamp(inlineAssets(screens, ROOT), "screens.html"));
 
-const kb = (p) => `${(statSync(p).size / 1024).toFixed(0)} KB`;
-console.log(`dist/flashcards.css     ${kb(join(DIST, "flashcards.css"))}`);
-console.log(`dist/flashcards.js      ${kb(join(DIST, "flashcards.js"))}`);
-console.log(`dist/style-sheet.html   ${kb(join(DIST, "style-sheet.html"))}`);
-console.log(`dist/screens.html       ${kb(join(DIST, "screens.html"))}`);
+/* 4. dist/flashcards.min.css: comments and spare whitespace out, nothing else
+   changed. A tiny tokenizer, so nothing inside a string, an escape or an
+   unquoted url() is touched. A run of whitespace becomes one space, dropped
+   only where CSS can't need it: around { } ; , after a colon or "(", and
+   before ")". Never before a colon (".a :focus" isn't ".a:focus"), and never
+   around + - * / > ~ (calc() needs its spaces). */
+function minify(css) {
+  let out = "", gap = false, i = 0;
+  const TIGHT = "{};,"; // no space is ever needed beside these
+  const put = (s) => {
+    const last = out.at(-1);
+    if (gap && out && !TIGHT.includes(last) && last !== ":" && last !== "(" && !TIGHT.includes(s[0]) && s[0] !== ")") out += " ";
+    gap = false;
+    out += s;
+  };
+  while (i < css.length) {
+    const c = css[i];
+    let j = i + 1;
+    if (c === "/" && css[i + 1] === "*") {
+      j = css.indexOf("*/", i + 2) + 2;
+      if (j < 2) throw new Error("minify: a comment never closes"); // a comment is nothing: ".a/**/.b" is ".a.b"
+    } else if (/\s/.test(c)) {
+      gap = true;
+    } else if (c === "\\") {
+      put(css.slice(i, i + 2)); // an escape and what it escapes, a space included
+      j = i + 2;
+    } else if (c === '"' || c === "'") {
+      while (j < css.length && css[j] !== c) j += css[j] === "\\" ? 2 : 1;
+      put(css.slice(i, ++j));
+    } else if (/^url\(\s*[^\s"')]/i.test(css.slice(i, i + 64))) {
+      j = css.indexOf(")", i) + 1; // an unquoted url() is kept whole
+      put(css.slice(i, j));
+    } else {
+      put(c);
+    }
+    i = j;
+  }
+  return out + "\n";
+}
+writeFileSync(join(DIST, "flashcards.min.css"), banner("flashcards.min.css, from css/flashcards.css") + minify(bundle));
+
+/* 4b. dist/flashcards.min.js: comments, indentation and blank lines out,
+   nothing else changed. Every line keeps its newline, so semicolon
+   insertion reads the code the same. A tiny tokenizer, so nothing inside a
+   string or a regular expression is touched; a regex is a "/" where a value
+   can start (after an operator, "(", ",", "=", ":", "[", "!", "{", "}" or
+   ";", or after a keyword such as return, typeof, case or else). A comment
+   that spans lines leaves a line break, so it can't join two lines. A
+   template literal over several lines, or with an expression in it, stops
+   the build instead, and so does output that doesn't parse. */
+function minifyJS(js) {
+  let out = "", last = "", i = 0; // last: the last character that wasn't space
+  while (i < js.length) {
+    const c = js[i], d = js[i + 1];
+    let j = i + 1;
+    if (c === "/" && d === "/") {
+      j = js.indexOf("\n", i);
+      if (j < 0) j = js.length;
+    } else if (c === "/" && d === "*") {
+      j = js.indexOf("*/", i + 2) + 2;
+      if (j < 2) throw new Error("minifyJS: a comment never closes");
+      if (js.slice(i, j).includes("\n")) out += "\n";
+    } else if (c === '"' || c === "'" || c === "`") {
+      while (j < js.length && js[j] !== c) j += js[j] === "\\" ? 2 : 1;
+      j++;
+      if (c === "`" && /\n|\$\{/.test(js.slice(i, j))) throw new Error("minifyJS: a template literal spans lines or holds an expression; use a string");
+    } else if (c === "/" && ("" === last || "(,=:[!&|?{};+-*%<>~^".includes(last) || /\b(return|typeof|case|else|do|in|of|void|delete|throw|new|yield|await)\s*$/.test(out))) {
+      for (let cls = false; j < js.length && (js[j] !== "/" || cls); j++) {
+        if (js[j] === "\\") j++;
+        else if (js[j] === "[") cls = true;
+        else if (js[j] === "]") cls = false;
+      }
+      j++;
+      while (/[a-z]/i.test(js[j] || "")) j++; // its flags
+    }
+    const piece = js.slice(i, j);
+    if (!(c === "/" && (d === "/" || d === "*"))) {
+      out += piece;
+      if (/\S/.test(piece)) last = piece.trimEnd().at(-1);
+    }
+    i = j;
+  }
+  return out.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n";
+}
+const minJS = minifyJS(jsBundle);
+new vm.Script(minJS, { filename: "dist/flashcards.min.js" }); // throws if it doesn't parse
+writeFileSync(join(DIST, "flashcards.min.js"), banner("flashcards.min.js, from js/components/*.js") + minJS);
+
+/* 5. the PWA starter: --canvas into the manifest and theme-color, the shell's
+   hash into the worker's VERSION. Values only, rewritten in place. */
+const PWA = join(ROOT, "pwa");
+const pwaNotes = [];
+const update = (file, from, to) => {
+  if (to !== from) writeFileSync(file, to);
+};
+if (existsSync(PWA)) {
+  /* --canvas, through the colour file the entry imports (gate 3 swaps it) */
+  const entry = read(cssEntry);
+  const colourFile = entry.match(/@import\s+url\(\s*["']?(tokens\/color[^"')]*\.css)/)?.[1];
+  if (!colourFile) throw new Error("bundle: css/flashcards.css imports no tokens/color*.css");
+  const decl = {};
+  const top = read(join(ROOT, "css", colourFile))
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, ""); // base values, not overrides
+  for (const m of top.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) decl[m[1]] = m[2].trim();
+  let canvas = "--canvas";
+  for (let n = 0; n < 10 && /^--/.test(canvas); n++) canvas = decl[canvas]?.match(/^var\(\s*(--[\w-]+)\s*\)$/)?.[1] ?? decl[canvas];
+  if (!canvas || !/^(#[0-9a-f]{3,8}|(rgb|hsl|hwb|lab|lch|oklab|oklch)a?\([^()]*\))$/i.test(canvas)) {
+    throw new Error(`bundle: --canvas in css/${colourFile} doesn't resolve to a colour the manifest can read (got ${canvas})`);
+  }
+  const mf = join(PWA, "manifest.webmanifest"), mfText = read(mf);
+  update(mf, mfText, mfText.replace(/("(?:theme_color|background_color)"\s*:\s*")[^"]*(")/g, `$1${canvas}$2`));
+  for (const name of readdirSync(PWA).filter((n) => n.endsWith(".html"))) {
+    const f = join(PWA, name), t = read(f);
+    update(f, t, t.replace(/(<meta name="theme-color" content=")[^"]*(")/g, `$1${canvas}$2`));
+  }
+  pwaNotes.push(`theme ${canvas} (--canvas, css/${colourFile})`);
+
+  /* the worker's version: a hash of every file in its SHELL list, in order */
+  const swFile = join(PWA, "sw.js"), swText = read(swFile);
+  const list = swText.match(/\bSHELL\s*=\s*\[([\s\S]*?)\]/)?.[1];
+  if (!list || !/^var VERSION = "[^"]*";/m.test(swText)) throw new Error("bundle: pwa/sw.js has no SHELL list or VERSION line");
+  const hash = createHash("sha256");
+  for (const [, url] of list.matchAll(/["']([^"']+)["']/g)) {
+    const file = resolve(PWA, url.endsWith("/") ? url + "index.html" : url);
+    if (!existsSync(file)) throw new Error(`bundle: pwa/sw.js precaches ${url}, which isn't there`);
+    hash.update(relative(ROOT, file)).update("\0").update(readFileSync(file)).update("\0");
+  }
+  const version = hash.digest("hex").slice(0, 10);
+  update(swFile, swText, swText.replace(/^(var VERSION = ")[^"]*(";)/m, `$1${version}$2`));
+  pwaNotes.push(`worker ${version}`);
+}
+
+/* 6. sizes, and the budget */
+const KB = 1024;
+const kb = (n) => `${(n / KB).toFixed(1)} KB`.padStart(10);
+const BUDGET = {
+  "dist/flashcards.min.css": { gzip: 30 },
+  "dist/flashcards.min.js": { gzip: 10 },
+  "fonts/archivo-latin-var.woff2": { file: 90 },
+};
+const over = [];
+console.log(`${"".padEnd(30)}${"file".padStart(10)}${"gzip".padStart(10)}   budget`);
+for (const name of ["dist/flashcards.css", "dist/flashcards.min.css", "dist/flashcards.js", "dist/flashcards.min.js", "dist/style-sheet.html", "dist/screens.html", "fonts/archivo-latin-var.woff2"]) {
+  const buf = readFileSync(join(ROOT, name));
+  const gz = gzipSync(buf, { level: 9 }).length;
+  let note = "";
+  const b = BUDGET[name];
+  if (b) {
+    const what = b.gzip ? "gzip" : "file", limit = (b.gzip ?? b.file) * KB, n = b.gzip ? gz : buf.length;
+    note = `${what} ≤ ${b.gzip ?? b.file} KB, ${n > limit ? `OVER by ${n - limit} bytes` : `${limit - n} bytes left`}`;
+    if (n > limit) over.push(`${name}: ${n} bytes (${what}), over its ${b.gzip ?? b.file} KB (${limit} bytes)`);
+  }
+  console.log(`${name.padEnd(30)}${kb(buf.length)}${kb(gz)}   ${note}`);
+}
+for (const n of pwaNotes) console.log(`pwa/  ${n}`);
+if (over.length) {
+  console.error(`\nOver the performance budget (elements/pwa.md):\n  ${over.join("\n  ")}`);
+  process.exit(1);
+}
