@@ -1,0 +1,181 @@
+/* ==========================================================================
+   Top bar — wave 3. Spec: elements/topbar.md · page: elements/topbar.html
+   --------------------------------------------------------------------------
+   A screen's title, its way back, and one or two actions.
+
+     <header class="frame__top topbar">
+       <a class="btn btn--quiet topbar__back" href="…">
+         <span class="ic ic--back" aria-hidden="true"></span>Decks
+       </a>
+       <h1 class="topbar__title">Shapes</h1>
+       <div class="topbar__actions">
+         <button class="btn btn--quiet" type="button">Edit</button>
+       </div>
+     </header>
+
+   House rules for this file
+   · Edge to edge, and it owns the top safe area: its padding starts under
+     the status bar, its paper runs up behind it.
+   · The back link and the actions are Buttons (quiet, or icon-only), so
+     their states are Button's. This file places them, and pads a text
+     Button 12px a side instead of 24: a bar is short of room, and a quiet
+     button has no frame at rest to need the air. The target stays 44px.
+   · The title is centred between the two sides and takes the room it
+     needs first. When room runs short a label beside an icon goes, whole:
+     it wraps out of sight and leaves the icon, never "D…". So does an
+     action's label, last. The bar never scrolls sideways.
+   · When the bar is narrower than 16em (a phone at large text) the title
+     drops to its own row and wraps, rather than truncating to nothing.
+     em, so the switch follows the text size, not the device.
+   ========================================================================== */
+
+.topbar {
+  container: topbar / inline-size;
+  display: grid;
+  /* back · title · actions · (actions, narrow). The title's track grows to
+     its full width first; the back and actions tracks then share what's
+     left equally, so the title stays centred until one side needs more.
+     The last track is empty until the bar is narrow (below). */
+  grid-template-columns: minmax(var(--hit), 1fr) minmax(0, max-content) minmax(max-content, 1fr) minmax(0, max-content);
+  align-items: center;
+  row-gap: var(--space-1);
+  padding-block: calc(var(--safe-top) + var(--space-2)) var(--space-2);
+  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  color: var(--ink);
+  background: var(--paper);
+  border-block-end: var(--bw) solid var(--line);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* back: a link, because it goes somewhere. A quiet Button. */
+.topbar__back {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  gap: 0 var(--space-1);
+  padding-inline: var(--space-3) var(--space-2);
+}
+
+/* Whole or not at all: a Button with an icon and a label (the back link,
+   an action like Undo) is one 44px line that wraps, clipped. When the
+   label can't fit beside the icon it moves to the hidden second line and
+   the icon stays, still named by the label. The icon's box is the line's
+   full height (its glyph stays 20px, centred by the mask), so the first
+   line is the same with or without the label. */
+.topbar__back,
+.topbar__actions > .btn:not(.btn--icon):has(> .ic) {
+  flex-wrap: wrap;
+  align-content: flex-start;
+  block-size: var(--hit);
+  padding-block: 0;
+  white-space: nowrap;
+  overflow: clip;
+}
+
+.topbar__back > .ic,
+.topbar__actions > .btn:not(.btn--icon) > .ic {
+  block-size: calc(var(--hit) - var(--bw) * 2);
+}
+
+/* title: one line at --type-title. The h1 always holds the whole title,
+   so the ellipsis is only visual. Padding keeps descenders out of the clip
+   and the sides off it. */
+.topbar__title {
+  grid-column: 2;
+  grid-row: 1;
+  min-inline-size: 0;
+  padding: var(--space-1) var(--space-2);
+  font: var(--type-title);
+  letter-spacing: var(--ls-title);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* actions: at most two Buttons, quiet or icon-only, at the trailing end.
+   If two can't fit side by side, the second goes under the first. */
+.topbar__actions {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: var(--space-2);
+}
+
+.topbar__actions > .btn:not(.btn--icon) {
+  padding-inline: var(--space-3);
+}
+
+/* --- variant: root ------------------------------------------------------------
+   No way back: the title leads, lined up with the content's gutter. */
+
+.topbar--root {
+  grid-template-columns: minmax(0, 1fr) max-content;
+}
+
+.topbar--root .topbar__title {
+  grid-column: 1;
+  padding-inline-start: max(0px, var(--gutter) - var(--space-2));
+  text-align: start;
+}
+
+.topbar--root .topbar__actions {
+  grid-column: 2;
+}
+
+/* --- large text: the title takes its own row ------------------------------- */
+
+@container topbar (width < 16em) {
+  /* the back link takes everything but the actions */
+  .topbar__back {
+    grid-column: 1 / 4;
+  }
+
+  .topbar__actions {
+    grid-column: 4;
+  }
+
+  /* two classes, so it also beats the root variant's placement. Contained,
+     so its own width doesn't push the tracks above it around. */
+  .topbar > .topbar__title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    contain: inline-size;
+    padding-inline: max(0px, var(--gutter) - var(--space-2));
+    text-align: start;
+    text-wrap: balance;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+}
+
+/* Narrower still (under 6em: two 44px targets and a gap no longer fit side
+   by side), the actions take a row of their own under the back link. */
+@container topbar (width < 6em) {
+  .topbar__back {
+    grid-column: 1 / -1;
+  }
+
+  .topbar > .topbar__actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .topbar > .topbar__title {
+    grid-row: 3;
+  }
+}
+
+/* --- forced colours -------------------------------------------------------- */
+
+@media (forced-colors: active) {
+  .topbar {
+    border-block-end-color: CanvasText;
+  }
+}

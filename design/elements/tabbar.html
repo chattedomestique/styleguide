@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tab bar · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Tab bar element of the Flashcards design system: the three to five places at the root of a phone app."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#tabbar-variants">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Tab bar</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#tabbar-variants">Variants</a></li>
+            <li><a href="#tabbar-states">States</a></li>
+            <li><a href="#tabbar-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Tab bar · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-tabbar">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 16</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Tab bar</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            The three to five places at the root of a phone app. Each one is a link with an icon and a
+            word, and the place you're in is marked the way a chosen card is: its frame doubles.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tabbar-variants" aria-labelledby="h-tabbar-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-tabbar-variants">Variants</h2>
+          <p class="sg-sec__note">
+            One bar, three to five links. The icon sits in a pill, the indicator: that is what fills,
+            lifts and is marked. The target is the whole item, at least 44px each way.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="tabbar-places">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Three places</h3>
+            <p class="sg-entry__use">The app's places: Today, Decks, Settings.</p>
+            <p class="sg-entry__classes">
+              <code>.tabbar</code> <code>.tabbar__link</code> <code>.tabbar__icon</code>
+              <code>.tabbar__label</code> <code>aria-current</code>
+            </p>
+            <p class="sg-entry__note">
+              A <code>&lt;nav&gt;</code> with a list of links; here is <code>aria-current="page"</code>.
+              The labels are bar labels, so uppercase. In a frame it wears <code>.frame__bottom</code>
+              and pads the home indicator itself.
+            </p>
+          </header>
+          <div class="sg-stage sg-stack">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="--safe-top: 0px; block-size: 12.5rem">
+                <div class="frame">
+                  <div class="frame__scroll">
+                    <p class="t-meta">Sunday 19 October</p>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places" data-sg-code>
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+            <p class="sg-caption"><b>In a frame.</b> 390 points wide, over a 34-point home indicator.</p>
+          </div>
+        </article>
+
+        <!-- 1.2 -->
+        <article class="sg-entry" id="tabbar-badge">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">With a badge</h3>
+            <p class="sg-entry__use">A count that's worth a look: cards due.</p>
+            <p class="sg-entry__classes"><code>.badge</code> <code>.sr-only</code></p>
+            <p class="sg-entry__note">
+              Tag and Badge's badge, pinned to the indicator's corner and <code>aria-hidden</code>. The
+              count is in the link's name: "Decks, 7 due", through a visually hidden span. Past 99 it
+              reads "99+".
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div style="max-inline-size: 390px">
+              <nav class="tabbar" aria-label="Places" data-sg-code>
+                <ul class="tabbar__list" role="list">
+                  <li>
+                    <a class="tabbar__link" href="#" aria-current="page">
+                      <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                      <span class="tabbar__label">Today</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="tabbar__link" href="#">
+                      <span class="tabbar__icon"
+                        ><span class="ic ic--decks" aria-hidden="true"></span
+                        ><span class="badge" aria-hidden="true">7</span></span
+                      >
+                      <span class="tabbar__label">Decks</span><span class="sr-only">, 7 due</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="tabbar__link" href="#">
+                      <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                      <span class="tabbar__label">Settings</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.3 -->
+        <article class="sg-entry" id="tabbar-four">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">Four places, on a small phone</h3>
+            <p class="sg-entry__use">More places, less room: 320px.</p>
+            <p class="sg-entry__classes"><code>.tabbar__list</code></p>
+            <p class="sg-entry__note">
+              Items share the width equally while they fit. Five is the most; past that, the places
+              belong in a list on their own screen, not in the bar.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div style="max-inline-size: 320px">
+              <nav class="tabbar" aria-label="Places" data-sg-code>
+                <ul class="tabbar__list" role="list">
+                  <li>
+                    <a class="tabbar__link" href="#">
+                      <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                      <span class="tabbar__label">Today</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="tabbar__link" href="#" aria-current="page">
+                      <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                      <span class="tabbar__label">Decks</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="tabbar__link" href="#">
+                      <span class="tabbar__icon"><span class="ic ic--search" aria-hidden="true"></span></span>
+                      <span class="tabbar__label">Search</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="tabbar__link" href="#">
+                      <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                      <span class="tabbar__label">Settings</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tabbar-states" aria-labelledby="h-tabbar-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-tabbar-states">States</h2>
+          <p class="sg-sec__note">
+            The card's two numbers, drawn on the indicator: <code>--lift</code> the hard shadow,
+            <code>--fill</code> ink and paper swapped. Each bar shows the state on Decks.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <nav class="tabbar" aria-label="Rest">
+              <ul class="tabbar__list" role="list">
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span><span class="tabbar__label">Today</span></a></li>
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span><span class="tabbar__label">Decks</span></a></li>
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span><span class="tabbar__label">Settings</span></a></li>
+              </ul>
+            </nav>
+            <p class="sg-caption"><b>Rest.</b> No frame on the indicator. The words do the work.</p>
+          </div>
+          <div>
+            <nav class="tabbar" aria-label="Hover">
+              <ul class="tabbar__list" role="list">
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span><span class="tabbar__label">Today</span></a></li>
+                <li><a class="tabbar__link is-hover" href="#"><span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span><span class="tabbar__label">Decks</span></a></li>
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span><span class="tabbar__label">Settings</span></a></li>
+              </ul>
+            </nav>
+            <p class="sg-caption"><b>Hover.</b> The indicator fills and lifts. Only where a pointer hovers.</p>
+          </div>
+          <div>
+            <nav class="tabbar" aria-label="Focus">
+              <ul class="tabbar__list" role="list">
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span><span class="tabbar__label">Today</span></a></li>
+                <li><a class="tabbar__link is-focus" href="#"><span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span><span class="tabbar__label">Decks</span></a></li>
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span><span class="tabbar__label">Settings</span></a></li>
+              </ul>
+            </nav>
+            <p class="sg-caption"><b>Focus.</b> The hover look, and the ring round the indicator, 3px out, clear of the bar's edge.</p>
+          </div>
+          <div>
+            <nav class="tabbar" aria-label="Pressed">
+              <ul class="tabbar__list" role="list">
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span><span class="tabbar__label">Today</span></a></li>
+                <li><a class="tabbar__link is-active" href="#"><span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span><span class="tabbar__label">Decks</span></a></li>
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span><span class="tabbar__label">Settings</span></a></li>
+              </ul>
+            </nav>
+            <p class="sg-caption"><b>Pressed.</b> Down: filled, no shadow, a 2px ring inside. On a phone this is the only feedback.</p>
+          </div>
+          <div>
+            <nav class="tabbar" aria-label="Here">
+              <ul class="tabbar__list" role="list">
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span><span class="tabbar__label">Today</span></a></li>
+                <li><a class="tabbar__link" href="#" aria-current="page"><span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span><span class="tabbar__label">Decks</span></a></li>
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span><span class="tabbar__label">Settings</span></a></li>
+              </ul>
+            </nav>
+            <p class="sg-caption"><b>Here.</b> <code>aria-current="page"</code>: the frame doubles, as on a selected card. Not a fill, so it never reads as pressed.</p>
+          </div>
+          <div>
+            <nav class="tabbar" aria-label="Here, focused">
+              <ul class="tabbar__list" role="list">
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span><span class="tabbar__label">Today</span></a></li>
+                <li><a class="tabbar__link is-focus" href="#" aria-current="page"><span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span><span class="tabbar__label">Decks</span></a></li>
+                <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span><span class="tabbar__label">Settings</span></a></li>
+              </ul>
+            </nav>
+            <p class="sg-caption"><b>Here, focused.</b> The doubled frame, the fill, and the ring with a gap: focus never looks like here.</p>
+          </div>
+          <div>
+            <div style="max-inline-size: 13rem">
+              <nav class="tabbar" aria-label="Large text">
+                <ul class="tabbar__list" role="list">
+                  <li><a class="tabbar__link" href="#" aria-current="page"><span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span><span class="tabbar__label">Today</span></a></li>
+                  <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span><span class="tabbar__label">Decks</span></a></li>
+                  <li><a class="tabbar__link" href="#"><span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span><span class="tabbar__label">Settings</span></a></li>
+                </ul>
+              </nav>
+            </div>
+            <p class="sg-caption">
+              <b>Large text.</b> 13rem wide, about what a phone has at 200%. An item that no longer fits
+              beside the others takes a second row: the bar grows taller, never wider, and no label is
+              cut.
+            </p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not API:
+          real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code> and <code>aria-current</code>. The bars
+          above are labelled by their state only so this page's landmarks have distinct names; an app
+          has one, labelled "Places".
+        </p>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tabbar-usage" aria-labelledby="h-tabbar-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-tabbar-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Use it for places, not actions: each item goes somewhere and stays there. Keep the same
+              items, in the same order, on every root screen, and one word each.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't drop the labels to save room, put an action ("Add") in the bar, or badge more than
+              one place. Don't hide the bar on scroll: that's motion, and it moves the targets.
+            </p>
+          </li>
+          <li>
+            <strong>Large text</strong>
+            <p>
+              iOS keeps its tab bar one row high and shows a big copy of an item on a long press. The
+              web has no such viewer, so the labels have to be readable where they are: ours grow with
+              the text and take a second row when they must.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              It owns the home indicator's inset (<code>--safe-bottom</code>). While a text field has
+              focus on a touch screen, which is when the keyboard is up, it hides, so it never sits on
+              top of the keyboard. Measuring the keyboard itself is wave 5's.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Not on a Mac: places there are the system sidebar. In SwiftUI it's a
+              <code>TabView</code> with a <code>.tabItem</code> (a <code>Label</code>) per place and
+              <code>.badge(_:)</code> for the count; the system draws it.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Tab bar</span>
+      <span>Spec: design/elements/tabbar.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+    <script src="../js/components/frame.js"></script>
+  </body>
+</html>

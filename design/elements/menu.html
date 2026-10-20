@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Menu · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Menu element of the Flashcards design system: a native popover of quiet buttons behind one button, anchored to it, with the destructive item last."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#menu-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Menu</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#menu-anatomy">Anatomy</a></li>
+            <li><a href="#menu-variants">Variants</a></li>
+            <li><a href="#menu-states">States</a></li>
+            <li><a href="#menu-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Menu · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-menu">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 21</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">Menu</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            A short list of actions behind one button. The browser's own popover opens it,
+            closes it on Escape or a tap outside, and gives focus back. No script.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="menu-anatomy" aria-labelledby="h-menu-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-menu-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A button, and a framed box of quiet buttons that opens under it. Shown here in place,
+            as an open one looks.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <div style="display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3)">
+                <span class="sg-n" aria-hidden="true">1</span>
+                <button class="btn btn--quiet btn--icon is-active" type="button" aria-label="More for Shapes">
+                  <span class="ic ic--more" aria-hidden="true"></span>
+                </button>
+              </div>
+              <div style="position: relative; inline-size: min(15rem, 100%); margin: var(--space-1) 0 0 auto">
+                <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -0.6875rem; inset-inline-start: -0.6875rem; z-index: 3">2</span>
+                <div class="menu" style="inline-size: 100%">
+                  <button class="btn btn--quiet btn--block menu__item" type="button" data-n="3">Rename</button>
+                  <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
+                  <button class="btn btn--quiet btn--block menu__item" type="button">Export</button>
+                  <hr class="menu__rule" />
+                  <button class="btn btn--quiet btn--block menu__item" type="button" data-n="5">Delete deck…</button>
+                </div>
+                <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-end: 3.5rem; inset-inline-start: -0.6875rem; translate: 0 50%; z-index: 3">4</span>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Button</strong><code>.btn</code> <code>popovertarget</code>
+                <p>
+                  Button, icon-only with <code>ic--more</code> and a name that says whose actions
+                  ("More for Shapes"), or with words ("Sort"). It stays down while its menu is
+                  open. The browser tells screen readers it's expanded.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Surface</strong><code>.menu</code> <code>popover</code>
+                <p>
+                  A container, so square: a 2px frame on paper, 8px inside, and no shadow, since a
+                  shadow means "press this". Under the button, end edges aligned; above it when
+                  there's no room.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Item</strong><code>.menu__item</code>
+                <p>
+                  Button, quiet and full width, words at the start. It closes the menu itself
+                  (<code>popovertargetaction="hide"</code>); the app's click does the rest. One to
+                  three words, a verb first.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Rule</strong><code>.menu__rule</code>
+                <p>An <code>&lt;hr&gt;</code>, 1px, the menu's whole width: it keeps the destructive item apart.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Destructive item</strong>
+                <p>
+                  Last, after the rule. The words carry it, never a colour: "Delete deck…". The
+                  ellipsis promises a question before anything goes.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="menu-variants" aria-labelledby="h-menu-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-menu-variants">Variants</h2>
+          <p class="sg-sec__note">
+            One menu, two kinds of button. Both are live: open them with a click, Enter or
+            Space; Tab moves through the items; Escape closes and puts you back on the button.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="menu-more">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">More</h3>
+            <p class="sg-entry__use">A thing's other actions: a deck's Rename, Duplicate, Export, Delete.</p>
+            <p class="sg-entry__classes">
+              <code>.btn--icon</code> <code>ic--more</code> <code>.menu</code> <code>.menu__item</code>
+              <code>.menu__rule</code>
+            </p>
+            <p class="sg-entry__note">
+              The button names the menu's id in <code>popovertarget</code>, and the menu comes
+              right after it in the markup: Tab goes from the button into the menu and on.
+              Four items or so; past seven, it's a screen.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3)">
+              <h4 class="t-title">Shapes</h4>
+              <button class="btn btn--quiet btn--icon" type="button" popovertarget="menu-more-shapes" aria-label="More for Shapes" data-sg-code>
+                <span class="ic ic--more" aria-hidden="true"></span>
+              </button>
+              <div class="menu" id="menu-more-shapes" popover data-sg-code>
+                <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="menu-more-shapes" popovertargetaction="hide">Rename</button>
+                <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="menu-more-shapes" popovertargetaction="hide">Duplicate</button>
+                <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="menu-more-shapes" popovertargetaction="hide">Export</button>
+                <hr class="menu__rule" />
+                <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="menu-more-shapes" popovertargetaction="hide">Delete deck…</button>
+              </div>
+            </div>
+            <p class="t-meta" style="margin-block-start: var(--space-2)">12 cards · 5 known</p>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="menu-sort">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Sort</h3>
+            <p class="sg-entry__use">A choice that changes how a list is ordered, behind a button with words.</p>
+            <p class="sg-entry__classes"><code>.btn</code> <code>.btn[aria-pressed]</code> <code>.menu__item</code></p>
+            <p class="sg-entry__note">
+              The items are Button's toggles: the current order is <code>aria-pressed="true"</code>
+              and carries the check, the others keep its empty slot so the words line up. The app
+              moves the check. Nothing destructive, so no rule.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3)">
+              <button class="btn" type="button" popovertarget="menu-sort-decks" data-sg-code>Sort</button>
+              <div class="menu" id="menu-sort-decks" popover data-sg-code>
+                <button class="btn btn--quiet btn--block menu__item" type="button" aria-pressed="false" popovertarget="menu-sort-decks" popovertargetaction="hide">Name</button>
+                <button class="btn btn--quiet btn--block menu__item" type="button" aria-pressed="true" popovertarget="menu-sort-decks" popovertargetaction="hide">Most due</button>
+                <button class="btn btn--quiet btn--block menu__item" type="button" aria-pressed="false" popovertarget="menu-sort-decks" popovertargetaction="hide">Recently studied</button>
+              </div>
+              <p class="t-meta">4 decks · most due first</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="menu-states" aria-labelledby="h-menu-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-menu-states">States</h2>
+          <p class="sg-sec__note">
+            The button's and the items' states are Button's. The menu itself has two: closed and
+            open, and where it opens. Shown in place here.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div style="display: flex; justify-content: flex-end">
+              <button class="btn btn--quiet btn--icon" type="button" aria-label="More for Shapes">
+                <span class="ic ic--more" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="sg-caption"><b>Closed.</b> Just the button, quiet. Hover and focus are Button's: a frame, a lift, the ring.</p>
+          </div>
+          <div>
+            <div style="display: flex; justify-content: flex-end">
+              <button class="btn btn--quiet btn--icon is-active" type="button" aria-label="More for Shapes">
+                <span class="ic ic--more" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="menu" style="margin: var(--space-1) 0 0 auto">
+              <button class="btn btn--quiet btn--block menu__item" type="button">Rename</button>
+              <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
+              <button class="btn btn--quiet btn--block menu__item" type="button">Export</button>
+              <hr class="menu__rule" />
+              <button class="btn btn--quiet btn--block menu__item" type="button">Delete deck…</button>
+            </div>
+            <p class="sg-caption"><b>Open.</b> The button stays down; the menu hangs under it, end edges aligned, 4px off.</p>
+          </div>
+          <div>
+            <div class="menu">
+              <button class="btn btn--quiet btn--block menu__item is-hover" type="button">Rename</button>
+              <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
+              <button class="btn btn--quiet btn--block menu__item" type="button">Export</button>
+            </div>
+            <p class="sg-caption"><b>Item, hover.</b> Button's quiet hover: the pill fills and lifts. Pointers only.</p>
+          </div>
+          <div>
+            <div class="menu">
+              <button class="btn btn--quiet btn--block menu__item" type="button">Rename</button>
+              <button class="btn btn--quiet btn--block menu__item is-focus" type="button">Duplicate</button>
+              <button class="btn btn--quiet btn--block menu__item" type="button">Export</button>
+            </div>
+            <p class="sg-caption"><b>Item, focus.</b> The hover look and the 3px ring, as on any button. Tab and Shift-Tab move it.</p>
+          </div>
+          <div>
+            <div class="menu">
+              <button class="btn btn--quiet btn--block menu__item" type="button">Rename</button>
+              <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
+              <button class="btn btn--quiet btn--block menu__item is-active" type="button">Export</button>
+            </div>
+            <p class="sg-caption"><b>Item, pressed.</b> Down and filled, with the inner ring. Then the menu closes.</p>
+          </div>
+          <div>
+            <div class="menu">
+              <button class="btn btn--quiet btn--block menu__item" type="button" aria-pressed="false">Name</button>
+              <button class="btn btn--quiet btn--block menu__item" type="button" aria-pressed="true">Most due</button>
+              <button class="btn btn--quiet btn--block menu__item" type="button" aria-pressed="false">Recently studied</button>
+            </div>
+            <p class="sg-caption"><b>Current choice.</b> A check and Button's selected ring, never a fill: a fill is a press.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          Where it opens: under the button, end edges aligned; over it, or the other way along,
+          when there's no room; at very large text sizes, centred over the button at the screen's
+          height. Where CSS anchor positioning isn't supported it is a sheet across the bottom of
+          the screen. The <code>.is-*</code> classes force a state for this page and for tests;
+          they are not API.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="menu-usage" aria-labelledby="h-menu-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-menu-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Keep it short, verbs first, and put a destructive item last, after the rule, in
+              words that say what goes: "Delete deck…", then ask or offer Undo.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't hide the only way to do something in a menu or a swipe; don't nest menus;
+              don't give the menu a shadow or round corners. It isn't an ARIA menu, so don't add
+              <code>role="menu"</code> without the arrow keys that promise.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Anchored to its button on a phone too; a sheet at the bottom where anchoring isn't
+              there. Light dismiss works with a tap anywhere outside, and Escape on a keyboard.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Menus are system chrome: SwiftUI's <code>Menu</code>, a context menu, and every
+              item in the menu bar with its shortcut. This element is the phone's and the web's.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Menu</span>
+      <span>Spec: design/elements/menu.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

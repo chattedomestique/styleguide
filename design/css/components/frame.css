@@ -1,0 +1,173 @@
+/* ==========================================================================
+   Frame — wave 3. Spec: elements/frame.md · page: elements/frame.html
+   --------------------------------------------------------------------------
+   The app shell: a top bar, the scroll region, a bottom bar, and on a wide
+   screen a sidebar beside them. It is what screens.css's .app learned,
+   made into an element.
+
+     <div class="frame">
+       <header class="frame__top topbar">…</header>
+       <main class="frame__scroll">…</main>
+       <nav class="frame__bottom tabbar" aria-label="Places">…</nav>
+     </div>
+
+   House rules for this file
+   · The slots only place. A bar wears the slot class itself (.frame__top
+     on the top bar, .frame__bottom on the tab bar) and pads its own
+     safe-area inset. The frame pads only the edges no bar covers: the
+     status bar on a root screen, the home indicator with no bottom bar,
+     the sides of the scroll region. Content never reads --safe-*.
+   · One scroller: the scroll region. The page itself never scrolls, so a
+     phone's browser bars stay put and dvh doesn't jump.
+   · The frame is a container (inline size), so --gutter re-pointed here
+     follows the frame's width, not the window's: a frame used as one pane
+     of a split gets a pane's gutter.
+   · --chrome, the part of the frame's height that isn't room for content,
+     is measured by js/components/frame.js (CSS can't read a content-sized
+     bar's height into a property). The study card reads it.
+   · No motion: bars don't hide on scroll and nothing slides (gate 4).
+   ========================================================================== */
+
+.frame {
+  /* the gutter, from the frame's own width (cqi resolves against the frame
+     wherever a child uses it) */
+  --gutter: clamp(1rem, 0.6rem + 1.6cqi, 1.75rem);
+
+  container: frame / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  /* the dynamic viewport, so it tracks the browser's bars (STYLE §4); or,
+     inside a parent with a set height (a device frame, a pane), that
+     parent: there the percentages resolve and pin it to 100% */
+  block-size: 100dvh;
+  min-block-size: 100%;
+  max-block-size: 100%;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/* --- slots ------------------------------------------------------------------ */
+
+.frame__top,
+.frame__bottom {
+  position: relative;
+  z-index: 1; /* rings and badges paint over the scroll region's edge */
+  min-inline-size: 0;
+}
+
+.frame__top {
+  grid-row: 1;
+}
+
+.frame__bottom {
+  grid-row: 3;
+}
+
+/* No top bar (a root screen): the frame still keeps clear of the status
+   bar, with a band that doesn't scroll, or content slides up under the
+   clock. On a desktop the band is 0px tall. */
+.frame:not(:has(> .frame__top))::before {
+  content: "";
+  grid-row: 1;
+  grid-column: -2;
+  block-size: var(--safe-top);
+}
+
+/* --- the scroll region --------------------------------------------------------
+   The screen's content, stacked 32px apart. Pads to the gutter or the safe
+   area, whichever is wider, so content clears a landscape notch. The block
+   padding leaves room for a focus ring at either end. */
+
+.frame__scroll {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-6);
+  min-block-size: 0;
+  /* --frame-column caps the content's width and centres it: set it to
+     var(--measure) on a reading screen. The default fills the frame. */
+  padding-block: var(--space-5) var(--space-7);
+  padding-inline: max(var(--gutter), var(--safe-left), (100% - var(--frame-column, 100%)) / 2)
+    max(var(--gutter), var(--safe-right), (100% - var(--frame-column, 100%)) / 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* when Tab or a field scrolls something into view, it stops short of the
+     bars by enough for its focus ring. The bottom is deeper: a tall card's
+     ring is drawn round the card, but it's the link inside that's scrolled
+     to (elements/frame.md, Known limits). */
+  scroll-padding-block: var(--space-4) var(--space-7);
+}
+
+/* With nothing focusable inside it, a browser makes the region itself a tab
+   stop. The frame clips at its edges, so the ring goes inside. */
+.frame__scroll:focus-visible {
+  outline-offset: calc(var(--ring) * -1);
+}
+
+/* no bottom bar: the last thing can still scroll clear of the home indicator */
+.frame:not(:has(> .frame__bottom)) > .frame__scroll {
+  padding-block-end: calc(var(--space-7) + var(--safe-bottom));
+}
+
+/* --- variant: focused task ---------------------------------------------------
+   Top bar, a centred stage, and an action row in place of the tab bar. The
+   action row is the frame's own bar, so the frame pads it. */
+
+/* safe: when the content is taller than the room, it starts at the top
+   instead of spilling both ways, where its top couldn't be scrolled to */
+.frame--task > .frame__scroll {
+  align-content: safe center;
+}
+
+.frame--task > .frame__bottom {
+  padding-block: var(--space-4) max(var(--space-4), var(--safe-bottom));
+  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  background: var(--paper);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+/* --- variant: wide -------------------------------------------------------------
+   A sidebar beside the content column. Below 45rem of frame (rem, so large
+   text folds it sooner) the sidebar folds away and the tab bar in the bottom
+   slot takes over with the same links; from 45rem the tab bar is hidden. */
+
+.frame--wide {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.frame--wide > .frame__side {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  min-block-size: 0;
+}
+
+.frame--wide > :is(.frame__top, .frame__scroll, .frame__bottom) {
+  grid-column: 2;
+}
+
+@container frame (width < 45rem) {
+  .frame--wide > .frame__side {
+    display: none;
+  }
+}
+
+@container frame (width >= 45rem) {
+  .frame--wide > .frame__bottom {
+    display: none;
+  }
+
+  /* the sidebar covers the start edge, and its safe area with it */
+  .frame--wide > :not(.frame__side) {
+    --safe-left: 0px;
+  }
+
+  .frame--wide > .frame__side {
+    --safe-right: 0px;
+  }
+
+  .frame--wide > .frame__scroll {
+    padding-block-end: calc(var(--space-7) + var(--safe-bottom));
+  }
+}

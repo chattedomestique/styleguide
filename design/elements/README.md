@@ -85,14 +85,14 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 | 11 | Select | 2 | Gates 0–2 |
 | 12 | Stepper | 2 | Gates 0–2 |
 | 13 | Form | 2 | Gates 0–2 |
-| 14 | Frame | 3 | Brief |
-| 15 | Top bar | 3 | Brief |
-| 16 | Tab bar | 3 | Brief |
-| 17 | Sidebar | 3 | Brief |
-| 18 | List | 3 | Brief |
-| 19 | Tabs | 3 | Brief |
-| 20 | Disclosure | 3 | Brief |
-| 21 | Menu | 3 | Brief |
+| 14 | Frame | 3 | Gates 0–2 |
+| 15 | Top bar | 3 | Gates 0–2 |
+| 16 | Tab bar | 3 | Gates 0–2 |
+| 17 | Sidebar | 3 | Gates 0–2 |
+| 18 | List | 3 | Gates 0–2 |
+| 19 | Tabs | 3 | Gates 0–2 |
+| 20 | Disclosure | 3 | Gates 0–2 |
+| 21 | Menu | 3 | Gates 0–2 |
 | 22 | Dialog | 4 | Brief |
 | 23 | Sheet | 4 | Brief |
 | 24 | Toast | 4 | Brief |
@@ -106,7 +106,7 @@ gate 4) and the freeze (wave 8, gate 5).
 ## Briefs
 
 Gate 0. Each brief gives the job, the parts, the variants (the cap: no others), the states, the
-copy and anything specific. Waves 1 and 2 are full; later waves get theirs filled in when the
+copy and anything specific. Waves 1 to 3 are full; later waves get theirs filled in when the
 wave starts.
 
 ### Wave 1: actions and status
@@ -305,42 +305,122 @@ All seven are form controls, so they share a few things:
 
 ### Wave 3: shell and navigation
 
-**14 Frame:**
-- The app shell that replaces `screens.css`'s `.app`:
-  - rows for the top bar, the scroll region and the bottom bar;
-  - safe areas, `dvh`, `overscroll-behavior` and scroll padding;
-  - a root screen that keeps clear of the status bar.
-- It publishes `--chrome`, so the study card stops guessing.
-- Wide screens get a centred column or the sidebar layout.
+These eight make a screen out of elements. `screens.html` is rebuilt on them at the end of the
+wave: Frame replaces `screens.css`'s `.app`, and Top bar and Tab bar replace the two Nav bar
+slots. Shared notes:
 
-**15 Top bar:**
-- A back control (the previous screen's name, or "Back"), the title, up to two actions.
-- Edge to edge, owning the top safe area.
+- **Bars run edge to edge and own their safe-area inset.** Content never reads the safe-area
+  tokens.
+- **Navigation is links:**
+  - a place you go is an `<a>` with `aria-current="page"` when it's here;
+  - a control that changes something is a `<button>`.
+- **Mac:** the toolbar, sidebar and menus are system chrome (`STYLE.md` §4), so Top bar, Tab bar
+  and Menu are phone and web elements. Sidebar is ours on the web and `NavigationSplitView` in
+  SwiftUI.
+- **No motion:** a drawer, sheet or menu appears in place until gate 4.
 
-**16 Tab bar:**
-- Three to five places. Icon and label always.
-- `aria-current="page"`, room for a badge, owns the bottom safe area.
-- The spec decides what happens at 200% text (screens found that it wraps).
+**14 Frame** (`frame`). *The app shell: bars, the scroll region, safe areas.*
 
-**17 Sidebar:**
-- Places on wide screens, with the current one marked. It folds away when narrow.
-- The two-pane split view.
+- **Parts:** `.frame`, `.frame__top`, `.frame__scroll`, `.frame__bottom`, from what
+  `screens.css`'s `.app` learned:
+  - grid rows;
+  - `block-size: 100dvh`;
+  - with no top bar the frame still keeps clear of the status bar;
+  - `overscroll-behavior: contain`;
+  - scroll padding for focus rings and the on-screen keyboard;
+  - `safe center` for a centred stage.
+- **Publishes `--chrome`,** the bars' real height, so the study card stops guessing:
+  - measured, not estimated;
+  - CSS-only if possible, a tiny `frame.js` with a `ResizeObserver` if not.
+- **Variants:** phone (top bar + scroll + tab bar), root screen (scroll + tab bar), focused task
+  (top bar + scroll + action row), wide (sidebar + content column, at most `--measure`-ish wide
+  for reading screens).
+- **Also:** re-points `--gutter` to the frame's own width, so a pane gets the right gutter.
 
-**18 List:**
-- Rows: a title, meta, and a trailing value, chevron or switch.
-- Section headers. A row as a link.
-- Any swipe action also has a visible "More" button.
+**15 Top bar** (`topbar`). *A screen's title, its way back, and one or two actions.*
 
-**19 Tabs:**
-- Sections of one screen, using ARIA tabs.
-- Needs `js/components/tabs.js` for arrow keys with a roving tab stop.
+- **Parts:**
+  - the back link (`ic--back` + the previous screen's name, falling back to "Back"; a link,
+    since it goes somewhere);
+  - the title (an `h1` at `--type-title`, one line, truncating only with the full title
+    available);
+  - up to two trailing actions (Button, quiet or icon-only).
+- **Variants:** standard; root (no back, title leading); with a large heading below it in the
+  content (`.t-heading`), not a collapsing large title (that's motion).
+- **Notes:** 44px targets, edge to edge, owns the top safe area. Copy: ‹ Decks · Shapes · Edit.
 
-**20 Disclosure:**
-- `<details>` and `<summary>`: show more, in place.
+**16 Tab bar** (`tabbar`). *The three to five places at the root of a phone app.*
 
-**21 Menu:**
-- A short list of actions behind a button, using the native `popover` and `popovertarget`.
-- Buttons inside, no ARIA menu pattern unless a real need appears.
+- **Parts:** items with an icon and a label always, never icon-only; `aria-current="page"` on
+  the current one; room for a Badge.
+- **At 200% text,** which screens found wraps, the labels may go to two lines but the bar grows
+  in height, never sideways. Write down why we don't copy iOS's fixed bar with a long-press
+  preview: the web has no large-content viewer.
+- **Notes:**
+  - owns the bottom safe area;
+  - hidden when the on-screen keyboard is up, if that can be done without script, otherwise
+    noted for wave 5;
+  - copy: Today, Decks, Settings (`ic--today`, `ic--decks`, `ic--settings`).
+
+**17 Sidebar** (`sidebar`). *The places, on a wide screen.*
+
+- **Parts:** a list of links with icons, the current one marked (the card's selected ring
+  language, not a fill alone), optional section headings, and a footer slot.
+- **Variants:** standard; with sections; the two-pane split (sidebar + content) inside Frame's
+  wide variant.
+- **Behaviour:** below a width it folds away and the phone layout's Tab bar takes over (CSS
+  only, same links). The toggle uses `ic--sidebar` (Button, icon-only, `aria-expanded`).
+- **Mac:** system chrome natively; this is the web shell's version, drawn plainly so it doesn't
+  pretend to be AppKit.
+
+**18 List** (`list`). *Rows of things.*
+
+- **Parts:** a row with a leading icon or tile (optional), a title, meta, and a trailing slot
+  (a value, a chevron `ic--forward`, a Switch, a Tag).
+- **Variants:**
+  - plain (rules between rows, edge to edge);
+  - inset (in a card-like frame, Panel-style);
+  - with section headers;
+  - a row as a link (the whole row is the target, like the card's list rows);
+  - a row with a switch (the settings row);
+  - a row with actions.
+- **Swipe** to reveal actions is allowed only if a visible "More" (`ic--more`) button offers the
+  same actions. Without script, the More button is all there is; the swipe is gate 4 or an
+  app's own.
+- **Relation to Card:** `.card__list` stays the card's; List is the full-width, screen-level
+  version.
+
+**19 Tabs** (`tabs`). *Sections of one screen.*
+
+- **Markup:** ARIA tabs (`tablist`, `tab`, `tabpanel`), with `js/components/tabs.js` for arrow
+  keys and Home/End, a roving tab stop and automatic activation.
+- **Without script,** the panels are just stacked sections with headings, and the tab list is
+  links to them.
+- **Variants:** two to five tabs; full width on a phone; with a count Badge.
+- **Not the segmented control:** that switches how one thing is shown, tabs switch which section
+  is shown.
+- **Copy:** Cards · Stats · Settings, inside a deck.
+
+**20 Disclosure** (`disclosure`). *Show more, in place.*
+
+- **Markup:** `<details>` and `<summary>`, styled. `ic--down` turns to `ic--up` with the open
+  state (static glyphs, no rotation until gate 4).
+- **Variants:** single; a group (an FAQ-like list, each independent); exclusive groups with
+  `name` (one open at a time) only as a progressive extra.
+- **Notes:** the summary is the 44px target. Copy: "How spaced repetition works", "Show the
+  answer's notes".
+
+**21 Menu** (`menu`). *A short list of actions behind one control.*
+
+- **Markup:** the native `popover` attribute with `popovertarget` on a Button (icon-only `ic--more`
+  or "Sort"). Inside, a list of Buttons, quiet and full width. A destructive item is last,
+  separated by a rule, and says what it does ("Delete deck…").
+- **Behaviour:** Escape and light dismiss come native.
+  - No ARIA menu pattern (arrow keys) unless the page proves it's needed; the spec says why
+    (Tab through buttons is the honest pattern without script).
+  - Anchor it with CSS anchor positioning where supported, and fall back to a fixed sheet at the
+    bottom of a phone.
+- **Copy:** Rename, Duplicate, Export, Delete deck….
 
 ### Wave 4: feedback and overlays
 

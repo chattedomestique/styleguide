@@ -1,0 +1,142 @@
+/* ==========================================================================
+   Disclosure — wave 3. Spec: elements/disclosure.md · page: elements/disclosure.html
+   --------------------------------------------------------------------------
+   Show more, in place. Native <details> and <summary>, styled: no script,
+   Enter and Space for free, and the open state is the browser's own.
+
+     <details class="disclosure">
+       <summary class="disclosure__summary">
+         How spaced repetition works
+         <span class="ic ic--down disclosure__icon" aria-hidden="true"></span>
+       </summary>
+       <div class="disclosure__body"><p>…</p></div>
+     </details>
+
+   House rules for this file
+   · A disclosure is a ruled row, like a list row: a rectangle that holds.
+     Stacked, neighbours share one rule, so a group needs no wrapper.
+   · The summary is the target: the whole row, at least 44px.
+   · Open swaps the glyph, down for up. Static glyphs: no rotation until
+     gate 4. In forced colours the glyph still says which way it went.
+   · Hover underlines the words, press fills the row with ink: what a list
+     row does. Rules and fills read the card's surface roles, so a
+     disclosure inside a card (on any tone) takes the card's ink.
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.disclosure {
+  --disclosure-ink: var(--card-ink, var(--ink));
+  --disclosure-bg: var(--card-bg, var(--paper));
+
+  /* the rules and the pressed fill reach 8px past the text on each side,
+     so the words stay in line with the paragraphs around them */
+  margin-inline: calc(var(--space-2) * -1);
+  min-inline-size: 0;
+  color: var(--disclosure-ink);
+  border-block: var(--bw-thin) solid var(--disclosure-ink);
+}
+
+/* stacked: the rule between two is one rule */
+.disclosure + .disclosure {
+  margin-block-start: calc(var(--bw-thin) * -1);
+}
+
+/* the summary: the whole row is the target */
+.disclosure__summary {
+  --fill: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: var(--hit);
+  padding: var(--space-2);
+  font: var(--type-body);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  overflow-wrap: break-word;
+  color: color-mix(in srgb, var(--disclosure-bg) calc(var(--fill) * 100%), var(--disclosure-ink));
+  background-color: color-mix(in srgb, var(--disclosure-ink) calc(var(--fill) * 100%), transparent);
+  text-decoration-thickness: var(--bw);
+  text-underline-offset: 0.18em;
+  list-style: none;
+  cursor: default; /* the hand is for links only, as on the Mac */
+  touch-action: manipulation;
+}
+
+.disclosure__summary::-webkit-details-marker {
+  display: none;
+}
+
+/* the glyph: down when closed, up when open */
+.disclosure__icon {
+  flex: none;
+}
+
+.disclosure[open] > .disclosure__summary > .disclosure__icon {
+  --ic: var(--icon-up);
+}
+
+/* the body: what was hidden, under the summary, as wide as a paragraph */
+.disclosure__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-inline-size: calc(var(--measure) + var(--space-4));
+  padding: var(--space-1) var(--space-2) var(--space-4);
+  font: var(--type-body);
+  text-wrap: pretty;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from [open], :hover, :focus-visible and :active. */
+
+@media (hover: hover) {
+  .disclosure__summary:hover {
+    text-decoration-line: underline;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, inside the row: rows
+   touch, and a card clips */
+.disclosure__summary:is(.is-hover, .is-focus, :focus-visible) {
+  text-decoration-line: underline;
+}
+
+.disclosure__summary:focus-visible,
+.disclosure__summary.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: calc(var(--ring) * -1);
+}
+
+/* on an ink card the ring takes the card's ink */
+.disclosure__summary:is(:focus-visible, .is-focus) {
+  outline-color: var(--card-ink, var(--focus));
+}
+
+/* pressed: the row fills with the surface's ink, as a list row does */
+.disclosure__summary:is(:active, .is-active) {
+  --fill: 1;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The fill vanishes, so a press paints the system's highlight. The rules
+   and the ring are system colours already; the glyph is CanvasText
+   (icons.css), so open still reads as up. */
+
+@media (forced-colors: active) {
+  .disclosure {
+    border-color: CanvasText;
+  }
+
+  .disclosure__summary:is(:active, .is-active) {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background-color: Highlight;
+  }
+
+  .disclosure__summary:is(:active, .is-active) .ic {
+    background-color: HighlightText;
+  }
+}

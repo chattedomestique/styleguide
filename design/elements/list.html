@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>List · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The List element of the Flashcards design system: plain and inset lists, section headers, link rows, settings rows and rows with actions."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#list-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / List</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#list-anatomy">Anatomy</a></li>
+            <li><a href="#list-variants">Variants</a></li>
+            <li><a href="#list-states">States</a></li>
+            <li><a href="#list-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">List · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-list">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 18</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">List</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Rows of things, as wide as the screen: decks, settings, a deck's numbers. A row is a
+            rectangle that holds; when it goes somewhere, the whole row is the link.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="list-anatomy" aria-labelledby="h-list-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-list-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A heading, then rows. Each row has a title, and may have a lead, meta, a trail and
+            actions. <code>.card__list</code> stays the card's; this is the screen's.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <div class="list list--inset">
+                <h3 class="list__head" data-n="1">Decks</h3>
+                <ul class="list__rows" role="list">
+                  <li>
+                    <a class="list__row" href="#" style="position: relative; padding-block: 1.75rem 0.75rem">
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -0.6875rem; inset-inline-start: -0.8125rem">2</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: 0.25rem; inset-inline-start: 1.3125rem">3</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: 0.25rem; inset-inline-start: 4.5rem">4</span>
+                      <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: 0.25rem; inset-inline-end: 1rem">5</span>
+                      <span class="list__tile wf-media" data-tone="1" aria-hidden="true"></span>
+                      <span class="list__main">
+                        <span class="list__title">Shapes</span>
+                        <span class="list__meta">12 cards · 5 known</span>
+                      </span>
+                      <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="list__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                      <span class="list__main">
+                        <span class="list__title">Colours</span>
+                        <span class="list__meta">8 cards · all known</span>
+                      </span>
+                    </a>
+                    <div class="list__actions">
+                      <span class="sg-n" aria-hidden="true">6</span>
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="More for Colours">
+                        <span class="ic ic--more" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Head</strong><code>.list__head</code>
+                <p>
+                  The section's name, an <code>h2</code> to <code>h4</code> in label type. Above
+                  the rule on a plain list; on an inset one it is the Panel's bar, the frame
+                  thickened. Optional.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Row</strong><code>.list__row</code>
+                <p>
+                  A <code>&lt;div&gt;</code>, or the <code>&lt;a&gt;</code> when the whole row
+                  goes somewhere: one target, one tab stop. At least 44px; 8px above and below,
+                  the gutter at the sides. Rows touch, divided by 1px rules.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Lead</strong><code>.list__tile</code> <code>.ic</code>
+                <p>
+                  Optional. A 44px square tile (a deck's tone, its picture later) or a 24px
+                  glyph. Only when it says something: never the same glyph on every row.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Title and meta</strong><code>.list__main</code> <code>.list__title</code> <code>.list__meta</code>
+                <p>The title in body type at 500; meta under it, 14px, soft ink, tabular figures. Both wrap.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Trail</strong><code>.list__trail</code>
+                <p>
+                  A value, a Tag, and the <code>ic--forward</code> chevron on a row that goes
+                  somewhere. Always at the end; at large text sizes it drops to its own line.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">6</span>
+              <div>
+                <strong>Actions</strong><code>.list__actions</code>
+                <p>
+                  A More button (<code>ic--more</code>, Button quiet and icon-only) after the
+                  row, its own target, opening a Menu. Whatever a swipe would offer is here too.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="list-variants" aria-labelledby="h-list-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-list-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Two frames (plain and inset) and four kinds of row. The boxes here are a phone's
+            width; the outline stands for the screen's edges.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="list-plain">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Plain</h3>
+            <p class="sg-entry__use">Rows straight on the screen: a deck's numbers, search results.</p>
+            <p class="sg-entry__classes">
+              <code>.list</code> <code>.list__rows</code> <code>.list__row</code>
+              <code>.list__main</code> <code>.list__title</code> <code>.list__trail</code>
+            </p>
+            <p class="sg-entry__note">
+              Edge to edge: put it in the scroll region with no padding round it. Its rows keep
+              the screen's <code>--gutter</code>, and rules close it top and bottom, so its edges
+              show without colour. A row that only shows a value is a <code>&lt;div&gt;</code>
+              and has no states.
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <div class="sg-box">
+                <div class="list" data-sg-code>
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <div class="list__row">
+                        <span class="list__main"><span class="list__title">Cards</span></span>
+                        <span class="list__trail">12</span>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="list__row">
+                        <span class="list__main"><span class="list__title">Known</span></span>
+                        <span class="list__trail">5</span>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="list__row">
+                        <span class="list__main"><span class="list__title">Due today</span></span>
+                        <span class="list__trail">7</span>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="list__row">
+                        <span class="list__main"><span class="list__title">Best streak</span></span>
+                        <span class="list__trail">9 days</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </figure>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="list-inset">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Inset</h3>
+            <p class="sg-entry__use">A group that belongs together: a deck's settings, one screen's few links.</p>
+            <p class="sg-entry__classes"><code>.list--inset</code></p>
+            <p class="sg-entry__note">
+              Panel-style: a square 2px frame on paper, inside the screen's gutter, with 16px
+              in the rows. A frame contains, so it's 2px; the rules inside only divide, so
+              they're 1px.
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <div class="list list--inset" data-sg-code>
+                <ul class="list__rows" role="list">
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="list__main"><span class="list__title">Card order</span></span>
+                      <span class="list__trail">Shuffled <span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="list__main"><span class="list__title">Cards per session</span></span>
+                      <span class="list__trail">20 <span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="list__main"><span class="list__title">Language</span></span>
+                      <span class="list__trail">English <span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </figure>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="list-sections">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">With section headers</h3>
+            <p class="sg-entry__use">A long screen in a few named parts: decks by what's due, settings by topic.</p>
+            <p class="sg-entry__classes"><code>.list__head</code></p>
+            <p class="sg-entry__note">
+              One <code>.list</code> per section, each with its heading inside; sections stack
+              24px apart. Plain, the heading is a label over the rule. Inset, it is the Panel's
+              bar. Use real heading elements, in order, so the screen can be skimmed by heading.
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <div class="sg-box" style="padding-block-start: var(--space-4)">
+                <div class="list" data-sg-code>
+                  <h4 class="list__head">Due today</h4>
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                        <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards · 3 known</span></span>
+                        <span class="list__trail">12 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="list" data-sg-code>
+                  <h4 class="list__head">Caught up</h4>
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards · all known</span></span>
+                        <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <p class="sg-caption"><b>Plain.</b> Labels over the rule.</p>
+            </figure>
+            <figure style="--w: 22.375rem">
+              <div class="list list--inset" data-sg-code>
+                <h4 class="list__head">Studying</h4>
+                <ul class="list__rows" role="list">
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="list__main"><span class="list__title">Card order</span></span>
+                      <span class="list__trail">Shuffled <span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="list__main"><span class="list__title">Cards per session</span></span>
+                      <span class="list__trail">20 <span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div class="list list--inset" data-sg-code>
+                <h4 class="list__head">This app</h4>
+                <ul class="list__rows" role="list">
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="ic ic--install" aria-hidden="true"></span>
+                      <span class="list__main"><span class="list__title">Install Flashcards</span></span>
+                      <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="ic ic--info" aria-hidden="true"></span>
+                      <span class="list__main"><span class="list__title">How spaced repetition works</span></span>
+                      <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <p class="sg-caption"><b>Inset.</b> The heading is the bar. Glyphs lead only where each row's is different.</p>
+            </figure>
+          </div>
+        </article>
+
+        <!-- 2.4 -->
+        <article class="sg-entry" id="list-link">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.4</p>
+            <h3 class="sg-entry__name">Row as a link</h3>
+            <p class="sg-entry__use">Each row opens something: a deck, a card, a setting's own screen.</p>
+            <p class="sg-entry__classes">
+              <code>a.list__row</code> <code>.list__tile</code> <code>.list__meta</code>
+              <code>ic--forward</code>
+            </p>
+            <p class="sg-entry__note">
+              The <code>&lt;a&gt;</code> is the row, as in the card's list rows: a tap anywhere
+              lands, and it is one tab stop. Its name is everything in it, so the title goes
+              first. The chevron says "goes somewhere"; a row that doesn't, doesn't get one.
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <div class="sg-box">
+                <div class="list" data-sg-code>
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__tile wf-media" data-tone="1" aria-hidden="true"></span>
+                        <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                        <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                        <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards</span></span>
+                        <span class="list__trail"><span class="tag">Known</span> <span class="ic ic--forward" aria-hidden="true"></span></span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__tile wf-media" data-tone="3" aria-hidden="true"></span>
+                        <span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards · 3 known</span></span>
+                        <span class="list__trail">12 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__tile wf-media" data-tone="4" aria-hidden="true"></span>
+                        <span class="list__main"><span class="list__title">Farm animals</span><span class="list__meta">15 cards</span></span>
+                        <span class="list__trail"><span class="tag" data-tone="ink">New</span> <span class="ic ic--forward" aria-hidden="true"></span></span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </figure>
+          </div>
+        </article>
+
+        <!-- 2.5 -->
+        <article class="sg-entry" id="list-settings">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.5</p>
+            <h3 class="sg-entry__name">Settings row</h3>
+            <p class="sg-entry__use">A setting that takes effect at once, among others.</p>
+            <p class="sg-entry__classes"><code>.switch</code> in a <code>.list__rows</code> item</p>
+            <p class="sg-entry__note">
+              The row is Switch's own markup, whole: its label is the row and the target, and
+              help goes under it. The list only adds its padding and the rules.
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <div class="list list--inset" data-sg-code>
+                <h4 class="list__head">Shapes</h4>
+                <ul class="list__rows" role="list">
+                  <li>
+                    <div class="switch">
+                      <label class="switch__label">
+                        <span class="switch__text">Shuffle cards</span>
+                        <span class="switch__control">
+                          <input class="switch__input" type="checkbox" role="switch" name="list-settings-shuffle" checked />
+                          <span class="switch__state" aria-hidden="true"><span class="switch__on">On</span><span class="switch__off">Off</span></span>
+                        </span>
+                      </label>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="switch">
+                      <label class="switch__label">
+                        <span class="switch__text">Daily reminder</span>
+                        <span class="switch__control">
+                          <input class="switch__input" type="checkbox" role="switch" name="list-settings-reminder" aria-describedby="list-settings-reminder-help" />
+                          <span class="switch__state" aria-hidden="true"><span class="switch__on">On</span><span class="switch__off">Off</span></span>
+                        </span>
+                      </label>
+                      <p class="switch__help" id="list-settings-reminder-help">At 6pm, if you haven't studied today.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <a class="list__row" href="#">
+                      <span class="list__main"><span class="list__title">Card order</span></span>
+                      <span class="list__trail">Shuffled <span class="ic ic--forward" aria-hidden="true"></span></span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </figure>
+          </div>
+        </article>
+
+        <!-- 2.6 -->
+        <article class="sg-entry" id="list-actions">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.6</p>
+            <h3 class="sg-entry__name">Row with actions</h3>
+            <p class="sg-entry__use">Things you also rename, copy or delete: a list of decks.</p>
+            <p class="sg-entry__classes">
+              <code>.list__actions</code> <code>.btn--icon</code> <code>.menu</code>
+            </p>
+            <p class="sg-entry__note">
+              A More button after the row opens a Menu: Rename, Duplicate, Export, Delete deck….
+              Its name says whose actions they are ("More for Shapes"). If an app adds swipe
+              (gate 4, or its own), the swipe offers these same actions and the button stays:
+              without script, the button is all there is. The row keeps its link; the chevron
+              goes, so the row doesn't end in two marks.
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <div class="sg-box" style="overflow: visible">
+                <div class="list" data-sg-code>
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__tile wf-media" data-tone="1" aria-hidden="true"></span>
+                        <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 7 due</span></span>
+                      </a>
+                      <div class="list__actions">
+                        <button class="btn btn--quiet btn--icon" type="button" popovertarget="list-menu-shapes" aria-label="More for Shapes">
+                          <span class="ic ic--more" aria-hidden="true"></span>
+                        </button>
+                        <div class="menu" id="list-menu-shapes" popover>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-shapes" popovertargetaction="hide">Rename</button>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-shapes" popovertargetaction="hide">Duplicate</button>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-shapes" popovertargetaction="hide">Export</button>
+                          <hr class="menu__rule" />
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-shapes" popovertargetaction="hide">Delete deck…</button>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                        <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards · all known</span></span>
+                      </a>
+                      <div class="list__actions">
+                        <button class="btn btn--quiet btn--icon" type="button" popovertarget="list-menu-colours" aria-label="More for Colours">
+                          <span class="ic ic--more" aria-hidden="true"></span>
+                        </button>
+                        <div class="menu" id="list-menu-colours" popover>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-colours" popovertargetaction="hide">Rename</button>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-colours" popovertargetaction="hide">Duplicate</button>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-colours" popovertargetaction="hide">Export</button>
+                          <hr class="menu__rule" />
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-colours" popovertargetaction="hide">Delete deck…</button>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <a class="list__row" href="#">
+                        <span class="list__tile wf-media" data-tone="3" aria-hidden="true"></span>
+                        <span class="list__main"><span class="list__title">Numbers to twenty</span><span class="list__meta">20 cards · 12 due</span></span>
+                      </a>
+                      <div class="list__actions">
+                        <button class="btn btn--quiet btn--icon" type="button" popovertarget="list-menu-numbers" aria-label="More for Numbers to twenty">
+                          <span class="ic ic--more" aria-hidden="true"></span>
+                        </button>
+                        <div class="menu" id="list-menu-numbers" popover>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-numbers" popovertargetaction="hide">Rename</button>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-numbers" popovertargetaction="hide">Duplicate</button>
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-numbers" popovertargetaction="hide">Export</button>
+                          <hr class="menu__rule" />
+                          <button class="btn btn--quiet btn--block menu__item" type="button" popovertarget="list-menu-numbers" popovertargetaction="hide">Delete deck…</button>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </figure>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="list-states" aria-labelledby="h-list-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-list-states">States</h2>
+          <p class="sg-sec__note">
+            Only a link row has states. No lift: a shadow would fall across the next row. Hover
+            underlines the title; press fills the row with ink. A settings row's states are
+            Switch's; the More button's are Button's.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="list list--inset">
+              <ul class="list__rows" role="list">
+                <li>
+                  <a class="list__row" href="#">
+                    <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                    <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <p class="sg-caption"><b>Rest.</b> Flat, no underline; the chevron says it goes somewhere.</p>
+          </div>
+          <div>
+            <div class="list list--inset">
+              <ul class="list__rows" role="list">
+                <li>
+                  <a class="list__row is-hover" href="#">
+                    <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                    <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> Anywhere on the row: the title takes a 2px underline. Pointers only.</p>
+          </div>
+          <div>
+            <div class="list list--inset">
+              <ul class="list__rows" role="list">
+                <li>
+                  <a class="list__row is-focus" href="#">
+                    <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 5 known</span></span>
+                    <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <p class="sg-caption"><b>Focus.</b> The hover look, plus the 3px ring inside the row: rows touch, and a plain list touches the screen's edge.</p>
+          </div>
+          <div>
+            <div class="list list--inset">
+              <ul class="list__rows" role="list">
+                <li>
+                  <a class="list__row is-active" href="#">
+                    <span class="list__tile wf-media" data-tone="1" aria-hidden="true"></span>
+                    <span class="list__main"><span class="list__title">Colours</span><span class="list__meta">8 cards</span></span>
+                    <span class="list__trail"><span class="tag">Known</span> <span class="ic ic--forward" aria-hidden="true"></span></span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> The row fills with ink and its words turn paper; a tag inverts with it.</p>
+          </div>
+          <div>
+            <div class="list list--inset">
+              <ul class="list__rows" role="list">
+                <li>
+                  <a class="list__row" href="#">
+                    <span class="list__main"><span class="list__title">Shapes</span><span class="list__meta">12 cards · 7 due</span></span>
+                  </a>
+                  <div class="list__actions">
+                    <button class="btn btn--quiet btn--icon is-active" type="button" aria-label="More for Shapes">
+                      <span class="ic ic--more" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <p class="sg-caption"><b>Actions open.</b> The More button stays down while its menu is open (Menu draws that).</p>
+          </div>
+          <div>
+            <div class="list list--inset">
+              <ul class="list__rows" role="list">
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">Best streak</span></span>
+                    <span class="list__trail">9 days</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <p class="sg-caption"><b>Static.</b> A row that only shows a value: no states, no hand, not in the tab order.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code> and <code>:active</code>.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="list-usage" aria-labelledby="h-list-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-list-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Make the whole row the link when it goes somewhere, title first. Put every action
+              a row has behind a visible More button, and name it after the row ("More for
+              Shapes").
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't make swipe the only way to an action, and don't put a chevron on a row that
+              doesn't go anywhere. Don't repeat one glyph down every row: a lead says something
+              or it goes.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              A plain list runs under the screen's gutter to both edges; the frame, not the list,
+              keeps clear of the notch. Press shows on touch with the shell's
+              <code>touchstart</code> listener. Swipe, if an app adds it, waits for gate 4.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              A <code>List</code> with our row as a custom view; on the Mac a selectable
+              collection is a <code>List</code> or <code>Table</code>, so ⌘ and ⇧ selection come
+              free, and the More menu is also a context menu and a menu bar item.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · List</span>
+      <span>Spec: design/elements/list.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>
