@@ -44,6 +44,14 @@
   overflow-wrap: break-word;
 }
 
+/* straight in a Frame's scroll region, a plain list really is edge to edge:
+   it reaches over the region's side padding, and its rows take that padding
+   as their own, so their text lines up with the content above */
+.frame__scroll > .list:not(.list--inset) {
+  --list-pad: var(--frame-pad-start);
+  margin-inline: calc(var(--frame-pad-start) * -1) calc(var(--frame-pad-end) * -1);
+}
+
 /* sections stack with room between them */
 .list + .list {
   margin-block-start: var(--space-5);

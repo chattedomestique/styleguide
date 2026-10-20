@@ -61,7 +61,7 @@ under Variants (2.1–2.8).
 | Row | `.card--row` + `.card__tile`, `.card__main`, `.card__trail` | A thing in a list. | Below 18rem the trail drops under the title (children move between grid cells; the card can't re-template itself). |
 | Link | `.card--link` + `.card__link` in the title | The whole card goes somewhere. | Eyebrow at the top, title group at the bottom. See below. |
 | Ghost | `.card--ghost` (the card is the `<a>` or `<button>`) | An empty slot that asks to be filled. | Dashed; firms up on hover and focus; its circle fills on press. |
-| Study | `.card--study` + `.card__head`, `.card__stage`, `.card__answer` | The flashcard. 5 / 7. | Static faces; the flip is gate 4. Fits a phone: `max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7)`. |
+| Study | `.card--study` + `.card__head`, `.card__stage`, `.card__answer` | The flashcard. 5 / 7. | Static faces; the flip is gate 4. Fits a phone: `max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7)`, where Frame publishes `--chrome` (outside a Frame, set it). An 8rem floor (`min-inline-size: min(100%, 8rem)`) keeps it wide enough for its answer; below that the stage scrolls. |
 
 **Link card.** One anchor, inside the title; its `::after` is stretched over the whole card
 (`inset: -2px`, so it covers the border too), so there is exactly one tab stop, one

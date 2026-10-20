@@ -124,6 +124,9 @@ text, where nearly any title would truncate, the bar gives the title its own row
 
 ## Known limits
 
+- In Frame's wide variant a root bar's title can sit a few pixels off the content's edge: the bar
+  is its own container, so its `--gutter` follows the bar's width, not the content column's.
+
 - A Button whose label has gone is as wide as its track, not a 44px circle, so its hover pill is
   wider than its icon.
 - A text-only action (Edit) can't drop its label. On a 320-point phone at 200% text, Edit and the

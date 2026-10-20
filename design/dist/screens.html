@@ -1058,8 +1058,9 @@ label {
 /* --- variant: study --------------------------------------------------------
    The flashcard itself: 5:7, one subject, one hint. The flip is motion, so it
    is designed at gate 4; the faces here are static. It never outgrows a
-   phone: set --chrome to the height of the screen's bars and the whole card
-   fits under them. svh, so it is sized once and doesn't jump as bars hide. */
+   phone: --chrome is the height of the screen's bars (Frame publishes it;
+   outside a Frame, set it) and the whole card fits under them. svh, so it
+   is sized once and doesn't jump as bars hide. */
 
 .card--study {
   /* a floor: at 200% text the bars can take most of a phone, and a card
@@ -3607,8 +3608,11 @@ textarea.field__input {
   /* --frame-column caps the content's width and centres it: set it to
      var(--measure) on a reading screen. The default fills the frame. */
   padding-block: var(--space-5) var(--space-7);
-  padding-inline: max(var(--gutter), var(--safe-left), (100% - var(--frame-column, 100%)) / 2)
-    max(var(--gutter), var(--safe-right), (100% - var(--frame-column, 100%)) / 2);
+  /* published, so an edge-to-edge child (a plain List) can reach over them */
+  --frame-pad-start: max(var(--gutter), var(--safe-left));
+  --frame-pad-end: max(var(--gutter), var(--safe-right));
+  padding-inline: max(var(--frame-pad-start), (100% - var(--frame-column, 100%)) / 2)
+    max(var(--frame-pad-end), (100% - var(--frame-column, 100%)) / 2);
   overflow-y: auto;
   overscroll-behavior: contain;
   /* when Tab or a field scrolls something into view, it stops short of the
@@ -4202,6 +4206,14 @@ textarea.field__input {
     padding-inline-start: calc(var(--space-4) + var(--ic-size, 1.25rem) - var(--bw));
   }
 }
+
+/* the toggle needs the app's script to flip aria-expanded: without script
+   there is nothing it could do, so it isn't there */
+@media (scripting: none) {
+  .sidebar__toggle {
+    display: none;
+  }
+}
 }
 @layer components {
 /* ==========================================================================
@@ -4248,6 +4260,14 @@ textarea.field__input {
   color: var(--ink);
   background: var(--list-bg);
   overflow-wrap: break-word;
+}
+
+/* straight in a Frame's scroll region, a plain list really is edge to edge:
+   it reaches over the region's side padding, and its rows take that padding
+   as their own, so their text lines up with the content above */
+.frame__scroll > .list:not(.list--inset) {
+  --list-pad: var(--frame-pad-start);
+  margin-inline: calc(var(--frame-pad-start) * -1) calc(var(--frame-pad-end) * -1);
 }
 
 /* sections stack with room between them */
@@ -6054,10 +6074,6 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
     font-size: min(var(--sg-text-display), 12vw);
   }
 
-  :root:has(#labels-off:checked) .wf-slot::before {
-    content: none;
-  }
-
   /* text only: the devices keep their size, as a phone does at a large
      Dynamic Type setting */
   :root:has(#text-150:checked) {
@@ -6285,13 +6301,6 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
           that doesn't exist yet.
         </p>
         <div class="sg-controls">
-          <fieldset class="sg-ctl">
-            <legend>Missing elements</legend>
-            <div class="sg-seg">
-              <label><input type="radio" name="labels" id="labels-on" checked />Named</label>
-              <label><input type="radio" name="labels" id="labels-off" />Plain</label>
-            </div>
-          </fieldset>
           <fieldset class="sg-ctl">
             <legend>Text size</legend>
             <div class="sg-seg">
@@ -6825,10 +6834,9 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
           </li>
           <li>
             <strong>Open: at 200% text the bars take most of a phone.</strong>
-            <p>Both bars grow with the text, as they must to be read: on Study they take 658 of 840px
-              and the card scrolls. Sized to that room, the card got too narrow for its own answer, so
-              screens.css gives it an 8rem floor; that floor belongs in Card. Landscape and small
-              phones are wave 5's.</p>
+            <p>Both bars grow with the text, as they must to be read: on Study they take 514 of 840px
+              (658 with the scroll region's padding) and the card scrolls. Card now has an 8rem floor,
+              so it stays wide enough for its own answer. Landscape and small phones are wave 5's.</p>
           </li>
           <li>
             <strong>Open: phones want two decks across.</strong>

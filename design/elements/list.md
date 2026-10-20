@@ -82,7 +82,7 @@ Each is shown live, with its markup, in `elements/list.html` (2.1–2.6).
 
 | Variant | Class | Use | Notes |
 | --- | --- | --- | --- |
-| Plain | `.list` | Rows straight on the screen: a deck's numbers, search results. | Edge to edge: in the scroll region with no padding round it; its rows keep the screen's `--gutter`. Rules close it top and bottom, so its edges read without colour. |
+| Plain | `.list` | Rows straight on the screen: a deck's numbers, search results. | Edge to edge: put it straight in a Frame's scroll region and it reaches over the region's side padding, its rows taking that padding so their text lines up with the content above. Anywhere else its rows keep the screen's `--gutter`. Rules close it top and bottom, so its edges read without colour. |
 | Inset | `.list--inset` | A group that belongs together: a deck's settings. | A square 2px `--line` frame on `--paper`, inside the screen's gutter; 16px in the rows. Its rules are the frame's top and bottom. |
 | With section headers | `.list__head` | A long screen in named parts: decks by what's due, settings by topic. | One `.list` per section, heading inside. Plain: a label over the rule. Inset: the Panel's bar. Real headings, in order. |
 | Row as a link | `a.list__row` | Each row opens something: a deck, a setting's screen. | One target, one tab stop; its accessible name is everything in it, so the title goes first. Ends in `ic--forward`. |

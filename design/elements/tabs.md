@@ -29,7 +29,7 @@ Tabs' own spec.
   tab. Never a fill: a fill is a press, and a fill on the chosen one is the segmented control's
   look. Focus is a round ring, selection a flat bar: they never look alike.
 - **It wraps, it never scrolls sideways.** A hidden scrollbar hides tabs; a second row of tabs is
-  ugly but honest, and only happens at very large text sizes.
+  ugly but honest. Five tabs take two rows on a phone; four or fewer only at large text sizes.
 - Reads roles only. `:hover` only inside `@media (hover: hover)`. States change instantly.
 
 ## Anatomy
@@ -78,9 +78,11 @@ the page:
 - **keys** on a tab: Left and Right move to the previous and next tab and select it (automatic
   activation), wrapping at the ends and reversed in a right-to-left list; Home and End go to the
   first and last; Space selects (a link ignores it);
-- **click or tap** selects without following the link, so the page doesn't jump and the address
-  doesn't change;
-- **hashchange** to a panel's id selects that panel, so a deep link or Back lands on it.
+- **click, tap or a key** selects without following the link, so the page doesn't jump; the
+  address follows with `replaceState` (no new history entry), so a reload or a shared link opens
+  that section and Back still leaves the screen;
+- **hashchange** to a panel's id selects that panel, so a deep link lands on it;
+- keys with Alt, Ctrl or ⌘ held pass through to the browser (Alt+← is Back).
 
 Without the script nothing is hidden: links, then sections, then headings. A `.tabs` carrying
 `data-sg-static` is left alone; the style sheet uses it to show the no-script form.
@@ -122,8 +124,8 @@ tests. They are not API.
 
 ## Platforms
 
-- **Installed PWA:** full width on a phone. The selected section can live in the address, so a
-  deep link, a shared link or Back opens the right one. Tabs never scroll sideways.
+- **Installed PWA:** full width on a phone. The selected section lives in the address, so a deep
+  link, a shared link or a reload opens the right one. Tabs never scroll sideways.
 - **Mac:** Tab reaches the row once and the arrows move along it, as in a native tab view; in a
   WebKit shell turn on `tabFocusesLinks`. Each section is worth a menu bar command (View ›
   Cards ⌘1, Stats ⌘2…).

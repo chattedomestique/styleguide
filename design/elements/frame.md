@@ -156,8 +156,9 @@ A frame doesn't press, lift or fill. Its states are about room.
   frame) loses its top edge. Measured: nothing is cut on `screens.html` at 100%; at 200% the
   Today tiles lose 24–102px. Scroll padding can't reach it; Card would have to make the link the
   box that's scrolled to.
-- At 200% text on an 844-point phone the bars take a lot: on `screens.html` 497px of 840 on Today
-  and 658px on Study, where the study card no longer fits and the stage scrolls. The bars grow
+- At 200% text on an 844-point phone the bars take a lot: on `screens.html`'s Study screen,
+  514px of 840 (658px with the scroll region's padding), so the study card no longer fits and
+  the stage scrolls. The bars grow
   because their text must stay readable (see `tabbar.md`); the trade-off for landscape and small
   phones is wave 5's.
 - `--safe-left` and `--safe-right` are physical. In a right-to-left wide frame the sidebar is on

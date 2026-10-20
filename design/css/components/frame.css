@@ -89,8 +89,11 @@
   /* --frame-column caps the content's width and centres it: set it to
      var(--measure) on a reading screen. The default fills the frame. */
   padding-block: var(--space-5) var(--space-7);
-  padding-inline: max(var(--gutter), var(--safe-left), (100% - var(--frame-column, 100%)) / 2)
-    max(var(--gutter), var(--safe-right), (100% - var(--frame-column, 100%)) / 2);
+  /* published, so an edge-to-edge child (a plain List) can reach over them */
+  --frame-pad-start: max(var(--gutter), var(--safe-left));
+  --frame-pad-end: max(var(--gutter), var(--safe-right));
+  padding-inline: max(var(--frame-pad-start), (100% - var(--frame-column, 100%)) / 2)
+    max(var(--frame-pad-end), (100% - var(--frame-column, 100%)) / 2);
   overflow-y: auto;
   overscroll-behavior: contain;
   /* when Tab or a field scrolls something into view, it stops short of the

@@ -309,7 +309,12 @@
         panels[n].hidden = !on;
       });
       current = i;
-      if (focus) tabs[i].focus();
+      if (focus) {
+        tabs[i].focus();
+        // the address follows, without a history entry: a reload or a shared
+        // link opens this section, and Back still leaves the screen
+        if (history.replaceState) history.replaceState(null, "", "#" + panels[i].id);
+      }
     }
 
     function fromHash() {
@@ -327,7 +332,8 @@
 
     list.addEventListener("keydown", function (e) {
       var i = tabs.indexOf(document.activeElement);
-      if (i === -1) return;
+      if (i === -1 || e.altKey || e.ctrlKey || e.metaKey) return; // Alt+← is the browser's Back
+
       var rtl = getComputedStyle(list).direction === "rtl";
       var next = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1 }[e.key];
       var to = -1;
