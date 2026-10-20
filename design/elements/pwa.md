@@ -1,6 +1,6 @@
 # PWA platform
 
-Element 27 · gates 0–3 done (wireframe, states, colour) · page: `elements/pwa.html` · working starter:
+Element 27 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/pwa.html` · working starter:
 `pwa/` (`../pwa/index.html` from here)
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`, whose §4 holds the
@@ -55,13 +55,36 @@ Opened from disk it shows the screens with no worker.
 | `sw.js` | The service worker (below). |
 | `offline.html` | What a page never opened shows with no connection. |
 | `app.js` | The starter's own code, the part an app replaces: a list of decks in `localStorage`, export and import. |
+| `app.css` | The starter's own CSS, in `@layer app`, roles and tokens only (like `css/screens.css`): the moves between screens (below). |
 
-Each page links `../dist/flashcards.min.css`, `../dist/flashcards.min.js`, the manifest, the icons,
-and preloads the font with `crossorigin`. `<meta name="color-scheme" content="light dark">` lets
+Each page links `../dist/flashcards.min.css`, then `app.css`, `../dist/flashcards.min.js`, the
+manifest, the icons, and preloads the font with `crossorigin`. `<meta name="color-scheme" content="light dark">` lets
 the browser paint a dark ground in dark before the CSS arrives, instead of a white flash. Its
 viewport meta is
 `width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content`, and
 `<meta name="flashcards-sw" content="sw.js">` names the worker.
+
+**Moving between screens.** Today, Decks and Settings are separate pages, so `app.css` opts them
+into cross-document view transitions (`@view-transition { navigation: auto }`), which a page needs
+on both sides of the link:
+
+- the screen crossfades, old to new, within `--dur-hover` (`::view-transition-group(*)`, eased
+  with `--ease-out`);
+- the bars stay put: `view-transition-name: tabbar` on the Tab bar and `sidebar` on the Sidebar,
+  so each is its own layer in the same place on both pages, and the new one shows at once (its
+  old image hidden, its new one not animated): the current place changes as it does on a tap.
+  Two names, because two drawn elements may not share one; Frame's wide variant draws only one of
+  the two bars at a time, and an undrawn element is never captured, so there is never a clash;
+- under `prefers-reduced-motion: reduce` it's off (`navigation: none`): the new page simply
+  replaces the old;
+- progressive: without cross-document view transitions (Chromium 126, Safari 18.2; not Firefox
+  yet) a link loads the next page as it always did. The style sheet's pages don't link `app.css`,
+  so they never animate between pages.
+
+Checked in Chromium 141 over `localhost`: Today to Decks at 390px (the Tab bar) and 1280px (the
+Sidebar), the transition paused and stepped to 0, 50 and 100% with screenshots: the bar already
+showing Decks as current at 0, the content crossfading, one named bar captured each time, no
+sideways scroll; with reduced motion, no view transition at all (`pagereveal` had none).
 
 ### The manifest
 
@@ -97,7 +120,7 @@ meta, like the style sheet's, never gets one.
 
 | Request | How | Why |
 | --- | --- | --- |
-| The shell: the starter's pages, `app.js`, the manifest, the icons, `flashcards.min.css`, `flashcards.min.js`, the font | Precached when the worker installs, in a cache named for its scope and version; cache first. | It opens at once, online or not. |
+| The shell: the starter's pages, `app.css`, `app.js`, the manifest, the icons, `flashcards.min.css`, `flashcards.min.js`, the font | Precached when the worker installs, in a cache named for its scope and version; cache first. | It opens at once, online or not. |
 | Anything else on the same origin | Stale while revalidate: the cached copy now, a fresh one saved for next time. | Fast, and never more than a visit out of date. |
 | A page never cached, offline | `offline.html`, served at the address asked for, with a `<base>` at the scope. | Never the browser's error page. |
 | Another origin, or anything but GET | Not touched: no `respondWith`. | The worker never stands between the app and someone else's server. |
@@ -189,8 +212,8 @@ and fails the build over budget.
 
 | What | Budget | Now |
 | --- | --- | --- |
-| CSS: `dist/flashcards.min.css`, gzipped (what a served app links) | 30 KB | about 13 KB |
-| JS: `dist/flashcards.min.js`, gzipped | 10 KB | about 6 KB with `pwa.js` |
+| CSS: `dist/flashcards.min.css`, gzipped (what a served app links) | 30 KB | about 15 KB |
+| JS: `dist/flashcards.min.js`, gzipped | 10 KB | about 7 KB with `pwa.js` |
 | The font, `fonts/archivo-latin-var.woff2` (already compressed) | 90 KB | 88.0 KB |
 | First load on a mid-range phone, largest contentful paint | 2.5 s | a target, measured on a device |
 
@@ -270,6 +293,10 @@ the cards' and toasts' frames, the switch's knob and every glyph stay, in system
 
 ## Known limits
 
+- **Gate 4, over `localhost` in Chromium 141:** `app.css` is in the precache; an edited `app.css`
+  made a new worker (the bundle restamped `VERSION`), the update band showed, and Reload swapped it
+  in with one reload, serving the new file. Cross-document view transitions are checked in
+  Chromium only; Safari 18.2 has them and wasn't tried, Firefox doesn't yet.
 - **Checked here, in Chromium only:** this page from disk at 320, 390 and 1440px, 100% and 200%
   text, with and without script; the joined style sheet; the keyboard emulation above. Not checked
   in Safari, Firefox, or with a screen reader.

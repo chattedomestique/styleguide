@@ -27,20 +27,20 @@
             <li><a href="../screens.html">Screens</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">Card · gates 0–3</span>
+        <span class="sg-top__status">Card · gates 0–4</span>
       </div>
     </div>
 
     <main id="el-card">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 01</span><span>Colour</span><span>Gates 0 to 3 done</span>
+          <span>Element 01</span><span>Motion</span><span>Gates 0 to 4 done</span>
         </p>
         <h1 class="sg-display">Cards</h1>
         <div class="sg-hero__row">
           <p class="sg-hero__lede">
-            A card holds one idea. The frame is fixed; what goes inside is a slot. This chapter is
-            structure only: greys, hard lines, no motion.
+            A card holds one idea. The frame is fixed; what goes inside is a slot. Greys, hard
+            lines, states that ease, and one card that turns over.
           </p>
           <div class="sg-controls">
             <fieldset class="sg-ctl">
@@ -505,13 +505,17 @@
             <p class="sg-entry__use">The flashcard itself. 5:7, one subject, one hint.</p>
             <p class="sg-entry__classes">
               <code>.card--study</code> <code>.card__stage</code> <code>.card__answer</code>
+              <code>.card__flip</code> <code>.card__turn</code> <code>.card__face</code>
             </p>
             <p class="sg-entry__note">
-              Static faces only. The flip is motion, so it's designed at gate 4: perspective on the
-              parent, backfaces hidden, <code>cubic-bezier(.83, 0, .17, 1)</code>, and under reduced
-              motion a short crossfade instead. The card never grows taller than the screen: inside a
-              Frame, <code>--chrome</code> is measured for you; outside one, set it to the height of
-              the bars. It never gets narrower than 8rem.
+              One face, or both and the Flip button. The live card turns over on a native checkbox
+              drawn as Button's icon-only circle, "Show the answer", so it works without script:
+              Space or a click, and the state is announced. Perspective on the card, both faces
+              hidden from behind, <code>--ease-flip</code> over <code>--dur-move</code>. The face
+              turned away leaves the accessibility tree and the Tab order halfway through, when
+              it's edge-on. Under reduced motion the faces crossfade in place. The card never grows
+              taller than the screen: inside a Frame, <code>--chrome</code> is measured for you;
+              outside one, set it to the height of the bars. It never gets narrower than 8rem.
             </p>
           </header>
           <div class="sg-stage sg-cols" style="--col: 14rem">
@@ -541,6 +545,38 @@
                 </footer>
               </article>
               <p class="sg-caption"><b>Back.</b> The name, and one fact.</p>
+            </div>
+            <div>
+              <article class="card card--study" data-sg-code>
+                <input class="btn btn--icon card__flip" type="checkbox" aria-label="Show the answer" autocomplete="off" />
+                <div class="card__turn">
+                  <div class="card__face">
+                    <div class="card__head"><span class="card__label">03 / 12</span></div>
+                    <div class="card__stage">
+                      <svg class="wf-shape" viewBox="-8 -8 116 116" aria-hidden="true" focusable="false" data-tone="3">
+                        <path
+                          d="M50 6L88.11 72L11.89 72Z"
+                          transform="translate(0 11) translate(50 50) scale(1.16) translate(-50 -50)"
+                        />
+                      </svg>
+                    </div>
+                    <footer class="card__foot"><span class="card__meta">Turn over</span></footer>
+                  </div>
+                  <div class="card__face">
+                    <div class="card__head"><span class="card__label">03 / 12</span></div>
+                    <div class="card__stage">
+                      <p class="card__answer">Triangle</p>
+                    </div>
+                    <footer class="card__foot">
+                      <span class="card__meta">Three sides, three corners</span>
+                    </footer>
+                  </div>
+                </div>
+              </article>
+              <p class="sg-caption">
+                <b>Live.</b> Both faces in one card. Press the Flip button, or Tab to it and press
+                Space. It stays where it is; the card turns over above it.
+              </p>
             </div>
           </div>
         </article>

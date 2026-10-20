@@ -1,6 +1,6 @@
 # Sheet
 
-Element 23 · gates 0–3 done (wireframe, states, colour) · page: `elements/sheet.html`
+Element 23 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/sheet.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Sheet's own spec.
@@ -17,32 +17,39 @@ Sheet's own spec.
 - **Notes:**
   - Modal (`showModal`, `--scrim`). The bottom safe area is the sheet's.
   - Drag to dismiss and detents wait for gate 4; until then the close button is the way out.
+    (Gate 4: a bottom sheet drags down to close, the close button stays, and there are no
+    detents: Motion, below.)
   - Copy: Add a card (a form), Deck options (an action sheet).
 - **Wave 4's shared notes:** as Dialog's (native, focus in and back, Escape, inert page, the
-  scrim, its frame under forced colours, no motion).
+  scrim, its frame under forced colours; motion from wave 7, below).
 
 ## House rules
 
 - **A sheet is a Dialog in another shape.** The same native `<dialog>` and `showModal()`, the
   same opener (`commandfor` + `command="show-modal"`, with Dialog's `js/components/dialog.js` for
   browsers without it and for focus return), the same `<form method="dialog">` closing with a
-  `returnValue`. Sheet has no script of its own.
+  `returnValue`. Its one script of its own, `js/components/sheet.js`, adds the drag, and nothing
+  needs it.
 - **The surface holds, so it's a container:** square, `--paper`, a 2px `--line` frame on the one
   edge that faces the page, no shadow. Behind it, `--scrim`.
 - **Bottom or side is the window's call,** at 45rem, where Frame swaps the tab bar for the
-  sidebar: an open `.sheet` comes from the bottom below it and from the side from it. Only an
-  open modal (`:modal`) follows the window; a `.sheet` that isn't one (the page's pictures) is
+  sidebar: an open `.sheet` comes from the bottom below it and from the side from it. Only a
+  `<dialog class="sheet">` follows the window, open or on its way out: the rule names the element,
+  `dialog.sheet`, not `:modal`, which a closing sheet loses at once (a side sheet would turn into a
+  bottom sheet halfway out of the window). A `.sheet` that isn't one (the page's pictures) is
   drawn as the bottom sheet, and `.sheet--side` pins the side sheet.
 - **Inside, Top bar's standard layout:** the task as the title, centred, and a close button in
-  the actions slot. The close button is always there: drag to dismiss waits for gate 4 and is
-  never the only way out.
+  the actions slot. The close button is always there: a bottom sheet can also be dragged down by
+  its top bar, but the drag is never the only way out.
 - **It owns its safe areas, as a bar does.** A bottom sheet runs edge to edge, pads the home
   indicator and stops short of the status bar; a side sheet runs top to bottom and pads the top
   one. Content inside never reads `--safe-*`.
 - **One scroller:** the body. The top bar stays; the page never scrolls sideways.
 - **The action sheet is Menu on a phone:** Menu's items, order and rule, and Menu's no-anchor
   geometry.
-- **Appears in place.** No transitions until gate 4.
+- **It moves from its own edge and goes back to it.** A bottom sheet rises, a side sheet slides in
+  from the end edge, the scrim fades; under reduced motion it fades where it stands (Motion,
+  below).
 
 ## Anatomy
 
@@ -50,7 +57,7 @@ Sheet's own spec.
 | --- | --- | --- |
 | Scrim | `::backdrop` | `background: var(--scrim)`. A tap on it closes an action sheet (`closedby="any"`), never a form. |
 | Surface | `.sheet` on `<dialog>` | Flex column. Bottom sheet: `inset: auto 0 0`, edge to edge, `block-size: auto` up to `min(90%, 90dvh)`, `margin: 0`, `padding: 0`, a `--sheet-bw` (`--bw`) `--line` frame on the top edge only, `--radius-card`, `--type-body`, ink on `--paper`. Sets `--safe-top` to 0px (it never reaches the status bar) and resets `--card-ink`, `--card-bg` and `--card-ink-soft`, so its buttons read its paper. `dialog.sheet:not([open])` keeps `display: none`. |
-| Top bar | `.topbar` | Top bar's element, standard layout, unchanged: an `h2.topbar__title` that names the sheet (`aria-labelledby`), centred; `flex: none`, so the body gives way first. |
+| Top bar | `.topbar` | Top bar's element, standard layout, unchanged: an `h2.topbar__title` that names the sheet (`aria-labelledby`), centred; `flex: none`, so the body gives way first. On a `<dialog>` it is also the drag handle: `touch-action: pinch-zoom`, so a one-finger drag on it is the script's and a pinch is still the reader's. |
 | Close | `.btn.btn--quiet.btn--icon` in a `form.topbar__actions` | `ic--close`, `aria-label="Close"`, `value="close"`. The `<form method="dialog">` is the bar's actions slot, so it closes with no script. |
 | Body | `.sheet__body` | The task. Grid, 24px gap; `flex: 1 1 auto; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: 16px`. Padding 24px above; below, `max(24px, --safe-bottom + 8px)`; at the sides `max(16px, --safe-left)` and `max(16px, --safe-right)`. |
 
@@ -132,6 +139,55 @@ The pictures on the page are `<div class="sheet">` inside `inert` device frames:
 drawn as the bottom sheet whatever the window, with `.sheet--side` for the side one. The
 `.is-*` classes force Button's states there only.
 
+## Motion
+
+Gate 4. Only `transform` and `opacity` move, and only on a real `<dialog>`: the page's pictures
+stand still, and nothing moves on load.
+
+| Moment | What moves | Timing | Reduced motion |
+| --- | --- | --- | --- |
+| Opening | The sheet from `--sheet-off` to its place: `translateY(100%)` for a bottom sheet and the action sheet (it rises from the bottom edge); `translateX(var(--sheet-end))` for a side sheet, where `--sheet-end` is 100%, or -100% under `:dir(rtl)`, so it slides in from the end edge either way. The scrim fades in. The first frame is `@starting-style`. | `--dur-move`, `--ease-out`: fast, then settling. | It doesn't travel: a fade where it stands, `--dur-fade` (transform takes 0s). |
+| Closing | Back the way it came; the scrim fades. `display` and `overlay` change at the end (`allow-discrete`), so it stays in the top layer until it is out of sight. | `--dur-hover`. | A fade where it stands, `--dur-fade`. |
+| Dragged | The sheet follows the finger (`transform`), down only, with its transition off. | The finger's. | The same: it is the hand moving it. |
+| Let go short | It settles back through the open state's transition. | `--dur-move`. | It is back at once and fades in there (`--dur-fade`). |
+| Let go far enough | It closes through Close, and the exit takes it on from where the finger left it. | `--dur-hover`. | It fades out where it was dropped. |
+
+**Drag to dismiss** (`js/components/sheet.js`, about 100 lines, in `dist/flashcards.js`):
+
+- **Where it starts:** a pointer down on the top bar of an open `dialog.sheet`, anywhere but a
+  control in it (Close, a button, a link, a field). So it never takes a scroll in the body, and a
+  press on Close is a press.
+- **Bottom sheets only:** a sheet that touches the top edge runs top to bottom, which is a side
+  sheet, and doesn't drag.
+- **Release:** past a third of the sheet's height, or a flick down (faster than 0.5px per
+  millisecond over the last few moves, and at least 24px), it closes; anything less settles back.
+  An upward drag stops at the sheet's place; a cancelled pointer settles back.
+- **Closing is Close:** the script presses the sheet's Close button (`click()`), so the dialog
+  closes with Close's `value` as its `returnValue`, the app's `close` handler runs as for a tap,
+  and focus goes back to the opener (natively, or through `dialog.js`). With no Close it calls
+  `close()`.
+- **Escape mid-drag** closes it as usual; the drag is dropped and the sheet opens in its place
+  next time.
+- **Why no detents.** A sheet is as tall as its task (up to 90%), so there is one place for it to
+  be, open, and one way to go, closed. A half-height stop would hide part of a form and need a
+  second gesture to reach the rest; a task that needs more room than that is a screen.
+- **Without script, or without pointer events,** nothing drags, and Close is the way out, as it
+  always is.
+
+**Where it isn't supported, it appears in place, as before.** No `@starting-style`: it comes in
+place. No `overlay` (Safari and Firefox, for now): a closing sheet would leave the top layer at
+once and show in the page's flow while it moved, so the way out sits inside
+`@supports (overlay: auto)` and elsewhere it goes in place.
+
+**Checked** in Chromium 141, frame by frame (Web Animations API, screenshots at 0, 50 and 100%):
+the bottom sheet rising at 390px, the side sheet at 1440px from the right and, with `dir="rtl"`,
+from the left, each closing, with motion and reduced; no sideways scroll at 320, 390 or 1440px
+during or after any of them. The drag with touch emulation (CDP touch events): 60px settles back;
+45% of the sheet closes it with `returnValue` "close" and focus on Add a card; a 90px flick
+closes it; a quick 40px then a pause settles; a drag that starts on Close moves nothing and doesn't
+close; a scroll in the body (at 390 by 420) scrolls it both ways and never moves the sheet; a side
+sheet doesn't drag; under reduced motion a drop fades out where it is and reopens in place.
+
 ## Accessibility
 
 - A modal `<dialog>`, named by its top bar's title (`aria-labelledby`); the page behind is inert.
@@ -143,19 +199,21 @@ drawn as the bottom sheet whatever the window, with `.sheet--side` for the side 
   action sheet's items are plain buttons in reading order, with an `<hr>` separator: no
   `role="menu"`, for Menu's reasons.
 - Nothing relies on colour or on a gesture: the destructive item is its words, and every way out
-  is a button or a key.
+  is a button or a key. The drag is a shortcut for Close, never instead of it.
 
 ## Platforms
 
 - **Installed PWA:** from the bottom, edge to edge, owning the home indicator's safe area; at
   most 90% of the screen, so the deck still shows above it. Landscape on a phone is usually
-  45rem or wider, so a sheet comes from the side there. Drag to dismiss and detents wait for
-  gate 4. The on-screen keyboard doesn't resize a fixed sheet on iOS; the focused field is
+  45rem or wider, so a sheet comes from the side there. It rises in, and drags down by its top bar
+  to close; no detents. The on-screen keyboard doesn't resize a fixed sheet on iOS; the focused field is
   scrolled into view, and the keyboard inset (`interactive-widget`, `visualViewport`) is wave 5's.
 - **Mac:** sheets are system chrome natively (`STYLE.md` §4). In the web shell a window of 45rem
   or wider gets the side sheet; a narrower one behaves as a phone. Escape closes; ⌘. is the
   system's cancel in native sheets.
-- **SwiftUI:** `.sheet(isPresented:)` with `.presentationDetents([.medium, .large])` and a
+- **SwiftUI:** `.sheet(isPresented:)`, which drags down to dismiss natively, with one stop like
+  ours (`.presentationSizing(.fitted)`, iOS 18 and macOS 15, not a list of
+  `.presentationDetents(_:)`), and a
   toolbar `Button("Close", systemImage: "xmark")` at `ToolbarItemPlacement.cancellationAction`
   (iOS); `.inspector(isPresented:content:)` for the side sheet (macOS 14, iOS 17); `.confirmationDialog("Deck options",
   isPresented:titleVisibility: .visible)` for the action sheet, with `Button("Delete deck…",
@@ -178,12 +236,18 @@ drawn as the bottom sheet whatever the window, with `.sheet--side` for the side 
 - The scrim needs `::backdrop` to inherit custom properties (Chrome 122, Firefox 120, Safari
   17.4); older engines draw none (Dialog's limit).
 - `closedby="any"` (light dismiss) is new; where it's missing the action sheet closes with Close,
-  an item or Escape only.
-- `:modal` gates the window's switch, so a `<dialog class="sheet">` opened with `show()` (not
-  modal) stays a bottom sheet. Sheets are always modal; `show()` isn't supported.
+  an item or Escape only. With the motion, a tap on the scrim still closes it (checked).
+- The window's switch is on `dialog.sheet`, not `:modal`, so the shape holds through the exit. A
+  `<dialog class="sheet">` opened with `show()` (not modal) would follow the window too; sheets
+  are always modal, and `show()` isn't supported.
+- The drag's numbers (a third, the flick) were tuned on emulated touch, not a finger on a device.
+  A drag only starts on the top bar; one that starts in the body when it is scrolled to the top
+  (as iOS sheets do) would have to share the gesture with the scroll, and isn't done.
+- The way out needs `overlay`, which only Chromium has: in Safari and Firefox a sheet moves in and
+  goes in place (Motion). The drag works there, and its close is in place too.
 - The page behind can scroll under a wheel on these long style-sheet pages; in an app inside
   Frame the document doesn't scroll (Dialog's limit).
 - At 320px and 200% text a pinned side sheet is 272px wide and the page sliver 48px; the page's
   own pictures of it, squeezed inside the stage, wrap the title hard.
 - Checked in Chromium 141 only (keyboard, touch emulation, forced colours, invoker commands on
-  and removed), not in Safari, Firefox or on a device.
+  and removed, motion frame by frame, the drag), not in Safari, Firefox or on a device.

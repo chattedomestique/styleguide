@@ -1,6 +1,6 @@
 # Stepper
 
-Element 12 · gates 0–3 done (wireframe, states, colour) · page: `elements/stepper.html`
+Element 12 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/stepper.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Stepper's own spec.
@@ -30,7 +30,9 @@ Stepper's own spec.
   instead of doing nothing.
 - **Typing is never corrected under your fingers.** The script steps only on a button or an arrow
   key. A typed 70 stays 70 until the form checks it: the input's `pattern` (`5|[1-4][05]|50` for 5–50 in fives) makes it invalid, so native validation and Form's error both catch it. The next step brings it into range.
-- States change instantly. `:hover` only inside `@media (hover: hover)`.
+- `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): nothing of its own. The circles move as Button's do, the value's ground as
+  Field's; the number changes at once.
 
 ## Anatomy
 

@@ -35,7 +35,8 @@
      of the accessibility tree, and the next toast wouldn't be heard. It
      lets clicks through to the content round the toast.
    · The action and Dismiss are Buttons: pills, because they act.
-   · Appears in place. No motion until gate 4.
+   · It rises in, and fades out before toast.js takes it away (motion,
+     below).
    ========================================================================== */
 
 /* --- the region ---------------------------------------------------------------
@@ -160,6 +161,44 @@
 /* 12px a side, as in a bar: short of room, and the frame still reads */
 .toast .toast__action {
   padding-inline: var(--space-3);
+}
+
+/* --- motion -----------------------------------------------------------------------
+   In, it rises 12px into place as it fades in, over --dur-hover, eased
+   out. Out, it fades where it is: toast.js sets inert on it when it closes
+   (no more taps, no focus, out of the accessibility tree, nothing
+   announced), waits for this fade to end, then takes it out.
+
+   · Only a toast in a live region (role="status") moves, which is only ever
+     one toast.js put there: the page's pictures and anything on load don't.
+   · 12px is the region's own padding below the toast, so a rising toast
+     never reaches past the region, over the tab bar or into a scrollbar.
+   · Where @starting-style isn't supported it appears in place; with no
+     transition at all, toast.js's fallback timer is 0 and it goes at once. */
+
+.toasts[role="status"] > .toast {
+  transition-property: opacity, transform;
+  transition-duration: var(--dur-hover);
+  transition-timing-function: var(--ease-out);
+}
+
+.toasts[role="status"] > .toast[inert] {
+  opacity: 0;
+}
+
+@starting-style {
+  .toasts[role="status"] > .toast {
+    opacity: 0;
+    transform: translateY(var(--space-3));
+  }
+}
+
+/* reduced motion: no rise, a short fade in and out */
+@media (prefers-reduced-motion: reduce) {
+  .toasts[role="status"] > .toast {
+    transition-property: opacity;
+    transition-duration: var(--dur-fade);
+  }
 }
 
 /* --- forced colours --------------------------------------------------------------

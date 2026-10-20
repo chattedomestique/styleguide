@@ -1,6 +1,6 @@
 # List
 
-Element 18 · gates 0–3 done (wireframe, states, colour) · page: `elements/list.html`
+Element 18 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/list.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 List's own spec.
@@ -16,7 +16,7 @@ List's own spec.
   card's list rows); a row with a switch (the settings row); a row with actions.
 - **Swipe** to reveal actions is allowed only if a visible "More" (`ic--more`) button offers the
   same actions. Without script, the More button is all there is; the swipe is gate 4 or an app's
-  own.
+  own. *Gate 4 (wave 7) decided: not built; an app's own (States, Swipe to reveal).*
 - **Relation to Card:** `.card__list` stays the card's; List is the full-width, screen-level
   version.
 
@@ -33,8 +33,9 @@ List's own spec.
   title; press fills the row with ink (`--fill`), as the card's list rows do.
 - **The trail keeps to the end,** on its own line if it has to. A chevron means "goes
   somewhere", so only a link row gets one.
-- **Swipe is not built.** It is gate 4 (motion) or an app's own; the More button is the action.
-- Reads roles only. `:hover` only inside `@media (hover: hover)`. States change instantly.
+- **Swipe is not built, decided at gate 4.** It is an app's own; the More button is the action.
+- Reads roles only. `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): a link row's fill eases; nothing else moves (Motion, below).
 
 ## Anatomy
 
@@ -114,6 +115,16 @@ Only a link row has states; a static row has none and no hand.
 `.is-hover`, `.is-focus` and `.is-active` on `a.list__row` force a state for the page and for
 tests. They are not API. A settings row's states are Switch's; the More button's are Button's.
 
+**Motion.** A link row's `--fill` eases: in over `--dur-press` as a press lands, out over
+`--dur-hover`, with `--ease-out`. The underline and the ring are instant; a Tag inside swaps at
+once. Under reduced motion the fill fades over `--dur-fade`.
+
+**Swipe to reveal, not built (decided at gate 4).** The More button is the accessible route and
+the only one we draw. A swipe needs a device to tune (the distance, the speed that commits it,
+how it fights the page's own scroll and the system's back gesture), and getting it wrong costs
+more than a button: an accidental Delete. An app may add one on top, offering exactly the More
+button's actions, and the button stays.
+
 ## Accessibility
 
 - `<ul role="list">` keeps list semantics in Safari after `list-style: none`; screen readers
@@ -131,7 +142,7 @@ tests. They are not API. A settings row's states are Switch's; the More button's
 
 - **Installed PWA:** a plain list runs to both edges; the frame (wave 3, Frame) keeps clear of
   the notch, never the list. Press shows on iOS with the shell's `touchstart` listener. A swipe
-  to reveal actions, if an app adds one, is gate 4, and the More button stays.
+  to reveal actions is an app's own, if it adds one, and the More button stays.
 - **Mac:** a collection you select from is a `List` or `Table`, so ⌘ and ⇧ selection, arrows and
   type-select come free. The More menu's actions are also a context menu and menu bar items with
   shortcuts (`STYLE.md` §4). In a WebKit shell, turn on `tabFocusesLinks` or rows are skipped by
@@ -156,7 +167,7 @@ tests. They are not API. A settings row's states are Switch's; the More button's
 
 - The row-with-actions spacing (`.list__row:has(+ .list__actions)`) needs `:has()`; without it
   the row keeps its full end padding, which only costs space.
-- Swipe is not built (gate 4). Selection (a current row in a split view) is not part of this
+- Swipe is not built (decided at gate 4: Motion). Selection (a current row in a split view) is not part of this
   element: a list of places on a wide screen is the Sidebar.
 - Checked in Chromium only (touch, forced colours, 200% text), not on an iPhone, in Safari or in
   Firefox.

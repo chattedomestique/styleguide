@@ -146,17 +146,33 @@
   --ratio-media: 4 / 3;
   --ratio-study: 5 / 7; /* the flashcard */
 
-  /* --- motion (gate 4: declared, not yet used — states change instantly) ---- */
+  /* --- motion (gate 4) ------------------------------------------------------
+     The only durations and curves in the system: check 5 refuses a literal
+     ms, s or cubic-bezier() anywhere else. Derive from these with calc()
+     (the spinner turns in two moves, the loading delay is a hover and a
+     half), never a new number.
+       --dur-press  a press lands: :active, within it; a dialog or menu leaves
+                    (leaving is quicker than arriving; a sheet or toast, which
+                    travel further, leave over --dur-hover)
+       --dur-hover  hover, focus and release: the state numbers settle
+       --dur-move   something travels: the flip, the Disclosure body
+       --dur-fade   reduced motion: the crossfade that stands in for a move,
+                    150ms at most (STYLE §2 Motion). One value, so every
+                    reduced counterpart is equally gentle.
+       --ease-out   arrives fast, settles slowly: states, entrances
+       --ease-flip  slow, fast, slow: the card turning over */
   --dur-press: 130ms;
   --dur-hover: 200ms;
   --dur-move: 520ms;
+  --dur-fade: 150ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-flip: cubic-bezier(0.83, 0, 0.17, 1);
 }
 
 /* Interaction, as two numbers that every pressable element reads. --lift is
    the hard shadow (0 flat, 1 raised; never a move, so the hit box stays put);
-   --fill is colour (0 outline, 1 filled). Registered so gate 4 can animate. */
+   --fill is colour (0 outline, 1 filled). Registered as numbers, so a
+   transition can ease them: every state is a transition of these two. */
 @property --lift {
   syntax: "<number>";
   inherits: true;
@@ -790,7 +806,9 @@ label {
    · :hover lives inside @media (hover: hover), or it sticks after a tap.
    · Never put cqi on .card itself: its container is its PARENT. Padding and
      sizes that use cqi live on the parts, where the container is the card.
-   · States change instantly. Transitions belong to gate 4.
+   · Motion (gate 4): the state numbers ease (--dur-hover, a press
+     --dur-press), the study card turns over, and nothing else moves.
+     Focus rings are instant. Each has its reduced form at the end.
    ========================================================================== */
 
 .card {
@@ -824,6 +842,9 @@ label {
   overflow: clip;
   overflow-wrap: break-word; /* it clips: a word too long for it breaks, not vanishes */
   box-shadow: var(--shadow-select), var(--shadow-lift);
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* on a tone, soft text is a mix of the tone's own ink, so it works on any fill */
@@ -898,8 +919,10 @@ label {
   text-transform: uppercase;
 }
 
-/* the control slot: a 44px hit area around a 20px box. */
+/* the control slot: a 44px hit area around a 20px box. The box fills
+   through --fill while pressed. */
 .card__ctl {
+  --fill: 0;
   display: grid;
   place-items: center;
   flex: none;
@@ -910,6 +933,7 @@ label {
   color: inherit;
   background: none;
   border: 0;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .card__ctl::before,
@@ -921,6 +945,7 @@ label {
   content: "";
   inline-size: 1.25rem;
   block-size: 1.25rem;
+  background: color-mix(in srgb, currentColor calc(var(--fill) * 100%), transparent);
   border: var(--bw) solid currentColor;
   border-radius: var(--radius-ctl);
 }
@@ -1016,14 +1041,19 @@ label {
 
 /* a foot link is the card's main action: a full 44px target. The negative
    margins spend the foot's own padding (and its rule) so the foot stays 44px,
-   and keep its text in line with the rest when it wraps. */
+   and keep its text in line with the rest when it wraps. Pressed, it swaps
+   ink and paper through --fill, as a list row does. */
 .card__foot :is(a, button):not(.card__action, .btn) {
+  --fill: 0;
   display: inline-flex;
   align-items: center;
   min-block-size: var(--hit);
   margin-block: calc(-1 * var(--space-2) - var(--bw-thin)) calc(-1 * var(--space-2));
   margin-inline: calc(-1 * var(--space-2));
   padding-inline: var(--space-2);
+  color: color-mix(in srgb, var(--card-bg) calc(var(--fill) * 100%), currentColor);
+  background-color: color-mix(in srgb, var(--card-ink) calc(var(--fill) * 100%), transparent);
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* its bottom edge is the card's clip edge, so the ring goes inside */
@@ -1047,7 +1077,8 @@ label {
 }
 
 /* a list of links, ruled. Used in panels. The whole row is the link, count
-   included, so a tap anywhere on it lands: <a><span>Name</span><span>12</span></a> */
+   included, so a tap anywhere on it lands: <a><span>Name</span><span>12</span></a>
+   Pressed, it swaps ink and paper through --fill. */
 .card__list > li {
   font: var(--type-body);
   font-variant-numeric: tabular-nums;
@@ -1059,6 +1090,7 @@ label {
 }
 
 .card__list a {
+  --fill: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1066,7 +1098,10 @@ label {
   gap: var(--space-3);
   min-block-size: var(--hit);
   padding: var(--space-2) var(--card-pad);
+  color: color-mix(in srgb, var(--card-bg) calc(var(--fill) * 100%), currentColor);
+  background-color: color-mix(in srgb, var(--card-ink) calc(var(--fill) * 100%), transparent);
   text-decoration: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .card__list a:focus-visible {
@@ -1095,6 +1130,7 @@ label {
   border: var(--bw) solid var(--card-ink);
   border-radius: var(--radius-pill);
   text-decoration: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .card__action.is-hover {
@@ -1221,11 +1257,11 @@ label {
 }
 
 /* --- variant: study --------------------------------------------------------
-   The flashcard itself: 5:7, one subject, one hint. The flip is motion, so it
-   is designed at gate 4; the faces here are static. It never outgrows a
-   phone: --chrome is the height of the screen's bars (Frame publishes it;
-   outside a Frame, set it) and the whole card fits under them. svh, so it
-   is sized once and doesn't jump as bars hide. */
+   The flashcard itself: 5:7, one subject, one hint. One face, as here, or
+   both faces and the Flip button that turns it over (the flip, below). It
+   never outgrows a phone: --chrome is the height of the screen's bars
+   (Frame publishes it; outside a Frame, set it) and the whole card fits
+   under them. svh, so it is sized once and doesn't jump as bars hide. */
 
 .card--study {
   /* a floor: at 200% text the bars can take most of a phone, and a card
@@ -1273,6 +1309,115 @@ label {
   overflow-wrap: anywhere; /* and where hyphenation isn't available, anywhere beats overflow */
 }
 
+/* --- the flip -------------------------------------------------------------------
+   A study card that holds both faces turns over. No script: the Flip button
+   is a native checkbox drawn as Button's icon-only circle, and the card
+   reads it with :has(). Space and a click work, and the state is announced.
+
+     <article class="card card--study">
+       <input class="btn btn--icon card__flip" type="checkbox"
+              aria-label="Show the answer" autocomplete="off">
+       <div class="card__turn">
+         <div class="card__face">…head, stage, foot: the front…</div>
+         <div class="card__face">…the back…</div>
+       </div>
+     </article>
+
+   · The card keeps the size and lends the perspective; the 5:7 floor moves
+     to .card__turn, and each face draws the frame, so the frame turns too.
+   · The Flip button never turns and never hides: focus stays on it. It is
+     first in the source, so a screen reader meets it, then the face that
+     shows; it is drawn under the faces, on the axis they turn about, so
+     the card never turns away from under it.
+   · The face turned away is visibility: hidden: out of the accessibility
+     tree and the Tab order, and not clickable. It swaps at the halfway
+     point, when both faces are edge-on and neither can be seen, by a
+     transition with a delay (visibility is a named exception in check 5).
+   · autocomplete="off": a reload never restores a turned card, which would
+     also be a turn on load. */
+
+.card--study:has(> .card__turn) {
+  --card-flip-room: calc(var(--hit) + var(--space-3)); /* the button and its gap */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: var(--space-3);
+  aspect-ratio: auto;
+  max-inline-size: min(22rem, (100svh - var(--chrome, 0px) - var(--card-flip-room)) * 5 / 7);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  overflow: visible; /* the near edge grows as it turns: don't cut it */
+  perspective: 60rem;
+}
+
+.card__turn {
+  display: grid;
+  grid-row: 1;
+  justify-self: stretch;
+  min-inline-size: 0;
+  aspect-ratio: var(--ratio-study); /* a floor: large text makes it taller */
+  transform-style: preserve-3d;
+  transition: transform var(--dur-move) var(--ease-flip);
+}
+
+/* a face is the study card's frame and parts, drawn on one side */
+.card__face {
+  display: flex;
+  flex-direction: column;
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+  background: var(--card-bg);
+  border: var(--bw) solid var(--card-line);
+  border-radius: var(--card-radius);
+  overflow: clip;
+  backface-visibility: hidden;
+  transition: visibility 0s calc(var(--dur-move) / 2);
+}
+
+/* the back starts turned away */
+.card__face + .card__face {
+  transform: rotateY(180deg);
+  visibility: hidden;
+}
+
+.card--study:has(> .card__flip:checked) > .card__turn {
+  transform: rotateY(180deg);
+}
+
+.card--study:has(> .card__flip:checked) > .card__turn > .card__face:first-child {
+  visibility: hidden;
+}
+
+.card--study:has(> .card__flip:checked) > .card__turn > .card__face + .card__face {
+  visibility: visible;
+}
+
+/* the Flip button: Button's icon-only circle, on the page under the card,
+   so it reads the page's roles, not the card's tone */
+.card--study > .card__flip {
+  --btn-ink: var(--ink);
+  --btn-bg: var(--paper);
+  grid-row: 2;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.card__flip::before {
+  content: "";
+  inline-size: var(--ic-size, 1.25rem);
+  block-size: var(--ic-size, 1.25rem);
+  background: currentColor;
+  mask: var(--icon-flip) center / contain no-repeat;
+}
+
+/* the ring is the page's: outside the card's frame and on the canvas, even
+   on an ink card */
+.card.card--study > .card__flip:focus-visible {
+  outline-color: var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
 /* --- states ----------------------------------------------------------------
    .is-* classes force a state for documentation and tests. They are not an
    API; real states come from :hover, :focus-visible, :active and aria-*. */
@@ -1317,24 +1462,23 @@ label {
 }
 
 /* pressed: every control answers a press. A lifted card goes back onto the
-   surface and its colour stays. After hover so it wins. */
+   surface and its colour stays. After hover so it wins. A press lands over
+   --dur-press; letting go settles over --dur-hover, so a quick tap is seen. */
 :is(.card--link, .card--ghost):is(:active, .is-active) {
   --lift: 0;
   --fill: 1;
 }
 
-.card__action:active {
+.card__action:active,
+.card__ctl:active,
+.card__list a:active,
+.card__foot :is(a, button):not(.card__action, .btn):active {
   --fill: 1;
 }
 
-.card__ctl:active::before {
-  background: currentColor;
-}
-
-.card__list a:active,
-.card__foot :is(a, button):not(.card__action, .btn):active {
-  color: var(--card-bg);
-  background: var(--card-ink);
+:is(.card--link, .card--ghost):is(:active, .is-active),
+:is(.card__action, .card__ctl, .card__list a, .card__foot :is(a, button):not(.card__action, .btn)):active {
+  transition-duration: var(--dur-press);
 }
 
 /* selected: the frame doubles. A ring, not a wider border, so nothing shifts.
@@ -1398,13 +1542,65 @@ label {
   margin-inline-start: calc(var(--bw) * -1);
 }
 
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant (STYLE §2 Motion). The lift appears without sliding
+   out and the fill keeps a short fade. The card doesn't turn: the back,
+   which lies on top of the front, fades in or out over --dur-fade, so the
+   page never shows through. The face coming in joins the accessibility
+   tree at once; the face going away leaves it when the fade is done. */
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card__ctl,
+  .card__action,
+  .card__list a,
+  .card__foot :is(a, button):not(.card__action, .btn) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+
+  .card--study > .card__turn,
+  .card--study:has(> .card__flip:checked) > .card__turn {
+    transform: none;
+    transition: none;
+  }
+
+  .card__turn > .card__face {
+    transform: none;
+    opacity: 1;
+    transition:
+      opacity var(--dur-fade) var(--ease-out),
+      visibility 0s var(--dur-fade);
+  }
+
+  .card__turn > .card__face + .card__face {
+    opacity: 0;
+  }
+
+  .card--study:not(:has(> .card__flip:checked)) > .card__turn > .card__face:first-child,
+  .card--study:has(> .card__flip:checked) > .card__turn > .card__face + .card__face {
+    opacity: 1;
+    transition-delay: 0s;
+  }
+}
+
 /* --- forced colours ----------------------------------------------------------
    Shadows and fills disappear in forced-colors mode, so every state that
    leaned on them gets a line instead. */
 
 @media (forced-colors: active) {
-  .card {
+  .card,
+  .card__face {
     border-color: CanvasText;
+  }
+
+  /* the Flip glyph is a mask, painted with a background: name its colour */
+  .card__flip::before {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+
+  .card__flip:is(:active, .is-active)::before {
+    background-color: HighlightText;
   }
 
   .card--link:is(.is-hover, .is-focus, :has(.card__link:focus-visible)) {
@@ -1457,7 +1653,11 @@ label {
      (primary) still shows a press on a touch screen, where nothing hovers.
    · Rest is flat: the pill already says "press me". Hover lifts. Press
      drops the lift and keeps the fill. Nothing moves the hit box.
-   · :hover only inside @media (hover: hover). No transitions (gate 4).
+   · Motion (gate 4): the two numbers ease, nothing else. Hover, focus and
+     release settle over --dur-hover; a press lands over --dur-press. The
+     ring is an outline and never eases. Reduced motion: the lift is
+     instant, the fill fades over --dur-fade.
+   · :hover only inside @media (hover: hover).
    ========================================================================== */
 
 .btn {
@@ -1504,6 +1704,9 @@ label {
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-press), var(--shadow-select), var(--shadow-lift);
   touch-action: manipulation;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* a leading icon (or the busy spinner) sits closer to the curve, so the
@@ -1617,10 +1820,13 @@ label {
 }
 
 /* pressed: back onto the surface, the fill stays, and with no lift the inner
-   ring shows. After hover, so it wins. */
+   ring shows. After hover, so it wins. It lands over the press duration;
+   letting go settles back over the hover duration (the rule above), so a
+   quick tap is still seen. */
 .btn:is(:active, .is-active) {
   --lift: 0;
   --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 /* busy: the label stays, a spinner leads, and a second press does nothing,
@@ -1642,6 +1848,17 @@ label {
   --btn-rest-bg: transparent;
   --btn-rest-line: var(--ink-faint);
   border-style: dashed;
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the shadow appears without sliding out, and the
+   fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -1724,7 +1941,10 @@ label {
      a positioning wrapper for the leading icon and the clear button.
    · Invalid never leans on colour: the frame doubles, and the message says
      how to fix it, behind a warning glyph.
-   · :hover lives inside @media (hover: hover). States change instantly.
+   · :hover lives inside @media (hover: hover).
+   · Motion (gate 4): the input's hover ground and the clear button's fill
+     are --fill, and ease (--dur-hover; a press, --dur-press). The ring,
+     the invalid frame and the error are instant: feedback never waits.
    ========================================================================== */
 
 .field {
@@ -1777,6 +1997,7 @@ label {
 }
 
 .field__input {
+  --fill: 0; /* the hover ground: paper to canvas */
   display: block;
   inline-size: 100%;
   min-block-size: var(--hit);
@@ -1787,11 +2008,12 @@ label {
      base.css's rule, and at the smaller Dynamic Type sizes 1rem is under 16px */
   font-size: max(1rem, 16px);
   color: var(--ink);
-  background: var(--paper);
+  background: color-mix(in srgb, var(--canvas) calc(var(--fill) * 100%), var(--paper));
   border: var(--bw) solid var(--line);
   border-radius: var(--radius-ctl);
   -webkit-appearance: none;
   appearance: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* placeholders are examples, never the label. Firefox fades them by default */
@@ -1869,6 +2091,7 @@ textarea.field__input {
   color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
   background: none;
   border: 0;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .field__clear[hidden] {
@@ -1900,7 +2123,7 @@ textarea.field__input {
 /* hover: a quiet change of ground, on fields you can type in */
 @media (hover: hover) {
   .field__input:read-write:hover:not(:focus) {
-    background: var(--canvas);
+    --fill: 1;
   }
 
   .field__clear:hover {
@@ -1909,7 +2132,7 @@ textarea.field__input {
 }
 
 .field__input.is-hover {
-  background: var(--canvas);
+  --fill: 1;
 }
 
 /* focus: base.css draws the ring on the input; this forces it for the page */
@@ -1930,6 +2153,10 @@ textarea.field__input {
 
 .field__clear:is(.is-hover, :active, .is-active) {
   --fill: 1;
+}
+
+.field__clear:is(:active, .is-active) {
+  transition-duration: var(--dur-press);
 }
 
 /* invalid: the frame doubles, inwards, so nothing shifts and the focus ring
@@ -1963,6 +2190,17 @@ textarea.field__input {
 
 .field__input:disabled ~ .field__clear {
   display: none;
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the grounds and fills keep a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .field__input,
+  .field__clear,
+  .field__clear:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -2113,7 +2351,10 @@ textarea.field__input {
    · Ink is currentColor, the track is the surface itself, so a meter reads
      on paper, on any tone and on an ink card with no extra class.
    · Square: a bar holds, it doesn't act (rule 3).
-   · The spinner is a still frame until gate 4. It has to read on its own.
+   · Motion (gate 4): the spinner turns, and only the spinner, only while
+     it's shown, and it shows only after a wait (the loading delay). Its
+     still frame still has to read on its own: reduced motion slows it, and
+     the words always carry the meaning. The bars never animate a value.
    ========================================================================== */
 
 /* --- the labelled bar: label and value on one line, the bar under them ----- */
@@ -2220,7 +2461,8 @@ textarea.field__input {
 
 /* --- progress: the native element, drawn like the meter --------------------
    Always with a value. A task with no known length gets the spinner, not an
-   indeterminate bar (that one animates, and gate 4 isn't open). */
+   indeterminate bar (that one says nothing, and its motion is the
+   browser's, not ours). */
 
 .progress__bar {
   appearance: none;
@@ -2247,11 +2489,21 @@ textarea.field__input {
   background: currentColor;
 }
 
-/* --- spinner: a still frame and words --------------------------------------
+/* --- spinner: a still frame, words, and a turn --------------------------------
    An open ring on the icon grid: 2px, square caps, a quarter missing at the
-   top right. Static, it still reads as "busy"; gate 4 turns it. The words sit
+   top right. Still, it reads as "busy"; shown, it turns. The words sit
    inside: <p class="spinner" role="status">Loading decks…</p>. Empty, it is
-   the glyph alone, for a busy button, whose label is the words. */
+   the glyph alone, for a busy button, whose label is the words.
+
+   The loading delay: a spinner waits 300ms (a hover and a half) before it
+   shows, then fades in, so a quick load or a quick action never flashes
+   one. The wait is an animation-delay on its appearance, filled backwards
+   (invisible while it waits, and the animation ends once it's shown); its
+   room is kept, so nothing shifts when it comes. Hidden and shown again
+   (the hidden attribute, display: none), it waits again. The words are in
+   the accessibility tree from the start: a live region speaks when its
+   text arrives, and a script that wants a quick load silent too inserts
+   the words after the same wait. */
 
 /* a grid, not flex: the words' column can shrink below its longest word, so
    they wrap in a narrow card instead of running out of it. Implicit columns,
@@ -2262,6 +2514,13 @@ textarea.field__input {
   grid-auto-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: var(--space-2);
+  animation: spinner-wait var(--dur-hover) var(--ease-out) calc(var(--dur-hover) * 1.5) backwards;
+}
+
+@keyframes spinner-wait {
+  from {
+    opacity: 0;
+  }
 }
 
 /* centred on the first line of the words, so it stays put when they wrap */
@@ -2273,6 +2532,35 @@ textarea.field__input {
   background: currentColor;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 3a9 9 0 1 0 9 9'/%3E%3C/svg%3E")
     center / contain no-repeat;
+  /* one turn in two moves (about a second), at a constant rate: a turn
+     that eased would look like it stalls. Four turns, about four seconds,
+     then it rests: anything that moves by itself for more than five
+     seconds beside other content needs a way to stop it (WCAG 2.2.2), and
+     a spinner has none. The words carry the wait from there; a long one
+     changes them (states.md). */
+  animation: spinner-turn calc(var(--dur-move) * 2) linear 4;
+}
+
+@keyframes spinner-turn {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/* Reduced motion: a slow turn, not a pulse. A pulse is the ring going
+   translucent and back for as long as the wait lasts, which rule 2 doesn't
+   allow as a look, and a blink is harder on the eyes than a slow, small
+   turn. A third of the speed still says "still working"; the words say
+   what. The loading delay stays: it's timing, not movement. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: var(--dur-fade);
+  }
+
+  .spinner::before {
+    animation-duration: calc(var(--dur-move) * 6);
+    animation-iteration-count: 1; /* one slow turn: about three seconds */
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -2326,7 +2614,10 @@ textarea.field__input {
    · The box is absolutely placed in the label's padding, so the words are
      ordinary inline text: they wrap under themselves, and a count or a <b>
      inside them needs no wrapper.
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the two numbers ease, as Button's do: --dur-hover in
+     and out, --dur-press as a press lands. The glyph and the ring are
+     instant: checked shows the moment it's true.
    ========================================================================== */
 
 .checkbox {
@@ -2378,6 +2669,9 @@ textarea.field__input {
   box-shadow: var(--shadow-press), var(--shadow-invalid), var(--shadow-lift);
   -webkit-appearance: none;
   appearance: none;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* the glyph spans the whole box, frame included, so it draws on its own 24
@@ -2466,6 +2760,7 @@ textarea.field__input {
   --lift: 0;
   --fill: 1;
   --shadow-press: inset 0 0 0 var(--bw) var(--paper);
+  transition-duration: var(--dur-press);
 }
 
 /* invalid: the frame doubles inwards, as a field's. On one checkbox it comes
@@ -2487,6 +2782,17 @@ textarea.field__input {
 
 .checkbox__label:has(> .checkbox__input:disabled) {
   color: var(--ink-faint);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the lift appears without sliding out, and the fill
+   keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .checkbox__input,
+  .checkbox__label:active > .checkbox__input:not(:disabled) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -2572,7 +2878,10 @@ textarea.field__input {
      the dot, a shape, not a colour.
    · Help and errors are Field's: .field__help and .field__error on the group,
      .radio__help under one option.
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the two numbers ease, as Button's do: --dur-hover in
+     and out, --dur-press as a press lands. The dot and the ring are
+     instant: chosen shows the moment it's true.
    ========================================================================== */
 
 .radio {
@@ -2622,6 +2931,9 @@ textarea.field__input {
   box-shadow: var(--shadow-invalid), var(--shadow-lift);
   -webkit-appearance: none;
   appearance: none;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* the dot: 10px, centred, so 5px of ground shows round it */
@@ -2698,6 +3010,7 @@ textarea.field__input {
 .radio__input.is-active {
   --lift: 0;
   --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 /* invalid: a whole group is wrong (nothing chosen), so every circle's frame
@@ -2719,6 +3032,17 @@ textarea.field__input {
 
 .radio__label:has(> .radio__input:disabled) {
   color: var(--ink-faint);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the lift appears without sliding out, and the fill
+   keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .radio__input,
+  .radio__label:active > .radio__input:not(:disabled) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -2795,7 +3119,11 @@ textarea.field__input {
      says on or off, and the name must not change with the state.
    · --fill is the track's ground (ink when on, or while pressed); the knob
      takes the other colour. --lift is a hard shadow: hover and focus.
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the knob translates along its lane (never its layout
+     position), and the two numbers ease, as Button's do: --dur-hover, and
+     --dur-press as a press lands. The press stretch and the word are
+     instant. Reduced motion: the knob jumps and the fill fades.
    ========================================================================== */
 
 .switch {
@@ -2861,12 +3189,15 @@ textarea.field__input {
   --lift: 0;
   --fill: 0;
   --shadow-lift: calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--line);
+  --switch-track: 3.25rem;
+  --switch-on: 0; /* where the knob is: 0 at the start, 1 at the end */
+  --switch-dir: 1; /* translate is physical: -1 when the writing runs right to left */
 
   display: inline-grid;
   flex: none;
   align-items: center;
   justify-items: start;
-  inline-size: 3.25rem;
+  inline-size: var(--switch-track);
   block-size: 1.75rem;
   margin: 0;
   padding: var(--bw);
@@ -2876,22 +3207,34 @@ textarea.field__input {
   box-shadow: var(--shadow-lift);
   -webkit-appearance: none;
   appearance: none;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
-/* the knob: a 20px circle in the other colour, at the start when off */
+.switch__input:dir(rtl) {
+  --switch-dir: -1;
+}
+
+/* the knob: a 20px circle in the other colour. It sits at the start of the
+   lane and travels by translate: the lane (the track less its frame and
+   padding) less the knob, so it ends flush whatever its width. */
 .switch__input::before {
+  --switch-knob: 1.25rem;
   content: "";
-  inline-size: 1.25rem;
+  inline-size: var(--switch-knob);
   block-size: 1.25rem;
   background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
   border-radius: var(--radius-pill);
+  translate: calc(var(--switch-dir) * var(--switch-on) * (var(--switch-track) - var(--bw) * 4 - var(--switch-knob))) 0;
+  transition: translate var(--dur-hover) var(--ease-out);
 }
 
 /* on: the track fills and the knob goes to the end (logical, so it follows
    the writing direction) */
 .switch__input:checked {
   --fill: 1;
-  justify-items: end;
+  --switch-on: 1;
 }
 
 /* help under the row, in line with the words */
@@ -2925,16 +3268,20 @@ textarea.field__input {
 }
 
 /* pressed: down onto the page, the track fills, and the knob stretches
-   towards where it's going, as a thumb squashes it */
+   towards where it's going, as a thumb squashes it. The stretch is a width,
+   so it is instant, and an on knob keeps its end edge where it was (no
+   transition into the press); letting go, it slides. */
 .switch__label:active .switch__input:not(:disabled),
 .switch__input.is-active {
   --lift: 0;
   --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 .switch__label:active .switch__input:not(:disabled)::before,
 .switch__input.is-active::before {
-  inline-size: 1.625rem;
+  --switch-knob: 1.625rem;
+  transition: none;
 }
 
 /* disabled: dashed and faint, never faded; the help says why. Last. */
@@ -2946,13 +3293,28 @@ textarea.field__input {
 }
 
 .switch__input:disabled::before {
-  inline-size: 1.25rem;
+  --switch-knob: 1.25rem;
   background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink-faint));
 }
 
 .switch__label:has(.switch__input:disabled),
 .switch__input:disabled + .switch__state {
   color: var(--ink-faint);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   The knob doesn't travel: it is at the other end at once. The lift appears
+   without sliding out; the fill keeps a short fade. On and Off say it too. */
+
+@media (prefers-reduced-motion: reduce) {
+  .switch__input,
+  .switch__label:active .switch__input:not(:disabled) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+
+  .switch__input::before {
+    transition: none;
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -3045,7 +3407,12 @@ textarea.field__input {
      colours keep it as the system's Highlight.
    · When the options can't sit side by side they come apart into separate
      pills, one per row (the container queries at the end of the file).
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the fill eases, so choosing crossfades two segments:
+     --dur-press as the press lands, --dur-hover as it settles. There is no
+     sliding thumb: the chosen segment is a fill, and a fill doesn't
+     travel. The hover ground, the press ring and the focus ring are
+     instant.
    ========================================================================== */
 
 .segmented {
@@ -3126,6 +3493,7 @@ textarea.field__input {
   background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--segmented-ground, var(--paper)));
   border: var(--bw) solid var(--line);
   border-inline-end-width: 0;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .segmented__option:first-child > .segmented__label {
@@ -3177,6 +3545,7 @@ textarea.field__input {
 .segmented__option.is-active > .segmented__label {
   --fill: 1;
   box-shadow: inset 0 0 0 var(--bw) var(--paper);
+  transition-duration: var(--dur-press);
 }
 
 /* focus. Joined, the ring goes round the whole pill, 3px out, as round a
@@ -3298,6 +3667,16 @@ textarea.field__input {
   }
 }
 
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .segmented__label,
+  .segmented__input:active:not(:disabled) + .segmented__label {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+}
+
 /* --- forced colours ----------------------------------------------------------
    The fill is a background, and backgrounds go here. Chosen becomes the
    system's selection colours; disabled is GrayText, and a chosen disabled
@@ -3375,7 +3754,10 @@ textarea.field__input {
      how to fix it. Disabled is dashed and faint; never opacity.
    · No appearance: base-select. It would swap the phone's picker and the
      Mac's menu for one drawn in the page (elements/select.md, Known limits).
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the hover and press ground is --fill, and eases, as a
+     field's does (--dur-hover; a press, --dur-press). The picker is the
+     platform's and moves as it likes. The ring is instant.
    ========================================================================== */
 
 .select {
@@ -3386,6 +3768,7 @@ textarea.field__input {
 /* Field's frame: 44px, a 2px square line on paper, 16px text. The end
    padding keeps the value clear of the glyph. */
 .select__input {
+  --fill: 0; /* the hover and press ground: paper to canvas */
   display: block;
   inline-size: 100%;
   min-block-size: var(--hit);
@@ -3397,11 +3780,12 @@ textarea.field__input {
   font-size: max(1rem, 16px);
   text-overflow: ellipsis;
   color: var(--ink);
-  background: var(--paper);
+  background: color-mix(in srgb, var(--canvas) calc(var(--fill) * 100%), var(--paper));
   border: var(--bw) solid var(--line);
   border-radius: var(--radius-ctl);
   -webkit-appearance: none;
   appearance: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* the down glyph, 20px, in the frame's end padding. Clicks go through it. */
@@ -3421,18 +3805,19 @@ textarea.field__input {
 /* hover: Field's quiet change of ground */
 @media (hover: hover) {
   .select__input:hover:not(:disabled) {
-    background: var(--canvas);
+    --fill: 1;
   }
 }
 
 .select__input.is-hover {
-  background: var(--canvas);
+  --fill: 1;
 }
 
 /* pressed: the same ground, so a tap answers too while the picker opens */
 .select__input:active:not(:disabled),
 .select__input.is-active {
-  background: var(--canvas);
+  --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 /* focus: base.css draws the ring on the select; this forces it for the page */
@@ -3460,6 +3845,16 @@ textarea.field__input {
 .select__input:disabled + .select__icon,
 .field:has(.select__input:disabled) .field__label {
   color: var(--ink-faint);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the ground keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .select__input,
+  .select__input:active:not(:disabled) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -3717,7 +4112,13 @@ textarea.field__input {
    · The tab bar hides while the on-screen keyboard is up, and only then:
      frame.js sees the keyboard as lost viewport height and sets
      data-keyboard. No script, no hiding.
-   · No motion: bars don't hide on scroll and nothing slides (gate 4).
+   · The frame itself never moves: bars don't hide on scroll, nothing
+     slides. Two motions use it. A top bar with a large heading fades its
+     title in as the heading scrolls under it, on a timeline that tracks
+     the scroll region (topbar.css: the region is the heading's scroller,
+     so it needs nothing here). And an app's cross-document view
+     transitions name the tab bar and the sidebar, so they stay put while
+     the screen crossfades (pwa/app.css).
    ========================================================================== */
 
 .frame {
@@ -3911,6 +4312,9 @@ textarea.field__input {
    · When the bar is narrower than 16em (a phone at large text) the title
      drops to its own row and wraps, rather than truncating to nothing.
      em, so the switch follows the text size, not the device.
+   · Its one motion is the large heading's: the bar's copy of the title
+     fades in as the heading scrolls under it, where scroll-driven
+     animations exist (variant: with a large heading). Nothing else moves.
    ========================================================================== */
 
 .topbar {
@@ -4013,6 +4417,75 @@ textarea.field__input {
   grid-column: 2;
 }
 
+/* --- variant: with a large heading -------------------------------------------
+   The screen's name is the first heading in the content (.t-heading with
+   .topbar__heading), where it can wrap. The bar holds the back link, the
+   actions, and a copy of the title, aria-hidden: the heading stays the
+   screen's h1, said once. As the heading scrolls up under the bar, the copy
+   fades in; scrolled back, it fades out. Only opacity, driven by scrolling,
+   so it moves exactly as far as the finger does and never on its own.
+
+   Where scroll-driven animations or timeline-scope are missing, and under
+   reduced motion, the copy isn't drawn and the bar is as it always was: the
+   back link and the actions. */
+
+.topbar--large > .topbar__title {
+  display: none;
+}
+
+@supports (animation-timeline: view()) and (timeline-scope: --topbar-heading) {
+  /* the heading's timeline is visible across the frame, so the bar can use it */
+  .frame:has(> .topbar--large) {
+    timeline-scope: --topbar-heading;
+  }
+
+  /* a view timeline runs in the heading's scroller: the frame's scroll
+     region (.frame__scroll), whose top edge is the bar's rule. Inset 0,
+     so it is measured from that edge and not from the scroll padding. */
+  .topbar__heading {
+    view-timeline-name: --topbar-heading;
+    view-timeline-axis: block;
+    view-timeline-inset: 0;
+  }
+
+  /* the back link keeps its label and the actions theirs; the copy takes
+     the room between them and truncates (the heading has it all), centred
+     in that room */
+  .topbar--large {
+    grid-template-columns: minmax(var(--hit), max-content) minmax(0, 1fr) max-content minmax(0, max-content);
+  }
+
+  /* hidden while the heading shows; in as it goes under the bar (from its
+     top edge reaching the rule to its foot passing it). With no timeline
+     (no .topbar__heading in the frame) it stays hidden. */
+  .topbar--large > .topbar__title {
+    display: block;
+    opacity: 0;
+    animation-name: topbar-title-in;
+    animation-fill-mode: both;
+    animation-timing-function: var(--ease-out);
+    animation-timeline: --topbar-heading;
+    animation-range: exit 0% exit 100%;
+  }
+}
+
+@keyframes topbar-title-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* reduced motion: no copy at all, so nothing changes on scroll */
+@media (prefers-reduced-motion: reduce) {
+  .topbar--large > .topbar__title {
+    display: none;
+  }
+}
+
 /* --- large text: the title takes its own row ------------------------------- */
 
 @container topbar (width < 16em) {
@@ -4036,6 +4509,11 @@ textarea.field__input {
     text-wrap: balance;
     white-space: normal;
     overflow-wrap: break-word;
+  }
+
+  /* a large heading's copy would need that row too: the heading is enough */
+  .topbar--large > .topbar__title {
+    display: none;
   }
 }
 
@@ -4094,6 +4572,9 @@ textarea.field__input {
    · At large text it grows taller, never wider: an item that no longer fits
      beside the others wraps to a second row.
    · Owns the bottom safe area. Hover only with a pointer that hovers.
+   · Motion (gate 4): the indicator's two numbers ease, as Button's do:
+     --dur-hover in and out, --dur-press for a press. Here (the doubled
+     frame) and the ring are instant. Nothing slides between items.
    ========================================================================== */
 
 .tabbar {
@@ -4137,6 +4618,9 @@ textarea.field__input {
   color: var(--ink);
   text-decoration: none;
   touch-action: manipulation;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* the indicator: a pill round the icon. The badge pins to it. */
@@ -4198,14 +4682,26 @@ textarea.field__input {
   outline-offset: var(--ring-offset);
 }
 
-/* pressed: back down, the fill stays, the inner ring shows. After hover. */
+/* pressed: back down, the fill stays, the inner ring shows. After hover.
+   It lands over --dur-press; letting go settles over --dur-hover. */
 .tabbar__link:is(:active, .is-active) {
   --lift: 0;
   --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 /* The on-screen keyboard: Frame hides the bar while it's up
    (.frame[data-keyboard], set by frame.js). Nothing here guesses. */
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the lift appears without sliding out, and the fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .tabbar__link,
+  .tabbar__link:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+}
 
 /* --- forced colours ------------------------------------------------------------
    Shadows and fills vanish: here becomes a 4px frame (the padding pays for
@@ -4427,8 +4923,10 @@ textarea.field__input {
      title, press fills the row with ink, as the card's list rows do.
      No lift: a shadow would fall across the next row.
    · 1px rules divide (--bw-thin); only the inset frame is 2px (--bw).
-   · Reads roles only. :hover only inside @media (hover: hover). States
-     change instantly. Swipe is gate 4: the More button is the action.
+   · Reads roles only. :hover only inside @media (hover: hover).
+   · Motion (gate 4): a link row's fill eases in over --dur-press and out
+     over --dur-hover; the underline and the ring are instant. No swipe:
+     the More button is the action (elements/list.md says why).
    ========================================================================== */
 
 .list {
@@ -4543,6 +5041,7 @@ textarea.field__input {
   color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
   background-color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
   text-decoration: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* a row with actions: the buttons after it bring their own room */
@@ -4641,10 +5140,20 @@ a.list__row:is(:active, .is-active) {
   --fill: 1;
   --card-ink: var(--paper);
   --card-bg: var(--ink);
+  transition-duration: var(--dur-press);
 }
 
 a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail > .ic) {
   color: inherit;
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .list__row {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -4709,7 +5218,11 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
      bar: the two never look alike.
    · States come from [aria-selected] (set by the script), :hover inside
      @media (hover: hover), :focus-visible and :active. .is-* force them on
-     the page. States change instantly.
+     the page.
+   · Motion (gate 4): the press fill eases (--dur-press in, --dur-hover
+     out). The bar doesn't slide between tabs: which section shows is
+     structure, and it changes at once, with the panel. The hover frame and
+     the ring are instant.
    ========================================================================== */
 
 .tabs {
@@ -4754,6 +5267,7 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
   border: var(--bw) solid transparent;
   border-radius: var(--radius-pill);
   touch-action: manipulation;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* the bar: under the pill, on the list's rule, the tab's whole width */
@@ -4854,6 +5368,17 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
   --card-ink: var(--paper);
   --card-bg: var(--ink);
   border-color: var(--line);
+  transition-duration: var(--dur-press);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs__tab,
+  .tabs__tab:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -4913,12 +5438,16 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
    · A disclosure is a ruled row, like a list row: a rectangle that holds.
      Stacked, neighbours share one rule, so a group needs no wrapper.
    · The summary is the target: the whole row, at least 44px.
-   · Open swaps the glyph, down for up. Static glyphs: no rotation until
-     gate 4. In forced colours the glyph still says which way it went.
+   · Open turns the glyph: ic--down rotates half a turn to point up. A
+     transform, so in forced colours it still says which way it went.
    · Hover underlines the words, press fills the row with ink: what a list
      row does. Rules and fills read the card's surface roles, so a
      disclosure inside a card (on any tone) takes the card's ink.
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the glyph turns and the press fill eases. Where the
+     browser can (interpolate-size and ::details-content) the body opens
+     and closes over --dur-move; elsewhere it opens in place. Reduced
+     motion: the glyph and the body change at once; the fill fades.
    ========================================================================== */
 
 .disclosure {
@@ -4959,19 +5488,21 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
   list-style: none;
   cursor: default; /* the hand is for links only, as on the Mac */
   touch-action: manipulation;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .disclosure__summary::-webkit-details-marker {
   display: none;
 }
 
-/* the glyph: down when closed, up when open */
+/* the glyph: down when closed; open, it turns half a turn to point up */
 .disclosure__icon {
   flex: none;
+  transition: rotate var(--dur-move) var(--ease-out);
 }
 
 .disclosure[open] > .disclosure__summary > .disclosure__icon {
-  --ic: var(--icon-up);
+  rotate: 0.5turn;
 }
 
 /* the body: what was hidden, under the summary, as wide as a paragraph */
@@ -4983,6 +5514,36 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
   padding: var(--space-1) var(--space-2) var(--space-4);
   font: var(--type-body);
   text-wrap: pretty;
+}
+
+/* the body opens: its height eases from nothing to its own (auto), which
+   needs interpolate-size; ::details-content is the box the browser hides.
+   content-visibility is the discrete half that keeps the body drawn while
+   it closes. Both are check 5's named exception, here and only here.
+   Elsewhere the body opens in place. */
+@supports (interpolate-size: allow-keywords) and selector(::details-content) and (interactivity: inert) {
+  .disclosure {
+    interpolate-size: allow-keywords;
+  }
+
+  /* while it closes it is still drawn: keep it out of Tab and the
+     accessibility tree from the moment it starts closing, or focus could
+     land inside and fall to <body> when it goes */
+  .disclosure:not([open])::details-content {
+    interactivity: inert;
+  }
+
+  .disclosure::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size var(--dur-move) var(--ease-out),
+      content-visibility var(--dur-move) allow-discrete;
+  }
+
+  .disclosure[open]::details-content {
+    block-size: auto;
+  }
 }
 
 /* --- states -----------------------------------------------------------------
@@ -5015,6 +5576,27 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
 /* pressed: the row fills with the surface's ink, as a list row does */
 .disclosure__summary:is(:active, .is-active) {
   --fill: 1;
+  transition-duration: var(--dur-press);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   The glyph turns and the body opens at once (nothing moves); the press
+   fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosure__summary,
+  .disclosure__summary:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+
+  .disclosure__icon {
+    transition: none;
+  }
+
+  /* its own rule: a browser that doesn't know the selector drops the rule */
+  .disclosure::details-content {
+    transition: none;
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------
@@ -5067,7 +5649,8 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
      the button's end edge; over it when there's no room under it.
      Where anchor positioning isn't supported, it is a sheet across the
      bottom of the screen.
-   · Reads roles only. No transitions: it appears in place (gate 4).
+   · Reads roles only. It fades in where it's anchored and fades out
+     (motion, below); the button goes down at once.
    ========================================================================== */
 
 .menu {
@@ -5160,6 +5743,52 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
   }
 }
 
+/* --- motion -------------------------------------------------------------------
+   It fades in at its anchor over --dur-hover and out over --dur-press. Only
+   opacity: the browser picks the placement (under, over, the other way
+   along, or the full height), and CSS can't tell which it picked, so a
+   slide could point away from the button. A fade comes from wherever the
+   menu is. @starting-style is the first frame; on the way out display and
+   overlay change discretely (allow-discrete), at the end, so a closing menu
+   stays in the top layer, in place, until it has faded. Without overlay
+   it would leave the top layer at once, so there it goes in place; without
+   @starting-style it comes in place. Focus and the button's down look
+   don't wait for it. Only a real popover moves: the page's pictures and
+   anything on load don't. */
+
+.menu[popover] {
+  transition-property: opacity;
+  transition-duration: var(--dur-hover);
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+@supports (overlay: auto) {
+  .menu[popover] {
+    transition-property: opacity, display, overlay;
+  }
+}
+
+.menu[popover]:not(:popover-open) {
+  opacity: 0;
+  transition-duration: var(--dur-press);
+}
+
+@starting-style {
+  .menu[popover]:popover-open {
+    opacity: 0;
+  }
+}
+
+/* reduced motion: it is already only a fade; make it the short one, in
+   and out alike */
+@media (prefers-reduced-motion: reduce) {
+  .menu[popover],
+  .menu[popover]:not(:popover-open) {
+    transition-duration: var(--dur-fade);
+  }
+}
+
 /* --- states -----------------------------------------------------------------
    The items' states are Button's; the button's own "open" is above. Without
    the popover attribute a .menu just sits in place, as an open one looks:
@@ -5221,7 +5850,8 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
    · Buttons say the action. The safe one is focused first (autofocus);
      a destructive one is never primary. Primary last on a wide row; on a
      narrow one, full width with the primary on top, as in Form.
-   · Reads roles only. No transitions: it appears in place (gate 4).
+   · Reads roles only. It fades and settles in, fades out, and its scrim
+     fades with it (motion, below). Only a real <dialog> moves.
    ========================================================================== */
 
 .dialog {
@@ -5322,6 +5952,73 @@ dialog.dialog:not([open]) {
    states (Button's, Field's). A .dialog that isn't a <dialog> just sits in
    place, as an open one looks: the page uses that to draw one. */
 
+/* --- motion -------------------------------------------------------------------
+   In, it fades and settles: from transparent and 12px low to its place, over
+   --dur-hover, eased out. Out, it fades, over --dur-press: leaving is
+   quicker than arriving. The scrim fades with it.
+
+   · @starting-style is the first frame of the entrance. On the way out,
+     display and overlay change discretely (allow-discrete), at the end, so
+     the dialog stays drawn, in the top layer, until it has faded.
+   · The way out needs overlay, which holds the top layer. Where it is
+     missing a closing dialog leaves the top layer at once and, still fading,
+     would show in the page's flow; so there it goes in place, as before.
+     Where @starting-style is missing, it also comes in place.
+   · Only transform and opacity move, and only on a real <dialog>: the
+     page's pictures (a .dialog that isn't one) never animate, and nothing
+     does on load, since no dialog is open then.
+   · The motion waits for nothing: showModal() moves focus in at once,
+     Escape works mid-entrance (it turns the entrance round), and close()
+     gives focus back and sets returnValue at once, as the fade begins. */
+
+dialog.dialog,
+dialog.dialog::backdrop {
+  transition-property: opacity, transform;
+  transition-duration: var(--dur-hover);
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+@supports (overlay: auto) {
+  dialog.dialog,
+  dialog.dialog::backdrop {
+    transition-property: opacity, transform, display, overlay;
+  }
+}
+
+dialog.dialog:not([open]),
+dialog.dialog:not([open])::backdrop {
+  opacity: 0;
+  transition-duration: var(--dur-press);
+}
+
+@starting-style {
+  dialog.dialog[open] {
+    opacity: 0;
+    transform: translateY(var(--space-3));
+  }
+
+  dialog.dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* reduced motion: no settle, only the short fade, in and out alike */
+@media (prefers-reduced-motion: reduce) {
+  dialog.dialog,
+  dialog.dialog::backdrop,
+  dialog.dialog:not([open]),
+  dialog.dialog:not([open])::backdrop {
+    transition-duration: var(--dur-fade);
+  }
+
+  @starting-style {
+    dialog.dialog[open] {
+      transform: none;
+    }
+  }
+}
+
 /* --- forced colours ----------------------------------------------------------
    The scrim vanishes, so the page behind shows at full strength: the frame
    doubles to 4px, so the dialog still reads as on top. */
@@ -5341,7 +6038,8 @@ dialog.dialog:not([open]) {
    is inert, focus goes back. From the bottom on a phone; from the side
    once the window is 45rem wide (where Frame swaps the tab bar for the
    sidebar). Inside, the top bar's layout with a close button you can
-   always see: drag to dismiss waits for gate 4, and is never the only way.
+   always see. A bottom sheet can also be dragged down by its top bar
+   (js/components/sheet.js), but the drag is never the only way out.
 
      <dialog class="sheet" id="add-card" aria-labelledby="add-card-title">
        <header class="topbar">
@@ -5365,12 +6063,14 @@ dialog.dialog:not([open]) {
      A side sheet runs top to bottom, so its top bar pads the top one.
    · The top bar stays put; the body scrolls, inside the sheet, never the
      page sideways.
-   · The window decides bottom or side only for an open modal. A .sheet
-     that isn't one (the page's pictures) is drawn as the bottom sheet;
-     .sheet--side pins the side sheet.
+   · The window decides bottom or side only for a <dialog>, open or on its
+     way out. A .sheet that isn't one (the page's pictures) is drawn as the
+     bottom sheet; .sheet--side pins the side sheet.
    · The action sheet is the phone's Menu: Menu's items and rule, Menu's
      no-anchor geometry (edge to edge, 30rem and centred when wider).
-   · Reads roles only. No transitions: it appears in place (gate 4).
+   · Reads roles only. It moves in from the edge it sits on and goes back
+     the same way; the scrim fades (motion, below). Only a real <dialog>
+     moves.
    ========================================================================== */
 
 .sheet {
@@ -5382,6 +6082,10 @@ dialog.dialog:not([open]) {
   --sheet-bw: var(--bw);
   /* a bottom sheet never reaches the status bar */
   --safe-top: 0px;
+  /* the way in and out (motion, below): off its own edge, here the bottom;
+     --sheet-end is the end side's sign, for a side sheet */
+  --sheet-end: 100%;
+  --sheet-off: translateY(100%);
 
   display: flex;
   flex-direction: column;
@@ -5417,9 +6121,16 @@ dialog.sheet:not([open]) {
 
 /* the top bar (Top bar's element, standard layout): the title centred, the
    close button trailing, in a <form method="dialog"> that is the bar's
-   actions slot. It never shrinks; the body gives way. */
+   actions slot. It never shrinks; the body gives way. It is also the handle
+   a bottom sheet is dragged by (sheet.js), so a finger on it moves the
+   sheet, not the page: one-finger pans are the script's, pinch zoom stays
+   the reader's. */
 .sheet > .topbar {
   flex: none;
+}
+
+dialog.sheet > .topbar {
+  touch-action: pinch-zoom;
 }
 
 /* the task. Scrolls inside the sheet, and keeps its scroll to itself. Its
@@ -5442,11 +6153,14 @@ dialog.sheet:not([open]) {
 /* --- variant: side sheet ------------------------------------------------------
    Along the end edge, top to bottom, 28rem at most, and a sliver of the
    page always left in view (48px, or 15% of a narrow window). Pinned with
-   .sheet--side; an open .sheet becomes one from 45rem of window (below). */
+   .sheet--side; a <dialog class="sheet"> becomes one from 45rem of window
+   (below). Not :modal, which a closing sheet loses at once: the side
+   sheet would turn into a bottom sheet halfway out of the window. */
 
 .sheet--side {
   --safe-top: inherit;
   --safe-left: 0px;
+  --sheet-off: translateX(var(--sheet-end));
 
   inset-block: 0;
   inset-inline: auto 0;
@@ -5458,9 +6172,10 @@ dialog.sheet:not([open]) {
 }
 
 @media (width >= 45rem) {
-  .sheet:modal:not(.sheet--action) {
+  dialog.sheet:not(.sheet--action) {
     --safe-top: inherit;
     --safe-left: 0px;
+    --sheet-off: translateX(var(--sheet-end));
 
     inset-block: 0;
     inset-inline: auto 0;
@@ -5489,7 +6204,7 @@ dialog.sheet:not([open]) {
 /* on a window wider than it, it stops at 30rem, centred, framed on three
    sides: Menu's no-anchor sheet */
 @media (width >= 30rem) {
-  .sheet--action:modal {
+  dialog.sheet--action {
     max-inline-size: 30rem;
     margin-inline: auto;
     border-inline: var(--sheet-bw) solid var(--line);
@@ -5499,6 +6214,95 @@ dialog.sheet:not([open]) {
 /* --- states -----------------------------------------------------------------
    Open and closed are the browser's; everything inside keeps its own
    states (Button's, Field's, Menu's items). */
+
+/* --- motion -------------------------------------------------------------------
+   A sheet moves in from the edge it sits on, and goes back the same way:
+   a bottom sheet (and the action sheet) rises from the bottom edge, a side
+   sheet slides in from the end edge, which is the left in a right-to-left
+   page. In over --dur-move, eased out, so it arrives fast and settles; out
+   over --dur-hover. The scrim fades with it.
+
+   · --sheet-off is the way out, set with the shape: translateY(100%) down,
+     or translateX of --sheet-end, 100% or -100% by the page's direction
+     (:dir(rtl)). Only transform moves it, so nothing round it is laid out
+     again, and the window never scrolls sideways.
+   · @starting-style is the first frame of the entrance. On the way out,
+     display and overlay change discretely (allow-discrete), at the end, so
+     the sheet stays drawn, in the top layer, until it is out of sight. That
+     needs overlay: where it is missing, a closing sheet leaves the top layer
+     at once and would show in the page's flow, so there it goes in place, as
+     before. Where @starting-style is missing, it also comes in place.
+   · Only a real <dialog> moves: the page's pictures and anything on load
+     stand still. Focus moves in at once and back at once; Escape works
+     mid-entrance and turns it round.
+   · Dragging it (sheet.js) moves the same transform with the finger, with
+     the transition off; let go, it either settles back through the open
+     state's transition or closes through Close, so the exit takes it on
+     from wherever the finger left it. */
+
+dialog.sheet:dir(rtl) {
+  --sheet-end: -100%;
+}
+
+dialog.sheet,
+dialog.sheet::backdrop {
+  transition-property: transform, opacity;
+  transition-duration: var(--dur-move);
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+@supports (overlay: auto) {
+  dialog.sheet,
+  dialog.sheet::backdrop {
+    transition-property: transform, opacity, display, overlay;
+  }
+}
+
+dialog.sheet:not([open]) {
+  transform: var(--sheet-off);
+  transition-duration: var(--dur-hover);
+}
+
+dialog.sheet:not([open])::backdrop {
+  opacity: 0;
+  transition-duration: var(--dur-hover);
+}
+
+@starting-style {
+  dialog.sheet[open] {
+    transform: var(--sheet-off);
+  }
+
+  dialog.sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* reduced motion: it doesn't travel. It fades in and out where it stands,
+   over --dur-fade; transform takes no time (the 0s), so a dragged sheet let
+   go comes back to its place at once, and sheet.js fades it in there, or
+   fades out where the finger left it. The four durations are transform,
+   opacity, display and overlay, in that order. */
+@media (prefers-reduced-motion: reduce) {
+  dialog.sheet,
+  dialog.sheet::backdrop,
+  dialog.sheet:not([open]),
+  dialog.sheet:not([open])::backdrop {
+    transition-duration: 0s, var(--dur-fade), var(--dur-fade), var(--dur-fade);
+  }
+
+  dialog.sheet:not([open]) {
+    opacity: 0;
+    transform: none;
+  }
+
+  @starting-style {
+    dialog.sheet[open] {
+      opacity: 0;
+    }
+  }
+}
 
 /* --- forced colours ----------------------------------------------------------
    The scrim vanishes and the page behind shows at full strength: the frame
@@ -5549,7 +6353,8 @@ dialog.sheet:not([open]) {
      of the accessibility tree, and the next toast wouldn't be heard. It
      lets clicks through to the content round the toast.
    · The action and Dismiss are Buttons: pills, because they act.
-   · Appears in place. No motion until gate 4.
+   · It rises in, and fades out before toast.js takes it away (motion,
+     below).
    ========================================================================== */
 
 /* --- the region ---------------------------------------------------------------
@@ -5676,6 +6481,44 @@ dialog.sheet:not([open]) {
   padding-inline: var(--space-3);
 }
 
+/* --- motion -----------------------------------------------------------------------
+   In, it rises 12px into place as it fades in, over --dur-hover, eased
+   out. Out, it fades where it is: toast.js sets inert on it when it closes
+   (no more taps, no focus, out of the accessibility tree, nothing
+   announced), waits for this fade to end, then takes it out.
+
+   · Only a toast in a live region (role="status") moves, which is only ever
+     one toast.js put there: the page's pictures and anything on load don't.
+   · 12px is the region's own padding below the toast, so a rising toast
+     never reaches past the region, over the tab bar or into a scrollbar.
+   · Where @starting-style isn't supported it appears in place; with no
+     transition at all, toast.js's fallback timer is 0 and it goes at once. */
+
+.toasts[role="status"] > .toast {
+  transition-property: opacity, transform;
+  transition-duration: var(--dur-hover);
+  transition-timing-function: var(--ease-out);
+}
+
+.toasts[role="status"] > .toast[inert] {
+  opacity: 0;
+}
+
+@starting-style {
+  .toasts[role="status"] > .toast {
+    opacity: 0;
+    transform: translateY(var(--space-3));
+  }
+}
+
+/* reduced motion: no rise, a short fade in and out */
+@media (prefers-reduced-motion: reduce) {
+  .toasts[role="status"] > .toast {
+    transition-property: opacity;
+    transition-duration: var(--dur-fade);
+  }
+}
+
 /* --- forced colours --------------------------------------------------------------
    The frame is a border, so the system paints it; the glyphs are icons.css's.
    Under it the page is Canvas too, so the frame is all that parts them. */
@@ -5714,6 +6557,11 @@ dialog.sheet:not([open]) {
    · Straight in a Frame's scroll region it reaches over the region's side
      padding and its top padding, as a plain List does, and takes the side
      padding as its own, so its words line up with the content below.
+   · Appears in place, and goes the same way, with no motion at any setting.
+     A band that arrives pushes the content under it down, and that push is
+     layout: motion moves only transform and opacity. A slide would have to
+     animate its height or move everything under it; a fade would only
+     delay the words, after the content had already jumped.
    ========================================================================== */
 
 .banner {
@@ -7202,13 +8050,13 @@ dialog.sheet:not([open]) {
             <li><a href="#found">Found</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.9 · Colour</span>
+        <span class="sg-top__status">v0.10 · Motion</span>
       </div>
     </div>
 
     <header class="sg-wrap sg-hero">
       <p class="sg-hero__kicker t-label">
-        <span>Test bed</span><span>Colour</span><span>27 of 27 elements through gate 3</span>
+        <span>Test bed</span><span>Motion</span><span>27 of 27 elements through gate 4</span>
       </p>
       <h1 class="sg-display sg-display--long">Screens</h1>
       <div class="sg-hero__row">
@@ -7250,40 +8098,40 @@ dialog.sheet:not([open]) {
               element reads these.</p>
           </li>
           <li>
-            <strong>Card: gates 0–3</strong>
+            <strong>Card: gates 0–4</strong>
             <p>Eight variants, six states. The decks, the stats and the flashcard.</p>
           </li>
           <li>
-            <strong>Button: gates 0–3</strong>
+            <strong>Button: gates 0–4</strong>
             <p>The answer buttons on the study screen.</p>
           </li>
           <li>
-            <strong>Tag: gates 0–3</strong>
+            <strong>Tag: gates 0–4</strong>
             <p>The statuses on the Mac's recent rows.</p>
           </li>
           <li>
-            <strong>Meter: gates 0–3</strong>
+            <strong>Meter: gates 0–4</strong>
             <p>Progress on the Carry on and Known cards.</p>
           </li>
           <li>
-            <strong>Field: gates 0–3</strong>
+            <strong>Field: gates 0–4</strong>
             <p>Not on these screens yet. On the Mac, search is the system's own field.</p>
           </li>
           <li>
-            <strong>Frame: gates 0–3</strong>
+            <strong>Frame: gates 0–4</strong>
             <p>Every screen here: the rows, the safe areas, the one region that scrolls, and the
               measured <code>--chrome</code> the study card fits under.</p>
           </li>
           <li>
-            <strong>Top bar: gates 0–3</strong>
+            <strong>Top bar: gates 0–4</strong>
             <p>The study screen's way back, title and Undo.</p>
           </li>
           <li>
-            <strong>Tab bar: gates 0–3</strong>
+            <strong>Tab bar: gates 0–4</strong>
             <p>Today's places, with a badge on Decks.</p>
           </li>
           <li>
-            <strong>Sidebar: gates 0–3</strong>
+            <strong>Sidebar: gates 0–4</strong>
             <p>Not on these screens: on the Mac the toolbar and sidebar are system chrome. Sidebar is
               the web shell's, for a tablet or a browser.</p>
           </li>
@@ -7779,7 +8627,7 @@ dialog.sheet:not([open]) {
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards design system · Screens v0.9</span>
+      <span>Flashcards design system · Screens v0.10</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>

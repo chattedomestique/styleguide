@@ -12,7 +12,9 @@
    · :hover lives inside @media (hover: hover), or it sticks after a tap.
    · Never put cqi on .card itself: its container is its PARENT. Padding and
      sizes that use cqi live on the parts, where the container is the card.
-   · States change instantly. Transitions belong to gate 4.
+   · Motion (gate 4): the state numbers ease (--dur-hover, a press
+     --dur-press), the study card turns over, and nothing else moves.
+     Focus rings are instant. Each has its reduced form at the end.
    ========================================================================== */
 
 .card {
@@ -46,6 +48,9 @@
   overflow: clip;
   overflow-wrap: break-word; /* it clips: a word too long for it breaks, not vanishes */
   box-shadow: var(--shadow-select), var(--shadow-lift);
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* on a tone, soft text is a mix of the tone's own ink, so it works on any fill */
@@ -120,8 +125,10 @@
   text-transform: uppercase;
 }
 
-/* the control slot: a 44px hit area around a 20px box. */
+/* the control slot: a 44px hit area around a 20px box. The box fills
+   through --fill while pressed. */
 .card__ctl {
+  --fill: 0;
   display: grid;
   place-items: center;
   flex: none;
@@ -132,6 +139,7 @@
   color: inherit;
   background: none;
   border: 0;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .card__ctl::before,
@@ -143,6 +151,7 @@
   content: "";
   inline-size: 1.25rem;
   block-size: 1.25rem;
+  background: color-mix(in srgb, currentColor calc(var(--fill) * 100%), transparent);
   border: var(--bw) solid currentColor;
   border-radius: var(--radius-ctl);
 }
@@ -238,14 +247,19 @@
 
 /* a foot link is the card's main action: a full 44px target. The negative
    margins spend the foot's own padding (and its rule) so the foot stays 44px,
-   and keep its text in line with the rest when it wraps. */
+   and keep its text in line with the rest when it wraps. Pressed, it swaps
+   ink and paper through --fill, as a list row does. */
 .card__foot :is(a, button):not(.card__action, .btn) {
+  --fill: 0;
   display: inline-flex;
   align-items: center;
   min-block-size: var(--hit);
   margin-block: calc(-1 * var(--space-2) - var(--bw-thin)) calc(-1 * var(--space-2));
   margin-inline: calc(-1 * var(--space-2));
   padding-inline: var(--space-2);
+  color: color-mix(in srgb, var(--card-bg) calc(var(--fill) * 100%), currentColor);
+  background-color: color-mix(in srgb, var(--card-ink) calc(var(--fill) * 100%), transparent);
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* its bottom edge is the card's clip edge, so the ring goes inside */
@@ -269,7 +283,8 @@
 }
 
 /* a list of links, ruled. Used in panels. The whole row is the link, count
-   included, so a tap anywhere on it lands: <a><span>Name</span><span>12</span></a> */
+   included, so a tap anywhere on it lands: <a><span>Name</span><span>12</span></a>
+   Pressed, it swaps ink and paper through --fill. */
 .card__list > li {
   font: var(--type-body);
   font-variant-numeric: tabular-nums;
@@ -281,6 +296,7 @@
 }
 
 .card__list a {
+  --fill: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -288,7 +304,10 @@
   gap: var(--space-3);
   min-block-size: var(--hit);
   padding: var(--space-2) var(--card-pad);
+  color: color-mix(in srgb, var(--card-bg) calc(var(--fill) * 100%), currentColor);
+  background-color: color-mix(in srgb, var(--card-ink) calc(var(--fill) * 100%), transparent);
   text-decoration: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .card__list a:focus-visible {
@@ -317,6 +336,7 @@
   border: var(--bw) solid var(--card-ink);
   border-radius: var(--radius-pill);
   text-decoration: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .card__action.is-hover {
@@ -443,11 +463,11 @@
 }
 
 /* --- variant: study --------------------------------------------------------
-   The flashcard itself: 5:7, one subject, one hint. The flip is motion, so it
-   is designed at gate 4; the faces here are static. It never outgrows a
-   phone: --chrome is the height of the screen's bars (Frame publishes it;
-   outside a Frame, set it) and the whole card fits under them. svh, so it
-   is sized once and doesn't jump as bars hide. */
+   The flashcard itself: 5:7, one subject, one hint. One face, as here, or
+   both faces and the Flip button that turns it over (the flip, below). It
+   never outgrows a phone: --chrome is the height of the screen's bars
+   (Frame publishes it; outside a Frame, set it) and the whole card fits
+   under them. svh, so it is sized once and doesn't jump as bars hide. */
 
 .card--study {
   /* a floor: at 200% text the bars can take most of a phone, and a card
@@ -495,6 +515,115 @@
   overflow-wrap: anywhere; /* and where hyphenation isn't available, anywhere beats overflow */
 }
 
+/* --- the flip -------------------------------------------------------------------
+   A study card that holds both faces turns over. No script: the Flip button
+   is a native checkbox drawn as Button's icon-only circle, and the card
+   reads it with :has(). Space and a click work, and the state is announced.
+
+     <article class="card card--study">
+       <input class="btn btn--icon card__flip" type="checkbox"
+              aria-label="Show the answer" autocomplete="off">
+       <div class="card__turn">
+         <div class="card__face">…head, stage, foot: the front…</div>
+         <div class="card__face">…the back…</div>
+       </div>
+     </article>
+
+   · The card keeps the size and lends the perspective; the 5:7 floor moves
+     to .card__turn, and each face draws the frame, so the frame turns too.
+   · The Flip button never turns and never hides: focus stays on it. It is
+     first in the source, so a screen reader meets it, then the face that
+     shows; it is drawn under the faces, on the axis they turn about, so
+     the card never turns away from under it.
+   · The face turned away is visibility: hidden: out of the accessibility
+     tree and the Tab order, and not clickable. It swaps at the halfway
+     point, when both faces are edge-on and neither can be seen, by a
+     transition with a delay (visibility is a named exception in check 5).
+   · autocomplete="off": a reload never restores a turned card, which would
+     also be a turn on load. */
+
+.card--study:has(> .card__turn) {
+  --card-flip-room: calc(var(--hit) + var(--space-3)); /* the button and its gap */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: var(--space-3);
+  aspect-ratio: auto;
+  max-inline-size: min(22rem, (100svh - var(--chrome, 0px) - var(--card-flip-room)) * 5 / 7);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  overflow: visible; /* the near edge grows as it turns: don't cut it */
+  perspective: 60rem;
+}
+
+.card__turn {
+  display: grid;
+  grid-row: 1;
+  justify-self: stretch;
+  min-inline-size: 0;
+  aspect-ratio: var(--ratio-study); /* a floor: large text makes it taller */
+  transform-style: preserve-3d;
+  transition: transform var(--dur-move) var(--ease-flip);
+}
+
+/* a face is the study card's frame and parts, drawn on one side */
+.card__face {
+  display: flex;
+  flex-direction: column;
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+  background: var(--card-bg);
+  border: var(--bw) solid var(--card-line);
+  border-radius: var(--card-radius);
+  overflow: clip;
+  backface-visibility: hidden;
+  transition: visibility 0s calc(var(--dur-move) / 2);
+}
+
+/* the back starts turned away */
+.card__face + .card__face {
+  transform: rotateY(180deg);
+  visibility: hidden;
+}
+
+.card--study:has(> .card__flip:checked) > .card__turn {
+  transform: rotateY(180deg);
+}
+
+.card--study:has(> .card__flip:checked) > .card__turn > .card__face:first-child {
+  visibility: hidden;
+}
+
+.card--study:has(> .card__flip:checked) > .card__turn > .card__face + .card__face {
+  visibility: visible;
+}
+
+/* the Flip button: Button's icon-only circle, on the page under the card,
+   so it reads the page's roles, not the card's tone */
+.card--study > .card__flip {
+  --btn-ink: var(--ink);
+  --btn-bg: var(--paper);
+  grid-row: 2;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.card__flip::before {
+  content: "";
+  inline-size: var(--ic-size, 1.25rem);
+  block-size: var(--ic-size, 1.25rem);
+  background: currentColor;
+  mask: var(--icon-flip) center / contain no-repeat;
+}
+
+/* the ring is the page's: outside the card's frame and on the canvas, even
+   on an ink card */
+.card.card--study > .card__flip:focus-visible {
+  outline-color: var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
 /* --- states ----------------------------------------------------------------
    .is-* classes force a state for documentation and tests. They are not an
    API; real states come from :hover, :focus-visible, :active and aria-*. */
@@ -539,24 +668,23 @@
 }
 
 /* pressed: every control answers a press. A lifted card goes back onto the
-   surface and its colour stays. After hover so it wins. */
+   surface and its colour stays. After hover so it wins. A press lands over
+   --dur-press; letting go settles over --dur-hover, so a quick tap is seen. */
 :is(.card--link, .card--ghost):is(:active, .is-active) {
   --lift: 0;
   --fill: 1;
 }
 
-.card__action:active {
+.card__action:active,
+.card__ctl:active,
+.card__list a:active,
+.card__foot :is(a, button):not(.card__action, .btn):active {
   --fill: 1;
 }
 
-.card__ctl:active::before {
-  background: currentColor;
-}
-
-.card__list a:active,
-.card__foot :is(a, button):not(.card__action, .btn):active {
-  color: var(--card-bg);
-  background: var(--card-ink);
+:is(.card--link, .card--ghost):is(:active, .is-active),
+:is(.card__action, .card__ctl, .card__list a, .card__foot :is(a, button):not(.card__action, .btn)):active {
+  transition-duration: var(--dur-press);
 }
 
 /* selected: the frame doubles. A ring, not a wider border, so nothing shifts.
@@ -620,13 +748,65 @@
   margin-inline-start: calc(var(--bw) * -1);
 }
 
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant (STYLE §2 Motion). The lift appears without sliding
+   out and the fill keeps a short fade. The card doesn't turn: the back,
+   which lies on top of the front, fades in or out over --dur-fade, so the
+   page never shows through. The face coming in joins the accessibility
+   tree at once; the face going away leaves it when the fade is done. */
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card__ctl,
+  .card__action,
+  .card__list a,
+  .card__foot :is(a, button):not(.card__action, .btn) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+
+  .card--study > .card__turn,
+  .card--study:has(> .card__flip:checked) > .card__turn {
+    transform: none;
+    transition: none;
+  }
+
+  .card__turn > .card__face {
+    transform: none;
+    opacity: 1;
+    transition:
+      opacity var(--dur-fade) var(--ease-out),
+      visibility 0s var(--dur-fade);
+  }
+
+  .card__turn > .card__face + .card__face {
+    opacity: 0;
+  }
+
+  .card--study:not(:has(> .card__flip:checked)) > .card__turn > .card__face:first-child,
+  .card--study:has(> .card__flip:checked) > .card__turn > .card__face + .card__face {
+    opacity: 1;
+    transition-delay: 0s;
+  }
+}
+
 /* --- forced colours ----------------------------------------------------------
    Shadows and fills disappear in forced-colors mode, so every state that
    leaned on them gets a line instead. */
 
 @media (forced-colors: active) {
-  .card {
+  .card,
+  .card__face {
     border-color: CanvasText;
+  }
+
+  /* the Flip glyph is a mask, painted with a background: name its colour */
+  .card__flip::before {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+
+  .card__flip:is(:active, .is-active)::before {
+    background-color: HighlightText;
   }
 
   .card--link:is(.is-hover, .is-focus, :has(.card__link:focus-visible)) {

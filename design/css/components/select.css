@@ -27,7 +27,10 @@
      how to fix it. Disabled is dashed and faint; never opacity.
    · No appearance: base-select. It would swap the phone's picker and the
      Mac's menu for one drawn in the page (elements/select.md, Known limits).
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the hover and press ground is --fill, and eases, as a
+     field's does (--dur-hover; a press, --dur-press). The picker is the
+     platform's and moves as it likes. The ring is instant.
    ========================================================================== */
 
 .select {
@@ -38,6 +41,7 @@
 /* Field's frame: 44px, a 2px square line on paper, 16px text. The end
    padding keeps the value clear of the glyph. */
 .select__input {
+  --fill: 0; /* the hover and press ground: paper to canvas */
   display: block;
   inline-size: 100%;
   min-block-size: var(--hit);
@@ -49,11 +53,12 @@
   font-size: max(1rem, 16px);
   text-overflow: ellipsis;
   color: var(--ink);
-  background: var(--paper);
+  background: color-mix(in srgb, var(--canvas) calc(var(--fill) * 100%), var(--paper));
   border: var(--bw) solid var(--line);
   border-radius: var(--radius-ctl);
   -webkit-appearance: none;
   appearance: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* the down glyph, 20px, in the frame's end padding. Clicks go through it. */
@@ -73,18 +78,19 @@
 /* hover: Field's quiet change of ground */
 @media (hover: hover) {
   .select__input:hover:not(:disabled) {
-    background: var(--canvas);
+    --fill: 1;
   }
 }
 
 .select__input.is-hover {
-  background: var(--canvas);
+  --fill: 1;
 }
 
 /* pressed: the same ground, so a tap answers too while the picker opens */
 .select__input:active:not(:disabled),
 .select__input.is-active {
-  background: var(--canvas);
+  --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 /* focus: base.css draws the ring on the select; this forces it for the page */
@@ -112,6 +118,16 @@
 .select__input:disabled + .select__icon,
 .field:has(.select__input:disabled) .field__label {
   color: var(--ink-faint);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the ground keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .select__input,
+  .select__input:active:not(:disabled) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------

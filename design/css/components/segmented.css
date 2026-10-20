@@ -30,7 +30,12 @@
      colours keep it as the system's Highlight.
    · When the options can't sit side by side they come apart into separate
      pills, one per row (the container queries at the end of the file).
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the fill eases, so choosing crossfades two segments:
+     --dur-press as the press lands, --dur-hover as it settles. There is no
+     sliding thumb: the chosen segment is a fill, and a fill doesn't
+     travel. The hover ground, the press ring and the focus ring are
+     instant.
    ========================================================================== */
 
 .segmented {
@@ -111,6 +116,7 @@
   background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--segmented-ground, var(--paper)));
   border: var(--bw) solid var(--line);
   border-inline-end-width: 0;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .segmented__option:first-child > .segmented__label {
@@ -162,6 +168,7 @@
 .segmented__option.is-active > .segmented__label {
   --fill: 1;
   box-shadow: inset 0 0 0 var(--bw) var(--paper);
+  transition-duration: var(--dur-press);
 }
 
 /* focus. Joined, the ring goes round the whole pill, 3px out, as round a
@@ -280,6 +287,16 @@
   .segmented__track:has(> :nth-child(4) .ic) > .segmented__option > .segmented__label {
     border-width: var(--bw);
     border-radius: var(--radius-pill);
+  }
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .segmented__label,
+  .segmented__input:active:not(:disabled) + .segmented__label {
+    transition: --fill var(--dur-fade) var(--ease-out);
   }
 }
 

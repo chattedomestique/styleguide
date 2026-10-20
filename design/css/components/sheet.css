@@ -6,7 +6,8 @@
    is inert, focus goes back. From the bottom on a phone; from the side
    once the window is 45rem wide (where Frame swaps the tab bar for the
    sidebar). Inside, the top bar's layout with a close button you can
-   always see: drag to dismiss waits for gate 4, and is never the only way.
+   always see. A bottom sheet can also be dragged down by its top bar
+   (js/components/sheet.js), but the drag is never the only way out.
 
      <dialog class="sheet" id="add-card" aria-labelledby="add-card-title">
        <header class="topbar">
@@ -30,12 +31,14 @@
      A side sheet runs top to bottom, so its top bar pads the top one.
    · The top bar stays put; the body scrolls, inside the sheet, never the
      page sideways.
-   · The window decides bottom or side only for an open modal. A .sheet
-     that isn't one (the page's pictures) is drawn as the bottom sheet;
-     .sheet--side pins the side sheet.
+   · The window decides bottom or side only for a <dialog>, open or on its
+     way out. A .sheet that isn't one (the page's pictures) is drawn as the
+     bottom sheet; .sheet--side pins the side sheet.
    · The action sheet is the phone's Menu: Menu's items and rule, Menu's
      no-anchor geometry (edge to edge, 30rem and centred when wider).
-   · Reads roles only. No transitions: it appears in place (gate 4).
+   · Reads roles only. It moves in from the edge it sits on and goes back
+     the same way; the scrim fades (motion, below). Only a real <dialog>
+     moves.
    ========================================================================== */
 
 .sheet {
@@ -47,6 +50,10 @@
   --sheet-bw: var(--bw);
   /* a bottom sheet never reaches the status bar */
   --safe-top: 0px;
+  /* the way in and out (motion, below): off its own edge, here the bottom;
+     --sheet-end is the end side's sign, for a side sheet */
+  --sheet-end: 100%;
+  --sheet-off: translateY(100%);
 
   display: flex;
   flex-direction: column;
@@ -82,9 +89,16 @@ dialog.sheet:not([open]) {
 
 /* the top bar (Top bar's element, standard layout): the title centred, the
    close button trailing, in a <form method="dialog"> that is the bar's
-   actions slot. It never shrinks; the body gives way. */
+   actions slot. It never shrinks; the body gives way. It is also the handle
+   a bottom sheet is dragged by (sheet.js), so a finger on it moves the
+   sheet, not the page: one-finger pans are the script's, pinch zoom stays
+   the reader's. */
 .sheet > .topbar {
   flex: none;
+}
+
+dialog.sheet > .topbar {
+  touch-action: pinch-zoom;
 }
 
 /* the task. Scrolls inside the sheet, and keeps its scroll to itself. Its
@@ -107,11 +121,14 @@ dialog.sheet:not([open]) {
 /* --- variant: side sheet ------------------------------------------------------
    Along the end edge, top to bottom, 28rem at most, and a sliver of the
    page always left in view (48px, or 15% of a narrow window). Pinned with
-   .sheet--side; an open .sheet becomes one from 45rem of window (below). */
+   .sheet--side; a <dialog class="sheet"> becomes one from 45rem of window
+   (below). Not :modal, which a closing sheet loses at once: the side
+   sheet would turn into a bottom sheet halfway out of the window. */
 
 .sheet--side {
   --safe-top: inherit;
   --safe-left: 0px;
+  --sheet-off: translateX(var(--sheet-end));
 
   inset-block: 0;
   inset-inline: auto 0;
@@ -123,9 +140,10 @@ dialog.sheet:not([open]) {
 }
 
 @media (width >= 45rem) {
-  .sheet:modal:not(.sheet--action) {
+  dialog.sheet:not(.sheet--action) {
     --safe-top: inherit;
     --safe-left: 0px;
+    --sheet-off: translateX(var(--sheet-end));
 
     inset-block: 0;
     inset-inline: auto 0;
@@ -154,7 +172,7 @@ dialog.sheet:not([open]) {
 /* on a window wider than it, it stops at 30rem, centred, framed on three
    sides: Menu's no-anchor sheet */
 @media (width >= 30rem) {
-  .sheet--action:modal {
+  dialog.sheet--action {
     max-inline-size: 30rem;
     margin-inline: auto;
     border-inline: var(--sheet-bw) solid var(--line);
@@ -164,6 +182,95 @@ dialog.sheet:not([open]) {
 /* --- states -----------------------------------------------------------------
    Open and closed are the browser's; everything inside keeps its own
    states (Button's, Field's, Menu's items). */
+
+/* --- motion -------------------------------------------------------------------
+   A sheet moves in from the edge it sits on, and goes back the same way:
+   a bottom sheet (and the action sheet) rises from the bottom edge, a side
+   sheet slides in from the end edge, which is the left in a right-to-left
+   page. In over --dur-move, eased out, so it arrives fast and settles; out
+   over --dur-hover. The scrim fades with it.
+
+   · --sheet-off is the way out, set with the shape: translateY(100%) down,
+     or translateX of --sheet-end, 100% or -100% by the page's direction
+     (:dir(rtl)). Only transform moves it, so nothing round it is laid out
+     again, and the window never scrolls sideways.
+   · @starting-style is the first frame of the entrance. On the way out,
+     display and overlay change discretely (allow-discrete), at the end, so
+     the sheet stays drawn, in the top layer, until it is out of sight. That
+     needs overlay: where it is missing, a closing sheet leaves the top layer
+     at once and would show in the page's flow, so there it goes in place, as
+     before. Where @starting-style is missing, it also comes in place.
+   · Only a real <dialog> moves: the page's pictures and anything on load
+     stand still. Focus moves in at once and back at once; Escape works
+     mid-entrance and turns it round.
+   · Dragging it (sheet.js) moves the same transform with the finger, with
+     the transition off; let go, it either settles back through the open
+     state's transition or closes through Close, so the exit takes it on
+     from wherever the finger left it. */
+
+dialog.sheet:dir(rtl) {
+  --sheet-end: -100%;
+}
+
+dialog.sheet,
+dialog.sheet::backdrop {
+  transition-property: transform, opacity;
+  transition-duration: var(--dur-move);
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+@supports (overlay: auto) {
+  dialog.sheet,
+  dialog.sheet::backdrop {
+    transition-property: transform, opacity, display, overlay;
+  }
+}
+
+dialog.sheet:not([open]) {
+  transform: var(--sheet-off);
+  transition-duration: var(--dur-hover);
+}
+
+dialog.sheet:not([open])::backdrop {
+  opacity: 0;
+  transition-duration: var(--dur-hover);
+}
+
+@starting-style {
+  dialog.sheet[open] {
+    transform: var(--sheet-off);
+  }
+
+  dialog.sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* reduced motion: it doesn't travel. It fades in and out where it stands,
+   over --dur-fade; transform takes no time (the 0s), so a dragged sheet let
+   go comes back to its place at once, and sheet.js fades it in there, or
+   fades out where the finger left it. The four durations are transform,
+   opacity, display and overlay, in that order. */
+@media (prefers-reduced-motion: reduce) {
+  dialog.sheet,
+  dialog.sheet::backdrop,
+  dialog.sheet:not([open]),
+  dialog.sheet:not([open])::backdrop {
+    transition-duration: 0s, var(--dur-fade), var(--dur-fade), var(--dur-fade);
+  }
+
+  dialog.sheet:not([open]) {
+    opacity: 0;
+    transform: none;
+  }
+
+  @starting-style {
+    dialog.sheet[open] {
+      opacity: 0;
+    }
+  }
+}
 
 /* --- forced colours ----------------------------------------------------------
    The scrim vanishes and the page behind shows at full strength: the frame

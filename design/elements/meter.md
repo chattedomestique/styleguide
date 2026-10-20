@@ -1,6 +1,6 @@
 # Meter and Spinner
 
-Element 05 · gates 0–3 done (wireframe, states, colour) · page: `elements/meter.html`
+Element 05 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/meter.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Meter and Spinner's own spec.
@@ -15,7 +15,8 @@ Meter and Spinner's own spec.
   decks…").
 - **Notes:** each has a visible label and value text; the bar never stands alone. The spinner
   is static until gate 4 gives it motion, so the still frame must read on its own. Meter
-  replaced the wireframe kit's meter stand-in.
+  replaced the wireframe kit's meter stand-in. *Gate 4 (wave 7) turns it, after the loading
+  delay (Motion).*
 
 ## House rules
 
@@ -26,7 +27,8 @@ Meter and Spinner's own spec.
 - Ink is `currentColor` and the track is the surface itself, so every variant reads on paper,
   on a tone and on an ink card with no class.
 - Square: a bar holds, it doesn't act (rule 3). Frames 2px, `--radius-tile`.
-- No motion. The spinner is a designed still frame; an indeterminate `<progress>` is not used.
+- Only the spinner moves, and only while it's shown (Motion). Its still frame is still designed
+  to read on its own; an indeterminate `<progress>` is not used. Bars never animate a value.
 
 ## Anatomy
 
@@ -51,8 +53,8 @@ Shown live, with markup, in `elements/meter.html` (1.1–1.4).
 | Segments | `.meter--segments` | A deck of up to 20 cards. | The same `role="meter"` bar holding one `.meter__seg` per card. The fill reads `aria-valuenow` (20 attribute selectors), so what's heard is what's seen and there's no per-segment class. A grid of equal boxes, at least 8px each (4px inside the frame), 4px apart; when 20 won't fit on one line they wrap onto a second row instead of thinning out (possibly uneven: see Known limits). Past 20, use the meter. |
 | Spinner | `.spinner` | An unknown wait. | The words go inside: `<p class="spinner" role="status">Loading decks…</p>`, so glyph and words can't come apart. Empty and `aria-hidden`, it is the glyph alone, for a busy button whose label is the words (Button, busy). |
 
-**The still frame.** An open ring reads as "busy" without moving, on every platform, and gate
-4 only has to turn it. It is line work on the icon grid, so it sits next to icons and takes
+**The still frame.** An open ring reads as "busy" without moving, on every platform, so turning
+it (gate 4) adds life, not meaning. It is line work on the icon grid, so it sits next to icons and takes
 the leading-icon slot in a button at the same size. Rejected: spokes in graded lengths (read
 as broken at 20px), uniform spokes (read as brightness), three dots (read as "more").
 
@@ -86,8 +88,31 @@ Nothing acts, so there is no hover, focus or press.
 | Empty | `aria-valuenow="0"`, `--value: 0%` | | | The frame alone, and words that say so ("None known yet"). |
 | Part of the way | `aria-valuenow` between | | | Filled from the start edge (right to left in a right-to-left page). |
 | Done | `aria-valuenow` = max | | | Solid; the words change ("All 12 known", "Imported"). |
-| Spinner | always | | | One state until gate 4. |
+| Spinner | shown | | | Invisible for the loading delay (300ms), then fades in and turns: Motion. |
 | Forced colours | `(forced-colors: active)` | | | The bars opt out and set `color: CanvasText`, so frames, fills and segments all follow it on `Canvas`. The spinner glyph paints `CanvasText`. |
+
+## Motion
+
+Gate 4 (`STYLE.md` §2 Motion). Only the spinner moves.
+
+- **It turns, while it's shown.** `.spinner::before` runs `spinner-turn` (`rotate: 1turn`) over
+  `calc(var(--dur-move) * 2)`, about a second, `linear` and `infinite`: a turn that eased would
+  look like it stalls each time round. A hidden spinner (`display: none`) runs nothing.
+- **The loading delay.** A spinner waits before it shows: `.spinner` runs `spinner-wait`
+  (`from { opacity: 0 }`) over `--dur-hover`, with `--ease-out`, after a delay of
+  `calc(var(--dur-hover) * 1.5)`, 300ms, filled `backwards`. So it is invisible while it waits,
+  fades in, and its animation ends once it's shown. A load or an action quicker than 300ms never
+  flashes one, in a screen (Empty, loading and error) or in a busy button. Its room is kept the
+  whole time, so nothing shifts when it comes; hidden and shown again, it waits again. The
+  words are in the accessibility tree from the start: the live region speaks when its text
+  arrives, so an app that wants a quick load silent too inserts the line after the same wait.
+- **Reduced motion: a slow turn, not a pulse.** The turn takes three times as long
+  (`calc(var(--dur-move) * 6)`), and the fade-in `--dur-fade`. A pulse would be the ring going
+  translucent and back for as long as the wait lasts, which rule 2 doesn't allow as a look, and a
+  blink is harder on the eyes than a small, slow turn. The words always carry the meaning. The
+  delay stays: it's timing, not movement.
+- The bars don't animate their value: a meter that slid to its value would show a wrong number
+  on the way.
 
 ## Accessibility
 
@@ -112,8 +137,10 @@ Nothing acts, so there is no hover, focus or press.
   drawing a `Rectangle()` frame and fill; a meter is `Gauge(value:in:)` with a custom
   `GaugeStyle`, `.accessibilityValue(Text("5 of 12 known"))`. Segments: an `HStack` of
   `Rectangle()`s, wrapping with a `Layout` past one line. The spinner is `Circle().trim(from: 0,
-  to: 0.75)` stroked with `StrokeStyle(lineWidth: 2, lineCap: .square)`, static until gate 4,
-  always beside a `Text`.
+  to: 0.75)` stroked with `StrokeStyle(lineWidth: 2, lineCap: .square)`, turned by
+  `.rotationEffect(_:)` in a `.linear(duration: 1.04).repeatForever(autoreverses: false)` animation
+  (3.12s under Reduce Motion), shown after a 0.3s `.task(_:)` delay, always beside a `Text`. Or the
+  system's `ProgressView()`, which does all that itself.
 
 ## Do and don't
 

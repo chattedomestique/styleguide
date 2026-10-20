@@ -1,6 +1,6 @@
 # Tabs
 
-Element 19 · gates 0–3 done (wireframe, states, colour) · page: `elements/tabs.html`
+Element 19 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/tabs.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tabs' own spec.
@@ -30,7 +30,8 @@ Tabs' own spec.
   look. Focus is a round ring, selection a flat bar: they never look alike.
 - **It wraps, it never scrolls sideways.** A hidden scrollbar hides tabs; a second row of tabs is
   ugly but honest. Five tabs take two rows on a phone; four or fewer only at large text sizes.
-- Reads roles only. `:hover` only inside `@media (hover: hover)`. States change instantly.
+- Reads roles only. `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): the press fill eases; the bar and the panel change at once (Motion, below).
 
 ## Anatomy
 
@@ -110,6 +111,12 @@ Shown live, with markup, in `elements/tabs.html` (2.1–2.3).
 
 `.is-hover`, `.is-focus`, `.is-active` and `.is-selected` force a state for the page and for
 tests. They are not API.
+
+**Motion.** The pill's `--fill` eases: in over `--dur-press` as a press lands, out over
+`--dur-hover`, with `--ease-out`. **The bar doesn't slide, decided:** which section shows is
+structure, and it changes with the panel, which appears in place; a bar travelling between tabs
+would arrive after the panel it names. The hover frame and the ring are instant. Under reduced
+motion the fill fades over `--dur-fade`.
 
 ## Accessibility
 

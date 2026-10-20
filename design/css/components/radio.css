@@ -24,7 +24,10 @@
      the dot, a shape, not a colour.
    · Help and errors are Field's: .field__help and .field__error on the group,
      .radio__help under one option.
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the two numbers ease, as Button's do: --dur-hover in
+     and out, --dur-press as a press lands. The dot and the ring are
+     instant: chosen shows the moment it's true.
    ========================================================================== */
 
 .radio {
@@ -74,6 +77,9 @@
   box-shadow: var(--shadow-invalid), var(--shadow-lift);
   -webkit-appearance: none;
   appearance: none;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* the dot: 10px, centred, so 5px of ground shows round it */
@@ -150,6 +156,7 @@
 .radio__input.is-active {
   --lift: 0;
   --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 /* invalid: a whole group is wrong (nothing chosen), so every circle's frame
@@ -171,6 +178,17 @@
 
 .radio__label:has(> .radio__input:disabled) {
   color: var(--ink-faint);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the lift appears without sliding out, and the fill
+   keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .radio__input,
+  .radio__label:active > .radio__input:not(:disabled) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------

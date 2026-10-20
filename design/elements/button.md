@@ -1,6 +1,6 @@
 # Button
 
-Element 02 · gates 0–3 done (wireframe, states, colour) · page: `elements/button.html`
+Element 02 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/button.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Button's own spec.
@@ -35,7 +35,8 @@ Button's own spec.
   and `--paper`.
 - Two numbers draw every state, exactly as on the card: `--lift` and `--fill`. The shadow is
   the lift alone; nothing moves the hit box.
-- `:hover` only inside `@media (hover: hover)`. No transitions until gate 4.
+- `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): only the two numbers ease (Motion, below). The ring never does.
 
 ## Anatomy
 
@@ -107,6 +108,20 @@ rest, still answers a tap on a touch screen where nothing hovers. Box-shadow ord
 `.is-hover`, `.is-focus` and `.is-active` force a state for the page and for tests. They are
 not API.
 
+### Motion
+
+`.btn` transitions `--lift` and `--fill` over `--dur-hover` with `--ease-out`: hover, focus and
+letting go settle at that pace. `:active` sets `transition-duration: var(--dur-press)`, so a
+press lands faster; letting go settles back over `--dur-hover`, which keeps even a quick tap
+visible. Because colour, frame and the shadows are all drawn from the two numbers, one
+transition covers every variant: the fill crossfades, the lift slides out 4px, the inner ring
+grows. The hit box never moves, and the ring is an outline that never eases. A toggle's check
+and doubled frame, busy's held flat look and disabled's dashes are instant. Elements built on
+Button (Stepper's circles, the Sidebar's links, the study card's Flip button, a Top bar's
+actions) move the same way.
+
+Under reduced motion the lift appears without sliding out and the fill fades over `--dur-fade`.
+
 ## Accessibility
 
 - A real `<button type="button">` (or `type="submit"` in a form). An `<a class="btn">` only
@@ -164,5 +179,6 @@ not API.
   sits a little past centre while it's off.
 - Button reads the card's roles (`--card-ink`, `--card-bg`) as its surface. A wider set of
   surface roles (top bar, sheet) would replace those hooks.
-- `color-mix()` with `transparent` (quiet) mixes through alpha while gate 4 animates `--fill`:
-  brief translucency mid-transition.
+- `color-mix()` with `transparent` (quiet) mixes through alpha while `--fill` eases: a quiet
+  button is translucent for the 200ms of its hover (or 150ms under reduced motion), never at
+  rest.

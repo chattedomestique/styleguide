@@ -27,6 +27,9 @@
    · At large text it grows taller, never wider: an item that no longer fits
      beside the others wraps to a second row.
    · Owns the bottom safe area. Hover only with a pointer that hovers.
+   · Motion (gate 4): the indicator's two numbers ease, as Button's do:
+     --dur-hover in and out, --dur-press for a press. Here (the doubled
+     frame) and the ring are instant. Nothing slides between items.
    ========================================================================== */
 
 .tabbar {
@@ -70,6 +73,9 @@
   color: var(--ink);
   text-decoration: none;
   touch-action: manipulation;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* the indicator: a pill round the icon. The badge pins to it. */
@@ -131,14 +137,26 @@
   outline-offset: var(--ring-offset);
 }
 
-/* pressed: back down, the fill stays, the inner ring shows. After hover. */
+/* pressed: back down, the fill stays, the inner ring shows. After hover.
+   It lands over --dur-press; letting go settles over --dur-hover. */
 .tabbar__link:is(:active, .is-active) {
   --lift: 0;
   --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 /* The on-screen keyboard: Frame hides the bar while it's up
    (.frame[data-keyboard], set by frame.js). Nothing here guesses. */
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the lift appears without sliding out, and the fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .tabbar__link,
+  .tabbar__link:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+}
 
 /* --- forced colours ------------------------------------------------------------
    Shadows and fills vanish: here becomes a 4px frame (the padding pays for

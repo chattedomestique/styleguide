@@ -19,7 +19,11 @@
      (primary) still shows a press on a touch screen, where nothing hovers.
    · Rest is flat: the pill already says "press me". Hover lifts. Press
      drops the lift and keeps the fill. Nothing moves the hit box.
-   · :hover only inside @media (hover: hover). No transitions (gate 4).
+   · Motion (gate 4): the two numbers ease, nothing else. Hover, focus and
+     release settle over --dur-hover; a press lands over --dur-press. The
+     ring is an outline and never eases. Reduced motion: the lift is
+     instant, the fill fades over --dur-fade.
+   · :hover only inside @media (hover: hover).
    ========================================================================== */
 
 .btn {
@@ -66,6 +70,9 @@
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-press), var(--shadow-select), var(--shadow-lift);
   touch-action: manipulation;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 /* a leading icon (or the busy spinner) sits closer to the curve, so the
@@ -179,10 +186,13 @@
 }
 
 /* pressed: back onto the surface, the fill stays, and with no lift the inner
-   ring shows. After hover, so it wins. */
+   ring shows. After hover, so it wins. It lands over the press duration;
+   letting go settles back over the hover duration (the rule above), so a
+   quick tap is still seen. */
 .btn:is(:active, .is-active) {
   --lift: 0;
   --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 /* busy: the label stays, a spinner leads, and a second press does nothing,
@@ -204,6 +214,17 @@
   --btn-rest-bg: transparent;
   --btn-rest-line: var(--ink-faint);
   border-style: dashed;
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the shadow appears without sliding out, and the
+   fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------

@@ -27,6 +27,9 @@
    · When the bar is narrower than 16em (a phone at large text) the title
      drops to its own row and wraps, rather than truncating to nothing.
      em, so the switch follows the text size, not the device.
+   · Its one motion is the large heading's: the bar's copy of the title
+     fades in as the heading scrolls under it, where scroll-driven
+     animations exist (variant: with a large heading). Nothing else moves.
    ========================================================================== */
 
 .topbar {
@@ -129,6 +132,75 @@
   grid-column: 2;
 }
 
+/* --- variant: with a large heading -------------------------------------------
+   The screen's name is the first heading in the content (.t-heading with
+   .topbar__heading), where it can wrap. The bar holds the back link, the
+   actions, and a copy of the title, aria-hidden: the heading stays the
+   screen's h1, said once. As the heading scrolls up under the bar, the copy
+   fades in; scrolled back, it fades out. Only opacity, driven by scrolling,
+   so it moves exactly as far as the finger does and never on its own.
+
+   Where scroll-driven animations or timeline-scope are missing, and under
+   reduced motion, the copy isn't drawn and the bar is as it always was: the
+   back link and the actions. */
+
+.topbar--large > .topbar__title {
+  display: none;
+}
+
+@supports (animation-timeline: view()) and (timeline-scope: --topbar-heading) {
+  /* the heading's timeline is visible across the frame, so the bar can use it */
+  .frame:has(> .topbar--large) {
+    timeline-scope: --topbar-heading;
+  }
+
+  /* a view timeline runs in the heading's scroller: the frame's scroll
+     region (.frame__scroll), whose top edge is the bar's rule. Inset 0,
+     so it is measured from that edge and not from the scroll padding. */
+  .topbar__heading {
+    view-timeline-name: --topbar-heading;
+    view-timeline-axis: block;
+    view-timeline-inset: 0;
+  }
+
+  /* the back link keeps its label and the actions theirs; the copy takes
+     the room between them and truncates (the heading has it all), centred
+     in that room */
+  .topbar--large {
+    grid-template-columns: minmax(var(--hit), max-content) minmax(0, 1fr) max-content minmax(0, max-content);
+  }
+
+  /* hidden while the heading shows; in as it goes under the bar (from its
+     top edge reaching the rule to its foot passing it). With no timeline
+     (no .topbar__heading in the frame) it stays hidden. */
+  .topbar--large > .topbar__title {
+    display: block;
+    opacity: 0;
+    animation-name: topbar-title-in;
+    animation-fill-mode: both;
+    animation-timing-function: var(--ease-out);
+    animation-timeline: --topbar-heading;
+    animation-range: exit 0% exit 100%;
+  }
+}
+
+@keyframes topbar-title-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* reduced motion: no copy at all, so nothing changes on scroll */
+@media (prefers-reduced-motion: reduce) {
+  .topbar--large > .topbar__title {
+    display: none;
+  }
+}
+
 /* --- large text: the title takes its own row ------------------------------- */
 
 @container topbar (width < 16em) {
@@ -152,6 +224,11 @@
     text-wrap: balance;
     white-space: normal;
     overflow-wrap: break-word;
+  }
+
+  /* a large heading's copy would need that row too: the heading is enough */
+  .topbar--large > .topbar__title {
+    display: none;
   }
 }
 

@@ -7,8 +7,10 @@
    an action; the clock stops while a pointer is on it, focus is in it or the
    page is hidden. Its action runs and closes it; Dismiss or Escape closes
    it; Alt+T (⌥T) jumps to it, except in a field where ⌥T types a character.
-   Focus goes back to where it was. While it shows, a frame's scroll region
-   pads its foot by its height, so it never hides what has focus.
+   Focus goes back to where it was, at once. Closing, it goes inert and fades
+   (toast.css), and is taken out when the fade ends; the next comes in a
+   beat after that. While it shows, a frame's scroll region pads its foot by its
+   height, so it never hides what has focus.
 
      var t = Flashcards.toast({ text: "Deck deleted.", action: "Undo", onAction: fn });
      <button type="button" data-toast="Couldn't sync." data-toast-action="Try again"
@@ -21,6 +23,28 @@
   "use strict";
   var NS = (window.Flashcards = window.Flashcards || {});
   var queue = [], now = null;
+
+  // a duration from the CSS, in milliseconds: the longest in a list (a
+  // computed transition-duration is in seconds), or a --dur-* token's value
+  function ms(list) {
+    return String(list).split(",").reduce(function (m, v) {
+      return Math.max(m, (parseFloat(v) || 0) * (/ms\s*$/.test(v) ? 1 : 1000));
+    }, 0);
+  }
+  // the fade out has ended, or should have (no transitionend comes where
+  // there is no transition, or it is cut short): then fn, once. Not on
+  // transitioncancel: a dismiss during the entrance cancels the fade in,
+  // and the fade out still has to run; the timer covers a real cut.
+  function gone(el, fn) {
+    var timer, end = function (e) {
+      if (e && (e.target !== el || e.propertyName !== "opacity")) return;
+      clearTimeout(timer);
+      el.removeEventListener("transitionend", end);
+      fn();
+    };
+    el.addEventListener("transitionend", end);
+    timer = setTimeout(end, ms(getComputedStyle(el).transitionDuration));
+  }
 
   function button(cls, label, fn) {
     var b = document.createElement("button");
@@ -57,11 +81,16 @@
     if (t !== now) return;
     clearTimeout(t.timer);
     now = null;
-    var had = t.el.contains(document.activeElement), region = t.el.parentElement;
-    t.el.remove();
-    if (region) pad(region);
-    if (had && t.back && t.back.isConnected) t.back.focus();
-    setTimeout(next, 300); // a beat between two, so new words read as a new toast
+    var el = t.el, region = el.parentElement;
+    if (el.contains(document.activeElement) && t.back && t.back.isConnected) t.back.focus();
+    el.inert = true; // leaving: no taps, no focus, nothing more to hear, while it fades
+    gone(el, function () {
+      el.remove();
+      if (region) pad(region);
+      // a beat between two, so new words read as a new toast: a hover and
+      // a half (--dur-hover, read from the token), as the loading delay is
+      setTimeout(next, ms(getComputedStyle(document.documentElement).getPropertyValue("--dur-hover")) * 1.5);
+    });
   }
 
   function next() {

@@ -1,6 +1,6 @@
 # Empty, loading and error
 
-Element 26 · gates 0–3 done (wireframe, states, colour) · page: `elements/states.html`
+Element 26 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/states.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 spec for the patterns a screen uses before there's anything, and when something fails.
@@ -13,7 +13,8 @@ spec for the patterns a screen uses before there's anything, and when something 
   - *empty*: a ghost card that offers the first step ("No decks yet. Make your first deck.");
   - *empty search*: "No decks match 'hexa'." with Clear search;
   - *loading*: the spinner and words, shown only after about 300ms (a pattern note; the delay
-    is gate 4), with no shimmer or skeleton boxes;
+    is gate 4), with no shimmer or skeleton boxes; *gate 4 (wave 7) built the delay into the
+    spinner itself (Motion);*
   - *failed*: a plain card that says what happened, with Try again;
   - *offline*: cached content plus the offline banner;
   - *first run*: one screen that explains in one line and offers one action.
@@ -31,7 +32,8 @@ spec for the patterns a screen uses before there's anything, and when something 
   stay, so nothing is a dead end (first run is the one screen with neither, on purpose).
 - **Say it once.** One failure, one message: a failed card when there's nothing to show, a
   banner when there is.
-- **No motion.** Each appears in place. The loading delay is timing, so it waits for gate 4.
+- **They appear in place** (gate 4). A state is content, not an overlay: nothing slides in, and
+  the only motion is the spinner's own (the loading delay, then its turn). Motion, below.
 
 ## Anatomy
 
@@ -62,24 +64,34 @@ markup, in `elements/states.html` under Patterns (1.1–1.6).
 | --- | --- | --- | --- |
 | Empty | `.state`: "No decks yet." (`.t-body`) and a `.card--ghost` link, "Make your first deck" | Nothing here yet. | The ghost card stands where the first deck will go: dashed means empty, and the whole card is the link. Its name is the step, not the state. |
 | Empty search | Field's search under the top bar; `.state`: "No decks match “hexa”." (`.t-body`, `role="status"`) and Clear search (`.btn` in a `.btn-row`) | A search found nothing. | Quote what was searched for. Clear search does what the field's clear button does: empties the field, puts focus back in it, brings the decks back. The line is a status, kept in the markup, so its words are heard as they change without leaving the field. |
-| Loading | `.spinner` with `role="status"`: "Loading decks…" | Working on it, long enough to notice. | Where the content will be. Only after about 300ms (gate 4 sets it), so a quick load never flashes. No shimmer, no skeleton boxes: they move, and they promise a layout that may not come. |
+| Loading | `.spinner` with `role="status"`: "Loading decks…" | Working on it, long enough to notice. | Where the content will be. Put it in as soon as loading starts: the spinner itself waits 300ms before it shows (Meter's loading delay), so a quick load never flashes. No shimmer, no skeleton boxes: they move, and they promise a layout that may not come. |
 | Failed | a plain `.card` with `role="alert"`: `.card__title` "Couldn't load your decks", `.card__text` "If trying again doesn't work, close the app and open it again.", a `.card__foot` holding a `.btn` "Try again" | It didn't load and there's nothing to show instead. | An alert, because nothing on the screen works until it does. Try again goes busy (Button's `aria-busy`) and the card stays until something replaces it. Never "Something went wrong" on its own. |
 | Offline | Banner's offline band first in the scroll region, then the decks on this device (`.list`) | No connection. | Offline is not an error: show what's on the device. The band stays while it's true, with no close, and scrolls away with the decks. |
 | First run | `.frame--task` with no top bar; `.state`: a `.t-heading` and one `.t-body` line; a `.btn--primary.btn--block` link in the bottom slot | The very first screen. | One line, one action, nowhere to wander off to. Never shown again once a deck exists. |
 
 ## States
 
-How one screen moves between the patterns. Nothing moves on screen until gate 4.
+How one screen moves between the patterns. Each appears in place; only the spinner moves.
 
 | Moment | What shows | What's heard | Focus |
 | --- | --- | --- | --- |
-| Opening, the first 300ms | Nothing new: the bars are already there. | Nothing. | Where it was. |
-| Still loading | The spinner and "Loading decks…". | "Loading decks…", politely, once. | Where it was. |
+| Opening, the first 300ms | Nothing new: the bars are already there. The spinner line is in place but waiting, invisible, its room kept. | "Loading decks…", politely, once, as the line arrives. (An app that wants a quick load silent too inserts the line after 300ms instead.) | Where it was. |
+| Still loading | The spinner fades in and turns, with "Loading decks…". | Nothing more. | Where it was. |
 | Loaded | The decks, in place of the spinner. | Nothing: they're there when you look. | Where it was. |
 | Loaded, nothing there | "No decks yet." and the ghost card. | Nothing. | Where it was; the ghost card is the next stop. |
 | Didn't load | The plain card, Try again in its foot. | At once (`role="alert"`). | Where it was; Try again is the next stop. |
 | Trying again | The card stays; Try again goes busy, its label kept. | Nothing. | On Try again. When the decks come, on the scroll region (the screen's `<main>`, `tabindex="-1"`), so it isn't lost. |
 | Searching, no match | The no-match line and Clear search, under the field. | The line, politely, each time the list changes. | In the field. |
+
+## Motion
+
+Gate 4 (`STYLE.md` §2 Motion). The patterns are content, so they appear in place: nothing slides
+or fades in, and a state replacing another is a swap. The one thing that moves is the spinner,
+and its timing is Meter's: it waits 300ms (`calc(var(--dur-hover) * 1.5)`, an animation delay on
+its appearance), fades in over `--dur-hover` and turns about once a second while it's shown.
+`states.css` adds nothing: the delay comes with every spinner, so the loading pattern, a busy
+Try again and a busy button all wait the same. Under reduced motion the spinner turns at a third
+of the speed and the delay stays, since it's timing, not movement.
 | Search cleared | The field empties; the decks come back. | Nothing. | Back in the field. |
 | Offline | The offline band first, the decks on this device under it. | "You're offline. Changes are saved on this device.", politely, once. | Where it was. |
 | Online again | The band goes. | Nothing. | Where it was. |
@@ -118,15 +130,17 @@ the banner's frames and rules, the ghost card's dashes and every glyph stay, in 
 
 - **Do** say what's going on where the content would be, and offer the way forward.
 - **Do** keep the bars, so every state has its way back.
-- **Do** wait about 300ms before showing the spinner (gate 4 sets the timing).
+- **Do** let the spinner wait about 300ms before it shows; it does that itself (Meter).
 - **Don't** leave a screen blank, or shimmer, or draw skeleton boxes.
 - **Don't** say "Something went wrong" on its own, or "Oops".
 - **Don't** say one failure twice: a banner and a failed card.
 
 ## Known limits
 
-- The 300ms delay before the spinner is the app's, and not shown on the page: it is timing, which
-  waits for gate 4.
+- The page opens with the loading frame's spinner already waiting, so it shows 300ms after the
+  page does; reload to see the delay again.
+- The spinner's words are heard as they arrive, before it shows. Silencing a quick load too is
+  the app's: insert the line after the same 300ms.
 - Clear search and Try again need the app's script; on the page they are specimens.
 - The search's status line must be in the markup before the search runs, or its first words may
   not be heard; the page shows it filled.

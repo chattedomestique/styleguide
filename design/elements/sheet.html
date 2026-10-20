@@ -27,14 +27,14 @@
             <li><a href="../screens.html">Screens</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">Sheet · gates 0–3</span>
+        <span class="sg-top__status">Sheet · gates 0–4</span>
       </div>
     </div>
 
     <main id="el-sheet">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 23</span><span>Colour</span><span>Gates 0 to 3 done</span>
+          <span>Element 23</span><span>Motion</span><span>Gates 0 to 4 done</span>
         </p>
         <h1 class="sg-display">Sheet</h1>
         <div class="sg-hero__row">
@@ -180,8 +180,9 @@
                 <strong>Close</strong><code>.btn--icon</code> <code>ic--close</code>
                 <p>
                   Button, quiet and icon-only, named “Close”, in a <code>&lt;form
-                  method="dialog"&gt;</code> that is the bar’s actions slot. Always visible: drag to
-                  dismiss waits for gate 4, and is never the only way out.
+                  method="dialog"&gt;</code> that is the bar’s actions slot. Always visible: a bottom
+                  sheet can also be dragged down by its top bar, but the drag is never the only way
+                  out.
                 </p>
               </div>
             </li>
@@ -215,8 +216,9 @@
           <span class="sg-sec__idx">02</span>
           <h2 class="sg-sec__title" id="h-sheet-variants">Variants</h2>
           <p class="sg-sec__note">
-            Three, each drawn and live. The button opens the real modal: focus moves in and stays
-            in, Escape or Close shuts it, and focus goes back to the button.
+            Three, each drawn and live. The button opens the real modal, which moves in from its own
+            edge while the scrim fades: focus moves in at once and stays in, Escape or Close shuts it,
+            and focus goes back to the button. With Reduce Motion on, it fades where it stands.
           </p>
         </div>
 
@@ -230,8 +232,10 @@
             <p class="sg-entry__note">
               The same markup is the side sheet once the window is 45rem wide, so on this screen the
               live one may come from the side: narrow the window to see it rise from the bottom.
-              Focus starts in Front (<code>autofocus</code>): the task is typing. No light dismiss,
-              so a stray tap can’t throw away what you typed.
+              There, drag its top bar down to close it: past a third of its height, or with a flick,
+              it goes as Close sends it; short of that, it settles back. Focus starts in Front
+              (<code>autofocus</code>): the task is typing. No light dismiss, so a stray tap can’t
+              throw away what you typed.
             </p>
           </header>
           <div class="sg-stage sg-devices">
@@ -750,7 +754,8 @@
             <p>
               From the bottom, edge to edge, owning the home indicator’s safe area; at most 90% of
               the screen, so the deck still shows above it. On a phone, a thing’s actions open as an
-              action sheet; on a wide window, as a Menu. Drag and detents wait for gate 4.
+              action sheet; on a wide window, as a Menu. It rises in, and a drag down on its top bar
+              closes it, as Close does; no detents, since a sheet is as tall as its task.
             </p>
           </li>
           <li>
@@ -789,5 +794,6 @@
     <script src="../js/sheet.js"></script>
     <script src="../js/components/form.js"></script>
     <script src="../js/components/dialog.js"></script>
+    <script src="../js/components/sheet.js"></script>
   </body>
 </html>

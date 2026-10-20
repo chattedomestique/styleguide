@@ -1,6 +1,6 @@
 # Dialog
 
-Element 22 · gates 0–3 done (wireframe, states, colour) · page: `elements/dialog.html`
+Element 22 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/dialog.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Dialog's own spec.
@@ -21,7 +21,8 @@ Dialog's own spec.
   - Mac: alerts are system chrome natively; this is the web shell's.
 - **Wave 4's shared notes:** overlays are native (`<dialog>` and `showModal()`); focus moves in
   and goes back; Escape closes; the page behind is inert; the scrim is a flat near-black layer at 60%,
-  invisible under forced colours, so the overlay keeps its frame; words before chrome; no motion.
+  invisible under forced colours, so the overlay keeps its frame; words before chrome; no motion
+  until gate 4 (now: Motion, below).
 
 ## House rules
 
@@ -41,7 +42,8 @@ Dialog's own spec.
   happens. A destructive button is a plain secondary button: never primary, never red.
 - **The safe choice is primary, last and focused** (`autofocus`), so Return and a careless tap
   both keep things as they are.
-- **Appears in place.** No transitions until gate 4.
+- **Fades and settles in, fades out.** Opacity and a 12px settle, nothing that moves the page;
+  the scrim fades with it. Focus, Escape and `returnValue` never wait for it (Motion, below).
 
 ## Anatomy
 
@@ -119,6 +121,29 @@ A `.dialog` that isn't a `<dialog>` sits in place, as an open one looks: the pag
 draw them (inside `inert` pictures). The `.is-*` classes on its buttons force Button's states for
 the page only.
 
+## Motion
+
+Gate 4. Only `transform` and `opacity` move, and only on a real `<dialog>`: the page's pictures
+(a `.dialog` that isn't one) stand still, and nothing moves on load, since no dialog is open then.
+
+| Moment | What moves | Timing | Reduced motion |
+| --- | --- | --- | --- |
+| Opening (`showModal()`) | The dialog from `opacity: 0` and `translateY(var(--space-3))` (12px low) to its place; the scrim (`::backdrop`) from 0 to its 60%. The first frame is `@starting-style`. | `--dur-hover`, `--ease-out`: it arrives fast and settles. | A fade only (no settle), `--dur-fade`. |
+| Closing (`close()`, a button, Escape) | Dialog and scrim fade to 0. `display` and `overlay` change at the end (`transition-behavior: allow-discrete`), so it stays drawn, in the top layer, until it has faded. | `--dur-press`: leaving is quicker than arriving. | The same fade, `--dur-fade`. |
+
+- **Nothing waits for the motion.** `showModal()` moves focus in at once; Escape works
+  mid-entrance and turns it round; `close()` sets `returnValue` and gives focus back at once, as
+  the fade begins, so the `close` event and the app's handler run as before.
+- **Where it isn't supported, it appears in place, as before.** No `@starting-style`: it comes in
+  place. No `overlay` (Chromium has it; Safari and Firefox don't yet): a closing dialog leaves the
+  top layer at once, and fading there it would show in the page's flow, so the way out, the
+  `display` and `overlay` half, sits inside `@supports (overlay: auto)` and elsewhere it goes in
+  place.
+- **Checked** in Chromium 141 with the Web Animations API (each transition paused and stepped to
+  0, 50 and 100%, with screenshots) on all three dialogs, with motion and with
+  `prefers-reduced-motion: reduce`; keyboard open, Escape mid-entrance, reopen and close: focus in
+  at once and back on the opener every time; `returnValue` read on `close` as before.
+
 ## Accessibility
 
 - `<dialog>` with `showModal()` is exposed as a modal dialog; everything outside is inert. A
@@ -141,7 +166,7 @@ the page only.
   both labels fit (most phones at default text) and stack full width with the primary on top on
   a 320pt phone or at larger text. A phone has no Escape key, so every
   dialog has a visible button that closes it. The scrim covers the status bar area with the page.
-  No entrance until gate 4.
+  It fades and settles in and fades out (Motion); with Reduce Motion on, it only fades.
 - **Mac:** alerts are system chrome natively (`STYLE.md` §4); this element is the web shell's.
   Return presses the focused button (the safe one); Escape cancels. A destructive command in the
   menu bar ends in "…" and opens the same dialog.
@@ -149,7 +174,8 @@ the page only.
   .destructive) {…}; Button("Keep it", role: .cancel) {} } message: { Text("Its 12 cards go
   too.") }`. The acknowledge is an `.alert` with one `Button("OK")`; with a field,
   `.alert(_:isPresented:actions:)` with a `TextField` in its actions (macOS 13, iOS 16). These
-  are system chrome, so the system's look and its destructive red are the system's, not ours.
+  are system chrome, so the system's look, its destructive red and its entrance are the system's,
+  not ours.
 
 ## Do and don't
 
@@ -184,5 +210,8 @@ the page only.
 - At the largest text sizes on the narrowest phones a long title word breaks inside the word
   rather than clipping. In the page's squeezed pictures (about 120px of content) a Button label
   can still overflow; the real dialog keeps at least 245px at 320px and 200% text.
+- The way out needs `overlay`, which only Chromium has: in Safari and Firefox a dialog fades in
+  and goes in place (Motion).
 - Checked in Chromium 141 only (keyboard, touch emulation, forced colours, invoker commands on
-  and removed, a Safari-like click that doesn't focus), not in Safari, Firefox or on a device.
+  and removed, a Safari-like click that doesn't focus, motion frame by frame), not in Safari,
+  Firefox or on a device.

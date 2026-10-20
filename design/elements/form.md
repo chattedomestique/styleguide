@@ -1,6 +1,6 @@
 # Form
 
-Element 13 · gates 0–3 done (wireframe, states, colour) · page: `elements/form.html`
+Element 13 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/form.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Form's own spec.

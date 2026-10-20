@@ -1,6 +1,6 @@
 # Segmented control
 
-Element 10 · gates 0–3 done (wireframe, states, colour) · page: `elements/segmented.html`
+Element 10 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/segmented.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Segmented control's own spec.
@@ -32,7 +32,9 @@ Segmented control's own spec.
   Field's quiet change of ground and press is the fill with Button's inner ring.
 - **Joined pills don't wrap; they come apart.** A pill split over two rows reads as broken, so
   when the options can't sit side by side they become separate pills, one per row (Layout).
-- States change instantly. `:hover` only inside `@media (hover: hover)`.
+- `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): the fill eases, so a choice crossfades two segments; there is no sliding
+  thumb (Motion, below).
 
 ## Anatomy
 
@@ -114,6 +116,14 @@ to the chosen pill.
 
 `.is-hover`, `.is-active` (on the option) and `.is-focus` (on the track) force a state for the
 page and for tests. They are not API.
+
+**Motion.** Each segment's `--fill` eases: in over `--dur-press` as the press lands, settling
+over `--dur-hover`, with `--ease-out`. Choosing one crossfades two segments: the new one fills as
+the old one empties. **No sliding thumb, decided:** the chosen segment is a fill, not an object,
+and a thumb travelling under the words would be the one piece of the control that moves
+sideways; on a phone, where the options come apart into rows, it would have nowhere to slide.
+The hover ground, the press ring and the focus ring are instant. Under reduced motion the fill
+fades over `--dur-fade`.
 
 ## Accessibility
 

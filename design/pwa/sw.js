@@ -16,12 +16,13 @@
    ========================================================================== */
 "use strict";
 
-var VERSION = "45574315d5"; // stamped by tools/bundle.mjs: don't edit
+var VERSION = "22c1c9d761"; // stamped by tools/bundle.mjs: don't edit
 var SHELL = [
   "./",
   "decks.html",
   "settings.html",
   "offline.html",
+  "app.css",
   "app.js",
   "manifest.webmanifest",
   "icons/icon.svg",

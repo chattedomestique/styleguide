@@ -1,6 +1,6 @@
 # Tab bar
 
-Element 16 · gates 0–3 done (wireframe, states, colour) · page: `elements/tabbar.html`
+Element 16 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/tabbar.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tab bar's own spec.
@@ -32,7 +32,9 @@ Tab bar's own spec.
   row.
 - **Edge to edge, and it owns the bottom safe area.** Paper, a 2px rule on top, bottom padding
   `max(8px, var(--safe-bottom))`.
-- Hover only inside `@media (hover: hover)`. No transitions (gate 4).
+- Hover only inside `@media (hover: hover)`.
+- Motion (gate 4): the indicator's two numbers ease, as Button's do. Nothing slides between
+  items (Motion, below).
 
 ## Anatomy
 
@@ -91,6 +93,13 @@ field has the room. Frame does it: `frame.js` sees the keyboard as lost viewport
 `frame.css` hides the bar under it (`elements/frame.md`, Keyboard). Without script, or where the
 browser shows nothing, the bar stays. An iPad with a hardware keyboard keeps it: its shortcut bar
 takes too little height to count. The wave 3 rule that guessed from focus alone is gone.
+
+**Motion.** `.tabbar__link` transitions `--lift` and `--fill` over `--dur-hover` with
+`--ease-out`, and a press lands over `--dur-press`, as Button's does; the indicator draws both.
+Here (the doubled frame) and the ring are instant, and nothing travels from one item to the
+next: a sliding indicator would be a moving fill, and here is a frame, not a fill. Under reduced
+motion the lift appears at once and the fill fades over `--dur-fade`. The bar hiding for the
+keyboard is instant: the keyboard is already moving.
 
 ## Accessibility
 
