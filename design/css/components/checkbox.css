@@ -1,0 +1,249 @@
+/* ==========================================================================
+   Checkbox — wave 2. Spec: elements/checkbox.md · page: elements/checkbox.html
+
+   Independent on/off choices. A native checkbox, restyled: a 24px square box
+   with a 2px frame, inside a <label> that is the 44px target, so a tap on the
+   words toggles it too.
+
+     <div class="checkbox">
+       <label class="checkbox__label">
+         <input class="checkbox__input" type="checkbox" name="hints">
+         Show hints
+       </label>
+     </div>
+
+   A group is a fieldset, headed and helped by Field's own parts:
+
+     <fieldset class="checkbox-group">
+       <legend class="field__label">Decks to study</legend>
+       <div class="checkbox">…</div>
+     </fieldset>
+
+   House rules for this file
+   · Square, against rule 3: a checkbox is square on every platform, and a
+     round one reads as a radio. Platform convention wins (STYLE §6, §7).
+   · Two numbers draw every state, as on the card and the button. --fill is
+     the box's ground: ink when checked, mixed or pressed. --lift is a hard
+     shadow: hover and focus. Checked and mixed also carry a glyph, so the
+     state never rests on the fill alone.
+   · The box is absolutely placed in the label's padding, so the words are
+     ordinary inline text: they wrap under themselves, and a count or a <b>
+     inside them needs no wrapper.
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.checkbox {
+  --checkbox-size: 1.5rem; /* the box: 24px, one line of body text */
+  --checkbox-gap: var(--space-3);
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-inline-size: 0;
+}
+
+/* the target: at least 44px tall, as wide as its words. One line of 16px text
+   is 24px, so 10px above and below makes 44. */
+.checkbox__label {
+  position: relative;
+  display: block;
+  max-inline-size: 100%;
+  min-block-size: var(--hit);
+  padding-block: calc((var(--hit) - var(--checkbox-size)) / 2);
+  padding-inline-start: calc(var(--checkbox-size) + var(--checkbox-gap));
+  font: var(--type-body);
+  color: var(--ink);
+  overflow-wrap: break-word;
+  cursor: default; /* the hand is for links only, as on the Mac */
+  touch-action: manipulation;
+}
+
+/* the box, on the first line of the words */
+.checkbox__input {
+  --lift: 0;
+  --fill: 0;
+  --shadow-lift: calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--line);
+  --shadow-press: inset 0 0 0 0 transparent;
+  --shadow-invalid: inset 0 0 0 0 transparent;
+
+  position: absolute;
+  inset-block-start: calc((var(--hit) - var(--checkbox-size)) / 2);
+  inset-inline-start: 0;
+  display: grid;
+  inline-size: var(--checkbox-size);
+  block-size: var(--checkbox-size);
+  margin: 0;
+  color: var(--paper); /* the glyph */
+  /* padding-box: a dashed (disabled) frame shows gaps, not the fill behind them */
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper)) padding-box;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-ctl);
+  box-shadow: var(--shadow-press), var(--shadow-invalid), var(--shadow-lift);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the glyph spans the whole box, frame included, so it draws on its own 24
+   grid: a 2px stroke, the frame's weight */
+.checkbox__input::before {
+  content: "";
+  margin: calc(var(--bw) * -1);
+  background: currentColor;
+  mask: var(--icon-check) center / contain no-repeat;
+  visibility: hidden;
+}
+
+.checkbox__input:checked,
+.checkbox__input:indeterminate {
+  --fill: 1;
+}
+
+.checkbox__input:checked::before {
+  visibility: visible;
+}
+
+/* mixed wins over checked: a script can set both */
+.checkbox__input:indeterminate::before {
+  mask-image: var(--icon-minus);
+  visibility: visible;
+}
+
+/* help under one option, in line with its words. It sits outside the label,
+   so it isn't part of the name: aria-describedby ties it to the input. */
+.checkbox__help {
+  max-inline-size: var(--measure);
+  padding-inline-start: calc(var(--checkbox-size) + var(--checkbox-gap));
+  padding-block-end: var(--space-2);
+  font: var(--type-meta);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* --- group ------------------------------------------------------------------
+   A fieldset with Field's label, help and error, in Field's order, then the
+   options. Floating the legend makes it a flex item, so the gap applies. */
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.checkbox-group > legend {
+  float: left;
+  inline-size: 100%;
+  padding: 0;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from :hover, :focus-visible, :active, :checked,
+   :indeterminate, aria-invalid and :disabled. */
+
+/* hover anywhere on the target lifts the box */
+@media (hover: hover) {
+  .checkbox__label:hover > .checkbox__input:not(:disabled) {
+    --lift: 1;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring (base.css draws it on
+   :focus-visible: 3px of --focus, 3px out, square like the box) */
+.checkbox__input:is(:focus-visible, .is-hover, .is-focus) {
+  --lift: 1;
+}
+
+.checkbox__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: down onto the page, filled, with a paper ring inside the frame, so
+   a tap answers before the finger lifts (as a pressed button) */
+.checkbox__label:active > .checkbox__input:not(:disabled),
+.checkbox__input.is-active {
+  --lift: 0;
+  --fill: 1;
+  --shadow-press: inset 0 0 0 var(--bw) var(--paper);
+}
+
+/* invalid: the frame doubles inwards, as a field's. On one checkbox it comes
+   from aria-invalid; in a group, from the group's error being shown */
+.checkbox__input[aria-invalid]:not([aria-invalid="false"]),
+.checkbox-group:has(> .field__error:not([hidden])) .checkbox__input {
+  --shadow-invalid: inset 0 0 0 var(--bw) var(--line);
+}
+
+/* disabled: dashed and faint, never faded; the help says why. Last, so it
+   beats every state above. */
+.checkbox__input:disabled {
+  --lift: 0;
+  --shadow-press: inset 0 0 0 0 transparent;
+  background-color: color-mix(in srgb, var(--ink-faint) calc(var(--fill) * 100%), transparent);
+  border-style: dashed;
+  border-color: var(--ink-faint);
+}
+
+.checkbox__label:has(> .checkbox__input:disabled) {
+  color: var(--ink-faint);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   Fills and shadows vanish here, and the glyph is a background. So the box
+   paints its own system colours: checked and mixed fill with Highlight and
+   keep their glyph, invalid gets a 4px frame, disabled is GrayText. */
+
+@media (forced-colors: active) {
+  .checkbox__input {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background-color: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .checkbox__input:is(:checked, :indeterminate) {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .checkbox__input:focus-visible,
+  .checkbox__input.is-focus {
+    outline-color: CanvasText;
+  }
+
+  .checkbox__input:is(.is-hover, .is-active),
+  .checkbox__label:active > .checkbox__input:not(:disabled) {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .checkbox__label:hover > .checkbox__input:not(:disabled) {
+      border-color: Highlight;
+    }
+  }
+
+  .checkbox__input[aria-invalid]:not([aria-invalid="false"]),
+  .checkbox-group:has(> .field__error:not([hidden])) .checkbox__input {
+    border-width: var(--bw-heavy);
+  }
+
+  .checkbox__input:disabled {
+    color: GrayText;
+    background-color: Canvas;
+    border-color: GrayText;
+  }
+
+  .checkbox__label:has(> .checkbox__input:disabled) {
+    color: GrayText;
+  }
+}
+
+/* the select-all box ships hidden until checkbox.js can make it work */
+.checkbox[hidden] {
+  display: none;
+}

@@ -91,7 +91,7 @@ const parts = order.map((name) => {
 });
 sheet = sheet.replace("    </main>", parts.join("") + "    </main>");
 /* the element pages' own <script> tags were outside <main>: carry their code in */
-sheet = sheet.replace('    <script src="js/sheet.js"></script>', `    <script>\n${jsBundle}</script>\n    <script src="js/sheet.js"></script>`);
+sheet = sheet.replace('    <script src="js/sheet.js"></script>', `    <script src="js/sheet.js"></script>\n    <script>\n${jsBundle}</script>`);
 sheet = sheet
   .replace(/href="elements\/[\w-]+\.html#([^"]+)"/g, 'href="#$1"')
   .replace(/href="elements\/([\w-]+)\.html"/g, 'href="#el-$1"');

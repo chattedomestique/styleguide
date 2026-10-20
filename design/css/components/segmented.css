@@ -1,0 +1,331 @@
+/* ==========================================================================
+   Segmented — wave 2. Spec: elements/segmented.md · page: elements/segmented.html
+   --------------------------------------------------------------------------
+   One of two to four views or modes, side by side: a radio group drawn as
+   joined pills. It switches how one thing is shown and never navigates
+   (sections of a screen are Tabs, wave 3).
+
+     <fieldset class="segmented">
+       <legend class="segmented__legend">Show decks as</legend>
+       <div class="segmented__track">
+         <label class="segmented__option">
+           <input class="segmented__input" type="radio" name="view" value="grid" checked>
+           <span class="segmented__label">Grid</span>
+         </label>
+         <label class="segmented__option">
+           <input class="segmented__input" type="radio" name="view" value="list">
+           <span class="segmented__label">List</span>
+         </label>
+       </div>
+     </fieldset>
+
+   House rules for this file
+   · Native radios: the arrows move the choice and the group is one tab stop.
+     Each radio is stretched over its option and draws nothing; the span after
+     it is what you see. So every state is a sibling selector
+     (input:checked + .segmented__label) and needs no :has().
+   · It acts, so its ends are round (rule 3). The frame is on the segments,
+     not round the track, so each 44px target includes its frame.
+   · Chosen is --fill: ink ground, paper words. Never a colour alone; forced
+     colours keep it as the system's Highlight.
+   · When the options can't sit side by side they come apart into separate
+     pills, one per row (the container queries at the end of the file).
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.segmented {
+  container: segmented / inline-size;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* --- parts ----------------------------------------------------------------- */
+
+/* Field's label, as a legend: sentence case, because it's read. It may be
+   visually hidden (.sr-only) where the options name themselves. */
+.segmented__legend {
+  float: none;
+  padding: 0;
+  margin-block-end: var(--space-2);
+  font: var(--type-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Field's help goes between the legend and the options, in Field's order */
+.segmented > .field__help {
+  margin-block-end: var(--space-2);
+}
+
+/* the row. Equal columns, as wide as the widest option. Round, so the focus
+   ring (which follows the radius) goes round the pill. */
+.segmented__track {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  max-inline-size: 100%;
+  vertical-align: top;
+  border-radius: var(--radius-pill);
+}
+
+/* the target: a label around the radio and the segment */
+.segmented__option {
+  position: relative;
+  display: grid;
+  min-inline-size: 0;
+}
+
+/* the radio, stretched over the option and drawn as nothing. On top, so a
+   click lands on it; transparent, so the segment shows through. */
+.segmented__input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  background: none;
+  border: 0;
+  cursor: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the segment: what you see. Neighbours share one 2px divider: each segment
+   draws its start edge, and the last one closes the row. */
+.segmented__label {
+  --fill: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: var(--hit);
+  padding: var(--space-1) var(--space-4);
+  font: var(--type-body);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  text-align: center;
+  overflow-wrap: break-word; /* the last resort: options come apart long before this */
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--segmented-ground, var(--paper)));
+  border: var(--bw) solid var(--line);
+  border-inline-end-width: 0;
+}
+
+.segmented__option:first-child > .segmented__label {
+  border-start-start-radius: var(--radius-pill);
+  border-end-start-radius: var(--radius-pill);
+}
+
+.segmented__option:last-child > .segmented__label {
+  border-inline-end-width: var(--bw);
+  border-start-end-radius: var(--radius-pill);
+  border-end-end-radius: var(--radius-pill);
+}
+
+/* a leading icon sits a little towards the curve, as in a button */
+.segmented__label > .ic:first-child {
+  margin-inline-start: calc(var(--space-1) * -1);
+}
+
+/* full width: the options share the whole row, for a phone */
+.segmented--full .segmented__track {
+  display: grid;
+}
+
+/* --- states ----------------------------------------------------------------
+   .is-* classes force a state for documentation and tests. They are not an
+   API; real states come from :checked, :hover, :focus-visible, :active and
+   :disabled. */
+
+/* chosen: filled. Only one is, and one always is. */
+.segmented__input:checked + .segmented__label {
+  --fill: 1;
+}
+
+/* hover: a quiet change of ground on the options you could pick */
+@media (hover: hover) {
+  .segmented__option:hover > .segmented__input:not(:checked, :disabled) + .segmented__label {
+    --segmented-ground: var(--canvas);
+  }
+}
+
+.segmented__option.is-hover > .segmented__input:not(:checked) + .segmented__label {
+  --segmented-ground: var(--canvas);
+}
+
+/* pressed: filled while the press lasts, so a tap answers before it lands,
+   with Button's "down" ring, 2px of paper inside the frame. The ring keeps it
+   apart from a chosen neighbour, and shows a press on the chosen one too. */
+.segmented__input:active:not(:disabled) + .segmented__label,
+.segmented__option.is-active > .segmented__label {
+  --fill: 1;
+  box-shadow: inset 0 0 0 var(--bw) var(--paper);
+}
+
+/* focus. Joined, the ring goes round the whole pill, 3px out, as round a
+   button: the group is one tab stop, and the fill already says which option
+   is chosen. Apart, it goes round the chosen pill. --segmented-apart (0 or 1)
+   is set by the container queries below. */
+.segmented__input:focus-visible {
+  outline: 0;
+}
+
+.segmented__track:has(.segmented__input:focus-visible) {
+  outline: calc((1 - var(--segmented-apart, 0)) * var(--ring)) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+.segmented__track.is-focus {
+  outline: calc((1 - var(--segmented-apart, 0)) * var(--ring)) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+.segmented__input:focus-visible + .segmented__label {
+  outline: calc(var(--segmented-apart, 0) * var(--ring)) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* without :has() there's no ring on the track: put it inside the segment, in
+   the segment's own ink, so it shows on paper and on the fill */
+@supports not selector(:has(*)) {
+  .segmented__input:focus-visible + .segmented__label {
+    outline: var(--ring) solid currentColor;
+    outline-offset: calc(var(--ring) * -2);
+  }
+}
+
+/* disabled: dashed and faint, as a disabled button. One option: skipped by
+   the arrows, and the help says why. The whole group (fieldset disabled):
+   the chosen one keeps a faint fill, so you can still see what's set. */
+.segmented__option:has(.segmented__input:disabled) {
+  cursor: default;
+}
+
+.segmented__input:disabled + .segmented__label {
+  color: var(--ink-faint);
+  border-style: dashed;
+  border-color: var(--ink-faint);
+}
+
+.segmented__input:checked:disabled + .segmented__label {
+  color: var(--paper);
+  background: var(--ink-faint);
+}
+
+.segmented:disabled .segmented__legend {
+  color: var(--ink-faint);
+}
+
+/* --- coming apart ----------------------------------------------------------
+   Joined pills can't wrap: a pill split over two rows reads as broken. So
+   when the fieldset is too narrow for its options side by side, they come
+   apart: one pill per row, the whole width, 8px between targets. The widths
+   are in em, so they grow with the text: 5.5em an option, 7.25em with an
+   icon, which fits one short word ("Known", 3.2em at weight 600) and its
+   padding. A longer label is squeezed inside its segment before the options
+   come apart, so keep labels to one short word. */
+
+@container segmented (max-width: 11em) {
+  .segmented__track {
+    --segmented-apart: 1;
+    grid-auto-flow: row;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  .segmented__track > .segmented__option > .segmented__label {
+    border-width: var(--bw);
+    border-radius: var(--radius-pill);
+  }
+}
+
+@container segmented (max-width: 16.5em) {
+  .segmented__track:is(:has(> :nth-child(3)), :has(.ic)) {
+    --segmented-apart: 1;
+    grid-auto-flow: row;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  .segmented__track:is(:has(> :nth-child(3)), :has(.ic)) > .segmented__option > .segmented__label {
+    border-width: var(--bw);
+    border-radius: var(--radius-pill);
+  }
+}
+
+@container segmented (max-width: 22em) {
+  .segmented__track:is(:has(> :nth-child(4)), :has(> :nth-child(3) .ic)) {
+    --segmented-apart: 1;
+    grid-auto-flow: row;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  .segmented__track:is(:has(> :nth-child(4)), :has(> :nth-child(3) .ic)) > .segmented__option > .segmented__label {
+    border-width: var(--bw);
+    border-radius: var(--radius-pill);
+  }
+}
+
+@container segmented (max-width: 29em) {
+  .segmented__track:has(> :nth-child(4) .ic) {
+    --segmented-apart: 1;
+    grid-auto-flow: row;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  .segmented__track:has(> :nth-child(4) .ic) > .segmented__option > .segmented__label {
+    border-width: var(--bw);
+    border-radius: var(--radius-pill);
+  }
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The fill is a background, and backgrounds go here. Chosen becomes the
+   system's selection colours; disabled is GrayText, and a chosen disabled
+   option keeps a GrayText fill. The focus ring is an outline and survives. */
+
+@media (forced-colors: active) {
+  .segmented__label {
+    border-color: ButtonText;
+  }
+
+  .segmented__input:is(:checked, :active) + .segmented__label,
+  .segmented__option.is-active > .segmented__label {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+  }
+
+  .segmented__input:is(:checked, :active) + .segmented__label .ic,
+  .segmented__option.is-active > .segmented__label .ic {
+    background-color: HighlightText;
+  }
+
+  .segmented__input:disabled + .segmented__label {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .segmented__input:disabled + .segmented__label .ic {
+    background-color: GrayText;
+  }
+
+  .segmented__input:checked:disabled + .segmented__label {
+    color: Canvas;
+    background: GrayText;
+    border-color: GrayText;
+  }
+
+  .segmented__input:checked:disabled + .segmented__label .ic {
+    background-color: Canvas;
+  }
+
+  .segmented:disabled .segmented__legend {
+    color: GrayText;
+  }
+}

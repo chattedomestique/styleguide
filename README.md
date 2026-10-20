@@ -3,9 +3,9 @@
 The design system for our installed mobile PWAs and Mac-first apps: minimal, brutalist, friendly,
 and not AI-looking, with usability first. Built one element at a time.
 
-**Status:** v0.4, wireframe stage (greys, no motion). Six of 27 elements have passed gates 0–2:
-Card, Button, Field, Tag and Badge, Meter and Spinner, and Icons. Wave 2 (choices and forms) is
-next.
+**Status:** v0.5, wireframe stage (greys, no motion). Thirteen of 27 elements have passed gates
+0–2: Card, the actions and status elements (wave 1) and the choices and forms (wave 2). Wave 3
+(the app shell and navigation) is next.
 
 | Path | What it is |
 | --- | --- |

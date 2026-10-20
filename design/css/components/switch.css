@@ -1,0 +1,245 @@
+/* ==========================================================================
+   Switch — wave 2. Spec: elements/switch.md · page: elements/switch.html
+
+   A setting that takes effect at once. A native checkbox with role="switch",
+   restyled as a pill track and a circle knob, with "On" or "Off" in words
+   beside it. The settings row: the words lead, the switch trails, and the
+   whole row is the <label>, the target.
+
+     <div class="switch">
+       <label class="switch__label">
+         <span class="switch__text">Shuffle cards</span>
+         <span class="switch__control">
+           <input class="switch__input" type="checkbox" role="switch" checked>
+           <span class="switch__state" aria-hidden="true">
+             <span class="switch__on">On</span><span class="switch__off">Off</span>
+           </span>
+         </span>
+       </label>
+     </div>
+
+   House rules for this file
+   · A pill and a circle: it acts (rule 3).
+   · Never inside a form with a Save button. A switch that waits for Save is a
+     checkbox.
+   · On never leans on colour: the knob moves to the end, the track fills and
+     the word changes. The state words are aria-hidden: role="switch" already
+     says on or off, and the name must not change with the state.
+   · --fill is the track's ground (ink when on, or while pressed); the knob
+     takes the other colour. --lift is a hard shadow: hover and focus.
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.switch {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+/* the row, and the target. 8px above and below the 28px track makes 44px.
+   When the words and the switch can't share a line (a phone at large text
+   sizes) the switch drops below, still at the end. */
+.switch__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-block-size: var(--hit);
+  padding-block: var(--space-2);
+  font: var(--type-body);
+  color: var(--ink);
+  overflow-wrap: break-word;
+  cursor: default; /* the hand is for links only, as on the Mac */
+  touch-action: manipulation;
+}
+
+/* the words take what's left; they wrap between words before the switch
+   gives up its place on the line */
+.switch__text {
+  flex: 1 1 0%;
+  min-inline-size: min(100%, 4em);
+}
+
+/* the track and its word, kept together, at the end of the row */
+.switch__control {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3); /* clear of the focus ring, which stands 6px off the track */
+  margin-inline-start: auto;
+}
+
+/* "On" and "Off" share one cell, so the track never shifts when it flips.
+   In the markup after the input (so ~ and + can read :checked), drawn before. */
+.switch__state {
+  display: inline-grid;
+  order: -1;
+  font: var(--type-meta);
+  color: var(--ink-soft);
+}
+
+.switch__state > * {
+  grid-area: 1 / 1;
+  text-align: end;
+}
+
+.switch__input:checked + .switch__state > .switch__off,
+.switch__input:not(:checked) + .switch__state > .switch__on {
+  visibility: hidden;
+}
+
+/* the track: 52 by 28, a pill. Its content box is the knob's lane. */
+.switch__input {
+  --lift: 0;
+  --fill: 0;
+  --shadow-lift: calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--line);
+
+  display: inline-grid;
+  flex: none;
+  align-items: center;
+  justify-items: start;
+  inline-size: 3.25rem;
+  block-size: 1.75rem;
+  margin: 0;
+  padding: var(--bw);
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper)) padding-box;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lift);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the knob: a 20px circle in the other colour, at the start when off */
+.switch__input::before {
+  content: "";
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  border-radius: var(--radius-pill);
+}
+
+/* on: the track fills and the knob goes to the end (logical, so it follows
+   the writing direction) */
+.switch__input:checked {
+  --fill: 1;
+  justify-items: end;
+}
+
+/* help under the row, in line with the words */
+.switch__help {
+  max-inline-size: var(--measure);
+  padding-block-end: var(--space-2);
+  font: var(--type-meta);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from :hover, :focus-visible, :active, :checked and
+   :disabled. There is no invalid: a switch has no wrong answer. */
+
+@media (hover: hover) {
+  .switch__label:hover .switch__input:not(:disabled) {
+    --lift: 1;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, a pill like the track */
+.switch__input:is(:focus-visible, .is-hover, .is-focus) {
+  --lift: 1;
+}
+
+.switch__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: down onto the page, the track fills, and the knob stretches
+   towards where it's going, as a thumb squashes it */
+.switch__label:active .switch__input:not(:disabled),
+.switch__input.is-active {
+  --lift: 0;
+  --fill: 1;
+}
+
+.switch__label:active .switch__input:not(:disabled)::before,
+.switch__input.is-active::before {
+  inline-size: 1.625rem;
+}
+
+/* disabled: dashed and faint, never faded; the help says why. Last. */
+.switch__input:disabled {
+  --lift: 0;
+  background-color: color-mix(in srgb, var(--ink-faint) calc(var(--fill) * 100%), transparent);
+  border-style: dashed;
+  border-color: var(--ink-faint);
+}
+
+.switch__input:disabled::before {
+  inline-size: 1.25rem;
+  background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink-faint));
+}
+
+.switch__label:has(.switch__input:disabled),
+.switch__input:disabled + .switch__state {
+  color: var(--ink-faint);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The fill and the shadow vanish, so the track paints system colours: on is
+   a Highlight track with the knob at the end, off a framed track with the
+   knob at the start. The position and the word carry it either way. */
+
+@media (forced-colors: active) {
+  .switch__input {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .switch__input::before {
+    background: CanvasText;
+  }
+
+  .switch__input:checked {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .switch__input:checked::before {
+    background: HighlightText;
+  }
+
+  .switch__input:focus-visible,
+  .switch__input.is-focus {
+    outline-color: CanvasText;
+  }
+
+  .switch__input:not(:checked):is(.is-hover, .is-active),
+  .switch__label:active .switch__input:not(:disabled):not(:checked) {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .switch__label:hover .switch__input:not(:disabled):not(:checked) {
+      border-color: Highlight;
+    }
+  }
+
+  .switch__input:disabled {
+    background-color: Canvas;
+    border-color: GrayText;
+  }
+
+  .switch__input:disabled::before {
+    background: GrayText;
+  }
+
+  .switch__label:has(.switch__input:disabled),
+  .switch__input:disabled + .switch__state {
+    color: GrayText;
+  }
+}

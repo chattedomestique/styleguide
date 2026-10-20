@@ -1,0 +1,137 @@
+/* ==========================================================================
+   Select — wave 2. Spec: elements/select.md · page: elements/select.html
+   --------------------------------------------------------------------------
+   One choice from a long list: a native <select> in Field's frame, with the
+   down glyph. Only the closed control is ours. The phone opens its own
+   picker and the Mac its own menu, and both know their platform better.
+
+     <div class="field">
+       <label class="field__label" for="deck-language">Language</label>
+       <div class="select">
+         <select class="select__input" id="deck-language" name="language">
+           <option lang="en">English</option>
+           <option lang="fr">Français</option>
+         </select>
+         <span class="ic ic--down select__icon" aria-hidden="true"></span>
+       </div>
+     </div>
+
+   House rules for this file
+   · It sits in Field's frame and uses Field's label, help and error, in
+     Field's order. The frame is restated here, value for value, rather than
+     borrowed: a <select> matches :read-only, so .field__input would draw it
+     as a read-only value on a rule.
+   · It holds a value, so it is square, like a field (rule 3). The glyph says
+     it opens; a select is never a pill.
+   · Invalid doubles the frame inwards, as Field does, and .field__error says
+     how to fix it. Disabled is dashed and faint; never opacity.
+   · No appearance: base-select. It would swap the phone's picker and the
+     Mac's menu for one drawn in the page (elements/select.md, Known limits).
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.select {
+  position: relative;
+  min-inline-size: 0;
+}
+
+/* Field's frame: 44px, a 2px square line on paper, 16px text. The end
+   padding keeps the value clear of the glyph. */
+.select__input {
+  display: block;
+  inline-size: 100%;
+  min-block-size: var(--hit);
+  margin: 0;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3) calc(var(--space-3) + 1.25rem + var(--space-2));
+  font: var(--type-body);
+  /* the iOS zoom floor (STYLE §4), restated after the shorthand, as in Field */
+  font-size: max(1rem, 16px);
+  text-overflow: ellipsis;
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-ctl);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the down glyph, 20px, in the frame's end padding. Clicks go through it. */
+.select__icon {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: calc(var(--bw) + var(--space-3));
+  margin-block: auto;
+  pointer-events: none;
+}
+
+/* --- states ----------------------------------------------------------------
+   .is-* classes force a state for documentation and tests. They are not an
+   API; real states come from :hover, :focus-visible, :active, aria-invalid
+   and :disabled. */
+
+/* hover: Field's quiet change of ground */
+@media (hover: hover) {
+  .select__input:hover:not(:disabled) {
+    background: var(--canvas);
+  }
+}
+
+.select__input.is-hover {
+  background: var(--canvas);
+}
+
+/* pressed: the same ground, so a tap answers too while the picker opens */
+.select__input:active:not(:disabled),
+.select__input.is-active {
+  background: var(--canvas);
+}
+
+/* focus: base.css draws the ring on the select; this forces it for the page */
+.select__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* invalid: the frame doubles, inwards, so nothing shifts. The words above it
+   say how to fix it; aria-describedby ties them to the select. */
+.select__input[aria-invalid]:not([aria-invalid="false"]) {
+  box-shadow: inset 0 0 0 var(--bw) var(--line);
+}
+
+/* disabled: dashed and faint, and the help says why. Never opacity: Safari
+   fades a disabled select on its own. */
+.select__input:disabled {
+  color: var(--ink-faint);
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--ink-faint);
+  opacity: 1;
+}
+
+.select__input:disabled + .select__icon,
+.field:has(.select__input:disabled) .field__label {
+  color: var(--ink-faint);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The doubled frame is a shadow and vanishes here, so it becomes a 4px line. */
+
+@media (forced-colors: active) {
+  .select__input[aria-invalid]:not([aria-invalid="false"]) {
+    border-width: var(--bw-heavy);
+  }
+
+  .select__input:disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .select__input:disabled + .select__icon {
+    background-color: GrayText;
+  }
+
+  .field:has(.select__input:disabled) .field__label {
+    color: GrayText;
+  }
+}

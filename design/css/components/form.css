@@ -1,0 +1,122 @@
+/* ==========================================================================
+   Form — wave 2. Spec: elements/form.md · page: elements/form.html
+
+   Fields together, and what happens when they're wrong. Form owns the layout
+   (one column, labels above, 24px between fields), the optional mark, the
+   error summary and the submit row. Each field is still its own element:
+   Field, Checkbox, Radio, Select, Stepper.
+
+     <form class="form" action="…">
+       <section class="card form__summary" tabindex="-1" aria-labelledby="…" hidden>…</section>
+       <div class="field">…</div>
+       <fieldset class="radio-group">…</fieldset>
+       <div class="form__actions">
+         <button class="btn btn--quiet" type="button">Cancel</button>
+         <button class="btn btn--primary" type="submit">Create deck</button>
+       </div>
+     </form>
+
+   House rules for this file
+   · Layout only, plus the summary's list. Colours and states belong to the
+     elements inside.
+   · The form is its own container: the submit row stacks by the form's
+     width, not the window's, so a form in a narrow sheet on a Mac behaves
+     like one on a phone.
+   · Errors show only on submit or blur, never while typing. Without script
+     the browser's own validation runs (js/components/form.js).
+   ========================================================================== */
+
+.form {
+  container: form / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-inline-size: 40rem; /* one column of fields; wider and the eye loses the line */
+  min-inline-size: 0;
+}
+
+/* Tab, a tap or a summary link scrolls a control into view: keep its label,
+   help and error in view above it, and room below it for the on-screen
+   keyboard's edge. Six rem is a label, a line of help and an error. */
+.form :is(input, select, textarea) {
+  scroll-margin-block: 6rem var(--space-6);
+}
+
+/* "(optional)", inside the label, so it is part of the name. Required fields
+   carry no mark: most fields are required, so the exceptions are marked. */
+.form__optional {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* --- the error summary -------------------------------------------------------
+   A card at the top. Hidden until a submit finds something wrong; then it
+   lists each problem as a link to its field and takes focus. */
+
+.form__summary {
+  scroll-margin-block: var(--space-4);
+}
+
+/* .card sets display, which would beat the hidden attribute */
+.form__summary[hidden] {
+  display: none;
+}
+
+/* it takes focus from script, after a click as often as a key, so it rings
+   on :focus, not only :focus-visible */
+.form__summary:is(:focus, .is-focus) {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* the links continue the body's rule: a 1px line above the first */
+.form__summary > .card__list {
+  border-block-start: var(--bw-thin) solid var(--card-ink);
+}
+
+.form__summary .card__list a {
+  text-decoration: underline;
+  text-decoration-thickness: var(--bw-thin);
+  text-underline-offset: 0.2em;
+}
+
+/* --- the submit row ----------------------------------------------------------
+   Narrow (a phone): full width, primary on top, Cancel under it. Wide:
+   primary last, at the end of the row, as on the Mac and iOS. The markup
+   order is the wide one (Cancel, then the primary), so Tab follows the row
+   where a keyboard is most likely. */
+
+.form__actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+@container form (min-width: 30rem) {
+  .form__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+  }
+}
+
+/* --- inline: one field and its button on one line ----------------------------
+   Rename deck. The button lines up with the input, below the label and any
+   error; when they can't share a line, the button drops under the field. */
+
+.form--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.form--inline > .field {
+  flex: 1 1 14rem;
+}
+
+.form--inline > .btn {
+  flex: none;
+}

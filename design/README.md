@@ -33,7 +33,7 @@ design/
       foundation.css    type, space, line, shape, hit, motion
       color.wire.css    greys, roles, six tone slots  ← gate 3 replaces this
     base.css            reset, element defaults, .t-* styles, [data-tone]
-    icons.css           five masked glyphs
+    icons.css           26 masked glyphs
     components/
       card.css …        one file per element
     wire.css            wireframe placeholders, .wf-*  (disposable)
@@ -73,7 +73,7 @@ element together, because colour, motion and the freeze are decisions about the 
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | | **Card** | ✓ | ✓ | ✓ | | | |
 | 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | ✓ | ✓ | | | |
-| 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | | | | | |
+| 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | ✓ | ✓ | | | |
 | 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | | | | | |
 | 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | | | | | |
 | 5 | PWA platform | ✓ | | | | | |
