@@ -1,6 +1,6 @@
 # Banner
 
-Element 25 · gates 0–2 done (wireframe, states) · page: `elements/banner.html`
+Element 25 · gates 0–3 done (wireframe, states, colour) · page: `elements/banner.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Banner's own spec.

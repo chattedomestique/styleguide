@@ -1,6 +1,6 @@
 # Tab bar
 
-Element 16 · gates 0–2 done (wireframe, states) · page: `elements/tabbar.html`
+Element 16 · gates 0–3 done (wireframe, states, colour) · page: `elements/tabbar.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tab bar's own spec.

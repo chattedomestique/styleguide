@@ -1,6 +1,6 @@
 # Top bar
 
-Element 15 · gates 0–2 done (wireframe, states) · page: `elements/topbar.html`
+Element 15 · gates 0–3 done (wireframe, states, colour) · page: `elements/topbar.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Top bar's own spec.

@@ -1,6 +1,6 @@
 # Meter and Spinner
 
-Element 05 · gates 0–2 done (wireframe, states) · page: `elements/meter.html`
+Element 05 · gates 0–3 done (wireframe, states, colour) · page: `elements/meter.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Meter and Spinner's own spec.

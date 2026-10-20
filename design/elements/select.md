@@ -1,6 +1,6 @@
 # Select
 
-Element 11 · gates 0–2 done (wireframe, states) · page: `elements/select.html`
+Element 11 · gates 0–3 done (wireframe, states, colour) · page: `elements/select.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Select's own spec.

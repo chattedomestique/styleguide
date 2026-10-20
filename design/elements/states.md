@@ -1,6 +1,6 @@
 # Empty, loading and error
 
-Element 26 · gates 0–2 done (wireframe, states) · page: `elements/states.html`
+Element 26 · gates 0–3 done (wireframe, states, colour) · page: `elements/states.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 spec for the patterns a screen uses before there's anything, and when something fails.

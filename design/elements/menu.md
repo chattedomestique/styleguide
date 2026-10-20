@@ -1,6 +1,6 @@
 # Menu
 
-Element 21 · gates 0–2 done (wireframe, states) · page: `elements/menu.html`
+Element 21 · gates 0–3 done (wireframe, states, colour) · page: `elements/menu.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Menu's own spec.

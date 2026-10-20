@@ -1,6 +1,6 @@
 # Field
 
-Element 03 · gates 0–2 done (wireframe, states) · page: `elements/field.html`
+Element 03 · gates 0–3 done (wireframe, states, colour) · page: `elements/field.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Field's own spec.

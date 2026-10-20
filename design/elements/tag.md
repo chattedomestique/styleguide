@@ -1,6 +1,6 @@
 # Tag and Badge
 
-Element 04 · gates 0–2 done (wireframe, states) · page: `elements/tag.html`
+Element 04 · gates 0–3 done (wireframe, states, colour) · page: `elements/tag.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tag and Badge's own spec.

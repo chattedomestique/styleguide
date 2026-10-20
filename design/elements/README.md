@@ -59,7 +59,7 @@ you made and why; the exact lines anything shared needs; what you couldn't verif
 
 ## Page and spec layout
 
-The page: hero (the kicker reads "Element NN · Wireframe · Gates 0 to 2 done", the title is
+The page: hero (the kicker reads "Element NN · Colour · Gates 0 to 3 done", the title is
 the element's name, the lede is its job), then **01 Variants**, **02 States**, **03 Usage**
 (do and don't, platform notes), with **Anatomy** first when the element has more than three
 parts. Each variant is an `.sg-entry` whose specimens carry `data-sg-code`, so the page prints

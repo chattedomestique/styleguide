@@ -9,6 +9,18 @@
       name="description"
       content="The rules, tokens and elements our installed PWAs and Mac apps are built from."
     />
+    <script>
+/* sheet-scheme.js — the style-sheet pages' stored scheme, before the first paint.
+   Loaded in the head, ahead of the CSS, so a viewer who chose Light or Dark never sees
+   the other flash first. sheet.js draws the switch and owns the choice; this only reads
+   it. Storage can be missing or throw; then the page follows the system. Not shipped. */
+(function () {
+  try {
+    var v = window.localStorage.getItem("flashcards-sheet-scheme");
+    if (v === "light" || v === "dark") document.documentElement.setAttribute("data-scheme", v);
+  } catch (e) { /* the system's scheme */ }
+})();
+</script>
     <style>
 /* ==========================================================================
    flashcards.css — the entry file. Apps link its bundled copy, dist/flashcards.css.
@@ -12191,7 +12203,7 @@ dialog.sheet:not([open]) {
               <div class="select">
                 <select class="select__input" id="select-help-colour" name="colour" autocomplete="off" aria-describedby="select-help-colour-help">
                   <option value="plain">Plain</option>
-                  <option value="light-grey" selected>Light grey</option>
+                  <option value="faint" selected>Faint</option>
                   <option value="soft">Soft</option>
                   <option value="strong">Strong</option>
                   <option value="ink">Ink</option>

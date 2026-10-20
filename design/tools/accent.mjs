@@ -275,7 +275,16 @@ function judge(colours, rgb, scheme, on) {
   return { rows, on: rows[0].on, pass: rows.every((r) => r.pass) };
 }
 
-/** the first lightness, walking from the colour's own, at which judge() passes */
+/** headroom: a proposal clears each floor by 5%, so rounding or a small tweak to the
+    greys doesn't tip it under; only if no lightness can, the bare floor */
+const ROOM = 1.05;
+function roomy(colours, rgb, scheme) {
+  const j = judge(colours, rgb, scheme);
+  return j.pass && j.rows.every((r) => r.paper >= FILL * ROOM && r.canvas >= FILL * ROOM && r.text >= TEXT * ROOM);
+}
+
+/** the first lightness, walking from the colour's own, at which judge() passes with
+    headroom, else the first at which it passes at all */
 function search(colours, rgb, scheme, order) {
   const [L0, C, h] = toOklch(rgb);
   const steps = [];
@@ -285,6 +294,10 @@ function search(colours, rgb, scheme, order) {
   const tries = order === "nearest"
     ? [...steps, ...down].sort((a, b) => Math.abs(a - L0) - Math.abs(b - L0))
     : [...steps, ...down];
+  for (const L of tries) {
+    const cand = round8(fromOklch([L, C, h]));
+    if (roomy(colours, cand, scheme)) return cand;
+  }
   for (const L of tries) {
     const cand = round8(fromOklch([L, C, h]));
     if (judge(colours, cand, scheme).pass) return cand;
@@ -311,15 +324,42 @@ function table(rows) {
   return lines.join("\n");
 }
 
+/** what the person typed: parseColour, but strict. An accent is opaque, and a channel out
+    of range or a malformed number is an error, not something to clamp or guess. */
+function parseAccent(text) {
+  const t = text.trim();
+  const num = "-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)";
+  // the alpha is what follows a "/", or a fourth comma-separated value
+  const inner = /^(rgba?|oklch)\(/i.test(t) && t.endsWith(")") ? t.slice(t.indexOf("(") + 1, -1) : "";
+  const alpha = inner.includes("/") ? inner.split("/")[1] : inner.split(",").length === 4 ? inner.split(",")[3] : null;
+  if (alpha !== null) {
+    const a = alpha.trim().endsWith("%") ? parseFloat(alpha) / 100 : parseFloat(alpha);
+    if (!(a >= 1)) return { error: "an accent must be opaque: drop its alpha" };
+  }
+  let m;
+  if ((m = t.match(new RegExp(`^rgba?\\(\\s*(${num})[\\s,]+(${num})[\\s,]+(${num})\\s*(?:[,/][^)]*)?\\)$`, "i")))) {
+    if ([m[1], m[2], m[3]].some((c) => +c < 0 || +c > 255)) return { error: "each rgb() channel is 0 to 255" };
+    return { rgb: [+m[1], +m[2], +m[3]] };
+  }
+  if ((m = t.match(new RegExp(`^oklch\\(\\s*(${num})(%?)\\s+(${num})(%?)\\s+(${num})(?:deg)?\\s*(?:\\/[^)]*)?\\)$`, "i")))) {
+    const L = +m[1] / (m[2] ? 100 : 1);
+    if (L < 0 || L > 1 || +m[3] < 0) return { error: "oklch() lightness is 0 to 1 (or 0% to 100%) and chroma is 0 or more" };
+    const h = ((+m[5] % 360) + 360) % 360; // CSS allows any hue, negative included
+    return { rgb: parseColour(`oklch(${m[1]}${m[2]} ${m[3]}${m[4]} ${h})`) };
+  }
+  const rgb = /^#/.test(t) ? parseColour(t) : null;
+  return rgb ? { rgb } : { error: 'give a hex such as "#c2410c", an rgb(), or an oklch() such as "oklch(0.55 0.19 41)"' };
+}
+
 function main(args) {
   if (!args.length || args.length > 2 || args.some((a) => /^-/.test(a))) {
     console.log('usage: node design/tools/accent.mjs <light accent> [<dark accent>]\n       each a hex ("#c2410c") or oklch() ("oklch(0.55 0.19 41)")');
     process.exit(1);
   }
-  const parsed = args.map((a) => ({ text: a, rgb: parseColour(a) }));
-  const bad = parsed.find((p) => !p.rgb);
+  const parsed = args.map((a) => ({ text: a, ...parseAccent(a) }));
+  const bad = parsed.find((p) => !p.rgb || p.rgb.some((c) => !Number.isFinite(c)));
   if (bad) {
-    console.error(`Can't read "${bad.text}": give a hex such as "#c2410c" or an oklch() such as "oklch(0.55 0.19 41)".`);
+    console.error(`Can't read "${bad.text}": ${bad.error || "it isn't a colour"}.`);
     process.exit(1);
   }
   const colours = loadColours();

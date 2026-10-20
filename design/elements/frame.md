@@ -1,6 +1,6 @@
 # Frame
 
-Element 14 · gates 0–2 done (wireframe, states) · page: `elements/frame.html`
+Element 14 · gates 0–3 done (wireframe, states, colour) · page: `elements/frame.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Frame's own spec.

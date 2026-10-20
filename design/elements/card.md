@@ -1,6 +1,6 @@
 # Card
 
-Element 01 · gates 0–2 done (wireframe, states) · page: `elements/card.html`
+Element 01 · gates 0–3 done (wireframe, states, colour) · page: `elements/card.html`
 
 The rules, tokens and platforms that every element follows are in `../STYLE.md`. This file is
 the Card's own spec.

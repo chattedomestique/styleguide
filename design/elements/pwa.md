@@ -1,6 +1,6 @@
 # PWA platform
 
-Element 27 · gates 0–2 done (wireframe, states) · page: `elements/pwa.html` · working starter:
+Element 27 · gates 0–3 done (wireframe, states, colour) · page: `elements/pwa.html` · working starter:
 `pwa/` (`../pwa/index.html` from here)
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`, whose §4 holds the

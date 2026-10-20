@@ -9,6 +9,18 @@
       name="description"
       content="The Flashcards design system in context: a phone and a Mac, built from what exists, with every missing element marked."
     />
+    <script>
+/* sheet-scheme.js — the style-sheet pages' stored scheme, before the first paint.
+   Loaded in the head, ahead of the CSS, so a viewer who chose Light or Dark never sees
+   the other flash first. sheet.js draws the switch and owns the choice; this only reads
+   it. Storage can be missing or throw; then the page follows the system. Not shipped. */
+(function () {
+  try {
+    var v = window.localStorage.getItem("flashcards-sheet-scheme");
+    if (v === "light" || v === "dark") document.documentElement.setAttribute("data-scheme", v);
+  } catch (e) { /* the system's scheme */ }
+})();
+</script>
     <style>
 /* ==========================================================================
    flashcards.css — the entry file. Apps link its bundled copy, dist/flashcards.css.
@@ -7238,40 +7250,40 @@ dialog.sheet:not([open]) {
               element reads these.</p>
           </li>
           <li>
-            <strong>Card: gates 0–2</strong>
+            <strong>Card: gates 0–3</strong>
             <p>Eight variants, six states. The decks, the stats and the flashcard.</p>
           </li>
           <li>
-            <strong>Button: gates 0–2</strong>
+            <strong>Button: gates 0–3</strong>
             <p>The answer buttons on the study screen.</p>
           </li>
           <li>
-            <strong>Tag: gates 0–2</strong>
+            <strong>Tag: gates 0–3</strong>
             <p>The statuses on the Mac's recent rows.</p>
           </li>
           <li>
-            <strong>Meter: gates 0–2</strong>
+            <strong>Meter: gates 0–3</strong>
             <p>Progress on the Carry on and Known cards.</p>
           </li>
           <li>
-            <strong>Field: gates 0–2</strong>
+            <strong>Field: gates 0–3</strong>
             <p>Not on these screens yet. On the Mac, search is the system's own field.</p>
           </li>
           <li>
-            <strong>Frame: gates 0–2</strong>
+            <strong>Frame: gates 0–3</strong>
             <p>Every screen here: the rows, the safe areas, the one region that scrolls, and the
               measured <code>--chrome</code> the study card fits under.</p>
           </li>
           <li>
-            <strong>Top bar: gates 0–2</strong>
+            <strong>Top bar: gates 0–3</strong>
             <p>The study screen's way back, title and Undo.</p>
           </li>
           <li>
-            <strong>Tab bar: gates 0–2</strong>
+            <strong>Tab bar: gates 0–3</strong>
             <p>Today's places, with a badge on Decks.</p>
           </li>
           <li>
-            <strong>Sidebar: gates 0–2</strong>
+            <strong>Sidebar: gates 0–3</strong>
             <p>Not on these screens: on the Mac the toolbar and sidebar are system chrome. Sidebar is
               the web shell's, for a tablet or a browser.</p>
           </li>

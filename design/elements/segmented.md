@@ -1,6 +1,6 @@
 # Segmented control
 
-Element 10 · gates 0–2 done (wireframe, states) · page: `elements/segmented.html`
+Element 10 · gates 0–3 done (wireframe, states, colour) · page: `elements/segmented.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Segmented control's own spec.
@@ -129,7 +129,7 @@ page and for tests. They are not API.
   (it's a radio group), but never put one where choosing would navigate.
 - Help describes the whole group (`aria-describedby` on the fieldset). Say why something is
   disabled there, or better, leave it enabled.
-- Chosen never relies on colour: ink fill against paper in the wireframe, the system's selection
+- Chosen never relies on colour: ink fill against paper in either scheme, the system's selection
   colours in forced colours. Focus is a ring outside the pill, never a fill, so it never looks
   like the choice.
 

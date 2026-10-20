@@ -1,6 +1,6 @@
 # Sidebar
 
-Element 17 · gates 0–2 done (wireframe, states) · page: `elements/sidebar.html`
+Element 17 · gates 0–3 done (wireframe, states, colour) · page: `elements/sidebar.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Sidebar's own spec.

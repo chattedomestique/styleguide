@@ -1,6 +1,6 @@
 # Disclosure
 
-Element 20 · gates 0–2 done (wireframe, states) · page: `elements/disclosure.html`
+Element 20 · gates 0–3 done (wireframe, states, colour) · page: `elements/disclosure.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Disclosure's own spec.

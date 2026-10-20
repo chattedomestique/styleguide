@@ -43,6 +43,7 @@ design/
   js/
     components/         element script, where HTML can't do it → dist/flashcards.js
     sheet.js            the pages' own script: markup, contrast (not shipped)
+    sheet-scheme.js     the stored scheme, set in the head before the CSS (not shipped)
   fonts/                Archivo woff2 + OFL licence
   pwa/                  the starter app; copy it with dist/ and fonts/ (pwa/README.md)
   tools/
