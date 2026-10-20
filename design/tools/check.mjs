@@ -14,7 +14,8 @@
      5  the gate order        transitions and keyframes before gate 4 opens
      6  layering              components/ must not reach for .wf-* or --grey-*
      7  doc drift             tokens and classes named in the .md files that don't exist
-     8  markup                classes used in index.html or screens.html that no CSS defines
+     8  markup                classes used in the pages that no CSS defines, and ids that
+                              clash once the bundle joins the pages into one
      9  contrast              the colour file's role pairs, against WCAG AA
 
    Checks 2–5 cover sheet.css and screens.css too: the pages that teach the
@@ -54,7 +55,11 @@ const isComponent = (p) => /components[\\/]/.test(p);
 const shipped = cssFiles.filter((p) => !isSheet(p)); // what an app links: check 6 only
 
 const files = Object.fromEntries(cssFiles.map((p) => [p, stripComments(read(p))]));
-const PAGES = ["index.html", "screens.html"];
+/* the pages: the hub, the test bed and one page per element (_name.html is a template) */
+const ELEMENTS = join(ROOT, "elements");
+const elementFiles = (ext) =>
+  readdirSync(ELEMENTS).filter((n) => n.endsWith(ext) && !n.startsWith("_") && n !== "README.md").sort();
+const PAGES = ["index.html", "screens.html", ...elementFiles(".html").map((n) => `elements/${n}`)];
 const pages = Object.fromEntries(PAGES.map((n) => [n, read(join(ROOT, n))]));
 const html = Object.values(pages).join("\n");
 
@@ -215,7 +220,8 @@ for (const s of Object.values(files)) {
 }
 {
   const problems = [];
-  for (const name of ["STYLE.md", "README.md"]) {
+  /* elements/README.md is the roadmap: it names elements that don't exist yet */
+  for (const name of ["STYLE.md", "README.md", ...elementFiles(".md").map((n) => `elements/${n}`)]) {
     const md = read(join(ROOT, name));
     const code = [...md.matchAll(/`([^`\n]+)`/g)].map((m) => m[1]);
     for (const c of code) {
@@ -224,7 +230,7 @@ for (const s of Object.values(files)) {
       if (cls && !classes.has(cls[1])) problems.push(`${name}: class \`${c}\` is not in the CSS`);
     }
   }
-  check("STYLE.md and README.md name only real tokens and classes", [...new Set(problems)]);
+  check("the .md files name only real tokens and classes", [...new Set(problems)]);
 }
 
 /* ---- 8 markup ---------------------------------------------------------------- */
@@ -237,7 +243,16 @@ for (const s of Object.values(files)) {
       }
     }
   }
-  check("every class in the pages is defined", [...new Set(problems)]);
+  /* bundle.mjs joins the hub and every element page into one: ids must not clash */
+  const seen = new Map();
+  for (const [name, page] of Object.entries(pages)) {
+    if (name === "screens.html") continue;
+    for (const m of page.matchAll(/\sid="([^"]+)"/g)) {
+      if (seen.has(m[1])) problems.push(`${name}:${lineOf(page, m.index)} id "${m[1]}" is also in ${seen.get(m[1])}: prefix it with the element's name`);
+      else seen.set(m[1], name);
+    }
+  }
+  check("every class in the pages is defined, no id clashes", [...new Set(problems)]);
 }
 
 /* ---- 9 contrast -------------------------------------------------------------- */

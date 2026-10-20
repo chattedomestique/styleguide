@@ -7,19 +7,25 @@ No build step, no dependencies, no framework. Open `index.html` and it works. Wh
 load, and where we go against them: `STYLE.md` §6 "Skills we build with" and §7.
 
 ```
-open design/index.html           the living sheet: specimens, states, markup
+open design/index.html           the hub: rules, tokens, every element and its status
+open design/elements/card.html   one page per element: specimens, states, markup
 open design/screens.html         the test bed: the system on a phone and a Mac
-design/STYLE.md                  the same sheet in words, with exact values
+design/STYLE.md                  the rules, foundations and platforms, in words
+design/elements/README.md        how an element is built, and every element's brief
 node design/tools/check.mjs      the gate (see below)
-node design/tools/bundle.mjs     self-contained pages + one CSS file → dist/
+node design/tools/bundle.mjs     one CSS file + two self-contained pages → dist/
 ```
 
 ```
 design/
-  index.html            the sheet
+  index.html            the hub: rules, tokens, the element index
   screens.html          the test bed: real screens, missing elements marked
-  STYLE.md              the spec
+  STYLE.md              the spec: rules, foundations, platforms
   README.md             you are here
+  elements/
+    README.md           the contract for building an element, and every brief
+    card.html card.md   one page and one spec per element
+    _template.*         start a new element from these
   css/
     flashcards.css      entry: layer order + imports (apps link the dist/ copy)
     fonts.css           Archivo, variable on weight and width
@@ -29,14 +35,16 @@ design/
     base.css            reset, element defaults, .t-* styles, [data-tone]
     icons.css           five masked glyphs
     components/
-      card.css          one file per element
+      card.css …        one file per element
     wire.css            wireframe placeholders, .wf-*  (disposable)
     screens.css         the test bed's app CSS, in @layer app (not shipped)
     sheet.css           the pages' own chrome, .sg-*   (not shipped)
+  js/
+    sheet.js            the pages' own script: markup, contrast (not shipped)
   fonts/                Archivo woff2 + OFL licence
   tools/
     check.mjs           the gate
-    bundle.mjs          single-file build
+    bundle.mjs          the build: dist/flashcards.css, style-sheet.html, screens.html
   dist/                 bundle output, what an app links (generated)
 ```
 
@@ -53,39 +61,48 @@ colour, and colour can't quietly rearrange the layout.
 | **2 States** | Rest, hover, focus, pressed, selected, disabled. Still grey. | Colour, motion. | Every state legible in grey. Keyboard-only pass. |
 | **3 Colour** | Tones, accent, dark. | New structure. | Contrast passes (the sheet prints it live). Nothing in `components/` changes. |
 | **4 Motion** | Transitions, the flip, reduced motion. | | Reduced-motion pass. Only transform and opacity move. |
-| **5 Freeze** | Nothing new. | Everything. | `index.html` and `STYLE.md` agree. Version bumped. |
+| **5 Freeze** | Nothing new. | Everything. | The pages and the specs agree. Version bumped. |
 
 ### Status
 
-| Element | 0 | 1 | 2 | 3 | 4 | 5 |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Card** | ✓ | ✓ | ✓ | | | |
-| Button | | | | | | |
-| Tag | | | | | | |
-| Meter | | | | | | |
-| Field | | | | | | |
-| Nav bar | | | | | | |
-| Frame | | | | | | |
+Gates 0–2 go one element at a time, in waves of about five. Gates 3–5 then pass over every
+element together, because colour, motion and the freeze are decisions about the whole system.
 
-Order is deliberate. Button goes first because the card's `.card__ctl` and `.card__action`
-are slots waiting for it. Tag and Meter replace placeholders the card uses today.
+| Wave | Elements | 0 | 1 | 2 | 3 | 4 | 5 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| | **Card** | ✓ | ✓ | ✓ | | | |
+| 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | | | | | |
+| 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | | | | | |
+| 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | | | | | |
+| 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | | | | | |
+| 5 | PWA platform | ✓ | | | | | |
+| 6 | Colour and dark mode, for everything | | | | | | |
+| 7 | Motion, for everything | | | | | | |
+| 8 | Freeze: v1.0 | | | | | | |
+
+Gate 0 is ticked because every brief is written (`elements/README.md`). Order is deliberate:
+Button goes first because the card's `.card__ctl` and `.card__action` are slots waiting for
+it, and Tag and Meter replace placeholders the card uses today.
 
 ### Adding an element
 
-1. **Brief.** Write the job in one sentence, then list the slots and the variants. Pull the
-   sample copy from the product; no lorem ipsum. Add the section to `STYLE.md`.
-2. **Wireframe.** Create `css/components/<name>.css`, import it in `flashcards.css` under
-   `layer(components)`. Greys only. Read roles, never a hex. If the element needs a
-   placeholder, it goes in `wire.css` as `.wf-*`.
-3. **Specimens.** Add an entry to `index.html` with every variant. Mark each specimen root
-   with `data-sg-code` and the page prints its markup.
+The full contract is `elements/README.md`. In short:
+
+1. **Brief.** The job in one sentence, the parts, the variants, the copy from the product.
+   It lives in `elements/README.md` until the element's spec, `elements/<name>.md`, starts.
+2. **Wireframe.** `css/components/<name>.css`, imported in `flashcards.css` under
+   `layer(components)`. Greys only. Read roles, never a hex. A placeholder the element
+   needs goes in `wire.css` as `.wf-*`.
+3. **Page.** `elements/<name>.html`, from `_template.html`, with every variant. Mark each
+   specimen root with `data-sg-code` and the page prints its markup. Link it from the
+   element index in `index.html`.
 4. **States.** Rest, hover, focus, pressed, selected, disabled. Use `--lift` and `--fill`
    if the element is pressable, so it matches the card.
 5. **In context.** Swap the element's `.wf-slot` placeholders in `screens.html` for the real
    thing. Add what it learned to that page's findings, and delete what it fixed.
 6. **Check.** `node design/tools/check.mjs`. Then look at both pages at 320px and 1440px, at
    200% text (`screens.html` has a switch), and with the keyboard.
-7. Tick the gate in the status table above.
+7. Tick the gate in the status table above, and in `STYLE.md` §3.
 
 ## Colour handover (gate 3)
 
@@ -122,9 +139,11 @@ Zero dependencies. Exits 1 on any of these, with the file and line:
    (`GATES.motion` at the top of the file);
 6. a component that reaches for `.wf-*`, or anything outside the colour file that reads a
    `--grey-N` primitive;
-7. a token or class named in `STYLE.md` or this file that doesn't exist in the CSS;
-8. a class used in `index.html` or `screens.html` that no CSS defines, which is how typos get
-   caught;
+7. a token or class named in `STYLE.md`, this file or an element's spec that doesn't exist in
+   the CSS;
+8. a class used in any page (`index.html`, `screens.html`, `elements/*.html`) that no CSS
+   defines, which is how typos get caught, and an id used on two pages, which would clash
+   once the bundle joins them;
 9. contrast: ink, soft ink and each tone's text against WCAG AA, resolved from the colour
    file (hex, `rgb()` and `oklch()` are understood).
 

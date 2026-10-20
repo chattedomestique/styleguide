@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Card · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Card element of the Flashcards design system: anatomy, variants, states and layout."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#card-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Card</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#card-anatomy">Anatomy</a></li>
+            <li><a href="#card-variants">Variants</a></li>
+            <li><a href="#card-states">States</a></li>
+            <li><a href="#card-layout">Layout</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Card · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-card">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 01</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">Cards</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            A card holds one idea. The frame is fixed; what goes inside is a slot. This chapter is
+            structure only: greys, hard lines, no motion.
+          </p>
+          <div class="sg-controls">
+            <fieldset class="sg-ctl">
+              <legend>Show boxes</legend>
+              <div class="sg-seg">
+                <label><input type="radio" name="boxes" id="boxes-off" checked />Off</label>
+                <label><input type="radio" name="boxes" id="boxes-on" />On</label>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="card-anatomy" aria-labelledby="h-card-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-card-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            Nine parts, all optional except the frame. A card is whichever of them it needs.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <span class="sg-n sg-anat__frame" aria-hidden="true">1</span>
+              <article class="card">
+                <header class="card__bar" data-n="2">
+                  <p class="card__label">07 — Diamond</p>
+                  <button class="card__ctl" type="button" aria-label="Collapse">
+                    <span class="ic ic--minus"></span>
+                  </button>
+                </header>
+                <div
+                  class="card__media wf-media"
+                  data-n="3"
+                  data-tone="3"
+                  role="img"
+                  aria-label="Drawing of a diamond"
+                >
+                  <span class="wf-tag">Image 4:3</span>
+                </div>
+                <div class="card__body" data-n="4">
+                  <p class="card__eyebrow" data-n="5">Shape 07</p>
+                  <h3 class="card__title" data-n="6">Diamond</h3>
+                  <p class="card__text" data-n="7">
+                    Taller than it is wide, on purpose. Equal diagonals is just a square on its
+                    corner.
+                  </p>
+                </div>
+                <footer class="card__foot" data-n="8">
+                  <span>Seen on Tuesday</span>
+                  <button type="button" class="card__action" aria-label="Mark as known" data-n="9">
+                    <span class="ic ic--check"></span>
+                  </button>
+                </footer>
+              </article>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Frame</strong><code>.card</code>
+                <p>
+                  2px, <code>--card-line</code>. Clips its contents, and is the container that
+                  <code>cqi</code> and <code>@container card</code> measure against.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Bar</strong><code>.card__bar</code>
+                <p>
+                  The frame made thicker: ink fill, a label on the left, one control on the right.
+                  The control is a 44px target around a 20px box.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Media</strong><code>.card__media</code>
+                <p>
+                  Edge to edge, 4:3 unless <code>--ratio</code> says otherwise. Closed off by a 2px
+                  rule, never a shadow.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Body</strong><code>.card__body</code>
+                <p>
+                  Where the padding lives: <code>clamp(1rem, 5cqi, 1.5rem)</code>, so a narrow card
+                  is snug and a wide one breathes.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Eyebrow</strong><code>.card__eyebrow</code>
+                <p>14px, soft ink. Says what kind of thing this is.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">6</span>
+              <div>
+                <strong>Title</strong><code>.card__title</code>
+                <p>
+                  Weight 500, 22 to 32px depending on the card's width. Balanced, so it never
+                  leaves one word on its own line.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">7</span>
+              <div>
+                <strong>Text</strong><code>.card__text</code>
+                <p>16px on a 1.5 line, 40 characters wide at most.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">8</span>
+              <div>
+                <strong>Foot</strong><code>.card__foot</code>
+                <p>
+                  A 1px rule, then the small print. Sticks to the bottom, so cards in a row end on
+                  one line. A link in it gets the full 44px target.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">9</span>
+              <div>
+                <strong>Action</strong><code>.card__action</code>
+                <p>
+                  A 44px circle. Round means it does something, so it is always a real button. In a
+                  ghost card it marks the card, which is the button.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="card-variants" aria-labelledby="h-card-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-card-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Eight cards, one idea each. The markup under every specimen is read from the live
+            element, so it can't drift from what you're looking at.
+          </p>
+        </div>
+
+        <ul class="sg-key" role="list" aria-label="How to read a wireframe">
+          <li><i class="wf-media" style="background-color: var(--tone-1)"></i>Box with an X: an image goes here</li>
+          <li><i style="background: var(--tone-3)"></i>Flat grey: a tone slot</li>
+          <li><i style="background: var(--ink)"></i>Black: the inverted tone</li>
+          <li><i style="border-style: dashed"></i>Dashed: empty, or not yet</li>
+          <li><i class="card card--disabled" style="min-inline-size: 0; container-type: normal"></i>Hatch: disabled</li>
+        </ul>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="card-plain">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Plain</h3>
+            <p class="sg-entry__use">The default. A title, a line of support, somewhere to go.</p>
+            <p class="sg-entry__classes">
+              <code>.card</code> <code>.card__body</code> <code>.card__foot</code>
+            </p>
+            <p class="sg-entry__note">
+              The foot sticks to the bottom, so cards of different heights in one row still end on
+              the same line. Any tone works: <code>data-tone="4"</code>.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem">
+            <article class="card" data-sg-code>
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <h4 class="card__title">Shapes</h4>
+                <p class="card__text">Circle to crescent. Swipe through them and tap to see the name.</p>
+              </div>
+              <footer class="card__foot"><span>5 of 12 known</span><a href="#">Start</a></footer>
+            </article>
+            <article class="card" data-tone="4" data-sg-code>
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 8 cards</p>
+                <h4 class="card__title">Colours</h4>
+                <p class="card__text">Eight colours, named out loud. Good for the car.</p>
+              </div>
+              <footer class="card__foot"><span>New</span><a href="#">Start</a></footer>
+            </article>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="card-panel">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Panel</h3>
+            <p class="sg-entry__use">A card with a title bar. Lists, settings, anything that folds away.</p>
+            <p class="sg-entry__classes">
+              <code>.card__bar</code> <code>.card__label</code> <code>.card__ctl</code>
+              <code>.card__list</code>
+            </p>
+            <p class="sg-entry__note">
+              The bar is the frame made thicker, not a separate header. On the inverted tone it
+              flips to paper, or it would vanish into the card.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem">
+            <section class="card" data-sg-code>
+              <header class="card__bar">
+                <h4 class="card__label">01 — Shapes</h4>
+                <button class="card__ctl" type="button" aria-label="Collapse">
+                  <span class="ic ic--minus"></span>
+                </button>
+              </header>
+              <div class="card__body">
+                <p class="card__text">Twelve cards. Five known, seven to go.</p>
+                <p class="card__meta">Last opened yesterday.</p>
+              </div>
+            </section>
+            <section class="card" data-tone="ink" data-sg-code>
+              <header class="card__bar">
+                <h4 class="card__label">Decks</h4>
+                <button class="card__ctl" type="button" aria-label="Collapse">
+                  <span class="ic ic--minus"></span>
+                </button>
+              </header>
+              <ul class="card__list" role="list">
+                <li><a href="#"><span>Shapes</span><span>12</span></a></li>
+                <li><a href="#"><span>Colours</span><span>8</span></a></li>
+                <li><a href="#"><span>Numbers to twenty</span><span>20</span></a></li>
+                <li><a href="#"><span>Farm animals</span><span>15</span></a></li>
+              </ul>
+            </section>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="card-media">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Media</h3>
+            <p class="sg-entry__use">The picture first, the words second.</p>
+            <p class="sg-entry__classes"><code>.card__media</code> <code>--ratio</code></p>
+            <p class="sg-entry__note">
+              4:3 by default. Override per card with <code>--ratio</code>. Real images use
+              <code>object-fit: cover</code> inside the same box.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem">
+            <article class="card" data-sg-code>
+              <div class="card__media wf-media" data-tone="3" role="img" aria-label="Drawing of a diamond">
+                <span class="wf-tag">Image 4:3</span>
+              </div>
+              <div class="card__body">
+                <p class="card__eyebrow">Shape 07</p>
+                <h4 class="card__title">Diamond</h4>
+                <p class="card__text">
+                  Taller than it is wide, on purpose. Equal diagonals is just a square on its corner.
+                </p>
+              </div>
+            </article>
+            <article class="card" data-sg-code>
+              <div
+                class="card__media wf-media"
+                data-tone="5"
+                style="--ratio: 16 / 9"
+                role="img"
+                aria-label="Drawing of a crescent"
+              >
+                <span class="wf-tag">Image 16:9</span>
+              </div>
+              <div class="card__body">
+                <p class="card__eyebrow">Shape 12</p>
+                <h4 class="card__title">Crescent</h4>
+                <p class="card__text">The last card. Swipe once more and you're back at the circle.</p>
+              </div>
+            </article>
+          </div>
+        </article>
+
+        <!-- 2.4 -->
+        <article class="sg-entry" id="card-stat">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.4</p>
+            <h3 class="sg-entry__name">Stat</h3>
+            <p class="sg-entry__use">One number, big, with just enough around it to mean something.</p>
+            <p class="sg-entry__classes">
+              <code>.card__figure</code> <code>.card--square</code> <code>.wf-meter</code>
+            </p>
+            <p class="sg-entry__note">
+              A recipe, not a class: eyebrow, figure, optional meter, one line of meta. The figure
+              scales with the card's own width, from 48 to 104px.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 14rem">
+            <article class="card card--square" data-tone="1" data-sg-code>
+              <div class="card__body">
+                <p class="card__eyebrow">Learned so far</p>
+                <p class="card__figure">5<small>/12</small></p>
+                <div
+                  class="wf-meter"
+                  role="meter"
+                  aria-label="Shapes learned"
+                  aria-valuemin="0"
+                  aria-valuemax="12"
+                  aria-valuenow="5"
+                  aria-valuetext="5 of 12 learned"
+                  style="--value: 41.6%"
+                ></div>
+                <p class="card__meta">Seven to go.</p>
+              </div>
+            </article>
+            <article class="card card--square" data-sg-code>
+              <div class="card__body">
+                <p class="card__eyebrow">Streak</p>
+                <p class="card__figure">4</p>
+                <p class="card__meta">Days running. Best is nine.</p>
+              </div>
+            </article>
+          </div>
+        </article>
+
+        <!-- 2.5 -->
+        <article class="sg-entry" id="card-row">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.5</p>
+            <h3 class="sg-entry__name">Row</h3>
+            <p class="sg-entry__use">A thing in a list: a card in a deck, a recent session.</p>
+            <p class="sg-entry__classes">
+              <code>.card--row</code> <code>.card__tile</code> <code>.card__main</code>
+              <code>.card__trail</code>
+            </p>
+            <p class="sg-entry__note">
+              Below 18rem the value on the right drops under the title. A card can't re-template
+              itself from its own width, but its children can move between grid cells.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-stack">
+              <article class="card card--row" data-sg-code>
+                <span class="card__tile wf-media" data-tone="1" aria-hidden="true"></span>
+                <div class="card__main">
+                  <h4 class="card__title">Circle</h4>
+                  <p class="card__meta">Card 01 · round</p>
+                </div>
+                <div class="card__trail">
+                  <p>Known</p>
+                  <p class="card__meta">3 days ago</p>
+                </div>
+              </article>
+              <article class="card card--row">
+                <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                <div class="card__main">
+                  <h4 class="card__title">Triangle</h4>
+                  <p class="card__meta">Card 03 · three sides</p>
+                </div>
+                <div class="card__trail">
+                  <p>New</p>
+                </div>
+              </article>
+              <div style="max-inline-size: 16rem">
+                <article class="card card--row" data-sg-code>
+                  <span class="card__tile wf-media" data-tone="3" aria-hidden="true"></span>
+                  <div class="card__main">
+                    <h4 class="card__title">Star</h4>
+                    <p class="card__meta">Card 05</p>
+                  </div>
+                  <div class="card__trail">
+                    <p>Known</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+            <p class="sg-caption">The last one sits in a 16rem box: same markup, value dropped under.</p>
+          </div>
+        </article>
+
+        <!-- 2.6 -->
+        <article class="sg-entry" id="card-link">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.6</p>
+            <h3 class="sg-entry__name">Link</h3>
+            <p class="sg-entry__use">The whole card goes somewhere.</p>
+            <p class="sg-entry__classes">
+              <code>.card--link</code> <code>.card__link</code>
+            </p>
+            <p class="sg-entry__note">
+              One anchor, in the title, stretched over the card with <code>::after</code>. One tab
+              stop, one accessible name, and the whole card is the target. The card wears the focus
+              ring, not the anchor. Anything else clickable inside must sit above it. The title's
+              underline on hover and focus is the cue; no arrow needed.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 13rem">
+            <article class="card card--link" data-tone="1" data-sg-code>
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <div class="card__group">
+                  <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
+                  <p class="card__meta">5 known</p>
+                </div>
+              </div>
+            </article>
+            <article class="card card--link" data-tone="3">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 8 cards</p>
+                <div class="card__group">
+                  <h4 class="card__title"><a class="card__link" href="#">Colours</a></h4>
+                  <p class="card__meta">New</p>
+                </div>
+              </div>
+            </article>
+            <article class="card card--link" data-tone="5">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 20 cards</p>
+                <div class="card__group">
+                  <h4 class="card__title"><a class="card__link" href="#">Numbers to twenty</a></h4>
+                  <p class="card__meta">11 known</p>
+                </div>
+              </div>
+            </article>
+          </div>
+        </article>
+
+        <!-- 2.7 -->
+        <article class="sg-entry" id="card-ghost">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.7</p>
+            <h3 class="sg-entry__name">Ghost</h3>
+            <p class="sg-entry__use">The empty slot that asks to be filled.</p>
+            <p class="sg-entry__classes"><code>.card--ghost</code></p>
+            <p class="sg-entry__note">
+              Dashed means nothing here yet. The card is the anchor or the button itself. On hover
+              and on focus alike it firms up and lifts.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <a class="card card--ghost" href="#" data-sg-code>
+              <span class="card__action" aria-hidden="true"><span class="ic ic--plus"></span></span>
+              <span class="card__title">Add a shape</span>
+            </a>
+          </div>
+        </article>
+
+        <!-- 2.8 -->
+        <article class="sg-entry" id="card-study">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.8</p>
+            <h3 class="sg-entry__name">Study</h3>
+            <p class="sg-entry__use">The flashcard itself. 5:7, one subject, one hint.</p>
+            <p class="sg-entry__classes">
+              <code>.card--study</code> <code>.card__stage</code> <code>.card__answer</code>
+            </p>
+            <p class="sg-entry__note">
+              Static faces only. The flip is motion, so it's designed at gate 4: perspective on the
+              parent, backfaces hidden, <code>cubic-bezier(.83, 0, .17, 1)</code>, and under reduced
+              motion a short crossfade instead. The card never grows taller than the screen: set
+              <code>--chrome</code> to the height of the screen's bars.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 14rem">
+            <div>
+              <article class="card card--study" data-face="front" data-sg-code>
+                <div class="card__head"><span class="card__label">03 / 12</span></div>
+                <div class="card__stage">
+                  <svg class="wf-shape" viewBox="-8 -8 116 116" aria-hidden="true" focusable="false" data-tone="3">
+                    <path
+                      d="M50 6L88.11 72L11.89 72Z"
+                      transform="translate(0 11) translate(50 50) scale(1.16) translate(-50 -50)"
+                    />
+                  </svg>
+                </div>
+                <footer class="card__foot"><span class="card__meta">Turn over</span></footer>
+              </article>
+              <p class="sg-caption"><b>Front.</b> Shape only.</p>
+            </div>
+            <div>
+              <article class="card card--study" data-face="back" data-sg-code>
+                <div class="card__head"><span class="card__label">03 / 12</span></div>
+                <div class="card__stage">
+                  <p class="card__answer">Triangle</p>
+                </div>
+                <footer class="card__foot">
+                  <span class="card__meta">Three sides, three corners</span>
+                </footer>
+              </article>
+              <p class="sg-caption"><b>Back.</b> The name, and one fact.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="card-states" aria-labelledby="h-card-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-card-states">States</h2>
+          <p class="sg-sec__note">
+            One card, six states. Keyboard and pointer get the same lift, and the card never
+            moves. Still grey: colour doesn't get to carry a state until gate 3.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <article class="card card--link" data-tone="1">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <div class="card__group">
+                  <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
+                </div>
+              </div>
+            </article>
+            <p class="sg-caption"><b>Rest.</b> Flat. No shadow.</p>
+          </div>
+          <div>
+            <article class="card card--link is-hover" data-tone="1">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <div class="card__group">
+                  <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
+                </div>
+              </div>
+            </article>
+            <p class="sg-caption"><b>Hover.</b> A 4px hard shadow and the title underlines. The card doesn't move.</p>
+          </div>
+          <div>
+            <article class="card card--link is-focus" data-tone="1">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <div class="card__group">
+                  <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
+                </div>
+              </div>
+            </article>
+            <p class="sg-caption"><b>Focus.</b> A 3px ring outside the frame, on top of the hover lift.</p>
+          </div>
+          <div>
+            <article class="card card--link is-active" data-tone="1">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <div class="card__group">
+                  <h3 class="card__title"><a class="card__link" href="#">Shapes</a></h3>
+                </div>
+              </div>
+            </article>
+            <p class="sg-caption"><b>Pressed.</b> Back onto the surface: the shadow goes, the underline stays.</p>
+          </div>
+          <div>
+            <article class="card card--link" data-tone="1">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <div class="card__group">
+                  <h3 class="card__title"><a class="card__link" href="#" aria-current="true">Shapes</a></h3>
+                </div>
+              </div>
+            </article>
+            <p class="sg-caption"><b>Selected.</b> A ring doubles the frame. Nothing shifts. Here, <code>aria-current</code> on its link.</p>
+          </div>
+          <div>
+            <article class="card card--disabled" data-tone="1">
+              <div class="card__body" style="min-block-size: 11rem; justify-content: space-between">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <div class="card__group">
+                  <h3 class="card__title">Shapes</h3>
+                  <p class="card__meta">Unlocks after Colours</p>
+                </div>
+              </div>
+            </article>
+            <p class="sg-caption"><b>Disabled.</b> Dashed, hatched, inert, and it says why. Not a link.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>aria-current</code> on a card's
+          link, <code>aria-selected</code> on a card that is an option in a listbox, and the
+          <code>.card--disabled</code> modifier.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="card-layout" aria-labelledby="h-card-layout">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-card-layout">Layout</h2>
+          <p class="sg-sec__note">How cards sit together. The grid only places them; it never styles them.</p>
+        </div>
+
+        <article class="sg-entry" id="card-grid-loose">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">4.1</p>
+            <h3 class="sg-entry__name">Loose grid</h3>
+            <p class="sg-entry__use">Gaps between cards.</p>
+            <p class="sg-entry__classes"><code>.card-grid</code> <code>--card-min</code></p>
+            <p class="sg-entry__note">
+              As many columns as fit at <code>--card-min</code> (16rem by default), sharing the
+              space. The gap is <code>--gutter</code>.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <ul class="card-grid" role="list" style="--card-min: 13rem" data-sg-code>
+              <li>
+                <article class="card" data-tone="1">
+                  <div class="card__body">
+                    <p class="card__eyebrow">Deck</p>
+                    <h4 class="card__title">Shapes</h4>
+                    <p class="card__meta">12 cards</p>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="3">
+                  <div class="card__body">
+                    <p class="card__eyebrow">Deck</p>
+                    <h4 class="card__title">Colours</h4>
+                    <p class="card__meta">8 cards</p>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">Deck</p>
+                    <h4 class="card__title">Numbers to twenty</h4>
+                    <p class="card__meta">20 cards</p>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="5">
+                  <div class="card__body">
+                    <p class="card__eyebrow">Deck</p>
+                    <h4 class="card__title">Farm animals</h4>
+                    <p class="card__meta">15 cards</p>
+                  </div>
+                </article>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="sg-entry" id="card-grid-tiled">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">4.2</p>
+            <h3 class="sg-entry__name">Tiled grid</h3>
+            <p class="sg-entry__use">No gaps. The frames are shared.</p>
+            <p class="sg-entry__classes"><code>.card-grid--tiled</code></p>
+            <p class="sg-entry__note">
+              Negative start margins overlap each frame onto its neighbour's, so two frames read as
+              one 2px line, and a short last row still closes cleanly.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <ul class="card-grid card-grid--tiled" role="list" style="--card-min: 11rem" data-sg-code>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">01</p>
+                    <h4 class="card__title">Circle</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="1">
+                  <div class="card__body">
+                    <p class="card__eyebrow">02</p>
+                    <h4 class="card__title">Square</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">03</p>
+                    <h4 class="card__title">Triangle</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="ink">
+                  <div class="card__body">
+                    <p class="card__eyebrow">04</p>
+                    <h4 class="card__title">Rectangle</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">05</p>
+                    <h4 class="card__title">Star</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card" data-tone="3">
+                  <div class="card__body">
+                    <p class="card__eyebrow">06</p>
+                    <h4 class="card__title">Heart</h4>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="card__body">
+                    <p class="card__eyebrow">07</p>
+                    <h4 class="card__title">Diamond</h4>
+                  </div>
+                </article>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="sg-entry" id="card-container">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">4.3</p>
+            <h3 class="sg-entry__name">Container sizing</h3>
+            <p class="sg-entry__use">A card answers to its own width, not the window.</p>
+            <p class="sg-entry__classes"><code>cqi</code> <code>@container card</code></p>
+            <p class="sg-entry__note">
+              The same two cards at three widths (each one capped by the stage on a small screen).
+              Padding, titles and the big figure scale with the card; the row's value drops under
+              its title at 18rem and below. Nothing here looks at the viewport.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-widths">
+              <figure style="--w: 14rem">
+                <div class="sg-stack">
+                  <article class="card card--row">
+                    <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                    <div class="card__main">
+                      <h4 class="card__title">Hexagon</h4>
+                      <p class="card__meta">Card 10 · six sides</p>
+                    </div>
+                    <div class="card__trail">
+                      <p>Known</p>
+                      <p class="card__meta">Today</p>
+                    </div>
+                  </article>
+                  <article class="card" data-tone="1">
+                    <div class="card__body">
+                      <p class="card__eyebrow">Learned so far</p>
+                      <p class="card__figure">5<small>/12</small></p>
+                      <p class="card__meta">Seven to go.</p>
+                    </div>
+                  </article>
+                </div>
+                <figcaption class="sg-caption"><b>14rem.</b></figcaption>
+              </figure>
+              <figure style="--w: 18rem">
+                <div class="sg-stack">
+                  <article class="card card--row">
+                    <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                    <div class="card__main">
+                      <h4 class="card__title">Hexagon</h4>
+                      <p class="card__meta">Card 10 · six sides</p>
+                    </div>
+                    <div class="card__trail">
+                      <p>Known</p>
+                      <p class="card__meta">Today</p>
+                    </div>
+                  </article>
+                  <article class="card" data-tone="1">
+                    <div class="card__body">
+                      <p class="card__eyebrow">Learned so far</p>
+                      <p class="card__figure">5<small>/12</small></p>
+                      <p class="card__meta">Seven to go.</p>
+                    </div>
+                  </article>
+                </div>
+                <figcaption class="sg-caption"><b>18rem.</b></figcaption>
+              </figure>
+              <figure style="--w: 24rem">
+                <div class="sg-stack">
+                  <article class="card card--row">
+                    <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                    <div class="card__main">
+                      <h4 class="card__title">Hexagon</h4>
+                      <p class="card__meta">Card 10 · six sides</p>
+                    </div>
+                    <div class="card__trail">
+                      <p>Known</p>
+                      <p class="card__meta">Today</p>
+                    </div>
+                  </article>
+                  <article class="card" data-tone="1">
+                    <div class="card__body">
+                      <p class="card__eyebrow">Learned so far</p>
+                      <p class="card__figure">5<small>/12</small></p>
+                      <p class="card__meta">Seven to go.</p>
+                    </div>
+                  </article>
+                </div>
+                <figcaption class="sg-caption"><b>24rem.</b></figcaption>
+              </figure>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Card</span>
+      <span>Spec: design/elements/card.md</span>
+      <span>Pipeline: design/README.md</span>
+      <span>Archivo, SIL Open Font License 1.1</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>
