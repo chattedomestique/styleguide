@@ -1,0 +1,156 @@
+/* ==========================================================================
+   screens.css — the sample app's own CSS, for screens.html.
+
+   This is what an app writes on top of the system: placement and layout,
+   nothing a component should own. It sits in @layer app, after components
+   and wire, so it never needs specificity to win, and it reads only tokens.
+
+   Two things to notice while reading it:
+   - The .app block is the future Frame element: rows, safe areas, the
+     scroll region. Every app would write it again, which is why Frame is
+     on the roadmap.
+   - If something here starts to look like a component (a frame, a pressed
+     state), an element is missing. Stop and put it through the pipeline.
+   ========================================================================== */
+
+@layer app {
+  /* --- frame: top bar, scroll region, bottom bar (the future Frame) ------- */
+
+  .app {
+    --pad-start: max(var(--gutter), var(--safe-left));
+    --pad-end: max(var(--gutter), var(--safe-right));
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    block-size: 100dvh; /* the frame only: it tracks the browser's bars */
+    background: var(--canvas);
+  }
+
+  /* No top bar: the frame still keeps clear of the status bar, or content
+     scrolls up under the clock. */
+  .app:not(:has(> .app__top)) {
+    padding-block-start: var(--safe-top);
+  }
+
+  /* bars run edge to edge and own the safe-area inset */
+  .app__top {
+    grid-row: 1;
+    padding-block-start: var(--safe-top);
+  }
+
+  .app__scroll {
+    grid-row: 2;
+    display: grid;
+    align-content: start;
+    gap: var(--space-6);
+    padding: var(--space-5) var(--pad-end) var(--space-7) var(--pad-start);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* room for a focus ring when Tab scrolls something into view. It helps,
+       but Tab scrolls the card's link into view, not the card that wears the
+       ring, so a tall tile can still lose its bottom edge (see findings). */
+    scroll-padding-block: var(--space-4) var(--space-7);
+  }
+
+  /* at large text sizes the region itself becomes a tab stop; the frame
+     clips, so its ring goes inside */
+  .app__scroll:focus-visible {
+    outline-offset: calc(var(--ring) * -1);
+  }
+
+  .app__bottom {
+    grid-row: 3;
+  }
+
+  /* no bottom bar: the last thing can scroll clear of the home indicator */
+  .app:not(:has(> .app__bottom)) > .app__scroll {
+    padding-block-end: calc(var(--space-7) + var(--safe-bottom));
+  }
+
+  .app__bar {
+    justify-content: space-between;
+    padding-inline: var(--pad-start) var(--pad-end);
+    border-inline: 0;
+  }
+
+  .app__bar h3 {
+    font: inherit;
+  }
+
+  .app__tabs {
+    justify-content: space-around;
+    margin-block-start: var(--space-2); /* room for the slot's name; goes when Nav bar ships */
+    padding: var(--space-2) var(--pad-end) max(var(--space-2), var(--safe-bottom)) var(--pad-start);
+    border-inline: 0;
+    border-block-end: 0;
+  }
+
+  /* --- groups inside the scroll region ------------------------------------ */
+
+  .app__head {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .app__group {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .app__group-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-4);
+  }
+
+  .app__rows {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  /* Phones want two across, down to a 320-point phone. The grid's default
+     (16rem) gives one column, and a square card one column wide is a poster.
+     At 200% text these go to one column again by themselves. */
+  .app__pair,
+  .app__decks {
+    --card-min: 8rem;
+  }
+
+  /* --- study ---------------------------------------------------------------
+     --chrome is the bars' height, so the card fits under them. Today it's an
+     estimate (top bar + answer row + room); Frame should publish the real one. */
+
+  .app--study {
+    --chrome: calc(var(--safe-top) + var(--safe-bottom) + 10rem);
+  }
+
+  /* safe: when the card is taller than the room, it starts at the top
+     instead of overflowing both ways, where its top can't be scrolled to */
+  .app--study .app__scroll {
+    align-content: safe center;
+  }
+
+  /* a card takes its width from its parent: give it one, then centre it */
+  .app--study .card--study {
+    inline-size: 100%;
+    margin-inline: auto;
+  }
+
+  .app__answer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+    gap: var(--space-3);
+    padding: var(--space-4) var(--pad-end) max(var(--space-4), var(--safe-bottom)) var(--pad-start);
+  }
+
+  /* --- mac ----------------------------------------------------------------- */
+
+  .app--mac .app__decks {
+    --card-min: 11rem;
+  }
+
+  .app--mac .app__pair {
+    --card-min: 12rem;
+  }
+}
