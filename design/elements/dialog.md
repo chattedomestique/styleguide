@@ -135,8 +135,9 @@ the page only.
 
 ## Platforms
 
-- **Installed PWA:** centred on a phone too, 16px clear of the edges, with the buttons stacked
-  full width and the primary on top, in reach of a thumb. A phone has no Escape key, so every
+- **Installed PWA:** centred on a phone too, 16px clear of the edges. The buttons share a row when
+  both labels fit (most phones at default text) and stack full width with the primary on top on
+  a 320pt phone or at larger text. A phone has no Escape key, so every
   dialog has a visible button that closes it. The scrim covers the status bar area with the page.
   No entrance until gate 4.
 - **Mac:** alerts are system chrome natively (`STYLE.md` §4); this element is the web shell's.
@@ -169,6 +170,10 @@ the page only.
 - The scrim doesn't stop the page behind from scrolling under a wheel or a swipe on browsers
   that chain the scroll to the document. In an app inside Frame the document doesn't scroll, so
   nothing moves; on these long style-sheet pages it can.
+- The scrim needs `::backdrop` to inherit custom properties (Chrome 122, Firefox 120, Safari
+  17.4). Older engines draw no scrim; the dialog keeps its frame, so it still reads as on top.
+- `--scrim` is ink at 60%. In dark mode (gate 3) ink is light, so wave 6 points the scrim at a
+  fixed dark value rather than ink.
 - `returnValue` survives an Escape: the app clears it after reading it (above).
 - After a failed submit the field keeps its error until it's fixed; reopening a cancelled Rename
   shows the old error unless the app resets the form on `close`.

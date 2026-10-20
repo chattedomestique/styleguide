@@ -5406,6 +5406,16 @@ dialog.sheet:not([open]) {
   grid-column: -2;
 }
 
+/* while a toast shows, the region's foot pads by its height (toast.js
+   publishes --toasts-h, which counts the region's own padding and so the
+   safe area too): the end of the content can scroll clear of it, and a
+   control that takes focus is scrolled clear rather than left under it
+   (WCAG 2.4.11). Never less than the padding it replaces. */
+.frame:has(> .toasts > .toast) > .frame__scroll {
+  padding-block-end: max(var(--space-7), var(--toasts-h, 0px));
+  scroll-padding-block-end: max(var(--space-7), var(--toasts-h, 0px));
+}
+
 /* no bottom bar (or the wide frame's, hidden beside its sidebar): the toast
    keeps clear of the home indicator itself */
 .frame:not(:has(> .frame__bottom)) > .toasts {
@@ -5453,7 +5463,8 @@ dialog.sheet:not([open]) {
   margin-block: calc((var(--hit) - var(--ic-size, 1.25rem)) / 2);
 }
 
-/* 6rem: "Deck deleted." and Undo share a line even on a 320pt phone, and
+/* 6rem: "Deck deleted." and Undo share a row even on a 320pt phone (the
+   words on two lines beside Undo), and
    longer words take the room the buttons leave. When the words need more
    than that, the buttons move under them, at the end. Never more than the
    row less the glyph, so the words can't leave the glyph. */
@@ -5540,8 +5551,10 @@ dialog.sheet:not([open]) {
    with nothing inside (not even a space: :empty) and fills it to raise it.
    Out of the flow and undrawn, it costs the screen nothing, not even the
    scroll region's 32px gap. */
-.banner:empty {
+.banner:empty,
+.frame__scroll > .banner:empty {
   position: absolute;
+  margin: 0;
   padding: 0;
   border: 0;
 }
@@ -16591,7 +16604,7 @@ dialog.sheet:not([open]) {
             <p class="sg-entry__use">One value to type before it goes on: renaming a deck.</p>
             <p class="sg-entry__classes">
               <code>.form--inline</code> <code>.field</code> <code>.dialog__actions</code>
-              <code>formnovalidate</code>
+              <code>form="…-cancel"</code>
             </p>
             <p class="sg-entry__note">
               Form’s inline form, with the actions as its last row. Focus starts in the field;
@@ -16658,7 +16671,8 @@ dialog.sheet:not([open]) {
           <h2 class="sg-sec__title" id="h-dialog-states">States</h2>
           <p class="sg-sec__note">
             Open and closed are the browser’s; what’s inside keeps Button’s and Field’s states.
-            Drawn at a phone’s width, where the buttons stack with the primary on top.
+            Drawn at a 320pt phone’s width, where the buttons stack with the primary on top; on most
+            phones at default text they share a row.
           </p>
         </div>
 
@@ -16762,8 +16776,9 @@ dialog.sheet:not([open]) {
           <li>
             <strong>Installed PWA</strong>
             <p>
-              Centred on a phone too, with the buttons stacked full width and the primary on top, in
-              reach of a thumb. A phone has no Escape key, so every dialog has a button that closes
+              Centred on a phone too. The buttons share a row when both labels fit (most phones at
+              default text) and stack full width with the primary on top on a 320pt phone or at
+              larger text. A phone has no Escape key, so every dialog has a button that closes
               it. It appears in place; gate 4 gives it an entrance.
             </p>
           </li>
@@ -19481,7 +19496,9 @@ dialog.sheet:not([open]) {
    region): going in is what a screen reader announces, once. 6 s, 10 s with
    an action; the clock stops while a pointer is on it, focus is in it or the
    page is hidden. Its action runs and closes it; Dismiss or Escape closes
-   it; Alt+T (⌥T) jumps to it. Focus goes back to where it was.
+   it; Alt+T (⌥T) jumps to it, except in a field where ⌥T types a character.
+   Focus goes back to where it was. While it shows, a frame's scroll region
+   pads its foot by its height, so it never hides what has focus.
 
      var t = Flashcards.toast({ text: "Deck deleted.", action: "Undo", onAction: fn });
      <button type="button" data-toast="Couldn't sync." data-toast-action="Try again"
@@ -19514,13 +19531,25 @@ dialog.sheet:not([open]) {
     t.timer = 0;
     t.left = Math.max(t.left - (Date.now() - t.start), 2000);
   }
+  // a frame's scroll region pads its foot by the region's height while a
+  // toast shows, so focus never lands under it (WCAG 2.4.11): toast.css
+  var ro = window.ResizeObserver && new ResizeObserver(function (es) {
+    es.forEach(function (e) { pad(e.target); });
+  });
+  function pad(region) {
+    var frame = region.parentElement;
+    if (!frame || !frame.classList.contains("frame")) return;
+    if (region.querySelector(".toast")) frame.style.setProperty("--toasts-h", region.offsetHeight + "px");
+    else frame.style.removeProperty("--toasts-h");
+  }
   function close(t) {
     if (queue.indexOf(t) !== -1) return void queue.splice(queue.indexOf(t), 1);
     if (t !== now) return;
     clearTimeout(t.timer);
     now = null;
-    var had = t.el.contains(document.activeElement);
+    var had = t.el.contains(document.activeElement), region = t.el.parentElement;
     t.el.remove();
+    if (region) pad(region);
     if (had && t.back && t.back.isConnected) t.back.focus();
     setTimeout(next, 300); // a beat between two, so new words read as a new toast
   }
@@ -19561,6 +19590,8 @@ dialog.sheet:not([open]) {
       if (e.key === "Escape") { e.preventDefault(); close(t); }
     });
     region.appendChild(el); // the one change the region announces
+    pad(region);
+    if (ro) ro.observe(region);
     run(t);
   }
 
@@ -19574,10 +19605,14 @@ dialog.sheet:not([open]) {
   document.addEventListener("visibilitychange", function () {
     if (now) (document.hidden ? hold : run)(now);
   });
-  document.addEventListener("keydown", function (e) { // Alt+T, by the key's place
-    if (!now || !e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.code !== "KeyT") return;
-    e.preventDefault();
-    now.el.querySelector("button").focus();
+  document.addEventListener("keydown", function (e) { // Alt+T, by the key's place or its label
+    if (!now || !e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (e.code !== "KeyT" && e.key !== "t") return;
+    // in a field where it types a character (a Mac's ⌥T is †), let it type
+    if (e.key.toLowerCase() !== "t" && e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+    var b = now.el.querySelector("button");
+    b.focus();
+    if (document.activeElement === b) e.preventDefault(); // behind a modal it can't: leave the key be
   });
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-toast]"), frame = b && b.closest(".frame");

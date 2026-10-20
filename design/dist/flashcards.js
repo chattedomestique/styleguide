@@ -411,7 +411,9 @@
    region): going in is what a screen reader announces, once. 6 s, 10 s with
    an action; the clock stops while a pointer is on it, focus is in it or the
    page is hidden. Its action runs and closes it; Dismiss or Escape closes
-   it; Alt+T (⌥T) jumps to it. Focus goes back to where it was.
+   it; Alt+T (⌥T) jumps to it, except in a field where ⌥T types a character.
+   Focus goes back to where it was. While it shows, a frame's scroll region
+   pads its foot by its height, so it never hides what has focus.
 
      var t = Flashcards.toast({ text: "Deck deleted.", action: "Undo", onAction: fn });
      <button type="button" data-toast="Couldn't sync." data-toast-action="Try again"
@@ -444,13 +446,25 @@
     t.timer = 0;
     t.left = Math.max(t.left - (Date.now() - t.start), 2000);
   }
+  // a frame's scroll region pads its foot by the region's height while a
+  // toast shows, so focus never lands under it (WCAG 2.4.11): toast.css
+  var ro = window.ResizeObserver && new ResizeObserver(function (es) {
+    es.forEach(function (e) { pad(e.target); });
+  });
+  function pad(region) {
+    var frame = region.parentElement;
+    if (!frame || !frame.classList.contains("frame")) return;
+    if (region.querySelector(".toast")) frame.style.setProperty("--toasts-h", region.offsetHeight + "px");
+    else frame.style.removeProperty("--toasts-h");
+  }
   function close(t) {
     if (queue.indexOf(t) !== -1) return void queue.splice(queue.indexOf(t), 1);
     if (t !== now) return;
     clearTimeout(t.timer);
     now = null;
-    var had = t.el.contains(document.activeElement);
+    var had = t.el.contains(document.activeElement), region = t.el.parentElement;
     t.el.remove();
+    if (region) pad(region);
     if (had && t.back && t.back.isConnected) t.back.focus();
     setTimeout(next, 300); // a beat between two, so new words read as a new toast
   }
@@ -491,6 +505,8 @@
       if (e.key === "Escape") { e.preventDefault(); close(t); }
     });
     region.appendChild(el); // the one change the region announces
+    pad(region);
+    if (ro) ro.observe(region);
     run(t);
   }
 
@@ -504,10 +520,14 @@
   document.addEventListener("visibilitychange", function () {
     if (now) (document.hidden ? hold : run)(now);
   });
-  document.addEventListener("keydown", function (e) { // Alt+T, by the key's place
-    if (!now || !e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.code !== "KeyT") return;
-    e.preventDefault();
-    now.el.querySelector("button").focus();
+  document.addEventListener("keydown", function (e) { // Alt+T, by the key's place or its label
+    if (!now || !e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (e.code !== "KeyT" && e.key !== "t") return;
+    // in a field where it types a character (a Mac's ⌥T is †), let it type
+    if (e.key.toLowerCase() !== "t" && e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+    var b = now.el.querySelector("button");
+    b.focus();
+    if (document.activeElement === b) e.preventDefault(); // behind a modal it can't: leave the key be
   });
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-toast]"), frame = b && b.closest(".frame");

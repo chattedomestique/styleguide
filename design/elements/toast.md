@@ -204,17 +204,21 @@ from the last trigger went to Undo, then Dismiss, then the tab bar.
   `grid-column: -2` on `.frame__scroll` in `frame.css`, after which the rule here can go.
 - While a modal dialog or sheet is open the region is behind it and inert; the script doesn't
   wait for it to close.
-- While a toast shows, the script takes ⌥T, so a Mac user typing † in a field gets the toast
-  instead. Nothing is taken while no toast shows.
+- ⌥T is taken only while a toast shows, and not in a field where it types a character (a Mac's
+  †): there, Tab reaches the toast. Behind an open modal the toast can't take focus, so the key is
+  left alone.
 - With the on-screen keyboard up the tab bar hides and the toast sits on the frame's bottom edge,
   which the keyboard may cover on iOS (the layout viewport doesn't shrink). Wave 5's keyboard
   work (`interactive-widget`, `visualViewport`) decides.
-- While it shows, the toast covers the foot of the content: about 64px, more at large text. The
-  scroll region's 48px bottom padding takes most of it; Dismiss takes it away.
+- While it shows, the toast covers the foot of the scroll region: about 64px, 88px on a 320pt
+  phone where the words wrap beside Undo, more at large text. `toast.js` publishes the region's
+  height as `--toasts-h` and the scroll region pads its foot by it, so the end of the content
+  scrolls clear and a control that takes focus is scrolled out from under it (WCAG 2.4.11).
 - At 200% text on a small phone the bars leave little room, and a long toast scrolls inside its
-  region, words first. On a full 390 by 844 phone at 200%, "Deck deleted." with Undo fits whole
-  above the tab bar; "Couldn't sync." with Try again is about 50px taller than the room and
-  scrolls. On the sheet's narrowed phones (a phone squeezed into a 320px window) the room is
-  almost nothing (`elements/frame.md`, Known limits).
+  region, words first. On a full 390 by 844 phone at 200%, "Couldn't sync." with Try again fills
+  most of the room between the bars (about 316 of 357px). On a 320 by 568 phone at 200% the room
+  is about 80px and a toast fills all of it, so it covers whatever has focus until it goes: Tab or
+  ⌥T reaches it and Escape closes it. On the sheet's narrowed phones (a phone squeezed into a 320px
+  window) the room is almost nothing (`elements/frame.md`, Known limits).
 - Announcements were checked in Chromium (its accessibility tree and a count of changes to the
   region), not with VoiceOver, NVDA or TalkBack.

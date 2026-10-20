@@ -80,6 +80,16 @@
   grid-column: -2;
 }
 
+/* while a toast shows, the region's foot pads by its height (toast.js
+   publishes --toasts-h, which counts the region's own padding and so the
+   safe area too): the end of the content can scroll clear of it, and a
+   control that takes focus is scrolled clear rather than left under it
+   (WCAG 2.4.11). Never less than the padding it replaces. */
+.frame:has(> .toasts > .toast) > .frame__scroll {
+  padding-block-end: max(var(--space-7), var(--toasts-h, 0px));
+  scroll-padding-block-end: max(var(--space-7), var(--toasts-h, 0px));
+}
+
 /* no bottom bar (or the wide frame's, hidden beside its sidebar): the toast
    keeps clear of the home indicator itself */
 .frame:not(:has(> .frame__bottom)) > .toasts {
@@ -127,7 +137,8 @@
   margin-block: calc((var(--hit) - var(--ic-size, 1.25rem)) / 2);
 }
 
-/* 6rem: "Deck deleted." and Undo share a line even on a 320pt phone, and
+/* 6rem: "Deck deleted." and Undo share a row even on a 320pt phone (the
+   words on two lines beside Undo), and
    longer words take the room the buttons leave. When the words need more
    than that, the buttons move under them, at the end. Never more than the
    row less the glyph, so the words can't leave the glyph. */

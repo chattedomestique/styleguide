@@ -174,6 +174,8 @@ drawn as the bottom sheet whatever the window, with `.sheet--side` for the side 
 
 - Bottom or side follows the window (`@media`), not the frame: a sheet opened inside a narrow
   pane of a wide window still comes from the side, across the window.
+- The scrim needs `::backdrop` to inherit custom properties (Chrome 122, Firefox 120, Safari
+  17.4); older engines draw none (Dialog's limit).
 - `closedby="any"` (light dismiss) is new; where it's missing the action sheet closes with Close,
   an item or Escape only.
 - `:modal` gates the window's switch, so a `<dialog class="sheet">` opened with `show()` (not
