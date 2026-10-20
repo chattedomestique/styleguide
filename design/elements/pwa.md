@@ -65,7 +65,7 @@ and preloads the font with `crossorigin`. Its viewport meta is
 
 | Field | Value | What it's for |
 | --- | --- | --- |
-| `id` | `"./"` | Which app this is, so moving `start_url` later doesn't make a second one. |
+| `id` | `"flashcards"` | Which app this is, so moving `start_url` later doesn't make a second one. A plain name: Chromium resolves `id` against the origin, so `"./"` would make it the bare origin. |
 | `name`, `short_name` | Flashcards | The install sheet and the splash use the name; the home screen puts the short name under the icon, so 12 letters at most. |
 | `description` | "Short daily sessions with your own decks of cards. Works offline." | A line under the name in Chromium's install sheet. |
 | `start_url`, `scope` | `"./"` | Where the home screen opens it (the root screen, never a deep page), and how far it reaches: a link inside stays in the app, one outside opens in the browser. |
@@ -186,8 +186,8 @@ and fails the build over budget.
 
 | What | Budget | Now |
 | --- | --- | --- |
-| CSS: `dist/flashcards.min.css`, gzipped (what a served app links) | 30 KB | 13.1 KB |
-| JS: `dist/flashcards.min.js`, gzipped | 10 KB | 6.2 KB with `pwa.js` |
+| CSS: `dist/flashcards.min.css`, gzipped (what a served app links) | 30 KB | about 13 KB |
+| JS: `dist/flashcards.min.js`, gzipped | 10 KB | about 6 KB with `pwa.js` |
 | The font, `fonts/archivo-latin-var.woff2` (already compressed) | 90 KB | 88.0 KB |
 | First load on a mid-range phone, largest contentful paint | 2.5 s | a target, measured on a device |
 
@@ -204,7 +204,7 @@ the worker makes every later load instant.
 | Update waiting | The update band, with Reload. | "A new version is ready.", politely, once. | Where it was; Reload is the first stop in the content. |
 | Reloaded | The same screen on the new version, no band. | The page, as after any reload. | At the top. |
 | Installable | The Install row in Settings, nowhere else. | Nothing until it's reached. | Where it was. |
-| Installing | Chromium's install sheet; on iOS, the Sheet. | The browser's sheet, or the Sheet's title. | In it; back on Install after (the row has gone if it installed). |
+| Installing | Chromium's install sheet; on iOS, the Sheet. | The browser's sheet, or the Sheet's title. | In it; back on Install after. If it installed, the row goes and focus moves to the heading above it, never to the page. |
 | Not asked yet | After a session, the reminder card. | Nothing: it's there when you look. | Where it was; its buttons come next. |
 | Asked | The browser's prompt; then the card goes, and if the answer was no, the setting says how to allow it. | The browser's prompt. | Back near where the card was. |
 | Link copied | Toast's done, "Link copied.", 6 s. | "Link copied.", politely. | On Share. |

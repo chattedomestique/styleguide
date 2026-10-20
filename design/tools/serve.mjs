@@ -67,7 +67,8 @@ async function handle(req, res) {
   let info = await stat(file);
   if (info.isDirectory()) {
     // /pwa -> /pwa/, so the page's relative URLs resolve inside it
-    if (!url.pathname.endsWith("/")) return send(res, 301, "", { Location: url.pathname + "/" + url.search });
+    // one leading slash, so "//host" can't make it a redirect off this server
+    if (!url.pathname.endsWith("/")) return send(res, 301, "", { Location: "/" + url.pathname.replace(/^\/+/, "") + "/" + url.search });
     file = await locate(join(url.pathname, "index.html"));
     info = file && (await stat(file));
     if (!info || !info.isFile()) return send(res, 404, "Not found\n");
@@ -79,7 +80,7 @@ async function handle(req, res) {
     "X-Content-Type-Options": "nosniff",
   });
   if (req.method === "HEAD") return res.end();
-  createReadStream(file).pipe(res);
+  createReadStream(file).on("error", () => res.destroy()).pipe(res);
 }
 
 const server = createServer((req, res) => {

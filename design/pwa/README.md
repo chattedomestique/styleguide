@@ -15,7 +15,8 @@ node design/tools/serve.mjs      # http://localhost:8000/pwa/ (another port: ser
 ```
 
 Opened from disk (`file://`) the pages render, but no worker registers, so nothing installs or
-works offline.
+works offline, and the console shows one error per page: a browser won't preload the font across
+`file://`. Served, the console is clean.
 
 ## Start an app from it
 

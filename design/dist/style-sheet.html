@@ -1087,6 +1087,11 @@ label {
   flex: 1 0 auto;
 }
 
+/* a foot whose buttons need script ships hidden; flex would beat the attribute */
+.card__foot[hidden] {
+  display: none;
+}
+
 .card--study .card__foot {
   justify-content: center;
   border-block-start: 0;
@@ -6711,6 +6716,11 @@ dialog.sheet:not([open]) {
     gap: var(--space-3);
     min-inline-size: 0;
     max-inline-size: 100%;
+  }
+
+  /* a live shot waits hidden for its script; grid would beat the attribute */
+  .sg-shot[hidden] {
+    display: none;
   }
 
   .sg-device {
@@ -19027,7 +19037,7 @@ dialog.sheet:not([open]) {
           <header class="sg-entry__meta">
             <p class="sg-entry__idx">1.1</p>
             <h3 class="sg-entry__name">The platform, working</h3>
-            <p class="sg-entry__use">A starter app to copy: one root screen, installable, and working offline.</p>
+            <p class="sg-entry__use">A starter app to copy: three root screens, installable, and working offline.</p>
             <p class="sg-entry__classes"><code>design/pwa/</code></p>
             <p class="sg-entry__note">
               Copy it with <code>dist/</code> and <code>fonts/</code> to start an app. It installs and
@@ -19104,7 +19114,7 @@ dialog.sheet:not([open]) {
               <ul class="list__rows" role="list">
                 <li>
                   <div class="list__row">
-                    <span class="list__main"><span class="list__title"><code>id</code></span><span class="list__meta">Which app this is, so moving <code>start_url</code> later doesn't make a second one.</span></span><span class="list__trail"><code>"./"</code></span>
+                    <span class="list__main"><span class="list__title"><code>id</code></span><span class="list__meta">Which app this is, so moving <code>start_url</code> later doesn't make a second one. A plain name: <code>"./"</code> would resolve to the bare origin.</span></span><span class="list__trail"><code>"flashcards"</code></span>
                   </div>
                 </li>
                 <li>
@@ -19913,9 +19923,6 @@ dialog.sheet:not([open]) {
                         <p class="field__help" id="pwa-kb-back-help">What you say back.</p>
                         <input class="field__input" id="pwa-kb-back" type="text" autocomplete="off" enterkeyhint="done" aria-describedby="pwa-kb-back-help" />
                       </div>
-                      <div class="form__actions">
-                        <button class="btn btn--primary" type="button">Add card</button>
-                      </div>
                     </div>
                   </div>
                   <nav class="frame__bottom tabbar" aria-label="Places">
@@ -20232,13 +20239,13 @@ dialog.sheet:not([open]) {
             <div class="sg-cols" style="--col: 15rem">
               <div class="meter">
                 <span class="meter__label" id="pwa-budget-css">CSS, gzipped</span>
-                <span class="meter__value" aria-hidden="true">13.1 of 30 KB</span>
-                <div class="meter__bar" role="meter" aria-labelledby="pwa-budget-css" aria-valuemin="0" aria-valuemax="30" aria-valuenow="13.1" aria-valuetext="13.1 of 30 KB" style="--value: 43.67%"></div>
+                <span class="meter__value" aria-hidden="true">About 13 of 30 KB</span>
+                <div class="meter__bar" role="meter" aria-labelledby="pwa-budget-css" aria-valuemin="0" aria-valuemax="30" aria-valuenow="13" aria-valuetext="About 13 of 30 KB" style="--value: 43.33%"></div>
               </div>
               <div class="meter">
                 <span class="meter__label" id="pwa-budget-js">Script, gzipped</span>
-                <span class="meter__value" aria-hidden="true">6.2 of 10 KB</span>
-                <div class="meter__bar" role="meter" aria-labelledby="pwa-budget-js" aria-valuemin="0" aria-valuemax="10" aria-valuenow="6.2" aria-valuetext="6.2 of 10 KB" style="--value: 62%"></div>
+                <span class="meter__value" aria-hidden="true">About 6 of 10 KB</span>
+                <div class="meter__bar" role="meter" aria-labelledby="pwa-budget-js" aria-valuemin="0" aria-valuemax="10" aria-valuenow="6.3" aria-valuetext="About 6 of 10 KB" style="--value: 63%"></div>
               </div>
               <div class="meter">
                 <span class="meter__label" id="pwa-budget-font">The font</span>
@@ -20863,7 +20870,23 @@ dialog.sheet:not([open]) {
   var INSTALL = '[data-pwa~="install"]', sw, reg, asked, deferred;
 
   function all(sel, fn) { Array.prototype.forEach.call(doc.querySelectorAll(sel), fn); }
-  function show(sel, on) { all(sel, function (el) { el.hidden = !on; }); }
+  function show(sel, on) {
+    all(sel, function (el) {
+      if (!on && el.contains(doc.activeElement)) rescue(el);
+      el.hidden = !on;
+    });
+  }
+  // hiding the control that has focus would drop it on <body> (WCAG 2.4.3):
+  // move it to the last heading above it that stays, else to main
+  function rescue(el) {
+    var to = el.closest("main") || doc.querySelector("main");
+    if (!to) return;
+    Array.prototype.forEach.call(to.querySelectorAll("h1, h2, h3, h4, h5, h6"), function (h) {
+      if (!el.contains(h) && h.getClientRects().length && h.compareDocumentPosition(el) & 4) to = h;
+    });
+    if (!to.hasAttribute("tabindex")) to.setAttribute("tabindex", "-1");
+    to.focus();
+  }
   function size(n) { return n < 1e6 ? Math.ceil(n / 1e3) + " KB" : n < 1e9 ? (n / 1e6).toFixed(1) + " MB" : (n / 1e9).toFixed(1) + " GB"; }
 
   // a band may take both: offline first, else a waiting update

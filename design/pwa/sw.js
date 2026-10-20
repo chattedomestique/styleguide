@@ -16,7 +16,7 @@
    ========================================================================== */
 "use strict";
 
-var VERSION = "dc1c85f95d"; // stamped by tools/bundle.mjs: don't edit
+var VERSION = "bf434dff7e"; // stamped by tools/bundle.mjs: don't edit
 var SHELL = [
   "./",
   "decks.html",
@@ -67,22 +67,29 @@ self.addEventListener("fetch", function (e) {
   e.respondWith(caches.open(CACHE).then(function (c) {
     if (PRECACHED[key]) {
       return c.match(key).then(function (hit) {
-        return hit || fetch(req).catch(function () { return fallback(c, nav); });
+        return hit ? plain(hit) : fetch(req).catch(function () { return fallback(c, nav); });
       });
     }
     return c.match(req).then(function (hit) {
       var fresh = fetch(req).then(function (res) {
-        if (res.status === 200 && res.type === "basic") e.waitUntil(c.put(req, res.clone()).catch(function () {}));
+        if (res.status === 200 && res.type === "basic" && !res.redirected) e.waitUntil(c.put(req, res.clone()).catch(function () {}));
         return res;
       });
       if (hit) {
         e.waitUntil(fresh.catch(function () {}));
-        return hit;
+        return plain(hit);
       }
       return fresh.catch(function () { return fallback(c, nav); });
     });
   }));
 });
+
+// A host that redirects decks.html to decks leaves a redirected response in
+// the precache, and a browser refuses one for a page load: hand over a plain
+// copy of it instead.
+function plain(res) {
+  return res.redirected ? new Response(res.body, { status: res.status, statusText: res.statusText, headers: res.headers }) : res;
+}
 
 // a page that isn't cached, offline: offline.html. It is served at the URL
 // asked for, so a <base> at the scope keeps its relative links working.

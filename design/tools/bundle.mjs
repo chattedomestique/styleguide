@@ -43,6 +43,7 @@ import { join, dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { gzipSync } from "node:zlib";
+import vm from "node:vm";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -174,8 +175,10 @@ writeFileSync(join(DIST, "flashcards.min.css"), banner("flashcards.min.css, from
    insertion reads the code the same. A tiny tokenizer, so nothing inside a
    string or a regular expression is touched; a regex is a "/" where a value
    can start (after an operator, "(", ",", "=", ":", "[", "!", "{", "}" or
-   ";", or after return or typeof). A template literal over several lines
-   would lose its indentation, so it stops the build instead. */
+   ";", or after a keyword such as return, typeof, case or else). A comment
+   that spans lines leaves a line break, so it can't join two lines. A
+   template literal over several lines, or with an expression in it, stops
+   the build instead, and so does output that doesn't parse. */
 function minifyJS(js) {
   let out = "", last = "", i = 0; // last: the last character that wasn't space
   while (i < js.length) {
@@ -187,11 +190,12 @@ function minifyJS(js) {
     } else if (c === "/" && d === "*") {
       j = js.indexOf("*/", i + 2) + 2;
       if (j < 2) throw new Error("minifyJS: a comment never closes");
+      if (js.slice(i, j).includes("\n")) out += "\n";
     } else if (c === '"' || c === "'" || c === "`") {
       while (j < js.length && js[j] !== c) j += js[j] === "\\" ? 2 : 1;
       j++;
-      if (c === "`" && js.slice(i, j).includes("\n")) throw new Error("minifyJS: a template literal spans lines");
-    } else if (c === "/" && ("" === last || "(,=:[!&|?{};+-*%<>~^".includes(last) || /\b(return|typeof)\s*$/.test(out))) {
+      if (c === "`" && /\n|\$\{/.test(js.slice(i, j))) throw new Error("minifyJS: a template literal spans lines or holds an expression; use a string");
+    } else if (c === "/" && ("" === last || "(,=:[!&|?{};+-*%<>~^".includes(last) || /\b(return|typeof|case|else|do|in|of|void|delete|throw|new|yield|await)\s*$/.test(out))) {
       for (let cls = false; j < js.length && (js[j] !== "/" || cls); j++) {
         if (js[j] === "\\") j++;
         else if (js[j] === "[") cls = true;
@@ -209,7 +213,9 @@ function minifyJS(js) {
   }
   return out.split("\n").map((l) => l.trim()).filter(Boolean).join("\n") + "\n";
 }
-writeFileSync(join(DIST, "flashcards.min.js"), banner("flashcards.min.js, from js/components/*.js") + minifyJS(jsBundle));
+const minJS = minifyJS(jsBundle);
+new vm.Script(minJS, { filename: "dist/flashcards.min.js" }); // throws if it doesn't parse
+writeFileSync(join(DIST, "flashcards.min.js"), banner("flashcards.min.js, from js/components/*.js") + minJS);
 
 /* 5. the PWA starter: --canvas into the manifest and theme-color, the shell's
    hash into the worker's VERSION. Values only, rewritten in place. */

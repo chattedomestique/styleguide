@@ -112,6 +112,7 @@
       }).catch(function () { $("settings-import-failed").showModal(); });
     });
   }
+  if (exp && F.download && F.readJSON) $("settings-data-foot").hidden = false; // both work: show them
 
   /* the reminder card's Not now: gone for this visit; focus stays on the screen */
   var later = $("settings-notify-later");

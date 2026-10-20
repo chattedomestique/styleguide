@@ -388,7 +388,7 @@ starter app that installs and works offline (serve it with `node design/tools/se
   Not yet checked on a device.
 - **A budget, enforced.** `tools/bundle.mjs` writes `dist/flashcards.min.css` and
   `dist/flashcards.min.js`, which a served app links, prints gzipped sizes and fails over budget:
-  CSS at most 30 KB (13.1 now), JS at most 10 KB (6.2), the font at most 90 KB (88.0),
+  CSS at most 30 KB (about 13 now), JS at most 10 KB (about 6), the font at most 90 KB (88),
   preloaded with `crossorigin`. First load on a mid-range phone under 2.5 s to the largest paint,
   measured on a device; the worker makes later loads instant.
 

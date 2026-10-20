@@ -19,7 +19,23 @@
   var INSTALL = '[data-pwa~="install"]', sw, reg, asked, deferred;
 
   function all(sel, fn) { Array.prototype.forEach.call(doc.querySelectorAll(sel), fn); }
-  function show(sel, on) { all(sel, function (el) { el.hidden = !on; }); }
+  function show(sel, on) {
+    all(sel, function (el) {
+      if (!on && el.contains(doc.activeElement)) rescue(el);
+      el.hidden = !on;
+    });
+  }
+  // hiding the control that has focus would drop it on <body> (WCAG 2.4.3):
+  // move it to the last heading above it that stays, else to main
+  function rescue(el) {
+    var to = el.closest("main") || doc.querySelector("main");
+    if (!to) return;
+    Array.prototype.forEach.call(to.querySelectorAll("h1, h2, h3, h4, h5, h6"), function (h) {
+      if (!el.contains(h) && h.getClientRects().length && h.compareDocumentPosition(el) & 4) to = h;
+    });
+    if (!to.hasAttribute("tabindex")) to.setAttribute("tabindex", "-1");
+    to.focus();
+  }
   function size(n) { return n < 1e6 ? Math.ceil(n / 1e3) + " KB" : n < 1e9 ? (n / 1e6).toFixed(1) + " MB" : (n / 1e9).toFixed(1) + " GB"; }
 
   // a band may take both: offline first, else a waiting update
