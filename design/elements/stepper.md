@@ -1,6 +1,6 @@
 # Stepper
 
-Element 12 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/stepper.html`
+Element 12 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/stepper.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Stepper's own spec.
@@ -167,8 +167,7 @@ from the value. On the page: 2.2.
 
 ## Known limits
 
-- The buttons need script. Without it they stay hidden, so the page's printed markup (read after
-  the script ran) shows them without `hidden`; the source must carry it.
+- The buttons need script. Without it they stay hidden; the source must carry `hidden`.
 - The status line can double up with a screen reader that also reads the value's change when the
   arrow keys step inside it.
 - There is no hold-to-repeat on the buttons; each press is one step.

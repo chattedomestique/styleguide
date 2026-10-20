@@ -1,6 +1,6 @@
 # Form
 
-Element 13 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/form.html`
+Element 13 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/form.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Form's own spec.
@@ -90,7 +90,7 @@ Markup, in order (the New deck form, shortened):
 
   <div class="form__actions">
     <button class="btn btn--quiet" type="button">Cancel</button>
-    <button class="btn btn--primary" type="submit">Create deck</button>
+    <button class="btn btn--primary" type="submit">Make deck</button>
   </div>
 </form>
 ```
@@ -101,9 +101,9 @@ Three. Shown live, with markup, in `elements/form.html` (2.1–2.3).
 
 | Variant | Class | Use | Notes |
 | --- | --- | --- | --- |
-| New deck | `.form` + `.form__summary`, `.form__optional`, `.form__actions` | A screen of fields, sent with one button. | Deck name (required), Description (optional), Card order (radios, required, no default: a new deck has no right answer yet), Show hints (checkbox), Cards per session (Stepper) and Language (Select), then Cancel and Create deck. Live on the page. Cards per session's `pattern` checks 5–50 in fives. |
+| New deck | `.form` + `.form__summary`, `.form__optional`, `.form__actions` | A screen of fields, sent with one button. | Deck name (required), Description (optional), Card order (radios, required, no default: a new deck has no right answer yet), Show hints (checkbox), Cards per session (Stepper) and Language (Select), then Cancel and Make deck. Live on the page. Cards per session's `pattern` checks 5–50 in fives. |
 | With errors | the same, with the summary shown | What a submit with two things missing looks like (or what a server renders). | "Fix 2 things", linking to Deck name and to Card order's first radio. Deck name has `aria-invalid="true"` and the error first in its `aria-describedby`; the fieldset's `aria-describedby` starts with the group's error. A server-rendered page focuses the summary on load. |
-| Inline | `.form--inline` | One field and its button: Rename deck. | No summary: one field's error is already in view, so focus goes back to the field. A secondary button, "Rename": it's rarely the main thing on its screen. Return sends it (`enterkeyhint="done"`). |
+| Inline | `.form--inline` | One field and its button: Rename deck. | No summary: one field's error is already in view. A click on the button sends focus back to the field, which reads the error; Return in the field can't move focus, so there the error takes `role="alert"` and is read as it appears, on every failed try (`form.js` hides it for a frame first). A secondary button, "Rename": it's rarely the main thing on its screen. Return sends it (`enterkeyhint="done"`). |
 
 ### Keyboard hints
 
@@ -146,6 +146,8 @@ Radio).
   itself, so the list makes sense on its own.
 - Each error is in its control's `aria-describedby`, first, so the fix is heard before the help.
   A group's error is in the fieldset's description, so it's heard on entering the group.
+- A form with no summary (one field) has nowhere to send focus when Return is pressed in its
+  field, so the error is `role="alert"` there and is read as it appears, again on each failed try.
 - Required fields use `required` only: the browser exposes it, so `aria-required` would repeat
   it. Optional fields say "(optional)" in their label, so it's part of the name.
 - No disabled submit button: people send the form and hear what's missing. A disabled button
@@ -181,11 +183,11 @@ line on their own.
     styles put labels beside fields.
   - Focus: `@FocusState` with an enum of fields; `.submitLabel(.next)` and `.onSubmit(of:_:)` move to
     the next field.
-  - On Create deck, validate; if anything's wrong, show each field's error `Text` above it, show
+  - On Make deck, validate; if anything's wrong, show each field's error `Text` above it, show
     the summary at the top, and move VoiceOver there with `@AccessibilityFocusState`. Each
     summary row is a `Button` that sets the `@FocusState` field and calls
     `ScrollViewReader`'s `scrollTo(_:anchor: .top)`.
-  - In a sheet: Cancel with `.keyboardShortcut(.cancelAction)` and Create deck with
+  - In a sheet: Cancel with `.keyboardShortcut(.cancelAction)` and Make deck with
     `.keyboardShortcut(.defaultAction)`; on the Mac, when the sheet uses system chrome, as
     toolbar items placed at `ToolbarItemPlacement.cancellationAction` and
     `ToolbarItemPlacement.confirmationAction`.
@@ -196,7 +198,7 @@ line on their own.
 - **Do** mark the optional fields, not the required ones.
 - **Do** write each error as the fix ("Give the deck a name") and use the same words in the
   summary.
-- **Do** name the primary for what it does: "Create deck", not "Submit".
+- **Do** name the primary for what it does: "Make deck", not "Submit".
 - **Don't** check while someone types, or show errors before the first submit.
 - **Don't** disable the submit button until the form is valid.
 - **Don't** put a switch in a form with Save, or two controls for one setting.

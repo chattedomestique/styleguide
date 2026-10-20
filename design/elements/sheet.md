@@ -1,6 +1,6 @@
 # Sheet
 
-Element 23 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/sheet.html`
+Element 23 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/sheet.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Sheet's own spec.

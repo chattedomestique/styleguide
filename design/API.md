@@ -8,7 +8,7 @@ Not listed, because they don't ship: the pages' own `css/sheet.css` (`.sg-*`), `
 
 ## 1. Classes
 
-207 classes, by the file that defines their block. `.is-*` force a state on the pages and in tests: not API.
+206 classes, by the file that defines their block. `.is-*` force a state on the pages and in tests: not API.
 
 ### Base: type styles and utilities
 
@@ -38,7 +38,7 @@ Not listed, because they don't ship: the pages' own `css/sheet.css` (`.sg-*`), `
 
 | Block | Parts | Variants |
 | --- | --- | --- |
-| `.card` | `.card__action` `.card__answer` `.card__bar` `.card__body` `.card__ctl` `.card__eyebrow` `.card__face` `.card__figure` `.card__flip` `.card__foot` `.card__group` `.card__head` `.card__label` `.card__link` `.card__list` `.card__main` `.card__media` `.card__meta` `.card__stage` `.card__text` `.card__tile` `.card__title` `.card__trail` `.card__turn` | `.card--disabled` `.card--ghost` `.card--link` `.card--row` `.card--square` `.card--study` |
+| `.card` | `.card__action` `.card__answer` `.card__bar` `.card__body` `.card__eyebrow` `.card__face` `.card__figure` `.card__flip` `.card__foot` `.card__group` `.card__head` `.card__label` `.card__link` `.card__list` `.card__main` `.card__media` `.card__meta` `.card__stage` `.card__text` `.card__tile` `.card__title` `.card__trail` `.card__turn` | `.card--disabled` `.card--ghost` `.card--link` `.card--row` `.card--square` `.card--study` |
 | `.card-grid` |  | `.card-grid--tiled` |
 
 Pages and tests only, not API: `.is-active` `.is-focus` `.is-hover` `.is-selected`.
@@ -285,7 +285,7 @@ No classes of its own: hooks only (§3).
 
 ## 2. Tokens
 
-Custom properties on `:root`, from `css/tokens/`, plus the smoothing tokens in `base.css` and the glyphs in `icons.css`. Components read roles, never primitives.
+Custom properties on `:root`, from `css/tokens/`, plus the smoothing tokens in `base.css` and the glyphs in `icons.css`. Components read roles, never primitives. The primitives and the glyphs are listed but not API.
 
 ### Type
 
@@ -411,9 +411,9 @@ Custom properties on `:root`, from `css/tokens/`, plus the smoothing tokens in `
 | `--on-tone-5` | #141414 | #ebebeb | dark #ffffff | follows `--ink` |
 | `--on-tone-6` | #141414 | #ebebeb | dark #ffffff | follows `--ink` |
 
-### Primitives (not for components)
+### Primitives (not API)
 
-Only the colour file reads these (check 6).
+Only the colour file reads these (check 6); components and apps read the roles above. Not API: a grey is named by its lightness, so changing one may change its value and its name.
 
 | Primitive | Value |
 | --- | --- |
@@ -450,9 +450,9 @@ From `base.css`, following the scheme and `data-scheme`. [STYLE.md §2 Type](STY
 | `--smooth-inverse` | antialiased | auto |
 | `--smooth-inverse-moz` | grayscale | auto |
 
-### Glyphs
+### Glyphs (not API)
 
-Masks in `icons.css`, each read by its `.ic--*` class. [icons.md](elements/icons.md).
+Masks in `icons.css`, each read by its `.ic--*` class. Not API: use the class, not the token ([icons.md](elements/icons.md)).
 
 | Token | Class |
 | --- | --- |
@@ -492,22 +492,24 @@ Masks in `icons.css`, each read by its `.ic--*` class. [icons.md](elements/icons
 | `--tone-bg` | `*` | false |  | set by `[data-tone]` |
 | `--tone-ink` | `*` | false |  | set by `[data-tone]` |
 
-### Settable, per element
+### Hooks, per element
 
-Set in markup by a page or a spec, or read with a fallback that no shipped CSS sets. Set by a script: the script publishes it.
+The custom properties an app may set: each is marked `hook:` on the line of CSS that defaults or reads it, which says what it's for. One set by a script is published by it.
 
-| Element | Property | Default | Set by | Read by |
-| --- | --- | --- | --- | --- |
-| Icons · [icons.md](elements/icons.md) | `--ic-size` | `1.25rem` (fallback) | app | `icons.css` `button.css` `meter.css` `sidebar.css` `toast.css` `banner.css` `card.css` `dialog.css` |
-| Card · [card.md](elements/card.md) | `--card-min` | `16rem` on `.card-grid` | app | `card.css` |
-| Card · [card.md](elements/card.md) | `--ratio` | `var(--ratio-media)` (fallback) | app | `card.css` |
-| Meter and Spinner · [meter.md](elements/meter.md) | `--value` | `0%` on `.meter__bar` | app | `meter.css` |
-| Frame · [frame.md](elements/frame.md) | `--chrome` | `0px` (fallback) | `frame.js` | `card.css` |
-| Frame · [frame.md](elements/frame.md) | `--frame-column` | `100%` (fallback) | app | `frame.css` |
-| Toast · [toast.md](elements/toast.md) | `--toasts-h` | `0px` (fallback) | `toast.js` | `toast.css` |
-| Wireframe kit (disposable: not API) · [STYLE.md §5 Wireframe kit](STYLE.md#5-wireframe-kit) | `--wf-under` | `var(--canvas)` (fallback) | app | `wire.css` |
+| Element | Property | For | Default | Set by | Read by |
+| --- | --- | --- | --- | --- | --- |
+| Icons · [icons.md](elements/icons.md) | `--ic-size` | the glyph's size | `1.25rem` (fallback) | app | `icons.css` `button.css` `meter.css` `sidebar.css` `toast.css` `banner.css` `card.css` `dialog.css` |
+| Card · [card.md](elements/card.md) | `--card-bg` | a surface's ground, read by what sits on it (Button, Tag, Disclosure) | `var(--tone-bg, var(--paper))` on `.card` | app | `button.css` `tag.css` `disclosure.css` `card.css` |
+| Card · [card.md](elements/card.md) | `--card-ink` | a surface's ink, read by what sits on it (Button, Tag, Disclosure) | `var(--tone-ink, var(--ink))` on `.card` | app | `button.css` `tag.css` `disclosure.css` `wire.css` `card.css` `form.css` |
+| Card · [card.md](elements/card.md) | `--card-ink-soft` | a surface's soft ink, read by what sits on it (Meter's value) | `var(--ink-soft)` on `.card` | app | `meter.css` `card.css` |
+| Card · [card.md](elements/card.md) | `--card-min` | the narrowest column before the grid drops one | `16rem` on `.card-grid` | app | `card.css` |
+| Card · [card.md](elements/card.md) | `--ratio` | the media's aspect ratio | `var(--ratio-media)` (fallback) | app | `card.css` |
+| Meter and Spinner · [meter.md](elements/meter.md) | `--value` | the fill, a percentage: keep it equal to now / max | `0%` on `.meter__bar` | app | `meter.css` |
+| Frame · [frame.md](elements/frame.md) | `--chrome` | the height of the screen's bars: frame.js sets it on a Frame; outside one, set it | `0px` (fallback) | `frame.js` | `card.css` |
+| Frame · [frame.md](elements/frame.md) | `--frame-column` | caps the content's width and centres it | `100%` (fallback) | app | `frame.css` |
+| Wireframe kit (disposable: not API) · [STYLE.md §5 Wireframe kit](STYLE.md#5-wireframe-kit) | `--wf-under` | cuts the line: set it to what's behind | `var(--canvas)` (fallback) | app | `wire.css` |
 
-Internal, not API (48): `--btn-bg` `--btn-fill-bg` `--btn-fill-ink` `--btn-ink` `--btn-line` `--btn-rest-bg` `--btn-rest-ink` `--btn-rest-line` `--card-bar-bg` `--card-bar-ink` `--card-bg` `--card-flip-room` `--card-gap` `--card-ink` `--card-ink-soft` `--card-line` `--card-pad` `--card-radius` `--card-turn` `--checkbox-gap` `--checkbox-size` `--dialog-edge` `--dialog-pad` `--disclosure-bg` `--disclosure-ink` `--frame-pad-end` `--frame-pad-start` `--ic` `--list-bg` `--list-pad` `--radio-gap` `--radio-size` `--segmented-apart` `--segmented-ground` `--shadow-invalid` `--shadow-lift` `--shadow-press` `--shadow-select` `--sheet-bw` `--sheet-end` `--sheet-off` `--switch-dir` `--switch-knob` `--switch-on` `--switch-track` `--tabbar-line` `--tabs-bar` `--tabs-ink`.
+Internal, not API (45): `--btn-bg` `--btn-fill-bg` `--btn-fill-ink` `--btn-ink` `--btn-line` `--btn-rest-bg` `--btn-rest-ink` `--btn-rest-line` `--card-bar-bg` `--card-bar-ink` `--card-flip-room` `--card-gap` `--card-line` `--card-pad` `--card-radius` `--card-turn` `--checkbox-gap` `--checkbox-size` `--dialog-edge` `--dialog-pad` `--disclosure-bg` `--disclosure-ink` `--frame-pad-end` `--frame-pad-start` `--ic` `--list-bg` `--list-pad` `--radio-gap` `--radio-size` `--segmented-apart` `--segmented-ground` `--shadow-invalid` `--shadow-lift` `--shadow-press` `--shadow-select` `--sheet-bw` `--sheet-end` `--sheet-off` `--switch-dir` `--switch-knob` `--switch-on` `--switch-track` `--tabbar-line` `--tabs-bar` `--tabs-ink`.
 
 ## 3. Attributes and hooks
 
@@ -566,11 +568,12 @@ What the CSS and the script key on, besides classes.
 | Toast · [toast.md](elements/toast.md) | `role` ("status") | `hidden` (present) `inert` (present) |  |
 | Banner · [banner.md](elements/banner.md) |  |  | `:empty` |
 | PWA platform · [pwa.md](elements/pwa.md) |  | `hidden` (present) |  |
-| Wireframe kit (disposable: not API) · [STYLE.md §5 Wireframe kit](STYLE.md#5-wireframe-kit) | `aria-disabled` ("true") |  |  |
 
 ## 4. Script
 
 `dist/flashcards.js`: every `js/components/*.js`, vanilla, and everything works without it. One global, `window.Flashcards`.
+
+**Load it after the markup** (at the end of `<body>`) or with `defer`: each file enhances what is in the page when it runs. Checkbox, Field, Form, Stepper and Tabs bind to their elements once, Frame observes the frames there, and PWA fills its rows then (and again on `visibilitychange` and when the network changes). Markup added later isn't enhanced; the clicks Dialog, Sheet, Toast and PWA handle are delegated, so those work on it.
 
 ### `window.Flashcards`
 
@@ -597,7 +600,7 @@ What the CSS and the script key on, besides classes.
 | `js/components/checkbox.js` · [checkbox.md](elements/checkbox.md) | "select all" and its mixed state | `.checkbox` `aria-controls` | `hidden` |
 | `js/components/dialog.js` · [dialog.md](elements/dialog.md) | opens a modal from its button, and gives focus back | `command` `commandfor` |  |
 | `js/components/field.js` · [field.md](elements/field.md) | the search field's clear button | `.field__box` `.field__clear` `.field__input` | `hidden` |
-| `js/components/form.js` · [form.md](elements/form.md) | errors on submit | `.card__title` `.field` `.field__error` `.form` `.form__summary` `aria-describedby` | `aria-describedby` `aria-invalid` `hidden` |
+| `js/components/form.js` · [form.md](elements/form.md) | errors on submit | `.card__title` `.field` `.field__error` `.form` `.form__summary` `aria-describedby` | `aria-describedby` `aria-invalid` `hidden` `role` |
 | `js/components/frame.js` · [frame.md](elements/frame.md) | --chrome, and the keyboard | `.frame` `.frame__scroll` `data-keyboard` | `data-keyboard` `--chrome` |
 | `js/components/pwa.js` · [pwa.md](elements/pwa.md) | the installed app's page side | `.frame` `.toasts` `commandfor` `data-pwa` `data-share` `data-share-title` `data-share-url` `meta[name="flashcards-sw"]` | `aria-hidden` `data-pwa` `hidden` `tabindex` `.banner__action` `.banner__icon` `.banner__text` `.btn` |
 | `js/components/sheet.js` · [sheet.md](elements/sheet.md) | drag a bottom sheet down to close it | `.sheet` `.topbar` |  |
@@ -615,10 +618,10 @@ Built by `node design/tools/bundle.mjs`. Ship `dist/` and `fonts/` side by side:
 | `dist/flashcards.css` | the readable copy: an app may link it | tokens + base + components + wire, imports inlined and wrapped in their layers. Fonts stay as files: ../fonts/archivo-latin-var.woff2. |
 | `dist/flashcards.min.css` | a served app links this | flashcards.css, with comments and spare whitespace taken out and nothing else changed. What a served app links. |
 | `dist/flashcards.min.js` | a served app links this | flashcards.js with comments, indentation and blank lines out, and nothing else changed. What a served app links; the comments are the documentation, so the sources keep them. |
-| `dist/style-sheet.html` | the style sheet's pages: not for apps | the hub and every element page joined into one page, with the CSS, the font and the script inlined. One file you can email, drop in a chat, or open offline. |
-| `dist/screens.html` | the style sheet's pages: not for apps | screens.html, the same way. The two link to each other. |
+| `dist/style-sheet.html` | the style sheet's pages, not API: an app doesn't need them | the hub and every element page joined into one page, with the CSS, the font and the script inlined. One file you can email, drop in a chat, or open offline. |
+| `dist/screens.html` | the style sheet's pages, not API: an app doesn't need them | screens.html, the same way. The two link to each other. |
 | `fonts/archivo-latin-var.woff2` | the font, preloaded with `crossorigin` | [STYLE.md §2 Type](STYLE.md#type) |
-| `pwa/` | the starter: copy it with `dist/` and `fonts/` | `app.css` `app.js` `decks.html` `icons/` `index.html` `manifest.webmanifest` `offline.html` `settings.html` `sw.js` · [pwa/README.md](pwa/README.md) |
+| `pwa/` | the starter, not API: a copy to own, with `dist/` and `fonts/` | `app.css` `app.js` `decks.html` `icons/` `index.html` `manifest.webmanifest` `offline.html` `settings.html` `sw.js` · [pwa/README.md](pwa/README.md) |
 
 ### Layers
 
@@ -626,7 +629,7 @@ Built by `node design/tools/bundle.mjs`. Ship `dist/` and `fonts/` side by side:
 
 | Layer | Files | What |
 | --- | --- | --- |
-| `tokens` | `tokens/foundation.css` `tokens/color.css` | values and roles. No selectors except :root and [data-tone]. |
+| `tokens` | `tokens/foundation.css` `tokens/color.css` | values and roles. No selectors except :root and [data-scheme] ([data-tone] lives in base.css). |
 | `base` | `base.css` `icons.css` | reset, element defaults, type styles (.t-*). |
 | `components` | `components/card.css` `components/button.css` … 26 files | one file per element. Reads roles only, never a raw colour. |
 | `wire` | `wire.css` | wireframe placeholders (.wf-*). Disposable: each one is deleted when the real element ships. |

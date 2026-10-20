@@ -1,6 +1,6 @@
 # Empty, loading and error
 
-Element 26 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/states.html`
+Element 26 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/states.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 spec for the patterns a screen uses before there's anything, and when something fails.
@@ -65,7 +65,7 @@ markup, in `elements/states.html` under Patterns (1.1–1.6).
 | Empty | `.state`: "No decks yet." (`.t-body`) and a `.card--ghost` link, "Make your first deck" | Nothing here yet. | The ghost card stands where the first deck will go: dashed means empty, and the whole card is the link. Its name is the step, not the state. |
 | Empty search | Field's search under the top bar; `.state`: "No decks match “hexa”." (`.t-body`, `role="status"`) and Clear search (`.btn` in a `.btn-row`) | A search found nothing. | Quote what was searched for. Clear search does what the field's clear button does: empties the field, puts focus back in it, brings the decks back. The line is a status, kept in the markup, so its words are heard as they change without leaving the field. |
 | Loading | `.spinner` with `role="status"`: "Loading decks…" | Working on it, long enough to notice. | Where the content will be. Put it in as soon as loading starts: the spinner itself waits 300ms before it shows (Meter's loading delay), so a quick load never flashes. No shimmer, no skeleton boxes: they move, and they promise a layout that may not come. |
-| Failed | a plain `.card` with `role="alert"`: `.card__title` "Couldn't load your decks", `.card__text` "If trying again doesn't work, close the app and open it again.", a `.card__foot` holding a `.btn` "Try again" | It didn't load and there's nothing to show instead. | An alert, because nothing on the screen works until it does. Try again goes busy (Button's `aria-busy`) and the card stays until something replaces it. Never "Something went wrong" on its own. |
+| Failed | a plain `.card` with `role="alert"`: `.card__title` "Couldn't load your decks" behind `ic--warning`, as every failure is marked (Banner, Toast, Dialog), `.card__text` "If trying again doesn't work, close the app and open it again.", a `.card__foot` holding a `.btn` "Try again" | It didn't load and there's nothing to show instead. | An alert, because nothing on the screen works until it does. Try again goes busy (Button's `aria-busy`) and the card stays until something replaces it. Never "Something went wrong" on its own. |
 | Offline | Banner's offline band first in the scroll region, then the decks on this device (`.list`) | No connection. | Offline is not an error: show what's on the device. The band stays while it's true, with no close, and scrolls away with the decks. |
 | First run | `.frame--task` with no top bar; `.state`: a `.t-heading` and one `.t-body` line; a `.btn--primary.btn--block` link in the bottom slot | The very first screen. | One line, one action, nowhere to wander off to. Never shown again once a deck exists. |
 

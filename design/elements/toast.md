@@ -1,6 +1,6 @@
 # Toast
 
-Element 24 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/toast.html`
+Element 24 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/toast.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Toast's own spec.

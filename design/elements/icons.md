@@ -1,6 +1,6 @@
 # Icons
 
-Element 06 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/icons.html`
+Element 06 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/icons.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 glyph set's own spec, with every glyph's path data so native apps can port it.
@@ -49,7 +49,7 @@ How a glyph is drawn, so the next one matches.
 
 **Size:** `--ic-size`, 1.25rem (20px) by default; 1.5rem (24px) for a glyph standing alone in a
 bar. Both are rem, so they follow the reader's text size; on iOS at the default Dynamic Type size
-they are 21 and 25.5px. Smaller only inside a drawn box, as in `.card__ctl` (0.75rem). Inline in
+they are 21 and 25.5px. Never smaller: under 20px the 2px line closes up. Inline in
 a sentence: `--ic-size: 1.25em; vertical-align: -0.25em`.
 
 ```html

@@ -1,6 +1,6 @@
 # Elements
 
-How an element is built, and the brief for every element still to come. The rules every
+How an element is built, and the brief every element and wave was built from. The rules every
 element follows are in `../STYLE.md`; `card.md` and `card.html` are the worked example.
 
 ## The contract
@@ -59,7 +59,7 @@ you made and why; the exact lines anything shared needs; what you couldn't verif
 
 ## Page and spec layout
 
-The page: hero (the kicker reads "Element NN · Motion · Gates 0 to 4 done", the title is
+The page: hero (the kicker reads "Element NN · v1.0 · All six gates", the title is
 the element's name, the lede is its job), then **01 Variants**, **02 States**, **03 Usage**
 (do and don't, platform notes), with **Anatomy** first when the element has more than three
 parts. Each variant is an `.sg-entry` whose specimens carry `data-sg-code`, so the page prints
@@ -72,33 +72,33 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 
 | # | Element | Wave | Status |
 | --- | --- | --- | --- |
-| 01 | Card | | Gates 0–4 |
-| 02 | Button | 1 | Gates 0–4 |
-| 03 | Field | 1 | Gates 0–4 |
-| 04 | Tag and Badge | 1 | Gates 0–4 |
-| 05 | Meter and Spinner | 1 | Gates 0–4 |
-| 06 | Icons | 1 | Gates 0–4 |
-| 07 | Checkbox | 2 | Gates 0–4 |
-| 08 | Radio | 2 | Gates 0–4 |
-| 09 | Switch | 2 | Gates 0–4 |
-| 10 | Segmented control | 2 | Gates 0–4 |
-| 11 | Select | 2 | Gates 0–4 |
-| 12 | Stepper | 2 | Gates 0–4 |
-| 13 | Form | 2 | Gates 0–4 |
-| 14 | Frame | 3 | Gates 0–4 |
-| 15 | Top bar | 3 | Gates 0–4 |
-| 16 | Tab bar | 3 | Gates 0–4 |
-| 17 | Sidebar | 3 | Gates 0–4 |
-| 18 | List | 3 | Gates 0–4 |
-| 19 | Tabs | 3 | Gates 0–4 |
-| 20 | Disclosure | 3 | Gates 0–4 |
-| 21 | Menu | 3 | Gates 0–4 |
-| 22 | Dialog | 4 | Gates 0–4 |
-| 23 | Sheet | 4 | Gates 0–4 |
-| 24 | Toast | 4 | Gates 0–4 |
-| 25 | Banner | 4 | Gates 0–4 |
-| 26 | Empty, loading and error | 4 | Gates 0–4 |
-| 27 | PWA platform | 5 | Gates 0–4 |
+| 01 | Card | | Gates 0–5 |
+| 02 | Button | 1 | Gates 0–5 |
+| 03 | Field | 1 | Gates 0–5 |
+| 04 | Tag and Badge | 1 | Gates 0–5 |
+| 05 | Meter and Spinner | 1 | Gates 0–5 |
+| 06 | Icons | 1 | Gates 0–5 |
+| 07 | Checkbox | 2 | Gates 0–5 |
+| 08 | Radio | 2 | Gates 0–5 |
+| 09 | Switch | 2 | Gates 0–5 |
+| 10 | Segmented control | 2 | Gates 0–5 |
+| 11 | Select | 2 | Gates 0–5 |
+| 12 | Stepper | 2 | Gates 0–5 |
+| 13 | Form | 2 | Gates 0–5 |
+| 14 | Frame | 3 | Gates 0–5 |
+| 15 | Top bar | 3 | Gates 0–5 |
+| 16 | Tab bar | 3 | Gates 0–5 |
+| 17 | Sidebar | 3 | Gates 0–5 |
+| 18 | List | 3 | Gates 0–5 |
+| 19 | Tabs | 3 | Gates 0–5 |
+| 20 | Disclosure | 3 | Gates 0–5 |
+| 21 | Menu | 3 | Gates 0–5 |
+| 22 | Dialog | 4 | Gates 0–5 |
+| 23 | Sheet | 4 | Gates 0–5 |
+| 24 | Toast | 4 | Gates 0–5 |
+| 25 | Banner | 4 | Gates 0–5 |
+| 26 | Empty, loading and error | 4 | Gates 0–5 |
+| 27 | PWA platform | 5 | Gates 0–5 |
 
 Then three passes over everything: colour and dark mode (wave 6, gate 3), motion (wave 7,
 gate 4) and the freeze (wave 8, gate 5).
@@ -106,7 +106,7 @@ gate 4) and the freeze (wave 8, gate 5).
 ## Briefs
 
 Gate 0. Each brief gives the job, the parts, the variants (the cap: no others), the states, the
-copy and anything specific. Waves 1 to 4 are full; wave 5 gets its own when it starts.
+copy and anything specific. Every wave's brief is here, as it was written before it was built.
 
 ### Wave 1: actions and status
 
@@ -131,8 +131,7 @@ copy and anything specific. Waves 1 to 4 are full; wave 5 gets its own when it s
 - **Copy:** Start, Turn over, Got it, Not yet, Add a shape, Delete deck, Shuffle.
 - **Notes:**
   - One size. The target is always 44px; the label is `--text-sm` or larger.
-  - The card's `.card__action` and `.card__ctl` stay the card's for now; the spec says how they
-    line up with Button.
+  - The card's `.card__action` stays the card's; the spec says how it lines up with Button.
   - On the Mac, system chrome keeps system buttons and ours are for content. In SwiftUI, a
     custom `ButtonStyle`.
 
@@ -444,7 +443,7 @@ What the app says back, and what sits on top of a screen. Shared notes:
 - **Variants:**
   - *confirm*: a destructive choice ("Delete Shapes? Its 12 cards go too." with Delete deck /
     Keep it). The safe choice is focused first, and the destructive one is never primary.
-  - *acknowledge*: one button ("Can't import that file. It isn't a deck export. OK").
+  - *acknowledge*: one button ("Couldn't import that file. It isn't a deck export. Close").
   - *with a field*: Rename deck, which reuses Form's inline form.
 - **Notes:**
   - Square, a 2px frame on paper, at most about 28rem wide, centred, `--scrim` behind.

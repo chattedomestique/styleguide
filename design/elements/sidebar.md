@@ -1,6 +1,6 @@
 # Sidebar
 
-Element 17 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/sidebar.html`
+Element 17 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/sidebar.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Sidebar's own spec.
@@ -46,7 +46,7 @@ Sidebar's own spec.
 | List | `.sidebar__list` | `<ul role="list">`, grid, 4px between links. |
 | Link | `.sidebar__link` | `.btn .btn--quiet`, full width, `justify-content: flex-start`, padding 16px inline, `--type-body` at 400. A leading icon (a place) is pulled 8px towards the curve, as in any Button. With no icon (a deck), the start padding adds the icon's width, so every label lines up. |
 | Section heading | `.sidebar__heading` | `--type-label`, uppercase, `--ink-soft`, 16px above, padded to line up with the labels. It names its list (`aria-labelledby`). A heading element at the app's level below the screen's `h1`. |
-| Foot | `.sidebar__foot` | Pushed to the bottom (`margin-block-start: auto`) after a 1px rule (it divides). What the app puts there: a Button ("Make a deck"), a line of `.t-meta`. |
+| Foot | `.sidebar__foot` | Pushed to the bottom (`margin-block-start: auto`) after a 1px rule (it divides). What the app puts there: a Button ("New deck"), a line of `.t-meta`. |
 
 ## Variants
 
@@ -55,7 +55,7 @@ Each is shown live, with its markup, in `elements/sidebar.html` under Variants (
 | Variant | Class | Use | Notes |
 | --- | --- | --- | --- |
 | Standard | `.sidebar` | The app's places. | Head and toggle, then Today, Decks, Settings. |
-| With sections | `.sidebar__heading`, `.sidebar__foot` | Places, then the things in them. | "Your decks", with each deck as a link and no icon (the same glyph on every row would be decoration, rule 7). The foot holds Make a deck and "55 cards, saved on this device". |
+| With sections | `.sidebar__heading`, `.sidebar__foot` | Places, then the things in them. | "Your decks", with each deck as a link and no icon (the same glyph on every row would be decoration, rule 7). The foot holds New deck and "55 cards, saved on this device". |
 | Two-pane split | `.frame--wide` with `.frame__side` | A tablet or desktop browser. | Sidebar in Frame's first column, top bar and content in the second, a Tab bar with the same links in the bottom slot. Under 45rem of frame the sidebar is `display: none` and the tab bar shows. |
 
 ## States

@@ -22,7 +22,8 @@
      how to fix it, behind a warning glyph.
    · :hover lives inside @media (hover: hover).
    · Motion (gate 4): the input's hover ground and the clear button's fill
-     are --fill, and ease (--dur-hover; a press, --dur-press). The ring,
+     are --fill, its lift --lift, and they ease (--dur-hover; a press,
+     --dur-press). The ring,
      the invalid frame and the error are instant: feedback never waits.
    ========================================================================== */
 
@@ -154,9 +155,13 @@ textarea.field__input {
 }
 
 /* clear: a 44px target around a 28px circle, over the frame's inline end.
-   Pressable, so it reads --fill: an outline at rest, ink when hovered or
-   pressed. Its ring goes round the circle, inside the field. */
+   Pressable, so it reads --lift and --fill as Button does: an outline at
+   rest; hover and focus lift and fill it; a press takes the lift away, keeps
+   the fill and shows Button's paper ring inside the frame. The circle is
+   small, so its lift is 2px, as on Checkbox's box. Its focus ring goes round
+   the circle, inside the field. */
 .field__clear {
+  --lift: 0;
   --fill: 0;
   position: absolute;
   inset-block-start: 0;
@@ -170,7 +175,9 @@ textarea.field__input {
   color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
   background: none;
   border: 0;
-  transition: --fill var(--dur-hover) var(--ease-out);
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
 .field__clear[hidden] {
@@ -189,6 +196,11 @@ textarea.field__input {
   background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
   border: var(--bw) solid var(--ink);
   border-radius: var(--radius-pill);
+  /* Button's press ring (paper, inside the frame, only when filled and not
+     lifted), then the lift */
+  box-shadow:
+    inset 0 0 0 calc((1 - var(--lift)) * var(--fill) * var(--bw)) var(--paper),
+    calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--ink);
 }
 
 .field__clear > .ic {
@@ -206,6 +218,7 @@ textarea.field__input {
   }
 
   .field__clear:hover {
+    --lift: 1;
     --fill: 1;
   }
 }
@@ -230,11 +243,16 @@ textarea.field__input {
   outline-offset: var(--ring-offset-in);
 }
 
-.field__clear:is(.is-hover, :active, .is-active) {
+/* the keyboard gets exactly what the pointer gets */
+.field__clear:is(.is-hover, :focus-visible, .is-focus) {
+  --lift: 1;
   --fill: 1;
 }
 
+/* pressed: back onto the field, the fill stays. After hover, so it wins. */
 .field__clear:is(:active, .is-active) {
+  --lift: 0;
+  --fill: 1;
   transition-duration: var(--dur-press);
 }
 
@@ -272,7 +290,8 @@ textarea.field__input {
 }
 
 /* --- reduced motion -----------------------------------------------------------
-   Gentler, not instant: the grounds and fills keep a short fade. */
+   Gentler, not instant: the grounds and fills keep a short fade, and the
+   clear button's lift appears without sliding out. */
 
 @media (prefers-reduced-motion: reduce) {
   .field__input,
@@ -304,7 +323,7 @@ textarea.field__input {
     background-color: GrayText;
   }
 
-  .field__clear:is(.is-hover, :active, .is-active)::before {
+  .field__clear:is(.is-hover, :focus-visible, .is-focus, :active, .is-active)::before {
     border-color: Highlight;
   }
 

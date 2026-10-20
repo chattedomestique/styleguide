@@ -1,6 +1,6 @@
 # List
 
-Element 18 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/list.html`
+Element 18 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/list.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 List's own spec.

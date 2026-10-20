@@ -1,6 +1,6 @@
 # Switch
 
-Element 09 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/switch.html`
+Element 09 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/switch.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Switch's own spec.
@@ -63,7 +63,7 @@ Markup, in order:
       </span>
     </span>
   </label>
-  <p class="switch__help" id="reminder-help">At 6pm, if you haven't studied today.</p>
+  <p class="switch__help" id="reminder-help">At 8pm, if you haven't studied today.</p>
 </div>
 ```
 

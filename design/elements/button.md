@@ -1,6 +1,6 @@
 # Button
 
-Element 02 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/button.html`
+Element 02 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/button.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Button's own spec.
@@ -21,7 +21,7 @@ Button's own spec.
   Disabled: prefer not disabling; when you must, `aria-disabled` and say why nearby.
 - **Copy:** Start, Turn over, Got it, Not yet, Add a shape, Delete deck, Shuffle.
 - **Notes:** one size, the target always 44px, the label `--text-sm` or larger. The card's
-  `.card__action` and `.card__ctl` stay the card's for now; this spec says how they line up.
+  `.card__action` stays the card's; this spec says how it lines up.
   On the Mac, system chrome keeps system buttons and ours are for content; in SwiftUI, a custom
   `ButtonStyle`.
 
@@ -62,7 +62,7 @@ Each is shown live, with its markup, in `elements/button.html` under Variants (1
 | Primary | `.btn--primary` | The one thing to press in a region. | `--accent` fill, `--on-accent` label, `--btn-line` frame. Already filled at rest, so `--fill` changes nothing and a press shows as the inner ring. |
 | Secondary | `.btn` | Everything else that deserves a frame. | The default: no modifier. 2px frame on the surface. |
 | Quiet | `.btn--quiet` | Bars, card feet, the way out next to a primary. | Transparent fill and frame at rest; the frame appears with the fill on hover, focus and press. Same padding as a framed button. |
-| Destructive | recipe: `.btn` or `.btn--quiet` | Something that can't be taken back. | No class: the words carry it ("Delete deck": a verb and the thing). Never `.btn--primary`, never a colour. It asks first (the page shows the question card) or does it and offers Undo. |
+| Destructive | recipe: `.btn` or `.btn--quiet` | Something that can't be taken back. | No class: the words carry it ("Delete deck": a verb and the thing). Never `.btn--primary`, never a colour. It asks first, as Dialog's confirm does (the opener says "Delete deck…", and the safe "Keep it" is the primary, so Return keeps the deck), or does it and offers Undo. |
 | Icon-only | `.btn--icon` | When the glyph says it all. | A 44px circle, `padding: 0`. The button has the `aria-label`; the icon is `aria-hidden`. Combines with `.btn--quiet` for bars. |
 | Toggle | `aria-pressed` | An on/off action: Shuffle. | The label never changes. On: the frame doubles (`--shadow-select`, as a selected card) and a check (`--icon-check`) leads the label, so on never reads as focus or as a primary. The button widens by the check. |
 | Block | `.btn--block` | Phone forms. | `display: flex; inline-size: 100%` of its column. |
@@ -77,10 +77,7 @@ lines up with the card's own slots:
 - **`.card__action`** is the same geometry as `.btn btn--icon`: a 44px circle with a 2px frame
   in the card's ink. It differs in two ways: it doesn't lift (it sits at the clipping edge of a
   foot, where a shadow would be cut), and it fills with `--accent` rather than swapping ink and
-  paper. When cards adopt Button, `.card__action` becomes `.btn btn--icon` and the card keeps
-  only its placement; until then it stays the card's.
-- **`.card__ctl`** is not a button style. It is the bar's square control, a 20px box in a 44px
-  target that belongs to the frame (rule 3's one exception). It stays the card's.
+  paper. It stays the card's.
 - **`.card__foot`** styles its bare links and buttons as 44px foot links, and leaves a `.btn`
   alone, so a button can sit in a foot; the foot grows to fit it.
 

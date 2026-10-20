@@ -1,6 +1,6 @@
 # Segmented control
 
-Element 10 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/segmented.html`
+Element 10 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/segmented.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Segmented control's own spec.

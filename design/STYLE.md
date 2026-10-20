@@ -1,13 +1,13 @@
 # Flashcards style sheet
 
-v0.10 · motion stage · 27 of 27 elements through gate 4 · 2026-10-20
+v1.0.0 · frozen · 27 elements through all six gates · 2026-10-20
 
 The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
 to look at: live specimens, every state, the markup read straight off the page. **This file**
 and the element specs are the ones to build from: exact values, class names, and the reasons. If the two ever disagree, the CSS in `css/` wins and
 the disagreement is a bug in whichever one is wrong. `node design/tools/check.mjs` catches
-the mechanical kind. **`screens.html`** is the test bed: the system on a phone and a Mac, with
-every element that isn't built yet marked where it would go.
+the mechanical kind. **`screens.html`** is the test bed: the system on a phone and a Mac, built
+from the elements. **`API.md`** lists the public API, generated from the code.
 
 > **Start here.**
 >
@@ -50,10 +50,10 @@ not a mood:
    one. Hover and press never move the hit
    box: the lift is the shadow alone, never a `transform`.
 3. **Rectangles hold, circles act.** Containers are square. Buttons, handles and action
-   slots are circles or pills. Two exceptions: the card bar's small square control, which
-   belongs to the frame, and the checkbox, which every platform draws square (§7).
-4. **Uppercase is structure.** Bar labels and index numbers. Everything you read is sentence
-   case.
+   slots are circles or pills. One exception: the checkbox, which every platform draws square
+   (§7).
+4. **Uppercase is structure.** Labels: bars, the tab bar, section heads, tags and index numbers.
+   Everything you read is sentence case.
 5. **Say something real.** No lorem ipsum, no "John Doe", no "seamless". Copy comes from the
    product. In these specimens that means shapes, decks, cards known, streaks.
 6. **Colour is a swap.** Components read roles. Only `tokens/color*.css` contains a colour value.
@@ -76,32 +76,37 @@ Run it on any screen before calling it done.
 
 At 1.0 each is closed or carried.
 
-- **The system's name and the class prefix: carried, the owner's call.** Until then the names
-  stay: the `flashcards` files, the `Flashcards` global, the `flashcards-sw` meta, and classes
-  with no prefix. A rename is one command from the repository root. `NEW` is one lowercase word,
-  and the global becomes it with a capital:
+- **The system's name and the class prefix: carried, the owner's call.** <!-- rename: skip -->Until
+  then the names stay, and classes have no prefix. A rename is one command from the repository
+  root. It reads the current name from the entry file in `css/`, so it can run again. `NEW` is one
+  lowercase word, and the global becomes it with a capital:
 
   ```sh
   NEW=acme node -e '
-  const fs = require("fs"), path = require("path"), N = process.env.NEW, T = N[0].toUpperCase() + N.slice(1);
+  const fs = require("fs"), path = require("path"), cap = (s) => s[0].toUpperCase() + s.slice(1);
+  const O = fs.readdirSync("design/css").find((n) => /\.css$/.test(n) && /@import[^;]*layer\(/.test(fs.readFileSync("design/css/" + n, "utf8"))).slice(0, -4);
+  const N = process.env.NEW || "", U = cap(O), T = cap(N || "?");
+  if (!/^[a-z]+$/.test(N) || N === O) throw new Error("NEW must be one lowercase word, not the current name, " + O);
+  const R = (a, name, b) => new RegExp(a.source + name + b.source, "g");
+  const swap = (s) => s.replace(R(/(?:)/, O, /(?=\\?\.(?:min\\?\.)?(?:css|js)\b)/), N).replace(R(/\b/, O, /-(sw|sheet-[a-z]+)\b/), N + "-$1")
+    .replace(R(/\bwindow\./, U, /\b/), "window." + T).replace(R(/\b/, U, /(?=\.[a-z]| design system| style sheet| \/ )/), T);
   const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? (e.name === "dist" ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]);
   for (const f of walk("design").filter((f) => /\.(html|css|js|mjs|md|webmanifest)$/.test(f))) {
     const s = fs.readFileSync(f, "utf8");
-    const t = s.replace(/flashcards(?=\\?\.(?:min\\?\.)?(?:css|js)\b)/g, N).replace(/\bflashcards-(sw|sheet-[a-z]+)\b/g, N + "-$1")
-      .replace(/\bwindow\.Flashcards\b/g, "window." + T).replace(/\bFlashcards(?=\.[a-z]| design system| style sheet| \/ )/g, T);
+    const t = s.split(/(<!-- rename: (?:skip) -->[\s\S]*?<!-- rename: (?:end) -->)/).map((p, i) => (i % 2 ? p : swap(p))).join("");
     if (t !== s) { fs.writeFileSync(f, t); console.log(f); }
   }
-  fs.renameSync("design/css/flashcards.css", "design/css/" + N + ".css");
+  fs.renameSync("design/css/" + O + ".css", "design/css/" + N + ".css");
   fs.rmSync("design/dist", { recursive: true, force: true });
   ' && node design/tools/bundle.mjs && node design/tools/api.mjs && node design/tools/check.mjs
   ```
 
   It renames the file names (`css/`, `dist/`, every link to them), the global, the `-sw` meta,
   the pages' storage keys and the system's name in prose ("… design system", "… style sheet",
-  the pages' brand), then rebuilds `dist/` and runs the gate. It leaves the starter's product
-  copy alone ("Install Flashcards", the manifest's `id` and `name`, the export format): those
-  are the app's. A rename is a major version, and so is a class prefix, which changes every
-  class in `API.md`.
+  the pages' brand), then rebuilds `dist/` and runs the gate. It leaves alone this paragraph and
+  the command, between their two `rename` comments, and the starter's product copy ("Install
+  Flashcards", the manifest's `id` and `name`, the export format): those are the app's. A rename
+  is a major version, and so is a class prefix, which changes every class in `API.md`.<!-- rename: end -->
 - **Corners: closed.** Square (§2 Shape).
 - **Arrow keys in a grid of link cards on the Mac: carried.** Only a Mac with a WebKit shell can
   judge a roving tab stop against `tabFocusesLinks` (§4), and natively a selectable grid is a
@@ -111,26 +116,49 @@ At 1.0 each is closed or carried.
   minor version), not rename any.
 - **The Mac pointer density: carried.** 44px everywhere until a real Mac screen asks for the
   24px fine-pointer floor, as one switch at the root (§2 Hit targets and focus).
+- **Also carried, small:** a dark colour for the manifest (no browser reads one yet); toast.md's
+  line that belongs in Frame (the scroll region's column pin); button.md's wider surface roles.
+- **The owner's eye, carried:** the hover on a filled pill (its shadow is the same ink, so it can
+  read as a smear rather than a lift; a values-only change if the owner wants hover to lift the
+  resting look and only the press to fill); the weight of "here" (the doubled frame) on
+  navigation that is always on screen; whether invalid should keep sharing the doubled frame
+  with selected. None changes a name.
 - **Device checks: carried.** iOS's `:active` listener, the Tab bar hiding for the keyboard, the
   2.5 s first paint (§4) and SwiftUI's `.fontWidth(_:)` driving the width axis are written down
   and wait for a device. They are checks, not decisions.
 
 ### Versioning
 
-Semver for the system as a whole, from 1.0.0. The contract is `API.md`: every class, token,
-data attribute and hook, the global and its functions, the events and the files an app links,
-generated from the code by `tools/api.mjs` and kept current by `check.mjs` (check 11).
+Semver for the system as a whole, from 1.0.0. The version starts the line under this file's
+title, and `tools/bundle.mjs` stamps it into the head of every CSS and JS file in `dist/`. The
+contract is `API.md`: every class, token, data attribute and hook, the global and its
+functions, the events and the files an app links, generated from the code by `tools/api.mjs`
+and kept current by `check.mjs` (check 11). Its diff against the last release picks the
+number, and the largest change wins:
 
-- **Major:** a name in `API.md` removed or renamed (a class, a token or role, a hook, the global
-  or one of its functions, an event, a file in `dist/`). Changing what a name takes or means
-  (a function's arguments, a token's unit) counts as removing it.
-- **Minor:** a new name.
-- **Patch:** a fix that keeps every name.
+- **Major:** a line removed, or a name taken out of one or renamed (a class, a token or role, a
+  hook, the global or one of its functions, an event, a file an app links in `dist/`).
+  Changing what a name takes or means (a function's arguments, a token's unit) counts as
+  removing it.
+- **Minor:** a line added, or a new name in one.
+- **Patch:** a line changed in place, every name kept and only a value different (a token's
+  value, a role's hex), or no change to `API.md` at all.
+
+A line in a part `API.md` marks not API doesn't count. To cut a release, on main:
+
+1. Run `check.mjs`, `bundle.mjs` and `api.mjs` (all in `design/tools/`): all pass.
+2. Review `git diff vX.Y.Z -- design/API.md` against the last tag, and pick the number.
+3. Set it under this file's title, write its changelog entry (§8), and run the bundle again,
+   which stamps it into `dist/`. Commit.
+4. Tag that commit `vX.Y.Z` (`git tag v1.2.0`) and push the tag.
 
 Not covered: the `.is-*` classes (pages and tests only), the pages' own `.sg-*`, `sheet.css`,
 `screens.css` and `js/sheet.js`, the disposable `.wf-*` kit, the starter's own `app.js` and
-`app.css` (a copy to own, not a dependency), and everything `API.md` marks not API, such as a
-component's internal custom properties. Each changelog entry (§8) says which part moved.
+`app.css` (a copy to own, not a dependency), the pages in `dist/` (docs, not for apps), and
+everything `API.md` marks not API: a component's internal custom properties, the `--grey-*`
+primitives (a grey is named by its lightness, so changing one may rename it; components never
+read them) and the `--icon-*` glyph tokens (use the `.ic--*` class). Each changelog entry (§8)
+says which part moved.
 
 ---
 
@@ -184,6 +212,8 @@ are the keyword forms of `font-stretch` (112.5% and 75%).
 | `--type-meta` | 400 · 100% | `--text-sm` 14px | 1.3 | 0 | `.t-meta`. Tabular figures. `--ink-soft`. |
 | `--type-label` | 700 · 75% | `--text-xs` 13px | 1.2 | +0.08em | `.t-label`. Uppercase. 1–4 words. |
 | `--type-figure` | 600 · 112.5% | `--text-3xl` 48px | 0.85 | −0.03em | `.t-figure`. Tabular. |
+| control label | 600 · 100% | 16px | body's | 0 | Inside Button, Segmented, Tabs, Disclosure's summary and a banner's lead: body at 600, so a word you press reads a step above a word you read. |
+| row title | 500 · 100% | 16px; 20px in a card row and a ghost | body's | 0 | A List or card row's title. The sidebar's links are body at 400, bold when current. |
 | (answer) | 700 · 100% | up to 3.75rem (60px), by card width | 1.1 | −0.015em | `.card__answer` only: the study card's answer. Centred. |
 
 Size scale, all fixed `rem`: `--text-xs` 0.8125rem (13px) · `--text-sm` 0.875rem (14) ·
@@ -209,7 +239,7 @@ Size scale, all fixed `rem`: `--text-xs` 0.8125rem (13px) · `--text-sm` 0.875re
   Never antialiased on a light ground, where macOS would thin the 13px labels and 14px meta.
 - **Dark keeps the same weights.** Light text on dark blooms, and antialiased smoothing already
   takes most of that off on a Mac. A further step down (body 400→370) can't be judged without a
-  device, so it waits for the freeze, on a Mac, with the weight tokens it would need.
+  device, so it is carried (§1 Open decisions) until a Mac can judge it.
 
 **Loading the font.** The bundle keeps the font as a file, `fonts/archivo-latin-var.woff2`.
 In a served shell, preload it:
@@ -243,9 +273,10 @@ place:
 | --- | --- | --- |
 | `--radius-card` | 0 | the card frame |
 | `--radius-tile` | 0 | icon tiles, tags, badges, meter bars |
-| `--radius-ctl` | 0 | the square bar control |
+| `--radius-ctl` | 0 | square controls: a field's and a select's frame, the checkbox |
 
-**The hard shadow falls down and to the right in both directions.** A light is in the room,
+**The hard shadow is 4px on 44px controls and cards, 2px on the 24px boxes** (Checkbox, Radio,
+Switch), and it **falls down and to the right in both directions.** A light is in the room,
 not in the line, as the platforms' own shadows are; mirroring it would mean nothing and split one
 drawing into two. **Ratios:** `--ratio-media` (4:3, the card's media) and `--ratio-study` (5:7,
 the flashcard).
@@ -254,6 +285,23 @@ Why square: "rectangles hold, circles act" only reads when the rectangles really
 A rounded 2px black frame with a hard shadow is the stock component-kit look. On iOS and
 macOS the screen and the window are already round, so square cards read as content, not
 chrome. And square needs no exceptions and never clips a focus ring.
+
+### States, one vocabulary
+
+| State | Looks like | Where |
+| --- | --- | --- |
+| Hover | `--lift`: the hard shadow appears | everything you press, on a pointer that hovers |
+| Pressed | `--fill`: ink fill, paper text | everything you press |
+| Focus | the 3px ring, offset 3px (never a fill) | everything that takes focus |
+| Selected, here | the frame doubled (`0 0 0 2px`) | a selected card, a pressed toggle, the current tab bar item and sidebar link, a menu's chosen item |
+| Chosen in a group | the fill | Segmented, a checked box, a radio's dot, a switch that's on |
+| Current section | a 2px bar under it | Tabs, where a frame would read as another button |
+| Invalid | the frame doubled, plus `ic--warning` and the error's words | Field, Select, Checkbox, Radio: the words and glyph are what say it, the frame only draws the eye |
+| Disabled | dashed frame, faint ink, and the reason in words | everything |
+
+**Disabled, two ways.** A control that should explain itself (Button, Stepper) uses
+`aria-disabled="true"` and stays in the Tab order, so its reason can be reached. Native inputs use
+`disabled` and leave it; their group's `aria-describedby` carries the reason instead.
 
 ### Hit targets and focus
 
@@ -461,7 +509,8 @@ weight, so an icon reads as line work and not as a sticker). They are CSS masks,
 Navigation (back, forward, down, up), actions (more, search, edit, delete, share, undo,
 refresh, shuffle, flip, install, sidebar), status (info, warning, offline), places (settings,
 today, decks), and `ic--arrow` (↗), `ic--plus`, `ic--minus`, `ic--close`, `ic--check`. Size
-with `--ic-size` (1.25rem; 1.5rem standing alone). Decorative by default: when an icon is a
+with `--ic-size`: 24px (1.5rem) in the tab bar and as a list's lead, 20px (1.25rem) everywhere
+else, icon-only buttons included. Decorative by default: when an icon is a
 control's only content, the *control* gets the `aria-label`. ↗ means "leaves the app", on the
 web and on Apple platforms, so it never marks an in-app link. Every glyph's path, for native
 ports: `elements/icons.md`. Each glyph's mask is a token, `--icon-<name>`, in `icons.css`: use
@@ -488,36 +537,36 @@ and the brief for each one, is in `elements/README.md`.
 
 | Element | Spec | Status |
 | --- | --- | --- |
-| Card | `elements/card.md` | Gates 0–4 |
-| Button | `elements/button.md` | Gates 0–4 |
-| Field | `elements/field.md` | Gates 0–4 |
-| Tag and Badge | `elements/tag.md` | Gates 0–4 |
-| Meter and Spinner | `elements/meter.md` | Gates 0–4 |
-| Icons | `elements/icons.md` | Gates 0–4 |
-| Checkbox | `elements/checkbox.md` | Gates 0–4 |
-| Radio | `elements/radio.md` | Gates 0–4 |
-| Switch | `elements/switch.md` | Gates 0–4 |
-| Segmented control | `elements/segmented.md` | Gates 0–4 |
-| Select | `elements/select.md` | Gates 0–4 |
-| Stepper | `elements/stepper.md` | Gates 0–4 |
-| Form | `elements/form.md` | Gates 0–4 |
-| Frame | `elements/frame.md` | Gates 0–4 |
-| Top bar | `elements/topbar.md` | Gates 0–4 |
-| Tab bar | `elements/tabbar.md` | Gates 0–4 |
-| Sidebar | `elements/sidebar.md` | Gates 0–4 |
-| List | `elements/list.md` | Gates 0–4 |
-| Tabs | `elements/tabs.md` | Gates 0–4 |
-| Disclosure | `elements/disclosure.md` | Gates 0–4 |
-| Menu | `elements/menu.md` | Gates 0–4 |
-| Dialog | `elements/dialog.md` | Gates 0–4 |
-| Sheet | `elements/sheet.md` | Gates 0–4 |
-| Toast | `elements/toast.md` | Gates 0–4 |
-| Banner | `elements/banner.md` | Gates 0–4 |
-| Empty, loading and error | `elements/states.md` | Gates 0–4 |
-| PWA platform | `elements/pwa.md` | Gates 0–4 |
+| Card | `elements/card.md` | Gates 0–5 |
+| Button | `elements/button.md` | Gates 0–5 |
+| Field | `elements/field.md` | Gates 0–5 |
+| Tag and Badge | `elements/tag.md` | Gates 0–5 |
+| Meter and Spinner | `elements/meter.md` | Gates 0–5 |
+| Icons | `elements/icons.md` | Gates 0–5 |
+| Checkbox | `elements/checkbox.md` | Gates 0–5 |
+| Radio | `elements/radio.md` | Gates 0–5 |
+| Switch | `elements/switch.md` | Gates 0–5 |
+| Segmented control | `elements/segmented.md` | Gates 0–5 |
+| Select | `elements/select.md` | Gates 0–5 |
+| Stepper | `elements/stepper.md` | Gates 0–5 |
+| Form | `elements/form.md` | Gates 0–5 |
+| Frame | `elements/frame.md` | Gates 0–5 |
+| Top bar | `elements/topbar.md` | Gates 0–5 |
+| Tab bar | `elements/tabbar.md` | Gates 0–5 |
+| Sidebar | `elements/sidebar.md` | Gates 0–5 |
+| List | `elements/list.md` | Gates 0–5 |
+| Tabs | `elements/tabs.md` | Gates 0–5 |
+| Disclosure | `elements/disclosure.md` | Gates 0–5 |
+| Menu | `elements/menu.md` | Gates 0–5 |
+| Dialog | `elements/dialog.md` | Gates 0–5 |
+| Sheet | `elements/sheet.md` | Gates 0–5 |
+| Toast | `elements/toast.md` | Gates 0–5 |
+| Banner | `elements/banner.md` | Gates 0–5 |
+| Empty, loading and error | `elements/states.md` | Gates 0–5 |
+| PWA platform | `elements/pwa.md` | Gates 0–5 |
 
-Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
-pass gate 2.
+Every element is listed, with its wave and its brief, in `elements/README.md`; its classes,
+tokens and hooks are in `API.md`.
 
 ---
 
@@ -646,11 +695,10 @@ the day its real element ships, and nothing in `components/` may depend on it.
 | `.wf-media` (+ `.wf-tag`) | an image or illustration: a box with an X | real media |
 | `.wf-shape` | one of the product's own illustrations | the real drawing |
 | `.wf-slot` | a whole element that isn't built yet; `data-wf` names it and the name sits on its top edge. It holds the real copy, in grey. Set `--wf-under` to the colour behind it. | that element |
-| disabled hatch | the disabled look | gate 3 |
 
 How to read a wireframe: a box with an X is an image; flat grey is a tone slot; ink is the
-inverted tone; dashed is empty or unavailable; hatch is disabled; a grey line with a name on
-it is an element that isn't built yet.
+inverted tone; dashed is empty or unavailable; a grey line with a name on it is an element that
+isn't built yet.
 
 ---
 
@@ -679,7 +727,7 @@ generate-a-design-system workflow or its scripts.
 | --- | --- | --- |
 | A hard shadow on every card at rest; 3–4px borders (neobrutalist-web-designer) | A shadow only on hover; 2px frames, 1px dividers | A shadow at rest is a third line weight and the loudest template tell. |
 | Reduced motion sets every animation to 0.01ms (web-design-guidelines, interaction-design) | Gentler, not instant: the flip becomes a crossfade of 150ms or less | A kill switch deletes the crossfade too. |
-| Disabled is reduced opacity (interaction-design) | Dashed frame, faint ink, hatch, and the reason in words | Opacity is translucency (rule 2) and vanishes in forced colours. |
+| Disabled is reduced opacity (interaction-design) | Dashed frame, faint ink, and the reason in words | Opacity is translucency (rule 2) and vanishes in forced colours. |
 | Float the navbar (ui-ux-pro-max) | Bars run edge to edge and own the safe-area inset | Content scrolling behind a floating bar needs blur or a shadow to separate it, and the gap costs about 32px on a small phone. |
 | Glass cards and buttons (swiftui-expert-skill) | Glass only as the system's own chrome | Glass is the navigation layer; cards are content. |
 | System type and colour everywhere (macos-app-design) | SF and system colours in native chrome only; Archivo and our roles in content | Platform convention wins for chrome; content keeps its voice. |
@@ -692,6 +740,29 @@ generate-a-design-system workflow or its scripts.
 
 ## 8. Changelog
 
+- **1.0.0** · 2026-10-20 · Wave 8, gate 5: the freeze. From here, semver over `API.md` (§1
+  Versioning).
+  - **Right to left:** logical properties everywhere, enforced by check 10 (a physical one on
+    purpose says why on its line); side safe areas stay physical and no longer swap the notch's
+    padding in RTL; glyphs that point along the line mirror; the flip, the switch knob and the
+    side sheet carry their direction in `--card-turn`, `--switch-dir` and `--sheet-end`; the
+    style sheet gets a Direction switch.
+  - **The contract:** `tools/api.mjs` generates `API.md` (every class, token, hook, attribute,
+    global and event) and check 11 keeps it current; settable properties are marked
+    `/* hook: … */` in the CSS; the greys, the glyph masks, the docs pages and the starter are
+    marked not API. `bundle.mjs` stamps the version into `dist/`. The rename path is one
+    command, tested twice.
+  - **Removed** (named plainly, since they no longer exist): the card's square bar control,
+    card__ctl (no behaviour anywhere; rule 3 keeps one exception, the checkbox), the card's row
+    helper card__row, the wireframe kit's pill slot wf-slot--pill, the disabled card's hatch (a
+    gradient), and font-mono from the tokens (it's the pages' own).
+  - **From the audits:** a one-field form announces its error when the field already has focus;
+    the study card's question has a text alternative; scroll regions are focusable and named;
+    a disabled card's words stay at soft ink (4.5 : 1); the tab bar under forced colours frames
+    only the current item; the field's clear button lifts like Button; card titles cap at 24px;
+    page titles are sentence case and named as the hub names them; one verb per action (New
+    deck, Make deck, Rename), one reminder time, one tense for failures; a states table and the
+    disabled rule in §2; "Use it in an app" in `README.md`; the starter's README works for a copy.
 - **0.10.0** · 2026-10-20 · Wave 7, gate 4: motion for every element. Check 5 now enforces the
   rules: only `transform`, `opacity`, `--lift`, `--fill`, `display` and `overlay` move (with two
   named exceptions), token durations and easings only, and a reduced-motion block wherever

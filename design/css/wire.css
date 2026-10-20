@@ -9,7 +9,6 @@
      flat grey          a tone slot (the number says which)
      ink fill           the inverted tone
      dashed outline     empty, or unavailable
-     hatch              disabled
      grey line + name   an element that isn't built yet (.wf-slot)
    ========================================================================== */
 
@@ -50,11 +49,14 @@
   overflow: visible;
 }
 
+/* the frame's line: 2px on screen at any size (non-scaling), mitred like
+   every corner in the system */
 .wf-shape path {
   fill: var(--tone-bg, var(--tone-3));
   stroke: var(--card-ink, var(--ink));
-  stroke-width: 3.5;
-  stroke-linejoin: round;
+  stroke-width: var(--bw);
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
 }
 
 /* An element that isn't built yet. data-wf names it, and the name sits on
@@ -88,15 +90,6 @@
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--ink-soft);
-  background: var(--wf-under, var(--canvas)); /* cuts the line: set it to what's behind */
+  background: var(--wf-under, var(--canvas)); /* hook: cuts the line: set it to what's behind */
 }
 
-/* disabled, as hatch. Lighter than the text on purpose: the words have to
-   stay readable through it. */
-.card:is(.card--disabled, [aria-disabled="true"]) {
-  background-image: repeating-linear-gradient(
-    135deg,
-    transparent 0 0.4375rem,
-    var(--tone-4) 0.4375rem 0.5rem
-  );
-}

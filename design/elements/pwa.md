@@ -1,6 +1,6 @@
 # PWA platform
 
-Element 27 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/pwa.html` · working starter:
+Element 27 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/pwa.html` · working starter:
 `pwa/` (`../pwa/index.html` from here)
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`, whose §4 holds the
@@ -164,7 +164,7 @@ The patterns, each built from existing elements and shown in `elements/pwa.html`
 | Badging | `Flashcards.badge(n)`; Tab bar's `.badge` | The cards due today on the icon, and always on the Decks tab ("Decks, 7 due"). | Set when the count changes (a session ends, a day starts); 0 clears it. Only an installed app has an icon to badge. **Device:** iOS badges only with notification permission. |
 | Share | `.btn--icon` with `ic--share` and `data-share`, in Top bar's actions | Share a deck: the system share sheet with its name and link. | No `navigator.share` (most desktop browsers): copy the link and Toast's done, "Link copied." A failed copy says "Couldn't copy the link." |
 | Keyboard | Frame (`data-keyboard`), Field, Tab bar | The Tab bar hides while the keyboard is up; the field scrolls clear. | Below, and in `frame.md`. **Device:** all of it. |
-| Storage | `.card` "Your decks" with Export, Import and `data-pwa="quota"`; Toast; Dialog's acknowledge | Keep the decks, move them as a file, say how much room they take. | `persist()` after real use (the first deck saved, an import), never on first launch. Import: "Added 2 decks from the file.", or "Every deck in that file is already here.", or the Dialog "Can't import that file". |
+| Storage | `.card` "Your decks" with Export, Import and `data-pwa="quota"`; Toast; Dialog's acknowledge | Keep the decks, move them as a file, say how much room they take. | `persist()` after real use (the first deck saved, an import), never on first launch. Import: "Added 2 decks from the file.", or "Every deck in that file is already here.", or the Dialog "Couldn't import that file". |
 | Standalone | Top bar's `.topbar__back`; `.list__row` with `ic--arrow` | No browser around the app. | Every screen past the root has a back link. A link that leaves the app opens in the browser (`target="_blank" rel="noopener"`), marked ↗ with "opens in your browser" in its name. A deep link inside `scope` opens that screen; the home screen always opens `start_url`. Install hides. **Device:** Android's back gesture follows history; iOS has none in standalone. |
 | Orientation and tablets | Frame, `.frame--wide`, the safe-area tokens | Any way up, any size. | Never locked. On its side a phone's notch is at one end: the bars and the scroll region pad by `--safe-left` and `--safe-right`; content never reads them. From 45rem of frame the wide variant swaps the Tab bar for the Sidebar (the brief's "about 48rem"). **Device:** landscape safe areas. |
 | Performance budget | `tools/bundle.mjs`; Meter on the page | What a served app downloads first, and the most it may. | Below. |
@@ -230,7 +230,7 @@ the worker makes every later load instant.
 | Update waiting | The update band, with Reload. | "A new version is ready.", politely, once. | Where it was; Reload is the first stop in the content. |
 | Reloaded | The same screen on the new version, no band. | The page, as after any reload. | At the top. |
 | Installable | The Install row in Settings, nowhere else. | Nothing until it's reached. | Where it was. |
-| Installing | Chromium's install sheet; on iOS, the Sheet. | The browser's sheet, or the Sheet's title. | In it; back on Install after. If it installed, the row goes and focus moves to the heading above it, never to the page. |
+| Installing | Chromium's install sheet; on iOS, the Sheet. | The browser's sheet, or the Sheet's title. | In it. With Chromium's prompt, the row goes as the prompt opens, whatever the answer (one ask per page load), and focus moves to the heading above it, never to the page. After the iOS Sheet, back on Install. |
 | Not asked yet | After a session, the reminder card. | Nothing: it's there when you look. | Where it was; its buttons come next. |
 | Asked | The browser's prompt; then the card goes, and if the answer was no, the setting says how to allow it. | The browser's prompt. | Back near where the card was. |
 | Link copied | Toast's done, "Link copied.", 6 s. | "Link copied.", politely. | On Share. |

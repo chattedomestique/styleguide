@@ -1,6 +1,6 @@
 # Select
 
-Element 11 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/select.html`
+Element 11 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/select.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Select's own spec.
@@ -71,7 +71,7 @@ Each is shown live, with its markup, in `elements/select.html` under Variants (2
 | Variant | Class | Use | Notes |
 | --- | --- | --- | --- |
 | Default | `.field` + `.select` | A label and the list: Language. | Languages in their own words, each `<option>` with its `lang`, so a screen reader pronounces it. `autocomplete="off"`: the deck's language, not the person's. |
-| With help | `.field__help` | When the choice needs a word: Deck colour, "Fills the deck's card in your decks." | Colours are named by strength (Plain, Faint, Soft, Strong, Ink), never by lightness or swatch: the palette is monochrome, the order holds in light and dark (where "White" would be a dark grey), and a name is what tells them apart. |
+| With help | `.field__help` | When the choice needs a word: Deck colour, "Fills the deck's card in your decks." | Colours are named by strength (Plain, Faint, Soft, Strong, Ink), never by lightness or swatch: the palette is monochrome, the order holds in light and dark (where "White" would be a dark grey), and a name is what tells them apart. Each name is one of the card's fills: Plain = paper (no `data-tone`), Faint = `data-tone="2"`, Soft = `data-tone="4"`, Strong = `data-tone="6"`, Ink = `data-tone="ink"`. In dark the three tones sit close together, so the names do the work. |
 | Invalid | `.field__error`, `aria-invalid="true"` | Nothing chosen where something must be. | Only where there is no sensible default: an empty first option ("Choose a language", `value=""`) and `required`. Form checks on submit and adds the error. |
 
 ## States

@@ -1,6 +1,6 @@
 # Banner
 
-Element 25 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/banner.html`
+Element 25 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/banner.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Banner's own spec.
@@ -138,4 +138,4 @@ The band doesn't press, lift or fill; its action is Button's.
 - `:empty` doesn't match an element holding only whitespace, so the waiting band must be written
   with nothing between its tags.
 - Whether a filled status band is announced was checked in Chromium's accessibility tree only, not
-  with VoiceOver, NVDA or TalkBack. Wave 5 checks it with the service worker on devices.
+  with VoiceOver, NVDA or TalkBack. The starter's worker raises it in Chromium; a check on a device is carried (`STYLE.md` §1).

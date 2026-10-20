@@ -14,12 +14,21 @@
    name it lists that isn't marked "not API". check.mjs runs apiProblems()
    (check 11), so API.md can't fall behind the code.
 
-   How "settable" is decided: a component-level custom property is settable
-   when a page or a spec sets it in markup (style="--x: …"), or when the CSS
-   reads it with a fallback and no shipped CSS sets it (an open hook). One
-   a script sets is listed with that script. The roles an app sets are the
-   ones tools/accent.mjs prints. Every other custom property a component
-   sets is internal.
+   How a hook is decided: the CSS says so. A component-level custom
+   property is a hook (settable, so API) when a shipped CSS file ends the
+   line that defaults or reads it with a comment that starts "hook:" and
+   says what the hook is for, as in
+
+     --card-min: 16rem;   then the comment: hook: the narrowest column …
+
+   The line names the property: the custom property it declares, or else
+   the one non-token property it reads with a fallback, or else the one it
+   reads; anything else is an error. The comment's text goes into API.md.
+   A hook a script sets (setProperty) is listed with that script. The roles
+   an app sets are the ones tools/accent.mjs prints. Every other custom
+   property a component sets is internal. One read with a fallback that no
+   shipped CSS gives a value, unmarked and set by no script, fails check 11:
+   mark it, or declare it.
 
    Read but never listed: css/sheet.css (.sg-*) and css/screens.css (the
    pages' own CSS), pwa/app.css (the starter's own), js/sheet.js (the
@@ -78,7 +87,7 @@ function cssRules(raw) {
       stack.push(r);
     } else {
       const m = /^\s*(--[\w-]+|-?[a-z][\w-]*)\s*:([\s\S]*)$/i.exec(text);
-      if (m && stack.length) stack.at(-1).decls.push({ prop: m[1], value: m[2].trim().replace(/\s+/g, " "), line: where });
+      if (m && stack.length) stack.at(-1).decls.push({ prop: m[1], value: m[2].trim().replace(/\s+/g, " "), line: where, end: at(i) });
       if (ch === "}") stack.pop();
     }
     start = i + 1;
@@ -278,24 +287,51 @@ export function inventory() {
   const scripts = ls("js/components", ".js").map((file) => analyseJS(file, known));
   const global = scripts.map((s) => s.global).find(Boolean) ?? null;
 
-  /* component-level custom properties: settable, set by a script, or internal */
+  /* component-level custom properties: a hook (marked in the CSS), or internal */
   const tokenNames = new Set([...foundation.map((t) => t.name), ...Object.keys(light.decls), ...smoothing.keys(), ...glyphs.map((g) => g.name), ...registered.map((r) => r.name)]);
+  const isToken = (p) => tokenNames.has(p) || /^--(dur|ease)-/.test(p);
   const declared = new Map(), reads = new Map();
   for (const f of elementFiles) for (const r of rules[f]) for (const d of r.decls) {
     if (d.prop.startsWith("--")) push(declared, d.prop, { file: f, selector: r.prelude, value: d.value });
-    for (const v of varReads(d.value)) push(reads, v.name, { file: f, selector: r.prelude, fallback: v.fallback });
-  }
-  const inline = new Set();
-  for (const p of [...pagesList(), ...specsList()]) {
-    for (const m of read(p).matchAll(/style="([^"]*)"/g)) for (const d of m[1].matchAll(/(--[\w-]+)\s*:/g)) inline.add(d[1]);
+    for (const v of varReads(d.value)) push(reads, v.name, { file: f, line: d.line, selector: r.prelude, fallback: v.fallback });
   }
   const scriptSets = new Map();
   for (const s of scripts) for (const p of s.setsProps) scriptSets.set(p, s.file);
+
+  /* the hook a marked line names, with its default (the header says how) */
+  const hooks = new Map(), hookProblems = [];
+  const addHook = (f, n, what, from) => {
+    const where = `${f}:${n}`;
+    const found = [];
+    for (const r of rules[f]) for (const d of r.decls.filter((x) => x.line <= n && n <= x.end)) {
+      if (d.prop.startsWith("--") && !isToken(d.prop)) { found.push({ name: d.prop, default: `${code(d.value)} on ${code(r.prelude)}` }); continue; }
+      const rs = varReads(d.value).filter((v) => !isToken(v.name));
+      const withFb = uniq(rs.filter((v) => v.fallback !== null).map((v) => v.name)), any = uniq(rs.map((v) => v.name));
+      const name = withFb.length === 1 ? withFb[0] : !withFb.length && any.length === 1 ? any[0] : any.length ? "?" : null;
+      const fb = rs.find((v) => v.name === name && v.fallback !== null);
+      if (name) found.push({ name, default: fb ? `${code(fb.fallback)} (fallback)` : "unset" });
+    }
+    if (found.length !== 1 || found[0].name === "?") return hookProblems.push(`${where} a "hook:" marker${from} on a line that names ${found.length ? "more than one" : "no"} component property: put it on the one line that defaults or reads the hook`), null;
+    if (!what) return hookProblems.push(`${where} the "hook:" marker for ${found[0].name} says nothing: say what it's for`), null;
+    const h = hooks.get(found[0].name);
+    if (h) return hookProblems.push(`${where} ${found[0].name} is marked as a hook twice (and at ${h.file}:${h.line}): keep one`), null;
+    hooks.set(found[0].name, { ...found[0], file: f, line: n, what, pending: !!from });
+    return found[0].name;
+  };
+  for (const f of elementFiles) read(f).split("\n").forEach((l, i) => {
+    const m = l.match(/\/\*\s*hook:((?:[^*]|\*(?!\/))*)\*\//);
+    if (m) addHook(f, i + 1, m[1].trim(), "");
+  });
+  /* an open hook: read with a fallback, given a value by no shipped CSS and no script, and unmarked */
+  for (const [p, rs] of reads) {
+    if (isToken(p) || hooks.has(p) || declared.has(p) || scriptSets.has(p)) continue;
+    const r = rs.find((x) => x.fallback !== null);
+    if (r) hookProblems.push(`${r.file}:${r.line} ${p} is read with a fallback and no shipped CSS or script gives it a value: an open hook. Mark it (a "hook:" comment, tools/api.mjs) or declare it`);
+  }
+
   const settable = [];
-  for (const [p, rs] of [...reads].sort(([a], [b]) => (a < b ? -1 : 1))) {
-    if (tokenNames.has(p) || /^--(dur|ease)-/.test(p)) continue;
-    const open = rs.some((r) => r.fallback !== null) && !declared.has(p);
-    if (!inline.has(p) && !open) continue;
+  for (const [p, h] of [...hooks].sort(([a], [b]) => (a < b ? -1 : 1))) {
+    const rs = reads.get(p) ?? [];
     const rank = (f) => {
       const fr = rs.filter((r) => r.file === f);
       const decl = (declared.get(p) ?? []).some((d) => d.file === f);
@@ -303,17 +339,13 @@ export function inventory() {
     };
     const files = uniq(rs.map((r) => r.file)).sort((a, b) => rank(a) - rank(b) || elementFiles.indexOf(a) - elementFiles.indexOf(b));
     const by = scriptSets.get(p) ?? null;
-    const home = by ? `css/components/${stem(by)}.css` : files[0];
-    const homeFb = rs.find((r) => r.file === home && r.fallback !== null);
-    const decl = (declared.get(p) ?? []).find((d) => d.file === home);
-    const fb = homeFb ?? rs.find((r) => r.fallback !== null);
+    const home = by ? `css/components/${stem(by)}.css` : h.file;
     settable.push({
-      name: p, element: elements.find((e) => e.file === home) ?? elements.find((e) => e.file === files[0]),
-      default: homeFb || !decl ? (fb ? `${code(fb.fallback)} (fallback)` : "unset") : `${code(decl.value)} on ${code(decl.selector)}`,
-      by, readBy: files,
+      name: p, element: elements.find((e) => e.file === home) ?? elements.find((e) => e.file === h.file),
+      default: h.default, what: h.what, by, readBy: files.length ? files : [h.file], at: `${h.file}:${h.line}`, pending: h.pending,
     });
   }
-  const internal = [...declared.keys()].filter((p) => !tokenNames.has(p) && !settable.some((s) => s.name === p)).sort();
+  const internal = [...declared.keys()].filter((p) => !isToken(p) && !hooks.has(p)).sort();
 
   /* data attributes: shipped CSS and the scripts */
   const data = new Map();
@@ -354,7 +386,7 @@ export function inventory() {
   const fonts = uniq([...read("css/fonts.css").matchAll(/url\(\s*["']?\.\.\/([^"')]+)/g)].map((m) => m[1]));
   const starter = readdirSync(join(ROOT, "pwa")).filter((n) => !/^README/.test(n)).sort().map((n) => (statSync(join(ROOT, "pwa", n)).isDirectory() ? `${n}/` : n));
 
-  return { layers, imports, notes, elements, foundation, roles, primitives, smoothing: [...smoothing.values()], glyphs, registered, settable, internal, attributes, scripts, global, dist, fonts, starter, defs, owner, rules, cssFiles, tokenNames, declared };
+  return { layers, imports, notes, elements, foundation, roles, primitives, smoothing: [...smoothing.values()], glyphs, registered, settable, internal, hookProblems, attributes, scripts, global, dist, fonts, starter, defs, owner, rules, cssFiles, tokenNames, declared };
 }
 
 function analyseJS(file, known) {
@@ -491,7 +523,7 @@ export function render(inv = inventory()) {
 
   /* 2 */
   o.push("## 2. Tokens", "");
-  o.push("Custom properties on `:root`, from `css/tokens/`, plus the smoothing tokens in `base.css` and the glyphs in `icons.css`. Components read roles, never primitives.", "");
+  o.push("Custom properties on `:root`, from `css/tokens/`, plus the smoothing tokens in `base.css` and the glyphs in `icons.css`. Components read roles, never primitives. The primitives and the glyphs are listed but not API.", "");
   const groups = uniq(inv.foundation.map((t) => t.group));
   for (const grp of groups) {
     o.push(`### ${grp[0].toUpperCase()}${grp.slice(1)}`, "", "| Token | Value |", "| --- | --- |");
@@ -501,22 +533,22 @@ export function render(inv = inventory()) {
   o.push("### Colour roles", "", `${link("STYLE.md#colour")}. Each is \`light-dark()\`; more contrast shown where it differs.`, "");
   o.push("| Role | Light | Dark | More contrast | Note |", "| --- | --- | --- | --- | --- |");
   for (const r of inv.roles) o.push(`| ${code(r.name)} | ${r.light} | ${r.dark} | ${r.more} | ${[r.follows ? `follows ${code(r.follows)}` : "", r.app ? "an app sets it, in `@layer app` (`tools/accent.mjs`)" : ""].filter(Boolean).join("; ")} |`);
-  o.push("", "### Primitives (not for components)", "", "Only the colour file reads these (check 6).", "");
+  o.push("", "### Primitives (not API)", "", "Only the colour file reads these (check 6); components and apps read the roles above. Not API: a grey is named by its lightness, so changing one may change its value and its name.", "");
   o.push("| Primitive | Value |", "| --- | --- |");
   for (const p of inv.primitives) o.push(`| ${code(p.name)} | ${p.value} |`);
   o.push("", "### Smoothing", "", `From \`base.css\`, following the scheme and \`data-scheme\`. ${link("STYLE.md#type")}.`, "");
   o.push("| Token | Light | Dark |", "| --- | --- | --- |");
   for (const s of inv.smoothing) o.push(`| ${code(s.name)} | ${s.light ?? ""} | ${s.dark ?? ""} |`);
-  o.push("", "### Glyphs", "", `Masks in \`icons.css\`, each read by its \`.ic--*\` class. ${link("elements/icons.md")}.`, "");
+  o.push("", "### Glyphs (not API)", "", `Masks in \`icons.css\`, each read by its \`.ic--*\` class. Not API: use the class, not the token (${link("elements/icons.md")}).`, "");
   o.push("| Token | Class |", "| --- | --- |");
   for (const x of inv.glyphs) o.push(`| ${code(x.name)} | ${codes(x.by)} |`);
   o.push("", "### Registered (`@property`)", "", "| Property | Syntax | Inherits | Initial | Use |", "| --- | --- | --- | --- | --- |");
   for (const r of inv.registered) o.push(`| ${code(r.name)} | ${code(r.syntax)} | ${r.inherits} | ${r.initial} | ${r.use} |`);
-  o.push("", "### Settable, per element", "");
-  o.push("Set in markup by a page or a spec, or read with a fallback that no shipped CSS sets. Set by a script: the script publishes it.", "");
-  o.push("| Element | Property | Default | Set by | Read by |", "| --- | --- | --- | --- | --- |");
+  o.push("", "### Hooks, per element", "");
+  o.push("The custom properties an app may set: each is marked `hook:` on the line of CSS that defaults or reads it, which says what it's for. One set by a script is published by it.", "");
+  o.push("| Element | Property | For | Default | Set by | Read by |", "| --- | --- | --- | --- | --- | --- |");
   for (const s of [...inv.settable].sort((a, b) => inv.elements.indexOf(a.element) - inv.elements.indexOf(b.element) || (a.name < b.name ? -1 : 1))) {
-    o.push(`| ${s.element.title} · ${link(s.element.spec)} | ${code(s.name)} | ${s.default} | ${s.by ? fname(s.by) : "app"} | ${fnames(s.readBy)} |`);
+    o.push(`| ${s.element.title} · ${link(s.element.spec)} | ${code(s.name)} | ${cell(s.what)} | ${s.default} | ${s.by ? fname(s.by) : "app"} | ${fnames(s.readBy)} |`);
   }
   o.push("", `Internal, not API (${inv.internal.length}): ${codes(inv.internal)}.`, "");
 
@@ -549,6 +581,7 @@ export function render(inv = inventory()) {
   /* 4 */
   o.push("## 4. Script", "");
   o.push(`\`dist/flashcards.js\`: every \`js/components/*.js\`, vanilla, and everything works without it.${g ? ` One global, \`window.${g}\`.` : ""}`, "");
+  o.push("**Load it after the markup** (at the end of `<body>`) or with `defer`: each file enhances what is in the page when it runs. Checkbox, Field, Form, Stepper and Tabs bind to their elements once, Frame observes the frames there, and PWA fills its rows then (and again on `visibilitychange` and when the network changes). Markup added later isn't enhanced; the clicks Dialog, Sheet, Toast and PWA handle are delegated, so those work on it.", "");
   o.push(`### \`window.${g}\``, "", "| Function | Returns | Note | File |", "| --- | --- | --- | --- |");
   for (const s of inv.scripts) for (const f of s.functions) o.push(`| ${code(`${g}.${f.name}(${f.params})`)} | ${cell(f.returns)} | ${cell(f.note)} | ${fname(s.file)} · ${link(specOf(s.file))} |`);
   o.push("", "### Events", "", "| Event | Kind | Dispatched by | Spec |", "| --- | --- | --- | --- |");
@@ -571,13 +604,13 @@ export function render(inv = inventory()) {
   o.push("Built by `node design/tools/bundle.mjs`. Ship `dist/` and `fonts/` side by side: the CSS loads the font from `../fonts/`.", "");
   o.push("| File | Role | What |", "| --- | --- | --- |");
   for (const d of inv.dist) {
-    const role = /\.min\./.test(d.file) ? "a served app links this" : /\.html$/.test(d.file) ? "the style sheet's pages: not for apps" : "the readable copy: an app may link it";
+    const role = /\.min\./.test(d.file) ? "a served app links this" : /\.html$/.test(d.file) ? "the style sheet's pages, not API: an app doesn't need them" : "the readable copy: an app may link it";
     const twin = inv.dist.find((x) => x !== d && x.file.replace(".min.", ".") === d.file.replace(".min.", "."));
     const what = d.what.replace(/\s+/g, " ").replace(/^the same\b/, twin ? basename(twin.file) : "the same");
     o.push(`| ${code(d.file)} | ${role} | ${cell(what)} |`);
   }
   for (const f of inv.fonts) o.push(`| ${code(f)} | the font, preloaded with \`crossorigin\` | ${link("STYLE.md#type")} |`);
-  o.push(`| ${code("pwa/")} | the starter: copy it with \`dist/\` and \`fonts/\` | ${codes(inv.starter)} · [pwa/README.md](pwa/README.md) |`);
+  o.push(`| ${code("pwa/")} | the starter, not API: a copy to own, with \`dist/\` and \`fonts/\` | ${codes(inv.starter)} · [pwa/README.md](pwa/README.md) |`);
   o.push("", "### Layers", "", `\`${ENTRY}\`: \`@layer ${inv.layers.join(", ")};\`. Later wins. ${link("STYLE.md#files-and-layers")}.`, "");
   o.push("| Layer | Files | What |", "| --- | --- | --- |");
   for (const l of inv.layers) {
@@ -623,6 +656,7 @@ export function apiProblems() {
     }
   }
   for (const e of inv.elements) if (!e.spec) problems.push(`${e.file} has no spec in elements/`);
+  problems.push(...inv.hookProblems);
   return problems;
 }
 
@@ -735,9 +769,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     out("Tokens no spec names", a.unnamedTokens.map((d) => `${d.at} ${d.p}`));
     out("Hooks no page or starter uses", a.unusedHooks);
   } else if (!arg) {
-    const md = render();
+    const inv = inventory(), md = render(inv);
     writeFileSync(OUT, md);
     console.log(`wrote API.md: ${md.split("\n").length} lines, ${(Buffer.byteLength(md) / 1024).toFixed(1)} KB`);
+    for (const p of inv.hookProblems) console.error(p);
+    if (inv.hookProblems.length) process.exit(1);
   } else {
     console.log("usage: node design/tools/api.mjs [--check | --audit]");
     process.exit(2);

@@ -46,7 +46,7 @@
         if (err) wrong.push({ el: el, text: err.textContent.trim() });
       });
       if (!wrong.length) return;
-      if (!summary) return wrong[0].el.focus(); // one field: its error is in view
+      if (!summary) return one(wrong[0].el);
       var list = summary.querySelector("ul");
       list.textContent = "";
       wrong.forEach(function (w) {
@@ -59,6 +59,20 @@
         wrong.length === 1 ? "Fix 1 thing" : "Fix " + wrong.length + " things";
       summary.hidden = false;
       summary.focus();
+    }
+    // One field: its error is in view, and focus going back to the field
+    // reads it. Return in the field can't move focus, so there the error says
+    // itself: role="alert", read as it appears. It hides for a frame first,
+    // so a second failed try is read too.
+    function one(el) {
+      var err = errorOf(el);
+      if (el !== document.activeElement) { err.removeAttribute("role"); return el.focus(); }
+      err.hidden = true;
+      requestAnimationFrame(function () { requestAnimationFrame(function () {
+        if (el.validity.valid) return; // fixed in the meantime
+        err.setAttribute("role", "alert");
+        err.hidden = false;
+      }); });
     }
     function recheck(e) {
       var err = errorOf(e.target);

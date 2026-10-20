@@ -20,22 +20,46 @@ works offline, and the console shows one error per page: a browser won't preload
 
 ## Start an app from it
 
-1. Copy `pwa/`, `dist/` and `fonts/` together, keeping them side by side: the pages link
-   `../dist/flashcards.min.css`, `../dist/flashcards.min.js` and preload `../fonts/…woff2`.
-2. In `manifest.webmanifest`, change `id`, `name`, `short_name` and `description`, and redraw
-   the icons (below). Leave `theme_color` and `background_color`: the bundle writes them.
-   They hold the light `--canvas` only, because a manifest has no dark colour yet (a
-   `color_scheme_dark` member is proposed, not shipped), so a launch in dark mode starts on a
-   light splash; the page's dark `theme-color` meta takes over once it loads.
-3. Replace `app.js` with your app. It is the starter's own code: decks in `localStorage`, a
-   New deck sheet, Export and Import. The platform is `pwa.js`, inside `dist/flashcards.js` (served as `flashcards.min.js`).
-4. Add every file the app can't start without to `SHELL` in `sw.js`, then run the bundle: it
-   hashes those files into `VERSION`, so any change to them ships as a new worker. Without the
-   bundle, change `VERSION` by hand on every release.
-5. Every new page gets the head these pages have: the viewport meta, the `color-scheme` meta
-   (`light dark`), the two `theme-color` metas
-   (light, then dark, each with its `media`; the bundle rewrites both), the `flashcards-sw` meta, the manifest, the icons, the font preload, `app.css` and the
-   `touchstart` line.
+1. **Copy** `pwa/`, `dist/` and `fonts/` into one folder, side by side: the pages link
+   `../dist/flashcards.min.css` and `../dist/flashcards.min.js` and preload `../fonts/…woff2`.
+   From `dist/` the app needs only those two files; its `.html` pages are the docs (1.5 MB),
+   so leave them out.
+2. **Serve it** from that folder, because a worker needs `localhost` or HTTPS: run
+   `python3 -m http.server 8000` (or any static server) in the folder that holds `pwa/`,
+   `dist/` and `fonts/`, and open `http://localhost:8000/pwa/`. `serve.mjs` serves `design/`
+   only.
+3. **Name it.** In `manifest.webmanifest`, change `id`, `name`, `short_name` and `description`,
+   and redraw the icons (below). Leave `theme_color` and `background_color`: they are the
+   light `--canvas`, which the bundle stamps in `design/`. They hold the light canvas only,
+   because a manifest has no dark colour yet (a `color_scheme_dark` member is proposed, not
+   shipped), so a launch in dark mode starts on a light splash; the page's dark `theme-color`
+   meta takes over once it loads.
+4. **Replace `app.js`** with your app. It is the starter's own code: decks in `localStorage`, a
+   New deck sheet, Export and Import. The platform is `pwa.js`, inside `dist/flashcards.js`
+   (served as `flashcards.min.js`).
+5. **Your accent:** in this repository, run `node design/tools/accent.mjs "#c2410c"` with your
+   colour, and paste the block it prints at the end of the copy's `app.css`. The accent fills
+   only the one "press this", so look for it on Make deck in the New deck sheet (Decks), on
+   Turn on in the reminder card (Settings, until notifications are asked for) and in the "+"
+   of "Make your first deck" while it is hovered or pressed (Today and Decks, with no decks).
+   Nothing shows it at rest on Today.
+6. **The shell:** add every file the app can't start without to `SHELL` in `sw.js`.
+7. **Bump `VERSION` in `sw.js` by hand on every release** (any new string, such as the date):
+   after the accent, after any change to a file in `SHELL`, and after copying a newer `dist/`.
+   The new worker installs beside the old one and the update band offers Reload. In `design/`
+   the bundle stamps `VERSION` with a hash of the shell files; a copy has no bundle.
+8. **Every new page** gets the head these pages have: the viewport meta, the `color-scheme`
+   meta (`light dark`), the two `theme-color` metas (light, then dark, each with its `media`;
+   in `design/` the bundle rewrites both), the `flashcards-sw` meta, the manifest, the icons,
+   the font preload, `flashcards.min.css`, `app.css` and the `touchstart` line. At the end of
+   its `<body>` go the two scripts, `../dist/flashcards.min.js` and then `app.js`: the first
+   registers the worker, so without it nothing installs or works offline.
+
+**At the site root.** The pages sit one folder below `dist/` and `fonts/`. To serve the app at
+the root of a site instead, move the files in `pwa/` up beside `dist/` and `fonts/`, and
+change every `../dist/` and `../fonts/` to `dist/` and `fonts/`: in each page (the preload,
+the CSS link and the script) and in `SHELL`. The manifest needs no change: its paths are
+relative to it.
 
 | File | What it is |
 | --- | --- |

@@ -1,6 +1,6 @@
 # Field
 
-Element 03 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/field.html`
+Element 03 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/field.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Field's own spec.
@@ -23,7 +23,8 @@ Field's own spec.
 ## House rules
 
 - Reads roles only. A field isn't pressed, so it never reads `--lift` and never gets a shadow;
-  the clear button is pressable and reads `--fill`.
+  the clear button is pressable and reads `--lift` and `--fill`, as Button does (hover and focus
+  lift and fill it, a press keeps only the fill).
 - **The frame is on the input itself.** Every state is then native (`:hover`,
   `:focus-visible`, `[aria-invalid]`, `:disabled`, `:read-only`) and needs no wrapper or
   `:has()`. `.field__box` is only a positioning wrapper, for the icon and the clear button.
@@ -35,7 +36,7 @@ Field's own spec.
   message says how to fix it behind a warning glyph. The palette is monochrome, so there is no
   red to lean on anyway.
 - `:hover` only inside `@media (hover: hover)`.
-- Motion (gate 4): the input's hover ground and the clear button's fill ease; the ring, the
+- Motion (gate 4): the input's hover ground and the clear button's fill and lift ease; the ring, the
   invalid frame and the error never wait (Motion, below).
 
 ## Anatomy
@@ -101,20 +102,20 @@ Two parts have states: the input, which is never pressed, and the clear button, 
 | Invalid | `[aria-invalid]` but not `"false"` | – | – | `box-shadow: inset 0 0 0 2px var(--line)`: the frame doubles inwards, so the focus ring keeps its gap. Plus `.field__error` above the input. |
 | Disabled | `:disabled` | – | – | Dashed frame and text in `--ink-faint`, transparent ground, `opacity: 1` (never faded). The label goes faint; the help, which says why, stays readable. The clear button is removed. |
 | Read-only | `:read-only:not(:disabled)` | – | – | No box: no ground, no side or top frame, a `1px` (`--bw-thin`) rule under the value, start padding 0 so the value lines up with the label. Focusable and selectable. |
-| Clear: rest | none | – | 0 | 28px circle, 2px ink outline, ink glyph. |
-| Clear: hover | `:hover` inside `@media (hover: hover)` | – | 1 | The circle fills with ink; the glyph turns paper. |
-| Clear: focus | `:focus-visible` | – | – | The ring moves to the circle: `3px` at `--ring-offset-in` (2px), 38px across, inside the 40px frame. The button's own outline is off. |
-| Clear: pressed | `:active` | – | 1 | Filled, as on hover, so a tap answers too. |
-| Forced colours | `(forced-colors: active)` | | | The doubled frame is a shadow and vanishes, so invalid becomes a 4px (`--bw-heavy`) border. Disabled is `GrayText`. The clear button's fill vanishes, so hover and press turn its circle `Highlight`. Hover on the input has no equivalent (as on the card). |
+| Clear: rest | none | 0 | 0 | 28px circle, 2px ink outline, ink glyph. |
+| Clear: hover | `:hover` inside `@media (hover: hover)` | 1 | 1 | Button's hover: the circle fills with ink, the glyph turns paper, and a hard ink shadow lifts it. 2px (`calc(var(--lift) * var(--bw))`), not Button's 4px: the circle is 28px, like Checkbox's 24px box. |
+| Clear: focus | `:focus-visible` | 1 | 1 | The hover look, so keyboard and pointer match, and the ring moves to the circle: `3px` at `--ring-offset-in` (2px), 38px across, inside the 40px frame. The button's own outline is off. |
+| Clear: pressed | `:active` | 0 | 1 | Back onto the field: the lift goes, the fill stays, and a 2px paper ring shows inside the frame, as on a pressed Button. |
+| Forced colours | `(forced-colors: active)` | | | The doubled frame is a shadow and vanishes, so invalid becomes a 4px (`--bw-heavy`) border. Disabled is `GrayText`. The clear button's fill and lift vanish, so hover, focus and press turn its circle `Highlight`. Hover on the input has no equivalent (as on the card). |
 
 `.is-hover`, `.is-focus` (input and clear) and `.is-active` (clear) force a state for the page
 and for tests. They are not API.
 
 **Motion.** The input's ground is `--fill` (paper at 0, canvas at 1), so its hover eases over
 `--dur-hover` with `--ease-out`, as every hover does. The clear button's `--fill` eases the same
-way, and its press lands over `--dur-press`. The focus ring, the invalid frame and the error
+way, and so does its `--lift`; its press lands over `--dur-press`. The focus ring, the invalid frame and the error
 message are instant: feedback about the value never waits for an ease. Under reduced motion both
-fills fade over `--dur-fade`.
+fills fade over `--dur-fade`, and the clear button's lift appears without sliding out.
 
 ### The clear button's behaviour
 
@@ -217,8 +218,7 @@ too. What's typed follows its own script.
 - Hover has no forced-colours equivalent, as on the card.
 - Help and error above the input is GOV.UK's order, not the iOS Settings habit of footers below;
   chosen for the on-screen keyboard (House rules).
-- The disabled hatch in `wire.css` covers cards only, so a disabled field is dashed and faint but
-  not hatched.
+
 - No auto-growing textarea (`field-sizing: content`): it isn't in Safari yet, and the brief asks
   for a vertical resize.
 - Checked in Chromium only, with touch emulation and forced-colours emulation. Not checked on an

@@ -33,6 +33,8 @@
 
    Checks 2–5 cover sheet.css and screens.css too: the pages that teach the
    rules keep them. Check 5 also reads the PWA starter's own CSS (pwa/*.css).
+   Check 10 reads every CSS file but the colour file (pwa/*.css included)
+   and the style attributes in the pages.
    ========================================================================== */
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -43,9 +45,6 @@ import { apiProblems } from "./api.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CSS = join(ROOT, "css");
-
-/* Flip a gate to true when it opens. Motion opened at gate 4 (wave 7). */
-const GATES = { motion: true };
 
 /* ---- files ----------------------------------------------------------------- */
 
@@ -367,7 +366,7 @@ const MOTION = {
       problems.push(`${at(moves.index)} "${moves.what}" moves things, but ${basename(p)} has no @media (prefers-reduced-motion: reduce) block`);
     }
   }
-  check("motion follows the rules", [...new Set(problems)], GATES.motion ? "gate 4 is open" : "");
+  check("motion follows the rules", [...new Set(problems)]);
 }
 
 /* ---- 6 layering -------------------------------------------------------------- */
