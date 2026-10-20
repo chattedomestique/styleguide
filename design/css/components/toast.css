@@ -1,0 +1,173 @@
+/* ==========================================================================
+   Toast — wave 4. Spec: elements/toast.md · page: elements/toast.html
+   --------------------------------------------------------------------------
+   It's done, with Undo. One line about what just happened, at most one
+   action, and a way to send it off. js/components/toast.js builds it and
+   shows one at a time, in a region that is always there:
+
+     <div class="frame">
+       <header class="frame__top topbar">…</header>
+       <div class="frame__scroll">…</div>
+       <div class="toasts" role="status"></div>
+       <nav class="frame__bottom tabbar" aria-label="Places">…</nav>
+     </div>
+
+     <div class="toast">
+       <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+       <p class="toast__text">Deck deleted.</p>
+       <div class="toast__actions">
+         <button class="btn toast__action" type="button" aria-keyshortcuts="Alt+T">Undo</button>
+         <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+           <span class="ic ic--close" aria-hidden="true"></span>
+         </button>
+       </div>
+     </div>
+
+   House rules for this file
+   · A container, so square: a 2px frame on paper. No shadow: a shadow says
+     "press this", and the frame already parts it from what's under it.
+   · The region places, the toast draws. In a frame the region shares the
+     scroll region's grid cell and sits at its foot, so the toast is above
+     the bottom bar whatever that bar's height, with nothing measured. With
+     no bottom bar it keeps clear of the home indicator itself. Outside a
+     frame it is fixed to the foot of the viewport.
+   · The region never hides: display: none would take the live region out
+     of the accessibility tree, and the next toast wouldn't be heard. It
+     lets clicks through to the content round the toast.
+   · The action and Dismiss are Buttons: pills, because they act.
+   · Appears in place. No motion until gate 4.
+   ========================================================================== */
+
+/* --- the region ---------------------------------------------------------------
+   Outside a frame: the foot of the viewport, clear of the home indicator. */
+
+.toasts {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding-block: var(--space-3) calc(var(--space-3) + var(--safe-bottom));
+  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  pointer-events: none;
+}
+
+/* In a frame: the scroll region's cell, at its foot, in the content column
+   (the last one, so a wide frame's sidebar is left alone). The bars are in
+   rows of their own, so the toast can't cover them, and the bottom bar owns
+   the safe area under it. */
+.frame > .toasts {
+  position: relative;
+  inset: auto;
+  z-index: 2;
+  grid-row: 2;
+  grid-column: -2;
+  align-self: end;
+  padding-block-end: var(--space-3);
+  /* never taller than the room between the bars: at large text on a small
+     phone a long toast scrolls inside it rather than cover the way back */
+  max-block-size: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The scroll region is placed in its row but not in a column, so a second
+   item in its cell would push it into a new column beside the region. Pin
+   it to the content column, as the frame's status band is, so the two share
+   the cell. (Frame could own this line: elements/toast.md, Known limits.) */
+.frame:has(> .toasts) > .frame__scroll {
+  grid-column: -2;
+}
+
+/* while a toast shows, the region's foot pads by its height (toast.js
+   publishes --toasts-h, which counts the region's own padding and so the
+   safe area too): the end of the content can scroll clear of it, and a
+   control that takes focus is scrolled clear rather than left under it
+   (WCAG 2.4.11). Never less than the padding it replaces. */
+.frame:has(> .toasts > .toast) > .frame__scroll {
+  padding-block-end: max(var(--space-7), var(--toasts-h, 0px));
+  scroll-padding-block-end: max(var(--space-7), var(--toasts-h, 0px));
+}
+
+/* no bottom bar (or the wide frame's, hidden beside its sidebar): the toast
+   keeps clear of the home indicator itself */
+.frame:not(:has(> .frame__bottom)) > .toasts {
+  padding-block-end: calc(var(--space-3) + var(--safe-bottom));
+}
+
+@container frame (width >= 45rem) {
+  .frame--wide > .toasts {
+    padding-block-end: calc(var(--space-3) + var(--safe-bottom));
+  }
+}
+
+/* a trigger that only raises a toast can wait hidden until toast.js shows
+   it; Button's display would otherwise beat the hidden attribute */
+[data-toast][hidden] {
+  display: none;
+}
+
+/* --- the toast ------------------------------------------------------------------ */
+
+.toast {
+  /* the surface its Buttons read, wherever the region sits */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 var(--space-3);
+  inline-size: min(100%, 32rem);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4) var(--space-2);
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+  overflow-wrap: break-word;
+  pointer-events: auto;
+}
+
+/* the glyph and the first line of words centre on the 44px row the buttons
+   make, so a second line of words hangs below instead of pushing them up */
+.toast__icon {
+  margin-block: calc((var(--hit) - var(--ic-size, 1.25rem)) / 2);
+}
+
+/* 6rem: "Deck deleted." and Undo share a row even on a 320pt phone (the
+   words on two lines beside Undo), and
+   longer words take the room the buttons leave. When the words need more
+   than that, the buttons move under them, at the end. Never more than the
+   row less the glyph, so the words can't leave the glyph. */
+.toast__text {
+  flex: 1 1 min(6rem, 100% - var(--ic-size, 1.25rem) - var(--space-3));
+  min-inline-size: 0;
+  padding-block: max(0px, (var(--hit) - 1lh) / 2);
+  text-wrap: pretty;
+}
+
+.toast__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* 12px a side, as in a bar: short of room, and the frame still reads */
+.toast .toast__action {
+  padding-inline: var(--space-3);
+}
+
+/* --- forced colours --------------------------------------------------------------
+   The frame is a border, so the system paints it; the glyphs are icons.css's.
+   Under it the page is Canvas too, so the frame is all that parts them. */
+
+@media (forced-colors: active) {
+  .toast {
+    border-color: CanvasText;
+  }
+}

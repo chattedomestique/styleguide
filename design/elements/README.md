@@ -93,11 +93,11 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 | 19 | Tabs | 3 | Gates 0–2 |
 | 20 | Disclosure | 3 | Gates 0–2 |
 | 21 | Menu | 3 | Gates 0–2 |
-| 22 | Dialog | 4 | Brief |
-| 23 | Sheet | 4 | Brief |
-| 24 | Toast | 4 | Brief |
-| 25 | Banner | 4 | Brief |
-| 26 | Empty, loading and error | 4 | Brief |
+| 22 | Dialog | 4 | Gates 0–2 |
+| 23 | Sheet | 4 | Gates 0–2 |
+| 24 | Toast | 4 | Gates 0–2 |
+| 25 | Banner | 4 | Gates 0–2 |
+| 26 | Empty, loading and error | 4 | Gates 0–2 |
 | 27 | PWA platform | 5 | Brief |
 
 Then three passes over everything: colour and dark mode (wave 6, gate 3), motion (wave 7,
@@ -106,8 +106,7 @@ gate 4) and the freeze (wave 8, gate 5).
 ## Briefs
 
 Gate 0. Each brief gives the job, the parts, the variants (the cap: no others), the states, the
-copy and anything specific. Waves 1 to 3 are full; later waves get theirs filled in when the
-wave starts.
+copy and anything specific. Waves 1 to 4 are full; wave 5 gets its own when it starts.
 
 ### Wave 1: actions and status
 
@@ -424,30 +423,84 @@ slots. Shared notes:
 
 ### Wave 4: feedback and overlays
 
-**22 Dialog:**
-- Native `<dialog>` with `showModal()`: stop and decide.
-- Backdrop, decided by the owner: a flat ink layer at a fixed 60% opacity, through a new
-  `--scrim` role. It is the one translucency the system allows, and rule 2 gains that
-  exception in this wave. The page reads as "still there, but not now".
+What the app says back, and what sits on top of a screen. Shared notes:
 
-**23 Sheet:**
-- A task on top of a screen: from the bottom on a phone, from the side on wide screens.
-- Drag and detents wait for gate 4.
+- **Overlays are native:** `<dialog>` with `showModal()` for modal, `popover` for non-modal.
+  - Focus moves in when they open and goes back to the control that opened them when they close.
+  - Escape closes. The page behind is inert.
+- **The backdrop** is the owner's decision: a flat ink layer at a fixed 60%, through a new
+  `--scrim` role.
+  - It's the one translucency the system allows. Rule 2 in `STYLE.md` gains the exception, with
+    the reason: the page reads as "still there, but not now".
+  - Under forced colours the scrim is invisible, so the overlay keeps its frame.
+- **Words before chrome:** every message says what happened and what to do, in the product's
+  voice. No "Oops", no "Something went wrong" on its own.
+- **Live regions** follow status (polite) versus alert (assertive). Only a real failure that
+  blocks you is assertive.
+- **No motion:** things appear and disappear until gate 4 gives them an entrance.
 
-**24 Toast:**
-- "It's done", with Undo. `role="status"`, one at a time, above the tab bar.
-- Pauses on hover and focus, and stays long enough to reach Undo (WCAG 2.2.1).
-- Uses `js/components/toast.js`.
+**22 Dialog** (`dialog`). *Stop and decide.*
 
-**25 Banner:**
-- News about the whole screen:
-  - offline ("You're offline. Changes are saved on this device.");
-  - update ready ("A new version is ready. Reload");
-  - a failure, with "Try again".
+- **Variants:**
+  - *confirm*: a destructive choice ("Delete Shapes? Its 12 cards go too." with Delete deck /
+    Keep it). The safe choice is focused first, and the destructive one is never primary.
+  - *acknowledge*: one button ("Can't import that file. It isn't a deck export. OK").
+  - *with a field*: Rename deck, which reuses Form's inline form.
+- **Notes:**
+  - Square, a 2px frame on paper, at most about 28rem wide, centred, `--scrim` behind.
+  - The title is the question; the buttons say the action ("Delete deck"), never "Yes" or "No".
+  - A small `dialog.js` only if returning focus needs it; `showModal` handles the rest.
+  - Mac: alerts are system chrome natively; this is the web shell's.
 
-**26 Empty, loading and error:**
-- The patterns for a screen with nothing yet (a ghost card offering the first step), loading
-  (spinner and words, no shimmer), failed (a plain card and "Try again") and offline.
+**23 Sheet** (`sheet`). *A task on top of a screen.*
+
+- **Variants:**
+  - *bottom sheet* on a phone: full width, up to about 90dvh, a visible close button (never
+    drag-only), the top bar's layout inside;
+  - *side sheet* on a wide screen;
+  - *action sheet*: the phone's version of Menu.
+- **Notes:**
+  - Modal (`showModal`, `--scrim`). The bottom safe area is the sheet's.
+  - Drag to dismiss and detents wait for gate 4; until then the close button is the way out.
+  - Copy: Add a card (a form), Deck options (an action sheet).
+
+**24 Toast** (`toast`). *It's done, with Undo.*
+
+- **Variants:** done ("Deck deleted. Undo"); done with no action ("Saved on this device");
+  failed with a retry ("Couldn't sync. Try again").
+- **Notes:**
+  - `role="status"` (polite), one at a time, above the tab bar and clear of the bottom safe area.
+  - Stays at least 6 seconds, pauses while hovered or focused, and is never the only way to undo
+    or retry (WCAG 2.2.1).
+  - A keyboard shortcut reaches its action on the Mac.
+  - Needs `js/components/toast.js`: queue, timer, pause.
+
+**25 Banner** (`banner`). *News about the whole screen.*
+
+- **Variants:**
+  - *offline*: "You're offline. Changes are saved on this device." Status, no close while it's
+    true;
+  - *update ready*: "A new version is ready." with Reload;
+  - *failure*: "Couldn't load your decks." with Try again. Alert only when it blocks.
+- **Notes:**
+  - Inline, at the top of the scroll region under the top bar, full width, square, a 2px rule
+    below. Never floating.
+  - Icon (`ic--offline`, `ic--refresh`, `ic--warning`) plus words, never colour alone.
+  - It pairs with wave 5's service worker, which raises "update ready" and "offline" for real.
+
+**26 Empty, loading and error** (`states`). *What a screen shows before there's anything, and
+when something fails.*
+
+- **Patterns, not new parts** (built from Card, Button, Spinner, Banner):
+  - *empty*: a ghost card that offers the first step ("No decks yet. Make your first deck.");
+  - *empty search*: "No decks match 'hexa'." with Clear search;
+  - *loading*: the spinner and words, shown only after about 300ms (a pattern note; the delay is
+    gate 4), with no shimmer or skeleton boxes;
+  - *failed*: a plain card that says what happened, with Try again;
+  - *offline*: cached content plus the offline banner;
+  - *first run*: one screen that explains in one line and offers one action.
+- **The page:** shows each as a phone-sized frame, using `screens.html`'s device frame classes.
+- **Notes:** never blank; every state has a way forward.
 
 ### Wave 5: the platform
 

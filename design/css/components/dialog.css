@@ -1,0 +1,141 @@
+/* ==========================================================================
+   Dialog — wave 4. Spec: elements/dialog.md · page: elements/dialog.html
+   --------------------------------------------------------------------------
+   Stop and decide. A native <dialog> opened with showModal(): the browser
+   moves focus in, keeps Tab inside, closes on Escape, makes the page inert
+   and gives focus back. A <form method="dialog"> closes it with the
+   button's value as its returnValue. No script needed to close.
+
+     <button class="btn" type="button" commandfor="delete-shapes"
+             command="show-modal">Delete deck…</button>
+     <dialog class="dialog" id="delete-shapes" role="alertdialog"
+             aria-labelledby="delete-shapes-title" aria-describedby="delete-shapes-text">
+       <h2 class="dialog__title" id="delete-shapes-title">Delete Shapes?</h2>
+       <p class="dialog__text" id="delete-shapes-text">Its 12 cards go too.</p>
+       <form class="dialog__actions" method="dialog">
+         <button class="btn" value="delete">Delete deck</button>
+         <button class="btn btn--primary" value="keep" autofocus>Keep it</button>
+       </form>
+     </dialog>
+
+   House rules for this file
+   · The surface holds, so it is a container: square, a 2px frame on paper,
+     and no shadow (a shadow means pressable). The buttons act: Button's.
+   · Behind it, --scrim: flat ink at 60%, the one translucency (STYLE rule
+     2). Under forced colours the scrim is gone, so the frame goes to 4px
+     and carries the edge alone.
+   · Centred, at most 28rem wide, and never taller than the screen: past
+     that it scrolls inside, never the page sideways.
+   · Buttons say the action. The safe one is focused first (autofocus);
+     a destructive one is never primary. Primary last on a wide row; on a
+     narrow one, full width with the primary on top, as in Form.
+   · Reads roles only. No transitions: it appears in place (gate 4).
+   ========================================================================== */
+
+.dialog {
+  /* the buttons read the surface they sit on: this one, not the card the
+     opener happened to sit in (custom properties follow the DOM) */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+  --card-ink-soft: var(--ink-soft);
+  /* the room kept round it, and inside it; both stay small on a phone at
+     large text, where 16px of rem is 32px */
+  --dialog-edge: min(var(--space-4), 5vw);
+  --dialog-pad: min(var(--space-5), 6vw);
+
+  container: dialog / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  /* % is the screen for an open modal, and the stage for a picture of one */
+  inline-size: min(28rem, 100% - var(--dialog-edge) * 2);
+  max-inline-size: none;
+  max-block-size: calc(100% - var(--dialog-edge) * 2);
+  margin: auto;
+  padding: var(--dialog-pad);
+  overflow: auto;
+  overscroll-behavior: contain;
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* author display beats the browser's "a closed dialog is hidden" */
+dialog.dialog:not([open]) {
+  display: none;
+}
+
+.dialog::backdrop {
+  background: var(--scrim);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* the title is the question: "Delete Shapes?". An optional leading glyph
+   (ic--warning) when it reports a failure, centred on the first line. */
+.dialog__title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font: var(--type-title);
+  letter-spacing: var(--ls-title);
+  text-wrap: balance;
+  /* at the largest text sizes a long word may be wider than a phone's
+     dialog: break it rather than clip it, even as a flex item */
+  overflow-wrap: anywhere;
+}
+
+.dialog__title > .ic {
+  --ic-size: 1.5rem;
+  margin-block-start: calc((1lh - var(--ic-size)) / 2);
+}
+
+/* what happened, and what to do: one or two sentences. At 28rem the
+   dialog itself keeps the line short. */
+.dialog__text {
+  text-wrap: pretty;
+}
+
+/* the buttons. A <form method="dialog">, so each one closes the dialog by
+   itself. Narrow: full width, stacked, the primary (last in the markup) on
+   top, in reach of a thumb. 17rem is two short labels side by side. */
+.dialog__actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+@container dialog (width >= 17rem) {
+  /* wide: one row at the end, primary last. If the labels can't share the
+     row, the primary still wraps to the top. */
+  .dialog__actions {
+    flex-direction: row;
+    flex-wrap: wrap-reverse;
+    justify-content: flex-end;
+  }
+}
+
+/* with a field: Form's inline form holds the field and the actions, which
+   take a row of their own under the field whenever they can't fit beside
+   it (always, at 28rem) */
+.form--inline > .dialog__actions {
+  flex: 1 1 auto;
+}
+
+/* --- states -----------------------------------------------------------------
+   Open and closed are the browser's. Everything inside keeps its own
+   states (Button's, Field's). A .dialog that isn't a <dialog> just sits in
+   place, as an open one looks: the page uses that to draw one. */
+
+/* --- forced colours ----------------------------------------------------------
+   The scrim vanishes, so the page behind shows at full strength: the frame
+   doubles to 4px, so the dialog still reads as on top. */
+
+@media (forced-colors: active) {
+  .dialog {
+    border: var(--bw-heavy) solid CanvasText;
+  }
+}

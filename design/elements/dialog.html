@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dialog · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Dialog element of the Flashcards design system: a native modal dialog over a flat scrim, asking one question with buttons that say what they do."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#dialog-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Dialog</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#dialog-anatomy">Anatomy</a></li>
+            <li><a href="#dialog-variants">Variants</a></li>
+            <li><a href="#dialog-states">States</a></li>
+            <li><a href="#dialog-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Dialog · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-dialog">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 22</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Dialog</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Stop and decide. One question over a dimmed screen, answered with buttons that say what
+            they do. The browser’s own dialog keeps focus inside and gives it back.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="dialog-anatomy" aria-labelledby="h-dialog-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-dialog-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A framed box on paper over the scrim: the question, what follows from it, and the
+            buttons. Drawn here as it opens over a deck.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 600px" inert>
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h3 class="topbar__title">Shapes</h3>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="More for Shapes">
+                        <span class="ic ic--more" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                    <ul class="card-grid" role="list" style="--card-min: 9rem">
+                      <li>
+                        <article class="card card--square" data-tone="1">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 1</p>
+                            <h4 class="card__title">Triangle</h4>
+                          </div>
+                        </article>
+                      </li>
+                      <li>
+                        <article class="card card--square">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 2</p>
+                            <h4 class="card__title">Square</h4>
+                          </div>
+                        </article>
+                      </li>
+                      <li>
+                        <article class="card card--square">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 3</p>
+                            <h4 class="card__title">Circle</h4>
+                          </div>
+                        </article>
+                      </li>
+                      <li>
+                        <article class="card card--square" data-tone="3">
+                          <div class="card__body">
+                            <p class="card__eyebrow">Card 4</p>
+                            <h4 class="card__title">Star</h4>
+                          </div>
+                        </article>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div style="position: absolute; inset: 0; z-index: 1; display: grid; grid-template-rows: minmax(0, 1fr); background: var(--scrim)">
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 6.5rem auto auto 1rem">1</span>
+                  <div
+                    style="position: relative; display: flex; flex-direction: column; inline-size: min(28rem, 100% - 2 * min(var(--space-4), 5vw)); max-block-size: calc(100% - 2 * min(var(--space-4), 5vw)); margin: auto"
+                  >
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: -0.6875rem auto auto -0.6875rem; z-index: 3">2</span>
+                    <div class="dialog" style="inline-size: 100%; min-block-size: 0">
+                      <h4 class="dialog__title" data-n="3">Delete Shapes?</h4>
+                      <p class="dialog__text" data-n="4">Its 12 cards go too.</p>
+                      <div class="dialog__actions">
+                        <button class="btn" type="button">Delete deck</button>
+                        <button class="btn btn--primary is-focus" type="button">Keep it</button>
+                      </div>
+                    </div>
+                    <span
+                      class="sg-n"
+                      aria-hidden="true"
+                      style="position: absolute; inset: auto auto calc(min(var(--space-5), 6vw) + 1.375rem) -0.6875rem; translate: 0 50%; z-index: 3"
+                      >5</span
+                    >
+                  </div>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Scrim</strong><code>::backdrop</code> <code>--scrim</code>
+                <p>
+                  Flat ink at 60%, the one translucency the system allows: the deck is still there,
+                  but not now. The page behind is inert: no taps, no Tab, nothing for a screen
+                  reader. A tap on it does nothing; a decision needs a button.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Surface</strong><code>.dialog</code> <code>&lt;dialog&gt;</code>
+                <p>
+                  A container, so square: a 2px frame on paper and no shadow, since a shadow means
+                  “press this”. Centred, at most 28rem wide, 16px clear of the screen’s edges;
+                  taller than the screen, it scrolls inside. Under forced colours the scrim is gone,
+                  so the frame goes to 4px.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Title</strong><code>.dialog__title</code>
+                <p>
+                  The question, in an <code>h2</code> that names the dialog
+                  (<code>aria-labelledby</code>): “Delete Shapes?”, never “Are you sure?”. A failure
+                  may lead with <code>ic--warning</code>.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Text</strong><code>.dialog__text</code>
+                <p>
+                  What follows from the answer, or what happened and what to do, in a sentence or
+                  two. It describes the dialog (<code>aria-describedby</code>).
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Actions</strong><code>.dialog__actions</code> <code>&lt;form method="dialog"&gt;</code>
+                <p>
+                  Buttons that say the action; each closes the dialog with its
+                  <code>value</code>. The safe one is primary, last, and focused first. The
+                  destructive one is a plain button whose words carry it. Narrow, they stack full
+                  width with the primary on top.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="dialog-variants" aria-labelledby="h-dialog-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-dialog-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three questions, each drawn as it looks and live under it. The button opens the real
+            modal: Tab stays inside, Escape closes, and focus goes back to the button.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="dialog-confirm">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Confirm</h3>
+            <p class="sg-entry__use">A choice that can’t be taken back: deleting a deck.</p>
+            <p class="sg-entry__classes">
+              <code>.dialog</code> <code>role="alertdialog"</code> <code>.dialog__actions</code>
+              <code>autofocus</code>
+            </p>
+            <p class="sg-entry__note">
+              Keep it is primary and has <code>autofocus</code>, so Return keeps the deck. Delete
+              deck is a plain secondary button: never primary, never red; its words say what goes.
+              The opener’s ellipsis promises the question.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div inert style="padding-block: var(--space-6); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Delete Shapes?</h4>
+                <p class="dialog__text">Its 12 cards go too.</p>
+                <div class="dialog__actions">
+                  <button class="btn" type="button">Delete deck</button>
+                  <button class="btn btn--primary" type="button">Keep it</button>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="dialog-delete" command="show-modal" data-sg-code>Delete deck…</button>
+              <p class="t-meta" aria-live="polite" data-sg-return="dialog-delete">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog
+              class="dialog"
+              id="dialog-delete"
+              role="alertdialog"
+              aria-labelledby="dialog-delete-title"
+              aria-describedby="dialog-delete-text"
+              data-sg-code
+            >
+              <h2 class="dialog__title" id="dialog-delete-title">Delete Shapes?</h2>
+              <p class="dialog__text" id="dialog-delete-text">Its 12 cards go too.</p>
+              <form class="dialog__actions" method="dialog">
+                <button class="btn" value="delete">Delete deck</button>
+                <button class="btn btn--primary" value="keep" autofocus>Keep it</button>
+              </form>
+            </dialog>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="dialog-acknowledge">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Acknowledge</h3>
+            <p class="sg-entry__use">Something didn’t work, and there’s nothing to choose: a failed import.</p>
+            <p class="sg-entry__classes">
+              <code>.dialog__title</code> with <code>ic--warning</code> <code>.btn--primary</code>
+            </p>
+            <p class="sg-entry__note">
+              One button. The title says what happened, the text why and what to do next. The
+              warning glyph marks a failure without colour. Here the button opens it at once; in the
+              app it follows an import that failed.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div inert style="padding-block: var(--space-6); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title"><span class="ic ic--warning" aria-hidden="true"></span>Can’t import that file</h4>
+                <p class="dialog__text">It isn’t a deck export. Choose a file saved with Export.</p>
+                <div class="dialog__actions">
+                  <button class="btn btn--primary" type="button">OK</button>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="dialog-import" command="show-modal" data-sg-code>Import a deck…</button>
+              <p class="t-meta" aria-live="polite" data-sg-return="dialog-import">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog
+              class="dialog"
+              id="dialog-import"
+              role="alertdialog"
+              aria-labelledby="dialog-import-title"
+              aria-describedby="dialog-import-text"
+              data-sg-code
+            >
+              <h2 class="dialog__title" id="dialog-import-title">
+                <span class="ic ic--warning" aria-hidden="true"></span>Can’t import that file
+              </h2>
+              <p class="dialog__text" id="dialog-import-text">It isn’t a deck export. Choose a file saved with Export.</p>
+              <form class="dialog__actions" method="dialog">
+                <button class="btn btn--primary" value="ok">OK</button>
+              </form>
+            </dialog>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="dialog-field">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">With a field</h3>
+            <p class="sg-entry__use">One value to type before it goes on: renaming a deck.</p>
+            <p class="sg-entry__classes">
+              <code>.form--inline</code> <code>.field</code> <code>.dialog__actions</code>
+              <code>form="…-cancel"</code>
+            </p>
+            <p class="sg-entry__note">
+              Form’s inline form, with the actions as its last row. Focus starts in the field;
+              Return renames. An empty name gets Field’s error and the dialog stays open. Cancel
+              belongs to a second, empty <code>method="dialog"</code> form, so Return in the field
+              can’t reach it: Return presses the first submit button of the field’s own form.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div inert style="padding-block: var(--space-6); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Rename deck</h4>
+                <div class="form form--inline">
+                  <div class="field">
+                    <label class="field__label">Deck name</label>
+                    <input class="field__input" type="text" value="Shapes" />
+                  </div>
+                  <div class="dialog__actions">
+                    <button class="btn btn--quiet" type="button">Cancel</button>
+                    <button class="btn btn--primary" type="button">Rename</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="dialog-rename" command="show-modal" data-sg-code>Rename</button>
+              <p class="t-meta" aria-live="polite" data-sg-return="dialog-rename">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog class="dialog" id="dialog-rename" aria-labelledby="dialog-rename-title" data-sg-code>
+              <h2 class="dialog__title" id="dialog-rename-title">Rename deck</h2>
+              <form class="form form--inline" method="dialog">
+                <div class="field">
+                  <label class="field__label" for="dialog-rename-name">Deck name</label>
+                  <p class="field__error" id="dialog-rename-name-error" hidden>
+                    <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+                  </p>
+                  <input
+                    class="field__input"
+                    id="dialog-rename-name"
+                    name="name"
+                    type="text"
+                    value="Shapes"
+                    required
+                    autocomplete="off"
+                    autocapitalize="sentences"
+                    enterkeyhint="done"
+                  />
+                </div>
+                <div class="dialog__actions">
+                  <button class="btn btn--quiet" form="dialog-rename-cancel" value="cancel">Cancel</button>
+                  <button class="btn btn--primary" value="rename">Rename</button>
+                </div>
+              </form>
+              <form id="dialog-rename-cancel" method="dialog" hidden></form>
+            </dialog>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="dialog-states" aria-labelledby="h-dialog-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-dialog-states">States</h2>
+          <p class="sg-sec__note">
+            Open and closed are the browser’s; what’s inside keeps Button’s and Field’s states.
+            Drawn at a 320pt phone’s width, where the buttons stack with the primary on top; on most
+            phones at default text they share a row.
+          </p>
+        </div>
+
+        <div class="sg-states" inert>
+          <div>
+            <div class="btn-row">
+              <button class="btn" type="button">Delete deck…</button>
+            </div>
+            <p class="sg-caption"><b>Closed.</b> Only the button that opens it, saying what it will ask about. The ellipsis promises a question.</p>
+          </div>
+          <div>
+            <div style="padding-block: var(--space-5); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Delete Shapes?</h4>
+                <p class="dialog__text">Its 12 cards go too.</p>
+                <div class="dialog__actions">
+                  <button class="btn" type="button">Delete deck</button>
+                  <button class="btn btn--primary is-focus" type="button">Keep it</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Open.</b> Focus starts on the safe choice, with Button’s ring. Tab moves between the buttons and never leaves the dialog.</p>
+          </div>
+          <div>
+            <div style="padding-block: var(--space-5); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Delete Shapes?</h4>
+                <p class="dialog__text">Its 12 cards go too.</p>
+                <div class="dialog__actions">
+                  <button class="btn is-hover" type="button">Delete deck</button>
+                  <button class="btn btn--primary" type="button">Keep it</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> Button’s lift and fill, pointers only. Destructive or not, it looks like any secondary button.</p>
+          </div>
+          <div>
+            <div style="padding-block: var(--space-5); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Delete Shapes?</h4>
+                <p class="dialog__text">Its 12 cards go too.</p>
+                <div class="dialog__actions">
+                  <button class="btn is-active" type="button">Delete deck</button>
+                  <button class="btn btn--primary" type="button">Keep it</button>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> Down and filled, with the inner ring. On release the dialog closes, and its <code>returnValue</code> is “delete”.</p>
+          </div>
+          <div>
+            <div style="padding-block: var(--space-5); background: var(--scrim)">
+              <div class="dialog">
+                <h4 class="dialog__title">Rename deck</h4>
+                <div class="form form--inline">
+                  <div class="field">
+                    <label class="field__label">Deck name</label>
+                    <p class="field__error"><span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name</p>
+                    <input class="field__input" type="text" value="" aria-invalid="true" />
+                  </div>
+                  <div class="dialog__actions">
+                    <button class="btn btn--quiet" type="button">Cancel</button>
+                    <button class="btn btn--primary" type="button">Rename</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Invalid.</b> Rename with no name: Field’s error above the input, focus back in the field, and the dialog stays open.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          Escape closes any of them with no value, which the app reads as the safe choice. Taller
+          than the screen (a phone at 200% text), the dialog scrolls inside and the page never
+          scrolls sideways. Under forced colours the scrim disappears and the frame goes to 4px.
+          The <code>.is-*</code> classes force a state for this page; they are not API.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="dialog-usage" aria-labelledby="h-dialog-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-dialog-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Ask one question in the title and answer it with verbs: “Delete Shapes?” with Delete
+              deck and Keep it. Say what goes with it. Make the safe choice primary, last and
+              focused.
+            </p>
+          </li>
+          <li>
+            <strong>Don’t</strong>
+            <p>
+              Don’t ask “Are you sure?” or label the buttons Yes and No. Don’t make the destructive
+              button primary or red. Don’t stop anyone for news that needs no answer (a toast or a
+              banner says it), and prefer Undo to a question when the action can be undone.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Centred on a phone too. The buttons share a row when both labels fit (most phones at
+              default text) and stack full width with the primary on top on a 320pt phone or at
+              larger text. A phone has no Escape key, so every dialog has a button that closes
+              it. It appears in place; gate 4 gives it an entrance.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Alerts are system chrome: SwiftUI’s <code>.alert</code> or
+              <code>.confirmationDialog</code>, with <code>Button(role: .destructive)</code> and a
+              cancel button. This element is the web shell’s. Return presses the focused button;
+              Escape cancels.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <script>
+        /* The page's demo (a real app owns this): when a live dialog closes, the line
+           beside its button says which button closed it. Inside <main>, so the bundled
+           style sheet keeps it. */
+        Array.prototype.forEach.call(document.querySelectorAll("#el-dialog [data-sg-return]"), function (out) {
+          var dialog = document.getElementById(out.getAttribute("data-sg-return"));
+          dialog.addEventListener("close", function () {
+            out.textContent = dialog.returnValue
+              ? "Closed with returnValue “" + dialog.returnValue + "”."
+              : "Closed with Escape: no returnValue.";
+            dialog.returnValue = "";
+          });
+        });
+      </script>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Dialog</span>
+      <span>Spec: design/elements/dialog.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+    <script src="../js/components/form.js"></script>
+    <script src="../js/components/dialog.js"></script>
+  </body>
+</html>

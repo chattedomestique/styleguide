@@ -1,0 +1,26 @@
+/* ==========================================================================
+   Empty, loading and error — wave 4. Spec: elements/states.md · page: elements/states.html
+   --------------------------------------------------------------------------
+   Patterns, not parts: what a screen shows before there's anything, and
+   when something fails, built from Card, Button, Spinner, Banner, Field
+   and Frame. Nothing here draws. The one class keeps a state's words next
+   to its way forward, closer than the scroll region's 32px between things:
+
+     <div class="state">
+       <p class="t-body">No decks yet.</p>
+       <a class="card card--ghost" href="…">…Make your first deck</a>
+     </div>
+
+   House rules for this file
+   · Never blank: every state says what's going on, and offers a way on.
+   · No new look: a ghost card is empty, a plain card is a failure, the
+     spinner is waiting, the banner is news about the whole screen.
+   ========================================================================== */
+
+.state {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-3);
+  max-inline-size: var(--measure);
+}

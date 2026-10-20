@@ -197,6 +197,9 @@
   --focus: var(--ink);
   --accent: var(--ink); /* the one "press this" colour; ink until gate 3 */
   --on-accent: var(--paper);
+  /* behind a modal dialog or sheet: the one translucency the system allows
+     (rule 2). The page reads as "still there, but not now". */
+  --scrim: color-mix(in srgb, var(--ink) 60%, transparent);
 
   /* --- tone slots: what a card, tile or bar can be filled with ------------- */
   --tone-1: var(--grey-2);
@@ -4985,6 +4988,639 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
   .btn:has(+ .menu:popover-open) .ic {
     background-color: HighlightText;
   }
+}
+}
+@layer components {
+/* ==========================================================================
+   Dialog — wave 4. Spec: elements/dialog.md · page: elements/dialog.html
+   --------------------------------------------------------------------------
+   Stop and decide. A native <dialog> opened with showModal(): the browser
+   moves focus in, keeps Tab inside, closes on Escape, makes the page inert
+   and gives focus back. A <form method="dialog"> closes it with the
+   button's value as its returnValue. No script needed to close.
+
+     <button class="btn" type="button" commandfor="delete-shapes"
+             command="show-modal">Delete deck…</button>
+     <dialog class="dialog" id="delete-shapes" role="alertdialog"
+             aria-labelledby="delete-shapes-title" aria-describedby="delete-shapes-text">
+       <h2 class="dialog__title" id="delete-shapes-title">Delete Shapes?</h2>
+       <p class="dialog__text" id="delete-shapes-text">Its 12 cards go too.</p>
+       <form class="dialog__actions" method="dialog">
+         <button class="btn" value="delete">Delete deck</button>
+         <button class="btn btn--primary" value="keep" autofocus>Keep it</button>
+       </form>
+     </dialog>
+
+   House rules for this file
+   · The surface holds, so it is a container: square, a 2px frame on paper,
+     and no shadow (a shadow means pressable). The buttons act: Button's.
+   · Behind it, --scrim: flat ink at 60%, the one translucency (STYLE rule
+     2). Under forced colours the scrim is gone, so the frame goes to 4px
+     and carries the edge alone.
+   · Centred, at most 28rem wide, and never taller than the screen: past
+     that it scrolls inside, never the page sideways.
+   · Buttons say the action. The safe one is focused first (autofocus);
+     a destructive one is never primary. Primary last on a wide row; on a
+     narrow one, full width with the primary on top, as in Form.
+   · Reads roles only. No transitions: it appears in place (gate 4).
+   ========================================================================== */
+
+.dialog {
+  /* the buttons read the surface they sit on: this one, not the card the
+     opener happened to sit in (custom properties follow the DOM) */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+  --card-ink-soft: var(--ink-soft);
+  /* the room kept round it, and inside it; both stay small on a phone at
+     large text, where 16px of rem is 32px */
+  --dialog-edge: min(var(--space-4), 5vw);
+  --dialog-pad: min(var(--space-5), 6vw);
+
+  container: dialog / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  /* % is the screen for an open modal, and the stage for a picture of one */
+  inline-size: min(28rem, 100% - var(--dialog-edge) * 2);
+  max-inline-size: none;
+  max-block-size: calc(100% - var(--dialog-edge) * 2);
+  margin: auto;
+  padding: var(--dialog-pad);
+  overflow: auto;
+  overscroll-behavior: contain;
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* author display beats the browser's "a closed dialog is hidden" */
+dialog.dialog:not([open]) {
+  display: none;
+}
+
+.dialog::backdrop {
+  background: var(--scrim);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* the title is the question: "Delete Shapes?". An optional leading glyph
+   (ic--warning) when it reports a failure, centred on the first line. */
+.dialog__title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font: var(--type-title);
+  letter-spacing: var(--ls-title);
+  text-wrap: balance;
+  /* at the largest text sizes a long word may be wider than a phone's
+     dialog: break it rather than clip it, even as a flex item */
+  overflow-wrap: anywhere;
+}
+
+.dialog__title > .ic {
+  --ic-size: 1.5rem;
+  margin-block-start: calc((1lh - var(--ic-size)) / 2);
+}
+
+/* what happened, and what to do: one or two sentences. At 28rem the
+   dialog itself keeps the line short. */
+.dialog__text {
+  text-wrap: pretty;
+}
+
+/* the buttons. A <form method="dialog">, so each one closes the dialog by
+   itself. Narrow: full width, stacked, the primary (last in the markup) on
+   top, in reach of a thumb. 17rem is two short labels side by side. */
+.dialog__actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+@container dialog (width >= 17rem) {
+  /* wide: one row at the end, primary last. If the labels can't share the
+     row, the primary still wraps to the top. */
+  .dialog__actions {
+    flex-direction: row;
+    flex-wrap: wrap-reverse;
+    justify-content: flex-end;
+  }
+}
+
+/* with a field: Form's inline form holds the field and the actions, which
+   take a row of their own under the field whenever they can't fit beside
+   it (always, at 28rem) */
+.form--inline > .dialog__actions {
+  flex: 1 1 auto;
+}
+
+/* --- states -----------------------------------------------------------------
+   Open and closed are the browser's. Everything inside keeps its own
+   states (Button's, Field's). A .dialog that isn't a <dialog> just sits in
+   place, as an open one looks: the page uses that to draw one. */
+
+/* --- forced colours ----------------------------------------------------------
+   The scrim vanishes, so the page behind shows at full strength: the frame
+   doubles to 4px, so the dialog still reads as on top. */
+
+@media (forced-colors: active) {
+  .dialog {
+    border: var(--bw-heavy) solid CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Sheet — wave 4. Spec: elements/sheet.md · page: elements/sheet.html
+   --------------------------------------------------------------------------
+   A task on top of a screen. A native <dialog> opened with showModal(), as
+   Dialog is: focus moves in and stays in, Escape closes, the page behind
+   is inert, focus goes back. From the bottom on a phone; from the side
+   once the window is 45rem wide (where Frame swaps the tab bar for the
+   sidebar). Inside, the top bar's layout with a close button you can
+   always see: drag to dismiss waits for gate 4, and is never the only way.
+
+     <dialog class="sheet" id="add-card" aria-labelledby="add-card-title">
+       <header class="topbar">
+         <h2 class="topbar__title" id="add-card-title">Add a card</h2>
+         <form class="topbar__actions" method="dialog">
+           <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+             <span class="ic ic--close" aria-hidden="true"></span>
+           </button>
+         </form>
+       </header>
+       <div class="sheet__body">…</div>
+     </dialog>
+
+   House rules for this file
+   · The surface holds, so it is a container: square, paper, a 2px frame on
+     the edge that faces the page, no shadow. Behind it, --scrim (STYLE
+     rule 2). Under forced colours the scrim is gone and the frame goes to
+     4px.
+   · A bottom sheet runs edge to edge and owns the bottom safe area, as a
+     bar does; it stops short of the status bar, so its top bar pads none.
+     A side sheet runs top to bottom, so its top bar pads the top one.
+   · The top bar stays put; the body scrolls, inside the sheet, never the
+     page sideways.
+   · The window decides bottom or side only for an open modal. A .sheet
+     that isn't one (the page's pictures) is drawn as the bottom sheet;
+     .sheet--side pins the side sheet.
+   · The action sheet is the phone's Menu: Menu's items and rule, Menu's
+     no-anchor geometry (edge to edge, 30rem and centred when wider).
+   · Reads roles only. No transitions: it appears in place (gate 4).
+   ========================================================================== */
+
+.sheet {
+  /* the buttons read this surface, not the card the opener sat in */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+  --card-ink-soft: var(--ink-soft);
+  /* the frame's weight: 4px under forced colours (below) */
+  --sheet-bw: var(--bw);
+  /* a bottom sheet never reaches the status bar */
+  --safe-top: 0px;
+
+  display: flex;
+  flex-direction: column;
+  /* the bottom sheet: along the bottom edge, edge to edge, as tall as its
+     content up to 90% of the screen. % is the screen for an open modal,
+     and the device frame for a picture of one. */
+  inset: auto 0 0;
+  inline-size: auto;
+  max-inline-size: none;
+  block-size: auto;
+  max-block-size: min(90%, 90dvh);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: 0;
+  border-block-start: var(--sheet-bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* author display beats the browser's "a closed dialog is hidden" */
+dialog.sheet:not([open]) {
+  display: none;
+}
+
+.sheet::backdrop {
+  background: var(--scrim);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* the top bar (Top bar's element, standard layout): the title centred, the
+   close button trailing, in a <form method="dialog"> that is the bar's
+   actions slot. It never shrinks; the body gives way. */
+.sheet > .topbar {
+  flex: none;
+}
+
+/* the task. Scrolls inside the sheet, and keeps its scroll to itself. Its
+   end pads the bottom safe area, plus a little, so the last button clears
+   the home indicator. */
+.sheet__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-5);
+  flex: 1 1 auto;
+  min-block-size: 0;
+  padding-block: var(--space-5) max(var(--space-5), var(--safe-bottom) + var(--space-2));
+  padding-inline: max(var(--space-4), var(--safe-left)) max(var(--space-4), var(--safe-right));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: var(--space-4);
+}
+
+/* --- variant: side sheet ------------------------------------------------------
+   Along the end edge, top to bottom, 28rem at most, and a sliver of the
+   page always left in view (48px, or 15% of a narrow window). Pinned with
+   .sheet--side; an open .sheet becomes one from 45rem of window (below). */
+
+.sheet--side {
+  --safe-top: inherit;
+  --safe-left: 0px;
+
+  inset-block: 0;
+  inset-inline: auto 0;
+  inline-size: min(28rem, 100% - min(var(--space-7), 15%));
+  block-size: auto;
+  max-block-size: none;
+  border: 0;
+  border-inline-start: var(--sheet-bw) solid var(--line);
+}
+
+@media (width >= 45rem) {
+  .sheet:modal:not(.sheet--action) {
+    --safe-top: inherit;
+    --safe-left: 0px;
+
+    inset-block: 0;
+    inset-inline: auto 0;
+    inline-size: min(28rem, 100% - min(var(--space-7), 15%));
+    block-size: auto;
+    max-block-size: none;
+    border: 0;
+    border-inline-start: var(--sheet-bw) solid var(--line);
+  }
+}
+
+/* --- variant: action sheet ------------------------------------------------------
+   The phone's Menu. Menu's items (.menu__item: quiet block Buttons, words
+   at the start) and rule (.menu__rule) in a <form method="dialog">, 8px
+   in and 4px apart as in a menu, so each item closes the sheet with its
+   value. Always from the bottom. */
+
+.sheet--action > .sheet__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block: var(--space-2) max(var(--space-2), var(--safe-bottom));
+  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+}
+
+/* on a window wider than it, it stops at 30rem, centred, framed on three
+   sides: Menu's no-anchor sheet */
+@media (width >= 30rem) {
+  .sheet--action:modal {
+    max-inline-size: 30rem;
+    margin-inline: auto;
+    border-inline: var(--sheet-bw) solid var(--line);
+  }
+}
+
+/* --- states -----------------------------------------------------------------
+   Open and closed are the browser's; everything inside keeps its own
+   states (Button's, Field's, Menu's items). */
+
+/* --- forced colours ----------------------------------------------------------
+   The scrim vanishes and the page behind shows at full strength: the frame
+   on the edge facing the page goes to 4px. */
+
+@media (forced-colors: active) {
+  .sheet {
+    --sheet-bw: var(--bw-heavy);
+    border-color: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Toast — wave 4. Spec: elements/toast.md · page: elements/toast.html
+   --------------------------------------------------------------------------
+   It's done, with Undo. One line about what just happened, at most one
+   action, and a way to send it off. js/components/toast.js builds it and
+   shows one at a time, in a region that is always there:
+
+     <div class="frame">
+       <header class="frame__top topbar">…</header>
+       <div class="frame__scroll">…</div>
+       <div class="toasts" role="status"></div>
+       <nav class="frame__bottom tabbar" aria-label="Places">…</nav>
+     </div>
+
+     <div class="toast">
+       <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+       <p class="toast__text">Deck deleted.</p>
+       <div class="toast__actions">
+         <button class="btn toast__action" type="button" aria-keyshortcuts="Alt+T">Undo</button>
+         <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+           <span class="ic ic--close" aria-hidden="true"></span>
+         </button>
+       </div>
+     </div>
+
+   House rules for this file
+   · A container, so square: a 2px frame on paper. No shadow: a shadow says
+     "press this", and the frame already parts it from what's under it.
+   · The region places, the toast draws. In a frame the region shares the
+     scroll region's grid cell and sits at its foot, so the toast is above
+     the bottom bar whatever that bar's height, with nothing measured. With
+     no bottom bar it keeps clear of the home indicator itself. Outside a
+     frame it is fixed to the foot of the viewport.
+   · The region never hides: display: none would take the live region out
+     of the accessibility tree, and the next toast wouldn't be heard. It
+     lets clicks through to the content round the toast.
+   · The action and Dismiss are Buttons: pills, because they act.
+   · Appears in place. No motion until gate 4.
+   ========================================================================== */
+
+/* --- the region ---------------------------------------------------------------
+   Outside a frame: the foot of the viewport, clear of the home indicator. */
+
+.toasts {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding-block: var(--space-3) calc(var(--space-3) + var(--safe-bottom));
+  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  pointer-events: none;
+}
+
+/* In a frame: the scroll region's cell, at its foot, in the content column
+   (the last one, so a wide frame's sidebar is left alone). The bars are in
+   rows of their own, so the toast can't cover them, and the bottom bar owns
+   the safe area under it. */
+.frame > .toasts {
+  position: relative;
+  inset: auto;
+  z-index: 2;
+  grid-row: 2;
+  grid-column: -2;
+  align-self: end;
+  padding-block-end: var(--space-3);
+  /* never taller than the room between the bars: at large text on a small
+     phone a long toast scrolls inside it rather than cover the way back */
+  max-block-size: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The scroll region is placed in its row but not in a column, so a second
+   item in its cell would push it into a new column beside the region. Pin
+   it to the content column, as the frame's status band is, so the two share
+   the cell. (Frame could own this line: elements/toast.md, Known limits.) */
+.frame:has(> .toasts) > .frame__scroll {
+  grid-column: -2;
+}
+
+/* while a toast shows, the region's foot pads by its height (toast.js
+   publishes --toasts-h, which counts the region's own padding and so the
+   safe area too): the end of the content can scroll clear of it, and a
+   control that takes focus is scrolled clear rather than left under it
+   (WCAG 2.4.11). Never less than the padding it replaces. */
+.frame:has(> .toasts > .toast) > .frame__scroll {
+  padding-block-end: max(var(--space-7), var(--toasts-h, 0px));
+  scroll-padding-block-end: max(var(--space-7), var(--toasts-h, 0px));
+}
+
+/* no bottom bar (or the wide frame's, hidden beside its sidebar): the toast
+   keeps clear of the home indicator itself */
+.frame:not(:has(> .frame__bottom)) > .toasts {
+  padding-block-end: calc(var(--space-3) + var(--safe-bottom));
+}
+
+@container frame (width >= 45rem) {
+  .frame--wide > .toasts {
+    padding-block-end: calc(var(--space-3) + var(--safe-bottom));
+  }
+}
+
+/* a trigger that only raises a toast can wait hidden until toast.js shows
+   it; Button's display would otherwise beat the hidden attribute */
+[data-toast][hidden] {
+  display: none;
+}
+
+/* --- the toast ------------------------------------------------------------------ */
+
+.toast {
+  /* the surface its Buttons read, wherever the region sits */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 var(--space-3);
+  inline-size: min(100%, 32rem);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4) var(--space-2);
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+  overflow-wrap: break-word;
+  pointer-events: auto;
+}
+
+/* the glyph and the first line of words centre on the 44px row the buttons
+   make, so a second line of words hangs below instead of pushing them up */
+.toast__icon {
+  margin-block: calc((var(--hit) - var(--ic-size, 1.25rem)) / 2);
+}
+
+/* 6rem: "Deck deleted." and Undo share a row even on a 320pt phone (the
+   words on two lines beside Undo), and
+   longer words take the room the buttons leave. When the words need more
+   than that, the buttons move under them, at the end. Never more than the
+   row less the glyph, so the words can't leave the glyph. */
+.toast__text {
+  flex: 1 1 min(6rem, 100% - var(--ic-size, 1.25rem) - var(--space-3));
+  min-inline-size: 0;
+  padding-block: max(0px, (var(--hit) - 1lh) / 2);
+  text-wrap: pretty;
+}
+
+.toast__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* 12px a side, as in a bar: short of room, and the frame still reads */
+.toast .toast__action {
+  padding-inline: var(--space-3);
+}
+
+/* --- forced colours --------------------------------------------------------------
+   The frame is a border, so the system paints it; the glyphs are icons.css's.
+   Under it the page is Canvas too, so the frame is all that parts them. */
+
+@media (forced-colors: active) {
+  .toast {
+    border-color: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Banner — wave 4. Spec: elements/banner.md · page: elements/banner.html
+   --------------------------------------------------------------------------
+   News about the whole screen: you're offline, a new version is ready,
+   something didn't load. Inline at the top of the scroll region, under the
+   top bar, edge to edge. It scrolls away with the content; it never floats.
+
+     <div class="frame__scroll">
+       <div class="banner" role="status">
+         <span class="ic ic--offline banner__icon" aria-hidden="true"></span>
+         <p class="banner__text"><strong>You're offline.</strong> Changes are saved on this device.</p>
+       </div>
+       …
+     </div>
+
+   House rules for this file
+   · A band, so square: paper, the full width, a 2px rule below. Under the
+     top bar it reads as a second band of the bar, and the content starts
+     under its rule.
+   · A glyph and words, always. The palette is monochrome, so nothing is
+     said by colour: the glyph says which kind before you read, the words
+     say what happened and what to do.
+   · At most one action, a Button. No close: a banner goes when it stops
+     being true (online again, reloaded, loaded).
+   · Straight in a Frame's scroll region it reaches over the region's side
+     padding and its top padding, as a plain List does, and takes the side
+     padding as its own, so its words line up with the content below.
+   ========================================================================== */
+
+.banner {
+  /* the surface its Button reads */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-2);
+  padding-inline: var(--gutter);
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border-block-end: var(--bw) solid var(--line);
+  overflow-wrap: break-word;
+}
+
+/* Empty, it is a live region waiting for news. A region speaks when it
+   changes, not when it arrives, so the app keeps the band in the markup
+   with nothing inside (not even a space: :empty) and fills it to raise it.
+   Out of the flow and undrawn, it costs the screen nothing, not even the
+   scroll region's 32px gap. */
+.banner:empty,
+.frame__scroll > .banner:empty {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* the glyph and the first line of words centre on a 44px row, the height
+   of the action beside them, so a banner is as tall with or without one */
+.banner__icon {
+  margin-block: calc((var(--hit) - var(--ic-size, 1.25rem)) / 2);
+}
+
+/* 10rem beside an action before the action moves under the words; never
+   more than the row less the glyph, so the words can't leave the glyph */
+.banner__text {
+  flex: 1 1 min(10rem, 100% - var(--ic-size, 1.25rem) - var(--space-3));
+  min-inline-size: 0;
+  max-inline-size: var(--measure);
+  padding-block: max(0px, (var(--hit) - 1lh) / 2);
+  text-wrap: pretty;
+}
+
+/* the news, then what it means: "You're offline. Changes are saved…" */
+.banner__text > strong {
+  font-weight: 600;
+}
+
+/* at the trailing end; under the words, at the end, when they need the row */
+.banner__action {
+  margin-inline-start: auto;
+}
+
+/* --- in a frame -------------------------------------------------------------- */
+
+.frame__scroll > .banner {
+  margin-inline: calc(var(--frame-pad-start) * -1) calc(var(--frame-pad-end) * -1);
+  padding-inline: var(--frame-pad-start) var(--frame-pad-end);
+}
+
+/* first in the region, it meets the top bar's rule: it spends the region's
+   24px top padding (frame.css, .frame__scroll) */
+.frame__scroll > .banner:first-child {
+  margin-block-start: calc(var(--space-5) * -1);
+}
+
+/* --- forced colours ------------------------------------------------------------ */
+
+@media (forced-colors: active) {
+  .banner {
+    border-block-end-color: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Empty, loading and error — wave 4. Spec: elements/states.md · page: elements/states.html
+   --------------------------------------------------------------------------
+   Patterns, not parts: what a screen shows before there's anything, and
+   when something fails, built from Card, Button, Spinner, Banner, Field
+   and Frame. Nothing here draws. The one class keeps a state's words next
+   to its way forward, closer than the scroll region's 32px between things:
+
+     <div class="state">
+       <p class="t-body">No decks yet.</p>
+       <a class="card card--ghost" href="…">…Make your first deck</a>
+     </div>
+
+   House rules for this file
+   · Never blank: every state says what's going on, and offers a way on.
+   · No new look: a ghost card is empty, a plain card is a failure, the
+     spinner is waiting, the banner is news about the whole screen.
+   ========================================================================== */
+
+.state {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-3);
+  max-inline-size: var(--measure);
 }
 }
 @layer wire {
