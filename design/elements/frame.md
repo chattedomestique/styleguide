@@ -139,6 +139,11 @@ A frame doesn't press, lift or fill. Its states are about room.
 - Nothing in the frame is sized in `vw` or `vh` but the frame itself; text follows the reader's
   size, and the bars grow with it.
 
+**Right to left.** The frame mirrors, so the sidebar is on the right. A side safe area is an edge
+of the screen, not of the line: the bars pad `--safe-left` and `--safe-right` physically (each
+declaration opted out of check 10, with the reason), the scroll region's `--frame-pad-start` reads
+the right one under `:dir(rtl)`, and on a wide frame the sidebar zeroes whichever one it covers.
+
 ## Platforms
 
 - **Installed PWA:** the viewport meta needs `viewport-fit=cover`, or every safe area is 0. The
@@ -200,5 +205,3 @@ A frame doesn't press, lift or fill. Its states are about room.
   `visualViewport.height` while the keyboard is up would fix that, and needs a device to prove.
   Rotating with the keyboard already up takes the new width's first height as its full height, so
   the bar stays until the keyboard goes down and comes back.
-- `--safe-left` and `--safe-right` are physical. In a right-to-left wide frame the sidebar is on
-  the right, and the frame zeroes the wrong one.

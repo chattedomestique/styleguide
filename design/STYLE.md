@@ -74,9 +74,63 @@ Run it on any screen before calling it done.
 
 ### Open decisions
 
-The class prefix and the system's name (which includes the `flashcards.css` filename) are
-still the owner's call. Until then the names stay as they are. Corners are decided: square.
-Also open: arrow keys in a grid of link cards on the Mac, where Tab skips links by default.
+At 1.0 each is closed or carried.
+
+- **The system's name and the class prefix: carried, the owner's call.** Until then the names
+  stay: the `flashcards` files, the `Flashcards` global, the `flashcards-sw` meta, and classes
+  with no prefix. A rename is one command from the repository root. `NEW` is one lowercase word,
+  and the global becomes it with a capital:
+
+  ```sh
+  NEW=acme node -e '
+  const fs = require("fs"), path = require("path"), N = process.env.NEW, T = N[0].toUpperCase() + N.slice(1);
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? (e.name === "dist" ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]);
+  for (const f of walk("design").filter((f) => /\.(html|css|js|mjs|md|webmanifest)$/.test(f))) {
+    const s = fs.readFileSync(f, "utf8");
+    const t = s.replace(/flashcards(?=\\?\.(?:min\\?\.)?(?:css|js)\b)/g, N).replace(/\bflashcards-(sw|sheet-[a-z]+)\b/g, N + "-$1")
+      .replace(/\bwindow\.Flashcards\b/g, "window." + T).replace(/\bFlashcards(?=\.[a-z]| design system| style sheet| \/ )/g, T);
+    if (t !== s) { fs.writeFileSync(f, t); console.log(f); }
+  }
+  fs.renameSync("design/css/flashcards.css", "design/css/" + N + ".css");
+  fs.rmSync("design/dist", { recursive: true, force: true });
+  ' && node design/tools/bundle.mjs && node design/tools/api.mjs && node design/tools/check.mjs
+  ```
+
+  It renames the file names (`css/`, `dist/`, every link to them), the global, the `-sw` meta,
+  the pages' storage keys and the system's name in prose ("… design system", "… style sheet",
+  the pages' brand), then rebuilds `dist/` and runs the gate. It leaves the starter's product
+  copy alone ("Install Flashcards", the manifest's `id` and `name`, the export format): those
+  are the app's. A rename is a major version, and so is a class prefix, which changes every
+  class in `API.md`.
+- **Corners: closed.** Square (§2 Shape).
+- **Arrow keys in a grid of link cards on the Mac: carried.** Only a Mac with a WebKit shell can
+  judge a roving tab stop against `tabFocusesLinks` (§4), and natively a selectable grid is a
+  `List` or `Table`, which brings arrow keys of its own.
+- **The dark-mode weight step: carried, waiting for a Mac.** Dark keeps the light weights (§2
+  Type). A step down needs the weight tokens and a real Mac screen; it would add tokens (a
+  minor version), not rename any.
+- **The Mac pointer density: carried.** 44px everywhere until a real Mac screen asks for the
+  24px fine-pointer floor, as one switch at the root (§2 Hit targets and focus).
+- **Device checks: carried.** iOS's `:active` listener, the Tab bar hiding for the keyboard, the
+  2.5 s first paint (§4) and SwiftUI's `.fontWidth(_:)` driving the width axis are written down
+  and wait for a device. They are checks, not decisions.
+
+### Versioning
+
+Semver for the system as a whole, from 1.0.0. The contract is `API.md`: every class, token,
+data attribute and hook, the global and its functions, the events and the files an app links,
+generated from the code by `tools/api.mjs` and kept current by `check.mjs` (check 11).
+
+- **Major:** a name in `API.md` removed or renamed (a class, a token or role, a hook, the global
+  or one of its functions, an event, a file in `dist/`). Changing what a name takes or means
+  (a function's arguments, a token's unit) counts as removing it.
+- **Minor:** a new name.
+- **Patch:** a fix that keeps every name.
+
+Not covered: the `.is-*` classes (pages and tests only), the pages' own `.sg-*`, `sheet.css`,
+`screens.css` and `js/sheet.js`, the disposable `.wf-*` kit, the starter's own `app.js` and
+`app.css` (a copy to own, not a dependency), and everything `API.md` marks not API, such as a
+component's internal custom properties. Each changelog entry (§8) says which part moved.
 
 ---
 
@@ -109,8 +163,13 @@ CSS: layout only, read from tokens, in `@layer app`.
 
 One family, three widths. Archivo's width axis does the job a second typeface normally
 does: wider for big figures, normal for reading, condensed for labels. Fallback stack:
-`"Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif`. Self-hosted, latin subset,
-SIL OFL 1.1 (`fonts/OFL.txt`).
+`"Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif` (`--font-sans`). Self-hosted, latin
+subset, SIL OFL 1.1 (`fonts/OFL.txt`). Arabic or Hebrew copy falls back to the system's font:
+the right-to-left specimens stay English, because they test layout, not type, and an app
+shipping that copy adds the script's subset as a second `@font-face` (`fonts.css` says how).
+
+The pieces are tokens too: line heights `--lh-none`, `--lh-tight`, `--lh-snug`, `--lh-body`, and
+tracking `--ls-title`, `--ls-label`, `--ls-figure`. The `--type-*` shorthands read them.
 
 A style is a whole `font` shorthand plus its `letter-spacing` (and `text-transform` for
 labels), so weight, width, size, line-height and family travel together. Use the `.t-*`
@@ -146,8 +205,8 @@ Size scale, all fixed `rem`: `--text-xs` 0.8125rem (13px) · `--text-sm` 0.875re
 - **Smoothing follows the scheme.** `base.css` sets `--smooth` (auto in light, antialiased in
   dark) and `--smooth-inverse` (the other) from the system and `data-scheme`; the page reads
   `--smooth`, the inverted fills (`[data-tone="ink"]`, `.card__bar`, `.list--inset > .list__head`)
-  read `--smooth-inverse`. Never antialiased on a light ground, where macOS would thin the 13px
-  labels and 14px meta.
+  read `--smooth-inverse`, and each has a Firefox twin (`--smooth-moz`, `--smooth-inverse-moz`).
+  Never antialiased on a light ground, where macOS would thin the 13px labels and 14px meta.
 - **Dark keeps the same weights.** Light text on dark blooms, and antialiased smoothing already
   takes most of that off on a Mac. A further step down (body 400→370) can't be judged without a
   device, so it waits for the freeze, on a Mac, with the weight tokens it would need.
@@ -185,6 +244,11 @@ place:
 | `--radius-card` | 0 | the card frame |
 | `--radius-tile` | 0 | icon tiles, tags, badges, meter bars |
 | `--radius-ctl` | 0 | the square bar control |
+
+**The hard shadow falls down and to the right in both directions.** A light is in the room,
+not in the line, as the platforms' own shadows are; mirroring it would mean nothing and split one
+drawing into two. **Ratios:** `--ratio-media` (4:3, the card's media) and `--ratio-study` (5:7,
+the flashcard).
 
 Why square: "rectangles hold, circles act" only reads when the rectangles really are square.
 A rounded 2px black frame with a hard shadow is the stock component-kit look. On iOS and
@@ -400,7 +464,18 @@ today, decks), and `ic--arrow` (↗), `ic--plus`, `ic--minus`, `ic--close`, `ic-
 with `--ic-size` (1.25rem; 1.5rem standing alone). Decorative by default: when an icon is a
 control's only content, the *control* gets the `aria-label`. ↗ means "leaves the app", on the
 web and on Apple platforms, so it never marks an in-app link. Every glyph's path, for native
-ports: `elements/icons.md`.
+ports: `elements/icons.md`. Each glyph's mask is a token, `--icon-<name>`, in `icons.css`: use
+the `.ic--<name>` class, not the token.
+
+### Right to left
+
+Elements use logical properties only; check 10 fails a physical one. Side safe areas stay
+physical on purpose (`/* physical: a safe area is a screen edge */`), and what covers an edge
+zeroes it under `:dir()`. Moves along the line carry their sign in a variable set under
+`:dir(rtl)`: `--switch-dir`, `--sheet-end`, `--card-turn`. Glyphs that point along the line
+mirror (`elements/icons.md` lists them); glyphs that mean a thing don't, and neither do digits
+or the Stepper's − and +, which simply sit at the start and end of the row. Code stays left to
+right. The style sheet has a Direction switch beside Scheme.
 
 ---
 
@@ -570,7 +645,7 @@ the day its real element ships, and nothing in `components/` may depend on it.
 | --- | --- | --- |
 | `.wf-media` (+ `.wf-tag`) | an image or illustration: a box with an X | real media |
 | `.wf-shape` | one of the product's own illustrations | the real drawing |
-| `.wf-slot` (+ `.wf-slot--pill`) | a whole element that isn't built yet; `data-wf` names it and the name sits on its top edge. It holds the real copy, in grey. Set `--wf-under` to the colour behind it. | that element |
+| `.wf-slot` | a whole element that isn't built yet; `data-wf` names it and the name sits on its top edge. It holds the real copy, in grey. Set `--wf-under` to the colour behind it. | that element |
 | disabled hatch | the disabled look | gate 3 |
 
 How to read a wireframe: a box with an X is an image; flat grey is a tone slot; ink is the

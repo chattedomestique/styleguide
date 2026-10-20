@@ -161,6 +161,10 @@ for (const box of document.querySelectorAll(".field__box")) {
   scrolling field's scrollbar are drawn dark too; hover's `--canvas` is a step below paper, as in
   light.
 
+**Right to left.** The search glyph leads from the right and the clear button sits at the left end:
+both are placed with `inset-inline-*`, and the padding that keeps text clear of them is logical
+too. What's typed follows its own script.
+
 ## Platforms
 
 - **Installed PWA:**

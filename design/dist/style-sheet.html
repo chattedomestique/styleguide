@@ -10,15 +10,18 @@
       content="The rules, tokens and elements our installed PWAs and Mac apps are built from."
     />
     <script>
-/* sheet-scheme.js — the style-sheet pages' stored scheme, before the first paint.
-   Loaded in the head, ahead of the CSS, so a viewer who chose Light or Dark never sees
-   the other flash first. sheet.js draws the switch and owns the choice; this only reads
-   it. Storage can be missing or throw; then the page follows the system. Not shipped. */
+/* sheet-scheme.js — the style-sheet pages' stored scheme and direction, before the first
+   paint. Loaded in the head, ahead of the CSS, so a viewer who chose Light or Dark, or RTL,
+   never sees the other flash first. sheet.js draws both switches and owns the choice; this
+   only reads it. Storage can be missing or throw; then the page follows the system's scheme
+   and runs left to right. Not shipped. */
 (function () {
+  var root = document.documentElement;
   try {
     var v = window.localStorage.getItem("flashcards-sheet-scheme");
-    if (v === "light" || v === "dark") document.documentElement.setAttribute("data-scheme", v);
-  } catch (e) { /* the system's scheme */ }
+    if (v === "light" || v === "dark") root.setAttribute("data-scheme", v);
+    if (window.localStorage.getItem("flashcards-sheet-dir") === "rtl") root.setAttribute("dir", "rtl");
+  } catch (e) { /* the system's scheme, left to right */ }
 })();
 </script>
     <style>
@@ -46,7 +49,8 @@
    One file covers every weight and width the system uses, so there is no
    second request and no faux bold. Subset: latin. Licence: ../fonts/OFL.txt
    To add another script, add its subset from Google Fonts as a second
-   @font-face with its own unicode-range. */
+   @font-face with its own unicode-range. Arabic and Hebrew aren't in it:
+   right-to-left copy falls back to the system's font until they are. */
 @font-face {
   font-family: "Archivo";
   font-style: normal;
@@ -74,7 +78,6 @@
      condensed for labels. Sizes are fixed rem, never vw: resizing a window
      must not resize text. Cards scale with their own width (cqi) instead. */
   --font-sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; /* docs + code only */
 
   --text-xs: 0.8125rem; /* 13 */
   --text-sm: 0.875rem; /* 14 */
@@ -626,6 +629,8 @@ label {
      belongs to a letter (the i, the !), 3×3 when it stands alone (more, today).
    · Gaps of at least 2 units, so nothing closes up at 20px (1.67px strokes).
    · Chevrons move around inside the app; ↗ is the only arrow that leaves it.
+   · Right to left: a glyph that points along the line mirrors (below); a
+     glyph that means a thing doesn't. The list, and why: elements/icons.md.
    ========================================================================== */
 
 :root {
@@ -779,6 +784,17 @@ label {
   --ic: var(--icon-decks);
 }
 
+/* Right to left: the glyphs that point along the line turn to face the other
+   way. back and forward are the line's own way back and on, ↗ leaves towards
+   the end, undo goes back along it, and the sidebar sits on the start edge.
+   scale is a transform, so a mirrored glyph keeps any rotate an element
+   gives it, and forced colours keep it too. Everything else stays: it means
+   a thing (check, share, today…), or it points up and down, or it turns
+   (refresh, shuffle, flip: see elements/icons.md). */
+:is(.ic--back, .ic--forward, .ic--arrow, .ic--undo, .ic--sidebar):dir(rtl) {
+  scale: -1 1;
+}
+
 /* Forced-colours mode overrides backgrounds, and an icon here IS a background,
    so without this every glyph would vanish. Opting out is not enough on its
    own: an opted-out element inherits the parent's AUTHOR colour, not the forced
@@ -824,7 +840,9 @@ label {
   --card-gap: var(--space-2);
 
   /* interaction, as two numbers (see foundation.css). Every state just sets
-     them. The lift is in px, like the frame: 4px of hard shadow. */
+     them. The lift is in px, like the frame: 4px of hard shadow. It falls
+     down and to the right in both directions, as every element's does: a
+     light is in the room, not in the line (STYLE §2 Shape). */
   --lift: 0;
   --fill: 0;
   --shadow-lift: calc(var(--lift) * var(--bw) * 2) calc(var(--lift) * var(--bw) * 2) 0 0 var(--card-line);
@@ -1061,15 +1079,7 @@ label {
   outline-offset: calc(var(--ring) * -1);
 }
 
-/* layout helpers inside a body */
-.card__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
+/* a layout helper inside a body */
 .card__group {
   display: flex;
   flex-direction: column;
@@ -1334,7 +1344,12 @@ label {
      point, when both faces are edge-on and neither can be seen, by a
      transition with a delay (visibility is a named exception in check 5).
    · autocomplete="off": a reload never restores a turned card, which would
-     also be a turn on load. */
+     also be a turn on load.
+   · It turns about the vertical axis, so the turn runs along the line: the
+     start edge comes up towards you and over to the end. --card-turn is
+     180deg, and -180deg under :dir(rtl), so in right to left the right
+     edge leads. Both end where they started, face for face: only the way
+     the card swings differs. */
 
 .card--study:has(> .card__turn) {
   --card-flip-room: calc(var(--hit) + var(--space-3)); /* the button and its gap */
@@ -1352,6 +1367,8 @@ label {
 }
 
 .card__turn {
+  --card-turn: 180deg; /* the half turn, signed by the direction */
+
   display: grid;
   grid-row: 1;
   justify-self: stretch;
@@ -1359,6 +1376,10 @@ label {
   aspect-ratio: var(--ratio-study); /* a floor: large text makes it taller */
   transform-style: preserve-3d;
   transition: transform var(--dur-move) var(--ease-flip);
+}
+
+.card__turn:dir(rtl) {
+  --card-turn: -180deg;
 }
 
 /* a face is the study card's frame and parts, drawn on one side */
@@ -1377,12 +1398,12 @@ label {
 
 /* the back starts turned away */
 .card__face + .card__face {
-  transform: rotateY(180deg);
+  transform: rotateY(var(--card-turn));
   visibility: hidden;
 }
 
 .card--study:has(> .card__flip:checked) > .card__turn {
-  transform: rotateY(180deg);
+  transform: rotateY(var(--card-turn));
 }
 
 .card--study:has(> .card__flip:checked) > .card__turn > .card__face:first-child {
@@ -2725,7 +2746,7 @@ textarea.field__input {
 }
 
 .checkbox-group > legend {
-  float: left;
+  float: inline-start;
   inline-size: 100%;
   padding: 0;
 }
@@ -2978,7 +2999,7 @@ textarea.field__input {
 }
 
 .radio-group > legend {
-  float: left;
+  float: inline-start;
   inline-size: 100%;
   padding: 0;
 }
@@ -3939,7 +3960,10 @@ textarea.field__input {
 /* too narrow for all three in a row, which is a small phone at large text
    (two 44px circles and three digits are about 10em): the value takes the
    first row, the whole width, and the buttons go under it, one at each end,
-   so − stays left of +. The tab order (−, value, +) is unchanged. */
+   so − stays at the start and + at the end. The tab order (−, value, +) is
+   unchanged. Right to left, the row runs from the right like any other: −
+   on the right, + on the left. The glyphs are symmetric and the digits keep
+   their order, so nothing here mirrors. */
 @container stepper (max-width: 10.5em) {
   .stepper__input {
     order: -1;
@@ -4101,6 +4125,10 @@ textarea.field__input {
      safe-area inset. The frame pads only the edges no bar covers: the
      status bar on a root screen, the home indicator with no bottom bar,
      the sides of the scroll region. Content never reads --safe-*.
+   · Right to left mirrors the frame: the sidebar is on the right. A safe
+     area is an edge of the screen, not of the line, so a bar pads the left
+     and right ones physically (opted out of check 10 with a reason) and
+     whatever the sidebar covers swaps sides under :dir(rtl).
    · One scroller: the scroll region. The page itself never scrolls, so a
      phone's browser bars stay put and dvh doesn't jump.
    · The frame is a container (inline size), so --gutter re-pointed here
@@ -4182,7 +4210,9 @@ textarea.field__input {
   /* --frame-column caps the content's width and centres it: set it to
      var(--measure) on a reading screen. The default fills the frame. */
   padding-block: var(--space-5) var(--space-7);
-  /* published, so an edge-to-edge child (a plain List) can reach over them */
+  /* published, so an edge-to-edge child (a plain List) can reach over them.
+     The safe areas are the screen's left and right, so the start reads the
+     left one, and the right one in right to left (below). */
   --frame-pad-start: max(var(--gutter), var(--safe-left));
   --frame-pad-end: max(var(--gutter), var(--safe-right));
   padding-inline: max(var(--frame-pad-start), (100% - var(--frame-column, 100%)) / 2)
@@ -4194,6 +4224,11 @@ textarea.field__input {
      ring is drawn round the card, but it's the link inside that's scrolled
      to (elements/frame.md, Known limits). */
   scroll-padding-block: var(--space-4) var(--space-7);
+}
+
+.frame__scroll:dir(rtl) {
+  --frame-pad-start: max(var(--gutter), var(--safe-right));
+  --frame-pad-end: max(var(--gutter), var(--safe-left));
 }
 
 /* With nothing focusable inside it, a browser makes the region itself a tab
@@ -4233,7 +4268,8 @@ textarea.field__input {
 
 .frame--task > .frame__bottom {
   padding-block: var(--space-4) max(var(--space-4), var(--safe-bottom));
-  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  padding-left: max(var(--gutter), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--gutter), var(--safe-right)); /* physical: a safe area is a screen edge */
   background: var(--paper);
   border-block-start: var(--bw) solid var(--line);
 }
@@ -4268,13 +4304,24 @@ textarea.field__input {
     display: none;
   }
 
-  /* the sidebar covers the start edge, and its safe area with it */
+  /* the sidebar covers the start edge, and its safe area with it: the
+     left one, or the right one in right to left */
   .frame--wide > :not(.frame__side) {
     --safe-left: 0px;
   }
 
   .frame--wide > .frame__side {
     --safe-right: 0px;
+  }
+
+  .frame--wide:dir(rtl) > :not(.frame__side) {
+    --safe-left: inherit;
+    --safe-right: 0px;
+  }
+
+  .frame--wide:dir(rtl) > .frame__side {
+    --safe-left: 0px;
+    --safe-right: inherit;
   }
 
   .frame--wide > .frame__scroll {
@@ -4328,7 +4375,8 @@ textarea.field__input {
   align-items: center;
   row-gap: var(--space-1);
   padding-block: calc(var(--safe-top) + var(--space-2)) var(--space-2);
-  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  padding-left: max(var(--space-2), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-2), var(--safe-right)); /* physical: a safe area is a screen edge */
   color: var(--ink);
   background: var(--paper);
   border-block-end: var(--bw) solid var(--line);
@@ -4579,7 +4627,8 @@ textarea.field__input {
 
 .tabbar {
   padding-block: var(--space-1) max(var(--space-2), var(--safe-bottom));
-  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  padding-left: max(var(--space-2), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-2), var(--safe-right)); /* physical: a safe area is a screen edge */
   color: var(--ink);
   background: var(--paper);
   border-block-start: var(--bw) solid var(--line);
@@ -4784,7 +4833,8 @@ textarea.field__input {
   inline-size: 15rem;
   max-inline-size: 100%;
   padding-block: calc(var(--safe-top) + var(--space-2)) max(var(--space-3), var(--safe-bottom));
-  padding-inline: max(var(--space-3), var(--safe-left)) max(var(--space-3), var(--safe-right));
+  padding-left: max(var(--space-3), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-3), var(--safe-right)); /* physical: a safe area is a screen edge */
   overflow-y: auto;
   overscroll-behavior: contain;
   color: var(--ink);
@@ -6144,7 +6194,8 @@ dialog.sheet > .topbar {
   flex: 1 1 auto;
   min-block-size: 0;
   padding-block: var(--space-5) max(var(--space-5), var(--safe-bottom) + var(--space-2));
-  padding-inline: max(var(--space-4), var(--safe-left)) max(var(--space-4), var(--safe-right));
+  padding-left: max(var(--space-4), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-4), var(--safe-right)); /* physical: a safe area is a screen edge */
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-padding-block: var(--space-4);
@@ -6152,7 +6203,8 @@ dialog.sheet > .topbar {
 
 /* --- variant: side sheet ------------------------------------------------------
    Along the end edge, top to bottom, 28rem at most, and a sliver of the
-   page always left in view (48px, or 15% of a narrow window). Pinned with
+   page always left in view (48px, or 15% of a narrow window): the right
+   edge, or the left in right to left. Pinned with
    .sheet--side; a <dialog class="sheet"> becomes one from 45rem of window
    (below). Not :modal, which a closing sheet loses at once: the side
    sheet would turn into a bottom sheet halfway out of the window. */
@@ -6171,6 +6223,13 @@ dialog.sheet > .topbar {
   border-inline-start: var(--sheet-bw) solid var(--line);
 }
 
+/* right to left, it sits on the left edge: the left safe area is its own,
+   and the right one faces the page */
+.sheet--side:dir(rtl) {
+  --safe-left: inherit;
+  --safe-right: 0px;
+}
+
 @media (width >= 45rem) {
   dialog.sheet:not(.sheet--action) {
     --safe-top: inherit;
@@ -6185,6 +6244,11 @@ dialog.sheet > .topbar {
     border: 0;
     border-inline-start: var(--sheet-bw) solid var(--line);
   }
+
+  dialog.sheet:not(.sheet--action):dir(rtl) {
+    --safe-left: inherit;
+    --safe-right: 0px;
+  }
 }
 
 /* --- variant: action sheet ------------------------------------------------------
@@ -6198,7 +6262,8 @@ dialog.sheet > .topbar {
   flex-direction: column;
   gap: var(--space-1);
   padding-block: var(--space-2) max(var(--space-2), var(--safe-bottom));
-  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  padding-left: max(var(--space-2), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-2), var(--safe-right)); /* physical: a safe area is a screen edge */
 }
 
 /* on a window wider than it, it stops at 30rem, centred, framed on three
@@ -6368,7 +6433,8 @@ dialog.sheet:not([open])::backdrop {
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   padding-block: var(--space-3) calc(var(--space-3) + var(--safe-bottom));
-  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  padding-left: max(var(--gutter), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--gutter), var(--safe-right)); /* physical: a safe area is a screen edge */
   pointer-events: none;
 }
 
@@ -6760,8 +6826,7 @@ dialog.sheet:not([open])::backdrop {
    the top edge like a legend. Grey, not ink: ink means built. It holds the
    real copy, so a screen still reads. Each slot is swapped for the real
    element the day it ships.
-     <div class="wf-slot" data-wf="Nav bar">…</div>
-     <span class="wf-slot wf-slot--pill" data-wf="Button">Got it</span> */
+     <div class="wf-slot" data-wf="Nav bar">…</div> */
 .wf-slot {
   position: relative;
   display: flex;
@@ -6773,13 +6838,6 @@ dialog.sheet:not([open])::backdrop {
   font: var(--type-body);
   color: var(--ink-soft);
   border: var(--bw-thin) solid var(--line-soft);
-}
-
-.wf-slot--pill {
-  justify-content: center;
-  padding-inline: var(--space-5);
-  text-align: center;
-  border-radius: var(--radius-pill);
 }
 
 .wf-slot[data-wf]::before {
@@ -6796,12 +6854,6 @@ dialog.sheet:not([open])::backdrop {
   white-space: nowrap;
   color: var(--ink-soft);
   background: var(--wf-under, var(--canvas)); /* cuts the line: set it to what's behind */
-}
-
-.wf-slot--pill[data-wf]::before {
-  inset-inline: 0;
-  inline-size: fit-content;
-  margin-inline: auto;
 }
 
 /* disabled, as hatch. Lighter than the text on purpose: the words have to
@@ -6830,11 +6882,14 @@ dialog.sheet:not([open])::backdrop {
    the markup panes) use --sg-bar and --sg-on-bar instead of ink and paper:
    ink in light, and in dark the darkest ground, so a dark page doesn't get
    a white slab across its top. The scheme switch in the top bar comes from
-   js/sheet.js (data-scheme on :root, tokens/color.css).
+   js/sheet.js (data-scheme on :root, tokens/color.css), and so does the
+   direction switch beside it (dir on <html>).
    ========================================================================== */
 
 @layer sheet {
   :root {
+    /* code on these pages only: the system has one family (STYLE §2 Type) */
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
     --sg-pad: clamp(1rem, 3vw, 2.5rem);
     --sg-stage-pad: min(var(--space-5), 5vw); /* stays small on a phone at large text */
     --sg-text-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem); /* 24 -> 32 */
@@ -6872,6 +6927,14 @@ dialog.sheet:not([open])::backdrop {
     margin-inline: auto;
   }
 
+  /* code reads left to right whatever the page's direction, as code does in
+     an editor: in right to left, ".ic--back" would lose its dot to the far
+     end and the printed markup would run backwards */
+  :is(code, kbd, pre):dir(rtl) {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
   /* never under 13px, even inside small print */
   code,
   kbd {
@@ -6897,7 +6960,8 @@ dialog.sheet:not([open])::backdrop {
 
   .sg-skip:focus-visible {
     position: fixed;
-    inset: var(--space-2) auto auto var(--space-2);
+    inset-block: var(--space-2) auto;
+    inset-inline: var(--space-2) auto;
     z-index: 30;
     inline-size: auto;
     block-size: auto;
@@ -6952,9 +7016,11 @@ dialog.sheet:not([open])::backdrop {
     min-inline-size: min(100%, 14rem);
   }
 
-  /* --- the scheme switch: Auto, Light, Dark (js/sheet.js puts it here) ----- */
+  /* --- the scheme switch (Auto, Light, Dark) and the direction switch (LTR,
+     RTL): js/sheet.js puts them here ----------------------------------------- */
 
-  .sg-scheme {
+  .sg-scheme,
+  .sg-dir {
     margin-block: var(--space-1);
   }
 
@@ -7328,7 +7394,8 @@ dialog.sheet:not([open])::backdrop {
     gap: var(--space-5);
     min-block-size: 7.5rem;
     padding: var(--space-3);
-    margin: calc(var(--bw-thin) * -1) 0 0 calc(var(--bw-thin) * -1);
+    margin-block: calc(var(--bw-thin) * -1) 0;
+    margin-inline: calc(var(--bw-thin) * -1) 0;
     font: var(--type-meta);
     border: var(--bw-thin) solid var(--ink);
   }
@@ -7714,7 +7781,8 @@ dialog.sheet:not([open])::backdrop {
   }
 
   .sg-index :is(th, td) {
-    padding: var(--space-2) var(--space-4) var(--space-2) 0;
+    padding-block: var(--space-2);
+    padding-inline: 0 var(--space-4);
     text-align: start;
     vertical-align: baseline;
     overflow-wrap: anywhere;
@@ -8522,7 +8590,7 @@ dialog.sheet:not([open])::backdrop {
               <div>
                 <strong>Bar</strong><code>.card__bar</code>
                 <p>
-                  The frame made thicker: ink fill, a label on the left, one control on the right.
+                  The frame made thicker: ink fill, a label at the start, one control at the end.
                   The control is a 44px target around a 20px box.
                 </p>
               </div>
@@ -8790,7 +8858,7 @@ dialog.sheet:not([open])::backdrop {
               <code>.card__trail</code>
             </p>
             <p class="sg-entry__note">
-              Below 18rem the value on the right drops under the title. A card can't re-template
+              Below 18rem the value at the end drops under the title. A card can't re-template
               itself from its own width, but its children can move between grid cells.
             </p>
           </header>
@@ -10585,8 +10653,8 @@ dialog.sheet:not([open])::backdrop {
           <span class="sg-sec__idx">01</span>
           <h2 class="sg-sec__title" id="h-meter-variants">Variants</h2>
           <p class="sg-sec__note">
-            Three bars, one look: a square 2px frame filled from the start edge, the name on the
-            left, the amount on the right. Which one is a question of meaning, not looks.
+            Three bars, one look: a square 2px frame filled from the start edge, the name at the
+            start, the amount at the end. Which one is a question of meaning, not looks.
           </p>
         </div>
 
@@ -10767,6 +10835,63 @@ dialog.sheet:not([open])::backdrop {
               <button class="btn btn--primary" type="button" aria-busy="true" data-sg-code>
                 <span class="spinner" aria-hidden="true"></span>Add a shape
               </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.5 -->
+        <article class="sg-entry" id="meter-rtl">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.5</p>
+            <h3 class="sg-entry__name">Right to left</h3>
+            <p class="sg-entry__use">The meter, progress and segments on a right-to-left screen. Not a variant: the direction.</p>
+            <p class="sg-entry__classes"><code>dir="rtl"</code></p>
+            <p class="sg-entry__note">
+              Every bar fills from the start edge, which is the right: the meter's fill sits at
+              <code>inset-inline-start</code>, the native progress fills from the right by itself,
+              and the first segments are the rightmost. The label leads and the value trails.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem" dir="rtl">
+            <div class="meter" data-sg-code>
+              <span class="meter__label" id="meter-rtl-shapes">Shapes</span>
+              <span class="meter__value" aria-hidden="true">5 of 12 known</span>
+              <div
+                class="meter__bar"
+                role="meter"
+                aria-labelledby="meter-rtl-shapes"
+                aria-valuemin="0"
+                aria-valuemax="12"
+                aria-valuenow="5"
+                aria-valuetext="5 of 12 known"
+                style="--value: 41.67%"
+              ></div>
+            </div>
+            <div class="progress" data-sg-code>
+              <label class="progress__label" for="meter-rtl-import">Importing</label>
+              <span class="progress__value" aria-hidden="true">40 of 120 cards</span>
+              <progress
+                class="progress__bar"
+                id="meter-rtl-import"
+                max="120"
+                value="40"
+                aria-valuetext="40 of 120 cards"
+              >40 of 120 cards</progress>
+            </div>
+            <div class="meter meter--segments" data-sg-code>
+              <span class="meter__label" id="meter-rtl-colours">Colours</span>
+              <span class="meter__value" aria-hidden="true">3 of 8 known</span>
+              <div
+                class="meter__bar"
+                role="meter"
+                aria-labelledby="meter-rtl-colours"
+                aria-valuemin="0"
+                aria-valuemax="8"
+                aria-valuenow="3"
+                aria-valuetext="3 of 8 known"
+              >
+                <i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i>
+              </div>
             </div>
           </div>
         </article>
@@ -12577,9 +12702,9 @@ dialog.sheet:not([open])::backdrop {
                       <span class="segmented__label"><span class="ic ic--decks" aria-hidden="true"></span>All</span>
                     </label>
                   </div>
-                  <span class="sg-n sg-anat__frame" style="inset: -0.75rem auto auto 70%" aria-hidden="true">4</span>
-                  <span class="sg-n sg-anat__frame" style="inset: auto auto -0.75rem 38%" aria-hidden="true">5</span>
-                  <span class="sg-n sg-anat__frame" style="inset: auto auto -0.75rem 0.5rem" aria-hidden="true">6</span>
+                  <span class="sg-n sg-anat__frame" style="inset-block: -0.75rem auto; inset-inline: 70% auto" aria-hidden="true">4</span>
+                  <span class="sg-n sg-anat__frame" style="inset-block: auto -0.75rem; inset-inline: 38% auto" aria-hidden="true">5</span>
+                  <span class="sg-n sg-anat__frame" style="inset-block: auto -0.75rem; inset-inline: 0.5rem auto" aria-hidden="true">6</span>
                 </div>
               </fieldset>
             </div>
@@ -12983,7 +13108,7 @@ dialog.sheet:not([open])::backdrop {
                     <option value="ink">Ink</option>
                   </select>
                   <span class="ic ic--down select__icon" aria-hidden="true"></span>
-                  <span class="sg-n sg-anat__frame" style="inset: -0.75rem -0.75rem auto auto" aria-hidden="true">5</span>
+                  <span class="sg-n sg-anat__frame" style="inset-block: -0.75rem auto; inset-inline: auto -0.75rem" aria-hidden="true">5</span>
                 </div>
               </div>
             </div>
@@ -13357,7 +13482,7 @@ dialog.sheet:not([open])::backdrop {
                   />
                   <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-anat-session" aria-describedby="stepper-anat-session-help" hidden>
                     <span class="ic ic--plus" aria-hidden="true"></span>
-                    <span class="sg-n sg-anat__frame" style="inset: -0.75rem -0.75rem auto auto" aria-hidden="true">5</span>
+                    <span class="sg-n sg-anat__frame" style="inset-block: -0.75rem auto; inset-inline: auto -0.75rem" aria-hidden="true">5</span>
                   </button>
                   <span class="sg-n sg-anat__frame" style="inset-inline-start: calc(var(--hit) + var(--space-2) + 1.125rem)" aria-hidden="true">4</span>
                 </div>
@@ -13471,6 +13596,51 @@ dialog.sheet:not([open])::backdrop {
                   aria-describedby="stepper-default-session-help"
                 />
                 <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-default-session" aria-describedby="stepper-default-session-help" hidden>
+                  <span class="ic ic--plus" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="stepper-rtl">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Right to left</h3>
+            <p class="sg-entry__use">The same stepper on a right-to-left screen. Not a variant: the direction.</p>
+            <p class="sg-entry__classes"><code>dir="rtl"</code></p>
+            <p class="sg-entry__note">
+              The row runs from the right, as every row does: − at the start, + at the end, so more
+              is towards the end of the line. The glyphs are symmetric and the digits keep their
+              order (numbers don't mirror), so nothing in the stepper changes. Up and Down still
+              step from inside the value.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div class="field" dir="rtl" data-sg-code>
+              <label class="field__label" for="stepper-rtl-session">Cards per session</label>
+              <p class="field__help" id="stepper-rtl-session-help">From 5 to 50, in fives.</p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-rtl-session" aria-describedby="stepper-rtl-session-help" hidden>
+                  <span class="ic ic--minus" aria-hidden="true"></span>
+                </button>
+                <input
+                  class="field__input stepper__input"
+                  id="stepper-rtl-session"
+                  type="text"
+                  name="per-session"
+                  inputmode="numeric"
+                  pattern="5|[1-4][05]|50"
+                  value="20"
+                  autocomplete="off"
+                  enterkeyhint="done"
+                  data-min="5"
+                  data-max="50"
+                  data-step="5"
+                  aria-describedby="stepper-rtl-session-help"
+                />
+                <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-rtl-session" aria-describedby="stepper-rtl-session-help" hidden>
                   <span class="ic ic--plus" aria-hidden="true"></span>
                 </button>
               </div>
@@ -14212,17 +14382,17 @@ dialog.sheet:not([open])::backdrop {
                 <div class="sg-phone__status" aria-hidden="true">
                   <span>9:41</span><span class="sg-phone__batt"></span>
                 </div>
-                <span class="sg-n sg-anat__frame" style="inset: auto auto 6px 8px" aria-hidden="true">1</span>
+                <span class="sg-n sg-anat__frame" style="inset-block: auto 6px; inset-inline: 8px auto" aria-hidden="true">1</span>
                 <div class="frame">
                   <header class="frame__top topbar">
-                    <span class="sg-n sg-anat__frame" style="inset: auto 1rem -0.75rem auto" aria-hidden="true">2</span>
+                    <span class="sg-n sg-anat__frame" style="inset-block: auto -0.75rem; inset-inline: auto 1rem" aria-hidden="true">2</span>
                     <a class="btn btn--quiet topbar__back" href="#">
                       <span class="ic ic--back" aria-hidden="true"></span>Decks
                     </a>
                     <h3 class="topbar__title">Shapes</h3>
                   </header>
                   <div class="frame__scroll">
-                    <span class="sg-n sg-anat__frame" style="inset: 166px 16px auto auto" aria-hidden="true">3</span>
+                    <span class="sg-n sg-anat__frame" style="inset-block: 166px auto; inset-inline: auto 16px" aria-hidden="true">3</span>
                     <p class="t-meta">12 cards · 5 known · 7 due</p>
                     <ul class="card-grid" role="list" style="--card-min: 9rem">
                       <li>
@@ -14260,7 +14430,7 @@ dialog.sheet:not([open])::backdrop {
                     </ul>
                   </div>
                   <nav class="frame__bottom tabbar" aria-label="Places">
-                    <span class="sg-n sg-anat__frame" style="inset: -0.75rem 1rem auto auto" aria-hidden="true">4</span>
+                    <span class="sg-n sg-anat__frame" style="inset-block: -0.75rem auto; inset-inline: auto 1rem" aria-hidden="true">4</span>
                     <ul class="tabbar__list" role="list">
                       <li>
                         <a class="tabbar__link" href="#">
@@ -15098,6 +15268,39 @@ dialog.sheet:not([open])::backdrop {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.4 -->
+        <article class="sg-entry" id="topbar-rtl">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.4</p>
+            <h3 class="sg-entry__name">Right to left</h3>
+            <p class="sg-entry__use">The standard bar on a right-to-left screen. Not a variant: the direction.</p>
+            <p class="sg-entry__classes"><code>dir="rtl"</code> <code>.ic--back</code></p>
+            <p class="sg-entry__note">
+              The back link leads from the right and its chevron turns to point right, back along
+              the line (<code>.ic--back</code> mirrors under <code>:dir(rtl)</code>); the actions
+              trail on the left. The side safe areas stay where the screen's edges are.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div style="max-inline-size: 390px" dir="rtl">
+              <header class="topbar" data-sg-code>
+                <a class="btn btn--quiet topbar__back" href="#">
+                  <span class="ic ic--back" aria-hidden="true"></span>Decks
+                </a>
+                <h4 class="topbar__title">Shapes</h4>
+                <div class="topbar__actions">
+                  <button class="btn btn--icon btn--quiet" type="button" aria-label="Search cards">
+                    <span class="ic ic--search" aria-hidden="true"></span>
+                  </button>
+                  <button class="btn btn--icon btn--quiet" type="button" aria-label="Add a shape">
+                    <span class="ic ic--plus" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </header>
             </div>
           </div>
         </article>
@@ -17357,7 +17560,7 @@ dialog.sheet:not([open])::backdrop {
                   <span class="ic ic--more" aria-hidden="true"></span>
                 </button>
               </div>
-              <div style="position: relative; inline-size: min(15rem, 100%); margin: var(--space-1) 0 0 auto">
+              <div style="position: relative; inline-size: min(15rem, 100%); margin-block: var(--space-1) 0; margin-inline: auto 0">
                 <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -0.6875rem; inset-inline-start: -0.6875rem; z-index: 3">2</span>
                 <div class="menu" style="inline-size: 100%">
                   <button class="btn btn--quiet btn--block menu__item" type="button" data-n="3">Rename</button>
@@ -17525,7 +17728,7 @@ dialog.sheet:not([open])::backdrop {
                 <span class="ic ic--more" aria-hidden="true"></span>
               </button>
             </div>
-            <div class="menu" style="margin: var(--space-1) 0 0 auto">
+            <div class="menu" style="margin-block: var(--space-1) 0; margin-inline: auto 0">
               <button class="btn btn--quiet btn--block menu__item" type="button">Rename</button>
               <button class="btn btn--quiet btn--block menu__item" type="button">Duplicate</button>
               <button class="btn btn--quiet btn--block menu__item" type="button">Export</button>
@@ -17698,11 +17901,11 @@ dialog.sheet:not([open])::backdrop {
                   </div>
                 </div>
                 <div style="position: absolute; inset: 0; z-index: 1; display: grid; grid-template-rows: minmax(0, 1fr); background: var(--scrim)">
-                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 6.5rem auto auto 1rem">1</span>
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: 6.5rem auto; inset-inline: 1rem auto">1</span>
                   <div
                     style="position: relative; display: flex; flex-direction: column; inline-size: min(28rem, 100% - 2 * min(var(--space-4), 5vw)); max-block-size: calc(100% - 2 * min(var(--space-4), 5vw)); margin: auto"
                   >
-                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: -0.6875rem auto auto -0.6875rem; z-index: 3">2</span>
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: -0.6875rem auto; inset-inline: -0.6875rem auto; z-index: 3">2</span>
                     <div class="dialog" style="inline-size: 100%; min-block-size: 0">
                       <h4 class="dialog__title" data-n="3">Delete Shapes?</h4>
                       <p class="dialog__text" data-n="4">Its 12 cards go too.</p>
@@ -17714,7 +17917,7 @@ dialog.sheet:not([open])::backdrop {
                     <span
                       class="sg-n"
                       aria-hidden="true"
-                      style="position: absolute; inset: auto auto calc(min(var(--space-5), 6vw) + 1.375rem) -0.6875rem; translate: 0 50%; z-index: 3"
+                      style="position: absolute; inset-block: auto calc(min(var(--space-5), 6vw) + 1.375rem); inset-inline: -0.6875rem auto; translate: 0 50%; z-index: 3"
                       >5</span
                     >
                   </div>
@@ -18174,9 +18377,9 @@ dialog.sheet:not([open])::backdrop {
                   </div>
                 </div>
                 <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
-                <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 6.5rem auto auto 1rem; z-index: 1">1</span>
+                <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: 6.5rem auto; inset-inline: 1rem auto; z-index: 1">1</span>
                 <div class="sheet" style="position: absolute; z-index: 1; overflow: visible">
-                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: -0.6875rem auto auto var(--space-4); z-index: 3">2</span>
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: -0.6875rem auto; inset-inline: var(--space-4) auto; z-index: 3">2</span>
                   <header class="topbar" style="position: relative">
                     <h4 class="topbar__title">Add a card</h4>
                     <div class="topbar__actions">
@@ -18184,7 +18387,7 @@ dialog.sheet:not([open])::backdrop {
                         <span class="ic ic--close" aria-hidden="true"></span>
                       </button>
                     </div>
-                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: auto auto -0.6875rem var(--space-4); z-index: 3">3</span>
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: auto -0.6875rem; inset-inline: var(--space-4) auto; z-index: 3">3</span>
                     <span
                       class="sg-n"
                       aria-hidden="true"
@@ -18193,7 +18396,7 @@ dialog.sheet:not([open])::backdrop {
                     >
                   </header>
                   <div class="sheet__body" style="position: relative">
-                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 0.125rem 0.25rem auto auto">5</span>
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: 0.125rem auto; inset-inline: auto 0.25rem">5</span>
                     <div class="form">
                       <div class="field">
                         <label class="field__label">Front</label>
@@ -18210,7 +18413,7 @@ dialog.sheet:not([open])::backdrop {
                       </div>
                     </div>
                   </div>
-                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: auto var(--space-4) 0.375rem auto">6</span>
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: auto 0.375rem; inset-inline: auto var(--space-4)">6</span>
                 </div>
                 <span class="sg-phone__home" aria-hidden="true"></span>
               </div>
@@ -18669,6 +18872,98 @@ dialog.sheet:not([open])::backdrop {
                 <hr class="menu__rule" />
                 <button class="btn btn--quiet btn--block menu__item" value="delete">Delete deck…</button>
               </form>
+            </dialog>
+          </div>
+        </article>
+
+        <!-- 2.4 -->
+        <article class="sg-entry" id="sheet-rtl">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.4</p>
+            <h3 class="sg-entry__name">Right to left</h3>
+            <p class="sg-entry__use">The side sheet on a right-to-left screen. Not a variant: the direction.</p>
+            <p class="sg-entry__classes"><code>dir="rtl"</code> <code>--sheet-end</code></p>
+            <p class="sg-entry__note">
+              The end edge is the left, so the sheet sits there, framed on its right, and slides in
+              from the left: <code>--sheet-end</code> is -100% under <code>:dir(rtl)</code>. It pads
+              the left safe area and zeroes the right one, which faces the page. The bottom sheet
+              and its drag are vertical, so they don't change.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-device" style="inline-size: 100%; block-size: 24rem" dir="rtl" inert>
+              <div class="frame">
+                <header class="frame__top topbar">
+                  <a class="btn btn--quiet topbar__back" href="#">
+                    <span class="ic ic--back" aria-hidden="true"></span>Decks
+                  </a>
+                  <h4 class="topbar__title">Shapes</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Add a card">
+                      <span class="ic ic--plus" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="frame__scroll">
+                  <p class="t-meta">12 cards · 5 known · 7 due</p>
+                </div>
+              </div>
+              <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
+              <div class="sheet sheet--side" style="position: absolute; z-index: 1">
+                <header class="topbar">
+                  <h4 class="topbar__title">Add a card</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="sheet__body">
+                  <div class="field">
+                    <label class="field__label">Front</label>
+                    <p class="field__help">What you see first.</p>
+                    <input class="field__input" type="text" value="Four equal sides" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="sheet-rtl-side" command="show-modal" data-sg-code>
+                <span class="ic ic--plus" aria-hidden="true"></span>Add a card
+              </button>
+              <p class="t-meta" aria-live="polite" data-sg-return="sheet-rtl-side">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog class="sheet sheet--side" id="sheet-rtl-side" dir="rtl" aria-labelledby="sheet-rtl-side-title" data-sg-code>
+              <header class="topbar">
+                <h2 class="topbar__title" id="sheet-rtl-side-title">Add a card</h2>
+                <form class="topbar__actions" method="dialog">
+                  <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+                    <span class="ic ic--close" aria-hidden="true"></span>
+                  </button>
+                </form>
+              </header>
+              <div class="sheet__body">
+                <form class="form" method="dialog">
+                  <div class="field">
+                    <label class="field__label" for="sheet-rtl-side-front">Front</label>
+                    <p class="field__help" id="sheet-rtl-side-front-help">What you see first.</p>
+                    <input
+                      class="field__input"
+                      id="sheet-rtl-side-front"
+                      name="front"
+                      type="text"
+                      autofocus
+                      autocomplete="off"
+                      autocapitalize="sentences"
+                      enterkeyhint="done"
+                      aria-describedby="sheet-rtl-side-front-help"
+                    />
+                  </div>
+                  <div class="form__actions">
+                    <button class="btn btn--primary" value="add">Add card</button>
+                  </div>
+                </form>
+              </div>
             </dialog>
           </div>
         </article>
@@ -21721,7 +22016,8 @@ dialog.sheet:not([open])::backdrop {
 /* ==========================================================================
    sheet.js — the style-sheet pages' own behaviour. Not shipped to apps.
 
-   0. The scheme switch (Auto, Light, Dark) in the top bar.
+   0. The scheme switch (Auto, Light, Dark) and the direction switch (LTR,
+      RTL) in the top bar.
    1. Prints each specimen's markup under it, read from the live element.
    2. Computes the colour swatches' contrast from whatever the tokens say.
    Also: the iOS :active listener, and demo links that don't jump.
@@ -21755,36 +22051,67 @@ dialog.sheet:not([open])::backdrop {
   var scheme = storedScheme();
   applyScheme(scheme); // first, so the page paints in it
 
+  /* ---- 0b. the direction: LTR, or RTL, which puts dir="rtl" on <html> so
+     the whole page, the bar included, runs right to left. The specimens'
+     copy stays English: the point is the layout. Remembered the same way;
+     js/sheet-scheme.js sets it in the head, before the first paint. ---- */
+  var DIR_KEY = "flashcards-sheet-dir";
+  var DIRS = [["ltr", "LTR"], ["rtl", "RTL"]];
+  function storedDir() {
+    var v = null;
+    try { v = window.localStorage.getItem(DIR_KEY); } catch (e) { v = null; }
+    return v === "rtl" ? "rtl" : "ltr";
+  }
+  function storeDir(v) {
+    try {
+      if (v === "rtl") window.localStorage.setItem(DIR_KEY, v);
+      else window.localStorage.removeItem(DIR_KEY);
+    } catch (e) { /* not remembered, still applied */ }
+  }
+  function applyDir(v) {
+    if (v === "rtl") root.setAttribute("dir", "rtl");
+    else root.removeAttribute("dir");
+  }
+  var dir = storedDir();
+  applyDir(dir);
+
   // A real radio group, the text-size switch's pattern: one tab stop, arrows
   // move the choice, the group's name comes from its legend.
-  var bar = document.querySelector(".sg-top__in");
-  if (bar) {
+  function choice(bar, cls, name, title, options, current, change) {
     var set = document.createElement("fieldset");
-    set.className = "sg-ctl sg-scheme";
+    set.className = "sg-ctl " + cls;
     var legend = document.createElement("legend");
     legend.className = "sr-only";
-    legend.textContent = "Colour scheme";
+    legend.textContent = title;
     var seg = document.createElement("div");
     seg.className = "sg-seg";
-    SCHEMES.forEach(function (s) {
+    options.forEach(function (o) {
       var label = document.createElement("label");
       var input = document.createElement("input");
       input.type = "radio";
-      input.name = "sg-scheme";
-      input.value = s[0];
-      input.checked = s[0] === scheme;
+      input.name = name;
+      input.value = o[0];
+      input.checked = o[0] === current;
       label.appendChild(input);
-      label.appendChild(document.createTextNode(s[1]));
+      label.appendChild(document.createTextNode(o[1]));
       seg.appendChild(label);
     });
-    seg.addEventListener("change", function (e) {
-      applyScheme(e.target.value);
-      storeScheme(e.target.value);
-      ratios();
-    });
+    seg.addEventListener("change", function (e) { change(e.target.value); });
     set.appendChild(legend);
     set.appendChild(seg);
     bar.appendChild(set);
+  }
+  var bar = document.querySelector(".sg-top__in");
+  if (bar) {
+    choice(bar, "sg-scheme", "sg-scheme", "Colour scheme", SCHEMES, scheme, function (v) {
+      applyScheme(v);
+      storeScheme(v);
+      ratios();
+    });
+    choice(bar, "sg-dir", "sg-dir", "Direction", DIRS, dir, function (v) {
+      applyDir(v);
+      storeDir(v);
+    });
   }
 
   // iOS Safari only applies :active when a touchstart listener exists.

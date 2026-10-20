@@ -80,6 +80,9 @@ Neither has states of its own. What changes:
 - Dark: the ink tag and the badge are light squares with dark words, the one place a tag is
   brighter than its card; the tones are dark greys, 1 still the quietest.
 
+**Right to left.** A badge pins to its control's end corner (`inset-inline-end`), so it sits top
+left. A tag is words, and follows them.
+
 ## Platforms
 
 - **Installed PWA:** the home-screen icon badge is the system's, set with the Badging API

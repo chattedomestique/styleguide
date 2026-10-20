@@ -111,6 +111,9 @@ keyboard is instant: the keyboard is already moving.
 - Each item is at least 44 × 44px; at 100% text on a 390-point phone each is about 123 × 64.
 - Here never relies on colour: a doubled frame, a 4px frame in forced colours.
 
+**Right to left.** The places run from the right in the same order, so the first is rightmost, and
+each badge pins to its pill's end corner. Nothing in the bar moves, so nothing else changes.
+
 ## Platforms
 
 - **Installed PWA:** it owns `--safe-bottom`, so it sits above the home indicator with its paper

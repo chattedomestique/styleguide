@@ -143,6 +143,10 @@ fades over `--dur-fade`.
   colours in forced colours. Focus is a ring outside the pill, never a fill, so it never looks
   like the choice.
 
+**Right to left.** The segments run from the right, so the first is rightmost, and the pill's round
+ends follow it (`border-start-start-radius` and the rest are logical). The chosen segment's fill
+crossfades and never slides, so nothing else changes.
+
 ## Platforms
 
 - **Installed PWA:** touch has no hover, so the press fills the segment at once and the shell's

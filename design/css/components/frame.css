@@ -17,6 +17,10 @@
      safe-area inset. The frame pads only the edges no bar covers: the
      status bar on a root screen, the home indicator with no bottom bar,
      the sides of the scroll region. Content never reads --safe-*.
+   · Right to left mirrors the frame: the sidebar is on the right. A safe
+     area is an edge of the screen, not of the line, so a bar pads the left
+     and right ones physically (opted out of check 10 with a reason) and
+     whatever the sidebar covers swaps sides under :dir(rtl).
    · One scroller: the scroll region. The page itself never scrolls, so a
      phone's browser bars stay put and dvh doesn't jump.
    · The frame is a container (inline size), so --gutter re-pointed here
@@ -98,7 +102,9 @@
   /* --frame-column caps the content's width and centres it: set it to
      var(--measure) on a reading screen. The default fills the frame. */
   padding-block: var(--space-5) var(--space-7);
-  /* published, so an edge-to-edge child (a plain List) can reach over them */
+  /* published, so an edge-to-edge child (a plain List) can reach over them.
+     The safe areas are the screen's left and right, so the start reads the
+     left one, and the right one in right to left (below). */
   --frame-pad-start: max(var(--gutter), var(--safe-left));
   --frame-pad-end: max(var(--gutter), var(--safe-right));
   padding-inline: max(var(--frame-pad-start), (100% - var(--frame-column, 100%)) / 2)
@@ -110,6 +116,11 @@
      ring is drawn round the card, but it's the link inside that's scrolled
      to (elements/frame.md, Known limits). */
   scroll-padding-block: var(--space-4) var(--space-7);
+}
+
+.frame__scroll:dir(rtl) {
+  --frame-pad-start: max(var(--gutter), var(--safe-right));
+  --frame-pad-end: max(var(--gutter), var(--safe-left));
 }
 
 /* With nothing focusable inside it, a browser makes the region itself a tab
@@ -149,7 +160,8 @@
 
 .frame--task > .frame__bottom {
   padding-block: var(--space-4) max(var(--space-4), var(--safe-bottom));
-  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  padding-left: max(var(--gutter), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--gutter), var(--safe-right)); /* physical: a safe area is a screen edge */
   background: var(--paper);
   border-block-start: var(--bw) solid var(--line);
 }
@@ -184,13 +196,24 @@
     display: none;
   }
 
-  /* the sidebar covers the start edge, and its safe area with it */
+  /* the sidebar covers the start edge, and its safe area with it: the
+     left one, or the right one in right to left */
   .frame--wide > :not(.frame__side) {
     --safe-left: 0px;
   }
 
   .frame--wide > .frame__side {
     --safe-right: 0px;
+  }
+
+  .frame--wide:dir(rtl) > :not(.frame__side) {
+    --safe-left: inherit;
+    --safe-right: 0px;
+  }
+
+  .frame--wide:dir(rtl) > .frame__side {
+    --safe-left: 0px;
+    --safe-right: inherit;
   }
 
   .frame--wide > .frame__scroll {

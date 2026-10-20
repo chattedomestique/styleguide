@@ -23,6 +23,13 @@
                               and dark (light-dark() resolved), each with more
                               contrast; the scrim; the fallback for engines
                               without light-dark()
+    10  direction             components are written for both directions: no
+                              physical left or right (margin, padding, border,
+                              inset, radius corners, text-align, float, clear,
+                              positions), no move along the line that ignores
+                              it; a physical one on purpose says why on its line
+    11  the contract          API.md (tools/api.mjs) is current with the code, and
+                              the script API it lists is named in a spec
 
    Checks 2–5 cover sheet.css and screens.css too: the pages that teach the
    rules keep them. Check 5 also reads the PWA starter's own CSS (pwa/*.css).
@@ -32,6 +39,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadColours, contrast, luminance, toHex } from "./accent.mjs";
+import { apiProblems } from "./api.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CSS = join(ROOT, "css");
@@ -55,9 +63,12 @@ const lineOf = (s, i) => s.slice(0, i).split("\n").length;
 
 const cssFiles = walk(CSS).filter((p) => p.endsWith(".css"));
 const isColourFile = (p) => /tokens[\\/]color[^\\/]*\.css$/.test(p);
-const isSheet = (p) => basename(p) === "sheet.css";
-const isPage = (p) => isSheet(p) || basename(p) === "screens.css"; // the pages' own CSS
-const isWire = (p) => basename(p) === "wire.css";
+/* by path under css/, not by name: css/components/sheet.css is the Sheet element,
+   shipped like any other, and only css/sheet.css is the pages' chrome */
+const top = (name) => (p) => relative(CSS, p) === name;
+const isSheet = top("sheet.css");
+const isPage = (p) => isSheet(p) || top("screens.css")(p); // the pages' own CSS
+const isWire = top("wire.css");
 const isComponent = (p) => /components[\\/]/.test(p);
 const shipped = cssFiles.filter((p) => !isSheet(p)); // what an app links: check 6 only
 
@@ -500,6 +511,159 @@ for (const s of Object.values(files)) {
   }
   check("contrast, in light and dark, with and without more contrast", [...new Set(problems)], colours ? colours.rel : "");
 }
+
+/* ---- 10 direction: begins ------------------------------------------------------
+   Wave 8, right to left. Self-contained: from the rest of this file it reads
+   only readdirSync and join (imports), ROOT, cssFiles, files, isColourFile,
+   pages, rel, read, stripComments, lineOf and check(). Ends at
+   "10 direction: ends".
+
+   Components are written for both directions (STYLE.md §2). In every CSS
+   file but tokens/color.css (the starter's pwa/*.css included), and in the
+   pages' style attributes, a declaration fails when it is physical along
+   the line:
+   - margin-, padding-, scroll-margin- and scroll-padding-left and -right;
+     border-left and -right and their -width, -style and -color; left and
+     right as properties; the border-top-left- (and the other three corner)
+     -radius longhands;
+   - text-align(-last), float and clear, and justify-content, -items and
+     -self, set to left or right;
+   - background-, mask- and object-position, transform-origin and
+     perspective-origin (and the background and mask shorthands), and
+     position-area and anchor(), naming left or right;
+   - a four-value margin, padding, inset, scroll-margin, scroll-padding or
+     border-width, -style or -color whose right and left differ;
+   - a move along the line that ignores the direction: translate with a
+     non-zero x, translateX(), translate() or translate3d() with a non-zero
+     x, or rotateY() or rotate: y, with no var() to carry the sign, outside
+     a :dir() rule.
+   A declaration that is physical on purpose (a safe area is an edge of the
+   screen, not of the line) opts out with a comment at the end of its line
+   that starts "physical:" and says why. An opt-out with no reason, or on a
+   line with nothing physical, fails too, so none goes stale. */
+{
+  const problems = [];
+  const OPT_OUT = /\/\*\s*physical:([^*]*)\*\//;
+  const SIDE = /\b(left|right)\b/i;
+  const blank = (s, re) => s.replace(re, (m) => m.replace(/[^\n]/g, " "));
+  const words = (v) => {
+    const out = [];
+    let depth = 0, cur = "";
+    for (const ch of v) {
+      if (ch === "(") depth++;
+      if (ch === ")") depth--;
+      if (depth === 0 && /\s/.test(ch)) { if (cur) out.push(cur); cur = ""; } else cur += ch;
+    }
+    if (cur) out.push(cur);
+    return out;
+  };
+  const zero = (t) => /^[-+]?0*\.?0*([a-z%]+)?$/i.test(t) && !/[1-9]/.test(t);
+  const signed = (t) => /var\(/.test(t);
+  const inline = (side) => (side === "left" ? "start" : "end");
+
+  /* what is physical about one declaration, or null */
+  function physical(prop, value, inDir) {
+    let m;
+    const v = value.trim();
+    if ((m = /^(margin|padding|scroll-margin|scroll-padding|border)-(left|right)(-(?:width|style|color))?$/.exec(prop)))
+      return `${prop}: use ${m[1]}-inline-${inline(m[2])}${m[3] || ""}`;
+    if ((m = /^border-(top|bottom)-(left|right)-radius$/.exec(prop)))
+      return `${prop}: use border-${m[1] === "top" ? "start" : "end"}-${inline(m[2])}-radius`;
+    if (prop === "left" || prop === "right") return `${prop}: use inset-inline-${inline(prop)}`;
+    if (/^(text-align(-last)?|justify-(content|items|self))$/.test(prop) && SIDE.test(v)) return `${prop}: ${v}: use start or end`;
+    if (/^(float|clear)$/.test(prop) && SIDE.test(v)) return `${prop}: ${v}: use inline-start or inline-end`;
+    if (/^((-webkit-)?mask|background)(-position(-x)?)?$|^(object-position|transform-origin|perspective-origin|position-area|inset-area)$/.test(prop) && SIDE.test(v))
+      return `${prop} names left or right: use the start or end form, or a direction-aware value`;
+    if (/\banchor\([^)]*\b(left|right)\b/.test(v)) return `anchor() names left or right: use start or end`;
+    if (/^(margin|padding|inset|scroll-margin|scroll-padding|border-width|border-style|border-color)$/.test(prop)) {
+      const t = words(v);
+      if (t.length === 4 && t[1] !== t[3]) return `${prop}: ${v}: its right and left differ: use the -block and -inline forms`;
+    }
+    if (!inDir) {
+      if (prop === "translate") {
+        const x = words(v)[0];
+        if (x && x !== "none" && !zero(x) && !signed(x)) return `translate: ${v} moves along the line whatever the direction: carry the sign in a var() set under :dir(rtl)`;
+      }
+      if (prop === "rotate") {
+        const t = words(v);
+        if (t[0] === "y" && t[1] && !zero(t[1]) && !signed(t[1])) return `rotate: ${v} turns along the line whatever the direction: carry the sign in a var() set under :dir(rtl)`;
+      }
+      for (const f of v.matchAll(/\b(translateX|translate3d|translate|rotateY)\(((?:[^()]|\([^()]*\))*)\)/g)) {
+        const x = f[2].split(",")[0].trim();
+        if (x && !zero(x) && !signed(x)) return `${f[1]}(${f[2]}) moves along the line whatever the direction: carry the sign in a var() set under :dir(rtl)`;
+      }
+    }
+    return null;
+  }
+
+  /* one file or attribute's verdicts: an opt-out needs a reason and a use */
+  function judge(where, lines, found) {
+    const used = new Set();
+    for (const { line, endLine, prop, msg } of found) {
+      const hit = [line, endLine].map((n) => ({ n, m: OPT_OUT.exec(lines[n - 1] || "") })).find((o) => o.m);
+      if (!hit) { problems.push(`${where}:${line} ${msg} (physical on purpose? end the line with /* physical: why */)`); continue; }
+      used.add(hit.n);
+      if (!hit.m[1].trim()) problems.push(`${where}:${hit.n} ${prop} opts out with no reason: say why it is physical`);
+    }
+    lines.forEach((l, i) => {
+      if (OPT_OUT.test(l) && !used.has(i + 1)) problems.push(`${where}:${i + 1} a "physical:" opt-out on a line with nothing physical`);
+    });
+  }
+
+  /* every declaration in a stylesheet, with the blocks it sits in */
+  function* declarations(s) {
+    const stack = [];
+    let start = 0;
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      if (ch !== "{" && ch !== ";" && ch !== "}") continue;
+      const text = s.slice(start, i);
+      if (ch === "{") stack.push(text.trim().replace(/\s+/g, " "));
+      else {
+        const m = /^\s*(--[\w-]+|-?[a-z][\w-]*)\s*:([\s\S]*)$/i.exec(text);
+        if (m && stack.length) yield { prop: m[1].toLowerCase(), value: m[2], index: start + text.search(/\S/), end: i, stack: [...stack] };
+        if (ch === "}") stack.pop();
+      }
+      start = i + 1;
+    }
+  }
+
+  const starter = readdirSync(join(ROOT, "pwa")).filter((n) => n.endsWith(".css")).map((n) => join(ROOT, "pwa", n));
+  for (const p of [...cssFiles.filter((f) => !isColourFile(f)), ...starter]) {
+    const raw = read(p);
+    const s = blank(blank(files[p] ?? stripComments(raw), /"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g), /url\([^)]*\)/g);
+    const found = [];
+    for (const d of declarations(s)) {
+      const msg = physical(d.prop, d.value, d.stack.some((b) => b.includes(":dir(")));
+      if (msg) found.push({ line: lineOf(s, d.index), endLine: lineOf(s, d.end), prop: d.prop, msg });
+    }
+    judge(rel(p), raw.split("\n"), found);
+  }
+  for (const [name, page] of Object.entries(pages)) {
+    const found = [];
+    for (const a of page.matchAll(/\sstyle="([^"]*)"/g)) {
+      const base = a.index + a[0].indexOf('"') + 1;
+      let at = 0;
+      for (const decl of stripComments(a[1]).split(";")) {
+        const m = /^\s*(--[\w-]+|-?[a-z][\w-]*)\s*:([\s\S]*)$/i.exec(decl);
+        if (m) {
+          const msg = physical(m[1].toLowerCase(), m[2], false);
+          const i = base + at + decl.search(/\S/);
+          if (msg) found.push({ line: lineOf(page, i), endLine: lineOf(page, base + at + decl.length), prop: m[1], msg });
+        }
+        at += decl.length + 1;
+      }
+    }
+    judge(name, page.split("\n"), found);
+  }
+  check("components are written for both directions", [...new Set(problems)]);
+}
+/* ---- 10 direction: ends ---------------------------------------------------- */
+
+/* ---- 11 the contract ------------------------------------------------------
+   API.md, generated by tools/api.mjs, is current with the code, and the script
+   API it lists (globals, events, data attributes, the meta) is named in a spec. */
+check("API.md lists the public API, current with the code", apiProblems());
 
 /* ---- report ------------------------------------------------------------------ */
 let failed = 0;

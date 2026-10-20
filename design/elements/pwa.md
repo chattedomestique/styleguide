@@ -255,6 +255,11 @@ the cards' and toasts' frames, the switch's knob and every glyph stay, in system
   padding keeps it and its ring in view where the page shrinks.
 - Every control is a 44px target: Install, Reload, Turn on, Not now, Share, Export, Import.
 
+**Right to left.** The starter takes its direction from `dir` on `<html>` (the manifest says `dir:
+"auto"`). The bars pad the side safe areas physically, so a landscape notch is cleared on whichever
+side it is, and ↗ (`ic--arrow`) mirrors to ↖ with the rest of the directional glyphs
+(`elements/icons.md`).
+
 ## Platforms
 
 - **Installed PWA:** this whole file. What needs a device, and isn't verified here:

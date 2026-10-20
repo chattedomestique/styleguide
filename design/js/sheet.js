@@ -1,7 +1,8 @@
 /* ==========================================================================
    sheet.js — the style-sheet pages' own behaviour. Not shipped to apps.
 
-   0. The scheme switch (Auto, Light, Dark) in the top bar.
+   0. The scheme switch (Auto, Light, Dark) and the direction switch (LTR,
+      RTL) in the top bar.
    1. Prints each specimen's markup under it, read from the live element.
    2. Computes the colour swatches' contrast from whatever the tokens say.
    Also: the iOS :active listener, and demo links that don't jump.
@@ -35,36 +36,67 @@
   var scheme = storedScheme();
   applyScheme(scheme); // first, so the page paints in it
 
+  /* ---- 0b. the direction: LTR, or RTL, which puts dir="rtl" on <html> so
+     the whole page, the bar included, runs right to left. The specimens'
+     copy stays English: the point is the layout. Remembered the same way;
+     js/sheet-scheme.js sets it in the head, before the first paint. ---- */
+  var DIR_KEY = "flashcards-sheet-dir";
+  var DIRS = [["ltr", "LTR"], ["rtl", "RTL"]];
+  function storedDir() {
+    var v = null;
+    try { v = window.localStorage.getItem(DIR_KEY); } catch (e) { v = null; }
+    return v === "rtl" ? "rtl" : "ltr";
+  }
+  function storeDir(v) {
+    try {
+      if (v === "rtl") window.localStorage.setItem(DIR_KEY, v);
+      else window.localStorage.removeItem(DIR_KEY);
+    } catch (e) { /* not remembered, still applied */ }
+  }
+  function applyDir(v) {
+    if (v === "rtl") root.setAttribute("dir", "rtl");
+    else root.removeAttribute("dir");
+  }
+  var dir = storedDir();
+  applyDir(dir);
+
   // A real radio group, the text-size switch's pattern: one tab stop, arrows
   // move the choice, the group's name comes from its legend.
-  var bar = document.querySelector(".sg-top__in");
-  if (bar) {
+  function choice(bar, cls, name, title, options, current, change) {
     var set = document.createElement("fieldset");
-    set.className = "sg-ctl sg-scheme";
+    set.className = "sg-ctl " + cls;
     var legend = document.createElement("legend");
     legend.className = "sr-only";
-    legend.textContent = "Colour scheme";
+    legend.textContent = title;
     var seg = document.createElement("div");
     seg.className = "sg-seg";
-    SCHEMES.forEach(function (s) {
+    options.forEach(function (o) {
       var label = document.createElement("label");
       var input = document.createElement("input");
       input.type = "radio";
-      input.name = "sg-scheme";
-      input.value = s[0];
-      input.checked = s[0] === scheme;
+      input.name = name;
+      input.value = o[0];
+      input.checked = o[0] === current;
       label.appendChild(input);
-      label.appendChild(document.createTextNode(s[1]));
+      label.appendChild(document.createTextNode(o[1]));
       seg.appendChild(label);
     });
-    seg.addEventListener("change", function (e) {
-      applyScheme(e.target.value);
-      storeScheme(e.target.value);
-      ratios();
-    });
+    seg.addEventListener("change", function (e) { change(e.target.value); });
     set.appendChild(legend);
     set.appendChild(seg);
     bar.appendChild(set);
+  }
+  var bar = document.querySelector(".sg-top__in");
+  if (bar) {
+    choice(bar, "sg-scheme", "sg-scheme", "Colour scheme", SCHEMES, scheme, function (v) {
+      applyScheme(v);
+      storeScheme(v);
+      ratios();
+    });
+    choice(bar, "sg-dir", "sg-dir", "Direction", DIRS, dir, function (v) {
+      applyDir(v);
+      storeDir(v);
+    });
   }
 
   // iOS Safari only applies :active when a touchstart listener exists.

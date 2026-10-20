@@ -10,15 +10,18 @@
       content="The Flashcards design system in context: a phone and a Mac, built from what exists, with every missing element marked."
     />
     <script>
-/* sheet-scheme.js — the style-sheet pages' stored scheme, before the first paint.
-   Loaded in the head, ahead of the CSS, so a viewer who chose Light or Dark never sees
-   the other flash first. sheet.js draws the switch and owns the choice; this only reads
-   it. Storage can be missing or throw; then the page follows the system. Not shipped. */
+/* sheet-scheme.js — the style-sheet pages' stored scheme and direction, before the first
+   paint. Loaded in the head, ahead of the CSS, so a viewer who chose Light or Dark, or RTL,
+   never sees the other flash first. sheet.js draws both switches and owns the choice; this
+   only reads it. Storage can be missing or throw; then the page follows the system's scheme
+   and runs left to right. Not shipped. */
 (function () {
+  var root = document.documentElement;
   try {
     var v = window.localStorage.getItem("flashcards-sheet-scheme");
-    if (v === "light" || v === "dark") document.documentElement.setAttribute("data-scheme", v);
-  } catch (e) { /* the system's scheme */ }
+    if (v === "light" || v === "dark") root.setAttribute("data-scheme", v);
+    if (window.localStorage.getItem("flashcards-sheet-dir") === "rtl") root.setAttribute("dir", "rtl");
+  } catch (e) { /* the system's scheme, left to right */ }
 })();
 </script>
     <style>
@@ -46,7 +49,8 @@
    One file covers every weight and width the system uses, so there is no
    second request and no faux bold. Subset: latin. Licence: ../fonts/OFL.txt
    To add another script, add its subset from Google Fonts as a second
-   @font-face with its own unicode-range. */
+   @font-face with its own unicode-range. Arabic and Hebrew aren't in it:
+   right-to-left copy falls back to the system's font until they are. */
 @font-face {
   font-family: "Archivo";
   font-style: normal;
@@ -74,7 +78,6 @@
      condensed for labels. Sizes are fixed rem, never vw: resizing a window
      must not resize text. Cards scale with their own width (cqi) instead. */
   --font-sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; /* docs + code only */
 
   --text-xs: 0.8125rem; /* 13 */
   --text-sm: 0.875rem; /* 14 */
@@ -626,6 +629,8 @@ label {
      belongs to a letter (the i, the !), 3×3 when it stands alone (more, today).
    · Gaps of at least 2 units, so nothing closes up at 20px (1.67px strokes).
    · Chevrons move around inside the app; ↗ is the only arrow that leaves it.
+   · Right to left: a glyph that points along the line mirrors (below); a
+     glyph that means a thing doesn't. The list, and why: elements/icons.md.
    ========================================================================== */
 
 :root {
@@ -779,6 +784,17 @@ label {
   --ic: var(--icon-decks);
 }
 
+/* Right to left: the glyphs that point along the line turn to face the other
+   way. back and forward are the line's own way back and on, ↗ leaves towards
+   the end, undo goes back along it, and the sidebar sits on the start edge.
+   scale is a transform, so a mirrored glyph keeps any rotate an element
+   gives it, and forced colours keep it too. Everything else stays: it means
+   a thing (check, share, today…), or it points up and down, or it turns
+   (refresh, shuffle, flip: see elements/icons.md). */
+:is(.ic--back, .ic--forward, .ic--arrow, .ic--undo, .ic--sidebar):dir(rtl) {
+  scale: -1 1;
+}
+
 /* Forced-colours mode overrides backgrounds, and an icon here IS a background,
    so without this every glyph would vanish. Opting out is not enough on its
    own: an opted-out element inherits the parent's AUTHOR colour, not the forced
@@ -824,7 +840,9 @@ label {
   --card-gap: var(--space-2);
 
   /* interaction, as two numbers (see foundation.css). Every state just sets
-     them. The lift is in px, like the frame: 4px of hard shadow. */
+     them. The lift is in px, like the frame: 4px of hard shadow. It falls
+     down and to the right in both directions, as every element's does: a
+     light is in the room, not in the line (STYLE §2 Shape). */
   --lift: 0;
   --fill: 0;
   --shadow-lift: calc(var(--lift) * var(--bw) * 2) calc(var(--lift) * var(--bw) * 2) 0 0 var(--card-line);
@@ -1061,15 +1079,7 @@ label {
   outline-offset: calc(var(--ring) * -1);
 }
 
-/* layout helpers inside a body */
-.card__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
+/* a layout helper inside a body */
 .card__group {
   display: flex;
   flex-direction: column;
@@ -1334,7 +1344,12 @@ label {
      point, when both faces are edge-on and neither can be seen, by a
      transition with a delay (visibility is a named exception in check 5).
    · autocomplete="off": a reload never restores a turned card, which would
-     also be a turn on load. */
+     also be a turn on load.
+   · It turns about the vertical axis, so the turn runs along the line: the
+     start edge comes up towards you and over to the end. --card-turn is
+     180deg, and -180deg under :dir(rtl), so in right to left the right
+     edge leads. Both end where they started, face for face: only the way
+     the card swings differs. */
 
 .card--study:has(> .card__turn) {
   --card-flip-room: calc(var(--hit) + var(--space-3)); /* the button and its gap */
@@ -1352,6 +1367,8 @@ label {
 }
 
 .card__turn {
+  --card-turn: 180deg; /* the half turn, signed by the direction */
+
   display: grid;
   grid-row: 1;
   justify-self: stretch;
@@ -1359,6 +1376,10 @@ label {
   aspect-ratio: var(--ratio-study); /* a floor: large text makes it taller */
   transform-style: preserve-3d;
   transition: transform var(--dur-move) var(--ease-flip);
+}
+
+.card__turn:dir(rtl) {
+  --card-turn: -180deg;
 }
 
 /* a face is the study card's frame and parts, drawn on one side */
@@ -1377,12 +1398,12 @@ label {
 
 /* the back starts turned away */
 .card__face + .card__face {
-  transform: rotateY(180deg);
+  transform: rotateY(var(--card-turn));
   visibility: hidden;
 }
 
 .card--study:has(> .card__flip:checked) > .card__turn {
-  transform: rotateY(180deg);
+  transform: rotateY(var(--card-turn));
 }
 
 .card--study:has(> .card__flip:checked) > .card__turn > .card__face:first-child {
@@ -2725,7 +2746,7 @@ textarea.field__input {
 }
 
 .checkbox-group > legend {
-  float: left;
+  float: inline-start;
   inline-size: 100%;
   padding: 0;
 }
@@ -2978,7 +2999,7 @@ textarea.field__input {
 }
 
 .radio-group > legend {
-  float: left;
+  float: inline-start;
   inline-size: 100%;
   padding: 0;
 }
@@ -3939,7 +3960,10 @@ textarea.field__input {
 /* too narrow for all three in a row, which is a small phone at large text
    (two 44px circles and three digits are about 10em): the value takes the
    first row, the whole width, and the buttons go under it, one at each end,
-   so − stays left of +. The tab order (−, value, +) is unchanged. */
+   so − stays at the start and + at the end. The tab order (−, value, +) is
+   unchanged. Right to left, the row runs from the right like any other: −
+   on the right, + on the left. The glyphs are symmetric and the digits keep
+   their order, so nothing here mirrors. */
 @container stepper (max-width: 10.5em) {
   .stepper__input {
     order: -1;
@@ -4101,6 +4125,10 @@ textarea.field__input {
      safe-area inset. The frame pads only the edges no bar covers: the
      status bar on a root screen, the home indicator with no bottom bar,
      the sides of the scroll region. Content never reads --safe-*.
+   · Right to left mirrors the frame: the sidebar is on the right. A safe
+     area is an edge of the screen, not of the line, so a bar pads the left
+     and right ones physically (opted out of check 10 with a reason) and
+     whatever the sidebar covers swaps sides under :dir(rtl).
    · One scroller: the scroll region. The page itself never scrolls, so a
      phone's browser bars stay put and dvh doesn't jump.
    · The frame is a container (inline size), so --gutter re-pointed here
@@ -4182,7 +4210,9 @@ textarea.field__input {
   /* --frame-column caps the content's width and centres it: set it to
      var(--measure) on a reading screen. The default fills the frame. */
   padding-block: var(--space-5) var(--space-7);
-  /* published, so an edge-to-edge child (a plain List) can reach over them */
+  /* published, so an edge-to-edge child (a plain List) can reach over them.
+     The safe areas are the screen's left and right, so the start reads the
+     left one, and the right one in right to left (below). */
   --frame-pad-start: max(var(--gutter), var(--safe-left));
   --frame-pad-end: max(var(--gutter), var(--safe-right));
   padding-inline: max(var(--frame-pad-start), (100% - var(--frame-column, 100%)) / 2)
@@ -4194,6 +4224,11 @@ textarea.field__input {
      ring is drawn round the card, but it's the link inside that's scrolled
      to (elements/frame.md, Known limits). */
   scroll-padding-block: var(--space-4) var(--space-7);
+}
+
+.frame__scroll:dir(rtl) {
+  --frame-pad-start: max(var(--gutter), var(--safe-right));
+  --frame-pad-end: max(var(--gutter), var(--safe-left));
 }
 
 /* With nothing focusable inside it, a browser makes the region itself a tab
@@ -4233,7 +4268,8 @@ textarea.field__input {
 
 .frame--task > .frame__bottom {
   padding-block: var(--space-4) max(var(--space-4), var(--safe-bottom));
-  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  padding-left: max(var(--gutter), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--gutter), var(--safe-right)); /* physical: a safe area is a screen edge */
   background: var(--paper);
   border-block-start: var(--bw) solid var(--line);
 }
@@ -4268,13 +4304,24 @@ textarea.field__input {
     display: none;
   }
 
-  /* the sidebar covers the start edge, and its safe area with it */
+  /* the sidebar covers the start edge, and its safe area with it: the
+     left one, or the right one in right to left */
   .frame--wide > :not(.frame__side) {
     --safe-left: 0px;
   }
 
   .frame--wide > .frame__side {
     --safe-right: 0px;
+  }
+
+  .frame--wide:dir(rtl) > :not(.frame__side) {
+    --safe-left: inherit;
+    --safe-right: 0px;
+  }
+
+  .frame--wide:dir(rtl) > .frame__side {
+    --safe-left: 0px;
+    --safe-right: inherit;
   }
 
   .frame--wide > .frame__scroll {
@@ -4328,7 +4375,8 @@ textarea.field__input {
   align-items: center;
   row-gap: var(--space-1);
   padding-block: calc(var(--safe-top) + var(--space-2)) var(--space-2);
-  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  padding-left: max(var(--space-2), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-2), var(--safe-right)); /* physical: a safe area is a screen edge */
   color: var(--ink);
   background: var(--paper);
   border-block-end: var(--bw) solid var(--line);
@@ -4579,7 +4627,8 @@ textarea.field__input {
 
 .tabbar {
   padding-block: var(--space-1) max(var(--space-2), var(--safe-bottom));
-  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  padding-left: max(var(--space-2), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-2), var(--safe-right)); /* physical: a safe area is a screen edge */
   color: var(--ink);
   background: var(--paper);
   border-block-start: var(--bw) solid var(--line);
@@ -4784,7 +4833,8 @@ textarea.field__input {
   inline-size: 15rem;
   max-inline-size: 100%;
   padding-block: calc(var(--safe-top) + var(--space-2)) max(var(--space-3), var(--safe-bottom));
-  padding-inline: max(var(--space-3), var(--safe-left)) max(var(--space-3), var(--safe-right));
+  padding-left: max(var(--space-3), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-3), var(--safe-right)); /* physical: a safe area is a screen edge */
   overflow-y: auto;
   overscroll-behavior: contain;
   color: var(--ink);
@@ -6144,7 +6194,8 @@ dialog.sheet > .topbar {
   flex: 1 1 auto;
   min-block-size: 0;
   padding-block: var(--space-5) max(var(--space-5), var(--safe-bottom) + var(--space-2));
-  padding-inline: max(var(--space-4), var(--safe-left)) max(var(--space-4), var(--safe-right));
+  padding-left: max(var(--space-4), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-4), var(--safe-right)); /* physical: a safe area is a screen edge */
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-padding-block: var(--space-4);
@@ -6152,7 +6203,8 @@ dialog.sheet > .topbar {
 
 /* --- variant: side sheet ------------------------------------------------------
    Along the end edge, top to bottom, 28rem at most, and a sliver of the
-   page always left in view (48px, or 15% of a narrow window). Pinned with
+   page always left in view (48px, or 15% of a narrow window): the right
+   edge, or the left in right to left. Pinned with
    .sheet--side; a <dialog class="sheet"> becomes one from 45rem of window
    (below). Not :modal, which a closing sheet loses at once: the side
    sheet would turn into a bottom sheet halfway out of the window. */
@@ -6171,6 +6223,13 @@ dialog.sheet > .topbar {
   border-inline-start: var(--sheet-bw) solid var(--line);
 }
 
+/* right to left, it sits on the left edge: the left safe area is its own,
+   and the right one faces the page */
+.sheet--side:dir(rtl) {
+  --safe-left: inherit;
+  --safe-right: 0px;
+}
+
 @media (width >= 45rem) {
   dialog.sheet:not(.sheet--action) {
     --safe-top: inherit;
@@ -6185,6 +6244,11 @@ dialog.sheet > .topbar {
     border: 0;
     border-inline-start: var(--sheet-bw) solid var(--line);
   }
+
+  dialog.sheet:not(.sheet--action):dir(rtl) {
+    --safe-left: inherit;
+    --safe-right: 0px;
+  }
 }
 
 /* --- variant: action sheet ------------------------------------------------------
@@ -6198,7 +6262,8 @@ dialog.sheet > .topbar {
   flex-direction: column;
   gap: var(--space-1);
   padding-block: var(--space-2) max(var(--space-2), var(--safe-bottom));
-  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  padding-left: max(var(--space-2), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-2), var(--safe-right)); /* physical: a safe area is a screen edge */
 }
 
 /* on a window wider than it, it stops at 30rem, centred, framed on three
@@ -6368,7 +6433,8 @@ dialog.sheet:not([open])::backdrop {
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   padding-block: var(--space-3) calc(var(--space-3) + var(--safe-bottom));
-  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  padding-left: max(var(--gutter), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--gutter), var(--safe-right)); /* physical: a safe area is a screen edge */
   pointer-events: none;
 }
 
@@ -6760,8 +6826,7 @@ dialog.sheet:not([open])::backdrop {
    the top edge like a legend. Grey, not ink: ink means built. It holds the
    real copy, so a screen still reads. Each slot is swapped for the real
    element the day it ships.
-     <div class="wf-slot" data-wf="Nav bar">…</div>
-     <span class="wf-slot wf-slot--pill" data-wf="Button">Got it</span> */
+     <div class="wf-slot" data-wf="Nav bar">…</div> */
 .wf-slot {
   position: relative;
   display: flex;
@@ -6773,13 +6838,6 @@ dialog.sheet:not([open])::backdrop {
   font: var(--type-body);
   color: var(--ink-soft);
   border: var(--bw-thin) solid var(--line-soft);
-}
-
-.wf-slot--pill {
-  justify-content: center;
-  padding-inline: var(--space-5);
-  text-align: center;
-  border-radius: var(--radius-pill);
 }
 
 .wf-slot[data-wf]::before {
@@ -6796,12 +6854,6 @@ dialog.sheet:not([open])::backdrop {
   white-space: nowrap;
   color: var(--ink-soft);
   background: var(--wf-under, var(--canvas)); /* cuts the line: set it to what's behind */
-}
-
-.wf-slot--pill[data-wf]::before {
-  inset-inline: 0;
-  inline-size: fit-content;
-  margin-inline: auto;
 }
 
 /* disabled, as hatch. Lighter than the text on purpose: the words have to
@@ -6901,11 +6953,14 @@ dialog.sheet:not([open])::backdrop {
    the markup panes) use --sg-bar and --sg-on-bar instead of ink and paper:
    ink in light, and in dark the darkest ground, so a dark page doesn't get
    a white slab across its top. The scheme switch in the top bar comes from
-   js/sheet.js (data-scheme on :root, tokens/color.css).
+   js/sheet.js (data-scheme on :root, tokens/color.css), and so does the
+   direction switch beside it (dir on <html>).
    ========================================================================== */
 
 @layer sheet {
   :root {
+    /* code on these pages only: the system has one family (STYLE §2 Type) */
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
     --sg-pad: clamp(1rem, 3vw, 2.5rem);
     --sg-stage-pad: min(var(--space-5), 5vw); /* stays small on a phone at large text */
     --sg-text-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem); /* 24 -> 32 */
@@ -6943,6 +6998,14 @@ dialog.sheet:not([open])::backdrop {
     margin-inline: auto;
   }
 
+  /* code reads left to right whatever the page's direction, as code does in
+     an editor: in right to left, ".ic--back" would lose its dot to the far
+     end and the printed markup would run backwards */
+  :is(code, kbd, pre):dir(rtl) {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
   /* never under 13px, even inside small print */
   code,
   kbd {
@@ -6968,7 +7031,8 @@ dialog.sheet:not([open])::backdrop {
 
   .sg-skip:focus-visible {
     position: fixed;
-    inset: var(--space-2) auto auto var(--space-2);
+    inset-block: var(--space-2) auto;
+    inset-inline: var(--space-2) auto;
     z-index: 30;
     inline-size: auto;
     block-size: auto;
@@ -7023,9 +7087,11 @@ dialog.sheet:not([open])::backdrop {
     min-inline-size: min(100%, 14rem);
   }
 
-  /* --- the scheme switch: Auto, Light, Dark (js/sheet.js puts it here) ----- */
+  /* --- the scheme switch (Auto, Light, Dark) and the direction switch (LTR,
+     RTL): js/sheet.js puts them here ----------------------------------------- */
 
-  .sg-scheme {
+  .sg-scheme,
+  .sg-dir {
     margin-block: var(--space-1);
   }
 
@@ -7399,7 +7465,8 @@ dialog.sheet:not([open])::backdrop {
     gap: var(--space-5);
     min-block-size: 7.5rem;
     padding: var(--space-3);
-    margin: calc(var(--bw-thin) * -1) 0 0 calc(var(--bw-thin) * -1);
+    margin-block: calc(var(--bw-thin) * -1) 0;
+    margin-inline: calc(var(--bw-thin) * -1) 0;
     font: var(--type-meta);
     border: var(--bw-thin) solid var(--ink);
   }
@@ -7785,7 +7852,8 @@ dialog.sheet:not([open])::backdrop {
   }
 
   .sg-index :is(th, td) {
-    padding: var(--space-2) var(--space-4) var(--space-2) 0;
+    padding-block: var(--space-2);
+    padding-inline: 0 var(--space-4);
     text-align: start;
     vertical-align: baseline;
     overflow-wrap: anywhere;
@@ -8637,7 +8705,8 @@ dialog.sheet:not([open])::backdrop {
 /* ==========================================================================
    sheet.js — the style-sheet pages' own behaviour. Not shipped to apps.
 
-   0. The scheme switch (Auto, Light, Dark) in the top bar.
+   0. The scheme switch (Auto, Light, Dark) and the direction switch (LTR,
+      RTL) in the top bar.
    1. Prints each specimen's markup under it, read from the live element.
    2. Computes the colour swatches' contrast from whatever the tokens say.
    Also: the iOS :active listener, and demo links that don't jump.
@@ -8671,36 +8740,67 @@ dialog.sheet:not([open])::backdrop {
   var scheme = storedScheme();
   applyScheme(scheme); // first, so the page paints in it
 
+  /* ---- 0b. the direction: LTR, or RTL, which puts dir="rtl" on <html> so
+     the whole page, the bar included, runs right to left. The specimens'
+     copy stays English: the point is the layout. Remembered the same way;
+     js/sheet-scheme.js sets it in the head, before the first paint. ---- */
+  var DIR_KEY = "flashcards-sheet-dir";
+  var DIRS = [["ltr", "LTR"], ["rtl", "RTL"]];
+  function storedDir() {
+    var v = null;
+    try { v = window.localStorage.getItem(DIR_KEY); } catch (e) { v = null; }
+    return v === "rtl" ? "rtl" : "ltr";
+  }
+  function storeDir(v) {
+    try {
+      if (v === "rtl") window.localStorage.setItem(DIR_KEY, v);
+      else window.localStorage.removeItem(DIR_KEY);
+    } catch (e) { /* not remembered, still applied */ }
+  }
+  function applyDir(v) {
+    if (v === "rtl") root.setAttribute("dir", "rtl");
+    else root.removeAttribute("dir");
+  }
+  var dir = storedDir();
+  applyDir(dir);
+
   // A real radio group, the text-size switch's pattern: one tab stop, arrows
   // move the choice, the group's name comes from its legend.
-  var bar = document.querySelector(".sg-top__in");
-  if (bar) {
+  function choice(bar, cls, name, title, options, current, change) {
     var set = document.createElement("fieldset");
-    set.className = "sg-ctl sg-scheme";
+    set.className = "sg-ctl " + cls;
     var legend = document.createElement("legend");
     legend.className = "sr-only";
-    legend.textContent = "Colour scheme";
+    legend.textContent = title;
     var seg = document.createElement("div");
     seg.className = "sg-seg";
-    SCHEMES.forEach(function (s) {
+    options.forEach(function (o) {
       var label = document.createElement("label");
       var input = document.createElement("input");
       input.type = "radio";
-      input.name = "sg-scheme";
-      input.value = s[0];
-      input.checked = s[0] === scheme;
+      input.name = name;
+      input.value = o[0];
+      input.checked = o[0] === current;
       label.appendChild(input);
-      label.appendChild(document.createTextNode(s[1]));
+      label.appendChild(document.createTextNode(o[1]));
       seg.appendChild(label);
     });
-    seg.addEventListener("change", function (e) {
-      applyScheme(e.target.value);
-      storeScheme(e.target.value);
-      ratios();
-    });
+    seg.addEventListener("change", function (e) { change(e.target.value); });
     set.appendChild(legend);
     set.appendChild(seg);
     bar.appendChild(set);
+  }
+  var bar = document.querySelector(".sg-top__in");
+  if (bar) {
+    choice(bar, "sg-scheme", "sg-scheme", "Colour scheme", SCHEMES, scheme, function (v) {
+      applyScheme(v);
+      storeScheme(v);
+      ratios();
+    });
+    choice(bar, "sg-dir", "sg-dir", "Direction", DIRS, dir, function (v) {
+      applyDir(v);
+      storeDir(v);
+    });
   }
 
   // iOS Safari only applies :active when a touchstart listener exists.

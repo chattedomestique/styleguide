@@ -43,8 +43,8 @@ design/
   js/
     components/         element script, where HTML can't do it → dist/flashcards.js
                         (components/sheet.js is Sheet's drag; js/sheet.js is the pages')
-    sheet.js            the pages' own script: markup, contrast (not shipped)
-    sheet-scheme.js     the stored scheme, set in the head before the CSS (not shipped)
+    sheet.js            the pages' own script: markup, contrast, the scheme and direction switches (not shipped)
+    sheet-scheme.js     the stored scheme and direction, set in the head before the CSS (not shipped)
   fonts/                Archivo woff2 + OFL licence
   pwa/                  the starter app; copy it with dist/ and fonts/ (pwa/README.md)
                         app.css: its own CSS, @layer app (the moves between screens)
@@ -149,7 +149,13 @@ Zero dependencies. Exits 1 on any of these, with the file and line:
    once the bundle joins them;
 9. contrast: ink, soft ink, the accent and each tone's text against WCAG AA, in light, dark and
    both with more contrast, resolved from the colour file (`light-dark()`, hex, `rgb()` and
-   `oklch()` are understood); the scrim is checked not to follow ink.
+   `oklch()` are understood); the scrim is checked not to follow ink;
+10. a component written for one direction: a physical left or right (margin, padding, border,
+    inset, corner radii, `text-align`, `float`, positions) or a move along the line that ignores
+    `:dir()`. A physical one on purpose (a safe area is a screen edge) says why on its line:
+    `/* physical: <reason> */`;
+11. `API.md` out of date: `node design/tools/api.mjs` regenerates it from the code; the public
+    API (every class, token, hook and global) is the list the versioning rule applies to.
 
 Checks 2 to 5 cover `sheet.css` and `screens.css` too: the pages that teach the rules keep
 them. `wire.css`

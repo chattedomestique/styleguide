@@ -29,7 +29,7 @@ Nine parts, all optional except the frame. A card is whichever of them it needs.
 | # | Part | Class | Spec |
 | --- | --- | --- | --- |
 | 1 | Frame | `.card` | `display: flex; flex-direction: column`; `border: 2px solid var(--card-line)`; `border-radius: var(--card-radius)`; `overflow: clip`; `container: card / inline-size`. |
-| 2 | Bar | `.card__bar` | The frame made thicker. `min-block-size: 44px`; ink fill, paper text; label left, control right. Wraps when the text grows; the control stays at the end. Flips to paper-on-ink for `data-tone="ink"`. |
+| 2 | Bar | `.card__bar` | The frame made thicker. `min-block-size: 44px`; ink fill, paper text; label at the start, control at the end. Wraps when the text grows; the control stays at the end. Flips to paper-on-ink for `data-tone="ink"`. |
 | | Label | `.card__label` | `--type-label`, uppercase, 1–4 words. A `<p>` or `<span>`, not a heading, when the card has a title. |
 | | Control | `.card__ctl` | 44×44 hit area around a 20×20 box (`2px currentColor`, `--radius-ctl`); glyph 12px. The box fills while pressed. |
 | 3 | Media | `.card__media` | `aspect-ratio: var(--ratio, 4 / 3)`; edge to edge; closed by a 2px rule; `img`/`video` are `object-fit: cover`; fill is the element's tone or `--tone-1`. |
@@ -43,8 +43,7 @@ Nine parts, all optional except the frame. A card is whichever of them it needs.
 | 8 | Foot | `.card__foot` | `min-block-size: 44px`; `padding: 8px var(--card-pad)`; 1px rule above; `margin-block-start: auto`, so cards in a row end on one line. Its links and buttons are 44px tall; negative margins keep the foot at 44px. |
 | 9 | Action | `.card__action` | 44px circle, `2px var(--card-ink)`. A `<button>` with an `aria-label`, except in a ghost, where the whole card is the control and the circle is `aria-hidden`. Fills with `--accent` when `--fill` is 1. |
 
-Helpers: `.card__row` (flex, space-between, top-aligned, wraps), `.card__group` (flex column,
-4px gap), `.card__list` (ruled rows, 44px each, 1px rules). In a list the whole row is the
+Helpers: `.card__group` (flex column, 4px gap), `.card__list` (ruled rows, 44px each, 1px rules). In a list the whole row is the
 link, with the padding on the link, not the `li`:
 `<li><a href="…"><span>Shapes</span><span>12</span></a></li>`.
 
@@ -143,8 +142,8 @@ A study card that holds both faces turns over. One `.card--study`, three new par
 | Part | Class | Spec |
 | --- | --- | --- |
 | Flip button | `.card__flip` | A native checkbox with `appearance: none`, drawn as Button's icon-only circle (`.btn btn--icon`) with `--icon-flip` in its `::before`. It sits on the page under the faces, so it reads the page's roles (ink and paper), not the card's tone, and its ring is `--focus`, 3px out. `aria-label="Show the answer"`: checked means the answer shows. `autocomplete="off"`, so a reload never restores a turned card. |
-| Turn | `.card__turn` | The part that turns: a grid with both faces in one cell, `transform-style: preserve-3d`, `transform: rotateY(180deg)` when the box is checked, `transition: transform var(--dur-move) var(--ease-flip)`. It carries the 5:7 floor (`aspect-ratio: var(--ratio-study)`); large text still makes it taller. |
-| Face | `.card__face` | The card's frame (`2px var(--card-line)`, `--card-bg`, clipped) and its parts, drawn on one side, `backface-visibility: hidden`. The second face is the back, set at `rotateY(180deg)`. |
+| Turn | `.card__turn` | The part that turns: a grid with both faces in one cell, `transform-style: preserve-3d`, `transform: rotateY(var(--card-turn))` when the box is checked (`180deg`, or `-180deg` under `:dir(rtl)`), `transition: transform var(--dur-move) var(--ease-flip)`. It carries the 5:7 floor (`aspect-ratio: var(--ratio-study)`); large text still makes it taller. |
+| Face | `.card__face` | The card's frame (`2px var(--card-line)`, `--card-bg`, clipped) and its parts, drawn on one side, `backface-visibility: hidden`. The second face is the back, set at `rotateY(var(--card-turn))`. |
 
 - **How it's read.** The card answers `:has(> .card__flip:checked)`: no script, so it works with
   JavaScript off, and the checkbox gives Space, a click and the announcement ("Show the answer,
@@ -165,6 +164,11 @@ A study card that holds both faces turns over. One `.card--study`, three new par
 - **Reduced motion.** No turn. The back lies on top of the front and fades in or out over
   `--dur-fade`, so the page never shows through; the face coming in joins the accessibility tree
   at once, and the face going away leaves it when the fade ends.
+- **Right to left.** The turn runs along the line, so it follows it: `--card-turn` is `-180deg`
+  under `:dir(rtl)`, and the start edge, now the right one, comes up first, as the left one does
+  in left to right. Both end face for face; only the swing differs. Everything else in a card
+  follows the line on its own (the bar's label leads, a row's value trails), and the hard shadow
+  still falls down and to the right (STYLE §2).
 - **Copy.** The front keeps its hint ("Turn over"); the button is named for what it shows.
 - The static Front and Back pictures on the page are one-face study cards, as before, and
   `screens.html` still uses one face.
@@ -205,7 +209,7 @@ Cards answer to their own width, not the window:
   breaks it at a syllable ("Hexa-gon"), so the page needs its `lang`.
 - Row: `@container card (max-width: 18rem)` moves the trail to row 2, column 2, and below
   `12em` (em, so it grows with the text: a phone at large text sizes) the tile goes on top and the title takes the full width.
-- The bar, `.card__row`, the foot and the ghost wrap (`flex-wrap: wrap`) when text grows.
+- The bar, the foot and the ghost wrap (`flex-wrap: wrap`) when text grows.
 - Holds from 320px up with no horizontal scroll. At 320px with 200% text, no card clips a
   control or a title.
 

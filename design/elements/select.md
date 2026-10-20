@@ -110,6 +110,9 @@ as the platform does; the ring is instant. Under reduced motion the ground fades
 - Disabled selects leave the tab order: say why in the help beside it, and prefer leaving it
   enabled or showing the value as text.
 
+**Right to left.** The chevron (`ic--down`) sits at the end, the left, and doesn't mirror: it
+points down. The open list is the browser's, and follows the page.
+
 ## Platforms
 
 - **Installed PWA:** iOS opens a wheel at the bottom of the screen, Android a list in a dialog;

@@ -138,6 +138,10 @@ button's actions, and the button stays.
 - Every target is at least 44px: rows, the More button, the switch row (measured at 100% and
   200% text).
 
+**Right to left.** Rows run from the right and the trailing chevron (`.ic--forward`) mirrors to
+point left, the way on. A plain list reaches over the frame's padding with `--frame-pad-start` and
+`--frame-pad-end`, which follow the direction.
+
 ## Platforms
 
 - **Installed PWA:** a plain list runs to both edges; the frame (wave 3, Frame) keeps clear of

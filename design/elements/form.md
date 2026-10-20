@@ -16,7 +16,7 @@ Form's own spec.
 - **Validation:** only on submit or blur, never while typing; each wrong field gets Field's
   error; on submit, an error summary at the top (a card titled "Fix 2 things", with links to
   each field) takes focus.
-- **The submit row:** the primary button last (right) on wide screens, full width first on a
+- **The submit row:** the primary button last (at the end) on wide screens, full width first on a
   phone, with Cancel as a quiet button.
 - **Variants:** the New deck form (name, description, card order, shuffle, cards per session,
   language), the same form with errors, and a one-field inline form (Rename deck).
@@ -153,6 +153,10 @@ Radio).
 - Return submits from a text field; Cancel is a `type="button"`, so it's never the default.
 - Every control scrolls into view with 6rem of room above it (`scroll-margin-block-start`), so
   its label and error are not hidden under a bar, and 32px below it.
+
+**Right to left.** The submit row runs to the end of the line, so on a wide form the primary is
+last and leftmost; under 30rem it is still on top. Field's, Checkbox's and Radio's parts follow the
+line on their own.
 
 ## Platforms
 

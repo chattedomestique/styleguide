@@ -112,7 +112,8 @@ dialog.sheet > .topbar {
   flex: 1 1 auto;
   min-block-size: 0;
   padding-block: var(--space-5) max(var(--space-5), var(--safe-bottom) + var(--space-2));
-  padding-inline: max(var(--space-4), var(--safe-left)) max(var(--space-4), var(--safe-right));
+  padding-left: max(var(--space-4), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-4), var(--safe-right)); /* physical: a safe area is a screen edge */
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-padding-block: var(--space-4);
@@ -120,7 +121,8 @@ dialog.sheet > .topbar {
 
 /* --- variant: side sheet ------------------------------------------------------
    Along the end edge, top to bottom, 28rem at most, and a sliver of the
-   page always left in view (48px, or 15% of a narrow window). Pinned with
+   page always left in view (48px, or 15% of a narrow window): the right
+   edge, or the left in right to left. Pinned with
    .sheet--side; a <dialog class="sheet"> becomes one from 45rem of window
    (below). Not :modal, which a closing sheet loses at once: the side
    sheet would turn into a bottom sheet halfway out of the window. */
@@ -139,6 +141,13 @@ dialog.sheet > .topbar {
   border-inline-start: var(--sheet-bw) solid var(--line);
 }
 
+/* right to left, it sits on the left edge: the left safe area is its own,
+   and the right one faces the page */
+.sheet--side:dir(rtl) {
+  --safe-left: inherit;
+  --safe-right: 0px;
+}
+
 @media (width >= 45rem) {
   dialog.sheet:not(.sheet--action) {
     --safe-top: inherit;
@@ -153,6 +162,11 @@ dialog.sheet > .topbar {
     border: 0;
     border-inline-start: var(--sheet-bw) solid var(--line);
   }
+
+  dialog.sheet:not(.sheet--action):dir(rtl) {
+    --safe-left: inherit;
+    --safe-right: 0px;
+  }
 }
 
 /* --- variant: action sheet ------------------------------------------------------
@@ -166,7 +180,8 @@ dialog.sheet > .topbar {
   flex-direction: column;
   gap: var(--space-1);
   padding-block: var(--space-2) max(var(--space-2), var(--safe-bottom));
-  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  padding-left: max(var(--space-2), var(--safe-left)); /* physical: a safe area is a screen edge */
+  padding-right: max(var(--space-2), var(--safe-right)); /* physical: a safe area is a screen edge */
 }
 
 /* on a window wider than it, it stops at 30rem, centred, framed on three

@@ -98,9 +98,9 @@
                   </div>
                 </div>
                 <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
-                <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 6.5rem auto auto 1rem; z-index: 1">1</span>
+                <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: 6.5rem auto; inset-inline: 1rem auto; z-index: 1">1</span>
                 <div class="sheet" style="position: absolute; z-index: 1; overflow: visible">
-                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: -0.6875rem auto auto var(--space-4); z-index: 3">2</span>
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: -0.6875rem auto; inset-inline: var(--space-4) auto; z-index: 3">2</span>
                   <header class="topbar" style="position: relative">
                     <h4 class="topbar__title">Add a card</h4>
                     <div class="topbar__actions">
@@ -108,7 +108,7 @@
                         <span class="ic ic--close" aria-hidden="true"></span>
                       </button>
                     </div>
-                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: auto auto -0.6875rem var(--space-4); z-index: 3">3</span>
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: auto -0.6875rem; inset-inline: var(--space-4) auto; z-index: 3">3</span>
                     <span
                       class="sg-n"
                       aria-hidden="true"
@@ -117,7 +117,7 @@
                     >
                   </header>
                   <div class="sheet__body" style="position: relative">
-                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset: 0.125rem 0.25rem auto auto">5</span>
+                    <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: 0.125rem auto; inset-inline: auto 0.25rem">5</span>
                     <div class="form">
                       <div class="field">
                         <label class="field__label">Front</label>
@@ -134,7 +134,7 @@
                       </div>
                     </div>
                   </div>
-                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset: auto var(--space-4) 0.375rem auto">6</span>
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block: auto 0.375rem; inset-inline: auto var(--space-4)">6</span>
                 </div>
                 <span class="sg-phone__home" aria-hidden="true"></span>
               </div>
@@ -593,6 +593,98 @@
                 <hr class="menu__rule" />
                 <button class="btn btn--quiet btn--block menu__item" value="delete">Delete deck…</button>
               </form>
+            </dialog>
+          </div>
+        </article>
+
+        <!-- 2.4 -->
+        <article class="sg-entry" id="sheet-rtl">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.4</p>
+            <h3 class="sg-entry__name">Right to left</h3>
+            <p class="sg-entry__use">The side sheet on a right-to-left screen. Not a variant: the direction.</p>
+            <p class="sg-entry__classes"><code>dir="rtl"</code> <code>--sheet-end</code></p>
+            <p class="sg-entry__note">
+              The end edge is the left, so the sheet sits there, framed on its right, and slides in
+              from the left: <code>--sheet-end</code> is -100% under <code>:dir(rtl)</code>. It pads
+              the left safe area and zeroes the right one, which faces the page. The bottom sheet
+              and its drag are vertical, so they don't change.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-device" style="inline-size: 100%; block-size: 24rem" dir="rtl" inert>
+              <div class="frame">
+                <header class="frame__top topbar">
+                  <a class="btn btn--quiet topbar__back" href="#">
+                    <span class="ic ic--back" aria-hidden="true"></span>Decks
+                  </a>
+                  <h4 class="topbar__title">Shapes</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Add a card">
+                      <span class="ic ic--plus" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="frame__scroll">
+                  <p class="t-meta">12 cards · 5 known · 7 due</p>
+                </div>
+              </div>
+              <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
+              <div class="sheet sheet--side" style="position: absolute; z-index: 1">
+                <header class="topbar">
+                  <h4 class="topbar__title">Add a card</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="sheet__body">
+                  <div class="field">
+                    <label class="field__label">Front</label>
+                    <p class="field__help">What you see first.</p>
+                    <input class="field__input" type="text" value="Four equal sides" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <button class="btn" type="button" commandfor="sheet-rtl-side" command="show-modal" data-sg-code>
+                <span class="ic ic--plus" aria-hidden="true"></span>Add a card
+              </button>
+              <p class="t-meta" aria-live="polite" data-sg-return="sheet-rtl-side">Open it, then close it: its value shows here.</p>
+            </div>
+            <dialog class="sheet sheet--side" id="sheet-rtl-side" dir="rtl" aria-labelledby="sheet-rtl-side-title" data-sg-code>
+              <header class="topbar">
+                <h2 class="topbar__title" id="sheet-rtl-side-title">Add a card</h2>
+                <form class="topbar__actions" method="dialog">
+                  <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+                    <span class="ic ic--close" aria-hidden="true"></span>
+                  </button>
+                </form>
+              </header>
+              <div class="sheet__body">
+                <form class="form" method="dialog">
+                  <div class="field">
+                    <label class="field__label" for="sheet-rtl-side-front">Front</label>
+                    <p class="field__help" id="sheet-rtl-side-front-help">What you see first.</p>
+                    <input
+                      class="field__input"
+                      id="sheet-rtl-side-front"
+                      name="front"
+                      type="text"
+                      autofocus
+                      autocomplete="off"
+                      autocapitalize="sentences"
+                      enterkeyhint="done"
+                      aria-describedby="sheet-rtl-side-front-help"
+                    />
+                  </div>
+                  <div class="form__actions">
+                    <button class="btn btn--primary" value="add">Add card</button>
+                  </div>
+                </form>
+              </div>
             </dialog>
           </div>
         </article>

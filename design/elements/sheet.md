@@ -201,6 +201,11 @@ sheet doesn't drag; under reduced motion a drop fades out where it is and reopen
 - Nothing relies on colour or on a gesture: the destructive item is its words, and every way out
   is a button or a key. The drag is a shortcut for Close, never instead of it.
 
+**Right to left.** The side sheet sits on the left edge and slides in from it (`--sheet-end` is
+-100% under `:dir(rtl)`), framed on its right, which faces the page. It pads the left safe area and
+zeroes the right one. The bottom sheet, the action sheet and the drag are vertical, so they don't
+change. On the page: 2.4.
+
 ## Platforms
 
 - **Installed PWA:** from the bottom, edge to edge, owning the home indicator's safe area; at

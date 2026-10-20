@@ -126,6 +126,10 @@ Gate 4 (`STYLE.md` §2 Motion). Only the spinner moves.
 - Contrast: fills and frames are the text colour, so they inherit its contrast on every
   surface.
 
+**Right to left.** Every bar fills from the start edge, the right: the meter's fill sits at
+`inset-inline-start`, the native progress fills from the right on its own, and segments count from
+the right. The label leads and the value trails. On the page: 1.5.
+
 ## Platforms
 
 - **Installed PWA:** offline, don't spin on the network: say what's on the device. A long

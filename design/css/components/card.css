@@ -30,7 +30,9 @@
   --card-gap: var(--space-2);
 
   /* interaction, as two numbers (see foundation.css). Every state just sets
-     them. The lift is in px, like the frame: 4px of hard shadow. */
+     them. The lift is in px, like the frame: 4px of hard shadow. It falls
+     down and to the right in both directions, as every element's does: a
+     light is in the room, not in the line (STYLE §2 Shape). */
   --lift: 0;
   --fill: 0;
   --shadow-lift: calc(var(--lift) * var(--bw) * 2) calc(var(--lift) * var(--bw) * 2) 0 0 var(--card-line);
@@ -267,15 +269,7 @@
   outline-offset: calc(var(--ring) * -1);
 }
 
-/* layout helpers inside a body */
-.card__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
+/* a layout helper inside a body */
 .card__group {
   display: flex;
   flex-direction: column;
@@ -540,7 +534,12 @@
      point, when both faces are edge-on and neither can be seen, by a
      transition with a delay (visibility is a named exception in check 5).
    · autocomplete="off": a reload never restores a turned card, which would
-     also be a turn on load. */
+     also be a turn on load.
+   · It turns about the vertical axis, so the turn runs along the line: the
+     start edge comes up towards you and over to the end. --card-turn is
+     180deg, and -180deg under :dir(rtl), so in right to left the right
+     edge leads. Both end where they started, face for face: only the way
+     the card swings differs. */
 
 .card--study:has(> .card__turn) {
   --card-flip-room: calc(var(--hit) + var(--space-3)); /* the button and its gap */
@@ -558,6 +557,8 @@
 }
 
 .card__turn {
+  --card-turn: 180deg; /* the half turn, signed by the direction */
+
   display: grid;
   grid-row: 1;
   justify-self: stretch;
@@ -565,6 +566,10 @@
   aspect-ratio: var(--ratio-study); /* a floor: large text makes it taller */
   transform-style: preserve-3d;
   transition: transform var(--dur-move) var(--ease-flip);
+}
+
+.card__turn:dir(rtl) {
+  --card-turn: -180deg;
 }
 
 /* a face is the study card's frame and parts, drawn on one side */
@@ -583,12 +588,12 @@
 
 /* the back starts turned away */
 .card__face + .card__face {
-  transform: rotateY(180deg);
+  transform: rotateY(var(--card-turn));
   visibility: hidden;
 }
 
 .card--study:has(> .card__flip:checked) > .card__turn {
-  transform: rotateY(180deg);
+  transform: rotateY(var(--card-turn));
 }
 
 .card--study:has(> .card__flip:checked) > .card__turn > .card__face:first-child {

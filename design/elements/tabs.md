@@ -129,6 +129,10 @@ motion the fill fades over `--dur-fade`.
 - The count is in the name ("Cards, 7 due"); the badge is `aria-hidden`.
 - Targets are at least 44px tall; measured at 100% and 200% text.
 
+**Right to left.** The tabs run from the right, and Left and Right follow what you see: Right goes
+to the previous tab and Left to the next (`tabs.js` reads the list's computed direction). The
+underline is logical.
+
 ## Platforms
 
 - **Installed PWA:** full width on a phone. The selected section lives in the address, so a deep

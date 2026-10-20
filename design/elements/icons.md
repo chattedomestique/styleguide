@@ -120,6 +120,33 @@ Unchanged: same class names, same data URIs.
 | close | `.ic--close` | `M6 6l12 12M18 6L6 18` | Close; clear a field. |
 | check | `.ic--check` | `M5 12.5l5 5L19 7.5` | Done; mark as known. |
 
+### Right to left
+
+A glyph that points along the line mirrors under `:dir(rtl)`: `scale: -1 1` in `icons.css`, a
+transform, so it keeps any `rotate` an element gives it, and forced colours keep it. A glyph that
+means a thing, or points up or down, stays as drawn. The paths don't change.
+
+| Mirrors | Why |
+| --- | --- |
+| back, forward | The line's own way back and on. |
+| arrow (↗) | Leaves towards the end of the line, so ↖ in right to left. |
+| undo | Goes back along the line. |
+| sidebar | The sidebar sits on the start edge. |
+
+| Stays | Why |
+| --- | --- |
+| check, close, plus, minus, more | Marks and signs, not ways. |
+| search, edit, delete, settings | Pictures of tools; mirrored they'd be held in the other hand, not go the other way. |
+| share, install, down, up | They point up or down, never along the line. |
+| refresh | A turn, clockwise in every script, as the platforms draw theirs. |
+| shuffle | A judgement call. Its arrows run to the end, but it means "out of order", not "on", and playback controls keep their direction in right to left on every platform. |
+| flip | Points both ways at once: mirrored, it's the same picture. |
+| info, warning, offline, today, decks | Things and places. Today's marked day is a day, not the first one. |
+
+Native: SF Symbols' localized names do the same (`chevron.backward`, `arrow.uturn.backward`,
+`sidebar.leading`); a custom `Path` glyph from the five gets
+`.flipsForRightToLeftLayoutDirection(true)`.
+
 ## States
 
 A glyph has no states of its own. It paints `currentColor`, so the control or text around it

@@ -118,6 +118,10 @@ once and the fill fades over `--dur-fade`; the words say it either way.
 - The row is at least 44px tall, measured at 100% and 200% text. The track is 52 by 28, above
   the brief's 44 by 24.
 
+**Right to left.** Off is at the start (the right) and on at the end (the left): `translate` is
+physical, so `--switch-dir` is -1 under `:dir(rtl)`. The words lead from the right and the switch
+trails on the left.
+
 ## Platforms
 
 - **Installed PWA:** the whole row is the target, as in iOS Settings. Pressed fills the track

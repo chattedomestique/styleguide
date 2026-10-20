@@ -160,6 +160,9 @@ Gate 4. Only `transform` and `opacity` move, and only on a real `<dialog>`: the 
   failure is its words plus `ic--warning`.
 - Don't use `aria-modal` or a focus-trap library: the native modal does both.
 
+**Right to left.** The actions row ends at the end of the line, so on a wide dialog the primary is
+last and leftmost. The dialog fades and settles vertically, so its motion doesn't change.
+
 ## Platforms
 
 - **Installed PWA:** centred on a phone too, 16px clear of the edges. The buttons share a row when

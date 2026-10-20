@@ -97,6 +97,10 @@ unfolds at once, and the toggle's glyph doesn't turn. Here, the doubled frame, i
 - Tab order: toggle, links top to bottom, foot, then the top bar and content.
 - Every link and the toggle are at least 44px tall; links are the sidebar's full width.
 
+**Right to left.** The sidebar sits on the start edge, the right, with its rule on its end edge
+(`border-inline-end`), and `ic--sidebar` mirrors to match. On a wide frame it takes the right safe
+area and the content the left (`elements/frame.md`).
+
 ## Platforms
 
 - **Installed PWA:** on a tablet in landscape it owns `--safe-top`, `--safe-bottom` and
