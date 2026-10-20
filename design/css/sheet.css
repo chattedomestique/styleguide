@@ -5,6 +5,13 @@
    page that teaches them keeps them. It reads the same tokens, so it can't
    drift from the system it shows. The fluid (vw) sizes live here as --sg-*,
    because a page can scale with the window and an app's text must not.
+
+   It follows the scheme like everything else: it reads roles, and the roles
+   are light-dark() pairs. The two places the sheet inverts (the top bar and
+   the markup panes) use --sg-bar and --sg-on-bar instead of ink and paper:
+   ink in light, and in dark the darkest ground, so a dark page doesn't get
+   a white slab across its top. The scheme switch in the top bar comes from
+   js/sheet.js (data-scheme on :root, tokens/color.css).
    ========================================================================== */
 
 @layer sheet {
@@ -14,6 +21,11 @@
     --sg-text-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem); /* 24 -> 32 */
     --sg-text-2xl: min(clamp(2rem, 1.5rem + 2.2vw, 3.25rem), 10vw); /* 32 -> 52 */
     --sg-text-display: clamp(4.25rem, 1rem + 15vw, 15rem); /* 68 -> 240 */
+    /* the sheet's inverted chrome: ink in light, the darkest ground in dark.
+       Only for the sheet; an engine without light-dark() shows the bar
+       unfilled, and the sheet isn't shipped. */
+    --sg-bar: light-dark(var(--ink), var(--canvas));
+    --sg-on-bar: light-dark(var(--paper), var(--ink));
     scroll-padding-block-start: 3.5rem;
   }
 
@@ -89,16 +101,20 @@
     position: sticky;
     inset-block-start: 0;
     z-index: 20;
-    color: var(--paper);
-    background: var(--ink);
+    color: var(--sg-on-bar);
+    background: var(--sg-bar);
+    /* in light it's the bar's own colour; in dark it parts bar from page */
+    border-block-end: var(--bw-thin) solid var(--line);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* the scheme switch wraps to its own row before the nav gets too narrow */
   .sg-top__in {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-5);
+    gap: 0 var(--space-5);
     min-block-size: var(--hit);
   }
 
@@ -113,8 +129,30 @@
 
   /* the nav wraps rather than scroll: a hidden scrollbar hides links */
   .sg-top nav {
-    flex: 1;
-    min-inline-size: 0;
+    flex: 1 1 0;
+    min-inline-size: min(100%, 14rem);
+  }
+
+  /* --- the scheme switch: Auto, Light, Dark (js/sheet.js puts it here) ----- */
+
+  .sg-scheme {
+    margin-block: var(--space-1);
+  }
+
+  .sg-top .sg-seg,
+  .sg-top .sg-seg label + label {
+    border-color: currentColor;
+  }
+
+  .sg-top .sg-seg label {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+
+  .sg-top .sg-seg label:has(input:checked) {
+    color: var(--sg-bar);
+    background: var(--sg-on-bar);
   }
 
   .sg-top ul {
@@ -139,7 +177,7 @@
   }
 
   .sg-top :focus-visible {
-    outline-color: var(--paper);
+    outline-color: var(--sg-on-bar);
     outline-offset: calc(var(--ring) * -1);
   }
 
@@ -257,7 +295,8 @@
 
   /* forced colours drops the black fill, which is the only sign of "on" */
   @media (forced-colors: active) {
-    .sg-seg label:has(input:checked) {
+    .sg-seg label:has(input:checked),
+    .sg-top .sg-seg label:has(input:checked) {
       forced-color-adjust: none;
       color: HighlightText;
       background: Highlight;
@@ -490,6 +529,29 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* the colour box: the same swatches in each scheme, side by side. Each
+     pane forces its scheme with data-scheme, and light-dark() resolves per
+     element, so the pane draws its own canvas and ink. */
+  .sg-palette {
+    display: grid;
+    gap: var(--space-4) var(--gutter);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  }
+
+  .sg-palette__pane {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    color: var(--ink);
+    background: var(--canvas);
+    border: var(--bw-thin) solid var(--ink);
+  }
+
+  .sg-palette__pane .sg-tones {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr));
+  }
+
   /* --- entries ------------------------------------------------------------- */
 
   .sg-entry {
@@ -638,8 +700,8 @@
     margin: 0;
     padding: var(--space-4);
     overflow-x: auto;
-    color: var(--paper);
-    background: var(--ink);
+    color: var(--sg-on-bar);
+    background: var(--sg-bar);
     font: 400 0.8125rem / 1.6 var(--font-mono);
     tab-size: 2;
   }

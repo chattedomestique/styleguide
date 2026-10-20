@@ -72,33 +72,33 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 
 | # | Element | Wave | Status |
 | --- | --- | --- | --- |
-| 01 | Card | | Gates 0–2 |
-| 02 | Button | 1 | Gates 0–2 |
-| 03 | Field | 1 | Gates 0–2 |
-| 04 | Tag and Badge | 1 | Gates 0–2 |
-| 05 | Meter and Spinner | 1 | Gates 0–2 |
-| 06 | Icons | 1 | Gates 0–2 |
-| 07 | Checkbox | 2 | Gates 0–2 |
-| 08 | Radio | 2 | Gates 0–2 |
-| 09 | Switch | 2 | Gates 0–2 |
-| 10 | Segmented control | 2 | Gates 0–2 |
-| 11 | Select | 2 | Gates 0–2 |
-| 12 | Stepper | 2 | Gates 0–2 |
-| 13 | Form | 2 | Gates 0–2 |
-| 14 | Frame | 3 | Gates 0–2 |
-| 15 | Top bar | 3 | Gates 0–2 |
-| 16 | Tab bar | 3 | Gates 0–2 |
-| 17 | Sidebar | 3 | Gates 0–2 |
-| 18 | List | 3 | Gates 0–2 |
-| 19 | Tabs | 3 | Gates 0–2 |
-| 20 | Disclosure | 3 | Gates 0–2 |
-| 21 | Menu | 3 | Gates 0–2 |
-| 22 | Dialog | 4 | Gates 0–2 |
-| 23 | Sheet | 4 | Gates 0–2 |
-| 24 | Toast | 4 | Gates 0–2 |
-| 25 | Banner | 4 | Gates 0–2 |
-| 26 | Empty, loading and error | 4 | Gates 0–2 |
-| 27 | PWA platform | 5 | Gates 0–2 |
+| 01 | Card | | Gates 0–3 |
+| 02 | Button | 1 | Gates 0–3 |
+| 03 | Field | 1 | Gates 0–3 |
+| 04 | Tag and Badge | 1 | Gates 0–3 |
+| 05 | Meter and Spinner | 1 | Gates 0–3 |
+| 06 | Icons | 1 | Gates 0–3 |
+| 07 | Checkbox | 2 | Gates 0–3 |
+| 08 | Radio | 2 | Gates 0–3 |
+| 09 | Switch | 2 | Gates 0–3 |
+| 10 | Segmented control | 2 | Gates 0–3 |
+| 11 | Select | 2 | Gates 0–3 |
+| 12 | Stepper | 2 | Gates 0–3 |
+| 13 | Form | 2 | Gates 0–3 |
+| 14 | Frame | 3 | Gates 0–3 |
+| 15 | Top bar | 3 | Gates 0–3 |
+| 16 | Tab bar | 3 | Gates 0–3 |
+| 17 | Sidebar | 3 | Gates 0–3 |
+| 18 | List | 3 | Gates 0–3 |
+| 19 | Tabs | 3 | Gates 0–3 |
+| 20 | Disclosure | 3 | Gates 0–3 |
+| 21 | Menu | 3 | Gates 0–3 |
+| 22 | Dialog | 4 | Gates 0–3 |
+| 23 | Sheet | 4 | Gates 0–3 |
+| 24 | Toast | 4 | Gates 0–3 |
+| 25 | Banner | 4 | Gates 0–3 |
+| 26 | Empty, loading and error | 4 | Gates 0–3 |
+| 27 | PWA platform | 5 | Gates 0–3 |
 
 Then three passes over everything: colour and dark mode (wave 6, gate 3), motion (wave 7,
 gate 4) and the freeze (wave 8, gate 5).
@@ -428,7 +428,7 @@ What the app says back, and what sits on top of a screen. Shared notes:
 - **Overlays are native:** `<dialog>` with `showModal()` for modal, `popover` for non-modal.
   - Focus moves in when they open and goes back to the control that opened them when they close.
   - Escape closes. The page behind is inert.
-- **The backdrop** is the owner's decision: a flat ink layer at a fixed 60%, through a new
+- **The backdrop** is the owner's decision: a flat near-black layer at a fixed 60%, through a new
   `--scrim` role.
   - It's the one translucency the system allows. Rule 2 in `STYLE.md` gains the exception, with
     the reason: the page reads as "still there, but not now".

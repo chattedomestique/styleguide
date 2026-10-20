@@ -126,6 +126,7 @@ Dialog's confirm once the sheet has closed.
 | Close, items | Button's, Menu's | Hover fills and lifts (pointers only); press drops the lift and keeps the fill with the inner ring; then the sheet closes with that button's `value`. |
 | Taller than the room | content past 90% of the screen | The top bar stays, the body scrolls inside; the page never scrolls sideways. At 320px and 200% text the bottom sheet reaches 84px from the top and scrolls. |
 | Forced colours | `(forced-colors: active)` | `--sheet-bw` becomes `--bw-heavy`, `CanvasText`: the edge that faces the page is 4px. The top bar's rule is Top bar's. Chromium draws the scrim as a 60% wash of `Canvas`; elsewhere it may vanish, and the frame is enough alone. |
+| Dark | the scheme | The scrim stays near-black (Dialog's), and only the edge that faces the page is framed, so on a dark page that 2px ink edge is what says "on top". |
 
 The pictures on the page are `<div class="sheet">` inside `inert` device frames: not modal, so
 drawn as the bottom sheet whatever the window, with `.sheet--side` for the side one. The

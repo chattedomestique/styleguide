@@ -20,7 +20,7 @@ Dialog's own spec.
   - A small `dialog.js` only if returning focus needs it; `showModal` handles the rest.
   - Mac: alerts are system chrome natively; this is the web shell's.
 - **Wave 4's shared notes:** overlays are native (`<dialog>` and `showModal()`); focus moves in
-  and goes back; Escape closes; the page behind is inert; the scrim is a flat ink layer at 60%,
+  and goes back; Escape closes; the page behind is inert; the scrim is a flat near-black layer at 60%,
   invisible under forced colours, so the overlay keeps its frame; words before chrome; no motion.
 
 ## House rules
@@ -35,7 +35,8 @@ Dialog's own spec.
   browser can't (Safari doesn't focus a clicked button, so it has nothing to return to).
 - **The surface holds, so it's a container:** square (`--radius-card`), a 2px `--line` frame on
   `--paper`, no shadow. The buttons act, so they're Button's pills.
-- **The scrim** is `::backdrop` with `--scrim`: ink at 60%, the one translucency (rule 2).
+- **The scrim** is `::backdrop` with `--scrim`: near-black at 60% in both schemes, the one
+  translucency (rule 2). Never ink: in dark, ink is light and would lighten the page.
 - **Words carry the choice.** The title is the question; buttons are verbs that say what
   happens. A destructive button is a plain secondary button: never primary, never red.
 - **The safe choice is primary, last and focused** (`autofocus`), so Return and a careless tap
@@ -112,6 +113,7 @@ Shown drawn and live, with markup, in `elements/dialog.html` (2.1–2.3).
 | Invalid | a submit with an empty required field | Field's error above the input (`aria-invalid`, the message tied by `aria-describedby`), focus back in the field, the dialog stays open. |
 | Taller than the screen | content past `100% - 2 × --dialog-edge` | Scrolls inside; the page never scrolls sideways. |
 | Forced colours | `(forced-colors: active)` | The frame goes to `--bw-heavy` in `CanvasText`. Chromium draws the scrim as a 60% wash of `Canvas`; other engines may drop it, and the 4px frame is enough alone. |
+| Dark | the scheme | The scrim stays near-black, so it darkens a page that is already dark: the words behind drop to grey and the surface keeps its ink frame, which is what parts them. |
 
 A `.dialog` that isn't a `<dialog>` sits in place, as an open one looks: the page uses that to
 draw them (inside `inert` pictures). The `.is-*` classes on its buttons force Button's states for
@@ -172,8 +174,8 @@ the page only.
   nothing moves; on these long style-sheet pages it can.
 - The scrim needs `::backdrop` to inherit custom properties (Chrome 122, Firefox 120, Safari
   17.4). Older engines draw no scrim; the dialog keeps its frame, so it still reads as on top.
-- `--scrim` is ink at 60%. In dark mode (gate 3) ink is light, so wave 6 points the scrim at a
-  fixed dark value rather than ink.
+- In dark the scrim says less than in light: it dims words, not a white page. The surface is
+  `--paper`, one step above the dimmed page, so the frame does most of the parting.
 - `returnValue` survives an Escape: the app clears it after reading it (above).
 - After a failed submit the field keeps its error until it's fixed; reopening a cancelled Rename
   shows the old error unless the app resets the form on `close`.

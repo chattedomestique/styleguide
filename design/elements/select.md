@@ -70,7 +70,7 @@ Each is shown live, with its markup, in `elements/select.html` under Variants (2
 | Variant | Class | Use | Notes |
 | --- | --- | --- | --- |
 | Default | `.field` + `.select` | A label and the list: Language. | Languages in their own words, each `<option>` with its `lang`, so a screen reader pronounces it. `autocomplete="off"`: the deck's language, not the person's. |
-| With help | `.field__help` | When the choice needs a word: Deck colour, "Fills the deck's card in your decks." | Colours are named (White, Light grey, Grey, Dark grey, Black), never swatches: the palette is monochrome, and a name is what tells them apart. |
+| With help | `.field__help` | When the choice needs a word: Deck colour, "Fills the deck's card in your decks." | Colours are named by strength (Plain, Faint, Soft, Strong, Ink), never by lightness or swatch: the palette is monochrome, the order holds in light and dark (where "White" would be a dark grey), and a name is what tells them apart. |
 | Invalid | `.field__error`, `aria-invalid="true"` | Nothing chosen where something must be. | Only where there is no sensible default: an empty first option ("Choose a language", `value=""`) and `required`. Form checks on submit and adds the error. |
 
 ## States
@@ -84,6 +84,7 @@ Each is shown live, with its markup, in `elements/select.html` under Variants (2
 | Invalid | `[aria-invalid]` but not `"false"` | – | – | `box-shadow: inset 0 0 0 2px var(--line)`: the frame doubles inwards. Plus `.field__error` above. |
 | Disabled | `:disabled` | – | – | Dashed frame and text in `--ink-faint`, transparent ground, `opacity: 1` (Safari fades a disabled select on its own). The glyph and the label go faint; the help, which says why, stays readable. |
 | Forced colours | `(forced-colors: active)` | | | Invalid becomes a 4px (`--bw-heavy`) frame; disabled is `GrayText`, glyph and label included. Hover has no equivalent. |
+| Dark | the scheme | | | The closed control is ours and follows the roles. The open list is the platform's and follows `color-scheme` (`base.css`): Chromium draws it from the select's own paper and ink, the Mac and phones draw their dark picker. |
 
 There is no filled state (a select always shows a value) and no read-only (`<select>` has no
 `readonly`; show the value as text instead). `.is-hover`, `.is-focus` and `.is-active` force a

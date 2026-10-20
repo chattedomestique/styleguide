@@ -101,6 +101,7 @@ rest, still answers a tap on a touch screen where nothing hovers. Box-shadow ord
 | Selected | `aria-pressed="true"` | | | `--shadow-select: 0 0 0 2px var(--btn-line)` (the frame doubles, nothing shifts) and a leading check. Lift and fill still work on top. |
 | Busy | `aria-busy="true"` | 0 | 0 | Held flat: a second press does nothing, so nothing promises one. `cursor: progress`. |
 | Disabled | `aria-disabled="true"` (or `:disabled`) | 0 | 0 | Dashed frame, `--ink-faint` label and frame, no fill (a disabled primary isn't filled). Still focusable with `aria-disabled`, and `aria-describedby` points at the reason. Last in the file, so it beats every state. |
+| Dark | the scheme | | | The fill is ink, so a primary and every hovered or pressed button is a light pill with dark words, and the lift is a light slab, the frame's own colour (`STYLE.md` §2, The shadow). An app's accent comes as a light and dark pair from `tools/accent.mjs`. |
 | Forced colours | `(forced-colors: active)` | | | Frames in `ButtonText`. Hover and focus: a 4px `Highlight` outline. Pressed: `Highlight` fill, `HighlightText` label. On: a 4px frame (the padding pays for it) and the check in `ButtonText`. Disabled: `GrayText`. |
 
 `.is-hover`, `.is-focus` and `.is-active` force a state for the page and for tests. They are
@@ -157,8 +158,8 @@ not API.
 
 ## Known limits
 
-- In the wireframe `--accent` is ink, so on an ink card a primary and a secondary look alike at
-  rest. Gate 3 gives the accent its own colour.
+- `--accent` is ink until an app sets its own, so on an ink card a primary and a secondary look
+  alike at rest, in either scheme. An app's accent (checked by `tools/accent.mjs`) parts them.
 - An off toggle keeps an empty slot for its check, so nothing moves when it turns on; its label
   sits a little past centre while it's off.
 - Button reads the card's roles (`--card-ink`, `--card-bg`) as its surface. A wider set of

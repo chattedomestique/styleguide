@@ -59,6 +59,13 @@
   --card-bar-ink: var(--ink);
 }
 
+/* ...and the bar's smoothing with it: on an ink card the bar is the page's
+   own colours again, so it smooths as the page does (base.css) */
+.card[data-tone="ink"] .card__bar {
+  -webkit-font-smoothing: var(--smooth);
+  -moz-osx-font-smoothing: var(--smooth-moz);
+}
+
 /* --- focus inside a card -----------------------------------------------------
    The card clips, so a ring has to fit inside it, and it has to contrast with
    whatever it lands on: the bar is ink, and so is an inverted card. */
@@ -81,7 +88,9 @@
 /* --- parts ----------------------------------------------------------------- */
 
 /* bar: the frame, thickened, with a label and one control. Wraps at large
-   text sizes; the control keeps to the end. Light on dark, so antialiased. */
+   text sizes; the control keeps to the end. Ink in both schemes, as the frame
+   is: a dark strip in light, a light one in dark. It is an inverted fill, so
+   it smooths when the page doesn't (base.css). */
 .card__bar {
   display: flex;
   flex-wrap: wrap;
@@ -92,8 +101,8 @@
   padding-inline-start: var(--card-pad);
   color: var(--card-bar-ink);
   background: var(--card-bar-bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: var(--smooth-inverse);
+  -moz-osx-font-smoothing: var(--smooth-inverse-moz);
 }
 
 .card__bar > .card__ctl {

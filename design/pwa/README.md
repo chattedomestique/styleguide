@@ -24,13 +24,17 @@ works offline, and the console shows one error per page: a browser won't preload
    `../dist/flashcards.min.css`, `../dist/flashcards.min.js` and preload `../fonts/…woff2`.
 2. In `manifest.webmanifest`, change `id`, `name`, `short_name` and `description`, and redraw
    the icons (below). Leave `theme_color` and `background_color`: the bundle writes them.
+   They hold the light `--canvas` only, because a manifest has no dark colour yet (a
+   `color_scheme_dark` member is proposed, not shipped), so a launch in dark mode starts on a
+   light splash; the page's dark `theme-color` meta takes over once it loads.
 3. Replace `app.js` with your app. It is the starter's own code: decks in `localStorage`, a
    New deck sheet, Export and Import. The platform is `pwa.js`, inside `dist/flashcards.js` (served as `flashcards.min.js`).
 4. Add every file the app can't start without to `SHELL` in `sw.js`, then run the bundle: it
    hashes those files into `VERSION`, so any change to them ships as a new worker. Without the
    bundle, change `VERSION` by hand on every release.
-5. Every new page gets the head these pages have: the viewport meta, `theme-color`, the
-   `flashcards-sw` meta, the manifest, the icons, the font preload and the `touchstart` line.
+5. Every new page gets the head these pages have: the viewport meta, the `color-scheme` meta
+   (`light dark`), the two `theme-color` metas
+   (light, then dark, each with its `media`; the bundle rewrites both), the `flashcards-sw` meta, the manifest, the icons, the font preload and the `touchstart` line.
 
 | File | What it is |
 | --- | --- |
@@ -49,8 +53,8 @@ starter sends nothing. Daily reminders need Web Push and a server, which an app 
 `icon.svg` is the master: the system's card on a 48 grid, ink on paper, 5:7, its bar, and
 the hard shadow of a pressable card (at 48px the frame is 2px and the shadow 4px, as on
 screen). `icon-maskable.svg` is the same mark on a 60 grid, so it sits inside the maskable
-safe zone. Their colours are the `--paper` and `--ink` values of the wireframe palette:
-redraw them when gate 3 brings colour.
+safe zone. Their colours are the light `--paper` and `--ink` (#ffffff and #141414), which gate
+3 kept: the icon stays ink on paper in both schemes, so nothing needs redrawing.
 
 The PNGs were rendered once with Playwright's Chromium and committed. Each SVG went into an
 `<img>` at its exact size on a page of that size, at device scale 1, and was screenshot:

@@ -102,7 +102,8 @@ text, where nearly any title would truncate, the bar gives the title its own row
 
 - **Installed PWA:** standalone has no browser back, so every screen past the root shows this bar
   with a back link (§4). It owns `--safe-top`. Its paper is the colour behind the status bar
-  (`theme-color` stays `--canvas`, wave 5 decides if bars change that).
+  (the two `theme-color` metas, light and dark, stay `--canvas`; `tools/bundle.mjs` writes both,
+  `elements/pwa.md`).
 - **Mac:** not used. The window's toolbar is system chrome, with a system back button and the
   title in SF (§4).
 - **SwiftUI:** `.navigationTitle("Shapes")` with `.navigationBarTitleDisplayMode(.inline)`, actions

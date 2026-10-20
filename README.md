@@ -3,10 +3,10 @@
 The design system for our installed mobile PWAs and Mac-first apps: minimal, brutalist, friendly,
 and not AI-looking, with usability first. Built one element at a time.
 
-**Status:** v0.8, wireframe stage (greys, no motion). All 27 elements have passed gates 0–2:
-Card, actions and status (wave 1), choices and forms (wave 2), the app shell and navigation
-(wave 3), feedback and overlays (wave 4) and the PWA platform (wave 5), with a starter app in
-`design/pwa/` that installs and works offline. Next: colour and dark mode for everything (wave 6).
+**Status:** v0.9, colour stage. All 27 elements have passed gates 0–3: built one by one in
+waves 1–5 (with a starter app in `design/pwa/` that installs and works offline), then given
+colour, dark mode and high contrast together in wave 6: black, grey and white, plus one accent
+per app. Next: motion for everything (wave 7), then the freeze (wave 8).
 
 | Path | What it is |
 | --- | --- |
