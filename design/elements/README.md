@@ -687,3 +687,91 @@ runs the default accent's pairs. The colour-literal rule doesn't change.
 
 **Not in this wave:** a second hue, tinted greys, gradients, or per-deck colours. The palette is
 the owner's black, grey and white plus one accent.
+
+### Wave 7: motion (gate 4, every element)
+
+A pass over everything, like wave 6. `check.mjs` opens the gate (`GATES.motion = true`) and
+from then on enforces the rules below. The principles are `STYLE.md` §2 Motion's, which becomes
+the shipped spec:
+
+- **Only `transform` and `opacity` move things.** States animate the registered `--lift` and
+  `--fill` numbers, and overlays may add `display` and `overlay` as discrete properties for
+  their exits. Never `all`, and never layout (width, height, top, margin), with one exception:
+  Disclosure's body height through `interpolate-size`, as a progressive extra.
+- **Durations and easings come from the tokens** in `foundation.css`:
+  - `--dur-press` 130ms, `--dur-hover` 200ms, `--dur-move` 520ms;
+  - `--ease-out`, `--ease-flip`;
+  - add at most an enter, an exit and a fade (for reduced motion) if the work proves it needs
+    them.
+
+  No literal `ms` or `cubic-bezier` outside `foundation.css`.
+- **Focus rings are always instant.** Motion never delays feedback: the pressed look lands on
+  `:active` within the press duration.
+- **Reduced motion is gentler, not instant.** Under `prefers-reduced-motion: reduce`, movement
+  becomes a short crossfade (150ms or less) or nothing. There's no global kill switch. Every
+  `animation` and every moving `transition` has its reduced counterpart, and the gate checks
+  that one exists.
+- **Nothing moves on load,** and nothing loops except the spinner while it's shown.
+
+**What moves:**
+
+- **States:** every pressable element (Card, Button, Tab bar, Sidebar, List rows, Segmented,
+  Checkbox, Radio, Switch, Stepper, Tabs, Menu items) transitions `--lift` and `--fill`. The
+  durations are hover in, then press. The Switch knob translates.
+- **The flip:**
+  - The study card turns over: `perspective` on its parent, both faces with
+    `backface-visibility: hidden`, `--ease-flip` over `--dur-move`.
+  - It's driven by a native control (a checkbox styled as the card's Flip button, "Show the
+    answer"), so it works without script and is announced.
+  - Under reduced motion it's a crossfade.
+- **Overlays:**
+  - Dialog fades and settles, a bottom sheet rises, a side sheet slides in, a Menu popover fades
+    from its anchor, and the scrim fades.
+  - Entrances use `@starting-style`; exits use `transition-behavior: allow-discrete` on
+    `display` and `overlay`.
+  - Where these aren't supported, overlays appear in place, as now.
+- **Sheet drag to dismiss:**
+  - A small progressive script: a pointer drag on the sheet's top bar follows the finger, a
+    release past a threshold closes it, and anything short of that settles back.
+  - The Close button stays.
+  - No detents: a sheet is sized by its content, and one stop is enough. Write down why.
+- **Toast:** rises in. On close it fades before it's removed (`toast.js` waits for the
+  transition, with a timeout fallback).
+- **Banner:** appears in place, since a band pushing content down is layout. Write down why.
+- **Disclosure:** the `ic--down` glyph rotates to point up, instead of swapping. The body may open
+  with `interpolate-size: allow-keywords` and `::details-content` where supported, and opens
+  in place elsewhere.
+- **Spinner:** turns, continuously, only while shown. Under reduced motion it turns slowly or
+  pulses (decide and say why); its words always carry the meaning.
+- **Loading:** the spinner appears only after about 300ms (an `animation-delay` on its
+  appearance, which reduced motion keeps, since it's timing, not movement).
+- **Top bar, with a large heading:** where scroll-driven animations exist
+  (`animation-timeline`), the bar's title fades in as the large heading scrolls under it.
+  Elsewhere the bar is unchanged. The bar's copy is `aria-hidden`; the heading stays the `h1`.
+- **Moving between screens:**
+  - The starter opts into cross-document view transitions (`@view-transition { navigation:
+    auto }`): a crossfade within `--dur-hover`, with the bars staying put (`view-transition-name`
+    on the frame's bars).
+  - Off under reduced motion. Progressive.
+
+**Not moving, decided:** Sidebar folding (it's layout), the Segmented thumb (no sliding
+indicator: fill only), List swipe-to-reveal (left to the app: the More button is the accessible
+route, and a swipe needs a device to tune), and anything on load.
+
+**The gate:** `check.mjs` check 5 becomes "motion follows the rules":
+- only `transform`, `opacity`, `--lift`, `--fill`, `display`, `overlay`, and the named
+  exceptions, in `transition-property` and in keyframes;
+- token durations and easings only;
+- no `transition: all`;
+- each component file that animates has a `prefers-reduced-motion` block.
+
+**Verified:**
+- every element page and the starter in Chromium, with motion on and with
+  `prefers-reduced-motion: reduce`;
+- frame-sampled where it matters (the flip, the sheet, the toast exit), with screenshots
+  mid-transition;
+- the drag on a touch-emulated device;
+- no layout shift from any entrance;
+- focus moving correctly through every entrance and exit;
+- the budget holds;
+- every spec's "gate 4" notes rewritten to say what moves now.
