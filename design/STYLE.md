@@ -1,10 +1,10 @@
 # Flashcards style sheet
 
-v0.2 · wireframe stage · first element: **Cards** · 2026-10-19
+v0.3 · wireframe stage · 1 of 27 elements built · 2026-10-20
 
-The same sheet, two ways. **`index.html`** is the one to look at: live specimens, every
-state, the markup read straight off the page. **This file** is the one to build from: exact
-values, class names, and the reasons. If the two ever disagree, the CSS in `css/` wins and
+The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
+to look at: live specimens, every state, the markup read straight off the page. **This file**
+and the element specs are the ones to build from: exact values, class names, and the reasons. If the two ever disagree, the CSS in `css/` wins and
 the disagreement is a bug in whichever one is wrong. `node design/tools/check.mjs` catches
 the mechanical kind. **`screens.html`** is the test bed: the system on a phone and a Mac, with
 every element that isn't built yet marked where it would go.
@@ -14,9 +14,9 @@ every element that isn't built yet marked where it would go.
 > - **Six roles carry every colour:** `--canvas` (the page), `--paper` (a card), `--ink`
 >   (text), `--ink-soft` (secondary text), `--line` (frames), `--accent` (the one "press
 >   this"). Fills come from `data-tone="1"` … `"6"` or `"ink"`.
-> - **Six classes build a screen:** `.card-grid`, `.card`, `.card__body`, `.card__title`,
->   and `.card--link` with `.card__link` in the title. Copy markup from `index.html`: every
->   specimen prints its own.
+> - **Elements build a screen.** Copy markup from the element pages in `elements/`: every
+>   specimen prints its own. Card's are `.card-grid`, `.card`, `.card__body`, `.card__title`,
+>   and `.card--link` with `.card__link` in the title.
 > - **Always:** read roles, never a hex.
 > - **Never improvise:** use only the tokens and classes named here. If you need one that
 >   isn't, its element hasn't been through the pipeline yet: say so instead.
@@ -122,7 +122,7 @@ Size scale, all fixed `rem`: `--text-xs` 0.8125rem (13px) · `--text-sm` 0.875re
 2rem (32) · `--text-3xl` 3rem (48).
 
 - **No `vw` in type.** Resizing a Mac window must not resize text. Inside a card, title,
-  figure and answer sizes come from the card's own width (`cqi`), not the viewport (§3). The
+  figure and answer sizes come from the card's own width (`cqi`), not the viewport (`elements/card.md`). The
   sheet's fluid sizes, its cover's poster line included, live in `sheet.css` and are not
   part of the system.
 - **Floors:** body 16px, meta 14px, label 13px. Nothing smaller, the sheet included.
@@ -144,7 +144,7 @@ Size scale, all fixed `rem`: `--text-xs` 0.8125rem (13px) · `--text-sm` 0.875re
 In a served shell, preload it:
 `<link rel="preload" href="…/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin>`.
 Without `crossorigin` the preload is wasted. A PWA precaches it in its service worker.
-`index.html` doesn't preload: from disk the preload fails CORS and the font loads twice.
+The sheet's pages don't preload: from disk the preload fails CORS and the font loads twice.
 
 ### Space
 
@@ -272,191 +272,19 @@ Apple platforms, so it never marks an in-app link.
 
 ---
 
-## 3. Card
+## 3. Elements
 
-A card holds one idea. It is a frame with slots; what goes in a slot is another element's
-business. The slots `.card__ctl` and `.card__action` are where the Button element will land.
+Each element has a page and a spec in `elements/`: `elements/<name>.html` shows every variant
+and state live, with its markup, and `elements/<name>.md` gives the exact values and the
+reasons. The hub, `index.html`, lists them all with their status. How an element is built,
+and the brief for each one, is in `elements/README.md`.
 
-### House rules
+| Element | Spec | Status |
+| --- | --- | --- |
+| Card | `elements/card.md` | Gates 0–2 |
 
-- Reads roles only. No colour literals.
-- A hard shadow means "you can press this". The lift is that shadow alone: the card never
-  moves.
-- **Never put `cqi` on `.card` itself.** A card is a container, but a container's own
-  `cqi` resolves against *its parent*. Sizes that use `cqi` live on the parts, where the
-  container is the card.
-- **A card needs a width from its parent** (a grid cell, a block). `container-type:
-  inline-size` means it has no intrinsic width, so it will collapse inside a shrink-wrapping
-  flex row.
-- States change instantly (gate 4 owns transitions).
-
-### Anatomy
-
-Nine parts, all optional except the frame. A card is whichever of them it needs.
-
-| # | Part | Class | Spec |
-| --- | --- | --- | --- |
-| 1 | Frame | `.card` | `display: flex; flex-direction: column`; `border: 2px solid var(--card-line)`; `border-radius: var(--card-radius)`; `overflow: clip`; `container: card / inline-size`. |
-| 2 | Bar | `.card__bar` | The frame made thicker. `min-block-size: 44px`; ink fill, paper text; label left, control right. Wraps when the text grows; the control stays at the end. Flips to paper-on-ink for `data-tone="ink"`. |
-| | Label | `.card__label` | `--type-label`, uppercase, 1–4 words. A `<p>` or `<span>`, not a heading, when the card has a title. |
-| | Control | `.card__ctl` | 44×44 hit area around a 20×20 box (`2px currentColor`, `--radius-ctl`); glyph 12px. The box fills while pressed. |
-| 3 | Media | `.card__media` | `aspect-ratio: var(--ratio, 4 / 3)`; edge to edge; closed by a 2px rule; `img`/`video` are `object-fit: cover`; fill is the element's tone or `--tone-1`. |
-| 4 | Body | `.card__body` | `padding: clamp(1rem, 5cqi, 1.5rem)`; flex column, `gap: 8px`; grows to fill. |
-| | Head | `.card__head` | Same padding as the body. The study card's top strip. |
-| 5 | Eyebrow | `.card__eyebrow` | `--type-meta`, soft ink. What kind of thing this is. |
-| 6 | Title | `.card__title` | `--type-title` at `clamp(1.375rem, 8cqi, 2rem)` (22–32px); 20px (`--text-lg`) in a row or ghost card; balanced; breaks long words. |
-| 7 | Text | `.card__text` | `--type-body`, 40ch max, pretty-wrapped. |
-| | Meta | `.card__meta` | `--type-meta`, tabular, soft ink. |
-| | Figure | `.card__figure` | `--type-figure` at `clamp(3rem, 27cqi, 6.5rem)`; tabular. A `<small>` inside is 0.42em, weight 500, soft ink. |
-| 8 | Foot | `.card__foot` | `min-block-size: 44px`; `padding: 8px var(--card-pad)`; 1px rule above; `margin-block-start: auto`, so cards in a row end on one line. Its links and buttons are 44px tall; negative margins keep the foot at 44px. |
-| 9 | Action | `.card__action` | 44px circle, `2px var(--card-ink)`. A `<button>` with an `aria-label`, except in a ghost, where the whole card is the control and the circle is `aria-hidden`. Fills with `--accent` when `--fill` is 1. |
-
-Helpers: `.card__row` (flex, space-between, top-aligned, wraps), `.card__group` (flex column,
-4px gap), `.card__list` (ruled rows, 44px each, 1px rules). In a list the whole row is the
-link, with the padding on the link, not the `li`:
-`<li><a href="…"><span>Shapes</span><span>12</span></a></li>`.
-
-### Variants
-
-Eight. Class names are the API. Each is shown live, with its markup, in `index.html`
-under Variants (3.1–3.8).
-
-| Variant | Modifier / recipe | Use | Notes |
-| --- | --- | --- | --- |
-| Plain | `.card` + `.card__body` (+ `.card__foot`) | The default. | |
-| Panel | `.card__bar` (+ `.card__list`) | A titled card that folds away: lists, settings. | `data-tone="ink"` flips the bar to paper. |
-| Media | `.card__media` | Picture first. | `--ratio` overrides 4 / 3. |
-| Stat | recipe: eyebrow, `.card__figure`, optional meter, meta; `.card--square` in a grid | One number. | `.card--square` works on any card: `aspect-ratio: 1 / 1`, and the body spaces its first and last children apart. |
-| Row | `.card--row` + `.card__tile`, `.card__main`, `.card__trail` | A thing in a list. | Below 18rem the trail drops under the title (children move between grid cells; the card can't re-template itself). |
-| Link | `.card--link` + `.card__link` in the title | The whole card goes somewhere. | Eyebrow at the top, title group at the bottom. See below. |
-| Ghost | `.card--ghost` (the card is the `<a>` or `<button>`) | An empty slot that asks to be filled. | Dashed; firms up on hover and focus; its circle fills on press. |
-| Study | `.card--study` + `.card__head`, `.card__stage`, `.card__answer` | The flashcard. 5 / 7. | Static faces; the flip is gate 4. Fits a phone: `max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7)`. |
-
-**Link card.** One anchor, inside the title; its `::after` is stretched over the whole card
-(`inset: -2px`, so it covers the border too), so there is exactly one tab stop, one
-accessible name, and the whole card is the target. No glyph or circle says "go": the card is
-the target, and the title's underline on hover and focus is the cue. The card wears the focus
-ring, not the anchor (`:has(.card__link:focus-visible)`; the anchor keeps its own ring where
-`:has` is unsupported). Anything else clickable inside the card must sit above the link
-(`position: relative; z-index: 1`).
-
-### States
-
-Two registered numbers drive the interaction: `--lift` (0 flat, 1 raised) and `--fill`
-(0 outline, 1 filled). Every state just sets them, so hover, focus and pressed share one
-definition, and gate 4 can animate both with a single `transition`. Lift is drawn by
-`--shadow-lift`, a hard shadow of `calc(var(--lift) * var(--bw) * 2)` (4px) down and right in
-`--card-line`, behind `--shadow-select`.
-
-| State | Trigger | `--lift` | `--fill` | Also |
-| --- | --- | --- | --- | --- |
-| Rest | none | 0 | 0 | Flat. No shadow. |
-| Hover | `:hover`, only inside `@media (hover: hover)` | 1 | 1 | `4px 4px 0` hard shadow; the card does not move. `z-index: 1`; title underlines; a ghost goes solid. |
-| Focus | `.card--link:has(.card__link:focus-visible)`, or `:focus-visible` on a ghost | 1 | 1 | `3px solid var(--focus)`, offset 3px, plus the hover look, so keyboard and pointer match. |
-| Pressed | `:active` | 0 | 1 | A lifted card (link or ghost) goes back onto the surface; the fill stays. |
-| Selected | `aria-selected="true"` on an option card, or `aria-current` on its `.card__link` | | | `--shadow-select: 0 0 0 2px var(--card-line)`: a ring that doubles the frame, so nothing shifts. |
-| Disabled | `.card--disabled` (+ `aria-disabled="true"` on an option card) | | | Dashed frame, `--ink-faint`, hatch (from `wire.css`), `pointer-events: none`. No `href`. Says why in `.card__meta`. |
-| Forced colours | `(forced-colors: active)` | | | Shadows and fills vanish there, so hover and focus get a 4px `Highlight` outline, selected a 4px border, and disabled is drawn in `GrayText`. |
-
-- **Hover only where hover exists.** Every `:hover` rule sits inside `@media (hover: hover)`,
-  so a tap never leaves a control stuck in its hover look. `.is-hover` and `:focus-visible`
-  stay outside it.
-- **Every control has a pressed look.** The action and the ghost fill; the bar control's box
-  fills; list rows and foot links swap ink and paper. That replaces the browser's tap flash,
-  which is translucent and off-palette, so `base.css` turns it off
-  (`-webkit-tap-highlight-color: transparent`).
-- **Selected, in full:** `.card:is([aria-selected="true"], .is-selected), .card:has(.card__link[aria-current]:not([aria-current="false"]))`.
-- **The hand cursor is for links only**, as on the Mac. Buttons, the bar control and the
-  action keep the arrow. No `not-allowed` cursor: a disabled card takes no pointer events.
-
-The `.is-hover`, `.is-focus`, `.is-active` and `.is-selected` classes force a state for
-documentation and tests. They are not API.
-
-### Collections
-
-A grid of cards is a list, so it announces "list, 4 items":
-`<ul class="card-grid" role="list"><li><article class="card">…</article></li>…</ul>`.
-Each `li` is a grid cell that stretches its card.
-
-A collection is **navigable or selectable, never both.**
-
-- **Navigable:** link cards, one tab stop each. The current one carries `aria-current` on
-  its `<a class="card__link">`, never on the `<article>`.
-- **Selectable:** a `role="listbox"` whose cards are `role="option"` with `aria-selected`.
-  One tab stop for the whole list (roving `tabindex`): arrows and Home/End move, Space
-  selects, ⌘-click and ⇧-click extend. An option's children are presentational, so an option
-  card holds no link. Native: `List(selection:)`.
-- **Drag only where it means something.** If cards don't reorder, set `draggable="false"` on
-  `.card__link`, or a click-drag picks up a URL. If they do, drag gets a keyboard path and
-  Undo.
-
-### Layout
-
-| Class | Does |
-| --- | --- |
-| `.card-grid` | `--card-min: 16rem`, set on the grid itself; `grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min)), 1fr))`; `gap: var(--gutter)`. Places cards; never styles them. |
-| `.card-grid--tiled` | `gap: 0`. Negative start margins on each item (`> :is(.card, li)`) overlap each frame onto its neighbour's, so two frames read as one 2px line, and a short last row still closes. |
-
-### Responsive behaviour
-
-Cards answer to their own width, not the window:
-
-- Padding: `clamp(1rem, 5cqi, 1.5rem)`.
-- Title: `clamp(1.375rem, 8cqi, 2rem)`. Figure: `clamp(3rem, 27cqi, 6.5rem)`. Answer:
-  `min(17cqi, 3.75rem)`, with no rem floor: it follows the card's width, not the text size, so
-  at large text sizes a long word stays whole where it can. Where it can't, `hyphens: auto`
-  breaks it at a syllable ("Hexa-gon"), so the page needs its `lang`.
-- Row: `@container card (max-width: 18rem)` moves the trail to row 2, column 2.
-- The bar, `.card__row`, the foot and the ghost wrap (`flex-wrap: wrap`) when text grows.
-- Holds from 320px up with no horizontal scroll. At 320px with 200% text, no card clips a
-  control or a title.
-
-### Accessibility
-
-- One tab stop per link card. Its accessible name is the title text.
-- Every touch target is at least 44px: the action circle, the bar control, list rows, and the
-  links and buttons in the foot.
-- The focus ring is always visible: outside the frame on the card itself; inset on the bar
-  and on list rows, in the ink of the surface it lands on.
-- Contrast is at least 8.4 : 1 for ink on any tone and at least 4.5 : 1 for soft ink. Under
-  `prefers-contrast: more`, soft ink becomes ink.
-- A card title sits one heading level below its section's heading: an `h2` section takes
-  `h3` titles. One heading per card; the bar label is the heading only when there is no
-  `.card__title`.
-- Meters use `role="meter"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and an
-  `aria-valuetext` in the card's own words ("5 of 12 learned").
-- Decorative icons are `aria-hidden="true"`. A control whose only content is an icon gets an
-  `aria-label`.
-- Reset lists keep `role="list"` so Safari keeps the semantics that `list-style: none`
-  would drop.
-- A disabled card is not a link (no `href`) and says why in visible text: "Unlocks after
-  Colours".
-- Every gesture (swipe, long-press) also has a visible button. Hints name the action, not the
-  input: "Turn over", not "Tap to flip".
-- Forced-colours mode is handled (see States).
-
-### Do and don't
-
-- **Do** give each card one idea and one place to go.
-- **Do** use tones for rhythm across a grid, never to carry meaning. Colour is not state.
-- **Do** let the grid place cards and the card style itself.
-- **Don't** nest cards, or put two competing actions in one link card.
-- **Don't** add a shadow at rest, a stripe down one edge, or a gradient.
-- **Don't** fake "disabled" with opacity. Use the state.
-- **Don't** centre-align body text. Titles and answers may centre; paragraphs don't.
-- **Don't** pad `.card` itself. Padding goes on the parts.
-
-### Known limits
-
-- The stretched link reaches over the border only through `overflow-clip-margin`, because
-  the card clips at its padding box. Safari ignores it, leaving a 2px band at the very edge
-  of a link card where a click does nothing.
-- Text inside a link card can't be selected by dragging, because the stretched link sits on top.
-- The study card has static faces only. The flip is gate 4.
-- No dark mode yet. It arrives with colour, at gate 3.
-- Needs a 2024-era browser: container queries, `:has()`, `@property`, `color-mix()`, cascade
-  layers. Chrome/Edge 114+, Safari 16.4+, Firefox 128+. `text-wrap: balance | pretty` and
-  `overflow-clip-margin` degrade gracefully.
+Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
+pass gate 2.
 
 ---
 
@@ -580,6 +408,13 @@ generate-a-design-system workflow or its scripts.
 ---
 
 ## 8. Changelog
+
+- **0.3.0** · 2026-10-20 · Restructured for the whole system: a hub page (`index.html`) with
+  the rules, the tokens and an index of all 27 elements, and one page and one spec per element
+  in `elements/` (Card moved to `elements/card.html` and `elements/card.md`). The build
+  contract, a brief for every element and page and spec templates are in
+  `elements/README.md`. The bundle joins every page into `dist/style-sheet.html`; the gate
+  checks every page and spec, and that no id clashes between pages.
 
 - **0.2.1** · 2026-10-19 · `screens.html`: a phone (Today, Study) and a Mac window built from
   the system, with `.wf-slot` marking every missing element, and a findings list. Fixes it
