@@ -1,6 +1,6 @@
 # Icons
 
-Element 06 · gates 0–2 done (wireframe, states) · page: `elements/icons.html`
+Element 06 · gates 0–3 done (wireframe, states, colour) · page: `elements/icons.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 glyph set's own spec, with every glyph's path data so native apps can port it.

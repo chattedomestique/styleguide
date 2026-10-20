@@ -1,6 +1,6 @@
 # PWA platform
 
-Element 27 · gates 0–2 done (wireframe, states) · page: `elements/pwa.html` · working starter:
+Element 27 · gates 0–3 done (wireframe, states, colour) · page: `elements/pwa.html` · working starter:
 `pwa/` (`../pwa/index.html` from here)
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`, whose §4 holds the
@@ -57,7 +57,9 @@ Opened from disk it shows the screens with no worker.
 | `app.js` | The starter's own code, the part an app replaces: a list of decks in `localStorage`, export and import. |
 
 Each page links `../dist/flashcards.min.css`, `../dist/flashcards.min.js`, the manifest, the icons,
-and preloads the font with `crossorigin`. Its viewport meta is
+and preloads the font with `crossorigin`. `<meta name="color-scheme" content="light dark">` lets
+the browser paint a dark ground in dark before the CSS arrives, instead of a white flash. Its
+viewport meta is
 `width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content`, and
 `<meta name="flashcards-sw" content="sw.js">` names the worker.
 
@@ -72,14 +74,15 @@ and preloads the font with `crossorigin`. Its viewport meta is
 | `lang`, `dir` | `"en"`, `"auto"` | The language and direction of the words above. |
 | `display` | `"standalone"` | Its own window, with none of the browser's bars. So every screen past the root needs a back link. |
 | `orientation` | `"any"` | Never locked. |
-| `theme_color`, `background_color` | `--canvas` | The status or title bar, and the splash. `tools/bundle.mjs` writes the hex in from the colour file, as it does the pages' `theme-color` meta, so it lives in one place. |
+| `theme_color`, `background_color` | `--canvas`, light | The status or title bar, and the splash. `tools/bundle.mjs` writes the hex in from the colour file, so it lives in one place. A manifest has no dark colour, so it keeps the light canvas (Known limits). The pages carry two `theme-color` metas instead, light and then dark, each with its `prefers-color-scheme` media, and the bundle writes both from `--canvas`. |
 | `icons` | an SVG, and 192 and 512 PNGs; each `any` and `maskable` | The home screen, the app switcher, the splash. |
 | `shortcuts` | Today, Decks | A long press on the icon goes straight there. |
 | `screenshots` | one narrow, one wide | Chromium's richer install sheet. |
 
 **Icons.** The mark is the system's own card: an ink frame on paper, 5:7, with the hard shadow of
 something you can press, drawn on a 48 grid with crisp edges (`icons/icon.svg`), monochrome until an
-app sets its accent. `icons/icon-maskable.svg` is the same mark on a 60 grid, so it sits at 80% and
+app sets its accent, and ink on paper in both schemes: the home screen isn't the page.
+`icons/icon-maskable.svg` is the same mark on a 60 grid, so it sits at 80% and
 inside the safe zone (the centre circle, 40% of the size in radius), with paper to every edge for
 any mask. The PNGs (192 and 512, any and maskable; 180 for `apple-touch-icon`, which iOS reads
 instead of the manifest; the 96px shortcut icons, which are the system's today and decks glyphs)
@@ -275,6 +278,10 @@ the cards' and toasts' frames, the switch's knob and every glyph stay, in system
   notifications, so the denied words show. The starter is where they work.
 - **A band shown by `hidden` alone wouldn't speak:** a live region is announced when it changes,
   not when it appears. That's why the bands ship empty and `pwa.js` fills them.
+- **The splash in dark:** a manifest has one `background_color` and one `theme_color`, so an
+  installed app's splash and, where the system reads the manifest, its title bar stay the light
+  canvas in dark until manifests get a dark colour. The pages' two `theme-color` metas follow the
+  system; a page forced with `data-scheme` doesn't change them unless the app does from script.
 - **The keyboard after a rotation:** the first height seen at a new width is taken as the full
   height, so rotating with the keyboard already up leaves the bar until the keyboard goes down and
   comes back.

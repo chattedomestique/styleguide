@@ -1,6 +1,6 @@
 # Tag and Badge
 
-Element 04 · gates 0–2 done (wireframe, states) · page: `elements/tag.html`
+Element 04 · gates 0–3 done (wireframe, states, colour) · page: `elements/tag.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tag and Badge's own spec.
@@ -73,8 +73,10 @@ Neither has states of its own. What changes:
   `Decks<span class="sr-only">, 7 due</span>`, so the name still starts with the visible
   label (WCAG 2.5.3).
 - Draw at most "99+"; put the real number in the name ("Due, 140 cards").
-- Contrast: ink on paper, paper on ink, ink on every tone (at least 8.4 : 1, see
-  `STYLE.md`).
+- Contrast: ink on paper, paper on ink, ink on every tone (at least 8.4 : 1 in light and 7.4 : 1
+  in dark, see `STYLE.md`).
+- Dark: the ink tag and the badge are light squares with dark words, the one place a tag is
+  brighter than its card; the tones are dark greys, 1 still the quietest.
 
 ## Platforms
 

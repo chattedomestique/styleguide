@@ -59,7 +59,7 @@ you made and why; the exact lines anything shared needs; what you couldn't verif
 
 ## Page and spec layout
 
-The page: hero (the kicker reads "Element NN · Wireframe · Gates 0 to 2 done", the title is
+The page: hero (the kicker reads "Element NN · Colour · Gates 0 to 3 done", the title is
 the element's name, the lede is its job), then **01 Variants**, **02 States**, **03 Usage**
 (do and don't, platform notes), with **Anatomy** first when the element has more than three
 parts. Each variant is an `.sg-entry` whose specimens carry `data-sg-code`, so the page prints
@@ -72,33 +72,33 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 
 | # | Element | Wave | Status |
 | --- | --- | --- | --- |
-| 01 | Card | | Gates 0–2 |
-| 02 | Button | 1 | Gates 0–2 |
-| 03 | Field | 1 | Gates 0–2 |
-| 04 | Tag and Badge | 1 | Gates 0–2 |
-| 05 | Meter and Spinner | 1 | Gates 0–2 |
-| 06 | Icons | 1 | Gates 0–2 |
-| 07 | Checkbox | 2 | Gates 0–2 |
-| 08 | Radio | 2 | Gates 0–2 |
-| 09 | Switch | 2 | Gates 0–2 |
-| 10 | Segmented control | 2 | Gates 0–2 |
-| 11 | Select | 2 | Gates 0–2 |
-| 12 | Stepper | 2 | Gates 0–2 |
-| 13 | Form | 2 | Gates 0–2 |
-| 14 | Frame | 3 | Gates 0–2 |
-| 15 | Top bar | 3 | Gates 0–2 |
-| 16 | Tab bar | 3 | Gates 0–2 |
-| 17 | Sidebar | 3 | Gates 0–2 |
-| 18 | List | 3 | Gates 0–2 |
-| 19 | Tabs | 3 | Gates 0–2 |
-| 20 | Disclosure | 3 | Gates 0–2 |
-| 21 | Menu | 3 | Gates 0–2 |
-| 22 | Dialog | 4 | Gates 0–2 |
-| 23 | Sheet | 4 | Gates 0–2 |
-| 24 | Toast | 4 | Gates 0–2 |
-| 25 | Banner | 4 | Gates 0–2 |
-| 26 | Empty, loading and error | 4 | Gates 0–2 |
-| 27 | PWA platform | 5 | Gates 0–2 |
+| 01 | Card | | Gates 0–3 |
+| 02 | Button | 1 | Gates 0–3 |
+| 03 | Field | 1 | Gates 0–3 |
+| 04 | Tag and Badge | 1 | Gates 0–3 |
+| 05 | Meter and Spinner | 1 | Gates 0–3 |
+| 06 | Icons | 1 | Gates 0–3 |
+| 07 | Checkbox | 2 | Gates 0–3 |
+| 08 | Radio | 2 | Gates 0–3 |
+| 09 | Switch | 2 | Gates 0–3 |
+| 10 | Segmented control | 2 | Gates 0–3 |
+| 11 | Select | 2 | Gates 0–3 |
+| 12 | Stepper | 2 | Gates 0–3 |
+| 13 | Form | 2 | Gates 0–3 |
+| 14 | Frame | 3 | Gates 0–3 |
+| 15 | Top bar | 3 | Gates 0–3 |
+| 16 | Tab bar | 3 | Gates 0–3 |
+| 17 | Sidebar | 3 | Gates 0–3 |
+| 18 | List | 3 | Gates 0–3 |
+| 19 | Tabs | 3 | Gates 0–3 |
+| 20 | Disclosure | 3 | Gates 0–3 |
+| 21 | Menu | 3 | Gates 0–3 |
+| 22 | Dialog | 4 | Gates 0–3 |
+| 23 | Sheet | 4 | Gates 0–3 |
+| 24 | Toast | 4 | Gates 0–3 |
+| 25 | Banner | 4 | Gates 0–3 |
+| 26 | Empty, loading and error | 4 | Gates 0–3 |
+| 27 | PWA platform | 5 | Gates 0–3 |
 
 Then three passes over everything: colour and dark mode (wave 6, gate 3), motion (wave 7,
 gate 4) and the freeze (wave 8, gate 5).
@@ -428,7 +428,7 @@ What the app says back, and what sits on top of a screen. Shared notes:
 - **Overlays are native:** `<dialog>` with `showModal()` for modal, `popover` for non-modal.
   - Focus moves in when they open and goes back to the control that opened them when they close.
   - Escape closes. The page behind is inert.
-- **The backdrop** is the owner's decision: a flat ink layer at a fixed 60%, through a new
+- **The backdrop** is the owner's decision: a flat near-black layer at a fixed 60%, through a new
   `--scrim` role.
   - It's the one translucency the system allows. Rule 2 in `STYLE.md` gains the exception, with
     the reason: the page reads as "still there, but not now".
@@ -610,3 +610,80 @@ markup; anything it drives ships `hidden`:
 - the console is clean.
 
 iOS behaviour is described, and marked as needing a device.
+
+### Wave 6: colour and dark mode (gate 3, every element)
+
+A pass over everything, not new elements. The owner's decisions:
+
+- the palette is black, grey and white, shared by every app;
+- each app sets one accent;
+- dark mode and high contrast are part of the system, not an app's job.
+
+**The colour file.** `tokens/color.css` replaces `color.wire.css`: the one `@import` line in
+`flashcards.css` that gate 3 was built to swap. Role names stay the same, so no component changes
+unless it proves it assumed a light page.
+
+- **Primitives:**
+  - a neutral grey ramp from white to near-black (no tint, no hue), with steps chosen for
+    contrast, not by eye alone;
+  - still the only colour values in the system.
+- **Roles:**
+  - each role is `light-dark(<light>, <dark>)`, and `base.css` sets `color-scheme: light dark`;
+  - an app, or the sheet's switch, forces one with `color-scheme: light` or `dark` on `:root`.
+- **Dark:**
+  - canvas is near-black, paper one step lighter, and ink near-white (at least 7:1 on both, short
+    of pure white so text doesn't glow);
+  - frames are ink, as in light.
+  - The hard shadow stays `--line`, so in dark it's a light slab. Decide by looking at both that
+    and a mid-grey, and record why.
+- **Tones:** six greys in each scheme, in the same order of strength (1 the quietest), each with
+  its `--on-tone-n`.
+- **`--scrim`:** near-black at 60% in both schemes. "Not now" is dark either way, and ink would
+  lighten the page in dark.
+- **`--focus`:** ink in both schemes, never the accent, so the ring always shows.
+- **`--accent` / `--on-accent`:** ink and paper by default (monochrome).
+  - An app overrides both in `@layer app`, usually as `light-dark()` pairs.
+  - The accent fills only what already reads `--accent`: the primary Button and the card's action.
+    Nothing means something by colour alone.
+
+**The accent guard.** `tools/accent.mjs <light> [<dark>]` takes an app's accent and:
+- checks it against paper and canvas in each scheme (3:1 as a fill edge) and against its text
+  (4.5:1);
+- picks `--on-accent` (paper or ink);
+- where only a light accent is given, proposes a dark one by moving its OKLCH lightness until it
+  passes;
+- prints the `@layer app { :root { … } }` block to paste.
+
+No dependencies. It refuses an accent that can't pass, and says why.
+
+**High contrast:**
+- `prefers-contrast: more` in either scheme: soft ink and soft lines become ink, and in dark the
+  canvas goes to black and ink to white;
+- forced colours: every element's existing rules, re-checked under a light and a dark system
+  theme.
+
+**The PWA:**
+- two `theme-color` metas, the second with `media="(prefers-color-scheme: dark)"`, both written
+  by `tools/bundle.mjs` from `--canvas`;
+- the manifest keeps the light canvas (a manifest has no dark colour yet: a Known limit);
+- the app icon stays ink on paper in both schemes.
+
+**The gate:** check 9 (contrast) parses `light-dark()` and runs every pair in each scheme. It also
+runs the default accent's pairs. The colour-literal rule doesn't change.
+
+**The pages:**
+- The sheet's own chrome (`sheet.css`) follows the scheme.
+- The hub gets a scheme switch (Auto, Light, Dark) in `sheet.js`, remembered for the viewer, with
+  storage wrapped so it never throws. The bundle carries it into both single-file pages.
+- The swatches in `index.html` show both schemes, with their live ratios.
+
+**Verified:**
+- every element page, `screens.html` and the starter, in light, dark and more contrast, and under
+  forced colours in light and dark;
+- screenshots at 390 and 1440 for each;
+- no element assumes a light page (a white glyph on paper, a shadow that disappears, a mix that
+  turns muddy);
+- `STYLE.md` §2 Tone becomes Colour, and the changelog says what changed.
+
+**Not in this wave:** a second hue, tinted greys, gradients, or per-deck colours. The palette is
+the owner's black, grey and white plus one accent.

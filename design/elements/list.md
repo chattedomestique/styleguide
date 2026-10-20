@@ -1,6 +1,6 @@
 # List
 
-Element 18 · gates 0–2 done (wireframe, states) · page: `elements/list.html`
+Element 18 · gates 0–3 done (wireframe, states, colour) · page: `elements/list.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 List's own spec.
@@ -108,7 +108,8 @@ Only a link row has states; a static row has none and no hand.
 | Focus | `:focus-visible` | 0 | 0 | The underline, and the 3px `--focus` ring inside the row (`outline-offset: -3px`): rows touch, and a plain list touches the screen's edge. |
 | Pressed | `:active` | 0 | 1 | Ink ground, paper words; meta, trail and chevron follow. The row sets `--card-ink` and `--card-bg` to paper and ink, so a Tag or Badge inside inverts with it. |
 | Actions open | the More button's menu is open | | | The button stays down (Menu draws it); the row is unchanged. |
-| Forced colours | `(forced-colors: active)` | | | Press paints `Highlight` with `HighlightText` (glyphs too). Rules, frame and ring are system colours already. The inset bar opts out: `CanvasText` ground, `Canvas` label. |
+| Forced colours | `(forced-colors: active)` | | | Press paints `Highlight` with `HighlightText` (glyphs and a tag's words and frame too). Rules, frame and ring are system colours already. The inset bar opts out: `CanvasText` ground, `Canvas` label. |
+| Dark | the scheme | | | The inset head is ink, so a light band with dark words, and it drops its antialiasing (`--smooth-inverse`, `base.css`); a pressed row fills light the same way. |
 
 `.is-hover`, `.is-focus` and `.is-active` on `a.list__row` force a state for the page and for
 tests. They are not API. A settings row's states are Switch's; the More button's are Button's.

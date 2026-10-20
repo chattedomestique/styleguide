@@ -23,9 +23,11 @@
 
    And rewrites in place, in the PWA starter (pwa/), only these values:
 
-     manifest.webmanifest  theme_color and background_color, and
-     pwa/*.html            <meta name="theme-color">: all --canvas, resolved
-                           through the colour file css/flashcards.css imports.
+     manifest.webmanifest  theme_color and background_color: --canvas, light.
+     pwa/*.html            two <meta name="theme-color">, light and dark, each
+                           with its prefers-color-scheme media: --canvas in
+                           each scheme. All resolved through the colour file
+                           css/flashcards.css imports, and written as hex.
      sw.js                 its VERSION line: a hash of the files it precaches,
                            so changing any of them makes a new worker.
 
@@ -44,6 +46,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { gzipSync } from "node:zlib";
 import vm from "node:vm";
+import { loadColours, toHex } from "./accent.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -225,27 +228,39 @@ const update = (file, from, to) => {
   if (to !== from) writeFileSync(file, to);
 };
 if (existsSync(PWA)) {
-  /* --canvas, through the colour file the entry imports (gate 3 swaps it) */
-  const entry = read(cssEntry);
-  const colourFile = entry.match(/@import\s+url\(\s*["']?(tokens\/color[^"')]*\.css)/)?.[1];
-  if (!colourFile) throw new Error("bundle: css/flashcards.css imports no tokens/color*.css");
-  const decl = {};
-  const top = read(join(ROOT, "css", colourFile))
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, ""); // base values, not overrides
-  for (const m of top.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) decl[m[1]] = m[2].trim();
-  let canvas = "--canvas";
-  for (let n = 0; n < 10 && /^--/.test(canvas); n++) canvas = decl[canvas]?.match(/^var\(\s*(--[\w-]+)\s*\)$/)?.[1] ?? decl[canvas];
-  if (!canvas || !/^(#[0-9a-f]{3,8}|(rgb|hsl|hwb|lab|lch|oklab|oklch)a?\([^()]*\))$/i.test(canvas)) {
-    throw new Error(`bundle: --canvas in css/${colourFile} doesn't resolve to a colour the manifest can read (got ${canvas})`);
-  }
+  /* --canvas, light and dark, through the colour file the entry imports. Read
+     by accent.mjs's resolver (var() and light-dark() resolved), and written
+     as hex: a manifest wants a plain colour. */
+  const colours = loadColours(ROOT);
+  const [lightCanvas, darkCanvas] = ["light", "dark"].map((scheme) => {
+    const c = colours.schemes.find((s) => s.scheme === scheme && !s.more).get("--canvas");
+    if (c.alpha !== 1) throw new Error(`bundle: --canvas in ${colours.rel} is translucent (${scheme})`);
+    return toHex(c.rgb);
+  });
+  /* The manifest has one theme_color and one background_color, and no dark
+     member yet, so it keeps the light canvas (pwa/README.md). */
   const mf = join(PWA, "manifest.webmanifest"), mfText = read(mf);
-  update(mf, mfText, mfText.replace(/("(?:theme_color|background_color)"\s*:\s*")[^"]*(")/g, `$1${canvas}$2`));
+  update(mf, mfText, mfText.replace(/("(?:theme_color|background_color)"\s*:\s*")[^"]*(")/g, `$1${lightCanvas}$2`));
+  /* Each page: two theme-color metas, light then dark, both with media. A
+     browser takes the first meta whose media matches (HTML spec), so an
+     unconditional light meta first would win in dark too; Chromium 93+ and
+     Safari 15+ read media, and one that doesn't takes the first, the light
+     one, which matches the light-only fallback of the colour file. */
+  const metas = (indent) =>
+    `${indent}<meta name="theme-color" content="${lightCanvas}" media="(prefers-color-scheme: light)" />\n` +
+    `${indent}<meta name="theme-color" content="${darkCanvas}" media="(prefers-color-scheme: dark)" />\n`;
   for (const name of readdirSync(PWA).filter((n) => n.endsWith(".html"))) {
     const f = join(PWA, name), t = read(f);
-    update(f, t, t.replace(/(<meta name="theme-color" content=")[^"]*(")/g, `$1${canvas}$2`));
+    let indent = null;
+    const out = t.replace(/^([ \t]*)<meta name="theme-color"[^>]*>[ \t]*\n/gm, (_, ind) => {
+      if (indent !== null) return "";
+      indent = ind;
+      return "\u0000THEME\u0000";
+    });
+    if (indent === null) throw new Error(`bundle: pwa/${name} has no <meta name="theme-color">`);
+    update(f, t, out.replace("\u0000THEME\u0000", metas(indent)));
   }
-  pwaNotes.push(`theme ${canvas} (--canvas, css/${colourFile})`);
+  pwaNotes.push(`theme ${lightCanvas} light, ${darkCanvas} dark (--canvas, ${colours.rel})`);
 
   /* the worker's version: a hash of every file in its SHELL list, in order */
   const swFile = join(PWA, "sw.js"), swText = read(swFile);

@@ -16,7 +16,10 @@
      7  doc drift             tokens and classes named in the .md files that don't exist
      8  markup                classes used in the pages that no CSS defines, and ids that
                               clash once the bundle joins the pages into one
-     9  contrast              the colour file's role pairs, against WCAG AA
+     9  contrast              the colour file's role pairs, against WCAG AA, in light
+                              and dark (light-dark() resolved), each with more
+                              contrast; the scrim; the fallback for engines
+                              without light-dark()
 
    Checks 2–5 cover sheet.css and screens.css too: the pages that teach the
    rules keep them.
@@ -25,6 +28,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadColours, contrast, luminance, toHex } from "./accent.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CSS = join(ROOT, "css");
@@ -257,70 +261,88 @@ for (const s of Object.values(files)) {
   check("every class in the pages is defined, no id clashes", [...new Set(problems)]);
 }
 
-/* ---- 9 contrast -------------------------------------------------------------- */
-function parseColour(v) {
-  v = v.trim();
-  let m;
-  if ((m = v.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i))) {
-    const h = m[1].length === 3 ? [...m[1]].map((c) => c + c).join("") : m[1];
-    return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
-  }
-  if ((m = v.match(/^rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)/i))) return [+m[1], +m[2], +m[3]];
-  if ((m = v.match(/^oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)/i))) {
-    const L = +m[1] / (m[2] ? 100 : 1), C = +m[3], h = (+m[4] * Math.PI) / 180;
-    const a = C * Math.cos(h), b = C * Math.sin(h);
-    const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-    const mm = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-    const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
-    const lin = [4.0767416621 * l - 3.3077115913 * mm + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * mm - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * mm + 1.707614701 * s];
-    return lin.map((c) => Math.round(255 * Math.min(1, Math.max(0, c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055))));
-  }
-  return null;
-}
-const lum = (c) => c.map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
-const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
-const mix = (a, b, pa) => a.map((v, i) => Math.round(v * pa + b[i] * (1 - pa)));
-
+/* ---- 9 contrast --------------------------------------------------------------
+   The colour file is read by accent.mjs's resolver (the accent guard reads it
+   the same way): var() substituted, light-dark() picked per scheme, and every
+   pair run in light, dark, and both with more contrast. */
 {
   const problems = [];
-  const skipped = [];
-  const decl = {};
-  /* base values only: an @media override (prefers-contrast) can only raise contrast */
-  const topLevel = (s) => s.replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "");
-  for (const p of cssFiles.filter(isColourFile)) {
-    for (const m of topLevel(files[p]).matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) decl[m[1]] = m[2].trim();
+  let colours;
+  try {
+    colours = loadColours(ROOT);
+  } catch (e) {
+    problems.push(e.message);
   }
-  const resolve = (name, depth = 0) => {
-    const v = decl[name];
-    if (v === undefined || depth > 8) return null;
-    const ref = v.match(/^var\(\s*(--[a-z0-9-]+)\s*\)$/);
-    return ref ? resolve(ref[1], depth + 1) : parseColour(v);
+  const get = (env, name, label) => {
+    try {
+      return env.get(name);
+    } catch (e) {
+      problems.push(`${label}: ${e.message}`);
+      return null;
+    }
   };
-  const pair = (fg, bg, min, label) => {
-    const f = Array.isArray(fg) ? fg : resolve(fg);
-    const b = Array.isArray(bg) ? bg : resolve(bg);
-    if (!f || !b) { skipped.push(label); return; }
-    const r = ratio(f, b);
-    if (r < min) problems.push(`${label}: ${r.toFixed(2)}:1, needs ${min}:1`);
-  };
-
-  pair("--ink", "--paper", 7, "ink on paper");
-  pair("--ink", "--canvas", 7, "ink on canvas");
-  pair("--ink-soft", "--paper", 4.5, "ink-soft on paper");
-  pair("--ink-soft", "--canvas", 4.5, "ink-soft on canvas");
-  pair("--ink-faint", "--paper", 3, "ink-faint on paper (disabled, 3:1)");
-  pair("--paper", "--ink", 7, "paper on ink (inverted tone)");
-  pair("--on-accent", "--accent", 4.5, "on-accent on accent");
-  pair("--focus", "--canvas", 3, "focus ring on canvas (3:1)");
-  pair("--line", "--canvas", 3, "frame line on canvas (3:1)");
-  const ink = resolve("--ink");
-  for (let n = 1; n <= 6; n++) {
-    const bg = resolve(`--tone-${n}`);
-    const fg = resolve(`--on-tone-${n}`);
-    pair(fg, bg, 4.5, `on-tone-${n} on tone-${n}`);
-    if (fg && bg) pair(mix(fg, bg, 0.72), bg, 4.5, `soft text (72% mix) on tone-${n}`);
+  if (colours) {
+    for (const env of colours.schemes) {
+      const at = env.label;
+      const rgb = (name) => {
+        const c = get(env, name, at);
+        if (c && c.alpha < 1) { problems.push(`${at}: ${name} is translucent; only --scrim may be`); return null; }
+        return c && c.rgb;
+      };
+      const pair = (fg, bg, min, what) => {
+        const f = Array.isArray(fg) ? fg : rgb(fg);
+        const b = Array.isArray(bg) ? bg : rgb(bg);
+        if (!f || !b) return;
+        const r = contrast(f, b);
+        if (r < min) problems.push(`${at}: ${what}: ${r.toFixed(2)}:1, needs ${min}:1`);
+      };
+      pair("--ink", "--paper", 7, "ink on paper");
+      pair("--ink", "--canvas", 7, "ink on canvas");
+      pair("--ink-soft", "--paper", 4.5, "ink-soft on paper");
+      pair("--ink-soft", "--canvas", 4.5, "ink-soft on canvas");
+      pair("--ink-faint", "--paper", 3, "ink-faint on paper (disabled, 3:1)");
+      pair("--ink-faint", "--canvas", 3, "ink-faint on canvas (disabled, 3:1)");
+      pair("--paper", "--ink", 7, "paper on ink (inverted tone)");
+      pair("--on-accent", "--accent", 4.5, "on-accent on accent");
+      pair("--accent", "--paper", 3, "accent as a fill on paper (3:1)");
+      pair("--accent", "--canvas", 3, "accent as a fill on canvas (3:1)");
+      pair("--focus", "--canvas", 3, "focus ring on canvas (3:1)");
+      pair("--focus", "--paper", 3, "focus ring on paper (3:1)");
+      pair("--line", "--canvas", 3, "frame line on canvas (3:1)");
+      pair("--line", "--paper", 3, "frame line on paper (3:1)");
+      const paper = rgb("--paper");
+      let last = 1;
+      for (let n = 1; n <= 6; n++) {
+        const bg = rgb(`--tone-${n}`);
+        const fg = rgb(`--on-tone-${n}`);
+        pair(fg, bg, 4.5, `on-tone-${n} on tone-${n}`);
+        if (fg && bg) pair(fg.map((v, i) => v * 0.72 + bg[i] * 0.28), bg, 4.5, `soft text (72% mix) on tone-${n}`);
+        /* the same order of strength in every scheme: 1 the quietest */
+        if (bg && paper) {
+          const r = contrast(bg, paper);
+          if (r <= last) problems.push(`${at}: tone-${n} is no further from paper than tone-${n - 1} (${r.toFixed(2)}:1): 1 is the quietest, 6 the strongest`);
+          last = r;
+        }
+      }
+      /* the scrim: near-black at 60% in every scheme, never built on ink */
+      const scrim = get(env, "--scrim", at);
+      if (scrim) {
+        if (scrim.refs.has("--ink")) problems.push(`${at}: --scrim is built on --ink; it must come from a near-black primitive, or it lightens the page in dark`);
+        if (Math.abs(scrim.alpha - 0.6) > 0.005) problems.push(`${at}: --scrim is ${Math.round(scrim.alpha * 100)}% opaque; it is a flat layer at 60%`);
+        if (luminance(scrim.rgb) > 0.02) problems.push(`${at}: --scrim is not near-black (${toHex(scrim.rgb)})`);
+      }
+    }
+    /* an engine without light-dark() must get the light page, role for role */
+    const legacy = colours.env("light", false, false);
+    const light = colours.schemes[0];
+    for (const name of Object.keys(light.decls).filter((n) => !/^--grey-/.test(n))) {
+      const a = get(legacy, name, "without light-dark()");
+      let b;
+      try { b = light.get(name); } catch { continue; }
+      if (a && toHex(a.rgb) !== toHex(b.rgb)) problems.push(`without light-dark(): ${name} is ${toHex(a.rgb)}, but the light scheme says ${toHex(b.rgb)}`);
+    }
   }
-  check("contrast", problems, skipped.length ? `skipped ${skipped.length} pair(s) it can't parse: check the live swatches in index.html` : "");
+  check("contrast, in light and dark, with and without more contrast", [...new Set(problems)], colours ? colours.rel : "");
 }
 
 /* ---- report ------------------------------------------------------------------ */

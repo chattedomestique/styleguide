@@ -1,6 +1,6 @@
 # Card
 
-Element 01 · gates 0–2 done (wireframe, states) · page: `elements/card.html`
+Element 01 · gates 0–3 done (wireframe, states, colour) · page: `elements/card.html`
 
 The rules, tokens and platforms that every element follows are in `../STYLE.md`. This file is
 the Card's own spec.
@@ -46,6 +46,16 @@ Helpers: `.card__row` (flex, space-between, top-aligned, wraps), `.card__group` 
 4px gap), `.card__list` (ruled rows, 44px each, 1px rules). In a list the whole row is the
 link, with the padding on the link, not the `li`:
 `<li><a href="…"><span>Shapes</span><span>12</span></a></li>`.
+
+**The bar in dark** stays ink, so on a dark page it is a light strip. Wave 6 compared it, on the
+panel specimens at 390 and 1440, with a `--tone-6` bar and with a paper bar closed by a rule, and
+kept ink. The bar is the frame made thicker, and the frame is ink in both schemes. A grey bar
+reads as a fill instead: a third surface that only dark would have, and the same grey as a
+tone 6 card. A paper bar loses the panel altogether. Kept ink, the plain panel and the ink panel
+still invert each other, as in light. It is the loudest thing on a dark card, but it is 44px, one
+per panel, and dark ink stops short of white. Its smoothing follows the fill: antialiased where
+its words are light (in light; in dark, on an ink card), not where they are dark (`--smooth`,
+`--smooth-inverse` in `base.css`).
 
 ## Variants
 
@@ -150,8 +160,9 @@ Cards answer to their own width, not the window:
   links and buttons in the foot.
 - The focus ring is always visible: outside the frame on the card itself; inset on the bar
   and on list rows, in the ink of the surface it lands on.
-- Contrast is at least 8.4 : 1 for ink on any tone and at least 4.5 : 1 for soft ink. Under
-  `prefers-contrast: more`, soft ink becomes ink.
+- Contrast is at least 8.4 : 1 for ink on any tone (7.4 : 1 in dark, where the tones are dark
+  greys) and at least 4.5 : 1 for soft ink in both. Under `prefers-contrast: more`, soft ink
+  becomes ink.
 - A card title sits one heading level below its section's heading: an `h2` section takes
   `h3` titles. One heading per card; the bar label is the heading only when there is no
   `.card__title`.
@@ -185,7 +196,6 @@ Cards answer to their own width, not the window:
   of a link card where a click does nothing.
 - Text inside a link card can't be selected by dragging, because the stretched link sits on top.
 - The study card has static faces only. The flip is gate 4.
-- No dark mode yet. It arrives with colour, at gate 3.
 - Needs a 2024-era browser: container queries, `:has()`, `@property`, `color-mix()`, cascade
   layers. Chrome/Edge 114+, Safari 16.4+, Firefox 128+. `text-wrap: balance | pretty` and
   `overflow-clip-margin` degrade gracefully.

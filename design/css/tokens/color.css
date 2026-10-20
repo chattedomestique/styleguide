@@ -1,0 +1,163 @@
+/* ==========================================================================
+   Colour — gate 3. Black, grey and white, one accent, light and dark.
+
+   The owner's palette: neutral greys with no tint and no hue, shared by every
+   app. Each app sets one accent (ink until it does). Dark mode and more
+   contrast belong to the system, not to an app.
+
+   Three parts:
+     1. PRIMITIVES. The grey ramp: the only colour values in the system.
+     2. ROLES. What components read, and the only thing they read. Each role
+        is light-dark(<light>, <dark>), so it resolves per element from that
+        element's color-scheme. base.css sets `color-scheme: light dark`;
+        [data-scheme] below forces one.
+     3. MORE CONTRAST and the FORCED SCHEME.
+
+   Older engines. light-dark() is Chrome 123, Safari 17.5, Firefox 120. A
+   custom property accepts any value, so a plain value declared before a
+   light-dark() one does NOT survive in an older engine: the second always
+   wins, and fails only where it's used (border: … var(--line) would lose
+   its whole border). So the light values are declared plainly first, and the
+   pairs only inside @supports. An older engine gets the full light page;
+   check.mjs makes sure the two agree.
+
+   Ratios below are WCAG 2.x contrast, computed by tools/check.mjs, which
+   fails anything under its floor in light, dark, and both with more contrast.
+   ========================================================================== */
+
+:root {
+  /* --- 1. primitives ---------------------------------------------------------
+     Named by OKLCH lightness (%), so the number says how light it is. Hex,
+     r = g = b, so there is no tint to drift. Steps were chosen by the ratios
+     they have to make, not by eye. Components never read these (check 6). */
+  --grey-100: #ffffff; /* light paper. Light ink on it 18.4 */
+  --grey-97: #f4f4f4; /* light canvas; dark ink at more contrast's limit. Light ink on it 16.8 */
+  --grey-94: #ebebeb; /* light tone 1; dark ink: 13.8 on dark paper, 15.5 on dark canvas */
+  --grey-90: #dfdfdf; /* light tone 2 */
+  --grey-87: #d3d3d3; /* light tone 3 */
+  --grey-83: #c7c7c7; /* light tone 4 */
+  --grey-79: #bbbbbb; /* light tone 5 */
+  --grey-75: #afafaf; /* light tone 6. Light ink on it 8.4, soft text (72%) 4.8 */
+  --grey-72: #a3a3a3; /* dark soft ink: 6.5 on dark paper, 7.3 on dark canvas */
+  --grey-63: #8a8a8a; /* light faint ink and soft line: 3.5 on paper, 3.1 on canvas */
+  --grey-56: #737373; /* dark faint ink and soft line: 3.5 on dark paper, 3.9 on dark canvas */
+  --grey-43: #505050; /* light soft ink: 8.1 on paper, 7.3 on canvas */
+  --grey-41: #4a4a4a; /* dark tone 6. Dark ink on it 7.4, soft text (72%) 4.8 */
+  --grey-39: #444444; /* dark tone 5 */
+  --grey-36: #3e3e3e; /* dark tone 4 */
+  --grey-34: #373737; /* dark tone 3 */
+  --grey-31: #313131; /* dark tone 2 */
+  --grey-29: #2a2a2a; /* dark tone 1: 1.15 on dark paper, as light tone 1 is 1.19 on light paper */
+  --grey-24: #1f1f1f; /* dark paper: one step above dark canvas (1.12, as light is 1.10) */
+  --grey-19: #141414; /* light ink; dark canvas; the scrim's near-black */
+  --grey-0: #000000; /* dark canvas at more contrast */
+
+  /* --- 2. roles: the light values, plain ------------------------------------
+     What an engine without light-dark() gets. The @supports block below
+     restates each one as a light and dark pair. Roles that only point at
+     another role (line, focus, accent, on-tone) follow it in both schemes,
+     so they are said once, here. */
+  --canvas: var(--grey-97);
+  --paper: var(--grey-100);
+  --ink: var(--grey-19);
+  --ink-soft: var(--grey-43);
+  --ink-faint: var(--grey-63);
+  --line-soft: var(--grey-63);
+
+  --tone-1: var(--grey-94);
+  --tone-2: var(--grey-90);
+  --tone-3: var(--grey-87);
+  --tone-4: var(--grey-83);
+  --tone-5: var(--grey-79);
+  --tone-6: var(--grey-75);
+
+  /* frames are ink in both schemes, so they read on either ground. The hard
+     shadow is drawn in --line too: in dark it is a light slab, the same
+     colour as the frame it extends (STYLE §2 Colour says why) */
+  --line: var(--ink);
+  /* the ring is ink, never the accent, so it always shows */
+  --focus: var(--ink);
+  /* the one "press this" fill: ink and paper until an app sets its own in
+     @layer app (tools/accent.mjs checks it and prints the block) */
+  --accent: var(--ink);
+  --on-accent: var(--paper);
+
+  /* behind a modal dialog or sheet: the one translucency the system allows
+     (rule 2). Near-black at 60% in both schemes, from a primitive and never
+     from ink, which would lighten the page in dark. "Not now" is dark either
+     way. */
+  --scrim: color-mix(in srgb, var(--grey-19) 60%, transparent);
+
+  /* text on each tone: ink on all six, in both schemes */
+  --on-tone-1: var(--ink);
+  --on-tone-2: var(--ink);
+  --on-tone-3: var(--ink);
+  --on-tone-4: var(--ink);
+  --on-tone-5: var(--ink);
+  --on-tone-6: var(--ink);
+}
+
+/* --- 2. roles: light and dark ------------------------------------------------
+   Dark: canvas near-black, paper one step lighter, ink near-white (13.8 on
+   paper, 15.5 on canvas: past 7:1 and short of white, so text doesn't glow).
+   Tones: six greys in each scheme, 1 the quietest, each a step further from
+   paper. Dark tones stop at #4a4a4a so ink's 72% soft text still makes 4.5. */
+@supports (color: light-dark(#000, #fff)) {
+  :root {
+    --canvas: light-dark(var(--grey-97), var(--grey-19));
+    --paper: light-dark(var(--grey-100), var(--grey-24));
+    --ink: light-dark(var(--grey-19), var(--grey-94));
+    --ink-soft: light-dark(var(--grey-43), var(--grey-72));
+    --ink-faint: light-dark(var(--grey-63), var(--grey-56));
+    --line-soft: light-dark(var(--grey-63), var(--grey-56));
+
+    --tone-1: light-dark(var(--grey-94), var(--grey-29));
+    --tone-2: light-dark(var(--grey-90), var(--grey-31));
+    --tone-3: light-dark(var(--grey-87), var(--grey-34));
+    --tone-4: light-dark(var(--grey-83), var(--grey-36));
+    --tone-5: light-dark(var(--grey-79), var(--grey-39));
+    --tone-6: light-dark(var(--grey-75), var(--grey-41));
+  }
+}
+
+/* --- 3. more contrast ----------------------------------------------------------
+   Asked for: soft ink and soft lines become ink, in both schemes. In dark,
+   canvas goes to black, ink to white, and paper down to the old canvas, so a
+   card still sits one step above the page. */
+@media (prefers-contrast: more) {
+  :root {
+    --ink-soft: var(--ink);
+    --line-soft: var(--ink);
+  }
+
+  @supports (color: light-dark(#000, #fff)) {
+    :root {
+      --canvas: light-dark(var(--grey-97), var(--grey-0));
+      --paper: light-dark(var(--grey-100), var(--grey-19));
+      --ink: light-dark(var(--grey-19), var(--grey-100));
+    }
+  }
+}
+
+/* --- 3. the forced scheme --------------------------------------------------------
+   data-scheme="light" or "dark" on :root forces the page; on any element, it
+   forces that subtree (the hub's swatches show both schemes side by side).
+   No attribute: the reader's system decides. !important because base.css
+   sets color-scheme on html in a later layer, which would otherwise win; in
+   the important cascade the earlier layer wins, so this one does. */
+[data-scheme="light"] {
+  color-scheme: light !important;
+}
+
+[data-scheme="dark"] {
+  color-scheme: dark !important;
+}
+
+/* Without light-dark() the page only has light values: keep native controls
+   and scrollbars light to match, whatever the system or the attribute says. */
+@supports not (color: light-dark(#000, #fff)) {
+  :root,
+  [data-scheme] {
+    color-scheme: light !important;
+  }
+}

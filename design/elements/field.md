@@ -1,6 +1,6 @@
 # Field
 
-Element 03 · gates 0–2 done (wireframe, states) · page: `elements/field.html`
+Element 03 · gates 0–3 done (wireframe, states, colour) · page: `elements/field.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Field's own spec.
@@ -149,6 +149,9 @@ for (const box of document.querySelectorAll(".field__box")) {
   visible help next to the field, and prefer read-only or leaving the field out.
 - Text is 16px or more at every Dynamic Type size, and the frame contrasts with paper and canvas
   at more than 3:1.
+- Dark: the browser's own parts follow `color-scheme` (`base.css`), so the textarea's grip and a
+  scrolling field's scrollbar are drawn dark too; hover's `--canvas` is a step below paper, as in
+  light.
 
 ## Platforms
 

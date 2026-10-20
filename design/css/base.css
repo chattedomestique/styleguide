@@ -11,7 +11,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 /* iOS: follow the reader's Dynamic Type size (17px by default). Every size
@@ -151,6 +151,51 @@ label {
   font-variant-numeric: tabular-nums;
 }
 
+/* --- smoothing ---------------------------------------------------------------
+   On a Mac, antialiasing is for light text on a dark ground, where subpixel
+   smoothing blooms; on a light ground it thins the 13px labels and 14px meta.
+   So it follows the scheme, set from the same two things that set the
+   scheme: the reader's system, and data-scheme (tokens/color.css).
+     --smooth          the page's own text: off in light, on in dark
+     --smooth-inverse  text on an inverted fill (the ink tone, the card's
+                       bar, an inset list's head): the other one
+   Each has a -moz- twin, because -moz-osx-font-smoothing takes other words.
+   light-dark() can't do this: it only chooses colours. An engine without it
+   is light throughout (color.css), so it gets only the light values (the
+   test names system colours, so no literal leaves the colour file). */
+:root,
+[data-scheme="light"] {
+  --smooth: auto;
+  --smooth-moz: auto;
+  --smooth-inverse: antialiased;
+  --smooth-inverse-moz: grayscale;
+}
+
+@supports (color: light-dark(Canvas, CanvasText)) {
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-scheme="light"]) {
+      --smooth: antialiased;
+      --smooth-moz: grayscale;
+      --smooth-inverse: auto;
+      --smooth-inverse-moz: auto;
+    }
+  }
+
+  [data-scheme="dark"] {
+    --smooth: antialiased;
+    --smooth-moz: grayscale;
+    --smooth-inverse: auto;
+    --smooth-inverse-moz: auto;
+  }
+}
+
+/* the page, and any subtree that forces its own scheme */
+:root,
+[data-scheme] {
+  -webkit-font-smoothing: var(--smooth);
+  -moz-osx-font-smoothing: var(--smooth-moz);
+}
+
 /* --- tone ------------------------------------------------------------------
    [data-tone] on any element exposes --tone-bg / --tone-ink to it (and only
    it: both are registered non-inheriting). A component decides what to do
@@ -189,7 +234,7 @@ label {
 [data-tone="ink"] {
   --tone-bg: var(--ink);
   --tone-ink: var(--paper);
-  /* light on dark only: on paper, antialiasing thins small text on a Mac */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* inverted, so it smooths when the page doesn't: in light (above) */
+  -webkit-font-smoothing: var(--smooth-inverse);
+  -moz-osx-font-smoothing: var(--smooth-inverse-moz);
 }

@@ -122,8 +122,9 @@
   padding-block: var(--space-2);
   color: var(--paper);
   background: var(--ink);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* an inverted fill: smoothed when the page isn't (base.css) */
+  -webkit-font-smoothing: var(--smooth-inverse);
+  -moz-osx-font-smoothing: var(--smooth-inverse-moz);
 }
 
 /* --- the row ----------------------------------------------------------------
@@ -260,6 +261,14 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
 
   a.list__row:is(:active, .is-active) .ic {
     background-color: HighlightText;
+  }
+
+  /* a tag in the row opts out with it, and would keep the paper words and
+     CanvasText frame it has on a plain row: on Highlight that frame all but
+     goes (1.9:1 and 2.4:1 in Chromium's light and dark forced themes) */
+  a.list__row:is(:active, .is-active) .tag {
+    color: HighlightText;
+    border-color: HighlightText;
   }
 
   .list--inset > .list__head {

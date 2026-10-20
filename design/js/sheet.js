@@ -1,13 +1,71 @@
 /* ==========================================================================
    sheet.js — the style-sheet pages' own behaviour. Not shipped to apps.
 
+   0. The scheme switch (Auto, Light, Dark) in the top bar.
    1. Prints each specimen's markup under it, read from the live element.
-   2. Computes the tone swatches' contrast from whatever the tokens say.
+   2. Computes the colour swatches' contrast from whatever the tokens say.
    Also: the iOS :active listener, and demo links that don't jump.
    ========================================================================== */
 (function () {
   "use strict";
-  document.documentElement.classList.add("js");
+  var root = document.documentElement;
+  root.classList.add("js");
+
+  /* ---- 0. the scheme: Auto follows the system; Light or Dark forces it
+     with data-scheme on :root (tokens/color.css). Remembered for this viewer
+     only; storage can be missing or throw (private windows, blocked site
+     data), and then the page simply starts on Auto. ------------------- */
+  var SCHEME_KEY = "flashcards-sheet-scheme";
+  var SCHEMES = [["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]];
+  function storedScheme() {
+    var v = null;
+    try { v = window.localStorage.getItem(SCHEME_KEY); } catch (e) { v = null; }
+    return v === "light" || v === "dark" ? v : "auto";
+  }
+  function storeScheme(v) {
+    try {
+      if (v === "auto") window.localStorage.removeItem(SCHEME_KEY);
+      else window.localStorage.setItem(SCHEME_KEY, v);
+    } catch (e) { /* not remembered, still applied */ }
+  }
+  function applyScheme(v) {
+    if (v === "light" || v === "dark") root.setAttribute("data-scheme", v);
+    else root.removeAttribute("data-scheme");
+  }
+  var scheme = storedScheme();
+  applyScheme(scheme); // first, so the page paints in it
+
+  // A real radio group, the text-size switch's pattern: one tab stop, arrows
+  // move the choice, the group's name comes from its legend.
+  var bar = document.querySelector(".sg-top__in");
+  if (bar) {
+    var set = document.createElement("fieldset");
+    set.className = "sg-ctl sg-scheme";
+    var legend = document.createElement("legend");
+    legend.className = "sr-only";
+    legend.textContent = "Colour scheme";
+    var seg = document.createElement("div");
+    seg.className = "sg-seg";
+    SCHEMES.forEach(function (s) {
+      var label = document.createElement("label");
+      var input = document.createElement("input");
+      input.type = "radio";
+      input.name = "sg-scheme";
+      input.value = s[0];
+      input.checked = s[0] === scheme;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(s[1]));
+      seg.appendChild(label);
+    });
+    seg.addEventListener("change", function (e) {
+      applyScheme(e.target.value);
+      storeScheme(e.target.value);
+      ratios();
+    });
+    set.appendChild(legend);
+    set.appendChild(seg);
+    bar.appendChild(set);
+  }
 
   // iOS Safari only applies :active when a touchstart listener exists.
   document.addEventListener("touchstart", function () {}, { passive: true });
@@ -106,12 +164,23 @@
       return s + v * w[i];
     }, 0);
   }
-  Array.prototype.forEach.call(document.querySelectorAll(".sg-swatch"), function (el) {
-    var cs = getComputedStyle(el);
-    var a = lum(rgb(cs.backgroundColor));
-    var b = lum(rgb(cs.color));
-    var r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-    el.querySelector(".sg-swatch__ratio").textContent =
-      r.toFixed(1) + ":1 " + (r >= 7 ? "AAA" : r >= 4.5 ? "AA" : "FAIL");
+  // Each swatch reads its own computed colours, so a pane forced with
+  // data-scheme reports that scheme. Run again when the scheme or the
+  // contrast preference changes.
+  function ratios() {
+    Array.prototype.forEach.call(document.querySelectorAll(".sg-swatch"), function (el) {
+      var cs = getComputedStyle(el);
+      var a = lum(rgb(cs.backgroundColor));
+      var b = lum(rgb(cs.color));
+      var r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      el.querySelector(".sg-swatch__ratio").textContent =
+        r.toFixed(1) + ":1 " + (r >= 7 ? "AAA" : r >= 4.5 ? "AA" : "FAIL");
+    });
+  }
+  ratios();
+  ["(prefers-contrast: more)", "(prefers-color-scheme: dark)"].forEach(function (q) {
+    var mq = window.matchMedia && window.matchMedia(q);
+    if (mq && mq.addEventListener) mq.addEventListener("change", ratios);
+    else if (mq && mq.addListener) mq.addListener(ratios);
   });
 })();

@@ -9,6 +9,18 @@
       name="description"
       content="The rules, tokens and elements our installed PWAs and Mac apps are built from."
     />
+    <script>
+/* sheet-scheme.js — the style-sheet pages' stored scheme, before the first paint.
+   Loaded in the head, ahead of the CSS, so a viewer who chose Light or Dark never sees
+   the other flash first. sheet.js draws the switch and owns the choice; this only reads
+   it. Storage can be missing or throw; then the page follows the system. Not shipped. */
+(function () {
+  try {
+    var v = window.localStorage.getItem("flashcards-sheet-scheme");
+    if (v === "light" || v === "dark") document.documentElement.setAttribute("data-scheme", v);
+  } catch (e) { /* the system's scheme */ }
+})();
+</script>
     <style>
 /* ==========================================================================
    flashcards.css — the entry file. Apps link its bundled copy, dist/flashcards.css.
@@ -25,7 +37,7 @@
                  layer, so it would silently override card states.
      sheet       the style-sheet page's own chrome. Not shipped to the app.
 
-   Gate 3 (colour) swaps ONE line: color.wire.css -> color.css.
+   Gate 3 (colour) swapped ONE line: color.wire.css -> color.css.
    ========================================================================== */
 
 @layer tokens, base, components, wire, app, sheet;
@@ -171,57 +183,96 @@
 }
 @layer tokens {
 /* ==========================================================================
-   Colour, wireframe edition — gates 1 and 2.
+   Colour — gate 3. Black, grey and white, one accent, light and dark.
 
-   Greys only. Structure has to work before colour is allowed to help it.
+   The owner's palette: neutral greys with no tint and no hue, shared by every
+   app. Each app sets one accent (ink until it does). Dark mode and more
+   contrast belong to the system, not to an app.
 
-   The bottom half is the contract: ROLES. Components read roles and nothing
-   else. Gate 3 replaces this whole file with color.css, which defines the
-   same role names with real values, and no component is touched.
+   Three parts:
+     1. PRIMITIVES. The grey ramp: the only colour values in the system.
+     2. ROLES. What components read, and the only thing they read. Each role
+        is light-dark(<light>, <dark>), so it resolves per element from that
+        element's color-scheme. base.css sets `color-scheme: light dark`;
+        [data-scheme] below forces one.
+     3. MORE CONTRAST and the FORCED SCHEME.
 
-   Six tone slots stand in for the palette. In colour they become six hues;
-   here they are six greys, so you can see where colour will go.
+   Older engines. light-dark() is Chrome 123, Safari 17.5, Firefox 120. A
+   custom property accepts any value, so a plain value declared before a
+   light-dark() one does NOT survive in an older engine: the second always
+   wins, and fails only where it's used (border: … var(--line) would lose
+   its whole border). So the light values are declared plainly first, and the
+   pairs only inside @supports. An older engine gets the full light page;
+   check.mjs makes sure the two agree.
+
+   Ratios below are WCAG 2.x contrast, computed by tools/check.mjs, which
+   fails anything under its floor in light, dark, and both with more contrast.
    ========================================================================== */
 
 :root {
-  /* --- primitives: the only hex values in the system ----------------------- */
-  --grey-0: #ffffff;
-  --grey-1: #f4f4f4;
-  --grey-2: #ebebeb;
-  --grey-3: #dfdfdf;
-  --grey-4: #d3d3d3;
-  --grey-5: #c7c7c7;
-  --grey-6: #bbbbbb;
-  --grey-7: #afafaf;
-  --grey-8: #8a8a8a;
-  --grey-9: #505050;
-  --grey-10: #141414;
+  /* --- 1. primitives ---------------------------------------------------------
+     Named by OKLCH lightness (%), so the number says how light it is. Hex,
+     r = g = b, so there is no tint to drift. Steps were chosen by the ratios
+     they have to make, not by eye. Components never read these (check 6). */
+  --grey-100: #ffffff; /* light paper. Light ink on it 18.4 */
+  --grey-97: #f4f4f4; /* light canvas; dark ink at more contrast's limit. Light ink on it 16.8 */
+  --grey-94: #ebebeb; /* light tone 1; dark ink: 13.8 on dark paper, 15.5 on dark canvas */
+  --grey-90: #dfdfdf; /* light tone 2 */
+  --grey-87: #d3d3d3; /* light tone 3 */
+  --grey-83: #c7c7c7; /* light tone 4 */
+  --grey-79: #bbbbbb; /* light tone 5 */
+  --grey-75: #afafaf; /* light tone 6. Light ink on it 8.4, soft text (72%) 4.8 */
+  --grey-72: #a3a3a3; /* dark soft ink: 6.5 on dark paper, 7.3 on dark canvas */
+  --grey-63: #8a8a8a; /* light faint ink and soft line: 3.5 on paper, 3.1 on canvas */
+  --grey-56: #737373; /* dark faint ink and soft line: 3.5 on dark paper, 3.9 on dark canvas */
+  --grey-43: #505050; /* light soft ink: 8.1 on paper, 7.3 on canvas */
+  --grey-41: #4a4a4a; /* dark tone 6. Dark ink on it 7.4, soft text (72%) 4.8 */
+  --grey-39: #444444; /* dark tone 5 */
+  --grey-36: #3e3e3e; /* dark tone 4 */
+  --grey-34: #373737; /* dark tone 3 */
+  --grey-31: #313131; /* dark tone 2 */
+  --grey-29: #2a2a2a; /* dark tone 1: 1.15 on dark paper, as light tone 1 is 1.19 on light paper */
+  --grey-24: #1f1f1f; /* dark paper: one step above dark canvas (1.12, as light is 1.10) */
+  --grey-19: #141414; /* light ink; dark canvas; the scrim's near-black */
+  --grey-0: #000000; /* dark canvas at more contrast */
 
-  /* --- roles -------------------------------------------------------------- */
-  --canvas: var(--grey-1); /* the page behind everything */
-  --paper: var(--grey-0); /* a card's default fill */
-  --ink: var(--grey-10); /* text and frames */
-  --ink-soft: var(--grey-9); /* secondary text on canvas or paper */
-  --ink-faint: var(--grey-8); /* disabled, placeholder lines */
-  --line: var(--ink); /* frames */
-  --line-soft: var(--grey-8); /* decoration that must stay quiet */
+  /* --- 2. roles: the light values, plain ------------------------------------
+     What an engine without light-dark() gets. The @supports block below
+     restates each one as a light and dark pair. Roles that only point at
+     another role (line, focus, accent, on-tone) follow it in both schemes,
+     so they are said once, here. */
+  --canvas: var(--grey-97);
+  --paper: var(--grey-100);
+  --ink: var(--grey-19);
+  --ink-soft: var(--grey-43);
+  --ink-faint: var(--grey-63);
+  --line-soft: var(--grey-63);
+
+  --tone-1: var(--grey-94);
+  --tone-2: var(--grey-90);
+  --tone-3: var(--grey-87);
+  --tone-4: var(--grey-83);
+  --tone-5: var(--grey-79);
+  --tone-6: var(--grey-75);
+
+  /* frames are ink in both schemes, so they read on either ground. The hard
+     shadow is drawn in --line too: in dark it is a light slab, the same
+     colour as the frame it extends (STYLE §2 Colour says why) */
+  --line: var(--ink);
+  /* the ring is ink, never the accent, so it always shows */
   --focus: var(--ink);
-  --accent: var(--ink); /* the one "press this" colour; ink until gate 3 */
+  /* the one "press this" fill: ink and paper until an app sets its own in
+     @layer app (tools/accent.mjs checks it and prints the block) */
+  --accent: var(--ink);
   --on-accent: var(--paper);
+
   /* behind a modal dialog or sheet: the one translucency the system allows
-     (rule 2). The page reads as "still there, but not now". */
-  --scrim: color-mix(in srgb, var(--ink) 60%, transparent);
+     (rule 2). Near-black at 60% in both schemes, from a primitive and never
+     from ink, which would lighten the page in dark. "Not now" is dark either
+     way. */
+  --scrim: color-mix(in srgb, var(--grey-19) 60%, transparent);
 
-  /* --- tone slots: what a card, tile or bar can be filled with ------------- */
-  --tone-1: var(--grey-2);
-  --tone-2: var(--grey-3);
-  --tone-3: var(--grey-4);
-  --tone-4: var(--grey-5);
-  --tone-5: var(--grey-6);
-  --tone-6: var(--grey-7);
-
-  /* text that sits on each tone. In colour the saturated ones may flip to
-     paper; nothing else has to know. */
+  /* text on each tone: ink on all six, in both schemes */
   --on-tone-1: var(--ink);
   --on-tone-2: var(--ink);
   --on-tone-3: var(--ink);
@@ -230,11 +281,68 @@
   --on-tone-6: var(--ink);
 }
 
-/* More contrast asked for: soft ink and soft lines become plain ink. */
+/* --- 2. roles: light and dark ------------------------------------------------
+   Dark: canvas near-black, paper one step lighter, ink near-white (13.8 on
+   paper, 15.5 on canvas: past 7:1 and short of white, so text doesn't glow).
+   Tones: six greys in each scheme, 1 the quietest, each a step further from
+   paper. Dark tones stop at #4a4a4a so ink's 72% soft text still makes 4.5. */
+@supports (color: light-dark(#000, #fff)) {
+  :root {
+    --canvas: light-dark(var(--grey-97), var(--grey-19));
+    --paper: light-dark(var(--grey-100), var(--grey-24));
+    --ink: light-dark(var(--grey-19), var(--grey-94));
+    --ink-soft: light-dark(var(--grey-43), var(--grey-72));
+    --ink-faint: light-dark(var(--grey-63), var(--grey-56));
+    --line-soft: light-dark(var(--grey-63), var(--grey-56));
+
+    --tone-1: light-dark(var(--grey-94), var(--grey-29));
+    --tone-2: light-dark(var(--grey-90), var(--grey-31));
+    --tone-3: light-dark(var(--grey-87), var(--grey-34));
+    --tone-4: light-dark(var(--grey-83), var(--grey-36));
+    --tone-5: light-dark(var(--grey-79), var(--grey-39));
+    --tone-6: light-dark(var(--grey-75), var(--grey-41));
+  }
+}
+
+/* --- 3. more contrast ----------------------------------------------------------
+   Asked for: soft ink and soft lines become ink, in both schemes. In dark,
+   canvas goes to black, ink to white, and paper down to the old canvas, so a
+   card still sits one step above the page. */
 @media (prefers-contrast: more) {
   :root {
     --ink-soft: var(--ink);
     --line-soft: var(--ink);
+  }
+
+  @supports (color: light-dark(#000, #fff)) {
+    :root {
+      --canvas: light-dark(var(--grey-97), var(--grey-0));
+      --paper: light-dark(var(--grey-100), var(--grey-19));
+      --ink: light-dark(var(--grey-19), var(--grey-100));
+    }
+  }
+}
+
+/* --- 3. the forced scheme --------------------------------------------------------
+   data-scheme="light" or "dark" on :root forces the page; on any element, it
+   forces that subtree (the hub's swatches show both schemes side by side).
+   No attribute: the reader's system decides. !important because base.css
+   sets color-scheme on html in a later layer, which would otherwise win; in
+   the important cascade the earlier layer wins, so this one does. */
+[data-scheme="light"] {
+  color-scheme: light !important;
+}
+
+[data-scheme="dark"] {
+  color-scheme: dark !important;
+}
+
+/* Without light-dark() the page only has light values: keep native controls
+   and scrollbars light to match, whatever the system or the attribute says. */
+@supports not (color: light-dark(#000, #fff)) {
+  :root,
+  [data-scheme] {
+    color-scheme: light !important;
   }
 }
 }
@@ -252,7 +360,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 /* iOS: follow the reader's Dynamic Type size (17px by default). Every size
@@ -392,6 +500,51 @@ label {
   font-variant-numeric: tabular-nums;
 }
 
+/* --- smoothing ---------------------------------------------------------------
+   On a Mac, antialiasing is for light text on a dark ground, where subpixel
+   smoothing blooms; on a light ground it thins the 13px labels and 14px meta.
+   So it follows the scheme, set from the same two things that set the
+   scheme: the reader's system, and data-scheme (tokens/color.css).
+     --smooth          the page's own text: off in light, on in dark
+     --smooth-inverse  text on an inverted fill (the ink tone, the card's
+                       bar, an inset list's head): the other one
+   Each has a -moz- twin, because -moz-osx-font-smoothing takes other words.
+   light-dark() can't do this: it only chooses colours. An engine without it
+   is light throughout (color.css), so it gets only the light values (the
+   test names system colours, so no literal leaves the colour file). */
+:root,
+[data-scheme="light"] {
+  --smooth: auto;
+  --smooth-moz: auto;
+  --smooth-inverse: antialiased;
+  --smooth-inverse-moz: grayscale;
+}
+
+@supports (color: light-dark(Canvas, CanvasText)) {
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-scheme="light"]) {
+      --smooth: antialiased;
+      --smooth-moz: grayscale;
+      --smooth-inverse: auto;
+      --smooth-inverse-moz: auto;
+    }
+  }
+
+  [data-scheme="dark"] {
+    --smooth: antialiased;
+    --smooth-moz: grayscale;
+    --smooth-inverse: auto;
+    --smooth-inverse-moz: auto;
+  }
+}
+
+/* the page, and any subtree that forces its own scheme */
+:root,
+[data-scheme] {
+  -webkit-font-smoothing: var(--smooth);
+  -moz-osx-font-smoothing: var(--smooth-moz);
+}
+
 /* --- tone ------------------------------------------------------------------
    [data-tone] on any element exposes --tone-bg / --tone-ink to it (and only
    it: both are registered non-inheriting). A component decides what to do
@@ -430,9 +583,9 @@ label {
 [data-tone="ink"] {
   --tone-bg: var(--ink);
   --tone-ink: var(--paper);
-  /* light on dark only: on paper, antialiasing thins small text on a Mac */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* inverted, so it smooths when the page doesn't: in light (above) */
+  -webkit-font-smoothing: var(--smooth-inverse);
+  -moz-osx-font-smoothing: var(--smooth-inverse-moz);
 }
 }
 @layer base {
@@ -684,6 +837,13 @@ label {
   --card-bar-ink: var(--ink);
 }
 
+/* ...and the bar's smoothing with it: on an ink card the bar is the page's
+   own colours again, so it smooths as the page does (base.css) */
+.card[data-tone="ink"] .card__bar {
+  -webkit-font-smoothing: var(--smooth);
+  -moz-osx-font-smoothing: var(--smooth-moz);
+}
+
 /* --- focus inside a card -----------------------------------------------------
    The card clips, so a ring has to fit inside it, and it has to contrast with
    whatever it lands on: the bar is ink, and so is an inverted card. */
@@ -706,7 +866,9 @@ label {
 /* --- parts ----------------------------------------------------------------- */
 
 /* bar: the frame, thickened, with a label and one control. Wraps at large
-   text sizes; the control keeps to the end. Light on dark, so antialiased. */
+   text sizes; the control keeps to the end. Ink in both schemes, as the frame
+   is: a dark strip in light, a light one in dark. It is an inverted fill, so
+   it smooths when the page doesn't (base.css). */
 .card__bar {
   display: flex;
   flex-wrap: wrap;
@@ -717,8 +879,8 @@ label {
   padding-inline-start: var(--card-pad);
   color: var(--card-bar-ink);
   background: var(--card-bar-bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: var(--smooth-inverse);
+  -moz-osx-font-smoothing: var(--smooth-inverse-moz);
 }
 
 .card__bar > .card__ctl {
@@ -4359,8 +4521,9 @@ textarea.field__input {
   padding-block: var(--space-2);
   color: var(--paper);
   background: var(--ink);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* an inverted fill: smoothed when the page isn't (base.css) */
+  -webkit-font-smoothing: var(--smooth-inverse);
+  -moz-osx-font-smoothing: var(--smooth-inverse-moz);
 }
 
 /* --- the row ----------------------------------------------------------------
@@ -4497,6 +4660,14 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
 
   a.list__row:is(:active, .is-active) .ic {
     background-color: HighlightText;
+  }
+
+  /* a tag in the row opts out with it, and would keep the paper words and
+     CanvasText frame it has on a plain row: on Highlight that frame all but
+     goes (1.9:1 and 2.4:1 in Chromium's light and dark forced themes) */
+  a.list__row:is(:active, .is-active) .tag {
+    color: HighlightText;
+    border-color: HighlightText;
   }
 
   .list--inset > .list__head {
@@ -5041,8 +5212,9 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
    House rules for this file
    · The surface holds, so it is a container: square, a 2px frame on paper,
      and no shadow (a shadow means pressable). The buttons act: Button's.
-   · Behind it, --scrim: flat ink at 60%, the one translucency (STYLE rule
-     2). Under forced colours the scrim is gone, so the frame goes to 4px
+   · Behind it, --scrim: a flat near-black at 60% in both schemes, the one
+     translucency (STYLE rule 2). Never ink, which would lighten the page in
+     dark. Under forced colours the scrim is gone, so the frame goes to 4px
      and carries the edge alone.
    · Centred, at most 28rem wide, and never taller than the screen: past
      that it scrolls inside, never the page sideways.
@@ -5686,7 +5858,7 @@ dialog.sheet:not([open]) {
    How to read a wireframe
      box with an X      an image or illustration goes here
      flat grey          a tone slot (the number says which)
-     black fill         the inverted tone
+     ink fill           the inverted tone
      dashed outline     empty, or unavailable
      hatch              disabled
      grey line + name   an element that isn't built yet (.wf-slot)
@@ -5737,7 +5909,7 @@ dialog.sheet:not([open]) {
 }
 
 /* An element that isn't built yet. data-wf names it, and the name sits on
-   the top edge like a legend. Grey, not ink: black means built. It holds the
+   the top edge like a legend. Grey, not ink: ink means built. It holds the
    real copy, so a screen still reads. Each slot is swapped for the real
    element the day it ships.
      <div class="wf-slot" data-wf="Nav bar">…</div>
@@ -5804,6 +5976,13 @@ dialog.sheet:not([open]) {
    page that teaches them keeps them. It reads the same tokens, so it can't
    drift from the system it shows. The fluid (vw) sizes live here as --sg-*,
    because a page can scale with the window and an app's text must not.
+
+   It follows the scheme like everything else: it reads roles, and the roles
+   are light-dark() pairs. The two places the sheet inverts (the top bar and
+   the markup panes) use --sg-bar and --sg-on-bar instead of ink and paper:
+   ink in light, and in dark the darkest ground, so a dark page doesn't get
+   a white slab across its top. The scheme switch in the top bar comes from
+   js/sheet.js (data-scheme on :root, tokens/color.css).
    ========================================================================== */
 
 @layer sheet {
@@ -5813,6 +5992,11 @@ dialog.sheet:not([open]) {
     --sg-text-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem); /* 24 -> 32 */
     --sg-text-2xl: min(clamp(2rem, 1.5rem + 2.2vw, 3.25rem), 10vw); /* 32 -> 52 */
     --sg-text-display: clamp(4.25rem, 1rem + 15vw, 15rem); /* 68 -> 240 */
+    /* the sheet's inverted chrome: ink in light, the darkest ground in dark.
+       Only for the sheet; an engine without light-dark() shows the bar
+       unfilled, and the sheet isn't shipped. */
+    --sg-bar: light-dark(var(--ink), var(--canvas));
+    --sg-on-bar: light-dark(var(--paper), var(--ink));
     scroll-padding-block-start: 3.5rem;
   }
 
@@ -5888,16 +6072,20 @@ dialog.sheet:not([open]) {
     position: sticky;
     inset-block-start: 0;
     z-index: 20;
-    color: var(--paper);
-    background: var(--ink);
+    color: var(--sg-on-bar);
+    background: var(--sg-bar);
+    /* in light it's the bar's own colour; in dark it parts bar from page */
+    border-block-end: var(--bw-thin) solid var(--line);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* the scheme switch wraps to its own row before the nav gets too narrow */
   .sg-top__in {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-5);
+    gap: 0 var(--space-5);
     min-block-size: var(--hit);
   }
 
@@ -5912,8 +6100,30 @@ dialog.sheet:not([open]) {
 
   /* the nav wraps rather than scroll: a hidden scrollbar hides links */
   .sg-top nav {
-    flex: 1;
-    min-inline-size: 0;
+    flex: 1 1 0;
+    min-inline-size: min(100%, 14rem);
+  }
+
+  /* --- the scheme switch: Auto, Light, Dark (js/sheet.js puts it here) ----- */
+
+  .sg-scheme {
+    margin-block: var(--space-1);
+  }
+
+  .sg-top .sg-seg,
+  .sg-top .sg-seg label + label {
+    border-color: currentColor;
+  }
+
+  .sg-top .sg-seg label {
+    font: var(--type-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+  }
+
+  .sg-top .sg-seg label:has(input:checked) {
+    color: var(--sg-bar);
+    background: var(--sg-on-bar);
   }
 
   .sg-top ul {
@@ -5938,7 +6148,7 @@ dialog.sheet:not([open]) {
   }
 
   .sg-top :focus-visible {
-    outline-color: var(--paper);
+    outline-color: var(--sg-on-bar);
     outline-offset: calc(var(--ring) * -1);
   }
 
@@ -6056,7 +6266,8 @@ dialog.sheet:not([open]) {
 
   /* forced colours drops the black fill, which is the only sign of "on" */
   @media (forced-colors: active) {
-    .sg-seg label:has(input:checked) {
+    .sg-seg label:has(input:checked),
+    .sg-top .sg-seg label:has(input:checked) {
       forced-color-adjust: none;
       color: HighlightText;
       background: Highlight;
@@ -6289,6 +6500,29 @@ dialog.sheet:not([open]) {
     font-variant-numeric: tabular-nums;
   }
 
+  /* the colour box: the same swatches in each scheme, side by side. Each
+     pane forces its scheme with data-scheme, and light-dark() resolves per
+     element, so the pane draws its own canvas and ink. */
+  .sg-palette {
+    display: grid;
+    gap: var(--space-4) var(--gutter);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  }
+
+  .sg-palette__pane {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    color: var(--ink);
+    background: var(--canvas);
+    border: var(--bw-thin) solid var(--ink);
+  }
+
+  .sg-palette__pane .sg-tones {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr));
+  }
+
   /* --- entries ------------------------------------------------------------- */
 
   .sg-entry {
@@ -6437,8 +6671,8 @@ dialog.sheet:not([open]) {
     margin: 0;
     padding: var(--space-4);
     overflow-x: auto;
-    color: var(--paper);
-    background: var(--ink);
+    color: var(--sg-on-bar);
+    background: var(--sg-bar);
     font: 400 0.8125rem / 1.6 var(--font-mono);
     tab-size: 2;
   }
@@ -6896,14 +7130,14 @@ dialog.sheet:not([open]) {
             <li><a href="screens.html">Screens</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.8 · Wireframe</span>
+        <span class="sg-top__status">v0.9 · Colour</span>
       </div>
     </div>
 
     <main id="top">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Design system</span><span>Wireframe</span><span>27 of 27 elements built</span>
+          <span>Design system</span><span>Colour</span><span>27 of 27 elements through gate 3</span>
         </p>
         <h1 class="sg-display sg-display--long">System</h1>
         <div class="sg-hero__row">
@@ -6962,7 +7196,7 @@ dialog.sheet:not([open]) {
             <strong>Colour is a swap.</strong>
             <p>
               Components read roles: <code>--paper</code>, <code>--ink</code>,
-              <code>--tone-3</code>. Only <code>tokens/color.*.css</code> knows a hex.
+              <code>--tone-3</code>. Only <code>tokens/color*.css</code> knows a colour value.
             </p>
           </li>
           <li>
@@ -7081,42 +7315,94 @@ dialog.sheet:not([open]) {
 
           <div class="sg-box sg-box--wide">
             <div class="sg-box__head">
-              <span>Tone</span><span>six slots · grey for now · ratio is ink on the fill, read live</span>
+              <span>Colour</span><span>black, grey and white · one accent · ratio is the text on the fill, read live</span>
             </div>
             <div class="sg-box__body">
-              <div class="sg-tones">
-                <div class="sg-swatch" style="background: var(--canvas); color: var(--ink)">
-                  <b>Canvas</b><span><code>--canvas</code><br /><span class="sg-swatch__ratio"></span></span>
+              <div class="sg-palette">
+                <div class="sg-palette__pane" data-scheme="light">
+                  <p class="t-label">Light</p>
+                  <div class="sg-tones">
+                    <div class="sg-swatch" style="background: var(--canvas); color: var(--ink)">
+                      <b>Canvas</b><span><code>--canvas</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--paper); color: var(--ink)">
+                      <b>Paper</b><span><code>--paper</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--ink); color: var(--paper)">
+                      <b>Ink</b><span><code>--ink</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--paper); color: var(--ink-soft)">
+                      <b>Soft ink</b><span><code>--ink-soft</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--accent); color: var(--on-accent)">
+                      <b>Accent</b><span><code>--accent</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-1); color: var(--on-tone-1)">
+                      <b>Tone 1</b><span><code>--tone-1</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-2); color: var(--on-tone-2)">
+                      <b>Tone 2</b><span><code>--tone-2</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-3); color: var(--on-tone-3)">
+                      <b>Tone 3</b><span><code>--tone-3</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-4); color: var(--on-tone-4)">
+                      <b>Tone 4</b><span><code>--tone-4</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-5); color: var(--on-tone-5)">
+                      <b>Tone 5</b><span><code>--tone-5</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-6); color: var(--on-tone-6)">
+                      <b>Tone 6</b><span><code>--tone-6</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                  </div>
                 </div>
-                <div class="sg-swatch" style="background: var(--paper); color: var(--ink)">
-                  <b>Paper</b><span><code>--paper</code><br /><span class="sg-swatch__ratio"></span></span>
-                </div>
-                <div class="sg-swatch" style="background: var(--ink); color: var(--paper)">
-                  <b>Ink</b><span><code>--ink</code><br /><span class="sg-swatch__ratio"></span></span>
-                </div>
-                <div class="sg-swatch" style="background: var(--tone-1); color: var(--on-tone-1)">
-                  <b>Tone 1</b><span><code>--tone-1</code><br /><span class="sg-swatch__ratio"></span></span>
-                </div>
-                <div class="sg-swatch" style="background: var(--tone-2); color: var(--on-tone-2)">
-                  <b>Tone 2</b><span><code>--tone-2</code><br /><span class="sg-swatch__ratio"></span></span>
-                </div>
-                <div class="sg-swatch" style="background: var(--tone-3); color: var(--on-tone-3)">
-                  <b>Tone 3</b><span><code>--tone-3</code><br /><span class="sg-swatch__ratio"></span></span>
-                </div>
-                <div class="sg-swatch" style="background: var(--tone-4); color: var(--on-tone-4)">
-                  <b>Tone 4</b><span><code>--tone-4</code><br /><span class="sg-swatch__ratio"></span></span>
-                </div>
-                <div class="sg-swatch" style="background: var(--tone-5); color: var(--on-tone-5)">
-                  <b>Tone 5</b><span><code>--tone-5</code><br /><span class="sg-swatch__ratio"></span></span>
-                </div>
-                <div class="sg-swatch" style="background: var(--tone-6); color: var(--on-tone-6)">
-                  <b>Tone 6</b><span><code>--tone-6</code><br /><span class="sg-swatch__ratio"></span></span>
+                <div class="sg-palette__pane" data-scheme="dark">
+                  <p class="t-label">Dark</p>
+                  <div class="sg-tones">
+                    <div class="sg-swatch" style="background: var(--canvas); color: var(--ink)">
+                      <b>Canvas</b><span><code>--canvas</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--paper); color: var(--ink)">
+                      <b>Paper</b><span><code>--paper</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--ink); color: var(--paper)">
+                      <b>Ink</b><span><code>--ink</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--paper); color: var(--ink-soft)">
+                      <b>Soft ink</b><span><code>--ink-soft</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--accent); color: var(--on-accent)">
+                      <b>Accent</b><span><code>--accent</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-1); color: var(--on-tone-1)">
+                      <b>Tone 1</b><span><code>--tone-1</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-2); color: var(--on-tone-2)">
+                      <b>Tone 2</b><span><code>--tone-2</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-3); color: var(--on-tone-3)">
+                      <b>Tone 3</b><span><code>--tone-3</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-4); color: var(--on-tone-4)">
+                      <b>Tone 4</b><span><code>--tone-4</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-5); color: var(--on-tone-5)">
+                      <b>Tone 5</b><span><code>--tone-5</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                    <div class="sg-swatch" style="background: var(--tone-6); color: var(--on-tone-6)">
+                      <b>Tone 6</b><span><code>--tone-6</code><br /><span class="sg-swatch__ratio"></span></span>
+                    </div>
+                  </div>
                 </div>
               </div>
               <p class="sg-spec" style="margin-block-start: var(--space-4)">
-                Put <code>data-tone="1"</code> to <code>"6"</code> or <code>"ink"</code> on a card. The
-                numbers stand in for the palette: when colour arrives they become six hues, and each
-                slot also says what text sits on it.
+                Every role is a light and dark pair, and each pane above is forced to its scheme with
+                <code>data-scheme</code>, so both show whatever your system prefers; ask for more
+                contrast and the ratios change with it. Put <code>data-tone="1"</code> to
+                <code>"6"</code> or <code>"ink"</code> on a card: six greys, 1 the quietest, in the
+                same order in both schemes. The accent is ink until an app sets its own, checked by
+                <code>tools/accent.mjs</code>.
               </p>
             </div>
           </div>
@@ -7147,137 +7433,137 @@ dialog.sheet:not([open]) {
             <tr>
               <th scope="row"><a href="#el-card">Card</a></th>
               <td>One idea in a frame: a deck, a stat, a row, the flashcard itself.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-button">Button</a></th>
               <td>Every action: primary, secondary, quiet, destructive, icon-only.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-field">Field</a></th>
               <td>Typing: text, search, number, several lines, with a label, help and an error.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-tag">Tag and Badge</a></th>
               <td>A status word on a thing, and a count on a control.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-meter">Meter and Spinner</a></th>
               <td>How far along, and “working on it” when nobody knows how long.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-icons">Icons</a></th>
               <td>The glyph set: line work on the frame’s 2px weight.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-checkbox">Checkbox</a></th>
               <td>Independent on/off choices.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-radio">Radio</a></th>
               <td>One choice from a short list.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-switch">Switch</a></th>
               <td>A setting that takes effect at once.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-segmented">Segmented control</a></th>
               <td>One of two to four views or modes, side by side.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-select">Select</a></th>
               <td>One choice from a long list, in the platform’s own picker.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-stepper">Stepper</a></th>
               <td>A small number, one step at a time.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-form">Form</a></th>
               <td>Fields together: groups, help, errors and the submit row.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-frame">Frame</a></th>
               <td>The app shell: safe areas, bars and the scroll region.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-topbar">Top bar</a></th>
               <td>A screen’s title, its back control and one or two actions.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-tabbar">Tab bar</a></th>
               <td>The three to five places at the root of a phone app.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-sidebar">Sidebar</a></th>
               <td>Navigation on wide screens, and the split view.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-list">List</a></th>
               <td>Rows of things, with swipe actions that also have a visible button.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-tabs">Tabs</a></th>
               <td>Sections of one screen.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-disclosure">Disclosure</a></th>
               <td>Show more, in place.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-menu">Menu</a></th>
               <td>A short list of actions behind one control.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-dialog">Dialog</a></th>
               <td>Stop and decide: confirm or acknowledge.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-sheet">Sheet</a></th>
               <td>A task on top of a screen; from the bottom on a phone.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-toast">Toast</a></th>
               <td>It’s done, with Undo.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-banner">Banner</a></th>
               <td>News about the whole screen: offline, an update ready, a failure.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-states">Empty, loading and error</a></th>
               <td>What a screen shows before there’s anything, and when something fails.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
             <tr>
               <th scope="row"><a href="#el-pwa">PWA platform</a></th>
               <td>Install, offline, updates, permissions, sharing and the keyboard.</td>
-              <td>Gates 0–2</td>
+              <td>Gates 0–3</td>
             </tr>
           </tbody>
         </table>
@@ -7289,7 +7575,7 @@ dialog.sheet:not([open]) {
 <section id="el-card">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 01</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 01</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Cards</h1>
         <div class="sg-hero__row">
@@ -7460,7 +7746,7 @@ dialog.sheet:not([open]) {
         <ul class="sg-key" role="list" aria-label="How to read a wireframe">
           <li><i class="wf-media" style="background-color: var(--tone-1)"></i>Box with an X: an image goes here</li>
           <li><i style="background: var(--tone-3)"></i>Flat grey: a tone slot</li>
-          <li><i style="background: var(--ink)"></i>Black: the inverted tone</li>
+          <li><i style="background: var(--ink)"></i>Ink: the inverted tone</li>
           <li><i style="border-style: dashed"></i>Dashed: empty, or not yet</li>
           <li><i class="card card--disabled" style="min-inline-size: 0; container-type: normal"></i>Hatch: disabled</li>
         </ul>
@@ -7808,7 +8094,7 @@ dialog.sheet:not([open]) {
           <h2 class="sg-sec__title" id="h-card-states">States</h2>
           <p class="sg-sec__note">
             One card, six states. Keyboard and pointer get the same lift, and the card never
-            moves. Still grey: colour doesn't get to carry a state until gate 3.
+            moves. Grey in both schemes: colour never carries a state.
           </p>
         </div>
 
@@ -8115,7 +8401,7 @@ dialog.sheet:not([open]) {
 <section id="el-button">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 02</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 02</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Buttons</h1>
         <div class="sg-hero__row">
@@ -8147,7 +8433,7 @@ dialog.sheet:not([open]) {
             <p class="sg-entry__classes"><code>.btn</code> <code>.btn--primary</code></p>
             <p class="sg-entry__note">
               Filled with <code>--accent</code> and <code>--on-accent</code> (ink and paper until
-              gate 3). At most one per region: if two things both want to be primary, one of them
+              an app sets its own). At most one per region: if two things both want to be primary, one of them
               isn't.
             </p>
           </header>
@@ -8575,7 +8861,7 @@ dialog.sheet:not([open]) {
 <section id="el-field">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 03</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 03</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Field</h1>
         <div class="sg-hero__row">
@@ -9078,7 +9364,7 @@ dialog.sheet:not([open]) {
 <section id="el-tag">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 04</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 04</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Tags</h1>
         <div class="sg-hero__row">
@@ -9149,7 +9435,7 @@ dialog.sheet:not([open]) {
           <header class="sg-entry__meta">
             <p class="sg-entry__idx">1.3</p>
             <h3 class="sg-entry__name">Tones</h3>
-            <p class="sg-entry__use">Six fill slots, waiting for the palette.</p>
+            <p class="sg-entry__use">Six grey fills, 1 the quietest, in either scheme.</p>
             <p class="sg-entry__classes"><code>data-tone="1"</code> … <code>"6"</code></p>
             <p class="sg-entry__note">
               Rhythm, not meaning. The word says "Due"; a tone never says it alone. Text and frame
@@ -9381,7 +9667,7 @@ dialog.sheet:not([open]) {
 <section id="el-meter">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 05</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 05</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Meters</h1>
         <div class="sg-hero__row">
@@ -9687,7 +9973,7 @@ dialog.sheet:not([open]) {
 <section id="el-icons">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 06</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 06</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Icons</h1>
         <div class="sg-hero__row">
@@ -10176,7 +10462,7 @@ dialog.sheet:not([open]) {
 <section id="el-checkbox">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 07</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 07</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Checks</h1>
         <div class="sg-hero__row">
@@ -10640,7 +10926,7 @@ dialog.sheet:not([open]) {
 <section id="el-radio">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 08</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 08</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Radios</h1>
         <div class="sg-hero__row">
@@ -11000,7 +11286,7 @@ dialog.sheet:not([open]) {
 <section id="el-switch">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 09</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 09</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Switch</h1>
         <div class="sg-hero__row">
@@ -11343,7 +11629,7 @@ dialog.sheet:not([open]) {
 <section id="el-segmented">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 10</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 10</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--longer">Segments</h1>
         <div class="sg-hero__row">
@@ -11743,7 +12029,7 @@ dialog.sheet:not([open]) {
 <section id="el-select">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 11</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 11</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Select</h1>
         <div class="sg-hero__row">
@@ -11785,11 +12071,11 @@ dialog.sheet:not([open]) {
                     aria-describedby="select-anat-colour-error select-anat-colour-help"
                   >
                     <option value="">Choose a colour</option>
-                    <option value="white">White</option>
-                    <option value="light-grey">Light grey</option>
-                    <option value="grey">Grey</option>
-                    <option value="dark-grey">Dark grey</option>
-                    <option value="black">Black</option>
+                    <option value="plain">Plain</option>
+                    <option value="faint">Faint</option>
+                    <option value="soft">Soft</option>
+                    <option value="strong">Strong</option>
+                    <option value="ink">Ink</option>
                   </select>
                   <span class="ic ic--down select__icon" aria-hidden="true"></span>
                   <span class="sg-n sg-anat__frame" style="inset: -0.75rem -0.75rem auto auto" aria-hidden="true">5</span>
@@ -11916,11 +12202,11 @@ dialog.sheet:not([open]) {
               <p class="field__help" id="select-help-colour-help">Fills the deck's card in your decks.</p>
               <div class="select">
                 <select class="select__input" id="select-help-colour" name="colour" autocomplete="off" aria-describedby="select-help-colour-help">
-                  <option value="white">White</option>
-                  <option value="light-grey" selected>Light grey</option>
-                  <option value="grey">Grey</option>
-                  <option value="dark-grey">Dark grey</option>
-                  <option value="black">Black</option>
+                  <option value="plain">Plain</option>
+                  <option value="faint" selected>Faint</option>
+                  <option value="soft">Soft</option>
+                  <option value="strong">Strong</option>
+                  <option value="ink">Ink</option>
                 </select>
                 <span class="ic ic--down select__icon" aria-hidden="true"></span>
               </div>
@@ -12045,8 +12331,8 @@ dialog.sheet:not([open]) {
               <div class="select">
                 <select class="select__input" id="select-s-invalid" required autocomplete="off" aria-invalid="true" aria-describedby="select-s-invalid-error">
                   <option value="">Choose a colour</option>
-                  <option value="white">White</option>
-                  <option value="black">Black</option>
+                  <option value="plain">Plain</option>
+                  <option value="ink">Ink</option>
                 </select>
                 <span class="ic ic--down select__icon" aria-hidden="true"></span>
               </div>
@@ -12117,7 +12403,7 @@ dialog.sheet:not([open]) {
 <section id="el-stepper">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 12</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 12</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Stepper</h1>
         <div class="sg-hero__row">
@@ -12441,7 +12727,7 @@ dialog.sheet:not([open]) {
 <section id="el-form">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 13</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 13</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Forms</h1>
         <div class="sg-hero__row">
@@ -12992,7 +13278,7 @@ dialog.sheet:not([open]) {
 <section id="el-frame">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 14</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 14</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Frame</h1>
         <div class="sg-hero__row">
@@ -13713,7 +13999,7 @@ dialog.sheet:not([open]) {
 <section id="el-topbar">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 15</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 15</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Top bar</h1>
         <div class="sg-hero__row">
@@ -13998,7 +14284,7 @@ dialog.sheet:not([open]) {
 <section id="el-tabbar">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 16</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 16</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Tab bar</h1>
         <div class="sg-hero__row">
@@ -14313,7 +14599,7 @@ dialog.sheet:not([open]) {
 <section id="el-sidebar">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 17</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 17</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Sidebar</h1>
         <div class="sg-hero__row">
@@ -14756,7 +15042,7 @@ dialog.sheet:not([open]) {
 <section id="el-list">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 18</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 18</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">List</h1>
         <div class="sg-hero__row">
@@ -15418,7 +15704,7 @@ dialog.sheet:not([open]) {
 <section id="el-tabs">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 19</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 19</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Tabs</h1>
         <div class="sg-hero__row">
@@ -15839,7 +16125,7 @@ dialog.sheet:not([open]) {
 <section id="el-disclosure">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 20</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 20</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Details</h1>
         <div class="sg-hero__row">
@@ -16079,7 +16365,7 @@ dialog.sheet:not([open]) {
 <section id="el-menu">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 21</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 21</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Menu</h1>
         <div class="sg-hero__row">
@@ -16370,7 +16656,7 @@ dialog.sheet:not([open]) {
 <section id="el-dialog">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 22</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 22</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Dialog</h1>
         <div class="sg-hero__row">
@@ -16482,9 +16768,9 @@ dialog.sheet:not([open]) {
               <div>
                 <strong>Scrim</strong><code>::backdrop</code> <code>--scrim</code>
                 <p>
-                  Flat ink at 60%, the one translucency the system allows: the deck is still there,
-                  but not now. The page behind is inert: no taps, no Tab, nothing for a screen
-                  reader. A tap on it does nothing; a decision needs a button.
+                  A flat near-black at 60% in both schemes, the one translucency the system allows:
+                  the deck is still there, but not now. The page behind is inert: no taps, no Tab,
+                  nothing for a screen reader. A tap on it does nothing; a decision needs a button.
                 </p>
               </div>
             </li>
@@ -16861,7 +17147,7 @@ dialog.sheet:not([open]) {
 <section id="el-sheet">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 23</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 23</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Sheet</h1>
         <div class="sg-hero__row">
@@ -16974,8 +17260,8 @@ dialog.sheet:not([open]) {
               <div>
                 <strong>Scrim</strong><code>::backdrop</code> <code>--scrim</code>
                 <p>
-                  Flat ink at 60%, as behind a Dialog: the deck is still there, but not now, and
-                  inert. A tap on it closes an action sheet, never a form.
+                  Near-black at 60% in both schemes, as behind a Dialog: the deck is still there,
+                  but not now, and inert. A tap on it closes an action sheet, never a form.
                 </p>
               </div>
             </li>
@@ -17609,7 +17895,7 @@ dialog.sheet:not([open]) {
 <section id="el-toast">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 24</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 24</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">Toast</h1>
         <div class="sg-hero__row">
@@ -18138,7 +18424,7 @@ dialog.sheet:not([open]) {
 <section id="el-banner">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 25</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 25</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">Banner</h1>
         <div class="sg-hero__row">
@@ -18485,7 +18771,7 @@ dialog.sheet:not([open]) {
 <section id="el-states">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 26</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 26</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display sg-display--long">States</h1>
         <div class="sg-hero__row">
@@ -19007,7 +19293,7 @@ dialog.sheet:not([open]) {
 <section id="el-pwa">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Element 27</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+          <span>Element 27</span><span>Colour</span><span>Gates 0 to 3 done</span>
         </p>
         <h1 class="sg-display">PWA</h1>
         <div class="sg-hero__row">
@@ -19102,7 +19388,9 @@ dialog.sheet:not([open]) {
             <p class="sg-entry__note">
               The two colours are <code>--canvas</code>: <code>tools/bundle.mjs</code> writes them in
               from the colour file, so the hex lives in one place and the splash, the status bar and
-              the first frame are one ground. Icons: one master SVG on the icon grid, ink on paper
+              the first frame are one ground. A manifest has no dark colour, so it keeps the light
+              canvas; the pages' two <code>theme-color</code> metas, light and dark, follow the
+              system. Icons: one master SVG on the icon grid, ink on paper in both schemes
               (monochrome until an app sets its accent), its drawing inside the maskable safe zone,
               the centre 80% circle. The PNGs are rendered once from it, at 192 and 512 (any and
               maskable) and 180 for <code>apple-touch-icon</code>, which iOS reads instead of the
@@ -19154,7 +19442,7 @@ dialog.sheet:not([open]) {
                 </li>
                 <li>
                   <div class="list__row">
-                    <span class="list__main"><span class="list__title"><code>theme_color</code>, <code>background_color</code></span><span class="list__meta">The status bar or title bar, and the splash while it opens.</span></span><span class="list__trail"><code>--canvas</code></span>
+                    <span class="list__main"><span class="list__title"><code>theme_color</code>, <code>background_color</code></span><span class="list__meta">The status bar or title bar, and the splash while it opens. The light canvas: a manifest has no dark one.</span></span><span class="list__trail"><code>--canvas</code></span>
                   </div>
                 </li>
                 <li>
@@ -20453,7 +20741,7 @@ dialog.sheet:not([open]) {
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards design system · v0.8</span>
+      <span>Flashcards design system · v0.9</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>
@@ -20463,13 +20751,71 @@ dialog.sheet:not([open]) {
 /* ==========================================================================
    sheet.js — the style-sheet pages' own behaviour. Not shipped to apps.
 
+   0. The scheme switch (Auto, Light, Dark) in the top bar.
    1. Prints each specimen's markup under it, read from the live element.
-   2. Computes the tone swatches' contrast from whatever the tokens say.
+   2. Computes the colour swatches' contrast from whatever the tokens say.
    Also: the iOS :active listener, and demo links that don't jump.
    ========================================================================== */
 (function () {
   "use strict";
-  document.documentElement.classList.add("js");
+  var root = document.documentElement;
+  root.classList.add("js");
+
+  /* ---- 0. the scheme: Auto follows the system; Light or Dark forces it
+     with data-scheme on :root (tokens/color.css). Remembered for this viewer
+     only; storage can be missing or throw (private windows, blocked site
+     data), and then the page simply starts on Auto. ------------------- */
+  var SCHEME_KEY = "flashcards-sheet-scheme";
+  var SCHEMES = [["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]];
+  function storedScheme() {
+    var v = null;
+    try { v = window.localStorage.getItem(SCHEME_KEY); } catch (e) { v = null; }
+    return v === "light" || v === "dark" ? v : "auto";
+  }
+  function storeScheme(v) {
+    try {
+      if (v === "auto") window.localStorage.removeItem(SCHEME_KEY);
+      else window.localStorage.setItem(SCHEME_KEY, v);
+    } catch (e) { /* not remembered, still applied */ }
+  }
+  function applyScheme(v) {
+    if (v === "light" || v === "dark") root.setAttribute("data-scheme", v);
+    else root.removeAttribute("data-scheme");
+  }
+  var scheme = storedScheme();
+  applyScheme(scheme); // first, so the page paints in it
+
+  // A real radio group, the text-size switch's pattern: one tab stop, arrows
+  // move the choice, the group's name comes from its legend.
+  var bar = document.querySelector(".sg-top__in");
+  if (bar) {
+    var set = document.createElement("fieldset");
+    set.className = "sg-ctl sg-scheme";
+    var legend = document.createElement("legend");
+    legend.className = "sr-only";
+    legend.textContent = "Colour scheme";
+    var seg = document.createElement("div");
+    seg.className = "sg-seg";
+    SCHEMES.forEach(function (s) {
+      var label = document.createElement("label");
+      var input = document.createElement("input");
+      input.type = "radio";
+      input.name = "sg-scheme";
+      input.value = s[0];
+      input.checked = s[0] === scheme;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(s[1]));
+      seg.appendChild(label);
+    });
+    seg.addEventListener("change", function (e) {
+      applyScheme(e.target.value);
+      storeScheme(e.target.value);
+      ratios();
+    });
+    set.appendChild(legend);
+    set.appendChild(seg);
+    bar.appendChild(set);
+  }
 
   // iOS Safari only applies :active when a touchstart listener exists.
   document.addEventListener("touchstart", function () {}, { passive: true });
@@ -20568,13 +20914,24 @@ dialog.sheet:not([open]) {
       return s + v * w[i];
     }, 0);
   }
-  Array.prototype.forEach.call(document.querySelectorAll(".sg-swatch"), function (el) {
-    var cs = getComputedStyle(el);
-    var a = lum(rgb(cs.backgroundColor));
-    var b = lum(rgb(cs.color));
-    var r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-    el.querySelector(".sg-swatch__ratio").textContent =
-      r.toFixed(1) + ":1 " + (r >= 7 ? "AAA" : r >= 4.5 ? "AA" : "FAIL");
+  // Each swatch reads its own computed colours, so a pane forced with
+  // data-scheme reports that scheme. Run again when the scheme or the
+  // contrast preference changes.
+  function ratios() {
+    Array.prototype.forEach.call(document.querySelectorAll(".sg-swatch"), function (el) {
+      var cs = getComputedStyle(el);
+      var a = lum(rgb(cs.backgroundColor));
+      var b = lum(rgb(cs.color));
+      var r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      el.querySelector(".sg-swatch__ratio").textContent =
+        r.toFixed(1) + ":1 " + (r >= 7 ? "AAA" : r >= 4.5 ? "AA" : "FAIL");
+    });
+  }
+  ratios();
+  ["(prefers-contrast: more)", "(prefers-color-scheme: dark)"].forEach(function (q) {
+    var mq = window.matchMedia && window.matchMedia(q);
+    if (mq && mq.addEventListener) mq.addEventListener("change", ratios);
+    else if (mq && mq.addListener) mq.addListener(ratios);
   });
 })();
 </script>

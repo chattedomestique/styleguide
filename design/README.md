@@ -32,7 +32,7 @@ design/
     fonts.css           Archivo, variable on weight and width
     tokens/
       foundation.css    type, space, line, shape, hit, motion
-      color.wire.css    greys, roles, six tone slots  ← gate 3 replaces this
+      color.css         the grey ramp, the roles as light-dark() pairs, more contrast
     base.css            reset, element defaults, .t-* styles, [data-tone]
     icons.css           26 masked glyphs
     components/
@@ -43,10 +43,12 @@ design/
   js/
     components/         element script, where HTML can't do it → dist/flashcards.js
     sheet.js            the pages' own script: markup, contrast (not shipped)
+    sheet-scheme.js     the stored scheme, set in the head before the CSS (not shipped)
   fonts/                Archivo woff2 + OFL licence
   pwa/                  the starter app; copy it with dist/ and fonts/ (pwa/README.md)
   tools/
     check.mjs           the gate
+    accent.mjs          an app's accent: checked in both schemes, the CSS to paste
     bundle.mjs          the build: dist/ (+ .min files), the starter's colours and worker version, the budget
     serve.mjs           static server for design/ on localhost
   dist/                 bundle output, what an app links (generated)
@@ -74,13 +76,13 @@ element together, because colour, motion and the freeze are decisions about the 
 
 | Wave | Elements | 0 | 1 | 2 | 3 | 4 | 5 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| | **Card** | ✓ | ✓ | ✓ | | | |
-| 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | ✓ | ✓ | | | |
-| 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | ✓ | ✓ | | | |
-| 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | ✓ | ✓ | | | |
-| 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | ✓ | ✓ | | | |
-| 5 | PWA platform | ✓ | ✓ | ✓ | | | |
-| 6 | Colour and dark mode, for everything | | | | | | |
+| | **Card** | ✓ | ✓ | ✓ | ✓ | | |
+| 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | ✓ | ✓ | ✓ | | |
+| 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | ✓ | ✓ | ✓ | | |
+| 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | ✓ | ✓ | ✓ | | |
+| 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | ✓ | ✓ | ✓ | | |
+| 5 | PWA platform | ✓ | ✓ | ✓ | ✓ | | |
+| 6 | Colour and dark mode, for everything | | | | ✓ | | |
 | 7 | Motion, for everything | | | | | | |
 | 8 | Freeze: v1.0 | | | | | | |
 
@@ -108,25 +110,17 @@ The full contract is `elements/README.md`. In short:
    200% text (`screens.html` has a switch), and with the keyboard.
 7. Tick the gate in the status table above, and in `STYLE.md` §3.
 
-## Colour handover (gate 3)
+## Colour (gate 3, done in wave 6)
 
-Nothing in `components/` should change. If it has to, the wireframe leaked colour, and that
-is the bug to fix first.
+`tokens/color.css` holds the palette: a neutral grey ramp, black to white, and every role as a
+`light-dark()` pair, with more contrast and a forced scheme (`data-scheme` on `:root`). Nothing
+in `components/` reads a colour value; if one ever has to, that is the bug.
 
-1. Copy `tokens/color.wire.css` to `tokens/color.css`.
-2. Replace the grey primitives with the real palette. **Keep every role name** (`--canvas`,
-   `--paper`, `--ink`, `--ink-soft`, `--ink-faint`, `--line`, `--line-soft`, `--focus`,
-   `--accent`, `--on-accent`, `--tone-1…6`, `--on-tone-1…6`).
-3. Point the six tone slots at six hues, and set each `--on-tone-N` to `--ink` or `--paper`,
-   whichever passes.
-4. Set `--accent`: the one "press this" colour. It drives the action fill.
-5. Add dark: `color-scheme: light dark` and `light-dark()` in the roles, and remove
-   `color-scheme: light` from `base.css` (it sits in a later layer and would win).
-6. In `flashcards.css`, change the `color.wire.css` import to `color.css`.
-7. Open `index.html`. The tone swatches recompute their contrast from the live tokens, and
-   none may read FAIL. Run `check.mjs`.
-8. `git diff --stat` should list `tokens/`, `flashcards.css`, `STYLE.md` and the page's
-   prose. Delete any `.wf-*` class that now has a real element.
+- **An app's accent:** `node design/tools/accent.mjs "#c2410c"` checks it against paper and
+  canvas in both schemes, picks its text colour, proposes a dark partner if needed, and prints
+  the `@layer app` block to paste. It refuses an accent that can't pass.
+- **Changing the greys:** edit the primitives in `color.css`, then run `check.mjs` (contrast in
+  both schemes) and look at `index.html`'s two palettes, whose ratios are computed live.
 
 ## The gate: `tools/check.mjs`
 
@@ -148,8 +142,9 @@ Zero dependencies. Exits 1 on any of these, with the file and line:
 8. a class used in any page (`index.html`, `screens.html`, `elements/*.html`) that no CSS
    defines, which is how typos get caught, and an id used on two pages, which would clash
    once the bundle joins them;
-9. contrast: ink, soft ink and each tone's text against WCAG AA, resolved from the colour
-   file (hex, `rgb()` and `oklch()` are understood).
+9. contrast: ink, soft ink, the accent and each tone's text against WCAG AA, in light, dark and
+   both with more contrast, resolved from the colour file (`light-dark()`, hex, `rgb()` and
+   `oklch()` are understood); the scrim is checked not to follow ink.
 
 Checks 2 to 5 cover `sheet.css` and `screens.css` too: the pages that teach the rules keep
 them. `wire.css`

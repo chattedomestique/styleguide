@@ -1,6 +1,6 @@
 # Flashcards style sheet
 
-v0.8 · wireframe stage · 27 of 27 elements built · 2026-10-20
+v0.9 · colour stage · 27 of 27 elements through gate 3 · 2026-10-20
 
 The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
 to look at: live specimens, every state, the markup read straight off the page. **This file**
@@ -45,8 +45,8 @@ not a mood:
 1. **Two line weights.** `--bw` 2px frames what you press or what contains. `--bw-thin` 1px
    only divides. `--bw-heavy` 4px exists for forced-colours mode and nothing else.
 2. **Flat.** No gradients, no blur, no translucency, with one exception: the `--scrim` behind a
-   modal dialog or sheet, a flat ink layer at 60%, so the page reads as "still there, but not
-   now". A shadow is hard-edged (zero blur) and means "you can press this". Nothing else gets
+   modal dialog or sheet, a flat near-black layer at 60% in both schemes, so the page reads as
+   "still there, but not now". A shadow is hard-edged (zero blur) and means "you can press this". Nothing else gets
    one. Hover and press never move the hit
    box: the lift is the shadow alone, never a `transform`.
 3. **Rectangles hold, circles act.** Containers are square. Buttons, handles and action
@@ -56,7 +56,7 @@ not a mood:
    case.
 5. **Say something real.** No lorem ipsum, no "John Doe", no "seamless". Copy comes from the
    product. In these specimens that means shapes, decks, cards known, streaks.
-6. **Colour is a swap.** Components read roles. Only `tokens/color.*.css` contains a hex.
+6. **Colour is a swap.** Components read roles. Only `tokens/color*.css` contains a colour value.
 7. **No decoration.** If it carries no information and offers no action, it goes. No dotted
    backgrounds, no icons in tinted circles, no glyph repeated on every card in a grid.
 
@@ -143,12 +143,14 @@ Size scale, all fixed `rem`: `--text-xs` 0.8125rem (13px) · `--text-sm` 0.875re
 - **iOS follows Dynamic Type.** `base.css` sets `html { font: -apple-system-body }` inside
   `@supports (-webkit-touch-callout: none)`. The root becomes 17px at the default size and
   every `rem` follows. The guard keeps it to iOS: on a Mac that keyword is 13px.
-- **Smoothing on dark surfaces only.** `-webkit-font-smoothing: antialiased` and
-  `-moz-osx-font-smoothing: grayscale` sit on `.card__bar` and `[data-tone="ink"]`, never on
-  `body`. On a light ground macOS would thin the 13px labels and 14px meta.
-- **Gate 3 guidance (not shipped): dark mode drops weights a step**, because light text on
-  dark blooms. Body 400→370, title 500→470, label 700→650, through weight tokens that the
-  `--type-*` shorthands read. Smoothing then applies to the whole dark scheme.
+- **Smoothing follows the scheme.** `base.css` sets `--smooth` (auto in light, antialiased in
+  dark) and `--smooth-inverse` (the other) from the system and `data-scheme`; the page reads
+  `--smooth`, the inverted fills (`[data-tone="ink"]`, `.card__bar`, `.list--inset > .list__head`)
+  read `--smooth-inverse`. Never antialiased on a light ground, where macOS would thin the 13px
+  labels and 14px meta.
+- **Dark keeps the same weights.** Light text on dark blooms, and antialiased smoothing already
+  takes most of that off on a Mac. A further step down (body 400→370) can't be judged without a
+  device, so it waits for the freeze, on a Mac, with the weight tokens it would need.
 
 **Loading the font.** The bundle keeps the font as a file, `fonts/archivo-latin-var.woff2`.
 In a served shell, preload it:
@@ -213,39 +215,101 @@ chrome. And square needs no exceptions and never clips a focus ring.
   `--focus`. Test every tone, `ink` included.
 - **Focus never looks like selection.**
 
-### Tone (colour, at the wireframe stage)
+### Colour
 
-Colour is deliberately absent. `tokens/color.wire.css` holds greys only. Its top half is the
-grey primitives, the only hex values in the system. Its bottom half, the roles, is the
-contract: components read roles, never a primitive.
+Black, grey and white, the same in every app, plus one accent that each app sets. Dark mode
+and more contrast belong to the system: an app gets both by linking the CSS. `tokens/color.css`
+holds all of it:
 
-| Role | Means |
-| --- | --- |
-| `--canvas` | the page behind everything |
-| `--paper` | a card's default fill |
-| `--ink` | text and frames |
-| `--ink-soft` | secondary text on canvas, paper and untoned cards |
-| `--ink-faint` | disabled, quiet decoration |
-| `--line` | frames (ink in the wireframe) |
-| `--line-soft` | decoration that must stay quiet |
-| `--focus` | the focus ring (ink in the wireframe) |
-| `--accent` / `--on-accent` | the one "press this" colour; ink until gate 3 |
-| `--scrim` | behind a modal dialog or sheet: ink at 60%, the one translucency (rule 2) |
-| `--tone-1` … `--tone-6` | six fill slots: the future palette |
-| `--on-tone-1` … `--on-tone-6` | text that sits on each slot |
+- **Primitives:** a neutral grey ramp from `--grey-100` (white) to `--grey-0` (black), named by
+  OKLCH lightness, with no tint (r = g = b). They are the only colour values in the system, and
+  the steps were chosen by the ratios they have to make, which the file records.
+- **Roles:** the contract. Components read roles, never a primitive (check 6). Each role is
+  `light-dark(<light>, <dark>)`, resolved per element from its `color-scheme`; `base.css` sets
+  `color-scheme: light dark`, so the reader's system decides.
+
+| Role | Means | Light | Dark |
+| --- | --- | --- | --- |
+| `--canvas` | the page behind everything | #f4f4f4 | #141414, near-black |
+| `--paper` | a card's default fill | #ffffff | #1f1f1f, one step above canvas |
+| `--ink` | text and frames | #141414: 18.4 on paper, 16.8 on canvas | #ebebeb: 13.8 on paper, 15.5 on canvas |
+| `--ink-soft` | secondary text on canvas, paper and untoned cards | #505050: 8.1, 7.3 | #a3a3a3: 6.5, 7.3 |
+| `--ink-faint` | disabled, quiet decoration | #8a8a8a: 3.5, 3.1 | #737373: 3.5, 3.9 |
+| `--line` | frames, and the hard shadow | ink | ink |
+| `--line-soft` | decoration that must stay quiet | #8a8a8a | #737373 |
+| `--focus` | the focus ring | ink | ink |
+| `--accent` / `--on-accent` | the one "press this" fill and its text | ink / paper until an app sets its own | the same |
+| `--scrim` | behind a modal dialog or sheet: the one translucency (rule 2) | #141414 at 60% | the same |
+| `--tone-1` … `--tone-6` | six fill slots, 1 the quietest | #ebebeb to #afafaf | #2a2a2a to #4a4a4a |
+| `--on-tone-1` … `--on-tone-6` | text that sits on each slot | ink, 8.4 or more | ink, 7.4 or more |
 
 **Tones.** Put `data-tone="1"` … `"6"` or `"ink"` on any element. `base.css` turns that into
 `--tone-bg` and `--tone-ink` *for that element only* (both are registered with
 `inherits: false`, so a toned card never paints its toned-less children). A component decides
-what to do with them. `ink` is the inverted tone: ink fill, paper text.
+what to do with them. `ink` is the inverted tone: ink fill, paper text. The six tones are greys in
+both schemes, in the same order of strength: in light they step down from paper, in dark they
+step up from it.
 
-**Contrast floors.** Ink is at least 8.4 : 1 on any tone, and soft ink at least 4.5 : 1. The
-swatches in `index.html` compute the live ratios from the tokens; they are the source, and
-check 9 fails anything below AA. A card's soft ink, `--card-ink-soft`, is `--ink-soft`; on a
-toned card it is `color-mix(in srgb, var(--card-ink) 72%, var(--card-bg))`.
+**Contrast floors.** Check 9 runs every pair in four settings (light, dark, and each with more
+contrast) and names the setting when a pair fails: ink at least 7:1 on paper and canvas, soft
+ink 4.5:1, faint ink 3:1, frame lines and the ring 3:1 on paper and canvas, each tone's text
+and its 72% soft text 4.5:1, the tones in order, and the default accent's pairs. A card's soft
+ink, `--card-ink-soft`, is `--ink-soft`; on a toned card it is
+`color-mix(in srgb, var(--card-ink) 72%, var(--card-bg))`. The swatches in `index.html` show
+both schemes side by side, with the live ratios.
 
-**More contrast.** Under `prefers-contrast: more`, `--ink-soft` and `--line-soft` become ink,
-and so does a card's soft ink. Reduced transparency needs no rule while rule 2 holds.
+**The accent.** Ink and paper by default, so an app with no accent is monochrome. An app sets
+`--accent` and `--on-accent` in `@layer app`, usually as a light and dark pair. The accent fills
+only what already reads `--accent`, the primary Button and the card's action, and nothing means
+something by colour alone. `--focus` never follows it, so the ring always shows. The guard:
+
+```sh
+node design/tools/accent.mjs "#c2410c" "#fb923c"   # or just the light one; hex or oklch()
+```
+
+It checks the accent as a fill against paper and canvas in each scheme (3:1), picks
+`--on-accent` (paper or ink, whichever passes better, 4.5:1), proposes a dark accent when only a
+light one is given (the same hue, its OKLCH lightness moved until every pair passes), and prints
+the block to paste. It refuses an accent that can't pass, says why, and names the nearest
+lightness that would.
+
+**Dark.** Canvas near-black, paper one step lighter so a card sits above the page as it does in
+light, and ink near-white: past 7:1 on both, short of white so text doesn't glow. Frames stay
+ink, so they read on either ground, and whatever is filled with ink (the `ink` tone, a pressed
+button, a selected segment) becomes a light fill with dark text: the same drawing, inverted.
+Dark tones stop at #4a4a4a, a step short of #4e4e4e, the lightest grey on which ink's 72% soft
+text still makes 4.5:1.
+The scrim stays near-black: "not now" is dark either way, and ink would lighten the page.
+
+**The shadow** stays `--line` in both schemes, so in dark it's a light slab. Compared on a dark
+page with a mid-grey (#737373) shadow, `--line` won:
+
+- it is the frame's own colour, so a lifted card reads as one object, exactly as in light (where
+  a filled button's shadow already runs into its ink fill);
+- the lift is the hover state, and in `--line` it has the frame's contrast; the mid-grey sat at
+  3.9:1 next to a 15:1 frame and read as a smudge, which is the soft-shadow look rule 2 bans;
+- it needs no new role, and no component changes.
+
+**More contrast.** Under `prefers-contrast: more`, `--ink-soft` and `--line-soft` become ink in
+both schemes, and so does a card's soft ink. In dark, canvas goes to black, ink to white and paper
+to #141414, so a card still sits one step above the page. Reduced transparency needs no rule
+while rule 2 holds: the scrim only dims a page that isn't in use.
+
+**The forced scheme.** `data-scheme="light"` or `"dark"` on `:root` forces the page, and on any
+other element forces its subtree (the hub's swatches use that). The pages' top bar has an Auto,
+Light and Dark switch that sets it on `:root` and remembers it for the viewer; an app's own
+appearance setting can do the same. With no attribute, the system decides. The rule is
+`!important` in the tokens layer because `base.css` sets `color-scheme` on `html` in a later layer.
+A forced page doesn't change the PWA's two `theme-color` metas, which follow the system; an app
+that offers the setting updates them from script.
+
+**Older engines.** `light-dark()` needs Chrome 123, Safari 17.5 or Firefox 120. A custom property
+accepts any value, so a plain value declared before a `light-dark()` one doesn't survive in an
+older engine: the second wins, then fails where it's used, and a `border` that reads it vanishes.
+So `color.css` declares the light values plainly and the pairs inside
+`@supports (color: light-dark(#000, #fff))`. An older engine gets the whole light page, with
+`color-scheme: light` so native controls match, and check 9 makes sure the two agree. The block
+`accent.mjs` prints follows the same pattern.
 
 ### Motion (gate 4: guidance, not shipped)
 
@@ -296,33 +360,33 @@ and the brief for each one, is in `elements/README.md`.
 
 | Element | Spec | Status |
 | --- | --- | --- |
-| Card | `elements/card.md` | Gates 0–2 |
-| Button | `elements/button.md` | Gates 0–2 |
-| Field | `elements/field.md` | Gates 0–2 |
-| Tag and Badge | `elements/tag.md` | Gates 0–2 |
-| Meter and Spinner | `elements/meter.md` | Gates 0–2 |
-| Icons | `elements/icons.md` | Gates 0–2 |
-| Checkbox | `elements/checkbox.md` | Gates 0–2 |
-| Radio | `elements/radio.md` | Gates 0–2 |
-| Switch | `elements/switch.md` | Gates 0–2 |
-| Segmented control | `elements/segmented.md` | Gates 0–2 |
-| Select | `elements/select.md` | Gates 0–2 |
-| Stepper | `elements/stepper.md` | Gates 0–2 |
-| Form | `elements/form.md` | Gates 0–2 |
-| Frame | `elements/frame.md` | Gates 0–2 |
-| Top bar | `elements/topbar.md` | Gates 0–2 |
-| Tab bar | `elements/tabbar.md` | Gates 0–2 |
-| Sidebar | `elements/sidebar.md` | Gates 0–2 |
-| List | `elements/list.md` | Gates 0–2 |
-| Tabs | `elements/tabs.md` | Gates 0–2 |
-| Disclosure | `elements/disclosure.md` | Gates 0–2 |
-| Menu | `elements/menu.md` | Gates 0–2 |
-| Dialog | `elements/dialog.md` | Gates 0–2 |
-| Sheet | `elements/sheet.md` | Gates 0–2 |
-| Toast | `elements/toast.md` | Gates 0–2 |
-| Banner | `elements/banner.md` | Gates 0–2 |
-| Empty, loading and error | `elements/states.md` | Gates 0–2 |
-| PWA platform | `elements/pwa.md` | Gates 0–2 |
+| Card | `elements/card.md` | Gates 0–3 |
+| Button | `elements/button.md` | Gates 0–3 |
+| Field | `elements/field.md` | Gates 0–3 |
+| Tag and Badge | `elements/tag.md` | Gates 0–3 |
+| Meter and Spinner | `elements/meter.md` | Gates 0–3 |
+| Icons | `elements/icons.md` | Gates 0–3 |
+| Checkbox | `elements/checkbox.md` | Gates 0–3 |
+| Radio | `elements/radio.md` | Gates 0–3 |
+| Switch | `elements/switch.md` | Gates 0–3 |
+| Segmented control | `elements/segmented.md` | Gates 0–3 |
+| Select | `elements/select.md` | Gates 0–3 |
+| Stepper | `elements/stepper.md` | Gates 0–3 |
+| Form | `elements/form.md` | Gates 0–3 |
+| Frame | `elements/frame.md` | Gates 0–3 |
+| Top bar | `elements/topbar.md` | Gates 0–3 |
+| Tab bar | `elements/tabbar.md` | Gates 0–3 |
+| Sidebar | `elements/sidebar.md` | Gates 0–3 |
+| List | `elements/list.md` | Gates 0–3 |
+| Tabs | `elements/tabs.md` | Gates 0–3 |
+| Disclosure | `elements/disclosure.md` | Gates 0–3 |
+| Menu | `elements/menu.md` | Gates 0–3 |
+| Dialog | `elements/dialog.md` | Gates 0–3 |
+| Sheet | `elements/sheet.md` | Gates 0–3 |
+| Toast | `elements/toast.md` | Gates 0–3 |
+| Banner | `elements/banner.md` | Gates 0–3 |
+| Empty, loading and error | `elements/states.md` | Gates 0–3 |
+| PWA platform | `elements/pwa.md` | Gates 0–3 |
 
 Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
 pass gate 2.
@@ -341,7 +405,9 @@ starter app that installs and works offline (serve it with `node design/tools/se
   Bars and the app frame pad by the safe-area tokens (§2 Space); cards never read them.
   `resizes-content` makes Android end the page at the keyboard instead of covering it.
 - **One canvas.** `theme-color` and the manifest's `theme_color` and `background_color` are
-  `--canvas`. `tools/bundle.mjs` writes the hex in from the colour file, so it lives in one place.
+  `--canvas`. `tools/bundle.mjs` writes the hex in from the colour file, so it lives in one place:
+  two `theme-color` metas, one per scheme (`media="(prefers-color-scheme: …)"`), and the light
+  canvas in the manifest, which has no dark colour yet.
 - **Viewport units.** `dvh` for the app frame only (`.frame`), so it tracks the browser bars.
   Anything sized once uses `svh`, so it doesn't jump when the bars move (the study card).
 - **Inputs are 16px or more,** or iOS zooms on focus: `base.css` sets
@@ -447,7 +513,7 @@ the day its real element ships, and nothing in `components/` may depend on it.
 | `.wf-slot` (+ `.wf-slot--pill`) | a whole element that isn't built yet; `data-wf` names it and the name sits on its top edge. It holds the real copy, in grey. Set `--wf-under` to the colour behind it. | that element |
 | disabled hatch | the disabled look | gate 3 |
 
-How to read a wireframe: a box with an X is an image; flat grey is a tone slot; black is the
+How to read a wireframe: a box with an X is an image; flat grey is a tone slot; ink is the
 inverted tone; dashed is empty or unavailable; hatch is disabled; a grey line with a name on
 it is an element that isn't built yet.
 
@@ -491,6 +557,16 @@ generate-a-design-system workflow or its scripts.
 
 ## 8. Changelog
 
+- **0.9.0** · 2026-10-20 · Wave 6, gate 3: colour and dark mode for every element.
+  `tokens/color.css` replaces `color.wire.css`: a neutral grey ramp, black to white, and every
+  role as a `light-dark()` pair (light values declared plainly first for older engines), with
+  more contrast in both schemes and `data-scheme` to force one. The scrim is near-black in both
+  schemes; focus and frames stay ink; the hard shadow stays `--line`, a light slab in dark. The
+  accent is ink until an app sets one, and `tools/accent.mjs` checks it in both schemes, proposes
+  a dark partner and prints the CSS. Check 9 runs every pair in light, dark and both with more
+  contrast. Smoothing follows the scheme. The starter gets a `color-scheme` meta and two
+  `theme-color` metas. The style sheet gets a scheme switch (Auto, Light, Dark). Deck colours are
+  named by strength (Plain, Faint, Soft, Strong, Ink), which holds in both schemes.
 - **0.8.0** · 2026-10-20 · Wave 5: the PWA platform passes gates 0–2, so all 27 elements have.
   `design/pwa/` is a starter app that installs and works offline: a manifest whose colours the
   bundle writes from `--canvas`, icons drawn on the card's grid, a service worker (shell cache
