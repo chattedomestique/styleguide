@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stepper · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Stepper element of the Flashcards design system: a small whole number, one step at a time, with every state."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#stepper-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Stepper</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#stepper-anatomy">Anatomy</a></li>
+            <li><a href="#stepper-variants">Variants</a></li>
+            <li><a href="#stepper-states">States</a></li>
+            <li><a href="#stepper-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Stepper · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-stepper">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 12</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Stepper</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            A small whole number, one step at a time. Two round buttons either side of a value you
+            can also type, and both stop at the limits and say why.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="stepper-anatomy" aria-labelledby="h-stepper-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-stepper-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            Nothing new to draw: Field's label and help, Button's icon-only circles, and Field's
+            input for the value. The stepper only lays them out and keeps them in step.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <div class="field">
+                <label class="field__label" for="stepper-anat-session" data-n="1" style="padding-inline-end: 2.25rem">Cards per session</label>
+                <p class="field__help" id="stepper-anat-session-help" data-n="2" style="padding-inline-end: 2.25rem">From 5 to 50, in fives.</p>
+                <div class="stepper" style="position: relative; margin-block-start: var(--space-3)">
+                  <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-anat-session" aria-describedby="stepper-anat-session-help" hidden>
+                    <span class="ic ic--minus" aria-hidden="true"></span>
+                    <span class="sg-n sg-anat__frame" aria-hidden="true">3</span>
+                  </button>
+                  <input
+                    class="field__input stepper__input"
+                    id="stepper-anat-session"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    value="20"
+                    autocomplete="off"
+                    enterkeyhint="done"
+                    data-min="5"
+                    data-max="50"
+                    data-step="5"
+                    aria-describedby="stepper-anat-session-help"
+                  />
+                  <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-anat-session" aria-describedby="stepper-anat-session-help" hidden>
+                    <span class="ic ic--plus" aria-hidden="true"></span>
+                    <span class="sg-n sg-anat__frame" style="inset: -0.75rem -0.75rem auto auto" aria-hidden="true">5</span>
+                  </button>
+                  <span class="sg-n sg-anat__frame" style="inset-inline-start: calc(var(--hit) + var(--space-2) + 1.125rem)" aria-hidden="true">4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Label</strong><code>.field__label</code>
+                <p>Field's: names the number, and is the value's <code>&lt;label for&gt;</code>.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Help</strong><code>.field__help</code>
+                <p>
+                  The range, in words. It describes the value and both buttons, so at a limit it is
+                  the reason the button gives.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Fewer</strong><code>.btn--icon</code> <code>.stepper__down</code>
+                <p>
+                  Button's 44px circle with the minus glyph, named for what it does: "Fewer cards".
+                  <code>aria-controls</code> points at the value.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Value</strong><code>.field__input</code> <code>.stepper__input</code>
+                <p>
+                  Field's input, three digits wide, centred, tabular figures:
+                  <code>type="text"</code>, <code>inputmode="numeric"</code>, so it can be typed.
+                  The range is in <code>data-min</code>, <code>data-max</code> and
+                  <code>data-step</code>.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>More</strong><code>.btn--icon</code> <code>.stepper__up</code>
+                <p>
+                  The plus glyph, "More cards". Both buttons ship <code>hidden</code>: the script
+                  shows them, and adds an unseen status line that reads each new value out.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="stepper-variants" aria-labelledby="h-stepper-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-stepper-variants">Variants</h2>
+          <p class="sg-sec__note">
+            One. A stepper is for a small range in even steps; anything bigger is a number field
+            you type in.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="stepper-default">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Stepper</h3>
+            <p class="sg-entry__use">Cards per session: 5 to 50, in fives.</p>
+            <p class="sg-entry__classes">
+              <code>.stepper</code> <code>.stepper__down</code> <code>.stepper__input</code>
+              <code>.stepper__up</code>
+            </p>
+            <p class="sg-entry__note">
+              Needs <code>js/components/stepper.js</code>. Press, tap or Space steps by 5 and stops
+              at 5 and 50; Up and Down step from inside the value; typing works too, and Form
+              checks it on submit. The markup below is read after the script ran: in your source,
+              the two buttons carry <code>hidden</code>.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div class="field" data-sg-code>
+              <label class="field__label" for="stepper-default-session">Cards per session</label>
+              <p class="field__help" id="stepper-default-session-help">From 5 to 50, in fives.</p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-default-session" aria-describedby="stepper-default-session-help" hidden>
+                  <span class="ic ic--minus" aria-hidden="true"></span>
+                </button>
+                <input
+                  class="field__input stepper__input"
+                  id="stepper-default-session"
+                  type="text"
+                  name="per-session"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  value="20"
+                  autocomplete="off"
+                  enterkeyhint="done"
+                  data-min="5"
+                  data-max="50"
+                  data-step="5"
+                  aria-describedby="stepper-default-session-help"
+                />
+                <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-default-session" aria-describedby="stepper-default-session-help" hidden>
+                  <span class="ic ic--plus" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="stepper-states" aria-labelledby="h-stepper-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-stepper-states">States</h2>
+          <p class="sg-sec__note">
+            The buttons keep Button's states and the value keeps Field's. The stepper adds one: at
+            a limit, that button is unavailable but still there to ask.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="field">
+              <label class="field__label" for="stepper-s-rest">Cards per session</label>
+              <p class="field__help" id="stepper-s-rest-help">From 5 to 50, in fives.</p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-rest" aria-describedby="stepper-s-rest-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="field__input stepper__input" id="stepper-s-rest" type="text" inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-rest-help" />
+                <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-s-rest" aria-describedby="stepper-s-rest-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Rest.</b> Two flat circles and a square value.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="stepper-s-hover">Cards per session</label>
+              <p class="field__help" id="stepper-s-hover-help">From 5 to 50, in fives.</p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-hover" aria-describedby="stepper-s-hover-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="field__input stepper__input" id="stepper-s-hover" type="text" inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-hover-help" />
+                <button class="btn btn--icon stepper__up is-hover" type="button" aria-label="More cards" aria-controls="stepper-s-hover" aria-describedby="stepper-s-hover-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> More cards fills and lifts, as any button does.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="stepper-s-focus">Cards per session</label>
+              <p class="field__help" id="stepper-s-focus-help">From 5 to 50, in fives.</p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-focus" aria-describedby="stepper-s-focus-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="field__input stepper__input is-focus" id="stepper-s-focus" type="text" inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-focus-help" />
+                <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-s-focus" aria-describedby="stepper-s-focus-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Focus.</b> The value takes Field's ring: type a number, or step with Up and Down.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="stepper-s-active">Cards per session</label>
+              <p class="field__help" id="stepper-s-active-help">From 5 to 50, in fives.</p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-active" aria-describedby="stepper-s-active-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="field__input stepper__input" id="stepper-s-active" type="text" inputmode="numeric" pattern="[0-9]*" value="25" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-active-help" />
+                <button class="btn btn--icon stepper__up is-active" type="button" aria-label="More cards" aria-controls="stepper-s-active" aria-describedby="stepper-s-active-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> Down and filled, with the inner ring; the value has moved on by 5.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="stepper-s-max">Cards per session</label>
+              <p class="field__help" id="stepper-s-max-help">From 5 to 50, in fives.</p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-max" aria-describedby="stepper-s-max-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="field__input stepper__input" id="stepper-s-max" type="text" inputmode="numeric" pattern="[0-9]*" value="50" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-max-help" />
+                <button class="btn btn--icon stepper__up is-focus" type="button" aria-label="More cards" aria-controls="stepper-s-max" aria-describedby="stepper-s-max-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption">
+              <b>At a limit.</b> At 50, More cards is dashed and faint but keeps focus. Pressed, it
+              reads out the help: "From 5 to 50, in fives."
+            </p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="stepper-s-invalid">Cards per session</label>
+              <p class="field__help" id="stepper-s-invalid-help">From 5 to 50, in fives.</p>
+              <p class="field__error" id="stepper-s-invalid-error">
+                <span class="ic ic--warning" aria-hidden="true"></span>Pick a number from 5 to 50
+              </p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-invalid" aria-describedby="stepper-s-invalid-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="field__input stepper__input" id="stepper-s-invalid" type="text" inputmode="numeric" pattern="[0-9]*" value="70" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-invalid="true" aria-describedby="stepper-s-invalid-error stepper-s-invalid-help" />
+                <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-s-invalid" aria-describedby="stepper-s-invalid-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Invalid.</b> 70 was typed. Field's doubled frame and the fix; Fewer cards brings it back to 50.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="stepper-s-disabled">Cards per session</label>
+              <p class="field__help" id="stepper-s-disabled-help">Turn off Study all to pick a number.</p>
+              <div class="stepper">
+                <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-disabled" disabled hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
+                <input class="field__input stepper__input" id="stepper-s-disabled" type="text" inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" disabled aria-describedby="stepper-s-disabled-help" />
+                <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-s-disabled" disabled hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Disabled.</b> The whole stepper: dashed, out of the tab order, and the help says why.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>aria-disabled</code> (set by the
+          script at a limit), <code>aria-invalid</code> and <code>disabled</code>.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="stepper-usage" aria-labelledby="h-stepper-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-stepper-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Use it for a small range in even steps, where nudging beats typing. Put the range in
+              the help, and name the buttons for what they do: "Fewer cards", "More cards".
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't hide or truly disable a button at a limit: it stays, says why, and keeps focus.
+              Don't use it for a wide range or exact values; that's a number field.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              The value brings up the number pad. Button's <code>touch-action: manipulation</code>
+              lets quick taps on More cards step instead of zooming the page.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Up and Down step from the value, as in a Mac number field. In SwiftUI, our circles and
+              a <code>TextField</code> on iOS; the system's <code>Stepper</code> beside the field on
+              the Mac.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Stepper</span>
+      <span>Spec: design/elements/stepper.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/components/stepper.js"></script>
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

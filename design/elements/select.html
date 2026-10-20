@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Select · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Select element of the Flashcards design system: one choice from a long list, a native select in Field's frame, with every state."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#select-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Select</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#select-anatomy">Anatomy</a></li>
+            <li><a href="#select-variants">Variants</a></li>
+            <li><a href="#select-states">States</a></li>
+            <li><a href="#select-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Select · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-select">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 11</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Select</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            One choice from a long list. We draw the closed control, in Field's square frame; the
+            phone and the Mac open their own picker, because they know it best.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="select-anatomy" aria-labelledby="h-select-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-select-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            Field's frame, label, help and error, in Field's order, around a native
+            <code>&lt;select&gt;</code> and the down glyph. Only the select and the glyph are new.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <div class="field">
+                <label class="field__label" for="select-anat-colour" data-n="1" style="padding-inline-end: 2.25rem">Deck colour</label>
+                <p class="field__help" id="select-anat-colour-help" data-n="2" style="padding-inline-end: 2.25rem">Fills the deck's card in your decks.</p>
+                <p class="field__error" id="select-anat-colour-error" data-n="3" style="padding-inline-end: 2.25rem">
+                  <span class="ic ic--warning" aria-hidden="true"></span>Pick a colour for the deck
+                </p>
+                <div class="select">
+                  <span class="sg-n sg-anat__frame" aria-hidden="true">4</span>
+                  <select
+                    class="select__input"
+                    id="select-anat-colour"
+                    name="colour"
+                    required
+                    aria-invalid="true"
+                    aria-describedby="select-anat-colour-error select-anat-colour-help"
+                  >
+                    <option value="">Choose a colour</option>
+                    <option value="white">White</option>
+                    <option value="light-grey">Light grey</option>
+                    <option value="grey">Grey</option>
+                    <option value="dark-grey">Dark grey</option>
+                    <option value="black">Black</option>
+                  </select>
+                  <span class="ic ic--down select__icon" aria-hidden="true"></span>
+                  <span class="sg-n sg-anat__frame" style="inset: -0.75rem -0.75rem auto auto" aria-hidden="true">5</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Label</strong><code>.field__label</code>
+                <p>Field's: a <code>&lt;label for&gt;</code> above, always visible, 16px at weight 600.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Help</strong><code>.field__help</code>
+                <p>Field's: 14px, soft ink, in the select's <code>aria-describedby</code>.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Error</strong><code>.field__error</code>
+                <p>
+                  Field's: a warning glyph and the fix, first in <code>aria-describedby</code>, with
+                  <code>aria-invalid="true"</code> on the select.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Select</strong><code>.select</code> <code>.select__input</code>
+                <p>
+                  A native <code>&lt;select&gt;</code> in Field's frame: 44px, a 2px square line on
+                  paper, 16px text, <code>appearance: none</code>. Its own class, not
+                  <code>.field__input</code>: a select matches <code>:read-only</code>, which Field
+                  draws as a value on a rule.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Glyph</strong><code>.select__icon</code> <code>.ic--down</code>
+                <p>
+                  20px, 12px in from the frame, <code>aria-hidden</code>. Clicks go through it to the
+                  select. It says "this opens".
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="select-variants" aria-labelledby="h-select-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-select-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three, and they differ only in what sits above the select. Single choice, always: a
+            list you pick several from is a group of checkboxes.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="select-default">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Default</h3>
+            <p class="sg-entry__use">A label and the select.</p>
+            <p class="sg-entry__classes">
+              <code>.field</code> <code>.field__label</code> <code>.select</code>
+              <code>.select__input</code> <code>.select__icon</code>
+            </p>
+            <p class="sg-entry__note">
+              Languages are listed in their own words, each option with its <code>lang</code>, so a
+              screen reader says "Français" in French. <code>autocomplete="off"</code>: this is the
+              deck's language, not yours.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div class="field" data-sg-code>
+              <label class="field__label" for="select-default-language">Language</label>
+              <div class="select">
+                <select class="select__input" id="select-default-language" name="language" autocomplete="off">
+                  <option value="en" lang="en">English</option>
+                  <option value="fr" lang="fr">Français</option>
+                  <option value="es" lang="es">Español</option>
+                  <option value="de" lang="de">Deutsch</option>
+                  <option value="it" lang="it">Italiano</option>
+                  <option value="nl" lang="nl">Nederlands</option>
+                  <option value="pl" lang="pl">Polski</option>
+                  <option value="pt" lang="pt">Português</option>
+                  <option value="sv" lang="sv">Svenska</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="select-help">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">With help</h3>
+            <p class="sg-entry__use">When the choice needs a word of explanation.</p>
+            <p class="sg-entry__classes"><code>.field__help</code></p>
+            <p class="sg-entry__note">
+              The help goes between the label and the select, tied with
+              <code>aria-describedby</code>. Deck colours are named, never swatches: the palette is
+              monochrome, so a name is what tells them apart.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div class="field" data-sg-code>
+              <label class="field__label" for="select-help-colour">Deck colour</label>
+              <p class="field__help" id="select-help-colour-help">Fills the deck's card in your decks.</p>
+              <div class="select">
+                <select class="select__input" id="select-help-colour" name="colour" autocomplete="off" aria-describedby="select-help-colour-help">
+                  <option value="white">White</option>
+                  <option value="light-grey" selected>Light grey</option>
+                  <option value="grey">Grey</option>
+                  <option value="dark-grey">Dark grey</option>
+                  <option value="black">Black</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="select-invalid">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Invalid</h3>
+            <p class="sg-entry__use">Nothing chosen where something must be.</p>
+            <p class="sg-entry__classes"><code>.field__error</code> <code>aria-invalid</code></p>
+            <p class="sg-entry__note">
+              Only where there is no sensible default: an empty first option ("Choose a language")
+              and <code>required</code>. Form checks on submit; then the frame doubles and the
+              error above says how to fix it.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div class="field" data-sg-code>
+              <label class="field__label" for="select-invalid-language">Language</label>
+              <p class="field__help" id="select-invalid-language-help">Cards are read aloud in this language.</p>
+              <p class="field__error" id="select-invalid-language-error">
+                <span class="ic ic--warning" aria-hidden="true"></span>Pick the language the cards are in
+              </p>
+              <div class="select">
+                <select
+                  class="select__input"
+                  id="select-invalid-language"
+                  name="language"
+                  required
+                  autocomplete="off"
+                  aria-invalid="true"
+                  aria-describedby="select-invalid-language-error select-invalid-language-help"
+                >
+                  <option value="">Choose a language</option>
+                  <option value="en" lang="en">English</option>
+                  <option value="fr" lang="fr">Français</option>
+                  <option value="es" lang="es">Español</option>
+                  <option value="de" lang="de">Deutsch</option>
+                  <option value="it" lang="it">Italiano</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="select-states" aria-labelledby="h-select-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-select-states">States</h2>
+          <p class="sg-sec__note">
+            Field's states, minus the ones a select can't have: it always shows a value, and it has
+            no read-only. It holds a value, so it never lifts.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="field">
+              <label class="field__label" for="select-s-rest">Language</label>
+              <div class="select">
+                <select class="select__input" id="select-s-rest" autocomplete="off">
+                  <option lang="en">English</option>
+                  <option lang="fr">Français</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Rest.</b> A 2px square frame on paper, and the down glyph.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="select-s-hover">Language</label>
+              <div class="select">
+                <select class="select__input is-hover" id="select-s-hover" autocomplete="off">
+                  <option lang="en">English</option>
+                  <option lang="fr">Français</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> The ground turns to canvas, as a field's does. Pointers only.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="select-s-focus">Language</label>
+              <div class="select">
+                <select class="select__input is-focus" id="select-s-focus" autocomplete="off">
+                  <option lang="en">English</option>
+                  <option lang="fr">Français</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Focus.</b> A 3px ring, 3px out. Space, Enter or the arrows open the picker.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="select-s-active">Language</label>
+              <div class="select">
+                <select class="select__input is-active" id="select-s-active" autocomplete="off">
+                  <option lang="en">English</option>
+                  <option lang="fr">Français</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> Canvas, as on hover, so a tap answers while the picker opens.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="select-s-invalid">Deck colour</label>
+              <p class="field__error" id="select-s-invalid-error">
+                <span class="ic ic--warning" aria-hidden="true"></span>Pick a colour for the deck
+              </p>
+              <div class="select">
+                <select class="select__input" id="select-s-invalid" required autocomplete="off" aria-invalid="true" aria-describedby="select-s-invalid-error">
+                  <option value="">Choose a colour</option>
+                  <option value="white">White</option>
+                  <option value="black">Black</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Invalid.</b> The frame doubles inwards, and the fix sits above it. No red.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="select-s-disabled">Language</label>
+              <p class="field__help" id="select-s-disabled-help">Built-in decks keep their language. Duplicate the deck to change it.</p>
+              <div class="select">
+                <select class="select__input" id="select-s-disabled" disabled autocomplete="off" aria-describedby="select-s-disabled-help">
+                  <option lang="en">English</option>
+                  <option lang="fr">Français</option>
+                </select>
+                <span class="ic ic--down select__icon" aria-hidden="true"></span>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Disabled.</b> Dashed and faint, out of the tab order, and the help says why.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>aria-invalid</code> and
+          <code>disabled</code>.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="select-usage" aria-labelledby="h-select-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-select-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Use it for a long list of known options: languages, colours. Pick a sensible default,
+              so the select is never empty. Name every option in words.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't use it for two to four options that fit on screen: show them, as a segmented
+              control or a radio group. Don't use it to navigate, or for several choices at once.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              The phone opens its own picker: a wheel on iOS, a list on Android. 16px text, or iOS
+              zooms. <code>appearance: none</code> takes away iOS's grey gradient.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              The Mac opens its own menu, with type-ahead. In SwiftUI, a <code>Picker</code> with
+              <code>.pickerStyle(.menu)</code>, our label above it and its own hidden.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Select</span>
+      <span>Spec: design/elements/select.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Form · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Form element of the Flashcards design system: the New deck form, the same form with errors, and a one-field inline form."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#form-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Form</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#form-anatomy">Anatomy</a></li>
+            <li><a href="#form-variants">Variants</a></li>
+            <li><a href="#form-states">States</a></li>
+            <li><a href="#form-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Form · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-form">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 13</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">Forms</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Fields together, and what happens when they're wrong. One column, labels above, and
+            errors only once you send it: then a summary at the top that takes you to each one.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="form-anatomy" aria-labelledby="h-form-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-form-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            Form owns the layout, the optional mark, the summary and the submit row. Every field
+            in it is its own element: Field, Checkbox, Radio, Select, Stepper.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <form class="form" action="#form-anatomy">
+                <section class="card form__summary" id="form-anat-summary" tabindex="-1" aria-labelledby="form-anat-summary-title">
+                  <div class="card__body">
+                    <h3 class="card__title" id="form-anat-summary-title" data-n="1" style="padding-inline-end: 2.25rem">Fix 1 thing</h3>
+                  </div>
+                  <ul class="card__list" role="list">
+                    <li><a href="#form-anat-name">Give the deck a name</a></li>
+                  </ul>
+                </section>
+                <div class="field">
+                  <label class="field__label" for="form-anat-name" data-n="2" style="padding-inline-end: 2.25rem">Deck name</label>
+                  <p class="field__error" id="form-anat-name-error">
+                    <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+                  </p>
+                  <input
+                    class="field__input"
+                    id="form-anat-name"
+                    name="name"
+                    type="text"
+                    required
+                    autocomplete="off"
+                    enterkeyhint="next"
+                    aria-invalid="true"
+                    aria-describedby="form-anat-name-error"
+                  />
+                </div>
+                <div class="field">
+                  <label class="field__label" for="form-anat-about" data-n="3" style="padding-inline-end: 2.25rem">
+                    Description <span class="form__optional">(optional)</span>
+                  </label>
+                  <textarea class="field__input" id="form-anat-about" name="about" rows="2" autocomplete="off" enterkeyhint="enter"></textarea>
+                </div>
+                <fieldset class="radio-group">
+                  <legend class="field__label" data-n="4" style="padding-inline-end: 2.25rem">Card order</legend>
+                  <div class="radio">
+                    <label class="radio__label">
+                      <input class="radio__input" type="radio" name="order" value="in-order" checked />
+                      In order
+                    </label>
+                  </div>
+                  <div class="radio">
+                    <label class="radio__label">
+                      <input class="radio__input" type="radio" name="order" value="hardest" />
+                      Hardest first
+                    </label>
+                  </div>
+                </fieldset>
+                <div class="form__actions" style="position: relative">
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: 0.6875rem; inset-inline-start: -2rem">5</span>
+                  <button class="btn btn--quiet" type="button">Cancel</button>
+                  <button class="btn btn--primary" type="submit">Create deck</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Error summary</strong><code>.form__summary</code>
+                <p>
+                  A card at the top, titled with the count ("Fix 2 things"), one link per problem.
+                  Hidden until a send finds something wrong; then it takes focus.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Field</strong><code>.field</code>
+                <p>
+                  Label, help, error, input: Field's parts and order. Its error appears on send or
+                  on blur, never while typing.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Optional mark</strong><code>.form__optional</code>
+                <p>
+                  "(optional)" inside the label, so it is heard with the name. Required fields
+                  carry no mark and use <code>required</code>.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Group</strong><code>.radio-group</code> <code>.checkbox-group</code>
+                <p>
+                  A <code>&lt;fieldset&gt;</code> and a <code>&lt;legend&gt;</code> for choices
+                  that answer one question. Its error belongs to the whole group.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Submit row</strong><code>.form__actions</code>
+                <p>
+                  Cancel (quiet), then the primary. Wide: in a row, primary last. Narrow: full
+                  width, primary on top.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="form-variants" aria-labelledby="h-form-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-form-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three. Fields are 24px apart, labels above, one column; the form stops at 40rem, so a
+            line never gets too long to follow on a Mac.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="form-new">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">New deck</h3>
+            <p class="sg-entry__use">A screen of fields, sent with one button.</p>
+            <p class="sg-entry__classes">
+              <code>.form</code> <code>.form__summary</code> <code>.form__optional</code>
+              <code>.form__actions</code>
+            </p>
+            <p class="sg-entry__note">
+              Live: press Create deck with the name empty. Shuffle is one of the card orders, so it
+              isn't a second control, and a switch can't be here at all: nothing happens until
+              Create deck. Select and Stepper are marked where they go.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <form class="form" id="form-new-form" action="#form-new" data-sg-code>
+              <section class="card form__summary" id="form-new-summary" tabindex="-1" aria-labelledby="form-new-summary-title" hidden>
+                <div class="card__body">
+                  <h4 class="card__title" id="form-new-summary-title">Fix 2 things</h4>
+                </div>
+                <ul class="card__list" role="list"></ul>
+              </section>
+              <div class="field">
+                <label class="field__label" for="form-new-name">Deck name</label>
+                <p class="field__help" id="form-new-name-help">Shown on the deck's card.</p>
+                <p class="field__error" id="form-new-name-error" hidden>
+                  <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+                </p>
+                <input
+                  class="field__input"
+                  id="form-new-name"
+                  name="name"
+                  type="text"
+                  required
+                  autocomplete="off"
+                  autocapitalize="sentences"
+                  enterkeyhint="next"
+                  aria-describedby="form-new-name-help"
+                />
+              </div>
+              <div class="field">
+                <label class="field__label" for="form-new-about">Description <span class="form__optional">(optional)</span></label>
+                <p class="field__help" id="form-new-about-help">A line about what's in it.</p>
+                <textarea
+                  class="field__input"
+                  id="form-new-about"
+                  name="about"
+                  rows="3"
+                  autocomplete="off"
+                  autocapitalize="sentences"
+                  enterkeyhint="enter"
+                  aria-describedby="form-new-about-help"
+                ></textarea>
+              </div>
+              <fieldset class="radio-group" aria-describedby="form-new-order-help">
+                <legend class="field__label">Card order</legend>
+                <p class="field__help" id="form-new-order-help">You can change it any time.</p>
+                <p class="field__error" id="form-new-order-error" hidden>
+                  <span class="ic ic--warning" aria-hidden="true"></span>Pick a card order
+                </p>
+                <div class="radio">
+                  <label class="radio__label">
+                    <input class="radio__input" id="form-new-order-in" type="radio" name="order" value="in-order" required />
+                    In order
+                  </label>
+                </div>
+                <div class="radio">
+                  <label class="radio__label">
+                    <input class="radio__input" type="radio" name="order" value="shuffled" required />
+                    Shuffled
+                  </label>
+                </div>
+                <div class="radio">
+                  <label class="radio__label">
+                    <input class="radio__input" type="radio" name="order" value="hardest" required />
+                    Hardest first
+                  </label>
+                </div>
+              </fieldset>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" type="checkbox" name="hints" checked aria-describedby="form-new-hints-help" />
+                  Show hints
+                </label>
+                <p class="checkbox__help" id="form-new-hints-help">The first letter of the answer, when you're stuck.</p>
+              </div>
+              <div class="field">
+                <label class="field__label" for="form-new-per-session">Cards per session</label>
+                <p class="field__help" id="form-new-per-session-help">From 5 to 50, in fives.</p>
+                <div class="stepper">
+                  <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="form-new-per-session" aria-describedby="form-new-per-session-help" hidden>
+                    <span class="ic ic--minus" aria-hidden="true"></span>
+                  </button>
+                  <input class="field__input stepper__input" id="form-new-per-session" type="text" name="per-session" inputmode="numeric" pattern="[0-9]*" value="10" autocomplete="off" enterkeyhint="next" data-min="5" data-max="50" data-step="5" aria-describedby="form-new-per-session-help" />
+                  <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="form-new-per-session" aria-describedby="form-new-per-session-help" hidden>
+                    <span class="ic ic--plus" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="form-new-language">Language</label>
+                <p class="field__help" id="form-new-language-help">For reading the answers aloud.</p>
+                <div class="select">
+                  <select class="select__input" id="form-new-language" name="language" autocomplete="off" aria-describedby="form-new-language-help">
+                    <option value="en" lang="en" selected>English</option>
+                    <option value="fr" lang="fr">Français</option>
+                    <option value="es" lang="es">Español</option>
+                    <option value="de" lang="de">Deutsch</option>
+                    <option value="it" lang="it">Italiano</option>
+                    <option value="pt" lang="pt">Português</option>
+                  </select>
+                  <span class="ic ic--down select__icon" aria-hidden="true"></span>
+                </div>
+              </div>
+              <div class="form__actions">
+                <button class="btn btn--quiet" type="button">Cancel</button>
+                <button class="btn btn--primary" type="submit">Create deck</button>
+              </div>
+            </form>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="form-errors">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">With errors</h3>
+            <p class="sg-entry__use">The same form, sent with two things missing.</p>
+            <p class="sg-entry__classes">
+              <code>.form__summary</code> <code>.field__error</code> <code>aria-invalid</code>
+            </p>
+            <p class="sg-entry__note">
+              The summary takes focus and says how many. Each link puts the caret in its field
+              with the label in view; a group's link goes to its first option. Each field shows
+              Field's error above it. Fix one and leave it: its error goes.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <form class="form" id="form-errors-form" action="#form-errors" data-sg-code>
+              <section class="card form__summary" id="form-errors-summary" tabindex="-1" aria-labelledby="form-errors-summary-title">
+                <div class="card__body">
+                  <h4 class="card__title" id="form-errors-summary-title">Fix 2 things</h4>
+                </div>
+                <ul class="card__list" role="list">
+                  <li><a href="#form-errors-name">Give the deck a name</a></li>
+                  <li><a href="#form-errors-order-in">Pick a card order</a></li>
+                </ul>
+              </section>
+              <div class="field">
+                <label class="field__label" for="form-errors-name">Deck name</label>
+                <p class="field__help" id="form-errors-name-help">Shown on the deck's card.</p>
+                <p class="field__error" id="form-errors-name-error">
+                  <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+                </p>
+                <input
+                  class="field__input"
+                  id="form-errors-name"
+                  name="name"
+                  type="text"
+                  required
+                  autocomplete="off"
+                  autocapitalize="sentences"
+                  enterkeyhint="next"
+                  aria-invalid="true"
+                  aria-describedby="form-errors-name-error form-errors-name-help"
+                />
+              </div>
+              <div class="field">
+                <label class="field__label" for="form-errors-about">Description <span class="form__optional">(optional)</span></label>
+                <p class="field__help" id="form-errors-about-help">A line about what's in it.</p>
+                <textarea
+                  class="field__input"
+                  id="form-errors-about"
+                  name="about"
+                  rows="3"
+                  autocomplete="off"
+                  autocapitalize="sentences"
+                  enterkeyhint="enter"
+                  aria-describedby="form-errors-about-help"
+                >Cows, pigs, hens and the farm dog.</textarea>
+              </div>
+              <fieldset class="radio-group" aria-describedby="form-errors-order-error form-errors-order-help">
+                <legend class="field__label">Card order</legend>
+                <p class="field__help" id="form-errors-order-help">You can change it any time.</p>
+                <p class="field__error" id="form-errors-order-error">
+                  <span class="ic ic--warning" aria-hidden="true"></span>Pick a card order
+                </p>
+                <div class="radio">
+                  <label class="radio__label">
+                    <input class="radio__input" id="form-errors-order-in" type="radio" name="order" value="in-order" required />
+                    In order
+                  </label>
+                </div>
+                <div class="radio">
+                  <label class="radio__label">
+                    <input class="radio__input" type="radio" name="order" value="shuffled" required />
+                    Shuffled
+                  </label>
+                </div>
+                <div class="radio">
+                  <label class="radio__label">
+                    <input class="radio__input" type="radio" name="order" value="hardest" required />
+                    Hardest first
+                  </label>
+                </div>
+              </fieldset>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" type="checkbox" name="hints" checked aria-describedby="form-errors-hints-help" />
+                  Show hints
+                </label>
+                <p class="checkbox__help" id="form-errors-hints-help">The first letter of the answer, when you're stuck.</p>
+              </div>
+              <div class="field">
+                <label class="field__label" for="form-errors-per-session">Cards per session</label>
+                <p class="field__help" id="form-errors-per-session-help">From 5 to 50, in fives.</p>
+                <div class="stepper">
+                  <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="form-errors-per-session" aria-describedby="form-errors-per-session-help" hidden>
+                    <span class="ic ic--minus" aria-hidden="true"></span>
+                  </button>
+                  <input class="field__input stepper__input" id="form-errors-per-session" type="text" name="per-session" inputmode="numeric" pattern="[0-9]*" value="10" autocomplete="off" enterkeyhint="next" data-min="5" data-max="50" data-step="5" aria-describedby="form-errors-per-session-help" />
+                  <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="form-errors-per-session" aria-describedby="form-errors-per-session-help" hidden>
+                    <span class="ic ic--plus" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="form-errors-language">Language</label>
+                <p class="field__help" id="form-errors-language-help">For reading the answers aloud.</p>
+                <div class="select">
+                  <select class="select__input" id="form-errors-language" name="language" autocomplete="off" aria-describedby="form-errors-language-help">
+                    <option value="en" lang="en" selected>English</option>
+                    <option value="fr" lang="fr">Français</option>
+                    <option value="es" lang="es">Español</option>
+                    <option value="de" lang="de">Deutsch</option>
+                    <option value="it" lang="it">Italiano</option>
+                    <option value="pt" lang="pt">Português</option>
+                  </select>
+                  <span class="ic ic--down select__icon" aria-hidden="true"></span>
+                </div>
+              </div>
+              <div class="form__actions">
+                <button class="btn btn--quiet" type="button">Cancel</button>
+                <button class="btn btn--primary" type="submit">Create deck</button>
+              </div>
+            </form>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="form-inline">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Inline</h3>
+            <p class="sg-entry__use">One field and its button: Rename deck.</p>
+            <p class="sg-entry__classes"><code>.form--inline</code></p>
+            <p class="sg-entry__note">
+              The button lines up with the input and drops under it when they can't share a line.
+              No summary: with one field, the error is already in view, and focus goes back to
+              the field. Return sends it.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <form class="form form--inline" id="form-inline-form" action="#form-inline" data-sg-code>
+              <div class="field">
+                <label class="field__label" for="form-inline-name">Deck name</label>
+                <p class="field__error" id="form-inline-name-error" hidden>
+                  <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+                </p>
+                <input
+                  class="field__input"
+                  id="form-inline-name"
+                  name="name"
+                  type="text"
+                  value="Shapes"
+                  required
+                  autocomplete="off"
+                  autocapitalize="sentences"
+                  enterkeyhint="done"
+                />
+              </div>
+              <button class="btn" type="submit">Rename</button>
+            </form>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="form-states" aria-labelledby="h-form-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-form-states">States</h2>
+          <p class="sg-sec__note">
+            A form's states are about time: while you type, when you send, when you fix, while it
+            saves. The fields inside keep their own states.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <form class="form" action="#form-states">
+              <div class="field">
+                <label class="field__label" for="form-s-typing">Deck name</label>
+                <p class="field__help" id="form-s-typing-help">Shown on the deck's card.</p>
+                <input class="field__input is-focus" id="form-s-typing" name="name" type="text" value="Farm an" required autocomplete="off" aria-describedby="form-s-typing-help" />
+              </div>
+            </form>
+            <p class="sg-caption"><b>Typing.</b> Nothing is checked yet: no error appears while you're still writing.</p>
+          </div>
+          <div>
+            <div class="form">
+              <section class="card form__summary is-focus" id="form-s-sent" tabindex="-1" aria-labelledby="form-s-sent-title">
+                <div class="card__body">
+                  <h3 class="card__title" id="form-s-sent-title">Fix 2 things</h3>
+                </div>
+                <ul class="card__list" role="list">
+                  <li><a href="#form-errors-name">Give the deck a name</a></li>
+                  <li><a href="#form-errors-order-in">Pick a card order</a></li>
+                </ul>
+              </section>
+            </div>
+            <p class="sg-caption"><b>Sent, wrong.</b> The summary appears at the top and takes focus, with a ring even after a click. Each field shows its error.</p>
+          </div>
+          <div>
+            <form class="form" action="#form-states">
+              <div class="field">
+                <label class="field__label" for="form-s-fixed">Deck name</label>
+                <p class="field__help" id="form-s-fixed-help">Shown on the deck's card.</p>
+                <input class="field__input" id="form-s-fixed" name="name" type="text" value="Farm animals" required autocomplete="off" aria-describedby="form-s-fixed-help" />
+              </div>
+            </form>
+            <p class="sg-caption"><b>Fixed.</b> On blur the error and the doubled frame go. The summary stays as it was until the next send, so nothing jumps.</p>
+          </div>
+          <div>
+            <div class="form">
+              <div class="form__actions">
+                <button class="btn btn--quiet" type="button">Cancel</button>
+                <button class="btn btn--primary" type="button" aria-busy="true">
+                  <span class="spinner" aria-hidden="true"></span>Create deck
+                </button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Saving.</b> Button's busy state on the primary: the label stays, a second press does nothing.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          <code>.is-focus</code> forces a state for this page and for tests. It is not API: the
+          summary takes real focus from <code>js/components/form.js</code>.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="form-usage" aria-labelledby="h-form-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-form-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Ask only what you need, in the order people think of it. Mark the optional fields.
+              Write each error as the fix, and name the button for what it does: "Create deck",
+              not "Submit".
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't check while someone types. Don't disable the button until the form is valid:
+              let them send it and say what's missing. Don't put a switch in a form with Save.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Full-width buttons, primary on top, within reach of a thumb. Controls keep 6rem of
+              room above them when they scroll into view, so the label and the error aren't hidden
+              under a bar.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Return sends; the primary is last in the row. In SwiftUI, a
+              <code>VStack</code> of our fields, labels above, rather than a
+              <code>Form</code>, whose styles put labels beside fields. The summary takes
+              VoiceOver with <code>@AccessibilityFocusState</code>.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Form</span>
+      <span>Spec: design/elements/form.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/components/stepper.js"></script>
+    <script src="../js/components/form.js"></script>
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

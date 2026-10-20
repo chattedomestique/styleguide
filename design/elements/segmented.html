@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Segmented control · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Segmented control of the Flashcards design system: one of two to four views or modes, as joined pills, with every state."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#segmented-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Segmented control</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#segmented-anatomy">Anatomy</a></li>
+            <li><a href="#segmented-variants">Variants</a></li>
+            <li><a href="#segmented-states">States</a></li>
+            <li><a href="#segmented-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Segmented · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-segmented">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 10</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--longer">Segments</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            One of two to four views or modes, side by side. A radio group drawn as joined pills:
+            it changes how one thing is shown, and never takes you anywhere.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="segmented-anatomy" aria-labelledby="h-segmented-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-segmented-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A fieldset of native radios. Each option is a label: the radio, stretched over it and
+            drawn as nothing, and the segment you see. The legend and help are Field's, in Field's
+            order.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <fieldset class="segmented" aria-describedby="segmented-anat-help">
+                <legend class="segmented__legend" data-n="1" style="padding-inline-end: 2.25rem">Show cards</legend>
+                <p class="field__help" id="segmented-anat-help" data-n="2" style="padding-inline-end: 2.25rem">
+                  Due cards are the ones to study today.
+                </p>
+                <div style="position: relative; display: inline-block; margin-block-start: var(--space-4)">
+                  <span class="sg-n sg-anat__frame" aria-hidden="true">3</span>
+                  <div class="segmented__track">
+                    <label class="segmented__option">
+                      <input class="segmented__input" type="radio" name="segmented-anat" value="due" checked />
+                      <span class="segmented__label"><span class="ic ic--today" aria-hidden="true"></span>Due</span>
+                    </label>
+                    <label class="segmented__option">
+                      <input class="segmented__input" type="radio" name="segmented-anat" value="all" />
+                      <span class="segmented__label"><span class="ic ic--decks" aria-hidden="true"></span>All</span>
+                    </label>
+                  </div>
+                  <span class="sg-n sg-anat__frame" style="inset: -0.75rem auto auto 70%" aria-hidden="true">4</span>
+                  <span class="sg-n sg-anat__frame" style="inset: auto auto -0.75rem 38%" aria-hidden="true">5</span>
+                  <span class="sg-n sg-anat__frame" style="inset: auto auto -0.75rem 0.5rem" aria-hidden="true">6</span>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Legend</strong><code>.segmented__legend</code>
+                <p>
+                  Names the choice, in Field's label style: 16px, weight 600, sentence case. It may
+                  be visually hidden with <code>.sr-only</code> where the options name themselves
+                  (Grid, List), but it is always there.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Help</strong><code>.field__help</code>
+                <p>Field's help, optional, tied to the fieldset with <code>aria-describedby</code>.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Track</strong><code>.segmented__track</code>
+                <p>
+                  The row: equal columns, as wide as the widest option. It draws nothing itself
+                  except the focus ring, which goes round the whole pill.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Option</strong><code>.segmented__option</code> <code>.segmented__input</code>
+                <p>
+                  A <code>&lt;label&gt;</code>: the target, 44px tall, frame included. Inside it a
+                  native <code>type="radio"</code>, stretched over the option with
+                  <code>appearance: none</code>, so it is what you click and what the arrows move.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Segment</strong><code>.segmented__label</code>
+                <p>
+                  What you see: 16px words at weight 600, a 2px frame, round at the two ends.
+                  Neighbours share one divider. Chosen, it fills with ink.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">6</span>
+              <div>
+                <strong>Icon</strong><code>.ic</code>
+                <p>Optional, before the words, 20px and <code>aria-hidden</code>. Never instead of them.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="segmented-variants" aria-labelledby="h-segmented-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-segmented-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three, from the same parts. Two to four options, one word each, one always chosen. When
+            they can't sit side by side, they come apart into a stack of pills.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="segmented-text">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Text only</h3>
+            <p class="sg-entry__use">The default: two to four words.</p>
+            <p class="sg-entry__classes">
+              <code>.segmented</code> <code>.segmented__legend</code> <code>.segmented__track</code>
+              <code>.segmented__option</code> <code>.segmented__input</code>
+              <code>.segmented__label</code>
+            </p>
+            <p class="sg-entry__note">
+              Every radio in a group shares one <code>name</code>, and one is
+              <code>checked</code> from the start. Above a grid of decks, Grid and List say what
+              they are, so the legend is there for screen readers only (<code>.sr-only</code>).
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <fieldset class="segmented" data-sg-code>
+              <legend class="segmented__legend sr-only">Show decks as</legend>
+              <div class="segmented__track">
+                <label class="segmented__option">
+                  <input class="segmented__input" type="radio" name="segmented-text-view" value="grid" checked />
+                  <span class="segmented__label">Grid</span>
+                </label>
+                <label class="segmented__option">
+                  <input class="segmented__input" type="radio" name="segmented-text-view" value="list" />
+                  <span class="segmented__label">List</span>
+                </label>
+              </div>
+            </fieldset>
+            <fieldset class="segmented" data-sg-code>
+              <legend class="segmented__legend">Side to show</legend>
+              <div class="segmented__track">
+                <label class="segmented__option">
+                  <input class="segmented__input" type="radio" name="segmented-text-side" value="front" checked />
+                  <span class="segmented__label">Front</span>
+                </label>
+                <label class="segmented__option">
+                  <input class="segmented__input" type="radio" name="segmented-text-side" value="back" />
+                  <span class="segmented__label">Back</span>
+                </label>
+                <label class="segmented__option">
+                  <input class="segmented__input" type="radio" name="segmented-text-side" value="both" />
+                  <span class="segmented__label">Both</span>
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="segmented-icons">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Icons and text</h3>
+            <p class="sg-entry__use">When a glyph helps you find the option faster.</p>
+            <p class="sg-entry__classes"><code>.ic</code> in <code>.segmented__label</code></p>
+            <p class="sg-entry__note">
+              The glyph leads the word and never replaces it: <code>aria-hidden</code>, 20px. An icon
+              costs about as much room as another option, so this variant comes apart sooner.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <fieldset class="segmented" data-sg-code>
+              <legend class="segmented__legend">Show cards</legend>
+              <div class="segmented__track">
+                <label class="segmented__option">
+                  <input class="segmented__input" type="radio" name="segmented-icons-show" value="due" checked />
+                  <span class="segmented__label"><span class="ic ic--today" aria-hidden="true"></span>Due</span>
+                </label>
+                <label class="segmented__option">
+                  <input class="segmented__input" type="radio" name="segmented-icons-show" value="all" />
+                  <span class="segmented__label"><span class="ic ic--decks" aria-hidden="true"></span>All</span>
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="segmented-full">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Full width</h3>
+            <p class="sg-entry__use">On a phone: the options share the whole row.</p>
+            <p class="sg-entry__classes"><code>.segmented--full</code></p>
+            <p class="sg-entry__note">
+              Each option gets an equal share. Below five and a half ems an option (seven and a
+              quarter with an icon) the pills come apart: one per row, the whole width, 8px between
+              them. Ems, so it follows the text size: four options come apart on a 320px phone,
+              and most controls do at 200% text.
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <fieldset class="segmented segmented--full" data-sg-code>
+                <legend class="segmented__legend">Show cards</legend>
+                <div class="segmented__track">
+                  <label class="segmented__option">
+                    <input class="segmented__input" type="radio" name="segmented-full-show" value="all" checked />
+                    <span class="segmented__label">All</span>
+                  </label>
+                  <label class="segmented__option">
+                    <input class="segmented__input" type="radio" name="segmented-full-show" value="new" />
+                    <span class="segmented__label">New</span>
+                  </label>
+                  <label class="segmented__option">
+                    <input class="segmented__input" type="radio" name="segmented-full-show" value="due" />
+                    <span class="segmented__label">Due</span>
+                  </label>
+                  <label class="segmented__option">
+                    <input class="segmented__input" type="radio" name="segmented-full-show" value="known" />
+                    <span class="segmented__label">Known</span>
+                  </label>
+                </div>
+              </fieldset>
+              <p class="sg-caption"><b>22em or wider.</b> Joined: four equal shares of the row.</p>
+            </figure>
+            <figure style="--w: 13rem">
+              <fieldset class="segmented segmented--full">
+                <legend class="segmented__legend">Show cards</legend>
+                <div class="segmented__track">
+                  <label class="segmented__option">
+                    <input class="segmented__input" type="radio" name="segmented-apart-show" value="all" checked />
+                    <span class="segmented__label">All</span>
+                  </label>
+                  <label class="segmented__option">
+                    <input class="segmented__input" type="radio" name="segmented-apart-show" value="new" />
+                    <span class="segmented__label">New</span>
+                  </label>
+                  <label class="segmented__option">
+                    <input class="segmented__input" type="radio" name="segmented-apart-show" value="due" />
+                    <span class="segmented__label">Due</span>
+                  </label>
+                  <label class="segmented__option">
+                    <input class="segmented__input" type="radio" name="segmented-apart-show" value="known" />
+                    <span class="segmented__label">Known</span>
+                  </label>
+                </div>
+              </fieldset>
+              <p class="sg-caption"><b>Under 22em.</b> The same four options come apart, one per row.</p>
+            </figure>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="segmented-states" aria-labelledby="h-segmented-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-segmented-states">States</h2>
+          <p class="sg-sec__note">
+            Chosen is the fill, the one state that's always on show. A segment never lifts: joined,
+            a shadow would fall across its neighbours. There is no invalid state, because one option
+            is always chosen.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <fieldset class="segmented">
+              <legend class="segmented__legend">Side to show</legend>
+              <div class="segmented__track">
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-rest" value="front" checked /><span class="segmented__label">Front</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-rest" value="back" /><span class="segmented__label">Back</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-rest" value="both" /><span class="segmented__label">Both</span></label>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Rest.</b> Ink words on paper; the chosen one filled with ink, paper words.</p>
+          </div>
+          <div>
+            <fieldset class="segmented">
+              <legend class="segmented__legend">Side to show</legend>
+              <div class="segmented__track">
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-hover" value="front" checked /><span class="segmented__label">Front</span></label>
+                <label class="segmented__option is-hover"><input class="segmented__input" type="radio" name="segmented-s-hover" value="back" /><span class="segmented__label">Back</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-hover" value="both" /><span class="segmented__label">Both</span></label>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Hover.</b> Back's ground turns to canvas. Pointers only, and never on the chosen one.</p>
+          </div>
+          <div>
+            <fieldset class="segmented">
+              <legend class="segmented__legend">Side to show</legend>
+              <div class="segmented__track is-focus">
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-focus" value="front" checked /><span class="segmented__label">Front</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-focus" value="back" /><span class="segmented__label">Back</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-focus" value="both" /><span class="segmented__label">Both</span></label>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Focus.</b> One ring round the whole pill, 3px out. The arrows move the fill.</p>
+          </div>
+          <div>
+            <fieldset class="segmented">
+              <legend class="segmented__legend">Side to show</legend>
+              <div class="segmented__track">
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-active" value="front" checked /><span class="segmented__label">Front</span></label>
+                <label class="segmented__option is-active"><input class="segmented__input" type="radio" name="segmented-s-active" value="back" /><span class="segmented__label">Back</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-active" value="both" /><span class="segmented__label">Both</span></label>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Pressed.</b> Back fills while the press lasts, so a tap answers before it lands.</p>
+          </div>
+          <div>
+            <fieldset class="segmented" aria-describedby="segmented-s-option-help">
+              <legend class="segmented__legend">Show cards</legend>
+              <p class="field__help" id="segmented-s-option-help">No cards known yet. Study a few first.</p>
+              <div class="segmented__track">
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-option" value="all" checked /><span class="segmented__label">All</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-option" value="due" /><span class="segmented__label">Due</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-option" value="known" disabled /><span class="segmented__label">Known</span></label>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Disabled option.</b> Dashed and faint, skipped by the arrows, and the help says why.</p>
+          </div>
+          <div>
+            <fieldset class="segmented" aria-describedby="segmented-s-group-help" disabled>
+              <legend class="segmented__legend">Side to show</legend>
+              <p class="field__help" id="segmented-s-group-help">Finish this session to change sides.</p>
+              <div class="segmented__track">
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-group" value="front" checked /><span class="segmented__label">Front</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-group" value="back" /><span class="segmented__label">Back</span></label>
+                <label class="segmented__option"><input class="segmented__input" type="radio" name="segmented-s-group" value="both" /><span class="segmented__label">Both</span></label>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Disabled group.</b> All dashed; the chosen one keeps a faint fill, so the setting still shows.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:checked</code>, <code>:hover</code> (only where a pointer
+          hovers), <code>:focus-visible</code>, <code>:active</code> and <code>disabled</code>.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="segmented-usage" aria-labelledby="h-segmented-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-segmented-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Use it for how one thing is shown: Grid or List, which side of the card, which cards.
+              Two to four options, one short word each, and the change happens at once.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't use it to go somewhere: sections of a screen are Tabs, places are the tab bar.
+              Five options or more, or long words, are a Select or a Radio group.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Touch has no hover, so the press fills the segment straight away. Full width on a
+              phone; at large text the pills come apart rather than squeeze.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              In the toolbar it's the system's own segmented control; ours is for content. In
+              SwiftUI, a <code>Picker</code> with <code>.pickerStyle(.segmented)</code>.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Segmented control</span>
+      <span>Spec: design/elements/segmented.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

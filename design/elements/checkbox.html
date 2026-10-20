@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Checkbox · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Checkbox element of the Flashcards design system: single, group, mixed and with help, with every state."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#checkbox-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Checkbox</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#checkbox-anatomy">Anatomy</a></li>
+            <li><a href="#checkbox-variants">Variants</a></li>
+            <li><a href="#checkbox-states">States</a></li>
+            <li><a href="#checkbox-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Checkbox · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-checkbox">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 07</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Checks</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Independent on/off choices. A square box, because every platform draws a checkbox
+            square; the words are part of the target; and checked carries a mark, so it never
+            needs colour.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="checkbox-anatomy" aria-labelledby="h-checkbox-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-checkbox-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A box inside a label, and Field's label, help and error around a group, in Field's
+            order. Only the label and the box are always there.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <fieldset class="checkbox-group" aria-describedby="checkbox-anat-help">
+                <legend class="field__label" data-n="1" style="padding-inline-end: 2.25rem">Decks to study</legend>
+                <p class="field__help" id="checkbox-anat-help" data-n="2" style="padding-inline-end: 2.25rem">
+                  Cards from these decks come up today.
+                </p>
+                <div class="checkbox">
+                  <label class="checkbox__label" data-n="3" style="padding-inline-end: 2.25rem">
+                    <input class="checkbox__input" type="checkbox" name="decks" value="shapes" checked />
+                    Shapes
+                  </label>
+                </div>
+                <div class="checkbox" style="position: relative">
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: 0.6875rem; inset-inline-start: -2rem">4</span>
+                  <label class="checkbox__label">
+                    <input
+                      class="checkbox__input"
+                      type="checkbox"
+                      name="decks"
+                      value="colours"
+                      aria-describedby="checkbox-anat-colours-help"
+                    />
+                    Colours
+                  </label>
+                  <p class="checkbox__help" id="checkbox-anat-colours-help" data-n="5" style="padding-inline-end: 2.25rem">
+                    Two new cards since Sunday.
+                  </p>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Legend</strong><code>.field__label</code>
+                <p>
+                  The group's question, on a <code>&lt;legend&gt;</code>: Field's label, 16px at
+                  weight 600. A screen reader reads it with each box.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Help and error</strong><code>.field__help</code> <code>.field__error</code>
+                <p>
+                  Field's parts, in Field's order: help, then the error, then the boxes. The
+                  fieldset's <code>aria-describedby</code> points at them.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Target</strong><code>.checkbox__label</code>
+                <p>
+                  A <code>&lt;label&gt;</code> around the box and its words: 44px tall, as wide as
+                  the words. A tap anywhere on it toggles.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Box</strong><code>.checkbox__input</code>
+                <p>
+                  The native input, drawn: 24px, square, a 2px frame. Checked fills it with ink and
+                  shows the check in paper; mixed shows the minus.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Option help</strong><code>.checkbox__help</code>
+                <p>
+                  14px, soft ink, in line with the words. Outside the label, so it isn't read as
+                  the name; <code>aria-describedby</code> ties it to the box.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="checkbox-variants" aria-labelledby="h-checkbox-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-checkbox-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Four, all the same box. A checkbox is a choice you make now and that counts when the
+            form is sent; a setting that acts the moment you touch it is a switch.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="checkbox-single">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Single</h3>
+            <p class="sg-entry__use">One choice, yes or no.</p>
+            <p class="sg-entry__classes">
+              <code>.checkbox</code> <code>.checkbox__label</code> <code>.checkbox__input</code>
+            </p>
+            <p class="sg-entry__note">
+              The words say what checked means: "Show hints", not "Hints". The input sits inside
+              its label, so the label needs no <code>for</code>.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 14rem">
+            <div class="checkbox" data-sg-code>
+              <label class="checkbox__label">
+                <input class="checkbox__input" type="checkbox" name="hints" />
+                Show hints
+              </label>
+            </div>
+            <div class="checkbox" data-sg-code>
+              <label class="checkbox__label">
+                <input class="checkbox__input" type="checkbox" name="read-aloud" checked />
+                Read the answer aloud
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="checkbox-group">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Group</h3>
+            <p class="sg-entry__use">Several choices that answer one question.</p>
+            <p class="sg-entry__classes">
+              <code>.checkbox-group</code> <code>.field__label</code> <code>.field__help</code>
+            </p>
+            <p class="sg-entry__note">
+              A <code>&lt;fieldset&gt;</code> with a <code>&lt;legend&gt;</code>, one
+              <code>name</code> for all the boxes. Each box is its own tab stop; Space toggles it.
+              Options are 8px apart, so two 44px targets never touch.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <fieldset class="checkbox-group" aria-describedby="checkbox-group-help" data-sg-code>
+              <legend class="field__label">Decks to study</legend>
+              <p class="field__help" id="checkbox-group-help">Cards from these decks come up today.</p>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" type="checkbox" name="decks" value="shapes" checked />
+                  Shapes
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" type="checkbox" name="decks" value="colours" checked />
+                  Colours
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" type="checkbox" name="decks" value="numbers" />
+                  Numbers to twenty
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" type="checkbox" name="decks" value="farm" />
+                  Farm animals
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="checkbox-mixed">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Mixed</h3>
+            <p class="sg-entry__use">"All decks", over a group where only some are checked.</p>
+            <p class="sg-entry__classes">
+              <code>:indeterminate</code> <code>aria-controls</code>
+            </p>
+            <p class="sg-entry__note">
+              Mixed exists only in script: <code>input.indeterminate = true</code>, and screen
+              readers hear "mixed". The box lists the boxes it controls in
+              <code>aria-controls</code>. Checking it checks them all; a press in the mixed state
+              checks all, as natively. Try it: this one is live.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <fieldset class="checkbox-group" data-sg-code>
+              <legend class="field__label">Decks to study</legend>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input
+                    class="checkbox__input"
+                    id="checkbox-mixed-all"
+                    type="checkbox"
+                    aria-controls="checkbox-mixed-shapes checkbox-mixed-colours checkbox-mixed-numbers checkbox-mixed-farm"
+                  />
+                  All decks
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" id="checkbox-mixed-shapes" type="checkbox" name="decks" value="shapes" checked />
+                  Shapes
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" id="checkbox-mixed-colours" type="checkbox" name="decks" value="colours" checked />
+                  Colours
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" id="checkbox-mixed-numbers" type="checkbox" name="decks" value="numbers" />
+                  Numbers to twenty
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" id="checkbox-mixed-farm" type="checkbox" name="decks" value="farm" />
+                  Farm animals
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </article>
+
+        <!-- 2.4 -->
+        <article class="sg-entry" id="checkbox-help">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.4</p>
+            <h3 class="sg-entry__name">With help</h3>
+            <p class="sg-entry__use">When the words need one more line.</p>
+            <p class="sg-entry__classes"><code>.checkbox__help</code></p>
+            <p class="sg-entry__note">
+              The help sits under the words, outside the label, tied to the box with
+              <code>aria-describedby</code>. It isn't part of the target: the label above it still
+              is, all 44px.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <div class="checkbox" data-sg-code>
+              <label class="checkbox__label">
+                <input class="checkbox__input" type="checkbox" name="hints" aria-describedby="checkbox-help-hints" />
+                Show hints
+              </label>
+              <p class="checkbox__help" id="checkbox-help-hints">The first letter of the answer, when you're stuck.</p>
+            </div>
+            <div class="checkbox" data-sg-code>
+              <label class="checkbox__label">
+                <input class="checkbox__input" type="checkbox" name="read-aloud" checked aria-describedby="checkbox-help-aloud" />
+                Read the answer aloud
+              </label>
+              <p class="checkbox__help" id="checkbox-help-aloud">Uses your device's voice, so it works offline.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="checkbox-states" aria-labelledby="h-checkbox-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-checkbox-states">States</h2>
+          <p class="sg-sec__note">
+            Two numbers draw them, as on the card: <code>--lift</code> is a 2px hard shadow,
+            <code>--fill</code> is the box's ground. Checked and mixed carry a glyph too, so each
+            state reads in grey and in forced colours.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="checkbox">
+              <label class="checkbox__label">
+                <input class="checkbox__input" type="checkbox" name="checkbox-s-rest" />
+                Show hints
+              </label>
+            </div>
+            <p class="sg-caption"><b>Rest.</b> A 2px square frame on paper.</p>
+          </div>
+          <div>
+            <div class="checkbox">
+              <label class="checkbox__label">
+                <input class="checkbox__input is-hover" type="checkbox" name="checkbox-s-hover" />
+                Show hints
+              </label>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> Anywhere on the target: the box lifts on a 2px hard shadow. Pointers only.</p>
+          </div>
+          <div>
+            <div class="checkbox">
+              <label class="checkbox__label">
+                <input class="checkbox__input is-focus" type="checkbox" name="checkbox-s-focus" />
+                Show hints
+              </label>
+            </div>
+            <p class="sg-caption"><b>Focus.</b> The hover look, plus a 3px ring 3px out, square like the box.</p>
+          </div>
+          <div>
+            <div class="checkbox">
+              <label class="checkbox__label">
+                <input class="checkbox__input" type="checkbox" name="checkbox-s-checked" checked />
+                Show hints
+              </label>
+            </div>
+            <p class="sg-caption"><b>Checked.</b> Filled with ink, the check in paper: a mark, not only a colour.</p>
+          </div>
+          <div>
+            <div class="sg-stack">
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input is-active" type="checkbox" name="checkbox-s-active" />
+                  Show hints
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input is-active" type="checkbox" name="checkbox-s-active-on" checked />
+                  Read the answer aloud
+                </label>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> Down, filled, with a paper ring inside the frame, so a tap answers before the finger lifts.</p>
+          </div>
+          <div>
+            <div class="checkbox">
+              <label class="checkbox__label">
+                <input class="checkbox__input" id="checkbox-s-mixed" type="checkbox" name="checkbox-s-mixed" />
+                All decks
+              </label>
+            </div>
+            <p class="sg-caption"><b>Mixed.</b> Filled, with the minus: some of the decks under it are checked.</p>
+          </div>
+          <div>
+            <fieldset class="checkbox-group" aria-describedby="checkbox-s-invalid-error">
+              <legend class="field__label">Decks to study</legend>
+              <p class="field__error" id="checkbox-s-invalid-error">
+                <span class="ic ic--warning" aria-hidden="true"></span>Pick at least one deck
+              </p>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" type="checkbox" name="checkbox-s-invalid" value="shapes" />
+                  Shapes
+                </label>
+              </div>
+              <div class="checkbox">
+                <label class="checkbox__label">
+                  <input class="checkbox__input" type="checkbox" name="checkbox-s-invalid" value="colours" />
+                  Colours
+                </label>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Invalid.</b> Field's error under the legend, and every frame doubles. No red: there isn't any.</p>
+          </div>
+          <div>
+            <div class="checkbox">
+              <label class="checkbox__label">
+                <input class="checkbox__input" type="checkbox" name="checkbox-s-disabled" disabled aria-describedby="checkbox-s-disabled-help" />
+                Read the answer aloud
+              </label>
+              <p class="checkbox__help" id="checkbox-s-disabled-help">This browser can't read aloud. Safari and Chrome can.</p>
+            </div>
+            <p class="sg-caption"><b>Disabled.</b> Dashed and faint, out of the tab order, and the help says why.</p>
+          </div>
+          <div>
+            <div class="checkbox">
+              <label class="checkbox__label">
+                <input class="checkbox__input" type="checkbox" name="checkbox-s-disabled-on" checked disabled aria-describedby="checkbox-s-disabled-on-help" />
+                Shapes
+              </label>
+              <p class="checkbox__help" id="checkbox-s-disabled-on-help">Your only deck is always studied.</p>
+            </div>
+            <p class="sg-caption"><b>Disabled, checked.</b> A faint fill behind the check, so you still see what it's set to.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>:checked</code>,
+          <code>:indeterminate</code>, <code>aria-invalid</code> and <code>disabled</code>.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="checkbox-usage" aria-labelledby="h-checkbox-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-checkbox-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Say what checked means, in the positive: "Show hints", not "Hide hints" or "Hints".
+              Put a group's question in its legend, and use a checkbox when the choice counts on
+              Save.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't use a checkbox for something that happens at once: that's a switch. Don't use
+              one for a single choice from a list: that's a radio. Don't round it, and don't put
+              the help inside the label.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              The whole label is the target, so a thumb on the words toggles it. Pressed fills the
+              box at once, so a tap answers on a screen with no hover.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Space toggles; Tab moves box to box. In SwiftUI, a <code>Toggle</code> with a custom
+              <code>ToggleStyle</code> that draws the square; on the Mac,
+              <code>.toggleStyle(.checkbox)</code> in system chrome.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <script>
+        /* page only: the States specimen shows mixed without a group behind it */
+        document.getElementById("checkbox-s-mixed").indeterminate = true;
+      </script>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Checkbox</span>
+      <span>Spec: design/elements/checkbox.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/components/checkbox.js"></script>
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

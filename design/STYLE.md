@@ -1,6 +1,6 @@
 # Flashcards style sheet
 
-v0.4 · wireframe stage · 6 of 27 elements built · 2026-10-20
+v0.5 · wireframe stage · 13 of 27 elements built · 2026-10-20
 
 The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
 to look at: live specimens, every state, the markup read straight off the page. **This file**
@@ -87,8 +87,9 @@ weights are `px` so a 2px rule stays 2px.
 
 Apps link `dist/flashcards.css`: one flat file built by `node design/tools/bundle.mjs`, with
 no `@import` chain to wait on. `css/flashcards.css` is its source. Elements that need script
-(today only Field's clear button) ship it in `dist/flashcards.js`, built from
-`js/components/`: vanilla, no dependencies, and everything still works without it. The file tree is in
+(Field's clear button, Checkbox's "select all", Stepper's − and +, Form's error summary) ship
+it in `dist/flashcards.js`, built from `js/components/`: vanilla, no dependencies, and
+everything still works without it. The file tree is in
 `README.md`.
 
 Layer order: `@layer tokens, base, components, wire, app, sheet;`. Later wins, so nothing
@@ -292,6 +293,13 @@ and the brief for each one, is in `elements/README.md`.
 | Tag and Badge | `elements/tag.md` | Gates 0–2 |
 | Meter and Spinner | `elements/meter.md` | Gates 0–2 |
 | Icons | `elements/icons.md` | Gates 0–2 |
+| Checkbox | `elements/checkbox.md` | Gates 0–2 |
+| Radio | `elements/radio.md` | Gates 0–2 |
+| Switch | `elements/switch.md` | Gates 0–2 |
+| Segmented control | `elements/segmented.md` | Gates 0–2 |
+| Select | `elements/select.md` | Gates 0–2 |
+| Stepper | `elements/stepper.md` | Gates 0–2 |
+| Form | `elements/form.md` | Gates 0–2 |
 
 Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
 pass gate 2.
@@ -412,10 +420,16 @@ generate-a-design-system workflow or its scripts.
 | System type and colour everywhere (macos-app-design) | SF and system colours in native chrome only; Archivo and our roles in content | Platform convention wins for chrome; content keeps its voice. |
 | `.spring(…)` for interaction, `Animation.bouncy` for play (swiftui-expert-skill) | `--ease-out` as a timing curve, or a spring with no bounce | Bounce is decoration (rule 7). |
 | Archivo with Space Grotesk (ui-ux-pro-max `typography.csv`; neobrutalist-web-designer pairs Archivo Black with it); pair by contrast (typography) | One family; the width axis supplies the contrast | One 90 KB file, one fallback chain. Space Grotesk is a banned default. |
+| Rule 3: circles and pills for everything you act on (§1) | The checkbox is a 24px square | Platform convention wins: every platform draws a checkbox square, and a round box reads as a radio (usability facts come first, §6). |
 
 ---
 
 ## 8. Changelog
+
+- **0.5.0** · 2026-10-20 · Wave 2: Checkbox, Radio, Switch, Segmented control, Select, Stepper
+  and Form pass gates 0–2. The New deck form uses all of them, with validation on submit or
+  blur and an error summary that takes focus. The checkbox stays square (§7). Script for
+  "select all", the stepper and the error summary joins `dist/flashcards.js`.
 
 - **0.4.0** · 2026-10-20 · Wave 1: Button, Field, Tag and Badge, Meter and Spinner, and Icons
   (26 glyphs) pass gates 0–2. Real buttons, tags and meters replace the stand-ins in the card

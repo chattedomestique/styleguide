@@ -1,0 +1,218 @@
+/* ==========================================================================
+   Radio — wave 2. Spec: elements/radio.md · page: elements/radio.html
+
+   One choice from a short list, two to six. Native radios, restyled: a 24px
+   circle with a 2px frame and a 10px ink dot when chosen, inside a <label>
+   that is the 44px target. Always in a fieldset with a legend; one name per
+   group, so the group is one tab stop and the arrow keys move the choice.
+
+     <fieldset class="radio-group">
+       <legend class="field__label">Card order</legend>
+       <div class="radio">
+         <label class="radio__label">
+           <input class="radio__input" type="radio" name="order" value="in-order" checked>
+           In order
+         </label>
+       </div>
+       …
+     </fieldset>
+
+   House rules for this file
+   · Round: it acts (rule 3), and every platform draws a radio as a circle.
+   · The same two numbers as the checkbox. --lift is a hard shadow (hover,
+     focus). --fill is the circle's ground, ink only while pressed. Chosen is
+     the dot, a shape, not a colour.
+   · Help and errors are Field's: .field__help and .field__error on the group,
+     .radio__help under one option.
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.radio {
+  --radio-size: 1.5rem; /* the circle: 24px, one line of body text */
+  --radio-gap: var(--space-3);
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-inline-size: 0;
+}
+
+/* the target: at least 44px tall, as wide as its words */
+.radio__label {
+  position: relative;
+  display: block;
+  max-inline-size: 100%;
+  min-block-size: var(--hit);
+  padding-block: calc((var(--hit) - var(--radio-size)) / 2);
+  padding-inline-start: calc(var(--radio-size) + var(--radio-gap));
+  font: var(--type-body);
+  color: var(--ink);
+  overflow-wrap: break-word;
+  cursor: default; /* the hand is for links only, as on the Mac */
+  touch-action: manipulation;
+}
+
+/* the circle, on the first line of the words */
+.radio__input {
+  --lift: 0;
+  --fill: 0;
+  --shadow-lift: calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--line);
+  --shadow-invalid: inset 0 0 0 0 transparent;
+
+  position: absolute;
+  inset-block-start: calc((var(--hit) - var(--radio-size)) / 2);
+  inset-inline-start: 0;
+  display: grid;
+  inline-size: var(--radio-size);
+  block-size: var(--radio-size);
+  margin: 0;
+  /* the dot: ink on paper, paper on the pressed ink */
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper)) padding-box;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-invalid), var(--shadow-lift);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the dot: 10px, centred, so 5px of ground shows round it */
+.radio__input::before {
+  content: "";
+  place-self: center;
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  background: currentColor;
+  border-radius: var(--radius-pill);
+  visibility: hidden;
+}
+
+.radio__input:checked::before {
+  visibility: visible;
+}
+
+/* help under one option, in line with its words. Outside the label, so it
+   isn't part of the name: aria-describedby ties it to the input. */
+.radio__help {
+  max-inline-size: var(--measure);
+  padding-inline-start: calc(var(--radio-size) + var(--radio-gap));
+  padding-block-end: var(--space-2);
+  font: var(--type-meta);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* --- group ------------------------------------------------------------------
+   Always a fieldset: the legend is the question, and screen readers read it
+   with each option. Field's label, help and error, in Field's order, then the
+   options. Floating the legend makes it a flex item, so the gap applies. */
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.radio-group > legend {
+  float: left;
+  inline-size: 100%;
+  padding: 0;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from :hover, :focus-visible, :active, :checked and
+   :disabled, and from the group's error. */
+
+@media (hover: hover) {
+  .radio__label:hover > .radio__input:not(:disabled) {
+    --lift: 1;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, round like the circle */
+.radio__input:is(:focus-visible, .is-hover, .is-focus) {
+  --lift: 1;
+}
+
+.radio__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: down onto the page, and the circle inks over. A solid disc, so it
+   can't be read as chosen (a dot on paper); a chosen dot turns paper. */
+.radio__label:active > .radio__input:not(:disabled),
+.radio__input.is-active {
+  --lift: 0;
+  --fill: 1;
+}
+
+/* invalid: a whole group is wrong (nothing chosen), so every circle's frame
+   doubles while the group's error shows. The fieldset's aria-describedby
+   points at the error; a radio has no aria-invalid of its own. */
+.radio-group:has(> .field__error:not([hidden])) .radio__input {
+  --shadow-invalid: inset 0 0 0 var(--bw) var(--line);
+}
+
+/* disabled: dashed and faint, never faded; the help says why. Last. */
+.radio__input:disabled {
+  --lift: 0;
+  --fill: 0;
+  color: var(--ink-faint);
+  background-color: transparent;
+  border-style: dashed;
+  border-color: var(--ink-faint);
+}
+
+.radio__label:has(> .radio__input:disabled) {
+  color: var(--ink-faint);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The ground and the shadows vanish, and the dot is a background, so the
+   circle paints system colours: the dot in Highlight, invalid as a 4px
+   frame, disabled in GrayText. */
+
+@media (forced-colors: active) {
+  .radio__input {
+    forced-color-adjust: none;
+    color: Highlight;
+    background-color: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .radio__input:focus-visible,
+  .radio__input.is-focus {
+    outline-color: CanvasText;
+  }
+
+  .radio__input:is(.is-hover, .is-active),
+  .radio__label:active > .radio__input:not(:disabled) {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .radio__label:hover > .radio__input:not(:disabled) {
+      border-color: Highlight;
+    }
+  }
+
+  .radio-group:has(> .field__error:not([hidden])) .radio__input {
+    border-width: var(--bw-heavy);
+  }
+
+  .radio__input:disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .radio__label:has(> .radio__input:disabled) {
+    color: GrayText;
+  }
+}

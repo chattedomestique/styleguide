@@ -1,0 +1,76 @@
+/* ==========================================================================
+   Stepper — wave 2. Spec: elements/stepper.md · page: elements/stepper.html
+   --------------------------------------------------------------------------
+   A small whole number, one step at a time: Button's 44px circles, − and +,
+   either side of a Field input that can also be typed in.
+
+     <div class="field">
+       <label class="field__label" for="per-session">Cards per session</label>
+       <p class="field__help" id="per-session-help">From 5 to 50, in fives.</p>
+       <div class="stepper">
+         <button class="btn btn--icon stepper__down" type="button" hidden
+                 aria-label="Fewer cards" aria-controls="per-session"
+                 aria-describedby="per-session-help">
+           <span class="ic ic--minus" aria-hidden="true"></span>
+         </button>
+         <input class="field__input stepper__input" id="per-session" type="text"
+                inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off"
+                data-min="5" data-max="50" data-step="5"
+                aria-describedby="per-session-help">
+         <button class="btn btn--icon stepper__up" ...>…ic--plus…</button>
+       </div>
+     </div>
+
+   House rules for this file
+   · Nothing new to draw. The buttons are .btn--icon and the value is
+     .field__input, and each keeps its own states: lift and fill on the
+     circles, Field's frame, ring, invalid and disabled on the value. This
+     file lays them out and sizes the value.
+   · The value holds text, so it stays square; the buttons act, so they are
+     round (rule 3).
+   · The buttons ship hidden. js/components/stepper.js shows them, steps the
+     value and marks a limit; without it this is a number field you type in.
+   · At a limit the button is aria-disabled: dashed, still focusable, and its
+     description (the help) says why.
+   ========================================================================== */
+
+/* a container, so it can reflow by its own width. That width is its
+   parent's; in a row of its own (a settings row) it keeps the room the three
+   need side by side. */
+.stepper {
+  container: stepper / inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: min(100%, 10.5em);
+}
+
+/* the value: wide enough for three digits, centred between the buttons */
+.stepper__input {
+  flex: none;
+  inline-size: calc(3ch + var(--space-3) * 2 + var(--bw) * 2);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* too narrow for all three in a row, which is a small phone at large text
+   (two 44px circles and three digits are about 10em): the value takes the
+   first row, the whole width, and the buttons go under it, one at each end,
+   so − stays left of +. The tab order (−, value, +) is unchanged. */
+@container stepper (max-width: 10.5em) {
+  .stepper__input {
+    order: -1;
+    flex: 1 0 100%;
+  }
+
+  .stepper__up {
+    margin-inline-start: auto;
+  }
+}
+
+/* hidden until the script can make them work (a .btn is inline-flex, which
+   would beat the hidden attribute) */
+.stepper > :is(.stepper__down, .stepper__up)[hidden] {
+  display: none;
+}

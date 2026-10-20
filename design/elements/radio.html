@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Radio · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Radio element of the Flashcards design system: a group, and a group with help on each option, with every state."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#radio-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Radio</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#radio-anatomy">Anatomy</a></li>
+            <li><a href="#radio-variants">Variants</a></li>
+            <li><a href="#radio-states">States</a></li>
+            <li><a href="#radio-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Radio · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-radio">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 08</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Radios</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            One choice from a short list. A circle, because you act on it; a dot when chosen; and
+            always a question above it, so every option is heard with what it answers.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="radio-anatomy" aria-labelledby="h-radio-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-radio-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            Checkbox's anatomy with a circle and a dot. The group is not optional: a radio on its
+            own can't be unchosen, so it is never alone.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card">
+              <fieldset class="radio-group" aria-describedby="radio-anat-help">
+                <legend class="field__label" data-n="1" style="padding-inline-end: 2.25rem">Card order</legend>
+                <p class="field__help" id="radio-anat-help" data-n="2" style="padding-inline-end: 2.25rem">
+                  You can change it any time.
+                </p>
+                <div class="radio">
+                  <label class="radio__label" data-n="3" style="padding-inline-end: 2.25rem">
+                    <input class="radio__input" type="radio" name="radio-anat-order" value="in-order" checked />
+                    In order
+                  </label>
+                </div>
+                <div class="radio" style="position: relative">
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: 0.6875rem; inset-inline-start: -2rem">4</span>
+                  <label class="radio__label">
+                    <input
+                      class="radio__input"
+                      type="radio"
+                      name="radio-anat-order"
+                      value="hardest"
+                      aria-describedby="radio-anat-hardest-help"
+                    />
+                    Hardest first
+                  </label>
+                  <p class="radio__help" id="radio-anat-hardest-help" data-n="5" style="padding-inline-end: 2.25rem">
+                    The cards you missed last time come up first.
+                  </p>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Legend</strong><code>.field__label</code>
+                <p>
+                  The question, on a <code>&lt;legend&gt;</code>: Field's label. Screen readers
+                  read it as you enter the group.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Help and error</strong><code>.field__help</code> <code>.field__error</code>
+                <p>
+                  Field's parts, in Field's order, before the options. The fieldset's
+                  <code>aria-describedby</code> points at them.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Target</strong><code>.radio__label</code>
+                <p>A <code>&lt;label&gt;</code> around the circle and its words: 44px tall.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Circle and dot</strong><code>.radio__input</code>
+                <p>
+                  The native radio, drawn: a 24px circle, a 2px frame. Chosen adds a 10px ink dot
+                  in the middle.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Option help</strong><code>.radio__help</code>
+                <p>
+                  14px, soft ink, in line with the words, tied to its radio with
+                  <code>aria-describedby</code>.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="radio-variants" aria-labelledby="h-radio-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-radio-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Two, both groups. Two to six options; past six, it's a select. The group is one tab
+            stop, and the arrow keys move the choice, natively.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="radio-group">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Group</h3>
+            <p class="sg-entry__use">One answer to one question.</p>
+            <p class="sg-entry__classes">
+              <code>.radio-group</code> <code>.radio</code> <code>.radio__label</code>
+              <code>.radio__input</code>
+            </p>
+            <p class="sg-entry__note">
+              A <code>&lt;fieldset&gt;</code> and a <code>&lt;legend&gt;</code>, every radio with
+              the same <code>name</code>. Choose a sensible default where there is one; leave the
+              group empty only when guessing would be worse.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <fieldset class="radio-group" data-sg-code>
+              <legend class="field__label">Card order</legend>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-group-order" value="in-order" checked />
+                  In order
+                </label>
+              </div>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-group-order" value="shuffled" />
+                  Shuffled
+                </label>
+              </div>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-group-order" value="hardest" />
+                  Hardest first
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="radio-help">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">With help on each option</h3>
+            <p class="sg-entry__use">When the names alone don't say what happens.</p>
+            <p class="sg-entry__classes"><code>.radio__help</code></p>
+            <p class="sg-entry__note">
+              Each help line sits under its words, outside the label, tied with
+              <code>aria-describedby</code>, so the name stays short: "Hardest first", then the
+              explanation.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <fieldset class="radio-group" aria-describedby="radio-help-group" data-sg-code>
+              <legend class="field__label">Card order</legend>
+              <p class="field__help" id="radio-help-group">You can change it any time.</p>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-help-order" value="in-order" aria-describedby="radio-help-in-order" />
+                  In order
+                </label>
+                <p class="radio__help" id="radio-help-in-order">The order you added them in.</p>
+              </div>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-help-order" value="shuffled" checked aria-describedby="radio-help-shuffled" />
+                  Shuffled
+                </label>
+                <p class="radio__help" id="radio-help-shuffled">A new order every session.</p>
+              </div>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-help-order" value="hardest" aria-describedby="radio-help-hardest" />
+                  Hardest first
+                </label>
+                <p class="radio__help" id="radio-help-hardest">The cards you missed last time come up first.</p>
+              </div>
+            </fieldset>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="radio-states" aria-labelledby="h-radio-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-radio-states">States</h2>
+          <p class="sg-sec__note">
+            The checkbox's states, round. <code>--lift</code> is a 2px hard shadow;
+            <code>--fill</code> inks the circle only while it's pressed. Chosen is the dot: a
+            shape, so it reads without colour.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="radio">
+              <label class="radio__label">
+                <input class="radio__input" type="radio" name="radio-s-rest" value="shuffled" />
+                Shuffled
+              </label>
+            </div>
+            <p class="sg-caption"><b>Rest.</b> A 2px circle on paper.</p>
+          </div>
+          <div>
+            <div class="radio">
+              <label class="radio__label">
+                <input class="radio__input is-hover" type="radio" name="radio-s-hover" value="shuffled" />
+                Shuffled
+              </label>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> Anywhere on the target: the circle lifts on a 2px hard shadow. Pointers only.</p>
+          </div>
+          <div>
+            <div class="radio">
+              <label class="radio__label">
+                <input class="radio__input is-focus" type="radio" name="radio-s-focus" value="shuffled" />
+                Shuffled
+              </label>
+            </div>
+            <p class="sg-caption"><b>Focus.</b> The hover look, plus a round 3px ring 3px out. Arrows move it, and the choice with it.</p>
+          </div>
+          <div>
+            <div class="radio">
+              <label class="radio__label">
+                <input class="radio__input" type="radio" name="radio-s-checked" value="shuffled" checked />
+                Shuffled
+              </label>
+            </div>
+            <p class="sg-caption"><b>Chosen.</b> A 10px ink dot. The circle's ground stays paper.</p>
+          </div>
+          <div>
+            <div class="sg-stack">
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input is-active" type="radio" name="radio-s-active" value="shuffled" />
+                  Shuffled
+                </label>
+              </div>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input is-active" type="radio" name="radio-s-active-on" value="in-order" checked />
+                  In order
+                </label>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> Down, and the circle inks over: a solid disc, never mistaken for a dot. A chosen dot turns paper.</p>
+          </div>
+          <div>
+            <fieldset class="radio-group" aria-describedby="radio-s-invalid-error">
+              <legend class="field__label">Card order</legend>
+              <p class="field__error" id="radio-s-invalid-error">
+                <span class="ic ic--warning" aria-hidden="true"></span>Pick a card order
+              </p>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-s-invalid" value="in-order" />
+                  In order
+                </label>
+              </div>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-s-invalid" value="shuffled" />
+                  Shuffled
+                </label>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Invalid.</b> The whole group: Field's error under the legend, and every frame doubles.</p>
+          </div>
+          <div>
+            <fieldset class="radio-group">
+              <legend class="field__label">Card order</legend>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-s-disabled" value="in-order" checked />
+                  In order
+                </label>
+              </div>
+              <div class="radio">
+                <label class="radio__label">
+                  <input class="radio__input" type="radio" name="radio-s-disabled" value="hardest" disabled aria-describedby="radio-s-disabled-help" />
+                  Hardest first
+                </label>
+                <p class="radio__help" id="radio-s-disabled-help">After your first session, once we know which cards are hard.</p>
+              </div>
+            </fieldset>
+            <p class="sg-caption"><b>Disabled.</b> One option, dashed and faint; the arrows skip it, and its help says why.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>:checked</code>,
+          <code>disabled</code> and the group's error.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="radio-usage" aria-labelledby="h-radio-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-radio-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Ask the question in the legend ("Card order") and keep each option to a few words.
+              Order options in a way that means something: the usual first, or least to most.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't use radios for one yes-or-no: that's a checkbox. Don't go past six options:
+              that's a select. Don't make a radio do something the moment it's chosen.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              The words are part of the target, so a thumb anywhere on the row chooses. Pressed
+              inks the circle at once, so a tap answers on a screen with no hover.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Tab reaches the group once; arrows choose. In SwiftUI, a <code>Picker</code> with
+              <code>.pickerStyle(.radioGroup)</code> on the Mac; on iOS a custom row with our
+              circle, since iOS has no native radio.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Radio</span>
+      <span>Spec: design/elements/radio.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

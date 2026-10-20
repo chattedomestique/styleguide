@@ -77,13 +77,13 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 | 04 | Tag and Badge | 1 | Gates 0–2 |
 | 05 | Meter and Spinner | 1 | Gates 0–2 |
 | 06 | Icons | 1 | Gates 0–2 |
-| 07 | Checkbox | 2 | Brief |
-| 08 | Radio | 2 | Brief |
-| 09 | Switch | 2 | Brief |
-| 10 | Segmented control | 2 | Brief |
-| 11 | Select | 2 | Brief |
-| 12 | Stepper | 2 | Brief |
-| 13 | Form | 2 | Brief |
+| 07 | Checkbox | 2 | Gates 0–2 |
+| 08 | Radio | 2 | Gates 0–2 |
+| 09 | Switch | 2 | Gates 0–2 |
+| 10 | Segmented control | 2 | Gates 0–2 |
+| 11 | Select | 2 | Gates 0–2 |
+| 12 | Stepper | 2 | Gates 0–2 |
+| 13 | Form | 2 | Gates 0–2 |
 | 14 | Frame | 3 | Brief |
 | 15 | Top bar | 3 | Brief |
 | 16 | Tab bar | 3 | Brief |
@@ -105,8 +105,8 @@ gate 4) and the freeze (wave 8, gate 5).
 ## Briefs
 
 Gate 0. Each brief gives the job, the parts, the variants (the cap: no others), the states, the
-copy and anything specific. Wave 1's are full; later waves get theirs filled in when the wave
-starts.
+copy and anything specific. Waves 1 and 2 are full; later waves get theirs filled in when the
+wave starts.
 
 ### Wave 1: actions and status
 
@@ -200,40 +200,107 @@ long.*
 
 ### Wave 2: choices and forms
 
-**07 Checkbox:**
-- Native `<input type="checkbox">`: a 24px box in a 44px target, with a check glyph and
-  *mixed* for "select all".
-- It stays square, against rule 3: the platform convention wins (usability facts come first).
-  Record that in `STYLE.md` §7.
+All seven are form controls, so they share a few things:
 
-**08 Radio:**
-- Native radios: a 24px circle in a 44px target.
-- Always in a `fieldset` with a `legend`; the native arrow keys.
+- **Native first:** a real `<input>`, `<select>` or `<fieldset>`, restyled with
+  `appearance: none` where the platform's look fights ours. Never a `div` with a role.
+- **A 44px target:**
+  - the control is the drawn box, and the `<label>` around it carries the target;
+  - clicking the words toggles the control.
+- **A label that's always visible.** Help and errors use Field's parts and order (label, help,
+  error, then the control), so one form reads the same from top to bottom.
+- **States:** rest, hover, focus (ring), checked or on, mixed (where it exists), invalid,
+  disabled.
+  - Checked or on uses the fill (`--fill`), never colour alone. In forced colours it keeps a
+    mark: the check, the dot, or the knob's position.
+- **Copy** comes from a deck's settings and the New deck form: Shuffle cards, Show hints, Card
+  order, Cards per session, Deck colour (named, not swatches: the palette is monochrome).
 
-**09 Switch:**
-- `<input type="checkbox" role="switch">`: a pill track and a circle knob.
-- Takes effect at once; never inside a form with a Save button.
+**07 Checkbox** (`checkbox`). *Independent on/off choices.*
 
-**10 Segmented control:**
-- A radio group drawn as joined pills, for two to four views or modes.
-- Native radios, so arrows work.
+- **Variants:**
+  - single: one checkbox and its label;
+  - group: a `fieldset` with a `legend`;
+  - mixed: `indeterminate`, for "Select all" over a group;
+  - with help text.
+- **Look:** a 24px square box inside a 44px target, with a 2px frame. Checked: ink fill and the
+  check glyph in paper. Mixed: the minus glyph.
+- **Notes:**
+  - It stays square, against rule 3, because the platform convention wins. Record that in
+    `STYLE.md` §7.
+  - Copy: Show hints, Read the answer aloud, and a group headed "Decks to study".
 
-**11 Select:**
-- Native `<select>`, framed, with a down glyph. The phone shows its own picker.
-- Single choice only.
+**08 Radio** (`radio`). *One choice from a short list (two to six).*
 
-**12 Stepper:**
-- − and + circles around a value, with a minimum, a maximum and an announced value
-  ("Cards per session: 10").
+- **Variants:**
+  - a group (always a `fieldset` with a `legend`);
+  - a group with help on each option.
+- **Look:** a 24px circle, a 2px frame, and a 10px ink dot when chosen.
+- **Notes:**
+  - The native arrow keys move the choice; a group has one tab stop.
+  - Copy: Card order (In order, Shuffled, Hardest first).
 
-**13 Form:**
-- Layout and validation for the elements above:
-  - labels above fields, groups in `fieldset`;
-  - help text, and inline errors plus a summary at the top on submit (focus moves to it, and
-    it links to each field);
-  - mark the optional fields, not the required ones;
-  - the submit row.
-- Copy: the New deck form.
+**09 Switch** (`switch`). *A setting that takes effect at once.*
+
+- **Markup:** `<input type="checkbox" role="switch">`.
+- **Look:** a pill track at least 44 by 24, a circle knob, and On/Off in words beside it, not in
+  the track.
+- **Variants:** with a label on the leading side and the switch trailing (the settings row);
+  with help text.
+- **Notes:**
+  - Never inside a form with a Save button; a switch that doesn't act at once is a checkbox.
+  - Copy: Shuffle cards, Daily reminder.
+
+**10 Segmented control** (`segmented`). *One of two to four views or modes, side by side.*
+
+- **Markup:** a radio group drawn as joined pills, `.sg-seg`'s pattern made real: a `fieldset`,
+  a `legend` (which may be visually hidden), and native radios, so arrows work.
+- **Variants:** text-only; with icons and text; full width (on a phone).
+- **Notes:**
+  - It never navigates. Tabs, wave 3, switch sections of a screen; this switches how one thing
+    is shown.
+  - Copy: Grid / List; Front / Back / Both.
+
+**11 Select** (`select`). *One choice from a long list.*
+
+- **Markup:** native `<select>`, in Field's frame with the `down` glyph. The phone shows its own
+  picker and the Mac its own menu, so we style only the closed control.
+- **Variants:** default; with help; invalid.
+- **Notes:**
+  - Single choice only.
+  - `appearance: base-select` is newer and only progressive: allowed if it degrades to the
+    plain styled select.
+  - Copy: Language (English, Français, Español…), Deck colour.
+
+**12 Stepper** (`stepper`). *A small whole number, one step at a time.*
+
+- **Markup:** − and + icon-only buttons (Button's 44px circles) around a value that is an
+  `<input inputmode="numeric">`, so it can also be typed.
+- **Notes:**
+  - It has a minimum and a maximum. At a limit, that button is `aria-disabled`, says why, and
+    stays focusable.
+  - Changes are announced through the input's value; the buttons say what they do ("Fewer
+    cards", "More cards").
+  - Copy: Cards per session (5–50, step 5).
+
+**13 Form** (`form`). *Fields together, and what happens when they're wrong.*
+
+- **Layout:** labels above controls, 24px between fields, groups in `fieldset`s, one column on a
+  phone, two only where fields are short and related.
+- **Required and optional:**
+  - mark the optional fields "(optional)";
+  - required fields carry no asterisk and use `required` without `aria-required` duplication.
+- **Validation:**
+  - only on submit or blur, never while typing;
+  - each wrong field gets Field's error;
+  - on submit, an error summary at the top (a card titled "Fix 2 things", with links to each
+    field) takes focus.
+- **The submit row:** the primary button last (right) on wide screens, full width first on a
+  phone, with Cancel as a quiet button.
+- **Variants:** the New deck form (name, description, card order, shuffle, cards per session,
+  language), the same form with errors, and a one-field inline form (Rename deck).
+- **Notes:** `autocomplete`, `inputmode` and `enterkeyhint` follow Field's spec; the on-screen
+  keyboard must not cover the focused field (the scroll-padding finding).
 
 ### Wave 3: shell and navigation
 

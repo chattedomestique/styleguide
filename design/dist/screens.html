@@ -1585,6 +1585,12 @@ label {
   color: var(--ink);
 }
 
+/* hidden until a submit or a blur finds the field wrong: the display above
+   would otherwise beat the hidden attribute */
+.field__error[hidden] {
+  display: none;
+}
+
 /* a 20px glyph centred on the 24px first line */
 .field__error > .ic {
   margin-block-start: 0.125rem;
@@ -2111,6 +2117,1394 @@ textarea.field__input {
     forced-color-adjust: none;
     background-color: CanvasText;
   }
+}
+}
+@layer components {
+/* ==========================================================================
+   Checkbox — wave 2. Spec: elements/checkbox.md · page: elements/checkbox.html
+
+   Independent on/off choices. A native checkbox, restyled: a 24px square box
+   with a 2px frame, inside a <label> that is the 44px target, so a tap on the
+   words toggles it too.
+
+     <div class="checkbox">
+       <label class="checkbox__label">
+         <input class="checkbox__input" type="checkbox" name="hints">
+         Show hints
+       </label>
+     </div>
+
+   A group is a fieldset, headed and helped by Field's own parts:
+
+     <fieldset class="checkbox-group">
+       <legend class="field__label">Decks to study</legend>
+       <div class="checkbox">…</div>
+     </fieldset>
+
+   House rules for this file
+   · Square, against rule 3: a checkbox is square on every platform, and a
+     round one reads as a radio. Platform convention wins (STYLE §6, §7).
+   · Two numbers draw every state, as on the card and the button. --fill is
+     the box's ground: ink when checked, mixed or pressed. --lift is a hard
+     shadow: hover and focus. Checked and mixed also carry a glyph, so the
+     state never rests on the fill alone.
+   · The box is absolutely placed in the label's padding, so the words are
+     ordinary inline text: they wrap under themselves, and a count or a <b>
+     inside them needs no wrapper.
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.checkbox {
+  --checkbox-size: 1.5rem; /* the box: 24px, one line of body text */
+  --checkbox-gap: var(--space-3);
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-inline-size: 0;
+}
+
+/* the target: at least 44px tall, as wide as its words. One line of 16px text
+   is 24px, so 10px above and below makes 44. */
+.checkbox__label {
+  position: relative;
+  display: block;
+  max-inline-size: 100%;
+  min-block-size: var(--hit);
+  padding-block: calc((var(--hit) - var(--checkbox-size)) / 2);
+  padding-inline-start: calc(var(--checkbox-size) + var(--checkbox-gap));
+  font: var(--type-body);
+  color: var(--ink);
+  overflow-wrap: break-word;
+  cursor: default; /* the hand is for links only, as on the Mac */
+  touch-action: manipulation;
+}
+
+/* the box, on the first line of the words */
+.checkbox__input {
+  --lift: 0;
+  --fill: 0;
+  --shadow-lift: calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--line);
+  --shadow-press: inset 0 0 0 0 transparent;
+  --shadow-invalid: inset 0 0 0 0 transparent;
+
+  position: absolute;
+  inset-block-start: calc((var(--hit) - var(--checkbox-size)) / 2);
+  inset-inline-start: 0;
+  display: grid;
+  inline-size: var(--checkbox-size);
+  block-size: var(--checkbox-size);
+  margin: 0;
+  color: var(--paper); /* the glyph */
+  /* padding-box: a dashed (disabled) frame shows gaps, not the fill behind them */
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper)) padding-box;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-ctl);
+  box-shadow: var(--shadow-press), var(--shadow-invalid), var(--shadow-lift);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the glyph spans the whole box, frame included, so it draws on its own 24
+   grid: a 2px stroke, the frame's weight */
+.checkbox__input::before {
+  content: "";
+  margin: calc(var(--bw) * -1);
+  background: currentColor;
+  mask: var(--icon-check) center / contain no-repeat;
+  visibility: hidden;
+}
+
+.checkbox__input:checked,
+.checkbox__input:indeterminate {
+  --fill: 1;
+}
+
+.checkbox__input:checked::before {
+  visibility: visible;
+}
+
+/* mixed wins over checked: a script can set both */
+.checkbox__input:indeterminate::before {
+  mask-image: var(--icon-minus);
+  visibility: visible;
+}
+
+/* help under one option, in line with its words. It sits outside the label,
+   so it isn't part of the name: aria-describedby ties it to the input. */
+.checkbox__help {
+  max-inline-size: var(--measure);
+  padding-inline-start: calc(var(--checkbox-size) + var(--checkbox-gap));
+  padding-block-end: var(--space-2);
+  font: var(--type-meta);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* --- group ------------------------------------------------------------------
+   A fieldset with Field's label, help and error, in Field's order, then the
+   options. Floating the legend makes it a flex item, so the gap applies. */
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.checkbox-group > legend {
+  float: left;
+  inline-size: 100%;
+  padding: 0;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from :hover, :focus-visible, :active, :checked,
+   :indeterminate, aria-invalid and :disabled. */
+
+/* hover anywhere on the target lifts the box */
+@media (hover: hover) {
+  .checkbox__label:hover > .checkbox__input:not(:disabled) {
+    --lift: 1;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring (base.css draws it on
+   :focus-visible: 3px of --focus, 3px out, square like the box) */
+.checkbox__input:is(:focus-visible, .is-hover, .is-focus) {
+  --lift: 1;
+}
+
+.checkbox__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: down onto the page, filled, with a paper ring inside the frame, so
+   a tap answers before the finger lifts (as a pressed button) */
+.checkbox__label:active > .checkbox__input:not(:disabled),
+.checkbox__input.is-active {
+  --lift: 0;
+  --fill: 1;
+  --shadow-press: inset 0 0 0 var(--bw) var(--paper);
+}
+
+/* invalid: the frame doubles inwards, as a field's. On one checkbox it comes
+   from aria-invalid; in a group, from the group's error being shown */
+.checkbox__input[aria-invalid]:not([aria-invalid="false"]),
+.checkbox-group:has(> .field__error:not([hidden])) .checkbox__input {
+  --shadow-invalid: inset 0 0 0 var(--bw) var(--line);
+}
+
+/* disabled: dashed and faint, never faded; the help says why. Last, so it
+   beats every state above. */
+.checkbox__input:disabled {
+  --lift: 0;
+  --shadow-press: inset 0 0 0 0 transparent;
+  background-color: color-mix(in srgb, var(--ink-faint) calc(var(--fill) * 100%), transparent);
+  border-style: dashed;
+  border-color: var(--ink-faint);
+}
+
+.checkbox__label:has(> .checkbox__input:disabled) {
+  color: var(--ink-faint);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   Fills and shadows vanish here, and the glyph is a background. So the box
+   paints its own system colours: checked and mixed fill with Highlight and
+   keep their glyph, invalid gets a 4px frame, disabled is GrayText. */
+
+@media (forced-colors: active) {
+  .checkbox__input {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background-color: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .checkbox__input:is(:checked, :indeterminate) {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .checkbox__input:focus-visible,
+  .checkbox__input.is-focus {
+    outline-color: CanvasText;
+  }
+
+  .checkbox__input:is(.is-hover, .is-active),
+  .checkbox__label:active > .checkbox__input:not(:disabled) {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .checkbox__label:hover > .checkbox__input:not(:disabled) {
+      border-color: Highlight;
+    }
+  }
+
+  .checkbox__input[aria-invalid]:not([aria-invalid="false"]),
+  .checkbox-group:has(> .field__error:not([hidden])) .checkbox__input {
+    border-width: var(--bw-heavy);
+  }
+
+  .checkbox__input:disabled {
+    color: GrayText;
+    background-color: Canvas;
+    border-color: GrayText;
+  }
+
+  .checkbox__label:has(> .checkbox__input:disabled) {
+    color: GrayText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Radio — wave 2. Spec: elements/radio.md · page: elements/radio.html
+
+   One choice from a short list, two to six. Native radios, restyled: a 24px
+   circle with a 2px frame and a 10px ink dot when chosen, inside a <label>
+   that is the 44px target. Always in a fieldset with a legend; one name per
+   group, so the group is one tab stop and the arrow keys move the choice.
+
+     <fieldset class="radio-group">
+       <legend class="field__label">Card order</legend>
+       <div class="radio">
+         <label class="radio__label">
+           <input class="radio__input" type="radio" name="order" value="in-order" checked>
+           In order
+         </label>
+       </div>
+       …
+     </fieldset>
+
+   House rules for this file
+   · Round: it acts (rule 3), and every platform draws a radio as a circle.
+   · The same two numbers as the checkbox. --lift is a hard shadow (hover,
+     focus). --fill is the circle's ground, ink only while pressed. Chosen is
+     the dot, a shape, not a colour.
+   · Help and errors are Field's: .field__help and .field__error on the group,
+     .radio__help under one option.
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.radio {
+  --radio-size: 1.5rem; /* the circle: 24px, one line of body text */
+  --radio-gap: var(--space-3);
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-inline-size: 0;
+}
+
+/* the target: at least 44px tall, as wide as its words */
+.radio__label {
+  position: relative;
+  display: block;
+  max-inline-size: 100%;
+  min-block-size: var(--hit);
+  padding-block: calc((var(--hit) - var(--radio-size)) / 2);
+  padding-inline-start: calc(var(--radio-size) + var(--radio-gap));
+  font: var(--type-body);
+  color: var(--ink);
+  overflow-wrap: break-word;
+  cursor: default; /* the hand is for links only, as on the Mac */
+  touch-action: manipulation;
+}
+
+/* the circle, on the first line of the words */
+.radio__input {
+  --lift: 0;
+  --fill: 0;
+  --shadow-lift: calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--line);
+  --shadow-invalid: inset 0 0 0 0 transparent;
+
+  position: absolute;
+  inset-block-start: calc((var(--hit) - var(--radio-size)) / 2);
+  inset-inline-start: 0;
+  display: grid;
+  inline-size: var(--radio-size);
+  block-size: var(--radio-size);
+  margin: 0;
+  /* the dot: ink on paper, paper on the pressed ink */
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper)) padding-box;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-invalid), var(--shadow-lift);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the dot: 10px, centred, so 5px of ground shows round it */
+.radio__input::before {
+  content: "";
+  place-self: center;
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  background: currentColor;
+  border-radius: var(--radius-pill);
+  visibility: hidden;
+}
+
+.radio__input:checked::before {
+  visibility: visible;
+}
+
+/* help under one option, in line with its words. Outside the label, so it
+   isn't part of the name: aria-describedby ties it to the input. */
+.radio__help {
+  max-inline-size: var(--measure);
+  padding-inline-start: calc(var(--radio-size) + var(--radio-gap));
+  padding-block-end: var(--space-2);
+  font: var(--type-meta);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* --- group ------------------------------------------------------------------
+   Always a fieldset: the legend is the question, and screen readers read it
+   with each option. Field's label, help and error, in Field's order, then the
+   options. Floating the legend makes it a flex item, so the gap applies. */
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.radio-group > legend {
+  float: left;
+  inline-size: 100%;
+  padding: 0;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from :hover, :focus-visible, :active, :checked and
+   :disabled, and from the group's error. */
+
+@media (hover: hover) {
+  .radio__label:hover > .radio__input:not(:disabled) {
+    --lift: 1;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, round like the circle */
+.radio__input:is(:focus-visible, .is-hover, .is-focus) {
+  --lift: 1;
+}
+
+.radio__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: down onto the page, and the circle inks over. A solid disc, so it
+   can't be read as chosen (a dot on paper); a chosen dot turns paper. */
+.radio__label:active > .radio__input:not(:disabled),
+.radio__input.is-active {
+  --lift: 0;
+  --fill: 1;
+}
+
+/* invalid: a whole group is wrong (nothing chosen), so every circle's frame
+   doubles while the group's error shows. The fieldset's aria-describedby
+   points at the error; a radio has no aria-invalid of its own. */
+.radio-group:has(> .field__error:not([hidden])) .radio__input {
+  --shadow-invalid: inset 0 0 0 var(--bw) var(--line);
+}
+
+/* disabled: dashed and faint, never faded; the help says why. Last. */
+.radio__input:disabled {
+  --lift: 0;
+  --fill: 0;
+  color: var(--ink-faint);
+  background-color: transparent;
+  border-style: dashed;
+  border-color: var(--ink-faint);
+}
+
+.radio__label:has(> .radio__input:disabled) {
+  color: var(--ink-faint);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The ground and the shadows vanish, and the dot is a background, so the
+   circle paints system colours: the dot in Highlight, invalid as a 4px
+   frame, disabled in GrayText. */
+
+@media (forced-colors: active) {
+  .radio__input {
+    forced-color-adjust: none;
+    color: Highlight;
+    background-color: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .radio__input:focus-visible,
+  .radio__input.is-focus {
+    outline-color: CanvasText;
+  }
+
+  .radio__input:is(.is-hover, .is-active),
+  .radio__label:active > .radio__input:not(:disabled) {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .radio__label:hover > .radio__input:not(:disabled) {
+      border-color: Highlight;
+    }
+  }
+
+  .radio-group:has(> .field__error:not([hidden])) .radio__input {
+    border-width: var(--bw-heavy);
+  }
+
+  .radio__input:disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .radio__label:has(> .radio__input:disabled) {
+    color: GrayText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Switch — wave 2. Spec: elements/switch.md · page: elements/switch.html
+
+   A setting that takes effect at once. A native checkbox with role="switch",
+   restyled as a pill track and a circle knob, with "On" or "Off" in words
+   beside it. The settings row: the words lead, the switch trails, and the
+   whole row is the <label>, the target.
+
+     <div class="switch">
+       <label class="switch__label">
+         <span class="switch__text">Shuffle cards</span>
+         <span class="switch__control">
+           <input class="switch__input" type="checkbox" role="switch" checked>
+           <span class="switch__state" aria-hidden="true">
+             <span class="switch__on">On</span><span class="switch__off">Off</span>
+           </span>
+         </span>
+       </label>
+     </div>
+
+   House rules for this file
+   · A pill and a circle: it acts (rule 3).
+   · Never inside a form with a Save button. A switch that waits for Save is a
+     checkbox.
+   · On never leans on colour: the knob moves to the end, the track fills and
+     the word changes. The state words are aria-hidden: role="switch" already
+     says on or off, and the name must not change with the state.
+   · --fill is the track's ground (ink when on, or while pressed); the knob
+     takes the other colour. --lift is a hard shadow: hover and focus.
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.switch {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+/* the row, and the target. 8px above and below the 28px track makes 44px.
+   When the words and the switch can't share a line (a phone at large text
+   sizes) the switch drops below, still at the end. */
+.switch__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-block-size: var(--hit);
+  padding-block: var(--space-2);
+  font: var(--type-body);
+  color: var(--ink);
+  overflow-wrap: break-word;
+  cursor: default; /* the hand is for links only, as on the Mac */
+  touch-action: manipulation;
+}
+
+/* the words take what's left; they wrap between words before the switch
+   gives up its place on the line */
+.switch__text {
+  flex: 1 1 0%;
+  min-inline-size: min(100%, 4em);
+}
+
+/* the track and its word, kept together, at the end of the row */
+.switch__control {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3); /* clear of the focus ring, which stands 6px off the track */
+  margin-inline-start: auto;
+}
+
+/* "On" and "Off" share one cell, so the track never shifts when it flips.
+   In the markup after the input (so ~ and + can read :checked), drawn before. */
+.switch__state {
+  display: inline-grid;
+  order: -1;
+  font: var(--type-meta);
+  color: var(--ink-soft);
+}
+
+.switch__state > * {
+  grid-area: 1 / 1;
+  text-align: end;
+}
+
+.switch__input:checked + .switch__state > .switch__off,
+.switch__input:not(:checked) + .switch__state > .switch__on {
+  visibility: hidden;
+}
+
+/* the track: 52 by 28, a pill. Its content box is the knob's lane. */
+.switch__input {
+  --lift: 0;
+  --fill: 0;
+  --shadow-lift: calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--line);
+
+  display: inline-grid;
+  flex: none;
+  align-items: center;
+  justify-items: start;
+  inline-size: 3.25rem;
+  block-size: 1.75rem;
+  margin: 0;
+  padding: var(--bw);
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--paper)) padding-box;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lift);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the knob: a 20px circle in the other colour, at the start when off */
+.switch__input::before {
+  content: "";
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  border-radius: var(--radius-pill);
+}
+
+/* on: the track fills and the knob goes to the end (logical, so it follows
+   the writing direction) */
+.switch__input:checked {
+  --fill: 1;
+  justify-items: end;
+}
+
+/* help under the row, in line with the words */
+.switch__help {
+  max-inline-size: var(--measure);
+  padding-block-end: var(--space-2);
+  font: var(--type-meta);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from :hover, :focus-visible, :active, :checked and
+   :disabled. There is no invalid: a switch has no wrong answer. */
+
+@media (hover: hover) {
+  .switch__label:hover .switch__input:not(:disabled) {
+    --lift: 1;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, a pill like the track */
+.switch__input:is(:focus-visible, .is-hover, .is-focus) {
+  --lift: 1;
+}
+
+.switch__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: down onto the page, the track fills, and the knob stretches
+   towards where it's going, as a thumb squashes it */
+.switch__label:active .switch__input:not(:disabled),
+.switch__input.is-active {
+  --lift: 0;
+  --fill: 1;
+}
+
+.switch__label:active .switch__input:not(:disabled)::before,
+.switch__input.is-active::before {
+  inline-size: 1.625rem;
+}
+
+/* disabled: dashed and faint, never faded; the help says why. Last. */
+.switch__input:disabled {
+  --lift: 0;
+  background-color: color-mix(in srgb, var(--ink-faint) calc(var(--fill) * 100%), transparent);
+  border-style: dashed;
+  border-color: var(--ink-faint);
+}
+
+.switch__input:disabled::before {
+  inline-size: 1.25rem;
+  background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink-faint));
+}
+
+.switch__label:has(.switch__input:disabled),
+.switch__input:disabled + .switch__state {
+  color: var(--ink-faint);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The fill and the shadow vanish, so the track paints system colours: on is
+   a Highlight track with the knob at the end, off a framed track with the
+   knob at the start. The position and the word carry it either way. */
+
+@media (forced-colors: active) {
+  .switch__input {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .switch__input::before {
+    background: CanvasText;
+  }
+
+  .switch__input:checked {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .switch__input:checked::before {
+    background: HighlightText;
+  }
+
+  .switch__input:focus-visible,
+  .switch__input.is-focus {
+    outline-color: CanvasText;
+  }
+
+  .switch__input:not(:checked):is(.is-hover, .is-active),
+  .switch__label:active .switch__input:not(:disabled):not(:checked) {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .switch__label:hover .switch__input:not(:disabled):not(:checked) {
+      border-color: Highlight;
+    }
+  }
+
+  .switch__input:disabled {
+    background-color: Canvas;
+    border-color: GrayText;
+  }
+
+  .switch__input:disabled::before {
+    background: GrayText;
+  }
+
+  .switch__label:has(.switch__input:disabled),
+  .switch__input:disabled + .switch__state {
+    color: GrayText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Segmented — wave 2. Spec: elements/segmented.md · page: elements/segmented.html
+   --------------------------------------------------------------------------
+   One of two to four views or modes, side by side: a radio group drawn as
+   joined pills. It switches how one thing is shown and never navigates
+   (sections of a screen are Tabs, wave 3).
+
+     <fieldset class="segmented">
+       <legend class="segmented__legend">Show decks as</legend>
+       <div class="segmented__track">
+         <label class="segmented__option">
+           <input class="segmented__input" type="radio" name="view" value="grid" checked>
+           <span class="segmented__label">Grid</span>
+         </label>
+         <label class="segmented__option">
+           <input class="segmented__input" type="radio" name="view" value="list">
+           <span class="segmented__label">List</span>
+         </label>
+       </div>
+     </fieldset>
+
+   House rules for this file
+   · Native radios: the arrows move the choice and the group is one tab stop.
+     Each radio is stretched over its option and draws nothing; the span after
+     it is what you see. So every state is a sibling selector
+     (input:checked + .segmented__label) and needs no :has().
+   · It acts, so its ends are round (rule 3). The frame is on the segments,
+     not round the track, so each 44px target includes its frame.
+   · Chosen is --fill: ink ground, paper words. Never a colour alone; forced
+     colours keep it as the system's Highlight.
+   · When the options can't sit side by side they come apart into separate
+     pills, one per row (the container queries at the end of the file).
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.segmented {
+  container: segmented / inline-size;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* --- parts ----------------------------------------------------------------- */
+
+/* Field's label, as a legend: sentence case, because it's read. It may be
+   visually hidden (.sr-only) where the options name themselves. */
+.segmented__legend {
+  float: none;
+  padding: 0;
+  margin-block-end: var(--space-2);
+  font: var(--type-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Field's help goes between the legend and the options, in Field's order */
+.segmented > .field__help {
+  margin-block-end: var(--space-2);
+}
+
+/* the row. Equal columns, as wide as the widest option. Round, so the focus
+   ring (which follows the radius) goes round the pill. */
+.segmented__track {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  max-inline-size: 100%;
+  vertical-align: top;
+  border-radius: var(--radius-pill);
+}
+
+/* the target: a label around the radio and the segment */
+.segmented__option {
+  position: relative;
+  display: grid;
+  min-inline-size: 0;
+  cursor: pointer;
+}
+
+/* the radio, stretched over the option and drawn as nothing. On top, so a
+   click lands on it; transparent, so the segment shows through. */
+.segmented__input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  background: none;
+  border: 0;
+  cursor: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the segment: what you see. Neighbours share one 2px divider: each segment
+   draws its start edge, and the last one closes the row. */
+.segmented__label {
+  --fill: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: var(--hit);
+  padding: var(--space-1) var(--space-4);
+  font: var(--type-body);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  text-align: center;
+  overflow-wrap: break-word; /* the last resort: options come apart long before this */
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), var(--segmented-ground, var(--paper)));
+  border: var(--bw) solid var(--line);
+  border-inline-end-width: 0;
+}
+
+.segmented__option:first-child > .segmented__label {
+  border-start-start-radius: var(--radius-pill);
+  border-end-start-radius: var(--radius-pill);
+}
+
+.segmented__option:last-child > .segmented__label {
+  border-inline-end-width: var(--bw);
+  border-start-end-radius: var(--radius-pill);
+  border-end-end-radius: var(--radius-pill);
+}
+
+/* a leading icon sits a little towards the curve, as in a button */
+.segmented__label > .ic:first-child {
+  margin-inline-start: calc(var(--space-1) * -1);
+}
+
+/* full width: the options share the whole row, for a phone */
+.segmented--full .segmented__track {
+  display: grid;
+}
+
+/* --- states ----------------------------------------------------------------
+   .is-* classes force a state for documentation and tests. They are not an
+   API; real states come from :checked, :hover, :focus-visible, :active and
+   :disabled. */
+
+/* chosen: filled. Only one is, and one always is. */
+.segmented__input:checked + .segmented__label {
+  --fill: 1;
+}
+
+/* hover: a quiet change of ground on the options you could pick */
+@media (hover: hover) {
+  .segmented__option:hover > .segmented__input:not(:checked, :disabled) + .segmented__label {
+    --segmented-ground: var(--canvas);
+  }
+}
+
+.segmented__option.is-hover > .segmented__input:not(:checked) + .segmented__label {
+  --segmented-ground: var(--canvas);
+}
+
+/* pressed: filled while the press lasts, so a tap answers before it lands,
+   with Button's "down" ring, 2px of paper inside the frame. The ring keeps it
+   apart from a chosen neighbour, and shows a press on the chosen one too. */
+.segmented__input:active:not(:disabled) + .segmented__label,
+.segmented__option.is-active > .segmented__label {
+  --fill: 1;
+  box-shadow: inset 0 0 0 var(--bw) var(--paper);
+}
+
+/* focus. Joined, the ring goes round the whole pill, 3px out, as round a
+   button: the group is one tab stop, and the fill already says which option
+   is chosen. Apart, it goes round the chosen pill. --segmented-apart (0 or 1)
+   is set by the container queries below. */
+.segmented__input:focus-visible {
+  outline: 0;
+}
+
+.segmented__track:has(.segmented__input:focus-visible) {
+  outline: calc((1 - var(--segmented-apart, 0)) * var(--ring)) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+.segmented__track.is-focus {
+  outline: calc((1 - var(--segmented-apart, 0)) * var(--ring)) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+.segmented__input:focus-visible + .segmented__label {
+  outline: calc(var(--segmented-apart, 0) * var(--ring)) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* without :has() there's no ring on the track: put it inside the segment, in
+   the segment's own ink, so it shows on paper and on the fill */
+@supports not selector(:has(*)) {
+  .segmented__input:focus-visible + .segmented__label {
+    outline: var(--ring) solid currentColor;
+    outline-offset: calc(var(--ring) * -2);
+  }
+}
+
+/* disabled: dashed and faint, as a disabled button. One option: skipped by
+   the arrows, and the help says why. The whole group (fieldset disabled):
+   the chosen one keeps a faint fill, so you can still see what's set. */
+.segmented__option:has(.segmented__input:disabled) {
+  cursor: default;
+}
+
+.segmented__input:disabled + .segmented__label {
+  color: var(--ink-faint);
+  border-style: dashed;
+  border-color: var(--ink-faint);
+}
+
+.segmented__input:checked:disabled + .segmented__label {
+  color: var(--paper);
+  background: var(--ink-faint);
+}
+
+.segmented:disabled .segmented__legend {
+  color: var(--ink-faint);
+}
+
+/* --- coming apart ----------------------------------------------------------
+   Joined pills can't wrap: a pill split over two rows reads as broken. So
+   when the fieldset is too narrow for its options side by side, they come
+   apart: one pill per row, the whole width, 8px between targets. The widths
+   are in em, so they grow with the text: 5.5em an option, 7.25em with an
+   icon, which fits one short word ("Known", 3.2em at weight 600) and its
+   padding. A longer label is squeezed inside its segment before the options
+   come apart, so keep labels to one short word. */
+
+@container segmented (max-width: 11em) {
+  .segmented__track {
+    --segmented-apart: 1;
+    grid-auto-flow: row;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  .segmented__track > .segmented__option > .segmented__label {
+    border-width: var(--bw);
+    border-radius: var(--radius-pill);
+  }
+}
+
+@container segmented (max-width: 16.5em) {
+  .segmented__track:is(:has(> :nth-child(3)), :has(.ic)) {
+    --segmented-apart: 1;
+    grid-auto-flow: row;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  .segmented__track:is(:has(> :nth-child(3)), :has(.ic)) > .segmented__option > .segmented__label {
+    border-width: var(--bw);
+    border-radius: var(--radius-pill);
+  }
+}
+
+@container segmented (max-width: 22em) {
+  .segmented__track:is(:has(> :nth-child(4)), :has(> :nth-child(3) .ic)) {
+    --segmented-apart: 1;
+    grid-auto-flow: row;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  .segmented__track:is(:has(> :nth-child(4)), :has(> :nth-child(3) .ic)) > .segmented__option > .segmented__label {
+    border-width: var(--bw);
+    border-radius: var(--radius-pill);
+  }
+}
+
+@container segmented (max-width: 29em) {
+  .segmented__track:has(> :nth-child(4) .ic) {
+    --segmented-apart: 1;
+    grid-auto-flow: row;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  .segmented__track:has(> :nth-child(4) .ic) > .segmented__option > .segmented__label {
+    border-width: var(--bw);
+    border-radius: var(--radius-pill);
+  }
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The fill is a background, and backgrounds go here. Chosen becomes the
+   system's selection colours; disabled is GrayText, and a chosen disabled
+   option keeps a GrayText fill. The focus ring is an outline and survives. */
+
+@media (forced-colors: active) {
+  .segmented__label {
+    border-color: ButtonText;
+  }
+
+  .segmented__input:is(:checked, :active) + .segmented__label,
+  .segmented__option.is-active > .segmented__label {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+  }
+
+  .segmented__input:is(:checked, :active) + .segmented__label .ic,
+  .segmented__option.is-active > .segmented__label .ic {
+    background-color: HighlightText;
+  }
+
+  .segmented__input:disabled + .segmented__label {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .segmented__input:disabled + .segmented__label .ic {
+    background-color: GrayText;
+  }
+
+  .segmented__input:checked:disabled + .segmented__label {
+    color: Canvas;
+    background: GrayText;
+    border-color: GrayText;
+  }
+
+  .segmented__input:checked:disabled + .segmented__label .ic {
+    background-color: Canvas;
+  }
+
+  .segmented:disabled .segmented__legend {
+    color: GrayText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Select — wave 2. Spec: elements/select.md · page: elements/select.html
+   --------------------------------------------------------------------------
+   One choice from a long list: a native <select> in Field's frame, with the
+   down glyph. Only the closed control is ours. The phone opens its own
+   picker and the Mac its own menu, and both know their platform better.
+
+     <div class="field">
+       <label class="field__label" for="deck-language">Language</label>
+       <div class="select">
+         <select class="select__input" id="deck-language" name="language">
+           <option lang="en">English</option>
+           <option lang="fr">Français</option>
+         </select>
+         <span class="ic ic--down select__icon" aria-hidden="true"></span>
+       </div>
+     </div>
+
+   House rules for this file
+   · It sits in Field's frame and uses Field's label, help and error, in
+     Field's order. The frame is restated here, value for value, rather than
+     borrowed: a <select> matches :read-only, so .field__input would draw it
+     as a read-only value on a rule.
+   · It holds a value, so it is square, like a field (rule 3). The glyph says
+     it opens; a select is never a pill.
+   · Invalid doubles the frame inwards, as Field does, and .field__error says
+     how to fix it. Disabled is dashed and faint; never opacity.
+   · No appearance: base-select. It would swap the phone's picker and the
+     Mac's menu for one drawn in the page (elements/select.md, Known limits).
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.select {
+  position: relative;
+  min-inline-size: 0;
+}
+
+/* Field's frame: 44px, a 2px square line on paper, 16px text. The end
+   padding keeps the value clear of the glyph. */
+.select__input {
+  display: block;
+  inline-size: 100%;
+  min-block-size: var(--hit);
+  margin: 0;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3) calc(var(--space-3) + 1.25rem + var(--space-2));
+  font: var(--type-body);
+  /* the iOS zoom floor (STYLE §4), restated after the shorthand, as in Field */
+  font-size: max(1rem, 16px);
+  text-overflow: ellipsis;
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-ctl);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* the down glyph, 20px, in the frame's end padding. Clicks go through it. */
+.select__icon {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: calc(var(--bw) + var(--space-3));
+  margin-block: auto;
+  pointer-events: none;
+}
+
+/* --- states ----------------------------------------------------------------
+   .is-* classes force a state for documentation and tests. They are not an
+   API; real states come from :hover, :focus-visible, :active, aria-invalid
+   and :disabled. */
+
+/* hover: Field's quiet change of ground */
+@media (hover: hover) {
+  .select__input:hover:not(:disabled) {
+    background: var(--canvas);
+  }
+}
+
+.select__input.is-hover {
+  background: var(--canvas);
+}
+
+/* pressed: the same ground, so a tap answers too while the picker opens */
+.select__input:active:not(:disabled),
+.select__input.is-active {
+  background: var(--canvas);
+}
+
+/* focus: base.css draws the ring on the select; this forces it for the page */
+.select__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* invalid: the frame doubles, inwards, so nothing shifts. The words above it
+   say how to fix it; aria-describedby ties them to the select. */
+.select__input[aria-invalid]:not([aria-invalid="false"]) {
+  box-shadow: inset 0 0 0 var(--bw) var(--line);
+}
+
+/* disabled: dashed and faint, and the help says why. Never opacity: Safari
+   fades a disabled select on its own. */
+.select__input:disabled {
+  color: var(--ink-faint);
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--ink-faint);
+  opacity: 1;
+}
+
+.select__input:disabled + .select__icon,
+.field:has(.select__input:disabled) .field__label {
+  color: var(--ink-faint);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The doubled frame is a shadow and vanishes here, so it becomes a 4px line. */
+
+@media (forced-colors: active) {
+  .select__input[aria-invalid]:not([aria-invalid="false"]) {
+    border-width: var(--bw-heavy);
+  }
+
+  .select__input:disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .select__input:disabled + .select__icon {
+    background-color: GrayText;
+  }
+
+  .field:has(.select__input:disabled) .field__label {
+    color: GrayText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Stepper — wave 2. Spec: elements/stepper.md · page: elements/stepper.html
+   --------------------------------------------------------------------------
+   A small whole number, one step at a time: Button's 44px circles, − and +,
+   either side of a Field input that can also be typed in.
+
+     <div class="field">
+       <label class="field__label" for="per-session">Cards per session</label>
+       <p class="field__help" id="per-session-help">From 5 to 50, in fives.</p>
+       <div class="stepper">
+         <button class="btn btn--icon stepper__down" type="button" hidden
+                 aria-label="Fewer cards" aria-controls="per-session"
+                 aria-describedby="per-session-help">
+           <span class="ic ic--minus" aria-hidden="true"></span>
+         </button>
+         <input class="field__input stepper__input" id="per-session" type="text"
+                inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off"
+                data-min="5" data-max="50" data-step="5"
+                aria-describedby="per-session-help">
+         <button class="btn btn--icon stepper__up" ...>…ic--plus…</button>
+       </div>
+     </div>
+
+   House rules for this file
+   · Nothing new to draw. The buttons are .btn--icon and the value is
+     .field__input, and each keeps its own states: lift and fill on the
+     circles, Field's frame, ring, invalid and disabled on the value. This
+     file lays them out and sizes the value.
+   · The value holds text, so it stays square; the buttons act, so they are
+     round (rule 3).
+   · The buttons ship hidden. js/components/stepper.js shows them, steps the
+     value and marks a limit; without it this is a number field you type in.
+   · At a limit the button is aria-disabled: dashed, still focusable, and its
+     description (the help) says why.
+   ========================================================================== */
+
+/* a container, so it can reflow by its own width. That width is its
+   parent's; in a row of its own (a settings row) it keeps the room the three
+   need side by side. */
+.stepper {
+  container: stepper / inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: min(100%, 10.5em);
+}
+
+/* the value: wide enough for three digits, centred between the buttons */
+.stepper__input {
+  flex: none;
+  inline-size: calc(3ch + var(--space-3) * 2 + var(--bw) * 2);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* too narrow for all three in a row, which is a small phone at large text
+   (two 44px circles and three digits are about 10em): the value takes the
+   first row, the whole width, and the buttons go under it, one at each end,
+   so − stays left of +. The tab order (−, value, +) is unchanged. */
+@container stepper (max-width: 10.5em) {
+  .stepper__input {
+    order: -1;
+    flex: 1 0 100%;
+  }
+
+  .stepper__up {
+    margin-inline-start: auto;
+  }
+}
+
+/* hidden until the script can make them work (a .btn is inline-flex, which
+   would beat the hidden attribute) */
+.stepper > :is(.stepper__down, .stepper__up)[hidden] {
+  display: none;
+}
+}
+@layer components {
+/* ==========================================================================
+   Form — wave 2. Spec: elements/form.md · page: elements/form.html
+
+   Fields together, and what happens when they're wrong. Form owns the layout
+   (one column, labels above, 24px between fields), the optional mark, the
+   error summary and the submit row. Each field is still its own element:
+   Field, Checkbox, Radio, Select, Stepper.
+
+     <form class="form" action="…">
+       <section class="card form__summary" tabindex="-1" aria-labelledby="…" hidden>…</section>
+       <div class="field">…</div>
+       <fieldset class="radio-group">…</fieldset>
+       <div class="form__actions">
+         <button class="btn btn--quiet" type="button">Cancel</button>
+         <button class="btn btn--primary" type="submit">Create deck</button>
+       </div>
+     </form>
+
+   House rules for this file
+   · Layout only, plus the summary's list. Colours and states belong to the
+     elements inside.
+   · The form is its own container: the submit row stacks by the form's
+     width, not the window's, so a form in a narrow sheet on a Mac behaves
+     like one on a phone.
+   · Errors show only on submit or blur, never while typing. Without script
+     the browser's own validation runs (js/components/form.js).
+   ========================================================================== */
+
+.form {
+  container: form / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-inline-size: 40rem; /* one column of fields; wider and the eye loses the line */
+  min-inline-size: 0;
+}
+
+/* Tab, a tap or a summary link scrolls a control into view: keep its label,
+   help and error in view above it, and room below it for the on-screen
+   keyboard's edge. Six rem is a label, a line of help and an error. */
+.form :is(input, select, textarea) {
+  scroll-margin-block: 6rem var(--space-6);
+}
+
+/* "(optional)", inside the label, so it is part of the name. Required fields
+   carry no mark: most fields are required, so the exceptions are marked. */
+.form__optional {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* --- the error summary -------------------------------------------------------
+   A card at the top. Hidden until a submit finds something wrong; then it
+   lists each problem as a link to its field and takes focus. */
+
+.form__summary {
+  scroll-margin-block: var(--space-4);
+}
+
+/* .card sets display, which would beat the hidden attribute */
+.form__summary[hidden] {
+  display: none;
+}
+
+/* it takes focus from script, after a click as often as a key, so it rings
+   on :focus, not only :focus-visible */
+.form__summary:is(:focus, .is-focus) {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* the links continue the body's rule: a 1px line above the first */
+.form__summary > .card__list {
+  border-block-start: var(--bw-thin) solid var(--card-ink);
+}
+
+.form__summary .card__list a {
+  text-decoration: underline;
+  text-decoration-thickness: var(--bw-thin);
+  text-underline-offset: 0.2em;
+}
+
+/* --- the submit row ----------------------------------------------------------
+   Narrow (a phone): full width, primary on top, Cancel under it. Wide:
+   primary last, at the end of the row, as on the Mac and iOS. The markup
+   order is the wide one (Cancel, then the primary), so Tab follows the row
+   where a keyboard is most likely. */
+
+.form__actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+@container form (min-width: 30rem) {
+  .form__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+  }
+}
+
+/* --- inline: one field and its button on one line ----------------------------
+   Rename deck. The button lines up with the input, below the label and any
+   error; when they can't share a line, the button drops under the field. */
+
+.form--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.form--inline > .field {
+  flex: 1 1 14rem;
+}
+
+.form--inline > .btn {
+  flex: none;
 }
 }
 @layer wire {
@@ -3271,6 +4665,10 @@ textarea.field__input {
   /* seven letters, not five: the poster line steps down to stay on a phone */
   .sg-display--long {
     font-size: min(var(--sg-text-display), 14vw);
+  }
+
+  .sg-display--longer {
+    font-size: min(var(--sg-text-display), 12vw);
   }
 
   :root:has(#labels-off:checked) .wf-slot::before {
