@@ -16,7 +16,7 @@
    ========================================================================== */
 "use strict";
 
-var VERSION = "7d426135ca"; // stamped by tools/bundle.mjs: don't edit
+var VERSION = "22c1c9d761"; // stamped by tools/bundle.mjs: don't edit
 var SHELL = [
   "./",
   "decks.html",

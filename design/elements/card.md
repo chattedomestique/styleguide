@@ -253,8 +253,8 @@ Cards answer to their own width, not the window:
   the card clips at its padding box. Safari ignores it, leaving a 2px band at the very edge
   of a link card where a click does nothing.
 - Text inside a link card can't be selected by dragging, because the stretched link sits on top.
-- The flip needs `:has()` and 3D transforms. Without `:has()` the two faces stack, front then
-  back, and the answer shows; the button does nothing.
+- The flip needs `:has()` and 3D transforms. Without `:has()` the back stays turned away, so the
+  answer can't be reached; every browser in the baseline has `:has()`, so it's a limit on paper.
 - Chromium was checked; Safari's 3D compositing of a clipped face inside `preserve-3d` wasn't.
 - A screen reader is told the box is checked; it isn't told the answer arrived. The answer is
   next in reading order, after the button.

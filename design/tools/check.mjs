@@ -288,8 +288,17 @@ const MOTION = {
           continue;
         }
       }
+      /* the timing tokens are foundation.css's, so nobody can redefine one as a literal */
+      if (/^--(dur|ease)-/.test(prop) && !isFoundation) {
+        problems.push(`${at(index)} ${prop} is defined here: durations and easings are defined in tokens/foundation.css only`);
+      }
       if (!/^(transition|animation)(-|$)/.test(prop)) continue;
       if (!moves || index < moves.index) moves = { index, what: prop };
+
+      /* nothing loops: WCAG 2.2.2, anything moving by itself past 5 s needs a way to stop it */
+      if (/^animation(-iteration-count)?$/.test(prop) && /\binfinite\b/.test(value)) {
+        problems.push(`${at(index)} ${prop}: infinite: nothing loops; give it a count that ends within five seconds (WCAG 2.2.2)`);
+      }
 
       /* tokens only */
       for (const v of value.matchAll(/var\(\s*(--[\w-]+)/g)) {

@@ -356,7 +356,9 @@ a half, 300ms.
   (a fill that crossfades, never a sliding thumb), the Tabs bar (it changes with the panel), List
   swipe (the More button is the route), a Banner (a band pushing content down is layout), and
   anything on load.
-- **Nothing moves on load, and nothing loops** except a spinner while it's shown. States are
+- **Nothing moves on load, and nothing loops.** A spinner turns for about four seconds once it's
+  shown (one slow turn under reduced motion) and then rests, so nothing moves by itself for more
+  than five seconds (WCAG 2.2.2); its words carry a longer wait. States are
   transitions, which never run for the first style; a state set in markup (`.is-*`, `checked`,
   `open`) is simply there. The Flip button has `autocomplete="off"`, so a reload never restores
   a turned card.

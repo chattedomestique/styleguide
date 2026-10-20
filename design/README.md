@@ -135,8 +135,11 @@ Zero dependencies. Exits 1 on any of these, with the file and line:
    as the first family;
 4. a literal border width, or a radius outside the three roles (`--radius-card`, `-tile`,
    `-ctl`, plus `-pill`);
-5. `transition`, `animation` or `@keyframes` in a component while gate 4 is closed
-   (`GATES.motion` at the top of the file);
+5. motion outside the rules (`STYLE.md` §2 Motion): a `transition`, `animation` or
+   `@keyframes` that moves anything but `transform`, `opacity`, `--lift`, `--fill`, `display`
+   or `overlay` (two named exceptions, each scoped to one file), `all`, a literal duration or
+   easing outside `foundation.css`, a `--dur-*` or `--ease-*` defined anywhere else, an
+   `infinite` animation, or a file that animates with no `prefers-reduced-motion` block;
 6. a component that reaches for `.wf-*`, or anything outside the colour file that reads a
    `--grey-N` primitive;
 7. a token or class named in `STYLE.md`, this file or an element's spec that doesn't exist in

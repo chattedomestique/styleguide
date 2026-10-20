@@ -722,17 +722,17 @@
     }, 0);
   }
   // the fade out has ended, or should have (no transitionend comes where
-  // there is no transition, or it is cut short): then fn, once
+  // there is no transition, or it is cut short): then fn, once. Not on
+  // transitioncancel: a dismiss during the entrance cancels the fade in,
+  // and the fade out still has to run; the timer covers a real cut.
   function gone(el, fn) {
     var timer, end = function (e) {
       if (e && (e.target !== el || e.propertyName !== "opacity")) return;
       clearTimeout(timer);
       el.removeEventListener("transitionend", end);
-      el.removeEventListener("transitioncancel", end);
       fn();
     };
     el.addEventListener("transitionend", end);
-    el.addEventListener("transitioncancel", end);
     timer = setTimeout(end, ms(getComputedStyle(el).transitionDuration));
   }
 

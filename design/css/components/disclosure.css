@@ -99,9 +99,16 @@
    content-visibility is the discrete half that keeps the body drawn while
    it closes. Both are check 5's named exception, here and only here.
    Elsewhere the body opens in place. */
-@supports (interpolate-size: allow-keywords) and selector(::details-content) {
+@supports (interpolate-size: allow-keywords) and selector(::details-content) and (interactivity: inert) {
   .disclosure {
     interpolate-size: allow-keywords;
+  }
+
+  /* while it closes it is still drawn: keep it out of Tab and the
+     accessibility tree from the moment it starts closing, or focus could
+     land inside and fall to <body> when it goes */
+  .disclosure:not([open])::details-content {
+    interactivity: inert;
   }
 
   .disclosure::details-content {

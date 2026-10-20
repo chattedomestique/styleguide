@@ -151,8 +151,9 @@
      ms, s or cubic-bezier() anywhere else. Derive from these with calc()
      (the spinner turns in two moves, the loading delay is a hover and a
      half), never a new number.
-       --dur-press  a press lands: :active, within it; an overlay leaves (leaving is
-                    quicker than arriving)
+       --dur-press  a press lands: :active, within it; a dialog or menu leaves
+                    (leaving is quicker than arriving; a sheet or toast, which
+                    travel further, leave over --dur-hover)
        --dur-hover  hover, focus and release: the state numbers settle
        --dur-move   something travels: the flip, the Disclosure body
        --dur-fade   reduced motion: the crossfade that stands in for a move,
@@ -2532,8 +2533,12 @@ textarea.field__input {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 3a9 9 0 1 0 9 9'/%3E%3C/svg%3E")
     center / contain no-repeat;
   /* one turn in two moves (about a second), at a constant rate: a turn
-     that eased would look like it stalls */
-  animation: spinner-turn calc(var(--dur-move) * 2) linear infinite;
+     that eased would look like it stalls. Four turns, about four seconds,
+     then it rests: anything that moves by itself for more than five
+     seconds beside other content needs a way to stop it (WCAG 2.2.2), and
+     a spinner has none. The words carry the wait from there; a long one
+     changes them (states.md). */
+  animation: spinner-turn calc(var(--dur-move) * 2) linear 4;
 }
 
 @keyframes spinner-turn {
@@ -2554,6 +2559,7 @@ textarea.field__input {
 
   .spinner::before {
     animation-duration: calc(var(--dur-move) * 6);
+    animation-iteration-count: 1; /* one slow turn: about three seconds */
   }
 }
 
@@ -5515,9 +5521,16 @@ a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail 
    content-visibility is the discrete half that keeps the body drawn while
    it closes. Both are check 5's named exception, here and only here.
    Elsewhere the body opens in place. */
-@supports (interpolate-size: allow-keywords) and selector(::details-content) {
+@supports (interpolate-size: allow-keywords) and selector(::details-content) and (interactivity: inert) {
   .disclosure {
     interpolate-size: allow-keywords;
+  }
+
+  /* while it closes it is still drawn: keep it out of Tab and the
+     accessibility tree from the moment it starts closing, or focus could
+     land inside and fall to <body> when it goes */
+  .disclosure:not([open])::details-content {
+    interactivity: inert;
   }
 
   .disclosure::details-content {
@@ -8144,6 +8157,21 @@ dialog.sheet:not([open])::backdrop {
                 <b>--hit</b> 44px. The drawn thing can be smaller; the target can't.<br /><br />
                 <b>--ring</b> 3px, offset 3px. Inside a card the offset drops to 2px or goes
                 negative, because the card clips.
+              </p>
+            </div>
+          </div>
+
+          <div class="sg-box">
+            <div class="sg-box__head"><span>Motion</span><span>transform and opacity only</span></div>
+            <div class="sg-box__body">
+              <p class="sg-spec">
+                <b>--dur-press</b> 130ms · a press lands<br />
+                <b>--dur-hover</b> 200ms · hover, focus and release settle<br />
+                <b>--dur-move</b> 520ms · something travels: the flip, a sheet<br />
+                <b>--dur-fade</b> 150ms · reduced motion's crossfade<br />
+                <b>--ease-out</b> settles · <b>--ease-flip</b> turns<br /><br />
+                Focus is instant. Nothing moves on load or loops. Reduced motion is gentler, not
+                instant.
               </p>
             </div>
           </div>
@@ -22601,17 +22629,17 @@ dialog.sheet:not([open])::backdrop {
     }, 0);
   }
   // the fade out has ended, or should have (no transitionend comes where
-  // there is no transition, or it is cut short): then fn, once
+  // there is no transition, or it is cut short): then fn, once. Not on
+  // transitioncancel: a dismiss during the entrance cancels the fade in,
+  // and the fade out still has to run; the timer covers a real cut.
   function gone(el, fn) {
     var timer, end = function (e) {
       if (e && (e.target !== el || e.propertyName !== "opacity")) return;
       clearTimeout(timer);
       el.removeEventListener("transitionend", end);
-      el.removeEventListener("transitioncancel", end);
       fn();
     };
     el.addEventListener("transitionend", end);
-    el.addEventListener("transitioncancel", end);
     timer = setTimeout(end, ms(getComputedStyle(el).transitionDuration));
   }
 

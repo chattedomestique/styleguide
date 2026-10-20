@@ -21,7 +21,7 @@ Sheet's own spec.
     detents: Motion, below.)
   - Copy: Add a card (a form), Deck options (an action sheet).
 - **Wave 4's shared notes:** as Dialog's (native, focus in and back, Escape, inert page, the
-  scrim, its frame under forced colours, no motion until gate 4).
+  scrim, its frame under forced colours; motion from wave 7, below).
 
 ## House rules
 
