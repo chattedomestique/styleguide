@@ -35,6 +35,9 @@ Frame's own spec.
 - **The frame is a container** (`container: frame / inline-size`). It re-points `--gutter` to
   `clamp(1rem, 0.6rem + 1.6cqi, 1.75rem)`, the same formula as the root's with `cqi` for `vw`,
   so wherever it's used inside, the gutter follows the frame's width, not the window's.
+- **The keyboard takes the Tab bar's room.** While the on-screen keyboard is up, the Tab bar
+  hides so the field has the room; nothing else hides, and without script nothing does
+  (Keyboard, below).
 - **No motion.** Bars don't hide on scroll, a large title doesn't collapse, nothing slides
   (gate 4).
 
@@ -65,8 +68,28 @@ wrapping, a rotation, a hidden tab bar). The study card's `max-inline-size` read
 (`100cqb`), but then it is the query container for everything inside (the device frames' own
 `cqb` re-pointing breaks) and it gains layout containment, so `position: fixed` inside scrolls
 with it. And CSS has no way to put a content-sized bar's height into a property
-(`anchor-size()` only sizes absolutely positioned boxes, and isn't in Firefox). The script is
-under 50 lines, comments included.
+(`anchor-size()` only sizes absolutely positioned boxes, and isn't in Firefox). The script,
+keyboard included, is about 70 lines, comments included.
+
+**Keyboard.** The same script puts `data-keyboard` on the frame that holds the focused field while
+the on-screen keyboard is up, and `frame.css` hides the Tab bar under it:
+
+    .frame[data-keyboard] > .frame__bottom.tabbar { display: none; }
+
+No browser says the keyboard is up, but each shows it as lost height: iOS shrinks the visual
+viewport over the page; Android Chrome, with `interactive-widget=resizes-content` in the viewport
+meta, shrinks the page itself. So "up" is: a field that brings up the keyboard has focus (an
+`input` of type text, search, email, url, tel, password or number, a `textarea`, or
+`contenteditable`; not read-only, disabled or `inputmode="none"`), and the viewport
+(`visualViewport.height × scale`, else `innerHeight`) is more than 150px shorter than the tallest
+it has been at the current width. The width is the key, so a rotation never counts; the scale
+means a pinch zoom doesn't either. It's checked on focus moving in or out and on every resize;
+the bar is back on blur or when the height returns. A focused task's action row stays: it holds
+what the typing is for. The scroll padding needs nothing more: where the page shrinks, the region
+ends at the keyboard and a field scrolled into view stops 48px short of it.
+`navigator.virtualKeyboard` isn't used: its geometry only arrives with `overlaysContent` on,
+which lays the keyboard over the page, the opposite of `resizes-content`. The patterns page
+(`elements/pwa.md`, Keyboard) has the measurements.
 
 **`--frame-column`.** A hook, unset by default (the content fills the frame). Set it on the
 scroll region, or anything above it, to cap the content column and centre it: `var(--measure)`
@@ -95,7 +118,7 @@ A frame doesn't press, lift or fill. Its states are about room.
 | Focus at an edge | Tab moves focus into the scroll region | The browser scrolls the focused element into view, stopping 16px short of the top bar and 48px short of the bottom one (`scroll-padding-block`), so its ring shows. Bars sit above the region (`z-index: 1`); their own rings are never cut. |
 | Large text | Text at 150–200% | Bars grow taller, never wider (Top bar puts its title on its own row; Tab bar wraps an item to a second row). `--chrome` is measured again, the card shrinks to fit. |
 | Narrow | Frame under 45rem, wide variant | Sidebar folded away, Tab bar shown. |
-| Keyboard up | A text field focused on a touch screen | The Tab bar hides (`tabbar.md`); the frame's room grows by its height. |
+| Keyboard up | `data-keyboard`, set by `frame.js`: a text field focused and the viewport 150px or more shorter | The Tab bar hides; the region gets its room, and `--chrome` is measured again. Back on blur, or when the height returns. Without script, nothing changes. |
 | Forced colours | `(forced-colors: active)` | The bars' rules are system `CanvasText` (each bar sets its own). The frame draws nothing that needs a fill. |
 
 ## Accessibility
@@ -116,10 +139,13 @@ A frame doesn't press, lift or fill. Its states are about room.
 
 - **Installed PWA:** the viewport meta needs `viewport-fit=cover`, or every safe area is 0. The
   frame is the one thing in `dvh` (§4). Standalone has no browser back, so every screen past the
-  root has a top bar with a back link. The on-screen keyboard: the Tab bar hides while a field
-  has focus; keeping the focused field above the keyboard with `interactive-widget` and
-  `visualViewport` is wave 5's. A landscape phone at large text has little room left under its
-  bars; orientation is wave 5's too.
+  root has a top bar with a back link. The on-screen keyboard: the viewport meta adds
+  `interactive-widget=resizes-content`, so on Android the frame ends at the keyboard and the
+  scroll padding keeps the field above it; the Tab bar hides while the keyboard is up (Keyboard,
+  above). On iOS the keyboard lies over the page and Safari pans to the field. Both need a device
+  to confirm. Any orientation: the bars and the region pad by the side safe areas when a phone is
+  on its side, and a landscape phone at large text has little room under its bars, so the content
+  scrolls (`elements/pwa.md`, Orientation and tablets).
 - **Mac:** the toolbar and sidebar are system chrome (§4). In a web shell the window's content is
   a frame with no bars: just the scroll region (`screens.html` shows it). Resizing the window
   resizes the frame and its gutter; no text changes size.
@@ -133,7 +159,9 @@ A frame doesn't press, lift or fill. Its states are about room.
 
 - **Do** use one frame per screen, first in `<body>` after the skip link, with the scroll region
   as `<main>`.
-- **Do** load `dist/flashcards.js` wherever a screen reads `--chrome`.
+- **Do** load `dist/flashcards.js` wherever a screen reads `--chrome`, or should lose its Tab bar
+  to the keyboard.
+- **Do** add `interactive-widget=resizes-content` to the viewport meta.
 - **Do** set `--frame-column: var(--measure)` on a reading screen in a wide frame.
 - **Don't** let the page scroll behind the frame, or put a second scroller inside it unless it's
   a pane.
@@ -159,7 +187,14 @@ A frame doesn't press, lift or fill. Its states are about room.
 - At 200% text on an 844-point phone the bars take a lot: on `screens.html`'s Study screen,
   514px of 840 (658px with the scroll region's padding), so the study card no longer fits and
   the stage scrolls. The bars grow
-  because their text must stay readable (see `tabbar.md`); the trade-off for landscape and small
-  phones is wave 5's.
+  because their text must stay readable (see `tabbar.md`). On a landscape or small phone the
+  trade-off stands: the content scrolls, the bars never do (`elements/pwa.md`, Orientation and
+  tablets).
+- The keyboard is seen only as lost height, emulated in Chromium and not yet checked on a device.
+  On iOS the frame keeps its full height under the keyboard, so the hidden bar was under it anyway
+  and a field low on a long form relies on Safari's panning; sizing the frame to
+  `visualViewport.height` while the keyboard is up would fix that, and needs a device to prove.
+  Rotating with the keyboard already up takes the new width's first height as its full height, so
+  the bar stays until the keyboard goes down and comes back.
 - `--safe-left` and `--safe-right` are physical. In a right-to-left wide frame the sidebar is on
   the right, and the frame zeroes the wrong one.

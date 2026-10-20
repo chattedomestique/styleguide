@@ -70,7 +70,7 @@ paper ring inside. Here draws `--shadow-select`, a 2px ring outside a 2px frame.
 | Here | `aria-current="page"` | | | The indicator's frame shows and doubles (`--shadow-select: 0 0 0 2px`). Lift and fill still work on top. |
 | Here, focused | both | 1 | 1 | Frame, fill, and the ring with a 3px gap: focus never looks like here. |
 | Large text | an item won't fit beside the others | | | It wraps to a second row; the bar grows taller. |
-| Keyboard up | a text field has focus, on a touch screen | | | `display: none` (below). |
+| Keyboard up | `.frame[data-keyboard]`, set by `frame.js` | | | `display: none` (below). |
 | Forced colours | `(forced-colors: active)` | | | The rule is `CanvasText`. Here: the indicator's frame goes to 4px in `CanvasText`. Hover and focus: a 4px `Highlight` outline. Pressed: `Highlight` fill, the icon in `HighlightText`. |
 
 `.is-hover`, `.is-focus` and `.is-active` force a state for the page and for tests. They are not
@@ -85,12 +85,12 @@ item when it's pressed and held: that large-content viewer is the system's, and 
 nothing like it, so a label that didn't grow would simply be unreadable to the people who
 asked for large text.
 
-**The keyboard, decided.** CSS can't see the on-screen keyboard, but it can see focus: on a
-touch screen (`@media (pointer: coarse)`) a focused text field means the keyboard is up, and
-the bar hides (`:root:has(<text field>:focus) .tabbar { display: none }`, where a text field is
-any `input` that takes text, a `textarea`, or `contenteditable`). It's back when the field
-loses focus. An iPad with a hardware keyboard hides it needlessly while you type; measuring the
-real keyboard (`visualViewport`, `navigator.virtualKeyboard`) is wave 5's.
+**The keyboard, decided (wave 5).** While the on-screen keyboard is up the bar hides, so the
+field has the room. Frame does it: `frame.js` sees the keyboard as lost viewport height
+(`visualViewport`) while a text field has focus and sets `data-keyboard` on the frame, and
+`frame.css` hides the bar under it (`elements/frame.md`, Keyboard). Without script, or where the
+browser shows nothing, the bar stays. An iPad with a hardware keyboard keeps it: its shortcut bar
+takes too little height to count. The wave 3 rule that guessed from focus alone is gone.
 
 ## Accessibility
 
@@ -105,7 +105,8 @@ real keyboard (`visualViewport`, `navigator.virtualKeyboard`) is wave 5's.
 ## Platforms
 
 - **Installed PWA:** it owns `--safe-bottom`, so it sits above the home indicator with its paper
-  running behind it. It hides while the keyboard is (probably) up. It never hides on scroll.
+  running behind it. It hides while the keyboard is up, where the browser shows it. It never
+  hides on scroll.
 - **Mac:** not used. Places on a Mac are the system sidebar (§4); in a web shell, Sidebar.
 - **SwiftUI:** `TabView { … .tabItem { Label("Decks", image: "decks") } .badge(7) }`. The system
   draws it, with its own selection tint; at accessibility sizes it uses the large-content viewer
@@ -124,5 +125,6 @@ real keyboard (`visualViewport`, `navigator.virtualKeyboard`) is wave 5's.
 
 - At 200% text on an 844-point phone the bar is 306px tall: over a third of the screen. That's the
   cost of readable labels.
-- The keyboard rule guesses from focus; see above.
+- The keyboard is seen as lost height, emulated in Chromium and not yet checked on a device
+  (`elements/frame.md`).
 - Five places with long labels on a 320-point phone wrap to a second row even at 100% text.

@@ -5,7 +5,10 @@
    still decides what is wrong (required, pattern, type), but instead of its
    bubble each field shows Field's error, and the summary at the top lists
    them as links and takes focus. A field shown wrong is checked again on
-   blur, or on change for a choice: never while typing.
+   blur, or on change for a choice, and its error goes the moment its value
+   is right, as you type: an error never appears while typing, but clearing
+   then, not on blur, keeps the button from moving under the click that
+   blurs the field.
    ========================================================================== */
 (function () {
   "use strict";
@@ -63,6 +66,9 @@
     }
     form.addEventListener("focusout", recheck);
     form.addEventListener("change", recheck);
+    form.addEventListener("input", function (e) { // only ever clears
+      if (e.target.validity && e.target.validity.valid) recheck(e);
+    });
     if (summary) summary.addEventListener("click", function (e) { // caret in, label in view
       var a = e.target.closest("a[href^='#']");
       var el = a && document.getElementById(a.getAttribute("href").slice(1));

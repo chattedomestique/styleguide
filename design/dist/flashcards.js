@@ -122,7 +122,10 @@
    still decides what is wrong (required, pattern, type), but instead of its
    bubble each field shows Field's error, and the summary at the top lists
    them as links and takes focus. A field shown wrong is checked again on
-   blur, or on change for a choice: never while typing.
+   blur, or on change for a choice, and its error goes the moment its value
+   is right, as you type: an error never appears while typing, but clearing
+   then, not on blur, keeps the button from moving under the click that
+   blurs the field.
    ========================================================================== */
 (function () {
   "use strict";
@@ -180,6 +183,9 @@
     }
     form.addEventListener("focusout", recheck);
     form.addEventListener("change", recheck);
+    form.addEventListener("input", function (e) { // only ever clears
+      if (e.target.validity && e.target.validity.valid) recheck(e);
+    });
     if (summary) summary.addEventListener("click", function (e) { // caret in, label in view
       var a = e.target.closest("a[href^='#']");
       var el = a && document.getElementById(a.getAttribute("href").slice(1));
@@ -192,21 +198,21 @@
 })();
 
 /* ==========================================================================
-   frame.js — publishes --chrome on every .frame. Spec: elements/frame.md
+   frame.js — --chrome, and the keyboard. Spec: elements/frame.md
    --------------------------------------------------------------------------
-   --chrome is the part of the frame's height that isn't room for content:
-   the bars with their safe areas, and the scroll region's own padding. So
-   100svh - var(--chrome) is the room, and the study card fits in it.
-
-   CSS can't put a content-sized bar's height into a property, so this
-   measures it, in px, whenever the frame or anything in it changes size
-   (text size, a bar wrapping, a rotation). Without script --chrome stays
-   unset: the study card falls back to 100svh and the region scrolls a
-   little. Nothing else reads it.
+   1. --chrome: the frame's height that isn't room for content (the bars,
+      their safe areas, the scroll region's padding), measured in px when
+      anything in the frame changes size. The study card reads it; without
+      script it falls back to 100svh.
+   2. data-keyboard, on the frame holding the focused field while the
+      on-screen keyboard is up; frame.css hides the Tab bar under it. The
+      keyboard shows only as lost height (iOS shrinks the visual viewport;
+      Android, with interactive-widget=resizes-content, the page). So: a
+      text field has focus, and the viewport is over 150px shorter than the
+      tallest seen at this width (so a rotation never counts).
    ========================================================================== */
 (function () {
   "use strict";
-  if (!("ResizeObserver" in window)) return;
 
   function measure(frame) {
     var scroll = frame.querySelector(":scope > .frame__scroll");
@@ -217,23 +223,185 @@
     frame.style.setProperty("--chrome", Math.max(0, Math.round(chrome)) + "px");
   }
 
-  var ro = new ResizeObserver(function (entries) {
-    var done = [];
-    entries.forEach(function (e) {
-      var frame = e.target.classList.contains("frame") ? e.target : e.target.parentElement;
-      if (frame && done.indexOf(frame) < 0) {
-        done.push(frame);
-        measure(frame);
-      }
+  if ("ResizeObserver" in window) {
+    var ro = new ResizeObserver(function (entries) {
+      var done = [];
+      entries.forEach(function (e) {
+        var frame = e.target.classList.contains("frame") ? e.target : e.target.parentElement;
+        if (frame && done.indexOf(frame) < 0) {
+          done.push(frame);
+          measure(frame);
+        }
+      });
     });
+    Array.prototype.forEach.call(document.querySelectorAll(".frame"), function (frame) {
+      ro.observe(frame);
+      Array.prototype.forEach.call(frame.children, function (child) {
+        ro.observe(child);
+      });
+    });
+  }
+
+  var vv = window.visualViewport, tallest = {}; // px, by viewport width
+  var TEXT = /^(text|search|email|url|tel|password|number)$/;
+
+  function typing(el) { // brings up the keyboard
+    if (!el || el.readOnly || el.disabled || el.inputMode === "none") return false;
+    return el.isContentEditable || el.localName === "textarea" ||
+      (el.localName === "input" && TEXT.test(el.type));
+  }
+
+  function keyboard() {
+    var w = document.documentElement.clientWidth;
+    var h = vv ? vv.height * vv.scale : innerHeight; // a pinch zoom isn't lost height
+    tallest[w] = Math.max(tallest[w] || 0, h);
+    var el = document.activeElement;
+    var frame = typing(el) && tallest[w] - h > 150 ? el.closest(".frame") : null;
+    Array.prototype.forEach.call(document.querySelectorAll(".frame[data-keyboard]"), function (f) {
+      if (f !== frame) f.removeAttribute("data-keyboard");
+    });
+    if (frame) frame.setAttribute("data-keyboard", "");
+  }
+
+  (vv || window).addEventListener("resize", keyboard);
+  document.addEventListener("focusin", keyboard);
+  document.addEventListener("focusout", function () { setTimeout(keyboard); }); // once focus lands
+  keyboard();
+})();
+
+/* ==========================================================================
+   pwa.js — the installed app's page side: registers the worker that
+   <meta name="flashcards-sw"> names, raises the offline and update Banners,
+   offers install, share, notifications and storage, all by data-pwa and
+   data-share markup. Silent where an API is missing (file:// included); it
+   never reloads or prompts on its own. Spec: elements/pwa.md, STYLE.md §4.
+   ========================================================================== */
+(function () {
+  "use strict";
+  var NS = (window.Flashcards = window.Flashcards || {});
+  var doc = document, nav = navigator;
+  function noop() {}
+  function yes() { return true; }
+  function no() { return false; }
+  var BAND = {
+    offline: ["offline", "<strong>You're offline.</strong> Changes are saved on this device."],
+    update: ["refresh", "<strong>A new version is ready.</strong>", "Reload"]
+  };
+  var INSTALL = '[data-pwa~="install"]', sw, reg, asked, deferred;
+
+  function all(sel, fn) { Array.prototype.forEach.call(doc.querySelectorAll(sel), fn); }
+  function show(sel, on) { all(sel, function (el) { el.hidden = !on; }); }
+  function size(n) { return n < 1e6 ? Math.ceil(n / 1e3) + " KB" : n < 1e9 ? (n / 1e6).toFixed(1) + " MB" : (n / 1e9).toFixed(1) + " GB"; }
+
+  // a band may take both: offline first, else a waiting update
+  function bands() {
+    var update = reg && reg.waiting && nav.onLine;
+    all('[data-pwa~="offline"], [data-pwa~="update"]', function (el) {
+      var k = !nav.onLine && el.matches('[data-pwa~="offline"]') ? "offline" : update && el.matches('[data-pwa~="update"]') ? "update" : "", b = BAND[k];
+      if (el.pwaNow === k) return;
+      el.pwaNow = k;
+      el.hidden = false; // empty, a band is undrawn but still speaks (banner.md)
+      el.innerHTML = b ? '<span class="ic ic--' + b[0] + ' banner__icon" aria-hidden="true"></span><p class="banner__text">' + b[1] + "</p>" +
+        (b[2] ? '<button class="btn banner__action" type="button" data-pwa="reload">' + b[2] + "</button>" : "") : "";
+    });
+  }
+  function refresh() {
+    var p = window.Notification && Notification.permission;
+    show('[data-pwa~="notify-ask"]', p === "default");
+    show('[data-pwa~="notify-denied"]', p === "denied");
+    try {
+      if (doc.querySelector('[data-pwa~="quota"]')) nav.storage.estimate().then(function (q) {
+        if (q.quota) all('[data-pwa~="quota"]', function (el) {
+          el.textContent = "Using " + size(q.usage || 0) + " of " + size(q.quota) + " on this device.";
+          el.hidden = false;
+        });
+      }, noop);
+    } catch (e) { /* none */ }
+  }
+  function share(b) {
+    var url = new URL(b.getAttribute("data-share-url") || location.href, doc.baseURI).href, toast = NS.toast || noop;
+    var frame = b.closest(".frame"), region = frame && frame.querySelector(':scope > .toasts[role="status"]');
+    function copy() { // the toast speaks in the Share button's own frame, if it has one
+      nav.clipboard.writeText(url).then(function () { toast({ text: "Link copied.", region: region }); },
+        function () { toast({ text: "Couldn't copy the link.", failed: true, region: region }); });
+    }
+    if (!nav.share) return copy();
+    nav.share({ title: b.getAttribute("data-share-title") || doc.title, url: url })
+      .catch(function (e) { if (e.name !== "AbortError") copy(); });
+  }
+
+  // capture: with Chromium's prompt, Install skips the iOS sheet of its commandfor
+  doc.addEventListener("click", function (e) {
+    var t = e.target, b;
+    if (!t.closest) return;
+    if (deferred && t.closest("button" + INSTALL)) {
+      e.preventDefault();
+      e.stopPropagation();
+      b = deferred.prompt();
+      if (b) b.catch(noop);
+      deferred = null; // one ask each
+      show(INSTALL, false);
+    } else if (t.closest('button[data-pwa~="reload"]')) {
+      if (reg && reg.waiting) { asked = true; reg.waiting.postMessage({ type: "SKIP_WAITING" }); }
+      else location.reload();
+    } else if (window.Notification && t.closest('button[data-pwa~="notify"]')) {
+      b = Notification.requestPermission();
+      if (b) b.then(refresh, noop);
+    } else if ((b = t.closest("button[data-share]"))) share(b);
+  }, true);
+
+  addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault(); // no pop-up: the page offers it
+    deferred = e;
+    show(INSTALL, !matchMedia("(display-mode: standalone)").matches);
+  });
+  addEventListener("appinstalled", function () { deferred = null; show(INSTALL, false); });
+  addEventListener("online", bands);
+  addEventListener("offline", bands);
+  doc.addEventListener("visibilitychange", function () {
+    if (doc.hidden) return;
+    refresh();
+    if (reg) reg.update().catch(noop);
   });
 
-  Array.prototype.forEach.call(document.querySelectorAll(".frame"), function (frame) {
-    ro.observe(frame);
-    Array.prototype.forEach.call(frame.children, function (child) {
-      ro.observe(child);
+  // iOS: no prompt, but it tells a tab from the app, so offer the steps
+  if (nav.standalone === false && doc.querySelector("button" + INSTALL + "[commandfor]")) show(INSTALL, true);
+  show('[data-pwa~="reload"]', true);
+  show("[data-share]", nav.share || (nav.clipboard && nav.clipboard.writeText));
+  bands();
+  refresh();
+
+  var meta = doc.querySelector('meta[name="flashcards-sw"]');
+  try { sw = meta && /^https?:$/.test(location.protocol) && nav.serviceWorker; } catch (e) { /* none */ }
+  if (sw) sw.register(meta.content).then(function (r) {
+    if (!(reg = r)) return;
+    function check() { if (r.waiting && sw.controller) bands(); } // no controller: first install
+    check();
+    r.addEventListener("updatefound", function () {
+      var w = r.installing;
+      if (w) w.addEventListener("statechange", function () { if (w.state === "installed") check(); });
     });
-  });
+    sw.addEventListener("controllerchange", function () { // after Reload, once
+      if (asked) { asked = false; location.reload(); }
+    });
+  }, noop);
+
+  NS.badge = function (n) { // the app icon's count, 0 clears; resolves true if it took
+    return nav.setAppBadge ? (n ? nav.setAppBadge(n) : nav.clearAppBadge()).then(yes, no) : Promise.resolve(false);
+  };
+  NS.persist = function () { // after real use; true if storage outlives cleanup
+    return nav.storage && nav.storage.persist ? nav.storage.persist().catch(no) : Promise.resolve(false);
+  };
+  NS.download = function (name, data) { // as a JSON file
+    var a = doc.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+    a.download = name;
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  };
+  NS.readJSON = function (file) { // rejects if it isn't JSON
+    return file.text().then(JSON.parse);
+  };
 })();
 
 /* ==========================================================================

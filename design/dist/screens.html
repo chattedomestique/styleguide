@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
     <title>Screens · Flashcards style sheet</title>
     <meta
       name="description"
@@ -3547,6 +3547,9 @@ textarea.field__input {
    · --chrome, the part of the frame's height that isn't room for content,
      is measured by js/components/frame.js (CSS can't read a content-sized
      bar's height into a property). The study card reads it.
+   · The tab bar hides while the on-screen keyboard is up, and only then:
+     frame.js sees the keyboard as lost viewport height and sets
+     data-keyboard. No script, no hiding.
    · No motion: bars don't hide on scroll and nothing slides (gate 4).
    ========================================================================== */
 
@@ -3634,6 +3637,20 @@ textarea.field__input {
 /* no bottom bar: the last thing can still scroll clear of the home indicator */
 .frame:not(:has(> .frame__bottom)) > .frame__scroll {
   padding-block-end: calc(var(--space-7) + var(--safe-bottom));
+}
+
+/* --- the on-screen keyboard ---------------------------------------------------
+   frame.js puts data-keyboard on the frame while a text field in it has
+   focus and the viewport has lost the keyboard's height. The tab bar goes,
+   so the field gets the room: places can wait until the typing is done.
+   A focused task's action row stays, because it holds what the typing is
+   for (Save, Add card). The scroll padding stays as it is: where the
+   keyboard shrinks the page (Android), the region ends at the keyboard and a
+   field scrolled into view stops 48px short of it. iOS lays the keyboard
+   over the page instead (elements/frame.md, Known limits). Without script
+   nothing changes, and the bar stays. */
+.frame[data-keyboard] > .frame__bottom.tabbar {
+  display: none;
 }
 
 /* --- variant: focused task ---------------------------------------------------
@@ -4020,14 +4037,8 @@ textarea.field__input {
   --fill: 1;
 }
 
-/* The on-screen keyboard. On a touch screen, a focused text field means the
-   keyboard is up, and a bar sitting on top of it is in the way. CSS can't
-   see the keyboard itself (wave 5 does that), but it can see the focus. */
-@media (pointer: coarse) {
-  :root:has(:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"]), textarea, [contenteditable="true"]):focus) .tabbar {
-    display: none;
-  }
-}
+/* The on-screen keyboard: Frame hides the bar while it's up
+   (.frame[data-keyboard], set by frame.js). Nothing here guesses. */
 
 /* --- forced colours ------------------------------------------------------------
    Shadows and fills vanish: here becomes a 4px frame (the padding pays for
@@ -5634,6 +5645,32 @@ dialog.sheet:not([open]) {
   max-inline-size: var(--measure);
 }
 }
+@layer components {
+/* ==========================================================================
+   PWA platform — wave 5. Spec: elements/pwa.md · script: js/components/pwa.js
+   --------------------------------------------------------------------------
+   No look of its own: what pwa.js drives is other elements (Banner, Button,
+   Card, List). Two rules make its waiting honest.
+
+   · What it drives ships hidden and appears once it works. A Button, a Card
+     or a list row sets display, which beats the hidden attribute, so hidden
+     is restated for its hooks.
+   · Install is never offered inside the installed app. pwa.js knows that
+     too; this keeps it hidden even before the script runs.
+   ========================================================================== */
+
+[data-pwa][hidden],
+[data-share][hidden] {
+  display: none;
+}
+
+/* :not([hidden]) only lifts it over a list row's display */
+@media (display-mode: standalone) {
+  [data-pwa~="install"]:not([hidden]) {
+    display: none;
+  }
+}
+}
 @layer wire {
 /* ==========================================================================
    Wireframe kit — placeholders for things that don't exist yet.
@@ -6921,13 +6958,13 @@ dialog.sheet:not([open]) {
             <li><a href="#found">Found</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.7 · Wireframe</span>
+        <span class="sg-top__status">v0.8 · Wireframe</span>
       </div>
     </div>
 
     <header class="sg-wrap sg-hero">
       <p class="sg-hero__kicker t-label">
-        <span>Test bed</span><span>Wireframe</span><span>26 of 27 elements built</span>
+        <span>Test bed</span><span>Wireframe</span><span>27 of 27 elements built</span>
       </p>
       <h1 class="sg-display sg-display--long">Screens</h1>
       <div class="sg-hero__row">
@@ -7024,7 +7061,8 @@ dialog.sheet:not([open]) {
             A PWA on the home screen: no browser bars, so the app draws its own, with Frame, Top bar
             and Tab bar. 390 by 844 points, with the safe areas of a phone with a notch. Scroll
             inside the screen. On a narrow window the frame narrows with it, so it shows a smaller
-            phone than that.
+            phone than that. <a href="../pwa/">The working starter</a> is the installable app: run
+            <code>node design/tools/serve.mjs</code>.
           </p>
         </div>
 
@@ -7497,7 +7535,7 @@ dialog.sheet:not([open]) {
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards design system · Screens v0.7</span>
+      <span>Flashcards design system · Screens v0.8</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>
@@ -7518,21 +7556,21 @@ dialog.sheet:not([open]) {
     </script>
     <script>
 /* ==========================================================================
-   frame.js — publishes --chrome on every .frame. Spec: elements/frame.md
+   frame.js — --chrome, and the keyboard. Spec: elements/frame.md
    --------------------------------------------------------------------------
-   --chrome is the part of the frame's height that isn't room for content:
-   the bars with their safe areas, and the scroll region's own padding. So
-   100svh - var(--chrome) is the room, and the study card fits in it.
-
-   CSS can't put a content-sized bar's height into a property, so this
-   measures it, in px, whenever the frame or anything in it changes size
-   (text size, a bar wrapping, a rotation). Without script --chrome stays
-   unset: the study card falls back to 100svh and the region scrolls a
-   little. Nothing else reads it.
+   1. --chrome: the frame's height that isn't room for content (the bars,
+      their safe areas, the scroll region's padding), measured in px when
+      anything in the frame changes size. The study card reads it; without
+      script it falls back to 100svh.
+   2. data-keyboard, on the frame holding the focused field while the
+      on-screen keyboard is up; frame.css hides the Tab bar under it. The
+      keyboard shows only as lost height (iOS shrinks the visual viewport;
+      Android, with interactive-widget=resizes-content, the page). So: a
+      text field has focus, and the viewport is over 150px shorter than the
+      tallest seen at this width (so a rotation never counts).
    ========================================================================== */
 (function () {
   "use strict";
-  if (!("ResizeObserver" in window)) return;
 
   function measure(frame) {
     var scroll = frame.querySelector(":scope > .frame__scroll");
@@ -7543,23 +7581,50 @@ dialog.sheet:not([open]) {
     frame.style.setProperty("--chrome", Math.max(0, Math.round(chrome)) + "px");
   }
 
-  var ro = new ResizeObserver(function (entries) {
-    var done = [];
-    entries.forEach(function (e) {
-      var frame = e.target.classList.contains("frame") ? e.target : e.target.parentElement;
-      if (frame && done.indexOf(frame) < 0) {
-        done.push(frame);
-        measure(frame);
-      }
+  if ("ResizeObserver" in window) {
+    var ro = new ResizeObserver(function (entries) {
+      var done = [];
+      entries.forEach(function (e) {
+        var frame = e.target.classList.contains("frame") ? e.target : e.target.parentElement;
+        if (frame && done.indexOf(frame) < 0) {
+          done.push(frame);
+          measure(frame);
+        }
+      });
     });
-  });
+    Array.prototype.forEach.call(document.querySelectorAll(".frame"), function (frame) {
+      ro.observe(frame);
+      Array.prototype.forEach.call(frame.children, function (child) {
+        ro.observe(child);
+      });
+    });
+  }
 
-  Array.prototype.forEach.call(document.querySelectorAll(".frame"), function (frame) {
-    ro.observe(frame);
-    Array.prototype.forEach.call(frame.children, function (child) {
-      ro.observe(child);
+  var vv = window.visualViewport, tallest = {}; // px, by viewport width
+  var TEXT = /^(text|search|email|url|tel|password|number)$/;
+
+  function typing(el) { // brings up the keyboard
+    if (!el || el.readOnly || el.disabled || el.inputMode === "none") return false;
+    return el.isContentEditable || el.localName === "textarea" ||
+      (el.localName === "input" && TEXT.test(el.type));
+  }
+
+  function keyboard() {
+    var w = document.documentElement.clientWidth;
+    var h = vv ? vv.height * vv.scale : innerHeight; // a pinch zoom isn't lost height
+    tallest[w] = Math.max(tallest[w] || 0, h);
+    var el = document.activeElement;
+    var frame = typing(el) && tallest[w] - h > 150 ? el.closest(".frame") : null;
+    Array.prototype.forEach.call(document.querySelectorAll(".frame[data-keyboard]"), function (f) {
+      if (f !== frame) f.removeAttribute("data-keyboard");
     });
-  });
+    if (frame) frame.setAttribute("data-keyboard", "");
+  }
+
+  (vv || window).addEventListener("resize", keyboard);
+  document.addEventListener("focusin", keyboard);
+  document.addEventListener("focusout", function () { setTimeout(keyboard); }); // once focus lands
+  keyboard();
 })();
 </script>
   </body>

@@ -98,7 +98,7 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 | 24 | Toast | 4 | Gates 0–2 |
 | 25 | Banner | 4 | Gates 0–2 |
 | 26 | Empty, loading and error | 4 | Gates 0–2 |
-| 27 | PWA platform | 5 | Brief |
+| 27 | PWA platform | 5 | Gates 0–2 |
 
 Then three passes over everything: colour and dark mode (wave 6, gate 3), motion (wave 7,
 gate 4) and the freeze (wave 8, gate 5).

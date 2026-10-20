@@ -3536,6 +3536,9 @@ textarea.field__input {
    · --chrome, the part of the frame's height that isn't room for content,
      is measured by js/components/frame.js (CSS can't read a content-sized
      bar's height into a property). The study card reads it.
+   · The tab bar hides while the on-screen keyboard is up, and only then:
+     frame.js sees the keyboard as lost viewport height and sets
+     data-keyboard. No script, no hiding.
    · No motion: bars don't hide on scroll and nothing slides (gate 4).
    ========================================================================== */
 
@@ -3623,6 +3626,20 @@ textarea.field__input {
 /* no bottom bar: the last thing can still scroll clear of the home indicator */
 .frame:not(:has(> .frame__bottom)) > .frame__scroll {
   padding-block-end: calc(var(--space-7) + var(--safe-bottom));
+}
+
+/* --- the on-screen keyboard ---------------------------------------------------
+   frame.js puts data-keyboard on the frame while a text field in it has
+   focus and the viewport has lost the keyboard's height. The tab bar goes,
+   so the field gets the room: places can wait until the typing is done.
+   A focused task's action row stays, because it holds what the typing is
+   for (Save, Add card). The scroll padding stays as it is: where the
+   keyboard shrinks the page (Android), the region ends at the keyboard and a
+   field scrolled into view stops 48px short of it. iOS lays the keyboard
+   over the page instead (elements/frame.md, Known limits). Without script
+   nothing changes, and the bar stays. */
+.frame[data-keyboard] > .frame__bottom.tabbar {
+  display: none;
 }
 
 /* --- variant: focused task ---------------------------------------------------
@@ -4009,14 +4026,8 @@ textarea.field__input {
   --fill: 1;
 }
 
-/* The on-screen keyboard. On a touch screen, a focused text field means the
-   keyboard is up, and a bar sitting on top of it is in the way. CSS can't
-   see the keyboard itself (wave 5 does that), but it can see the focus. */
-@media (pointer: coarse) {
-  :root:has(:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"]), textarea, [contenteditable="true"]):focus) .tabbar {
-    display: none;
-  }
-}
+/* The on-screen keyboard: Frame hides the bar while it's up
+   (.frame[data-keyboard], set by frame.js). Nothing here guesses. */
 
 /* --- forced colours ------------------------------------------------------------
    Shadows and fills vanish: here becomes a 4px frame (the padding pays for
@@ -5621,6 +5632,32 @@ dialog.sheet:not([open]) {
   align-content: start;
   gap: var(--space-3);
   max-inline-size: var(--measure);
+}
+}
+@layer components {
+/* ==========================================================================
+   PWA platform — wave 5. Spec: elements/pwa.md · script: js/components/pwa.js
+   --------------------------------------------------------------------------
+   No look of its own: what pwa.js drives is other elements (Banner, Button,
+   Card, List). Two rules make its waiting honest.
+
+   · What it drives ships hidden and appears once it works. A Button, a Card
+     or a list row sets display, which beats the hidden attribute, so hidden
+     is restated for its hooks.
+   · Install is never offered inside the installed app. pwa.js knows that
+     too; this keeps it hidden even before the script runs.
+   ========================================================================== */
+
+[data-pwa][hidden],
+[data-share][hidden] {
+  display: none;
+}
+
+/* :not([hidden]) only lifts it over a list row's display */
+@media (display-mode: standalone) {
+  [data-pwa~="install"]:not([hidden]) {
+    display: none;
+  }
 }
 }
 @layer wire {

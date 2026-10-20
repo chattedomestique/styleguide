@@ -137,14 +137,8 @@
   --fill: 1;
 }
 
-/* The on-screen keyboard. On a touch screen, a focused text field means the
-   keyboard is up, and a bar sitting on top of it is in the way. CSS can't
-   see the keyboard itself (wave 5 does that), but it can see the focus. */
-@media (pointer: coarse) {
-  :root:has(:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"]), textarea, [contenteditable="true"]):focus) .tabbar {
-    display: none;
-  }
-}
+/* The on-screen keyboard: Frame hides the bar while it's up
+   (.frame[data-keyboard], set by frame.js). Nothing here guesses. */
 
 /* --- forced colours ------------------------------------------------------------
    Shadows and fills vanish: here becomes a 4px frame (the padding pays for

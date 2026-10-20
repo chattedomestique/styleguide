@@ -207,9 +207,10 @@ from the last trigger went to Undo, then Dismiss, then the tab bar.
 - ⌥T is taken only while a toast shows, and not in a field where it types a character (a Mac's
   †): there, Tab reaches the toast. Behind an open modal the toast can't take focus, so the key is
   left alone.
-- With the on-screen keyboard up the tab bar hides and the toast sits on the frame's bottom edge,
-  which the keyboard may cover on iOS (the layout viewport doesn't shrink). Wave 5's keyboard
-  work (`interactive-widget`, `visualViewport`) decides.
+- With the on-screen keyboard up the tab bar hides and the toast sits on the frame's bottom edge.
+  On Android (`interactive-widget=resizes-content`) that edge is the keyboard's top; on iOS the
+  keyboard lies over it, since the page doesn't shrink there (`elements/frame.md`), so a toast
+  raised while typing can be under the keyboard. Needs a device.
 - While it shows, the toast covers the foot of the scroll region: about 64px, 88px on a 320pt
   phone where the words wrap beside Undo, more at large text. `toast.js` publishes the region's
   height as `--toasts-h` and the scroll region pads its foot by it, so the end of the content

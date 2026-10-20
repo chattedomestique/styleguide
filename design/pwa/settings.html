@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <title>Settings · Flashcards</title>
+    <meta name="description" content="Reminders, installing the app, and the decks kept on this device." />
+    <meta name="theme-color" content="#f4f4f4" />
+    <meta name="flashcards-sw" content="sw.js" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="preload" href="../fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../dist/flashcards.min.css" />
+    <script>
+      // iOS Safari applies :active only once a touchstart listener exists (STYLE.md §4)
+      document.addEventListener("touchstart", function () {}, { passive: true });
+    </script>
+  </head>
+  <body>
+    <div class="frame">
+      <main class="frame__scroll" id="settings-main" tabindex="-1" style="--frame-column: var(--measure)">
+        <div class="banner" role="status" data-pwa="offline update"></div>
+        <h1 class="t-heading">Settings</h1>
+
+        <article class="card" data-pwa="notify-ask" aria-labelledby="settings-notify-title" hidden>
+          <div class="card__body">
+            <h2 class="card__title" id="settings-notify-title">Daily reminder</h2>
+            <p class="card__text">A reminder at 8pm on days you haven't studied, so a streak doesn't end by accident. Your browser asks you first.</p>
+          </div>
+          <footer class="card__foot">
+            <button class="btn btn--quiet" type="button" id="settings-notify-later">Not now</button>
+            <button class="btn btn--primary" type="button" data-pwa="notify">Turn on</button>
+          </footer>
+        </article>
+        <p class="t-body" data-pwa="notify-denied" hidden>
+          Reminders are blocked for Flashcards. To get them, allow notifications for this site in your
+          browser's settings.
+        </p>
+
+        <div class="list list--inset">
+          <h2 class="list__head">This app</h2>
+          <ul class="list__rows" role="list">
+            <li>
+              <div class="list__row">
+                <span class="list__main">
+                  <span class="list__title">Works offline</span>
+                  <span class="list__meta">Your decks are kept on this device, so it opens without a connection.</span>
+                </span>
+              </div>
+            </li>
+            <li data-share hidden>
+              <div class="list__row">
+                <span class="list__main">
+                  <span class="list__title">Share Flashcards</span>
+                  <span class="list__meta">Send the link to someone who's learning too.</span>
+                </span>
+              </div>
+              <div class="list__actions">
+                <button class="btn" type="button" data-share data-share-url="./" data-share-title="Flashcards" hidden>
+                  <span class="ic ic--share" aria-hidden="true"></span>Share
+                </button>
+              </div>
+            </li>
+            <li data-pwa="install" hidden>
+              <div class="list__row">
+                <span class="list__main">
+                  <span class="list__title">Install Flashcards</span>
+                  <span class="list__meta">It opens from your home screen, full screen.</span>
+                </span>
+              </div>
+              <div class="list__actions">
+                <button class="btn" type="button" data-pwa="install" commandfor="settings-install" command="show-modal" hidden>
+                  <span class="ic ic--install" aria-hidden="true"></span>Install
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <article class="card" aria-labelledby="settings-data-title">
+          <div class="card__body">
+            <h2 class="card__title" id="settings-data-title">Your decks</h2>
+            <p class="card__text">
+              They're kept on this device. Export saves them to a file, to keep a copy or move them to
+              another device; Import adds the decks from one.
+            </p>
+            <p class="card__meta" data-pwa="quota" hidden></p>
+          </div>
+          <footer class="card__foot">
+            <button class="btn" type="button" id="settings-export">Export</button>
+            <button class="btn" type="button" id="settings-import">Import…</button>
+            <input type="file" id="settings-import-file" accept=".json,application/json" hidden />
+          </footer>
+        </article>
+      </main>
+      <div class="toasts" role="status"></div>
+      <nav class="frame__bottom tabbar" aria-label="Places">
+        <ul class="tabbar__list" role="list">
+          <li>
+            <a class="tabbar__link" href="./">
+              <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+              <span class="tabbar__label">Today</span>
+            </a>
+          </li>
+          <li>
+            <a class="tabbar__link" href="decks.html">
+              <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+              <span class="tabbar__label">Decks</span>
+            </a>
+          </li>
+          <li>
+            <a class="tabbar__link" href="settings.html" aria-current="page">
+              <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+              <span class="tabbar__label">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <dialog class="sheet" id="settings-install" aria-labelledby="settings-install-title">
+      <header class="topbar">
+        <h2 class="topbar__title" id="settings-install-title">Install Flashcards</h2>
+        <form class="topbar__actions" method="dialog">
+          <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+            <span class="ic ic--close" aria-hidden="true"></span>
+          </button>
+        </form>
+      </header>
+      <div class="sheet__body">
+        <p class="t-body">Add it to your Home Screen and it opens full screen, like any app, even offline.</p>
+        <div class="list list--inset">
+          <ol class="list__rows" role="list">
+            <li>
+              <div class="list__row">
+                <span class="ic ic--share" aria-hidden="true"></span>
+                <span class="list__main">
+                  <span class="list__title">Tap Share</span>
+                  <span class="list__meta">In Safari's toolbar, or in its ••• menu.</span>
+                </span>
+              </div>
+            </li>
+            <li>
+              <div class="list__row">
+                <span class="ic ic--plus" aria-hidden="true"></span>
+                <span class="list__main">
+                  <span class="list__title">Choose Add to Home Screen</span>
+                  <span class="list__meta">Scroll down the list if it isn't in view.</span>
+                </span>
+              </div>
+            </li>
+            <li>
+              <div class="list__row">
+                <span class="ic ic--check" aria-hidden="true"></span>
+                <span class="list__main">
+                  <span class="list__title">Tap Add</span>
+                  <span class="list__meta">Flashcards is on your Home Screen. Open it from there.</span>
+                </span>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog
+      class="dialog"
+      id="settings-import-failed"
+      role="alertdialog"
+      aria-labelledby="settings-import-failed-title"
+      aria-describedby="settings-import-failed-text"
+    >
+      <h2 class="dialog__title" id="settings-import-failed-title">
+        <span class="ic ic--warning" aria-hidden="true"></span>Can't import that file
+      </h2>
+      <p class="dialog__text" id="settings-import-failed-text">It isn't a deck export. Choose a file saved with Export.</p>
+      <form class="dialog__actions" method="dialog">
+        <button class="btn btn--primary" value="ok">OK</button>
+      </form>
+    </dialog>
+
+    <script src="../dist/flashcards.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

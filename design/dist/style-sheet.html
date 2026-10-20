@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
     <title>Flashcards design system</title>
     <meta
       name="description"
@@ -3547,6 +3547,9 @@ textarea.field__input {
    · --chrome, the part of the frame's height that isn't room for content,
      is measured by js/components/frame.js (CSS can't read a content-sized
      bar's height into a property). The study card reads it.
+   · The tab bar hides while the on-screen keyboard is up, and only then:
+     frame.js sees the keyboard as lost viewport height and sets
+     data-keyboard. No script, no hiding.
    · No motion: bars don't hide on scroll and nothing slides (gate 4).
    ========================================================================== */
 
@@ -3634,6 +3637,20 @@ textarea.field__input {
 /* no bottom bar: the last thing can still scroll clear of the home indicator */
 .frame:not(:has(> .frame__bottom)) > .frame__scroll {
   padding-block-end: calc(var(--space-7) + var(--safe-bottom));
+}
+
+/* --- the on-screen keyboard ---------------------------------------------------
+   frame.js puts data-keyboard on the frame while a text field in it has
+   focus and the viewport has lost the keyboard's height. The tab bar goes,
+   so the field gets the room: places can wait until the typing is done.
+   A focused task's action row stays, because it holds what the typing is
+   for (Save, Add card). The scroll padding stays as it is: where the
+   keyboard shrinks the page (Android), the region ends at the keyboard and a
+   field scrolled into view stops 48px short of it. iOS lays the keyboard
+   over the page instead (elements/frame.md, Known limits). Without script
+   nothing changes, and the bar stays. */
+.frame[data-keyboard] > .frame__bottom.tabbar {
+  display: none;
 }
 
 /* --- variant: focused task ---------------------------------------------------
@@ -4020,14 +4037,8 @@ textarea.field__input {
   --fill: 1;
 }
 
-/* The on-screen keyboard. On a touch screen, a focused text field means the
-   keyboard is up, and a bar sitting on top of it is in the way. CSS can't
-   see the keyboard itself (wave 5 does that), but it can see the focus. */
-@media (pointer: coarse) {
-  :root:has(:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"]), textarea, [contenteditable="true"]):focus) .tabbar {
-    display: none;
-  }
-}
+/* The on-screen keyboard: Frame hides the bar while it's up
+   (.frame[data-keyboard], set by frame.js). Nothing here guesses. */
 
 /* --- forced colours ------------------------------------------------------------
    Shadows and fills vanish: here becomes a 4px frame (the padding pays for
@@ -5634,6 +5645,32 @@ dialog.sheet:not([open]) {
   max-inline-size: var(--measure);
 }
 }
+@layer components {
+/* ==========================================================================
+   PWA platform — wave 5. Spec: elements/pwa.md · script: js/components/pwa.js
+   --------------------------------------------------------------------------
+   No look of its own: what pwa.js drives is other elements (Banner, Button,
+   Card, List). Two rules make its waiting honest.
+
+   · What it drives ships hidden and appears once it works. A Button, a Card
+     or a list row sets display, which beats the hidden attribute, so hidden
+     is restated for its hooks.
+   · Install is never offered inside the installed app. pwa.js knows that
+     too; this keeps it hidden even before the script runs.
+   ========================================================================== */
+
+[data-pwa][hidden],
+[data-share][hidden] {
+  display: none;
+}
+
+/* :not([hidden]) only lifts it over a list row's display */
+@media (display-mode: standalone) {
+  [data-pwa~="install"]:not([hidden]) {
+    display: none;
+  }
+}
+}
 @layer wire {
 /* ==========================================================================
    Wireframe kit — placeholders for things that don't exist yet.
@@ -6849,14 +6886,14 @@ dialog.sheet:not([open]) {
             <li><a href="screens.html">Screens</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.7 · Wireframe</span>
+        <span class="sg-top__status">v0.8 · Wireframe</span>
       </div>
     </div>
 
     <main id="top">
       <header class="sg-wrap sg-hero">
         <p class="sg-hero__kicker t-label">
-          <span>Design system</span><span>Wireframe</span><span>26 of 27 elements built</span>
+          <span>Design system</span><span>Wireframe</span><span>27 of 27 elements built</span>
         </p>
         <h1 class="sg-display sg-display--long">System</h1>
         <div class="sg-hero__row">
@@ -7228,9 +7265,9 @@ dialog.sheet:not([open]) {
               <td>Gates 0–2</td>
             </tr>
             <tr>
-              <th scope="row">PWA platform</th>
+              <th scope="row"><a href="#el-pwa">PWA platform</a></th>
               <td>Install, offline, updates, permissions, sharing and the keyboard.</td>
-              <td>Wave 5</td>
+              <td>Gates 0–2</td>
             </tr>
           </tbody>
         </table>
@@ -12492,7 +12529,7 @@ dialog.sheet:not([open]) {
                 <strong>Field</strong><code>.field</code>
                 <p>
                   Label, help, error, input: Field's parts and order. Its error appears on send or
-                  on blur, never while typing.
+                  on blur, never while typing, and goes as soon as the value is right.
                 </p>
               </div>
             </li>
@@ -12880,7 +12917,7 @@ dialog.sheet:not([open]) {
                 <input class="field__input" id="form-s-fixed" name="name" type="text" value="Farm animals" required autocomplete="off" aria-describedby="form-s-fixed-help" />
               </div>
             </form>
-            <p class="sg-caption"><b>Fixed.</b> On blur the error and the doubled frame go. The summary stays as it was until the next send, so nothing jumps.</p>
+            <p class="sg-caption"><b>Fixed.</b> The moment the value is right (or on blur) the error and the doubled frame go. The summary stays as it was until the next send, so nothing jumps.</p>
           </div>
           <div>
             <div class="form">
@@ -13628,9 +13665,11 @@ dialog.sheet:not([open]) {
           <li>
             <strong>Installed PWA</strong>
             <p>
-              Needs <code>viewport-fit=cover</code>, or every safe area is 0. The frame is the one thing
-              sized in <code>dvh</code>; the page never scrolls, so the browser's bars stay put in a tab
-              too. The on-screen keyboard's inset is wave 5's.
+              Needs <code>viewport-fit=cover</code>, or every safe area is 0, and
+              <code>interactive-widget=resizes-content</code>, so Android ends the frame at the
+              keyboard. The frame is the one thing sized in <code>dvh</code>; the page never scrolls, so
+              the browser's bars stay put in a tab too. While the keyboard is up the Tab bar hides
+              (<code>frame.js</code> sets <code>data-keyboard</code>), so the field has the room.
             </p>
           </li>
           <li>
@@ -14245,9 +14284,9 @@ dialog.sheet:not([open]) {
           <li>
             <strong>Installed PWA</strong>
             <p>
-              It owns the home indicator's inset (<code>--safe-bottom</code>). While a text field has
-              focus on a touch screen, which is when the keyboard is up, it hides, so it never sits on
-              top of the keyboard. Measuring the keyboard itself is wave 5's.
+              It owns the home indicator's inset (<code>--safe-bottom</code>). While the on-screen
+              keyboard is up it hides, so the field has the room: Frame's <code>frame.js</code> sees the
+              keyboard as lost viewport height. Without script it stays.
             </p>
           </li>
           <li>
@@ -18955,10 +18994,1459 @@ dialog.sheet:not([open]) {
         </ol>
       </section>
     </section>
+<section id="el-pwa">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 27</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">PWA</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            What turns the elements into an app on a home screen: it installs, works offline,
+            updates when you say so, asks before it notifies, shares, and makes room for the
+            keyboard. No new parts. Each pattern is made of elements you already have, and
+            <code>pwa.js</code> switches it on where the browser can.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="pwa-anatomy" aria-labelledby="pwa-anatomy-h">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="pwa-anatomy-h">Anatomy</h2>
+          <p class="sg-sec__note">
+            A few files and a little script. The screens are made of elements; the manifest tells the
+            home screen what the app is; the service worker keeps it on the device; and
+            <code>pwa.js</code>, in <code>dist/flashcards.min.js</code>, connects the screen to both.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="pwa-starter">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">The platform, working</h3>
+            <p class="sg-entry__use">A starter app to copy: one root screen, installable, and working offline.</p>
+            <p class="sg-entry__classes"><code>design/pwa/</code></p>
+            <p class="sg-entry__note">
+              Copy it with <code>dist/</code> and <code>fonts/</code> to start an app. It installs and
+              works offline only when it's served: run <code>node design/tools/serve.mjs</code> and
+              open it on <code>localhost</code>, which counts as secure. Opened from disk it shows the
+              screen, with no worker behind it.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="list">
+              <ul class="list__rows" role="list">
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">index.html</span><span class="list__meta">Today, the root screen: Frame and the Tab bar, one Banner waiting at the top for offline and updates, and an empty state that offers the first deck.</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">decks.html, settings.html</span><span class="list__meta">Decks, with the New deck Sheet. Settings: the reminder card, Install and Share, export, import and the quota, and the iOS install Sheet.</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">manifest.webmanifest</span><span class="list__meta">What the home screen knows: the name, the icons, the colour behind the splash, where the app starts and how far it reaches (1.2).</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">icons/</span><span class="list__meta">A master SVG and a maskable one, and the PNGs rendered once from them (1.2).</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">sw.js</span><span class="list__meta">The service worker: keeps the app on the device, and hands over to a new version only when you say (1.3).</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">offline.html</span><span class="list__meta">What a page you've never opened shows when there's no connection.</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">app.js</span><span class="list__meta">The starter's own code, the part an app replaces: decks kept on the device, export and import.</span></span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="btn-row" style="margin-block-start: var(--space-5)">
+              <a class="btn btn--primary" href="../pwa/index.html">Open the starter app</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.2 -->
+        <article class="sg-entry" id="pwa-manifest">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">Manifest and icons</h3>
+            <p class="sg-entry__use">What the browser and the home screen know about the app before it runs.</p>
+            <p class="sg-entry__classes"><code>manifest.webmanifest</code> <code>&lt;link rel="manifest"&gt;</code></p>
+            <p class="sg-entry__note">
+              The two colours are <code>--canvas</code>: <code>tools/bundle.mjs</code> writes them in
+              from the colour file, so the hex lives in one place and the splash, the status bar and
+              the first frame are one ground. Icons: one master SVG on the icon grid, ink on paper
+              (monochrome until an app sets its accent), its drawing inside the maskable safe zone,
+              the centre 80% circle. The PNGs are rendered once from it, at 192 and 512 (any and
+              maskable) and 180 for <code>apple-touch-icon</code>, which iOS reads instead of the
+              manifest's icons.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="list">
+              <ul class="list__rows" role="list">
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>id</code></span><span class="list__meta">Which app this is, so moving <code>start_url</code> later doesn't make a second one.</span></span><span class="list__trail"><code>"./"</code></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>name</code>, <code>short_name</code></span><span class="list__meta">The install sheet and the splash use the name; the home screen puts the short name under the icon, so 12 letters at most.</span></span><span class="list__trail">Flashcards</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>description</code></span><span class="list__meta">One line under the name in the install sheet: “Short daily sessions with your own decks of cards. Works offline.”</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>start_url</code></span><span class="list__meta">Where it opens from the home screen: the root screen, never a deep page.</span></span><span class="list__trail"><code>"./"</code></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>scope</code></span><span class="list__meta">How far the app reaches. A link inside it stays in the app; a link outside opens in the browser.</span></span><span class="list__trail"><code>"./"</code></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>lang</code>, <code>dir</code></span><span class="list__meta">The language and direction of the name and descriptions.</span></span><span class="list__trail"><code>"en"</code>, <code>"auto"</code></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>display</code></span><span class="list__meta">Its own window, with none of the browser's bars. So every screen past the root needs a back link (2.9).</span></span><span class="list__trail"><code>"standalone"</code></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>orientation</code></span><span class="list__meta">Never locked: it turns with the phone, and a tablet works both ways (2.10).</span></span><span class="list__trail"><code>"any"</code></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>theme_color</code>, <code>background_color</code></span><span class="list__meta">The status bar or title bar, and the splash while it opens.</span></span><span class="list__trail"><code>--canvas</code></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>icons</code></span><span class="list__meta">The home screen, the app switcher and the splash. A maskable icon keeps its drawing in the safe zone, so a launcher's circle or squircle never cuts it.</span></span><span class="list__trail">SVG, 192, 512</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>shortcuts</code></span><span class="list__meta">A long press on the icon goes straight there.</span></span><span class="list__trail">Today, Decks</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>screenshots</code></span><span class="list__meta">Chromium's richer install sheet shows them.</span></span><span class="list__trail">Narrow, wide</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.3 -->
+        <article class="sg-entry" id="pwa-worker">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">The service worker</h3>
+            <p class="sg-entry__use">What <code>sw.js</code> keeps on the device, how it answers, and how it hands over to a new version.</p>
+            <p class="sg-entry__classes"><code>sw.js</code> <code>&lt;meta name="flashcards-sw"&gt;</code></p>
+            <p class="sg-entry__note">
+              <code>pwa.js</code> registers the worker the meta names, and only then: a page without
+              the meta, like this one, never gets a worker. <code>tools/bundle.mjs</code> stamps the
+              worker's version from the shell files' hash, so changing any of them makes a new worker,
+              and changing none doesn't.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="list">
+              <ul class="list__rows" role="list">
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">The shell</span><span class="list__meta">The starter's pages, <code>flashcards.min.css</code>, <code>flashcards.min.js</code>, the font and the icons. Cached when the worker installs, under its version, and served from there first: it opens at once, with or without a connection.</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">Anything else on the same origin</span><span class="list__meta">Stale while revalidate: the cached copy now, a fresh one saved for next time. Fast, and never more than one visit out of date.</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">A page never cached, offline</span><span class="list__meta"><code>offline.html</code> (2.3), never the browser's own error page.</span></span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title">Anything on another origin</span><span class="list__meta">Not touched: no <code>respondWith</code>, straight to the network. The worker never stands between the app and someone else's server.</span></span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <ol class="sg-rules" role="list" style="margin-block-start: var(--space-6)">
+              <li><strong>A new worker waits</strong><p>It installs beside the old one, which keeps running the open app.</p></li>
+              <li><strong>The band says so</strong><p>The update Banner shows: "A new version is ready." with Reload (2.2).</p></li>
+              <li><strong>Reload hands over</strong><p>It posts <code>SKIP_WAITING</code> to the waiting worker, which takes over.</p></li>
+              <li><strong>One reload</strong><p>On <code>controllerchange</code> the page reloads, once. Never on its own: you might be halfway through a card.</p></li>
+            </ol>
+          </div>
+        </article>
+
+        <!-- 1.4 -->
+        <article class="sg-entry" id="pwa-hooks">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.4</p>
+            <h3 class="sg-entry__name">The hooks</h3>
+            <p class="sg-entry__use">What <code>pwa.js</code> looks for in the markup, and what it does there.</p>
+            <p class="sg-entry__classes"><code>js/components/pwa.js</code> <code>data-pwa</code> <code>data-share</code></p>
+            <p class="sg-entry__note">
+              Everything is detected by feature, never by browser name, and switched on by markup.
+              Anything it drives ships <code>hidden</code>, so without script, or where the browser
+              can't, nothing shows that wouldn't work.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="list">
+              <ul class="list__rows" role="list">
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>&lt;meta name="flashcards-sw" content="sw.js"&gt;</code></span><span class="list__meta">Registers that worker. No meta, no worker.</span></span><span class="list__trail">The page</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>data-pwa="offline"</code></span><span class="list__meta">Fills the band while the browser is offline, and empties it after.</span></span><span class="list__trail">A Banner</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>data-pwa="update"</code></span><span class="list__meta">Fills the band, with a Reload Button (<code>data-pwa="reload"</code>), when a new worker waits. Reload hands over and reloads once. One band may take both: <code>data-pwa="offline update"</code>.</span></span><span class="list__trail">A Banner</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>data-pwa="install"</code></span><span class="list__meta">Shows when installing is possible: replays Chromium's install prompt, or on iOS opens the Sheet its <code>commandfor</code> names. Never when standalone, never on load.</span></span><span class="list__trail">A Button</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>data-share</code></span><span class="list__meta">Opens the share sheet with <code>data-share-title</code> and <code>data-share-url</code>, or copies the link and raises a Toast, “Link copied.”</span></span><span class="list__trail">A Button</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>data-pwa="notify-ask"</code></span><span class="list__meta">Shows while notifications haven't been asked for. Its <code>data-pwa="notify"</code> Button asks.</span></span><span class="list__trail">A Card</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>data-pwa="notify-denied"</code></span><span class="list__meta">Shows when the browser blocks notifications: how to allow them.</span></span><span class="list__trail">Words</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>data-pwa="quota"</code></span><span class="list__meta">Gets “Using 2.1 MB of 1.2 GB on this device.”</span></span><span class="list__trail">A line</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>Flashcards.badge(n)</code></span><span class="list__meta">Puts the count on the app's icon; 0 clears it.</span></span><span class="list__trail">Script</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>Flashcards.persist()</code></span><span class="list__meta">Asks the browser to keep the app's data when the device is short of room.</span></span><span class="list__trail">Script</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>Flashcards.download(name, data)</code></span><span class="list__meta">Saves data as a JSON file.</span></span><span class="list__trail">Script</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="list__row">
+                    <span class="list__main"><span class="list__title"><code>Flashcards.readJSON(file)</code></span><span class="list__meta">Reads a chosen file back.</span></span><span class="list__trail">Script</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="pwa-patterns" aria-labelledby="pwa-patterns-h">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="pwa-patterns-h">Patterns</h2>
+          <p class="sg-sec__note">
+            Eleven, made of Card, Button, List, Banner, Sheet, Switch, Field, Toast, Meter and Frame.
+            Each live specimen is wired to <code>pwa.js</code> and shows only where this browser can
+            do the thing; the markup printed is its own. Beside it, a still picture of every state,
+            so the page reads the same without script.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="pwa-install">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Install</h3>
+            <p class="sg-entry__use">Offer to install, in Settings, and only when the browser can.</p>
+            <p class="sg-entry__classes"><code>data-pwa="install"</code> <code>commandfor</code> <code>.sheet</code> <code>ic--install</code></p>
+            <p class="sg-entry__note">
+              A row in Settings, hidden until it can work: the row and its Button both carry the hook.
+              In Chromium the Button replays the browser's own install prompt, kept from
+              <code>beforeinstallprompt</code>. iOS has no prompt, so on an iPhone the Button opens a
+              Sheet with the steps. Installed, it never shows. Never a pop-up on load.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-cols" style="--col: 16rem">
+              <div hidden data-sg-live>
+                <div class="list list--inset" data-sg-code>
+                  <h4 class="list__head">This app</h4>
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <div class="list__row">
+                        <span class="list__main">
+                          <span class="list__title">Works offline</span>
+                          <span class="list__meta">Your decks are kept on this device, so it opens without a connection.</span>
+                        </span>
+                      </div>
+                    </li>
+                    <li data-pwa="install" hidden>
+                      <div class="list__row">
+                        <span class="list__main">
+                          <span class="list__title">Install Flashcards</span>
+                          <span class="list__meta">It opens from your home screen, full screen.</span>
+                        </span>
+                      </div>
+                      <div class="list__actions">
+                        <button class="btn" type="button" data-pwa="install" commandfor="pwa-install-sheet" command="show-modal" hidden>
+                          <span class="ic ic--install" aria-hidden="true"></span>Install
+                        </button>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <p class="sg-caption">
+                  <b>Live.</b> The row appears when this browser can install the page. Chromium offers
+                  that only for a served app with a manifest, so here it stays hidden; in Safari on an
+                  iPhone it appears and opens the Sheet.
+                </p>
+                <dialog class="sheet" id="pwa-install-sheet" aria-labelledby="pwa-install-sheet-title" data-sg-code>
+                  <header class="topbar">
+                    <h2 class="topbar__title" id="pwa-install-sheet-title">Install Flashcards</h2>
+                    <form class="topbar__actions" method="dialog">
+                      <button class="btn btn--quiet btn--icon" value="close" aria-label="Close">
+                        <span class="ic ic--close" aria-hidden="true"></span>
+                      </button>
+                    </form>
+                  </header>
+                  <div class="sheet__body">
+                    <p class="t-body">Add it to your Home Screen and it opens full screen, like any app, even offline.</p>
+                    <div class="list list--inset">
+                      <ol class="list__rows" role="list">
+                        <li>
+                          <div class="list__row">
+                            <span class="ic ic--share" aria-hidden="true"></span>
+                            <span class="list__main"><span class="list__title">Tap Share</span><span class="list__meta">In Safari's toolbar, or in its ••• menu.</span></span>
+                          </div>
+                        </li>
+                        <li>
+                          <div class="list__row">
+                            <span class="ic ic--plus" aria-hidden="true"></span>
+                            <span class="list__main"><span class="list__title">Choose Add to Home Screen</span><span class="list__meta">Scroll down the list if it isn't in view.</span></span>
+                          </div>
+                        </li>
+                        <li>
+                          <div class="list__row">
+                            <span class="ic ic--check" aria-hidden="true"></span>
+                            <span class="list__main"><span class="list__title">Tap Add</span><span class="list__meta">Flashcards is on your Home Screen. Open it from there.</span></span>
+                          </div>
+                        </li>
+                      </ol>
+                    </div>
+                  </div>
+                </dialog>
+              </div>
+              <div>
+                <div class="list list--inset" inert>
+                  <h4 class="list__head">This app</h4>
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <div class="list__row">
+                        <span class="list__main">
+                          <span class="list__title">Works offline</span>
+                          <span class="list__meta">Your decks are kept on this device, so it opens without a connection.</span>
+                        </span>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="list__row">
+                        <span class="list__main">
+                          <span class="list__title">Install Flashcards</span>
+                          <span class="list__meta">It opens from your home screen, full screen.</span>
+                        </span>
+                      </div>
+                      <div class="list__actions">
+                        <button class="btn" type="button"><span class="ic ic--install" aria-hidden="true"></span>Install</button>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <p class="sg-caption">
+                  <b>Installable.</b> In Chromium, Install opens the browser's own install sheet, with the
+                  manifest's icon, name and screenshots. Once installed, the row goes.
+                </p>
+              </div>
+              <div>
+                <div class="list list--inset" inert>
+                  <h4 class="list__head">This app</h4>
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <div class="list__row">
+                        <span class="list__main">
+                          <span class="list__title">Works offline</span>
+                          <span class="list__meta">Your decks are kept on this device, so it opens without a connection.</span>
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <p class="sg-caption">
+                  <b>Installed, or can't.</b> No row, no hint, no banner. In
+                  <code>display-mode: standalone</code> it never shows, even before the script runs.
+                </p>
+              </div>
+            </div>
+            <div class="sg-devices" style="margin-block-start: var(--space-6)">
+              <div class="sg-shot">
+                <div class="sg-device sg-phone" style="block-size: 640px" inert>
+                  <div class="sg-phone__status" aria-hidden="true">
+                    <span>9:41</span><span class="sg-phone__batt"></span>
+                  </div>
+                  <div class="frame">
+                    <div class="frame__scroll">
+                      <h4 class="t-heading">Settings</h4>
+                    </div>
+                  </div>
+                  <div style="position: absolute; inset: 0; z-index: 1; background: var(--scrim)"></div>
+                  <div class="sheet" style="position: absolute; z-index: 1">
+                    <header class="topbar">
+                      <h4 class="topbar__title">Install Flashcards</h4>
+                      <div class="topbar__actions">
+                        <button class="btn btn--quiet btn--icon" type="button" aria-label="Close">
+                          <span class="ic ic--close" aria-hidden="true"></span>
+                        </button>
+                      </div>
+                    </header>
+                    <div class="sheet__body">
+                      <p class="t-body">Add it to your Home Screen and it opens full screen, like any app, even offline.</p>
+                      <div class="list list--inset">
+                        <ol class="list__rows" role="list">
+                          <li>
+                            <div class="list__row">
+                              <span class="ic ic--share" aria-hidden="true"></span>
+                              <span class="list__main"><span class="list__title">Tap Share</span><span class="list__meta">In Safari's toolbar, or in its ••• menu.</span></span>
+                            </div>
+                          </li>
+                          <li>
+                            <div class="list__row">
+                              <span class="ic ic--plus" aria-hidden="true"></span>
+                              <span class="list__main"><span class="list__title">Choose Add to Home Screen</span><span class="list__meta">Scroll down the list if it isn't in view.</span></span>
+                            </div>
+                          </li>
+                          <li>
+                            <div class="list__row">
+                              <span class="ic ic--check" aria-hidden="true"></span>
+                              <span class="list__main"><span class="list__title">Tap Add</span><span class="list__meta">Flashcards is on your Home Screen. Open it from there.</span></span>
+                            </div>
+                          </li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="sg-phone__home" aria-hidden="true"></span>
+                </div>
+                <p class="sg-caption">
+                  <b>iOS.</b> No prompt exists, so Install opens a Sheet with the steps, worded by what you
+                  see in Safari. Offered only while <code>navigator.standalone</code> is
+                  <code>false</code>: Safari on an iPhone or iPad, not yet added.
+                </p>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="pwa-update">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Update</h3>
+            <p class="sg-entry__use">A new version has downloaded: say so, and swap it in when the person chooses.</p>
+            <p class="sg-entry__classes"><code>data-pwa="update"</code> <code>data-pwa="reload"</code> <code>.banner</code> <code>ic--refresh</code></p>
+            <p class="sg-entry__note">
+              Banner's update ready, at the top of the scroll region. Reload hands over to the new
+              worker and the page reloads once. Left alone, the band waits: the new version also
+              starts the next time the app opens from scratch. Nothing ever reloads by itself.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <div hidden data-sg-live>
+              <div class="sg-device">
+                <header class="topbar topbar--root">
+                  <h4 class="topbar__title">Decks</h4>
+                </header>
+                <div class="banner" role="status" data-pwa="update" hidden data-sg-code></div>
+                <p class="t-meta" style="padding: var(--space-5) var(--gutter)">4 decks on this device</p>
+              </div>
+              <p class="sg-caption">
+                <b>Live.</b> In the markup, empty: <code>pwa.js</code> fills the band when a new worker
+                waits, so it speaks. This page has no worker, so it stays empty here; the starter
+                shows it for real.
+              </p>
+            </div>
+            <div>
+              <div class="sg-device" inert>
+                <header class="topbar topbar--root">
+                  <h4 class="topbar__title">Decks</h4>
+                </header>
+                <div class="banner">
+                  <span class="ic ic--refresh banner__icon" aria-hidden="true"></span>
+                  <p class="banner__text"><strong>A new version is ready.</strong></p>
+                  <button class="btn banner__action" type="button">Reload</button>
+                </div>
+                <p class="t-meta" style="padding: var(--space-5) var(--gutter)">4 decks on this device</p>
+              </div>
+              <p class="sg-caption">
+                <b>Waiting.</b> Read out once, politely. It scrolls away with the decks and waits for
+                the end of a session; there is no close.
+              </p>
+            </div>
+            <div>
+              <div class="sg-device" inert>
+                <header class="topbar topbar--root">
+                  <h4 class="topbar__title">Decks</h4>
+                </header>
+                <p class="t-meta" style="padding: var(--space-5) var(--gutter)">4 decks on this device</p>
+              </div>
+              <p class="sg-caption">
+                <b>After Reload.</b> One reload, on <code>controllerchange</code>, and the new version is
+                running. Focus starts at the top of the screen, as after any reload.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="pwa-offline">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Offline</h3>
+            <p class="sg-entry__use">No connection: keep working from the device, and say so once.</p>
+            <p class="sg-entry__classes"><code>data-pwa="offline"</code> <code>.banner</code> <code>offline.html</code></p>
+            <p class="sg-entry__note">
+              Banner's offline band shows while the browser is offline and goes when it's back. Every
+              screen opened before is on the device, so offline is not an error. A page that never was
+              gets <code>offline.html</code>: a plain card, the words, a link to the decks and Try again.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <div hidden data-sg-live>
+              <div class="sg-device">
+                <header class="topbar topbar--root">
+                  <h4 class="topbar__title">Decks</h4>
+                </header>
+                <div class="banner" role="status" data-pwa="offline" hidden data-sg-code></div>
+                <p class="t-meta" style="padding: var(--space-5) var(--gutter)">4 decks on this device</p>
+              </div>
+              <p class="sg-caption">
+                <b>Live.</b> In the markup, empty. Turn off the network (or Offline in the browser's
+                developer tools) and <code>pwa.js</code> fills it; back online, it empties it.
+              </p>
+            </div>
+            <div>
+              <div class="sg-device" inert>
+                <header class="topbar topbar--root">
+                  <h4 class="topbar__title">Decks</h4>
+                </header>
+                <div class="banner">
+                  <span class="ic ic--offline banner__icon" aria-hidden="true"></span>
+                  <p class="banner__text"><strong>You're offline.</strong> Changes are saved on this device.</p>
+                </div>
+                <p class="t-meta" style="padding: var(--space-5) var(--gutter)">4 decks on this device</p>
+              </div>
+              <p class="sg-caption">
+                <b>Offline.</b> Read out once. No close and no action: there's nothing to do, and
+                closing it wouldn't make it untrue.
+              </p>
+            </div>
+            <div>
+              <div class="sg-device" style="padding: var(--space-5) var(--gutter)" inert>
+                <article class="card">
+                  <div class="card__body">
+                    <h4 class="card__title">This page isn't on this device</h4>
+                    <p class="card__text">You're offline, and it hasn't been opened here before. Your decks are still on this device.</p>
+                  </div>
+                  <footer class="card__foot">
+                    <a href="#">Go to your decks</a>
+                    <button class="btn" type="button">Try again</button>
+                  </footer>
+                </article>
+              </div>
+              <p class="sg-caption">
+                <b><code>offline.html</code>.</b> A page that fails with nothing cached. The plain card
+                of a failed load (<a href="#states-failed">States</a>): what happened, the way
+                to what is on the device, and Try again. Never the browser's error page.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.4 -->
+        <article class="sg-entry" id="pwa-notify">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.4</p>
+            <h3 class="sg-entry__name">Permission pre-prompt</h3>
+            <p class="sg-entry__use">Ask for notifications only after something the person did, and say what they'll get.</p>
+            <p class="sg-entry__classes"><code>data-pwa="notify-ask"</code> <code>data-pwa="notify"</code> <code>data-pwa="notify-denied"</code> <code>.card</code> <code>.switch</code></p>
+            <p class="sg-entry__note">
+              The card comes after a finished session, never on load. Turn on asks the browser; Not
+              now puts the card away, and the Daily reminder switch in Settings stays the way back. A
+              browser asks once: if the answer is no, the setting says how to allow it there. On an
+              iPhone, web push needs the app installed first (iOS 16.4 or later), so in a Safari tab
+              the card never shows.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <div hidden data-sg-live>
+              <div class="sg-stack" tabindex="-1" data-sg-notify>
+                <article class="card" data-pwa="notify-ask" aria-labelledby="pwa-notify-title" hidden data-sg-code>
+                  <div class="card__body">
+                    <h4 class="card__title" id="pwa-notify-title">Remind you tomorrow?</h4>
+                    <p class="card__text">A reminder at 8pm on days you haven't studied, so a streak doesn't end by accident. Your browser asks you first.</p>
+                  </div>
+                  <footer class="card__foot">
+                    <button class="btn btn--quiet" type="button" data-sg-later>Not now</button>
+                    <button class="btn btn--primary" type="button" data-pwa="notify">Turn on</button>
+                  </footer>
+                </article>
+                <p class="t-body" data-pwa="notify-denied" hidden data-sg-code>
+                  Reminders are blocked for Flashcards. To get them, allow notifications for this site
+                  in your browser's settings.
+                </p>
+              </div>
+              <p class="sg-caption">
+                <b>Live.</b> The card shows while this browser hasn't been asked. Turn on asks for
+                real; the answer sticks to this page until you change it in the browser.
+              </p>
+            </div>
+            <div>
+              <div class="sg-stack" inert>
+                <p class="t-body">Done for today: 12 cards, 5 known.</p>
+                <article class="card">
+                  <div class="card__body">
+                    <h4 class="card__title">Remind you tomorrow?</h4>
+                    <p class="card__text">A reminder at 8pm on days you haven't studied, so a streak doesn't end by accident. Your browser asks you first.</p>
+                  </div>
+                  <footer class="card__foot">
+                    <button class="btn btn--quiet" type="button">Not now</button>
+                    <button class="btn btn--primary" type="button">Turn on</button>
+                  </footer>
+                </article>
+              </div>
+              <p class="sg-caption">
+                <b>Not asked yet.</b> After the session, under what was done. What you get, when, and
+                how often, in the product's words. The browser's own prompt comes only after Turn on.
+              </p>
+            </div>
+            <div>
+              <div inert>
+                <div class="list">
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <div class="switch">
+                        <label class="switch__label">
+                          <span class="switch__text">Daily reminder</span>
+                          <span class="switch__control">
+                            <input class="switch__input" type="checkbox" role="switch" checked />
+                            <span class="switch__state" aria-hidden="true"><span class="switch__on">On</span><span class="switch__off">Off</span></span>
+                          </span>
+                        </label>
+                        <p class="switch__help">At 8pm, if you haven't studied today.</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <p class="sg-caption"><b>Turned on.</b> The card goes; the setting is where it can be turned off again.</p>
+            </div>
+            <div>
+              <div inert>
+                <div class="list">
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <div class="switch">
+                        <label class="switch__label">
+                          <span class="switch__text">Daily reminder</span>
+                          <span class="switch__control">
+                            <input class="switch__input" type="checkbox" role="switch" />
+                            <span class="switch__state" aria-hidden="true"><span class="switch__on">On</span><span class="switch__off">Off</span></span>
+                          </span>
+                        </label>
+                        <p class="switch__help">Notifications are blocked for Flashcards. To get the reminder, allow them in your browser's settings for this site, then turn it on here.</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <p class="sg-caption">
+                <b>Blocked.</b> The page can't ask twice, so it says where to change it. Installed on
+                an iPhone: Settings, Notifications, Flashcards.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.5 -->
+        <article class="sg-entry" id="pwa-badge">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.5</p>
+            <h3 class="sg-entry__name">Badging</h3>
+            <p class="sg-entry__use">The cards due today, on the app's icon and inside the app.</p>
+            <p class="sg-entry__classes"><code>Flashcards.badge(n)</code> <code>.badge</code></p>
+            <p class="sg-entry__note">
+              <code>navigator.setAppBadge(dueCount)</code> when the count changes (a session ends, a
+              day starts), and 0 to clear it. Detected by feature: only an installed app has an icon
+              to badge. The same count always shows inside the app too, on the Decks tab, so nothing
+              depends on the icon.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <div hidden data-sg-live>
+              <div class="btn-row" data-sg-code>
+                <button class="btn" type="button" data-sg-badge="7">Badge the icon: 7 due</button>
+                <button class="btn btn--quiet" type="button" data-sg-badge="0">Clear it</button>
+              </div>
+              <p class="t-meta" role="status" data-sg-badge-out></p>
+              <p class="sg-caption">
+                <b>Live.</b> Calls <code>Flashcards.badge(7)</code> and <code>Flashcards.badge(0)</code>.
+                Installed in a browser that badges, the count shows on the icon.
+              </p>
+            </div>
+            <div>
+              <div class="sg-device" inert>
+                <nav class="tabbar" aria-label="Places">
+                  <ul class="tabbar__list" role="list">
+                    <li>
+                      <a class="tabbar__link" href="#" aria-current="page">
+                        <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Today</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"
+                          ><span class="ic ic--decks" aria-hidden="true"></span
+                          ><span class="badge" aria-hidden="true">7</span></span
+                        >
+                        <span class="tabbar__label">Decks</span><span class="sr-only">, 7 due</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Settings</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+              <p class="sg-caption">
+                <b>Inside the app.</b> Tab bar's badge, with the count in the link's name ("Decks, 7
+                due"). Always there, whatever the icon can do.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.6 -->
+        <article class="sg-entry" id="pwa-share">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.6</p>
+            <h3 class="sg-entry__name">Share</h3>
+            <p class="sg-entry__use">Send a deck's link to someone, the way the phone shares everything else.</p>
+            <p class="sg-entry__classes"><code>data-share</code> <code>data-share-url</code> <code>data-share-title</code> <code>ic--share</code></p>
+            <p class="sg-entry__note">
+              <code>navigator.share</code> opens the system's share sheet with the deck's name and
+              link. Where there is none (most desktop browsers), the link is copied instead and a
+              Toast says so: "Link copied." The Button is the same either way.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <div hidden data-sg-live>
+              <div class="sg-device" style="block-size: 20rem">
+                <div class="frame">
+                  <header class="frame__top topbar" data-sg-code>
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h4 class="topbar__title">Shapes</h4>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="Share Shapes" data-share data-share-title="Shapes" data-share-url="https://flashcards.example/decks/shapes" hidden>
+                        <span class="ic ic--share" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                  </div>
+                  <div class="toasts" role="status"></div>
+                </div>
+              </div>
+              <p class="sg-caption">
+                <b>Live.</b> Share in the top bar. A phone opens its share sheet; here the link is
+                probably copied, and the Toast says so.
+              </p>
+            </div>
+            <div>
+              <div class="sg-device" style="block-size: 20rem" inert>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h4 class="topbar__title">Shapes</h4>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet btn--icon" type="button" aria-label="Share Shapes">
+                        <span class="ic ic--share" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                  </div>
+                  <div class="toasts">
+                    <div class="toast">
+                      <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+                      <p class="toast__text">Link copied.</p>
+                      <div class="toast__actions">
+                        <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                          <span class="ic ic--close" aria-hidden="true"></span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="sg-caption">
+                <b>Copied.</b> No share sheet, so the link goes to the clipboard and Toast's done
+                says so, for 6 seconds. The phone's own sheet is the system's, so it isn't drawn here.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.7 -->
+        <article class="sg-entry" id="pwa-keyboard">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.7</p>
+            <h3 class="sg-entry__name">Keyboard</h3>
+            <p class="sg-entry__use">Make room for the on-screen keyboard, and keep the field you're typing in above it.</p>
+            <p class="sg-entry__classes"><code>interactive-widget=resizes-content</code> <code>data-keyboard</code> <code>.frame</code></p>
+            <p class="sg-entry__note">
+              Every page's viewport meta adds <code>interactive-widget=resizes-content</code>, so
+              Android shrinks the page above the keyboard instead of covering it. A focused field
+              scrolls clear with Frame's scroll padding. While the keyboard is up the Tab bar hides,
+              where the browser shows it: <code>frame.js</code> sees the keyboard as lost viewport
+              height (<code>visualViewport</code>) and sets <code>data-keyboard</code> on the frame.
+              Elsewhere the bar stays.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot" hidden data-sg-live>
+              <div class="sg-device sg-phone" style="block-size: 600px">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Shapes
+                    </a>
+                    <h4 class="topbar__title">Add a card</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="form" data-sg-code>
+                      <div class="field">
+                        <label class="field__label" for="pwa-kb-front">Front</label>
+                        <p class="field__help" id="pwa-kb-front-help">What you see first.</p>
+                        <input class="field__input" id="pwa-kb-front" type="text" autocomplete="off" enterkeyhint="next" aria-describedby="pwa-kb-front-help" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label" for="pwa-kb-back">Back</label>
+                        <p class="field__help" id="pwa-kb-back-help">What you say back.</p>
+                        <input class="field__input" id="pwa-kb-back" type="text" autocomplete="off" enterkeyhint="done" aria-describedby="pwa-kb-back-help" />
+                      </div>
+                      <div class="form__actions">
+                        <button class="btn btn--primary" type="button">Add card</button>
+                      </div>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+              <p class="sg-caption">
+                <b>Live.</b> On a phone, tap Front: the keyboard comes up and the Tab bar goes. On a
+                computer nothing changes, because no keyboard takes any room.
+              </p>
+            </div>
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 600px" inert>
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div style="position: absolute; inset: 0 0 auto; block-size: calc(100% - 16rem); --safe-bottom: 0px">
+                  <div class="frame">
+                    <header class="frame__top topbar">
+                      <a class="btn btn--quiet topbar__back" href="#">
+                        <span class="ic ic--back" aria-hidden="true"></span>Shapes
+                      </a>
+                      <h4 class="topbar__title">Add a card</h4>
+                    </header>
+                    <div class="frame__scroll">
+                      <div class="form">
+                        <div class="field">
+                          <label class="field__label">Front</label>
+                          <p class="field__help">What you see first.</p>
+                          <input class="field__input" type="text" value="Four equal sides" />
+                        </div>
+                        <div class="field">
+                          <label class="field__label">Back</label>
+                          <p class="field__help">What you say back.</p>
+                          <input class="field__input" type="text" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div aria-hidden="true" style="position: absolute; inset: auto 0 0; display: grid; place-items: center; block-size: 16rem; font: var(--type-meta); color: var(--ink-soft); background: var(--paper); border-block-start: var(--bw-thin) solid var(--line-soft)">Keyboard</div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+              <p class="sg-caption">
+                <b>Keyboard up.</b> The Tab bar has gone and the scroll region ends at the keyboard; the
+                field scrolls clear, 48px above it. Back on blur, or when the keyboard goes down.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.8 -->
+        <article class="sg-entry" id="pwa-storage">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.8</p>
+            <h3 class="sg-entry__name">Storage</h3>
+            <p class="sg-entry__use">Keep the decks on the device, let them leave it as a file, and say how much room they take.</p>
+            <p class="sg-entry__classes"><code>Flashcards.persist()</code> <code>Flashcards.download()</code> <code>Flashcards.readJSON()</code> <code>data-pwa="quota"</code></p>
+            <p class="sg-entry__note">
+              Ask the browser to keep the data through cleanup (<code>Flashcards.persist()</code>)
+              after real use, never on first launch: the starter asks when the first deck is saved
+              and after an import. Chromium decides without asking; Firefox asks. Export saves every
+              deck as one JSON file; Import reads one back and says what it added, or why it couldn't.
+              The quota line lives in Settings.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div hidden data-sg-live>
+              <div class="sg-device" style="block-size: 24rem">
+                <div class="frame">
+                  <div class="frame__scroll">
+                    <article class="card" aria-labelledby="pwa-storage-title" data-sg-code>
+                      <div class="card__body">
+                        <h4 class="card__title" id="pwa-storage-title">Your decks</h4>
+                        <p class="card__text">They're kept on this device. Export saves them to a file, to keep a copy or move them to another device; Import adds the decks from one.</p>
+                        <p class="card__meta" data-pwa="quota" hidden></p>
+                      </div>
+                      <footer class="card__foot">
+                        <button class="btn" type="button" data-sg-export>Export</button>
+                        <button class="btn" type="button" data-sg-import>Import…</button>
+                        <input type="file" accept=".json,application/json" hidden data-sg-file />
+                      </footer>
+                    </article>
+                  </div>
+                  <div class="toasts" role="status"></div>
+                </div>
+              </div>
+              <p class="sg-caption">
+                <b>Live.</b> Export downloads two sample decks as a file; Import reads one back, and
+                asks to keep the data once it has. The quota fills in where the browser says how much
+                room there is.
+              </p>
+              <dialog class="dialog" id="pwa-import-failed" role="alertdialog" aria-labelledby="pwa-import-failed-title" aria-describedby="pwa-import-failed-text">
+                <h2 class="dialog__title" id="pwa-import-failed-title">
+                  <span class="ic ic--warning" aria-hidden="true"></span>Can't import that file
+                </h2>
+                <p class="dialog__text" id="pwa-import-failed-text">It isn't a deck export. Choose a file saved with Export.</p>
+                <form class="dialog__actions" method="dialog">
+                  <button class="btn btn--primary" value="ok">OK</button>
+                </form>
+              </dialog>
+            </div>
+            <div>
+              <div inert>
+                <article class="card">
+                  <div class="card__body">
+                    <h4 class="card__title">Your decks</h4>
+                    <p class="card__text">They're kept on this device. Export saves them to a file, to keep a copy or move them to another device; Import adds the decks from one.</p>
+                    <p class="card__meta">Using 2.1 MB of 1.2 GB on this device.</p>
+                  </div>
+                  <footer class="card__foot">
+                    <button class="btn" type="button">Export</button>
+                    <button class="btn" type="button">Import…</button>
+                  </footer>
+                </article>
+              </div>
+              <p class="sg-caption">
+                <b>In Settings.</b> What's kept, the room it takes in words, and the two ways out and
+                in. Without an estimate the quota line stays hidden.
+              </p>
+            </div>
+            <div>
+              <div inert>
+                <div class="toast">
+                  <span class="ic ic--check toast__icon" aria-hidden="true"></span>
+                  <p class="toast__text">Added 2 decks from the file.</p>
+                  <div class="toast__actions">
+                    <button class="btn btn--quiet btn--icon" type="button" aria-label="Dismiss">
+                      <span class="ic ic--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <div style="margin-block-start: var(--space-3); padding-block: var(--space-5); background: var(--scrim)">
+                  <div class="dialog">
+                    <h5 class="dialog__title"><span class="ic ic--warning" aria-hidden="true"></span>Can't import that file</h5>
+                    <p class="dialog__text">It isn't a deck export. Choose a file saved with Export.</p>
+                    <div class="dialog__actions">
+                      <button class="btn btn--primary" type="button">OK</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="sg-caption">
+                <b>Imported, or not.</b> A Toast says what came in ("Every deck in that file is already
+                here." when nothing did). A file that isn't an export stops you, so it's Dialog's
+                acknowledge, which says what to choose instead.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.9 -->
+        <article class="sg-entry" id="pwa-standalone">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.9</p>
+            <h3 class="sg-entry__name">Standalone</h3>
+            <p class="sg-entry__use">An installed app has no browser around it: no back, no address, no refresh.</p>
+            <p class="sg-entry__classes"><code>.topbar__back</code> <code>ic--arrow</code> <code>display-mode: standalone</code></p>
+            <p class="sg-entry__note">
+              Every screen past the root has Top bar's back. A link that leaves the app opens in the
+              browser, and says so with ↗ (<code>ic--arrow</code>) and its words. A deep link inside
+              <code>scope</code> opens that screen, with a back link to the root; the home screen
+              always opens <code>start_url</code>. Install hides.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="block-size: 600px" inert>
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Settings
+                    </a>
+                    <h4 class="topbar__title">About</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <div class="list">
+                      <ul class="list__rows" role="list">
+                        <li>
+                          <div class="list__row">
+                            <span class="list__main"><span class="list__title">Flashcards</span><span class="list__meta">Version 1.4, installed</span></span>
+                          </div>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">How spaced repetition works</span><span class="list__meta">An article on the web</span></span>
+                            <span class="list__trail"><span class="ic ic--arrow" aria-hidden="true"></span><span class="sr-only">, opens in your browser</span></span>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="list__row" href="#">
+                            <span class="list__main"><span class="list__title">Privacy</span><span class="list__meta">Your decks never leave this device unless you export them.</span></span>
+                            <span class="list__trail"><span class="ic ic--forward" aria-hidden="true"></span></span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <span class="sg-phone__home" aria-hidden="true"></span>
+              </div>
+              <p class="sg-caption">
+                <b>Installed.</b> A screen past the root, so it has a back link. ↗ marks the one row
+                that opens in the browser; › stays in the app. No Install anywhere.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.10 -->
+        <article class="sg-entry" id="pwa-orientation">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.10</p>
+            <h3 class="sg-entry__name">Orientation and tablets</h3>
+            <p class="sg-entry__use">Any way up, any size: a phone on its side, a tablet, a desktop window.</p>
+            <p class="sg-entry__classes"><code>orientation: any</code> <code>.frame--wide</code> <code>--safe-left</code></p>
+            <p class="sg-entry__note">
+              Never locked. On its side a phone's notch moves to one end, so the bars and the scroll
+              region pad by the side safe areas (they read <code>max(var(--gutter), var(--safe-left))</code>)
+              and content never does. From 45rem of frame, which a tablet or a wide window has, Frame's
+              <a href="#frame-wide">wide variant</a> trades the Tab bar for the Sidebar.
+            </p>
+          </header>
+          <div class="sg-stage sg-devices">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="inline-size: 844px; block-size: 390px; --safe-top: 0px; --safe-left: 47px; --safe-right: 47px; --safe-bottom: 21px" inert>
+                <div class="frame">
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h4 class="topbar__title">Shapes</h4>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                    <div class="btn-row">
+                      <button class="btn btn--primary" type="button">Start</button>
+                    </div>
+                  </div>
+                  <nav class="frame__bottom tabbar" aria-label="Places">
+                    <ul class="tabbar__list" role="list">
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Today</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#" aria-current="page">
+                          <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Decks</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="tabbar__link" href="#">
+                          <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                          <span class="tabbar__label">Settings</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+              <p class="sg-caption">
+                <b>A phone on its side.</b> 844 by 390, the notch at the start. The bars and the
+                content clear it by 47px each side; the home indicator's 21px is the Tab bar's. A
+                landscape phone at large text has little room under its bars: the content scrolls,
+                the bars never do.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.11 -->
+        <article class="sg-entry" id="pwa-budget">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.11</p>
+            <h3 class="sg-entry__name">Performance budget</h3>
+            <p class="sg-entry__use">What a served app downloads the first time, and the most it may.</p>
+            <p class="sg-entry__classes"><code>dist/flashcards.min.css</code> <code>dist/flashcards.min.js</code> <code>tools/bundle.mjs</code></p>
+            <p class="sg-entry__note">
+              <code>tools/bundle.mjs</code> writes <code>flashcards.min.css</code> and
+              <code>flashcards.min.js</code> (comments and spare whitespace out, nothing else), which
+              a served app links, prints the gzipped sizes and fails the build over budget.
+              First load on a mid-range phone stays under 2.5s to the largest paint, a target measured
+              on a device; after that, the worker makes every load instant.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-cols" style="--col: 15rem">
+              <div class="meter">
+                <span class="meter__label" id="pwa-budget-css">CSS, gzipped</span>
+                <span class="meter__value" aria-hidden="true">13.1 of 30 KB</span>
+                <div class="meter__bar" role="meter" aria-labelledby="pwa-budget-css" aria-valuemin="0" aria-valuemax="30" aria-valuenow="13.1" aria-valuetext="13.1 of 30 KB" style="--value: 43.67%"></div>
+              </div>
+              <div class="meter">
+                <span class="meter__label" id="pwa-budget-js">Script, gzipped</span>
+                <span class="meter__value" aria-hidden="true">6.2 of 10 KB</span>
+                <div class="meter__bar" role="meter" aria-labelledby="pwa-budget-js" aria-valuemin="0" aria-valuemax="10" aria-valuenow="6.2" aria-valuetext="6.2 of 10 KB" style="--value: 62%"></div>
+              </div>
+              <div class="meter">
+                <span class="meter__label" id="pwa-budget-font">The font</span>
+                <span class="meter__value" aria-hidden="true">88 of 90 KB</span>
+                <div class="meter__bar" role="meter" aria-labelledby="pwa-budget-font" aria-valuemin="0" aria-valuemax="90" aria-valuenow="88" aria-valuetext="88 of 90 KB" style="--value: 97.78%"></div>
+              </div>
+            </div>
+            <p class="sg-caption" style="max-inline-size: 70ch; margin-block-start: var(--space-5)">
+              Measured on 2026-10-20 with this wave's script in. The commented
+              <code>flashcards.js</code> is 9.9 KB gzipped, so the budget is the min file's. The font is
+              already compressed, so its file size is the number; preload it in a served app, with
+              <code>crossorigin</code>. A KB is 1024 bytes. <code>tools/bundle.mjs</code> prints these on
+              every build.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="pwa-states" aria-labelledby="pwa-states-h">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="pwa-states-h">States</h2>
+          <p class="sg-sec__note">
+            What the app shows, what a screen reader hears, and where focus is, as the platform
+            changes under it. Nothing moves on screen until gate 4: each appears in place.
+          </p>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Offline</strong>
+            <p><b>Shows:</b> The offline band first in the scroll region; everything on the device under it.</p>
+            <p><b>Heard:</b> "You're offline. Changes are saved on this device.", politely, once.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Online again</strong>
+            <p><b>Shows:</b> The band goes.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Update waiting</strong>
+            <p><b>Shows:</b> The update band, with Reload.</p>
+            <p><b>Heard:</b> "A new version is ready.", politely, once.</p>
+            <p><b>Focus:</b> Where it was; Reload is the first stop in the content.</p>
+          </li>
+          <li>
+            <strong>Reloaded</strong>
+            <p><b>Shows:</b> The same screen, on the new version, with the band gone.</p>
+            <p><b>Heard:</b> The page, from the top, as after any reload.</p>
+            <p><b>Focus:</b> At the top.</p>
+          </li>
+          <li>
+            <strong>Installable</strong>
+            <p><b>Shows:</b> Install in Settings, beside the version. Nowhere else.</p>
+            <p><b>Heard:</b> Nothing until you reach it.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Installing</strong>
+            <p><b>Shows:</b> Chromium's own install sheet; on iOS, the Sheet with the steps.</p>
+            <p><b>Heard:</b> The browser's sheet, or the Sheet's title.</p>
+            <p><b>Focus:</b> In the sheet; back on Install when it closes.</p>
+          </li>
+          <li>
+            <strong>Not asked yet</strong>
+            <p><b>Shows:</b> After a session, the reminder card with Not now and Turn on.</p>
+            <p><b>Heard:</b> Nothing: it's there when you look.</p>
+            <p><b>Focus:</b> Where it was; the card's buttons come next.</p>
+          </li>
+          <li>
+            <strong>Asked</strong>
+            <p><b>Shows:</b> The browser's prompt. Then the card goes; if the answer was no, the setting says how to allow it.</p>
+            <p><b>Heard:</b> The browser's prompt.</p>
+            <p><b>Focus:</b> Back on the page, at the scroll region, since the card has gone.</p>
+          </li>
+          <li>
+            <strong>Link copied</strong>
+            <p><b>Shows:</b> Toast's done, "Link copied.", for 6 seconds.</p>
+            <p><b>Heard:</b> "Link copied.", politely.</p>
+            <p><b>Focus:</b> On Share.</p>
+          </li>
+          <li>
+            <strong>Keyboard up</strong>
+            <p><b>Shows:</b> The Tab bar goes; the field you're in stays above the keyboard.</p>
+            <p><b>Heard:</b> Nothing new: the bar is out of the way, not announced.</p>
+            <p><b>Focus:</b> In the field.</p>
+          </li>
+          <li>
+            <strong>Keyboard down</strong>
+            <p><b>Shows:</b> The Tab bar is back.</p>
+            <p><b>Heard:</b> Nothing.</p>
+            <p><b>Focus:</b> Where it was.</p>
+          </li>
+          <li>
+            <strong>Imported</strong>
+            <p><b>Shows:</b> A Toast: "Added 2 decks from the file." The decks are there.</p>
+            <p><b>Heard:</b> The Toast, politely.</p>
+            <p><b>Focus:</b> On Import.</p>
+          </li>
+        </ol>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          At 200% text each pattern wraps and grows taller, never wider. In forced colours the bands'
+          rules, the cards' and toasts' frames, the switch's knob and every glyph stay, in system
+          colours.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="pwa-usage" aria-labelledby="pwa-usage-h">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="pwa-usage-h">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Ask for things after the person did something that needs them: notifications after a
+              session, keeping the data after real use. Keep every count and setting inside the app
+              too, and keep Install in Settings.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't prompt on load, reload without asking, lock the orientation, or show Install to
+              an installed app. Don't badge what the app doesn't also show, or let the worker touch
+              another origin's requests.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Install, web push and the keyboard behave differently on iOS, and only a device shows
+              how: an iPhone installs through Add to Home Screen, gets push only once installed, and
+              lays the keyboard over the page. Each is marked as needing a device in the spec.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Installed from Chrome or Safari (File, Add to Dock), the app gets its own window and Dock
+              icon, and the badge goes on the Dock icon. Natively these are the system's: the App Store
+              installs, <code>UNUserNotificationCenter</code> asks, <code>ShareLink</code> shares.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <script>
+        /* The page's demos (a real app owns this state: see the starter's app.js).
+           Inside <main>, so the bundled style sheet keeps it. The live specimens
+           show only once pwa.js has loaded, so without it the still pictures are
+           the page. */
+        document.addEventListener("DOMContentLoaded", function () {
+          var F = window.Flashcards;
+          var root = document.getElementById("el-pwa");
+          if (!root || !F || !F.badge) return;
+          Array.prototype.forEach.call(root.querySelectorAll("[data-sg-live]"), function (el) { el.hidden = false; });
+          var file = root.querySelector("[data-sg-file]");
+          var region = root.querySelector("#pwa-storage .toasts");
+          var sample = { app: "flashcards", version: 1, decks: [{ name: "Shapes", cards: 12 }, { name: "Colours", cards: 8 }] };
+          function say(text) { if (F.toast) F.toast({ text: text, region: region }); }
+
+          root.addEventListener("click", function (e) {
+            var t = e.target.closest && e.target.closest("button");
+            if (!t) return;
+            if (t.hasAttribute("data-sg-later")) { // gone for this visit; focus stays near
+              t.closest("[data-pwa]").hidden = true;
+              root.querySelector("[data-sg-notify]").focus();
+            }
+            if (t.hasAttribute("data-sg-badge")) {
+              var n = +t.getAttribute("data-sg-badge");
+              F.badge(n).then(function (took) {
+                root.querySelector("[data-sg-badge-out]").textContent = !took
+                  ? "This browser can't badge an icon. The count still shows on the Decks tab."
+                  : n ? "Sent. Installed, the icon shows 7." : "Cleared.";
+              });
+            }
+            if (t.hasAttribute("data-sg-export")) {
+              F.download("flashcards-decks.json", sample);
+              say("Exported 2 decks.");
+            }
+            if (t.hasAttribute("data-sg-import")) file.click();
+          });
+
+          file.addEventListener("change", function () {
+            var chosen = file.files[0];
+            file.value = ""; // so the same file can be chosen again
+            if (!chosen) return;
+            F.readJSON(chosen).then(function (d) {
+              if (!d || d.app !== "flashcards" || !Array.isArray(d.decks)) throw new Error("not a deck export");
+              var n = d.decks.length;
+              say(n ? "Added " + n + (n === 1 ? " deck" : " decks") + " from the file." : "Every deck in that file is already here.");
+              F.persist(); // real use now: ask to keep the data through cleanup
+            }).catch(function () {
+              document.getElementById("pwa-import-failed").showModal();
+            });
+          });
+        });
+      </script>
+    </section>
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards design system · v0.7</span>
+      <span>Flashcards design system · v0.8</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>
@@ -19207,7 +20695,10 @@ dialog.sheet:not([open]) {
    still decides what is wrong (required, pattern, type), but instead of its
    bubble each field shows Field's error, and the summary at the top lists
    them as links and takes focus. A field shown wrong is checked again on
-   blur, or on change for a choice: never while typing.
+   blur, or on change for a choice, and its error goes the moment its value
+   is right, as you type: an error never appears while typing, but clearing
+   then, not on blur, keeps the button from moving under the click that
+   blurs the field.
    ========================================================================== */
 (function () {
   "use strict";
@@ -19265,6 +20756,9 @@ dialog.sheet:not([open]) {
     }
     form.addEventListener("focusout", recheck);
     form.addEventListener("change", recheck);
+    form.addEventListener("input", function (e) { // only ever clears
+      if (e.target.validity && e.target.validity.valid) recheck(e);
+    });
     if (summary) summary.addEventListener("click", function (e) { // caret in, label in view
       var a = e.target.closest("a[href^='#']");
       var el = a && document.getElementById(a.getAttribute("href").slice(1));
@@ -19277,21 +20771,21 @@ dialog.sheet:not([open]) {
 })();
 
 /* ==========================================================================
-   frame.js — publishes --chrome on every .frame. Spec: elements/frame.md
+   frame.js — --chrome, and the keyboard. Spec: elements/frame.md
    --------------------------------------------------------------------------
-   --chrome is the part of the frame's height that isn't room for content:
-   the bars with their safe areas, and the scroll region's own padding. So
-   100svh - var(--chrome) is the room, and the study card fits in it.
-
-   CSS can't put a content-sized bar's height into a property, so this
-   measures it, in px, whenever the frame or anything in it changes size
-   (text size, a bar wrapping, a rotation). Without script --chrome stays
-   unset: the study card falls back to 100svh and the region scrolls a
-   little. Nothing else reads it.
+   1. --chrome: the frame's height that isn't room for content (the bars,
+      their safe areas, the scroll region's padding), measured in px when
+      anything in the frame changes size. The study card reads it; without
+      script it falls back to 100svh.
+   2. data-keyboard, on the frame holding the focused field while the
+      on-screen keyboard is up; frame.css hides the Tab bar under it. The
+      keyboard shows only as lost height (iOS shrinks the visual viewport;
+      Android, with interactive-widget=resizes-content, the page). So: a
+      text field has focus, and the viewport is over 150px shorter than the
+      tallest seen at this width (so a rotation never counts).
    ========================================================================== */
 (function () {
   "use strict";
-  if (!("ResizeObserver" in window)) return;
 
   function measure(frame) {
     var scroll = frame.querySelector(":scope > .frame__scroll");
@@ -19302,23 +20796,185 @@ dialog.sheet:not([open]) {
     frame.style.setProperty("--chrome", Math.max(0, Math.round(chrome)) + "px");
   }
 
-  var ro = new ResizeObserver(function (entries) {
-    var done = [];
-    entries.forEach(function (e) {
-      var frame = e.target.classList.contains("frame") ? e.target : e.target.parentElement;
-      if (frame && done.indexOf(frame) < 0) {
-        done.push(frame);
-        measure(frame);
-      }
+  if ("ResizeObserver" in window) {
+    var ro = new ResizeObserver(function (entries) {
+      var done = [];
+      entries.forEach(function (e) {
+        var frame = e.target.classList.contains("frame") ? e.target : e.target.parentElement;
+        if (frame && done.indexOf(frame) < 0) {
+          done.push(frame);
+          measure(frame);
+        }
+      });
     });
+    Array.prototype.forEach.call(document.querySelectorAll(".frame"), function (frame) {
+      ro.observe(frame);
+      Array.prototype.forEach.call(frame.children, function (child) {
+        ro.observe(child);
+      });
+    });
+  }
+
+  var vv = window.visualViewport, tallest = {}; // px, by viewport width
+  var TEXT = /^(text|search|email|url|tel|password|number)$/;
+
+  function typing(el) { // brings up the keyboard
+    if (!el || el.readOnly || el.disabled || el.inputMode === "none") return false;
+    return el.isContentEditable || el.localName === "textarea" ||
+      (el.localName === "input" && TEXT.test(el.type));
+  }
+
+  function keyboard() {
+    var w = document.documentElement.clientWidth;
+    var h = vv ? vv.height * vv.scale : innerHeight; // a pinch zoom isn't lost height
+    tallest[w] = Math.max(tallest[w] || 0, h);
+    var el = document.activeElement;
+    var frame = typing(el) && tallest[w] - h > 150 ? el.closest(".frame") : null;
+    Array.prototype.forEach.call(document.querySelectorAll(".frame[data-keyboard]"), function (f) {
+      if (f !== frame) f.removeAttribute("data-keyboard");
+    });
+    if (frame) frame.setAttribute("data-keyboard", "");
+  }
+
+  (vv || window).addEventListener("resize", keyboard);
+  document.addEventListener("focusin", keyboard);
+  document.addEventListener("focusout", function () { setTimeout(keyboard); }); // once focus lands
+  keyboard();
+})();
+
+/* ==========================================================================
+   pwa.js — the installed app's page side: registers the worker that
+   <meta name="flashcards-sw"> names, raises the offline and update Banners,
+   offers install, share, notifications and storage, all by data-pwa and
+   data-share markup. Silent where an API is missing (file:// included); it
+   never reloads or prompts on its own. Spec: elements/pwa.md, STYLE.md §4.
+   ========================================================================== */
+(function () {
+  "use strict";
+  var NS = (window.Flashcards = window.Flashcards || {});
+  var doc = document, nav = navigator;
+  function noop() {}
+  function yes() { return true; }
+  function no() { return false; }
+  var BAND = {
+    offline: ["offline", "<strong>You're offline.</strong> Changes are saved on this device."],
+    update: ["refresh", "<strong>A new version is ready.</strong>", "Reload"]
+  };
+  var INSTALL = '[data-pwa~="install"]', sw, reg, asked, deferred;
+
+  function all(sel, fn) { Array.prototype.forEach.call(doc.querySelectorAll(sel), fn); }
+  function show(sel, on) { all(sel, function (el) { el.hidden = !on; }); }
+  function size(n) { return n < 1e6 ? Math.ceil(n / 1e3) + " KB" : n < 1e9 ? (n / 1e6).toFixed(1) + " MB" : (n / 1e9).toFixed(1) + " GB"; }
+
+  // a band may take both: offline first, else a waiting update
+  function bands() {
+    var update = reg && reg.waiting && nav.onLine;
+    all('[data-pwa~="offline"], [data-pwa~="update"]', function (el) {
+      var k = !nav.onLine && el.matches('[data-pwa~="offline"]') ? "offline" : update && el.matches('[data-pwa~="update"]') ? "update" : "", b = BAND[k];
+      if (el.pwaNow === k) return;
+      el.pwaNow = k;
+      el.hidden = false; // empty, a band is undrawn but still speaks (banner.md)
+      el.innerHTML = b ? '<span class="ic ic--' + b[0] + ' banner__icon" aria-hidden="true"></span><p class="banner__text">' + b[1] + "</p>" +
+        (b[2] ? '<button class="btn banner__action" type="button" data-pwa="reload">' + b[2] + "</button>" : "") : "";
+    });
+  }
+  function refresh() {
+    var p = window.Notification && Notification.permission;
+    show('[data-pwa~="notify-ask"]', p === "default");
+    show('[data-pwa~="notify-denied"]', p === "denied");
+    try {
+      if (doc.querySelector('[data-pwa~="quota"]')) nav.storage.estimate().then(function (q) {
+        if (q.quota) all('[data-pwa~="quota"]', function (el) {
+          el.textContent = "Using " + size(q.usage || 0) + " of " + size(q.quota) + " on this device.";
+          el.hidden = false;
+        });
+      }, noop);
+    } catch (e) { /* none */ }
+  }
+  function share(b) {
+    var url = new URL(b.getAttribute("data-share-url") || location.href, doc.baseURI).href, toast = NS.toast || noop;
+    var frame = b.closest(".frame"), region = frame && frame.querySelector(':scope > .toasts[role="status"]');
+    function copy() { // the toast speaks in the Share button's own frame, if it has one
+      nav.clipboard.writeText(url).then(function () { toast({ text: "Link copied.", region: region }); },
+        function () { toast({ text: "Couldn't copy the link.", failed: true, region: region }); });
+    }
+    if (!nav.share) return copy();
+    nav.share({ title: b.getAttribute("data-share-title") || doc.title, url: url })
+      .catch(function (e) { if (e.name !== "AbortError") copy(); });
+  }
+
+  // capture: with Chromium's prompt, Install skips the iOS sheet of its commandfor
+  doc.addEventListener("click", function (e) {
+    var t = e.target, b;
+    if (!t.closest) return;
+    if (deferred && t.closest("button" + INSTALL)) {
+      e.preventDefault();
+      e.stopPropagation();
+      b = deferred.prompt();
+      if (b) b.catch(noop);
+      deferred = null; // one ask each
+      show(INSTALL, false);
+    } else if (t.closest('button[data-pwa~="reload"]')) {
+      if (reg && reg.waiting) { asked = true; reg.waiting.postMessage({ type: "SKIP_WAITING" }); }
+      else location.reload();
+    } else if (window.Notification && t.closest('button[data-pwa~="notify"]')) {
+      b = Notification.requestPermission();
+      if (b) b.then(refresh, noop);
+    } else if ((b = t.closest("button[data-share]"))) share(b);
+  }, true);
+
+  addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault(); // no pop-up: the page offers it
+    deferred = e;
+    show(INSTALL, !matchMedia("(display-mode: standalone)").matches);
+  });
+  addEventListener("appinstalled", function () { deferred = null; show(INSTALL, false); });
+  addEventListener("online", bands);
+  addEventListener("offline", bands);
+  doc.addEventListener("visibilitychange", function () {
+    if (doc.hidden) return;
+    refresh();
+    if (reg) reg.update().catch(noop);
   });
 
-  Array.prototype.forEach.call(document.querySelectorAll(".frame"), function (frame) {
-    ro.observe(frame);
-    Array.prototype.forEach.call(frame.children, function (child) {
-      ro.observe(child);
+  // iOS: no prompt, but it tells a tab from the app, so offer the steps
+  if (nav.standalone === false && doc.querySelector("button" + INSTALL + "[commandfor]")) show(INSTALL, true);
+  show('[data-pwa~="reload"]', true);
+  show("[data-share]", nav.share || (nav.clipboard && nav.clipboard.writeText));
+  bands();
+  refresh();
+
+  var meta = doc.querySelector('meta[name="flashcards-sw"]');
+  try { sw = meta && /^https?:$/.test(location.protocol) && nav.serviceWorker; } catch (e) { /* none */ }
+  if (sw) sw.register(meta.content).then(function (r) {
+    if (!(reg = r)) return;
+    function check() { if (r.waiting && sw.controller) bands(); } // no controller: first install
+    check();
+    r.addEventListener("updatefound", function () {
+      var w = r.installing;
+      if (w) w.addEventListener("statechange", function () { if (w.state === "installed") check(); });
     });
-  });
+    sw.addEventListener("controllerchange", function () { // after Reload, once
+      if (asked) { asked = false; location.reload(); }
+    });
+  }, noop);
+
+  NS.badge = function (n) { // the app icon's count, 0 clears; resolves true if it took
+    return nav.setAppBadge ? (n ? nav.setAppBadge(n) : nav.clearAppBadge()).then(yes, no) : Promise.resolve(false);
+  };
+  NS.persist = function () { // after real use; true if storage outlives cleanup
+    return nav.storage && nav.storage.persist ? nav.storage.persist().catch(no) : Promise.resolve(false);
+  };
+  NS.download = function (name, data) { // as a JSON file
+    var a = doc.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+    a.download = name;
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  };
+  NS.readJSON = function (file) { // rejects if it isn't JSON
+    return file.text().then(JSON.parse);
+  };
 })();
 
 /* ==========================================================================
