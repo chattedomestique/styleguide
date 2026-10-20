@@ -1,0 +1,159 @@
+/* ==========================================================================
+   Wireframe kit — placeholders for things that don't exist yet.
+
+   Every .wf-* class is deleted the day its real element ships. Nothing in
+   components/ may depend on this file: a card must still be a card without it.
+
+   How to read a wireframe
+     box with an X      an image or illustration goes here
+     flat grey          a tone slot (the number says which)
+     black fill         the inverted tone
+     dashed outline     empty, or unavailable
+     hatch              disabled
+     grey line + name   an element that isn't built yet (.wf-slot)
+   ========================================================================== */
+
+/* image / illustration slot */
+.wf-media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background-image:
+    linear-gradient(
+      to top right,
+      transparent calc(50% - 0.5px),
+      var(--line-soft) calc(50% - 0.5px) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    ),
+    linear-gradient(
+      to bottom right,
+      transparent calc(50% - 0.5px),
+      var(--line-soft) calc(50% - 0.5px) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    );
+}
+
+.wf-tag {
+  padding: 0.125rem 0.5rem;
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw-thin) solid var(--ink);
+}
+
+/* an illustration: stands in for the product's own illustrations */
+.wf-shape {
+  inline-size: min(72%, 13rem);
+  aspect-ratio: 1;
+  overflow: visible;
+}
+
+.wf-shape path {
+  fill: var(--tone-bg, var(--tone-3));
+  stroke: var(--card-ink, var(--ink));
+  stroke-width: 3.5;
+  stroke-linejoin: round;
+}
+
+/* progress / meter */
+.wf-meter {
+  --value: 50%;
+  position: relative;
+  block-size: 0.875rem;
+  overflow: clip;
+  background: var(--card-bg, var(--paper));
+  border: var(--bw) solid var(--card-ink, var(--ink));
+  border-radius: var(--radius-pill);
+}
+
+.wf-meter::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  inline-size: var(--value);
+  background: var(--card-ink, var(--ink));
+}
+
+/* forced colours drop backgrounds, and the meter's fill is one */
+@media (forced-colors: active) {
+  .wf-meter {
+    forced-color-adjust: none;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+
+  .wf-meter::before {
+    background: CanvasText;
+  }
+}
+
+/* status tag */
+.wf-pill {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.75rem;
+  padding-inline: var(--space-3);
+  font: var(--type-meta);
+  border: var(--bw-thin) solid currentColor;
+  border-radius: var(--radius-pill);
+}
+
+/* An element that isn't built yet. data-wf names it, and the name sits on
+   the top edge like a legend. Grey, not ink: black means built. It holds the
+   real copy, so a screen still reads. Each slot is swapped for the real
+   element the day it ships.
+     <div class="wf-slot" data-wf="Nav bar">…</div>
+     <span class="wf-slot wf-slot--pill" data-wf="Button">Got it</span> */
+.wf-slot {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-block-size: var(--hit);
+  padding: var(--space-2) var(--space-4);
+  font: var(--type-body);
+  color: var(--ink-soft);
+  border: var(--bw-thin) solid var(--line-soft);
+}
+
+.wf-slot--pill {
+  justify-content: center;
+  padding-inline: var(--space-5);
+  text-align: center;
+  border-radius: var(--radius-pill);
+}
+
+.wf-slot[data-wf]::before {
+  content: attr(data-wf);
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: var(--space-3);
+  translate: 0 -50%;
+  padding-inline: var(--space-1);
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  background: var(--wf-under, var(--canvas)); /* cuts the line: set it to what's behind */
+}
+
+.wf-slot--pill[data-wf]::before {
+  inset-inline: 0;
+  inline-size: fit-content;
+  margin-inline: auto;
+}
+
+/* disabled, as hatch. Lighter than the text on purpose: the words have to
+   stay readable through it. */
+.card:is(.card--disabled, [aria-disabled="true"]) {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 0.4375rem,
+    var(--tone-4) 0.4375rem 0.5rem
+  );
+}

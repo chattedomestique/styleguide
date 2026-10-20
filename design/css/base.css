@@ -1,0 +1,195 @@
+/* ==========================================================================
+   Base — reset, element defaults, type styles, the [data-tone] switch.
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  color-scheme: light;
+}
+
+/* iOS: follow the reader's Dynamic Type size (17px by default). Every size
+   is rem, so the whole scale follows. The touch-callout guard keeps it off
+   the Mac, where -apple-system-body is 13px. */
+@supports (-webkit-touch-callout: none) {
+  html {
+    font: -apple-system-body;
+  }
+}
+
+body {
+  margin: 0;
+  min-block-size: 100dvh;
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Lists are reset for layout. Put role="list" on them so Safari keeps the
+   list semantics that `list-style: none` would otherwise drop. */
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-inline-size: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* under 16px, iOS zooms the page when a field takes focus */
+:is(input, select, textarea) {
+  font-size: max(1rem, 1em);
+}
+
+a {
+  color: inherit;
+}
+
+/* every control draws its own :active look instead of the browser's
+   translucent flash */
+a,
+button,
+summary,
+label {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- type styles ----------------------------------------------------------
+   Uppercase is structure: labels and index numbers. Content is sentence
+   case. */
+
+/* one per screen: it has to fit the longest real word at 320px */
+.t-heading {
+  font: var(--type-heading);
+  letter-spacing: var(--ls-title);
+  text-wrap: balance;
+  /* at the largest text sizes one long word is wider than a phone; let it break
+     rather than push the screen sideways, even inside a grid or flex row */
+  overflow-wrap: anywhere;
+}
+
+.t-title {
+  font: var(--type-title);
+  letter-spacing: var(--ls-title);
+  text-wrap: balance;
+}
+
+.t-label {
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+}
+
+.t-body {
+  max-inline-size: var(--measure);
+  font: var(--type-body);
+  text-wrap: pretty;
+}
+
+.t-meta {
+  font: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.t-figure {
+  font: var(--type-figure);
+  letter-spacing: var(--ls-figure);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- tone ------------------------------------------------------------------
+   [data-tone] on any element exposes --tone-bg / --tone-ink to it (and only
+   it: both are registered non-inheriting). A component decides what to do
+   with them. "ink" is the inverted tone. */
+
+[data-tone="1"] {
+  --tone-bg: var(--tone-1);
+  --tone-ink: var(--on-tone-1);
+}
+
+[data-tone="2"] {
+  --tone-bg: var(--tone-2);
+  --tone-ink: var(--on-tone-2);
+}
+
+[data-tone="3"] {
+  --tone-bg: var(--tone-3);
+  --tone-ink: var(--on-tone-3);
+}
+
+[data-tone="4"] {
+  --tone-bg: var(--tone-4);
+  --tone-ink: var(--on-tone-4);
+}
+
+[data-tone="5"] {
+  --tone-bg: var(--tone-5);
+  --tone-ink: var(--on-tone-5);
+}
+
+[data-tone="6"] {
+  --tone-bg: var(--tone-6);
+  --tone-ink: var(--on-tone-6);
+}
+
+[data-tone="ink"] {
+  --tone-bg: var(--ink);
+  --tone-ink: var(--paper);
+  /* light on dark only: on paper, antialiasing thins small text on a Mac */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
