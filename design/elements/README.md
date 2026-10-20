@@ -504,18 +504,109 @@ when something fails.*
 
 ### Wave 5: the platform
 
-**27 PWA platform:**
-- **Rules in `STYLE.md` §4, and a working starter in `design/pwa/`:**
-  - the manifest, with maskable icons, and `theme_color` and `background_color` set to
-    `--canvas`;
-  - a service worker: an offline app shell, runtime caching, an update flow ("A new version is
-    ready");
-  - the install route: Chromium's prompt, and instructions for iOS's Add to Home Screen;
-  - a pre-prompt before any permission;
-  - notifications and badging;
-  - the Web Share API;
-  - the on-screen keyboard (`interactive-widget`, `visualViewport`);
-  - storage persistence and export;
-  - standalone back behaviour, deep links, orientation and tablets;
-  - a performance budget.
-- `screens.html` becomes installable and works offline, tested over localhost.
+**27 PWA platform** (`pwa`). *What makes the elements an installed app: install, offline,
+updates, permissions, sharing and the keyboard.*
+
+The rules go in `STYLE.md` §4, the patterns page in `elements/pwa.html`, the page-side script in
+`js/components/pwa.js` (so it ships in `flashcards.js`), and a working starter app in
+`design/pwa/`. The starter is the proof: installable, and working offline, tested over
+`localhost` (a secure context) with Playwright. `screens.html` stays a test bed of drawn devices
+and links to it; a page of mock phones isn't an app worth installing.
+
+**The starter, `design/pwa/`** (copy it, with `dist/` and `fonts/`, to start an app):
+
+- **`index.html`:** one root screen built only from existing elements:
+  - Frame (root: scroll + tab bar), the offline and update Banners at the top of the scroll
+    region, an empty state that offers the first step;
+  - a Settings list with the Install row and the storage line;
+  - the iOS install Sheet.
+  It links `../dist/flashcards.css` and `../dist/flashcards.js`, plus `manifest.webmanifest`.
+- **`manifest.webmanifest`:**
+  - `id`, `name`, `short_name`, `start_url`, `scope`, `lang`, `dir`;
+  - `display: standalone`, `orientation: any`;
+  - `theme_color` and `background_color` equal to `--canvas`. `tools/bundle.mjs` writes them
+    from the colour file, so the hex lives in one place;
+  - `icons`: any and maskable at 192 and 512 PNG, plus an SVG;
+  - `shortcuts` (Today, Decks) and `screenshots` (narrow and wide), which Chromium's richer
+    install sheet uses.
+- **Icons:**
+  - a master SVG drawn on the icon grid in ink on paper (monochrome until an app sets its
+    accent), with the maskable safe zone (the centre 80% circle) respected;
+  - PNGs rendered once from it, at 192, 512 (any and maskable) and 180 for
+    `apple-touch-icon`. How they're rendered goes in the spec.
+- **`sw.js`**, the service worker:
+  - a versioned app-shell precache (the starter's HTML, `flashcards.css`, `flashcards.js`, the
+    font, the icons). `tools/bundle.mjs` stamps the version from the files' hash, so changing
+    any of them makes a new worker;
+  - cache-first for the shell, stale-while-revalidate for everything else on the same origin;
+  - no `respondWith` at all for anything cross-origin (network only);
+  - `offline.html` for a navigation that fails with nothing cached;
+  - an update flow: a new worker waits, the page shows the update Banner ("A new version is
+    ready." with Reload), Reload posts `SKIP_WAITING`, and the page reloads once on
+    `controllerchange`;
+  - never an automatic surprise reload.
+- **`offline.html`:** the fallback, built from the system: a plain card, the words, and Try
+  again.
+
+**`js/components/pwa.js`**, the page side. Everything is feature-detected and opt-in by
+markup; anything it drives ships `hidden`:
+
+- registers the worker named by `<meta name="flashcards-sw" content="sw.js">`, and only then;
+- `[data-pwa="offline"]` (a Banner) shows while offline; `[data-pwa="update"]` (a Banner with
+  a `[data-pwa="reload"]` Button) shows when a new worker waits;
+- `[data-pwa="install"]` (a Button) shows when installing is possible: Chromium's stored
+  `beforeinstallprompt`; on iOS, where no prompt exists, it opens the Sheet its `commandfor`
+  names, detected by feature (`navigator.standalone === false`), not by user agent. Never in
+  `display-mode: standalone`, never on load as a pop-up;
+- `[data-share]` Buttons: `navigator.share`, else copy the link and a Toast, "Link copied";
+- `[data-pwa="notify-ask"]`, the permission pre-prompt card, shows only while permission is
+  still "default"; its `[data-pwa="notify"]` Button asks. `[data-pwa="notify-denied"]` shows
+  how to turn it on in the browser;
+- `[data-pwa="quota"]` gets "Using 2.1 MB of 1.2 GB on this device.";
+- `Flashcards.badge(n)`, `Flashcards.persist()`, `Flashcards.download(name, data)` and
+  `Flashcards.readJSON(file)` for the patterns below.
+
+**Patterns** (the page, with live specimens where the browser allows):
+
+- **Permission pre-prompt:**
+  - Ask for notifications only after something the person did, from a card that says what
+    they'll get ("A reminder at 8pm on days you haven't studied", with Not now and Turn on).
+  - Never on load. If it's denied, the setting says how to turn it on in the browser.
+  - Web push on iOS needs an installed app, and the pattern says so.
+- **Badging:** `navigator.setAppBadge(dueCount)` and its clear, feature-detected. The count also
+  shows inside the app.
+- **Share:** `navigator.share` with a "Copy link" fallback and a Toast, "Link copied".
+- **Keyboard:**
+  - every page's viewport meta gains `interactive-widget=resizes-content`;
+  - a focused field scrolls clear of the keyboard, using Frame's scroll padding;
+  - the Tab bar hides while the keyboard is up where the browser exposes it (`visualViewport`,
+    in `frame.js`), and otherwise stays.
+- **Storage:**
+  - `navigator.storage.persist()` asked after real use, never on first launch;
+  - an Export and Import pattern (a JSON file) so data can leave the device;
+  - the quota shown in Settings.
+- **Standalone behaviour:**
+  - every screen past the root has Top bar's back;
+  - links that leave the app open in the browser, marked ↗ (`ic--arrow`);
+  - deep links honour `start_url` and `scope`;
+  - `@media (display-mode: standalone)` hides "Install".
+- **Orientation and tablets:** any orientation; Frame's wide variant above about 48rem; safe areas
+  in landscape.
+- **Performance budget:** `tools/bundle.mjs` also writes `flashcards.min.css` (comments and
+  spare whitespace out, nothing else changed), prints gzip sizes, and fails the build over
+  budget:
+  - CSS at most 30 KB gzipped (the min file, which is what a served app links);
+  - JS at most 10 KB gzipped;
+  - the font at most 90 KB, preloaded in a served app;
+  - first load on a mid-range phone under 2.5s LCP (a target, measured on a device);
+  - the service worker makes repeat loads instant.
+
+**Verified:** in Chromium over `localhost` (`node design/tools/serve.mjs`):
+- the worker installs and controls the starter;
+- a reload offline still works, and an uncached page gets `offline.html`;
+- a changed shell file makes a new worker, the update banner shows, and Reload swaps it in,
+  reloading once;
+- the manifest parses, with the installability criteria met as far as Chromium reports;
+- the console is clean.
+
+iOS behaviour is described, and marked as needing a device.
