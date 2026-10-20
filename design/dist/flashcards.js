@@ -4,19 +4,25 @@
 
    A checkbox whose aria-controls lists other checkboxes' ids controls them:
    checking it checks them all, clearing it clears them, and while only some
-   are checked it shows mixed. `indeterminate` exists only in script.
+   are checked it shows mixed. `indeterminate` exists only in script, so the
+   select-all box ships inside a `hidden` .checkbox and this reveals it.
    ========================================================================== */
 (function () {
   "use strict";
-  document.querySelectorAll('input[type="checkbox"][aria-controls]').forEach(function (all) {
+  document.querySelectorAll('input[type="checkbox"][aria-controls]:not([role="switch"])').forEach(function (all) {
     var kids = all
       .getAttribute("aria-controls")
       .split(/\s+/)
       .map(function (id) {
         return document.getElementById(id);
       })
-      .filter(Boolean);
+      .filter(function (k) {
+        return k && k.type === "checkbox";
+      });
     if (!kids.length) return;
+    // it ships hidden: without this script it would be a box that does nothing
+    var wrap = all.closest(".checkbox");
+    if (wrap) wrap.hidden = false;
     function sync() {
       var n = kids.filter(function (k) {
         return k.checked;
@@ -93,6 +99,7 @@
   document.querySelectorAll("form.form").forEach(function (form) {
     var summary = form.querySelector(".form__summary"), queued = 0;
     form.addEventListener("invalid", function (e) { // no bubble: ours, once all are checked
+      if (!errorOf(e.target)) return; // a control with no error slot keeps the browser's own
       e.preventDefault();
       if (!queued) queued = setTimeout(report);
     }, true);

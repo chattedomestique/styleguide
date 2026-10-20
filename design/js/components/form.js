@@ -29,6 +29,7 @@
   document.querySelectorAll("form.form").forEach(function (form) {
     var summary = form.querySelector(".form__summary"), queued = 0;
     form.addEventListener("invalid", function (e) { // no bubble: ours, once all are checked
+      if (!errorOf(e.target)) return; // a control with no error slot keeps the browser's own
       e.preventDefault();
       if (!queued) queued = setTimeout(report);
     }, true);

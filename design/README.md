@@ -33,7 +33,7 @@ design/
       foundation.css    type, space, line, shape, hit, motion
       color.wire.css    greys, roles, six tone slots  ← gate 3 replaces this
     base.css            reset, element defaults, .t-* styles, [data-tone]
-    icons.css           five masked glyphs
+    icons.css           26 masked glyphs
     components/
       card.css …        one file per element
     wire.css            wireframe placeholders, .wf-*  (disposable)

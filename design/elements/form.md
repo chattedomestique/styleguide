@@ -101,7 +101,7 @@ Three. Shown live, with markup, in `elements/form.html` (2.1–2.3).
 
 | Variant | Class | Use | Notes |
 | --- | --- | --- | --- |
-| New deck | `.form` + `.form__summary`, `.form__optional`, `.form__actions` | A screen of fields, sent with one button. | Deck name (required), Description (optional), Card order (radios, required, no default: a new deck has no right answer yet), Show hints (checkbox), Cards per session (Stepper) and Language (Select), then Cancel and Create deck. Live on the page. Select and Stepper are builder B's and stand in as `.wf-slot`s with their real copy until they ship. |
+| New deck | `.form` + `.form__summary`, `.form__optional`, `.form__actions` | A screen of fields, sent with one button. | Deck name (required), Description (optional), Card order (radios, required, no default: a new deck has no right answer yet), Show hints (checkbox), Cards per session (Stepper) and Language (Select), then Cancel and Create deck. Live on the page. Cards per session's `pattern` checks 5–50 in fives. |
 | With errors | the same, with the summary shown | What a submit with two things missing looks like (or what a server renders). | "Fix 2 things", linking to Deck name and to Card order's first radio. Deck name has `aria-invalid="true"` and the error first in its `aria-describedby`; the fieldset's `aria-describedby` starts with the group's error. A server-rendered page focuses the summary on load. |
 | Inline | `.form--inline` | One field and its button: Rename deck. | No summary: one field's error is already in view, so focus goes back to the field. A secondary button, "Rename": it's rarely the main thing on its screen. Return sends it (`enterkeyhint="done"`). |
 
@@ -209,8 +209,7 @@ Radio).
   focus, so there the label was in view with or without them (measured at 390 by 700); they
   matter where focus scrolls to the nearest edge. Not checked in Safari or Firefox, or with a
   real on-screen keyboard.
-- `.field__error[hidden]` and `.form__summary[hidden]` need a `display: none` here, because
-  Field's and Card's own `display` would beat the attribute. The first belongs in `field.css`.
-- Select and Stepper are placeholders on the page until they ship; the integrator swaps them in.
+- `.form__summary[hidden]` needs a `display: none` here, because Card's own `display` would beat
+  the attribute (`field.css` does the same for `.field__error[hidden]`).
 - Checked in Chromium only (with touch and forced-colours emulation), not on an iPhone, in
   Safari or in Firefox.

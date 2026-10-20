@@ -160,7 +160,7 @@ tests. They are not API.
 - **Do** put a group's question in its legend.
 - **Do** use a checkbox when the choice counts on Save, and a switch when it acts at once.
 - **Don't** use a checkbox to pick one thing from a list: that's a radio.
-- **Don't** round it. It's the one square thing you act on.
+- **Don't** round it. It and the card bar's control are the only square things you act on.
 - **Don't** put help inside the label: it would become part of the name.
 - **Don't** disable a box without saying why beside it.
 

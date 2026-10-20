@@ -29,7 +29,7 @@ Stepper's own spec.
   faint, still in the tab order and still focused if it was, and a press reads out why (the help)
   instead of doing nothing.
 - **Typing is never corrected under your fingers.** The script steps only on a button or an arrow
-  key. A typed 70 stays 70 until Form checks it on submit; the next step brings it into range.
+  key. A typed 70 stays 70 until the form checks it: the input's `pattern` (`5|[1-4][05]|50` for 5–50 in fives) makes it invalid, so native validation and Form's error both catch it. The next step brings it into range.
 - States change instantly. `:hover` only inside `@media (hover: hover)`.
 
 ## Anatomy
@@ -97,7 +97,7 @@ buttons go under it, one at each end, so − stays left of +. The value moves vi
 - Up and Down inside the value step the same way.
 - Repeated identical messages are varied with an invisible no-break space, so a second press at
   the limit is read out again.
-- About 60 lines, no dependencies, one IIFE; ships in `dist/flashcards.js`.
+- About 70 lines, no dependencies, one IIFE; ships in `dist/flashcards.js`.
 
 ## States
 
@@ -108,8 +108,8 @@ buttons go under it, one at each end, so − stays left of +. The value moves vi
 | Focus | `:focus-visible` | 1 | 1 | On a button: Button's lift and fill plus the 3px ring. On the value: Field's ring (it shows on a click too, with the caret). |
 | Pressed | button `:active` | 0 | 1 | Button's: down, filled, the 2px inner ring. The value has already moved on. |
 | At a limit | `aria-disabled="true"`, set by the script | 0 | 0 | Button's disabled: dashed frame, `--ink-faint` glyph, no fill. Still focusable; a press reads out the help. |
-| Invalid | `aria-invalid="true"` on the value (Form, on submit) | – | – | Field's doubled frame and `.field__error` above: "Pick a number from 5 to 50". A button beyond the limit is `aria-disabled` as usual. |
-| Disabled | `disabled` on the value and both buttons | – | – | Field's and Button's disabled: all dashed and faint, out of the tab order. The label goes faint; the help says why ("Turn off Study all to pick a number"). |
+| Invalid | `aria-invalid="true"` on the value (Form, on submit) | – | – | Field's doubled frame and `.field__error` above: "Pick a number from 5 to 50, in fives". A button beyond the limit is `aria-disabled` as usual. |
+| Disabled | `disabled` on the value and both buttons | – | – | Field's and Button's disabled: all dashed and faint, out of the tab order. The label goes faint; the help says why ("Finish the current session to change this"). |
 | Forced colours | `(forced-colors: active)` | | | Button's and Field's own: frames in `ButtonText`, hover and focus a 4px `Highlight` outline on the buttons, pressed a `Highlight` fill, disabled and at a limit `GrayText`; invalid a 4px frame. |
 
 `.is-hover`, `.is-focus` and `.is-active` (Button's and Field's) force a state for the page and
@@ -154,7 +154,7 @@ for tests. They are not API.
 - **Do** name the buttons for what they do: "Fewer cards", "More cards".
 - **Do** keep a button at its limit focusable and explain on press.
 - **Don't** hide a button or truly disable it at a limit.
-- **Don't** correct a typed value while someone is typing; Form checks on submit.
+- **Don't** correct a typed value while someone is typing; the `pattern` and the form check it on submit.
 - **Don't** use a stepper for a wide range or an exact value; that's a number field.
 - **Don't** round the value's frame: it holds a number.
 

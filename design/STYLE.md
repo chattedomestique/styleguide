@@ -48,8 +48,8 @@ not a mood:
    means "you can press this". Nothing else gets one. Hover and press never move the hit
    box: the lift is the shadow alone, never a `transform`.
 3. **Rectangles hold, circles act.** Containers are square. Buttons, handles and action
-   slots are circles or pills; the one exception is the bar's small square control, which
-   belongs to the frame.
+   slots are circles or pills. Two exceptions: the card bar's small square control, which
+   belongs to the frame, and the checkbox, which every platform draws square (§7).
 4. **Uppercase is structure.** Bar labels and index numbers. Everything you read is sentence
    case.
 5. **Say something real.** No lorem ipsum, no "John Doe", no "seamless". Copy comes from the

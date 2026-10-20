@@ -2364,6 +2364,11 @@ textarea.field__input {
     color: GrayText;
   }
 }
+
+/* the select-all box ships hidden until checkbox.js can make it work */
+.checkbox[hidden] {
+  display: none;
+}
 }
 @layer components {
 /* ==========================================================================
@@ -2910,7 +2915,6 @@ textarea.field__input {
   position: relative;
   display: grid;
   min-inline-size: 0;
-  cursor: pointer;
 }
 
 /* the radio, stretched over the option and drawn as nothing. On top, so a
@@ -4776,8 +4780,9 @@ textarea.field__input {
           <li>
             <strong>Rectangles hold, circles act.</strong>
             <p>
-              Containers are square rectangles. Buttons and handles are circles or pills; the one
-              exception is the bar's small square control, which belongs to the frame.
+              Containers are square rectangles. Buttons and handles are circles or pills. Two
+              exceptions: the card bar's small square control, and the checkbox, which every
+              platform draws square.
             </p>
           </li>
           <li>
@@ -6780,7 +6785,7 @@ textarea.field__input {
           <div>
             <div class="field field--number">
               <label class="field__label" for="field-s-disabled">Cards per session</label>
-              <p class="field__help" id="field-s-disabled-help">Turn off Study all to pick a number.</p>
+              <p class="field__help" id="field-s-disabled-help">Finish the current session to change this.</p>
               <input
                 class="field__input"
                 id="field-s-disabled"
@@ -8226,7 +8231,7 @@ textarea.field__input {
           <div class="sg-stage sg-cols" style="--col: 16rem">
             <fieldset class="checkbox-group" data-sg-code>
               <legend class="field__label">Decks to study</legend>
-              <div class="checkbox">
+              <div class="checkbox" hidden>
                 <label class="checkbox__label">
                   <input
                     class="checkbox__input"
@@ -9414,7 +9419,7 @@ textarea.field__input {
                   </label>
                 </div>
               </fieldset>
-              <p class="sg-caption"><b>22em or wider.</b> Joined: four equal shares of the row.</p>
+              <p class="sg-caption"><b>22em or wider.</b> Joined: four equal shares of the row. On a phone this box is narrower too, so it comes apart.</p>
             </figure>
             <figure style="--w: 13rem">
               <fieldset class="segmented segmented--full">
@@ -9986,7 +9991,7 @@ textarea.field__input {
                     id="stepper-anat-session"
                     type="text"
                     inputmode="numeric"
-                    pattern="[0-9]*"
+                    pattern="5|[1-4][05]|50"
                     value="20"
                     autocomplete="off"
                     enterkeyhint="done"
@@ -10082,9 +10087,9 @@ textarea.field__input {
             </p>
             <p class="sg-entry__note">
               Needs <code>js/components/stepper.js</code>. Press, tap or Space steps by 5 and stops
-              at 5 and 50; Up and Down step from inside the value; typing works too, and Form
-              checks it on submit. The markup below is read after the script ran: in your source,
-              the two buttons carry <code>hidden</code>.
+              at 5 and 50; Up and Down step from inside the value; typing works too, and the
+              input's <code>pattern</code> (5, 10 … 50) lets the form's validation catch 70 or 7. The markup below is the source: the two
+              buttons carry <code>hidden</code> until the script shows them.
             </p>
           </header>
           <div class="sg-stage sg-cols" style="--col: 17rem">
@@ -10101,7 +10106,7 @@ textarea.field__input {
                   type="text"
                   name="per-session"
                   inputmode="numeric"
-                  pattern="[0-9]*"
+                  pattern="5|[1-4][05]|50"
                   value="20"
                   autocomplete="off"
                   enterkeyhint="done"
@@ -10137,7 +10142,7 @@ textarea.field__input {
               <p class="field__help" id="stepper-s-rest-help">From 5 to 50, in fives.</p>
               <div class="stepper">
                 <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-rest" aria-describedby="stepper-s-rest-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
-                <input class="field__input stepper__input" id="stepper-s-rest" type="text" inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-rest-help" />
+                <input class="field__input stepper__input" id="stepper-s-rest" type="text" inputmode="numeric" pattern="5|[1-4][05]|50" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-rest-help" />
                 <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-s-rest" aria-describedby="stepper-s-rest-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
               </div>
             </div>
@@ -10149,7 +10154,7 @@ textarea.field__input {
               <p class="field__help" id="stepper-s-hover-help">From 5 to 50, in fives.</p>
               <div class="stepper">
                 <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-hover" aria-describedby="stepper-s-hover-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
-                <input class="field__input stepper__input" id="stepper-s-hover" type="text" inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-hover-help" />
+                <input class="field__input stepper__input" id="stepper-s-hover" type="text" inputmode="numeric" pattern="5|[1-4][05]|50" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-hover-help" />
                 <button class="btn btn--icon stepper__up is-hover" type="button" aria-label="More cards" aria-controls="stepper-s-hover" aria-describedby="stepper-s-hover-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
               </div>
             </div>
@@ -10161,7 +10166,7 @@ textarea.field__input {
               <p class="field__help" id="stepper-s-focus-help">From 5 to 50, in fives.</p>
               <div class="stepper">
                 <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-focus" aria-describedby="stepper-s-focus-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
-                <input class="field__input stepper__input is-focus" id="stepper-s-focus" type="text" inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-focus-help" />
+                <input class="field__input stepper__input is-focus" id="stepper-s-focus" type="text" inputmode="numeric" pattern="5|[1-4][05]|50" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-focus-help" />
                 <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-s-focus" aria-describedby="stepper-s-focus-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
               </div>
             </div>
@@ -10173,7 +10178,7 @@ textarea.field__input {
               <p class="field__help" id="stepper-s-active-help">From 5 to 50, in fives.</p>
               <div class="stepper">
                 <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-active" aria-describedby="stepper-s-active-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
-                <input class="field__input stepper__input" id="stepper-s-active" type="text" inputmode="numeric" pattern="[0-9]*" value="25" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-active-help" />
+                <input class="field__input stepper__input" id="stepper-s-active" type="text" inputmode="numeric" pattern="5|[1-4][05]|50" value="25" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-active-help" />
                 <button class="btn btn--icon stepper__up is-active" type="button" aria-label="More cards" aria-controls="stepper-s-active" aria-describedby="stepper-s-active-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
               </div>
             </div>
@@ -10185,7 +10190,7 @@ textarea.field__input {
               <p class="field__help" id="stepper-s-max-help">From 5 to 50, in fives.</p>
               <div class="stepper">
                 <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-max" aria-describedby="stepper-s-max-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
-                <input class="field__input stepper__input" id="stepper-s-max" type="text" inputmode="numeric" pattern="[0-9]*" value="50" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-max-help" />
+                <input class="field__input stepper__input" id="stepper-s-max" type="text" inputmode="numeric" pattern="5|[1-4][05]|50" value="50" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-describedby="stepper-s-max-help" />
                 <button class="btn btn--icon stepper__up is-focus" type="button" aria-label="More cards" aria-controls="stepper-s-max" aria-describedby="stepper-s-max-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
               </div>
             </div>
@@ -10203,7 +10208,7 @@ textarea.field__input {
               </p>
               <div class="stepper">
                 <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-invalid" aria-describedby="stepper-s-invalid-help" hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
-                <input class="field__input stepper__input" id="stepper-s-invalid" type="text" inputmode="numeric" pattern="[0-9]*" value="70" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-invalid="true" aria-describedby="stepper-s-invalid-error stepper-s-invalid-help" />
+                <input class="field__input stepper__input" id="stepper-s-invalid" type="text" inputmode="numeric" pattern="5|[1-4][05]|50" value="70" autocomplete="off" data-min="5" data-max="50" data-step="5" aria-invalid="true" aria-describedby="stepper-s-invalid-error stepper-s-invalid-help" />
                 <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-s-invalid" aria-describedby="stepper-s-invalid-help" hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
               </div>
             </div>
@@ -10212,10 +10217,10 @@ textarea.field__input {
           <div>
             <div class="field">
               <label class="field__label" for="stepper-s-disabled">Cards per session</label>
-              <p class="field__help" id="stepper-s-disabled-help">Turn off Study all to pick a number.</p>
+              <p class="field__help" id="stepper-s-disabled-help">Finish the current session to change this.</p>
               <div class="stepper">
                 <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="stepper-s-disabled" disabled hidden><span class="ic ic--minus" aria-hidden="true"></span></button>
-                <input class="field__input stepper__input" id="stepper-s-disabled" type="text" inputmode="numeric" pattern="[0-9]*" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" disabled aria-describedby="stepper-s-disabled-help" />
+                <input class="field__input stepper__input" id="stepper-s-disabled" type="text" inputmode="numeric" pattern="5|[1-4][05]|50" value="20" autocomplete="off" data-min="5" data-max="50" data-step="5" disabled aria-describedby="stepper-s-disabled-help" />
                 <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="stepper-s-disabled" disabled hidden><span class="ic ic--plus" aria-hidden="true"></span></button>
               </div>
             </div>
@@ -10432,7 +10437,7 @@ textarea.field__input {
             <p class="sg-entry__note">
               Live: press Create deck with the name empty. Shuffle is one of the card orders, so it
               isn't a second control, and a switch can't be here at all: nothing happens until
-              Create deck. Select and Stepper are marked where they go.
+              Create deck.
             </p>
           </header>
           <div class="sg-stage">
@@ -10510,11 +10515,14 @@ textarea.field__input {
               <div class="field">
                 <label class="field__label" for="form-new-per-session">Cards per session</label>
                 <p class="field__help" id="form-new-per-session-help">From 5 to 50, in fives.</p>
+                <p class="field__error" id="form-new-per-session-error" hidden>
+                  <span class="ic ic--warning" aria-hidden="true"></span>Pick a number from 5 to 50, in fives
+                </p>
                 <div class="stepper">
                   <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="form-new-per-session" aria-describedby="form-new-per-session-help" hidden>
                     <span class="ic ic--minus" aria-hidden="true"></span>
                   </button>
-                  <input class="field__input stepper__input" id="form-new-per-session" type="text" name="per-session" inputmode="numeric" pattern="[0-9]*" value="10" autocomplete="off" enterkeyhint="next" data-min="5" data-max="50" data-step="5" aria-describedby="form-new-per-session-help" />
+                  <input class="field__input stepper__input" id="form-new-per-session" type="text" name="per-session" inputmode="numeric" required pattern="5|[1-4][05]|50" value="10" autocomplete="off" enterkeyhint="next" data-min="5" data-max="50" data-step="5" aria-describedby="form-new-per-session-help" />
                   <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="form-new-per-session" aria-describedby="form-new-per-session-help" hidden>
                     <span class="ic ic--plus" aria-hidden="true"></span>
                   </button>
@@ -10637,11 +10645,14 @@ textarea.field__input {
               <div class="field">
                 <label class="field__label" for="form-errors-per-session">Cards per session</label>
                 <p class="field__help" id="form-errors-per-session-help">From 5 to 50, in fives.</p>
+                <p class="field__error" id="form-errors-per-session-error" hidden>
+                  <span class="ic ic--warning" aria-hidden="true"></span>Pick a number from 5 to 50, in fives
+                </p>
                 <div class="stepper">
                   <button class="btn btn--icon stepper__down" type="button" aria-label="Fewer cards" aria-controls="form-errors-per-session" aria-describedby="form-errors-per-session-help" hidden>
                     <span class="ic ic--minus" aria-hidden="true"></span>
                   </button>
-                  <input class="field__input stepper__input" id="form-errors-per-session" type="text" name="per-session" inputmode="numeric" pattern="[0-9]*" value="10" autocomplete="off" enterkeyhint="next" data-min="5" data-max="50" data-step="5" aria-describedby="form-errors-per-session-help" />
+                  <input class="field__input stepper__input" id="form-errors-per-session" type="text" name="per-session" inputmode="numeric" required pattern="5|[1-4][05]|50" value="10" autocomplete="off" enterkeyhint="next" data-min="5" data-max="50" data-step="5" aria-describedby="form-errors-per-session-help" />
                   <button class="btn btn--icon stepper__up" type="button" aria-label="More cards" aria-controls="form-errors-per-session" aria-describedby="form-errors-per-session-help" hidden>
                     <span class="ic ic--plus" aria-hidden="true"></span>
                   </button>
@@ -10825,23 +10836,148 @@ textarea.field__input {
 
     <script>
 /* ==========================================================================
+   sheet.js — the style-sheet pages' own behaviour. Not shipped to apps.
+
+   1. Prints each specimen's markup under it, read from the live element.
+   2. Computes the tone swatches' contrast from whatever the tokens say.
+   Also: the iOS :active listener, and demo links that don't jump.
+   ========================================================================== */
+(function () {
+  "use strict";
+  document.documentElement.classList.add("js");
+
+  // iOS Safari only applies :active when a touchstart listener exists.
+  document.addEventListener("touchstart", function () {}, { passive: true });
+
+  // Demo links must not jump the page.
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  });
+
+  /* ---- 1. markup, read from the live specimens --------------------- */
+  var INLINE = /^(a|span|strong|em|b|i|small|code|kbd|abbr|time|sub|sup|mark)$/;
+  var VOID = /^(img|br|hr|input|source|wbr)$/;
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function attrs(el) {
+    return Array.prototype.map
+      .call(el.attributes, function (a) {
+        if (a.name === "data-n" || a.name.indexOf("data-sg") === 0) return "";
+        if (a.value === "") return " " + a.name;
+        return " " + a.name + '="' + a.value.replace(/&/g, "&amp;").replace(/"/g, "&quot;") + '"';
+      })
+      .join("");
+  }
+  function inlineOnly(el) {
+    return Array.prototype.every.call(el.childNodes, function (n) {
+      return n.nodeType === 3 || (n.nodeType === 1 && INLINE.test(n.localName) && inlineOnly(n));
+    });
+  }
+  function inline(n) {
+    if (n.nodeType === 3) return esc(n.textContent.replace(/\s+/g, " "));
+    if (n.nodeType !== 1) return "";
+    var t = n.localName;
+    if (VOID.test(t)) return "<" + t + attrs(n) + ">";
+    return (
+      "<" + t + attrs(n) + ">" +
+      Array.prototype.map.call(n.childNodes, inline).join("") +
+      "</" + t + ">"
+    );
+  }
+  function fmt(n, d) {
+    var pad = new Array(d + 1).join("  ");
+    if (n.nodeType === 3) {
+      var s = n.textContent.replace(/\s+/g, " ").trim();
+      return s ? pad + esc(s) + "\n" : "";
+    }
+    if (n.nodeType !== 1) return "";
+    var t = n.localName;
+    if (VOID.test(t)) return pad + "<" + t + attrs(n) + ">\n";
+    if (inlineOnly(n)) {
+      var inner = Array.prototype.map.call(n.childNodes, inline).join("").replace(/\s+/g, " ").trim();
+      return pad + "<" + t + attrs(n) + ">" + inner + "</" + t + ">\n";
+    }
+    var kids = Array.prototype.map.call(n.childNodes, function (k) { return fmt(k, d + 1); }).join("");
+    return pad + "<" + t + attrs(n) + ">\n" + kids + pad + "</" + t + ">\n";
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".sg-entry"), function (entry) {
+    var specs = entry.querySelectorAll("[data-sg-code]");
+    if (!specs.length) return;
+    var text = Array.prototype.map
+      .call(specs, function (el) { return fmt(el, 0).replace(/\s+$/, ""); })
+      .join("\n\n");
+    var box = document.createElement("details");
+    box.className = "sg-markup";
+    var sum = document.createElement("summary");
+    sum.textContent = "Markup";
+    var pre = document.createElement("pre");
+    var code = document.createElement("code");
+    code.textContent = text;
+    pre.appendChild(code);
+    box.appendChild(sum);
+    box.appendChild(pre);
+    entry.appendChild(box);
+  });
+
+  /* ---- 2. contrast, read live from whatever the tokens say ---------- */
+  var cv = document.createElement("canvas");
+  cv.width = cv.height = 1;
+  var cx = cv.getContext("2d", { willReadFrequently: true });
+  function rgb(c) {
+    cx.clearRect(0, 0, 1, 1);
+    cx.fillStyle = "#000";
+    cx.fillStyle = c;
+    cx.fillRect(0, 0, 1, 1);
+    var d = cx.getImageData(0, 0, 1, 1).data;
+    return [d[0], d[1], d[2]];
+  }
+  function lum(c) {
+    var w = [0.2126, 0.7152, 0.0722];
+    return c.reduce(function (s, v, i) {
+      v /= 255;
+      v = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      return s + v * w[i];
+    }, 0);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".sg-swatch"), function (el) {
+    var cs = getComputedStyle(el);
+    var a = lum(rgb(cs.backgroundColor));
+    var b = lum(rgb(cs.color));
+    var r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    el.querySelector(".sg-swatch__ratio").textContent =
+      r.toFixed(1) + ":1 " + (r >= 7 ? "AAA" : r >= 4.5 ? "AA" : "FAIL");
+  });
+})();
+</script>
+    <script>
+/* ==========================================================================
    Checkbox — "select all" and its mixed state. Spec: elements/checkbox.md
 
    A checkbox whose aria-controls lists other checkboxes' ids controls them:
    checking it checks them all, clearing it clears them, and while only some
-   are checked it shows mixed. `indeterminate` exists only in script.
+   are checked it shows mixed. `indeterminate` exists only in script, so the
+   select-all box ships inside a `hidden` .checkbox and this reveals it.
    ========================================================================== */
 (function () {
   "use strict";
-  document.querySelectorAll('input[type="checkbox"][aria-controls]').forEach(function (all) {
+  document.querySelectorAll('input[type="checkbox"][aria-controls]:not([role="switch"])').forEach(function (all) {
     var kids = all
       .getAttribute("aria-controls")
       .split(/\s+/)
       .map(function (id) {
         return document.getElementById(id);
       })
-      .filter(Boolean);
+      .filter(function (k) {
+        return k && k.type === "checkbox";
+      });
     if (!kids.length) return;
+    // it ships hidden: without this script it would be a box that does nothing
+    var wrap = all.closest(".checkbox");
+    if (wrap) wrap.hidden = false;
     function sync() {
       var n = kids.filter(function (k) {
         return k.checked;
@@ -10918,6 +11054,7 @@ textarea.field__input {
   document.querySelectorAll("form.form").forEach(function (form) {
     var summary = form.querySelector(".form__summary"), queued = 0;
     form.addEventListener("invalid", function (e) { // no bubble: ours, once all are checked
+      if (!errorOf(e.target)) return; // a control with no error slot keeps the browser's own
       e.preventDefault();
       if (!queued) queued = setTimeout(report);
     }, true);
@@ -11033,125 +11170,6 @@ textarea.field__input {
     down.hidden = false;
     up.hidden = false;
     sync();
-  });
-})();
-</script>
-    <script>
-/* ==========================================================================
-   sheet.js — the style-sheet pages' own behaviour. Not shipped to apps.
-
-   1. Prints each specimen's markup under it, read from the live element.
-   2. Computes the tone swatches' contrast from whatever the tokens say.
-   Also: the iOS :active listener, and demo links that don't jump.
-   ========================================================================== */
-(function () {
-  "use strict";
-  document.documentElement.classList.add("js");
-
-  // iOS Safari only applies :active when a touchstart listener exists.
-  document.addEventListener("touchstart", function () {}, { passive: true });
-
-  // Demo links must not jump the page.
-  document.addEventListener("click", function (e) {
-    var a = e.target.closest && e.target.closest('a[href="#"]');
-    if (a) e.preventDefault();
-  });
-
-  /* ---- 1. markup, read from the live specimens --------------------- */
-  var INLINE = /^(a|span|strong|em|b|i|small|code|kbd|abbr|time|sub|sup|mark)$/;
-  var VOID = /^(img|br|hr|input|source|wbr)$/;
-
-  function esc(s) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  }
-  function attrs(el) {
-    return Array.prototype.map
-      .call(el.attributes, function (a) {
-        if (a.name === "data-n" || a.name.indexOf("data-sg") === 0) return "";
-        if (a.value === "") return " " + a.name;
-        return " " + a.name + '="' + a.value.replace(/&/g, "&amp;").replace(/"/g, "&quot;") + '"';
-      })
-      .join("");
-  }
-  function inlineOnly(el) {
-    return Array.prototype.every.call(el.childNodes, function (n) {
-      return n.nodeType === 3 || (n.nodeType === 1 && INLINE.test(n.localName) && inlineOnly(n));
-    });
-  }
-  function inline(n) {
-    if (n.nodeType === 3) return esc(n.textContent.replace(/\s+/g, " "));
-    if (n.nodeType !== 1) return "";
-    var t = n.localName;
-    if (VOID.test(t)) return "<" + t + attrs(n) + ">";
-    return (
-      "<" + t + attrs(n) + ">" +
-      Array.prototype.map.call(n.childNodes, inline).join("") +
-      "</" + t + ">"
-    );
-  }
-  function fmt(n, d) {
-    var pad = new Array(d + 1).join("  ");
-    if (n.nodeType === 3) {
-      var s = n.textContent.replace(/\s+/g, " ").trim();
-      return s ? pad + esc(s) + "\n" : "";
-    }
-    if (n.nodeType !== 1) return "";
-    var t = n.localName;
-    if (VOID.test(t)) return pad + "<" + t + attrs(n) + ">\n";
-    if (inlineOnly(n)) {
-      var inner = Array.prototype.map.call(n.childNodes, inline).join("").replace(/\s+/g, " ").trim();
-      return pad + "<" + t + attrs(n) + ">" + inner + "</" + t + ">\n";
-    }
-    var kids = Array.prototype.map.call(n.childNodes, function (k) { return fmt(k, d + 1); }).join("");
-    return pad + "<" + t + attrs(n) + ">\n" + kids + pad + "</" + t + ">\n";
-  }
-
-  Array.prototype.forEach.call(document.querySelectorAll(".sg-entry"), function (entry) {
-    var specs = entry.querySelectorAll("[data-sg-code]");
-    if (!specs.length) return;
-    var text = Array.prototype.map
-      .call(specs, function (el) { return fmt(el, 0).replace(/\s+$/, ""); })
-      .join("\n\n");
-    var box = document.createElement("details");
-    box.className = "sg-markup";
-    var sum = document.createElement("summary");
-    sum.textContent = "Markup";
-    var pre = document.createElement("pre");
-    var code = document.createElement("code");
-    code.textContent = text;
-    pre.appendChild(code);
-    box.appendChild(sum);
-    box.appendChild(pre);
-    entry.appendChild(box);
-  });
-
-  /* ---- 2. contrast, read live from whatever the tokens say ---------- */
-  var cv = document.createElement("canvas");
-  cv.width = cv.height = 1;
-  var cx = cv.getContext("2d", { willReadFrequently: true });
-  function rgb(c) {
-    cx.clearRect(0, 0, 1, 1);
-    cx.fillStyle = "#000";
-    cx.fillStyle = c;
-    cx.fillRect(0, 0, 1, 1);
-    var d = cx.getImageData(0, 0, 1, 1).data;
-    return [d[0], d[1], d[2]];
-  }
-  function lum(c) {
-    var w = [0.2126, 0.7152, 0.0722];
-    return c.reduce(function (s, v, i) {
-      v /= 255;
-      v = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-      return s + v * w[i];
-    }, 0);
-  }
-  Array.prototype.forEach.call(document.querySelectorAll(".sg-swatch"), function (el) {
-    var cs = getComputedStyle(el);
-    var a = lum(rgb(cs.backgroundColor));
-    var b = lum(rgb(cs.color));
-    var r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-    el.querySelector(".sg-swatch__ratio").textContent =
-      r.toFixed(1) + ":1 " + (r >= 7 ? "AAA" : r >= 4.5 ? "AA" : "FAIL");
   });
 })();
 </script>

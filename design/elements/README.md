@@ -34,7 +34,8 @@ adds them.
 5. Native HTML first: a `<button>` is a button, an `<input>` is a field, `<dialog>`,
    `popover` and `<details>` before script. ARIA only where HTML has no element. Where an
    element really needs script, it goes in `js/components/<name>.js`: vanilla, no
-   dependencies, progressive enhancement, under about 100 lines.
+   dependencies, progressive enhancement, under about 100 lines. The page loads it after
+   `../js/sheet.js`, so the printed markup is the source, not what the script changed.
 6. Every id on the page carries the element's name (`button-variants`, `h-button-variants`),
    because the bundle joins every page into one, and the page's `<main>` is
    `<main id="el-<name>">`.
