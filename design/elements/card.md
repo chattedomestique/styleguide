@@ -137,7 +137,8 @@ Cards answer to their own width, not the window:
   `min(17cqi, 3.75rem)`, with no rem floor: it follows the card's width, not the text size, so
   at large text sizes a long word stays whole where it can. Where it can't, `hyphens: auto`
   breaks it at a syllable ("Hexa-gon"), so the page needs its `lang`.
-- Row: `@container card (max-width: 18rem)` moves the trail to row 2, column 2.
+- Row: `@container card (max-width: 18rem)` moves the trail to row 2, column 2, and below
+  `12em` (em, so it grows with the text: a phone at large text sizes) the tile goes on top and the title takes the full width.
 - The bar, `.card__row`, the foot and the ghost wrap (`flex-wrap: wrap`) when text grows.
 - Holds from 320px up with no horizontal scroll. At 320px with 200% text, no card clips a
   control or a title.

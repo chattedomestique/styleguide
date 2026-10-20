@@ -26,7 +26,7 @@
             <li><a href="#found">Found</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.2 · Wireframe</span>
+        <span class="sg-top__status">v0.4 · Wireframe</span>
       </div>
     </div>
 
@@ -76,28 +76,28 @@
         <ol class="sg-rules" role="list">
           <li>
             <strong>Foundations: built</strong>
-            <p>Type, space, line, shape, hit targets, colour roles and tones, five icons, the gate.
-              Every element reads these.</p>
+            <p>Type, space, line, shape, hit targets, colour roles and tones, the gate. Every
+              element reads these.</p>
           </li>
           <li>
             <strong>Card: gates 0–2</strong>
-            <p>Eight variants, six states. Inside the screens, every black box is a card.</p>
+            <p>Eight variants, six states. The decks, the stats and the flashcard.</p>
           </li>
           <li>
-            <strong>Button: next</strong>
-            <p>The answer buttons on the study screen. Also the card's action slot.</p>
+            <strong>Button: gates 0–2</strong>
+            <p>The answer buttons on the study screen.</p>
           </li>
           <li>
-            <strong>Tag: not started</strong>
-            <p>Statuses on the Mac's recent rows. Drawn with the kit's stand-in today.</p>
+            <strong>Tag: gates 0–2</strong>
+            <p>The statuses on the Mac's recent rows.</p>
           </li>
           <li>
-            <strong>Meter: not started</strong>
-            <p>Progress on the Carry on and Known cards. Also a stand-in today.</p>
+            <strong>Meter: gates 0–2</strong>
+            <p>Progress on the Carry on and Known cards.</p>
           </li>
           <li>
-            <strong>Field: not started</strong>
-            <p>Not on these screens. On the Mac, search is the system's own field.</p>
+            <strong>Field: gates 0–2</strong>
+            <p>Not on these screens yet. On the Mac, search is the system's own field.</p>
           </li>
           <li>
             <strong>Nav bar: not started</strong>
@@ -113,7 +113,6 @@
         <ul class="sg-key" role="list" aria-label="How to read these screens">
           <li><i></i>Black: built, from the system</li>
           <li><i class="wf-slot" data-wf="Name"></i>Grey line, with a name: not built yet</li>
-          <li><i class="wf-meter" style="--value: 60%"></i>Meter and tag: the kit's stand-ins</li>
           <li><i class="sg-key__text">9:41</i>Grey text, no frame: the platform's own chrome</li>
         </ul>
       </section>
@@ -150,18 +149,22 @@
                       <p class="card__eyebrow">Carry on</p>
                       <div class="card__group">
                         <h4 class="card__title"><a class="card__link" href="#">Shapes</a></h4>
-                        <p class="card__meta">Card 6 of 12 · about 3 minutes left</p>
+                        <p class="card__meta">About 3 minutes left</p>
                       </div>
-                      <div
-                        class="wf-meter"
-                        role="meter"
-                        aria-label="Shapes"
-                        aria-valuemin="0"
-                        aria-valuemax="12"
-                        aria-valuenow="5"
-                        aria-valuetext="5 of 12 done"
-                        style="--value: 41.6%"
-                      ></div>
+                      <div class="meter">
+                        <span class="meter__label" id="today-carry-label">Done</span>
+                        <span class="meter__value" aria-hidden="true">5 of 12</span>
+                        <div
+                          class="meter__bar"
+                          role="meter"
+                          aria-labelledby="today-carry-label"
+                          aria-valuemin="0"
+                          aria-valuemax="12"
+                          aria-valuenow="5"
+                          aria-valuetext="5 of 12 done"
+                          style="--value: 41.67%"
+                        ></div>
+                      </div>
                     </div>
                   </article>
 
@@ -285,8 +288,8 @@
                 </div>
 
                 <div class="app__bottom app__answer">
-                  <span class="wf-slot wf-slot--pill" data-wf="Button">Not yet</span>
-                  <span class="wf-slot wf-slot--pill" data-wf="Button">Got it</span>
+                  <button class="btn btn--block" type="button">Not yet</button>
+                  <button class="btn btn--primary btn--block" type="button">Got it</button>
                 </div>
               </div>
 
@@ -340,14 +343,14 @@
                             <p class="card__eyebrow">Known</p>
                             <p class="card__figure">31<small>/55</small></p>
                             <div
-                              class="wf-meter"
+                              class="meter__bar"
                               role="meter"
                               aria-label="Cards known"
                               aria-valuemin="0"
                               aria-valuemax="55"
                               aria-valuenow="31"
                               aria-valuetext="31 of 55 known"
-                              style="--value: 56.4%"
+                              style="--value: 56.36%"
                             ></div>
                             <p class="card__meta">24 to go.</p>
                           </div>
@@ -445,7 +448,7 @@
                               <p class="card__meta">Shapes · card 6</p>
                             </div>
                             <div class="card__trail">
-                              <span class="wf-pill">Not yet</span>
+                              <span class="tag">Not yet</span>
                               <p class="card__meta">2 min ago</p>
                             </div>
                           </article>
@@ -458,7 +461,7 @@
                               <p class="card__meta">Shapes · card 5</p>
                             </div>
                             <div class="card__trail">
-                              <span class="wf-pill">Known</span>
+                              <span class="tag">Known</span>
                               <p class="card__meta">4 min ago</p>
                             </div>
                           </article>
@@ -471,7 +474,7 @@
                               <p class="card__meta">Farm animals · card 2</p>
                             </div>
                             <div class="card__trail">
-                              <span class="wf-pill">Known</span>
+                              <span class="tag">Known</span>
                               <p class="card__meta">9:02</p>
                             </div>
                           </article>
@@ -519,9 +522,9 @@
               compact size.</p>
           </li>
           <li>
-            <strong>The tab bar has no icons, and wraps at 200%.</strong>
-            <p>Icons v0 has five glyphs and none of them means Today, Decks or Settings. At 200%
-              text the three labels wrap to two rows. Nav bar's brief has to cover both.</p>
+            <strong>The tab bar wraps at 200%.</strong>
+            <p>At 200% text the three labels wrap to two rows, and the Tab bar's brief has to decide
+              what happens. Icons now has glyphs for Today, Decks and Settings.</p>
           </li>
           <li>
             <strong>On a Mac, the bars aren't ours.</strong>
@@ -551,7 +554,7 @@
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards style sheet · Screens v0.2</span>
+      <span>Flashcards design system · Screens v0.4</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>

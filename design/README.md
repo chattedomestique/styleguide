@@ -40,11 +40,12 @@ design/
     screens.css         the test bed's app CSS, in @layer app (not shipped)
     sheet.css           the pages' own chrome, .sg-*   (not shipped)
   js/
+    components/         element script, where HTML can't do it → dist/flashcards.js
     sheet.js            the pages' own script: markup, contrast (not shipped)
   fonts/                Archivo woff2 + OFL licence
   tools/
     check.mjs           the gate
-    bundle.mjs          the build: dist/flashcards.css, style-sheet.html, screens.html
+    bundle.mjs          the build: dist/flashcards.css and .js, style-sheet.html, screens.html
   dist/                 bundle output, what an app links (generated)
 ```
 
@@ -71,7 +72,7 @@ element together, because colour, motion and the freeze are decisions about the 
 | Wave | Elements | 0 | 1 | 2 | 3 | 4 | 5 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | | **Card** | ✓ | ✓ | ✓ | | | |
-| 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | | | | | |
+| 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | ✓ | ✓ | | | |
 | 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | | | | | |
 | 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | | | | | |
 | 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | | | | | |

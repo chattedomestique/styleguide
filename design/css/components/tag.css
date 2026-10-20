@@ -1,3 +1,96 @@
 /* ==========================================================================
-   Tag — wave 1. Spec: elements/tag.md · page: elements/tag.html
+   Tag and Badge — wave 1. Spec: elements/tag.md · page: elements/tag.html
+   --------------------------------------------------------------------------
+   A status word on a thing; a count on a control.
+
+     <span class="tag">Known</span>
+     <span class="tag" data-tone="ink">Due</span>
+     <span class="badge" aria-hidden="true">7</span>
+
+   House rules for this file
+   · Neither one acts, so neither is round (rule 3), neither lifts, and
+     neither has a hover, focus or pressed look.
+   · Reads roles only. Inside a card both take the card's ink and fill, so
+     they invert on an ink card with no extra class.
    ========================================================================== */
+
+/* --- tag: a word in a square frame. Label type, one or two words. ---------- */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-block-size: var(--space-5);
+  padding-inline: var(--space-2);
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--tone-ink, var(--card-ink, var(--ink)));
+  background-color: var(--tone-bg, transparent);
+  border: var(--bw) solid currentColor;
+  border-radius: var(--radius-tile);
+}
+
+/* ink, for emphasis: the surface's ink and fill swap, so on an ink card the
+   tag turns paper instead of vanishing */
+.tag[data-tone="ink"] {
+  color: var(--card-bg, var(--paper));
+  background-color: var(--card-ink, var(--ink));
+  border-color: var(--card-ink, var(--ink));
+}
+
+/* --- badge: a count pinned to the top end of a control ---------------------
+   The control is position: relative (.btn is); in a text button the badge
+   follows the label instead (button.css). The badge is aria-hidden: the
+   count lives in the control's name ("Decks, 7 due"). At least 20px, tabular
+   figures, "99+" past 99. A 2px cut in the surface colour keeps it off the
+   control's frame. */
+
+.badge {
+  position: absolute;
+  inset-block-start: calc(var(--space-1) * -1);
+  inset-inline-end: calc(var(--space-1) * -1);
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.25rem;
+  block-size: 1.25rem;
+  padding-inline: var(--space-1);
+  font: var(--type-label);
+  font-stretch: normal; /* condensed figures are too thin at 13px */
+  line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--card-bg, var(--paper));
+  background-color: var(--card-ink, var(--ink));
+  outline: var(--bw) solid var(--card-bg, var(--paper));
+  border-radius: var(--radius-tile);
+  pointer-events: none;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   A tone fill is a background, and forced colours drop it: the frame keeps a
+   tag readable (a tone is rhythm, not meaning). The ink tag and the badge
+   are their fill, so they opt out. */
+
+@media (forced-colors: active) {
+  .tag {
+    border-color: CanvasText;
+  }
+
+  /* emphasis is information: keep the ink tag inverted, in system colours */
+  .tag[data-tone="ink"] {
+    forced-color-adjust: none;
+    color: Canvas;
+    background-color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .badge {
+    forced-color-adjust: none;
+    color: Canvas;
+    background-color: CanvasText;
+    outline-color: Canvas;
+  }
+}

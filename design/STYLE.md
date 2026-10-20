@@ -1,6 +1,6 @@
 # Flashcards style sheet
 
-v0.3 · wireframe stage · 1 of 27 elements built · 2026-10-20
+v0.4 · wireframe stage · 6 of 27 elements built · 2026-10-20
 
 The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
 to look at: live specimens, every state, the markup read straight off the page. **This file**
@@ -86,7 +86,9 @@ weights are `px` so a 2px rule stays 2px.
 ### Files and layers
 
 Apps link `dist/flashcards.css`: one flat file built by `node design/tools/bundle.mjs`, with
-no `@import` chain to wait on. `css/flashcards.css` is its source. The file tree is in
+no `@import` chain to wait on. `css/flashcards.css` is its source. Elements that need script
+(today only Field's clear button) ship it in `dist/flashcards.js`, built from
+`js/components/`: vanilla, no dependencies, and everything still works without it. The file tree is in
 `README.md`.
 
 Layer order: `@layer tokens, base, components, wire, app, sheet;`. Later wins, so nothing
@@ -170,7 +172,7 @@ place:
 | Role | Value | Used by |
 | --- | --- | --- |
 | `--radius-card` | 0 | the card frame |
-| `--radius-tile` | 0 | icon tiles |
+| `--radius-tile` | 0 | icon tiles, tags, badges, meter bars |
 | `--radius-ctl` | 0 | the square bar control |
 
 Why square: "rectangles hold, circles act" only reads when the rectangles really are square.
@@ -255,20 +257,23 @@ brutalist default. The tokens are there so gate 4 doesn't have to invent them:
   `.spring(duration: 0.2, bounce: 0)`. Transforms and opacity only. Never `Animation.bouncy`.
   Reduce Motion turns the flip into a crossfade.
 
-### Icons, v0
+### Icons
 
-Five glyphs in `icons.css`, drawn on a 24 grid with a 2px square-cap stroke (the frame's
+Twenty-six glyphs in `icons.css`, drawn on a 24 grid with a 2px square-cap stroke (the frame's
 weight, so an icon reads as line work and not as a sticker). They are CSS masks, so they take
 `currentColor`:
 
 ```html
-<span class="ic ic--arrow" aria-hidden="true"></span>
+<span class="ic ic--search" aria-hidden="true"></span>
 ```
 
-`ic--arrow` (↗) · `ic--plus` · `ic--minus` · `ic--close` · `ic--check`. Size with
-`--ic-size` (default 1.25rem). Decorative by default: when an icon is a control's only
-content, the *control* gets the `aria-label`. ↗ means "leaves the app", on the web and on
-Apple platforms, so it never marks an in-app link.
+Navigation (back, forward, down, up), actions (more, search, edit, delete, share, undo,
+refresh, shuffle, flip, install, sidebar), status (info, warning, offline), places (settings,
+today, decks), and `ic--arrow` (↗), `ic--plus`, `ic--minus`, `ic--close`, `ic--check`. Size
+with `--ic-size` (1.25rem; 1.5rem standing alone). Decorative by default: when an icon is a
+control's only content, the *control* gets the `aria-label`. ↗ means "leaves the app", on the
+web and on Apple platforms, so it never marks an in-app link. Every glyph's path, for native
+ports: `elements/icons.md`.
 
 ---
 
@@ -282,6 +287,11 @@ and the brief for each one, is in `elements/README.md`.
 | Element | Spec | Status |
 | --- | --- | --- |
 | Card | `elements/card.md` | Gates 0–2 |
+| Button | `elements/button.md` | Gates 0–2 |
+| Field | `elements/field.md` | Gates 0–2 |
+| Tag and Badge | `elements/tag.md` | Gates 0–2 |
+| Meter and Spinner | `elements/meter.md` | Gates 0–2 |
+| Icons | `elements/icons.md` | Gates 0–2 |
 
 Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
 pass gate 2.
@@ -362,8 +372,6 @@ the day its real element ships, and nothing in `components/` may depend on it.
 | --- | --- | --- |
 | `.wf-media` (+ `.wf-tag`) | an image or illustration: a box with an X | real media |
 | `.wf-shape` | one of the product's own illustrations | the real drawing |
-| `.wf-meter` | progress | the Meter element |
-| `.wf-pill` | a status tag | the Tag element |
 | `.wf-slot` (+ `.wf-slot--pill`) | a whole element that isn't built yet; `data-wf` names it and the name sits on its top edge. It holds the real copy, in grey. Set `--wf-under` to the colour behind it. | that element |
 | disabled hatch | the disabled look | gate 3 |
 
@@ -408,6 +416,12 @@ generate-a-design-system workflow or its scripts.
 ---
 
 ## 8. Changelog
+
+- **0.4.0** · 2026-10-20 · Wave 1: Button, Field, Tag and Badge, Meter and Spinner, and Icons
+  (26 glyphs) pass gates 0–2. Real buttons, tags and meters replace the stand-ins in the card
+  page and the screens, and the kit's meter and pill stand-ins are gone. A card's foot no longer
+  restyles a `.btn`. `dist/flashcards.js` ships element script, starting with Field's clear
+  button.
 
 - **0.3.0** · 2026-10-20 · Restructured for the whole system: a hub page (`index.html`) with
   the rules, the tokens and an index of all 27 elements, and one page and one spec per element

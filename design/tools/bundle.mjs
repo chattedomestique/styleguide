@@ -6,6 +6,7 @@
 
    Writes to design/dist/ (generated; don't edit):
 
+     flashcards.js      every js/components/*.js: the script elements need.
      flashcards.css     tokens + base + components + wire, imports inlined and
                         wrapped in their layers. What an app links. Fonts stay
                         as files: ../fonts/archivo-latin-var.woff2.
@@ -17,7 +18,7 @@
    Nothing here is needed to USE the sheet. index.html opens straight from disk.
    ========================================================================== */
 
-import { readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, statSync, readdirSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -53,7 +54,14 @@ const cssEntry = join(ROOT, "css", "flashcards.css");
 const bundle = inlineImports(cssEntry);
 writeFileSync(join(DIST, "flashcards.css"), banner("flashcards.css") + bundle);
 
-/* 2. the single-file pages: CSS, the font and sheet.js inlined. */
+/* 2. the element script: every js/components/*.js, in name order. Each file is
+   its own IIFE, so they concatenate safely. */
+const JS_DIR = join(ROOT, "js", "components");
+const jsBundle = readdirSync(JS_DIR).filter((n) => n.endsWith(".js")).sort()
+  .map((n) => read(join(JS_DIR, n)).trim()).join("\n\n") + "\n";
+writeFileSync(join(DIST, "flashcards.js"), banner("flashcards.js") + jsBundle);
+
+/* 3. the single-file pages: CSS, the font and sheet.js inlined. */
 function inlineAssets(html, baseDir) {
   html = html.replace(/<link rel="stylesheet" href="([^"]+)"\s*\/?>/g, (_, href) => {
     const css = /flashcards\.css$/.test(href) ? bundle : read(resolve(baseDir, href));
@@ -82,6 +90,8 @@ const parts = order.map((name) => {
     .replace(/href="([\w-]+)\.html"/g, 'href="#el-$1"');
 });
 sheet = sheet.replace("    </main>", parts.join("") + "    </main>");
+/* the element pages' own <script> tags were outside <main>: carry their code in */
+sheet = sheet.replace('    <script src="js/sheet.js"></script>', `    <script>\n${jsBundle}</script>\n    <script src="js/sheet.js"></script>`);
 sheet = sheet
   .replace(/href="elements\/[\w-]+\.html#([^"]+)"/g, 'href="#$1"')
   .replace(/href="elements\/([\w-]+)\.html"/g, 'href="#el-$1"');
@@ -95,5 +105,6 @@ writeFileSync(join(DIST, "screens.html"), stamp(inlineAssets(screens, ROOT), "sc
 
 const kb = (p) => `${(statSync(p).size / 1024).toFixed(0)} KB`;
 console.log(`dist/flashcards.css     ${kb(join(DIST, "flashcards.css"))}`);
+console.log(`dist/flashcards.js      ${kb(join(DIST, "flashcards.js"))}`);
 console.log(`dist/style-sheet.html   ${kb(join(DIST, "style-sheet.html"))}`);
 console.log(`dist/screens.html       ${kb(join(DIST, "screens.html"))}`);

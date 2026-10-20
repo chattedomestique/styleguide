@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Field · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Field element of the Flashcards design system: text, search, number and multi-line fields, with every state."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#field-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Field</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#field-anatomy">Anatomy</a></li>
+            <li><a href="#field-variants">Variants</a></li>
+            <li><a href="#field-states">States</a></li>
+            <li><a href="#field-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Field · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-field">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 03</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">Field</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Lets someone type one value. A square frame, because it holds text; a label that never
+            goes away; and an error that says how to fix it, without needing colour.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="field-anatomy" aria-labelledby="field-h-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="field-h-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            Six parts. Only the label and the input are always there. Help and error sit between
+            them, above the input, where the on-screen keyboard can't cover them.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card sg-stack" style="gap: var(--space-6)">
+              <div class="field">
+                <label class="field__label" for="field-anat-name" data-n="1" style="padding-inline-end: 2.25rem">Deck name</label>
+                <p class="field__help" id="field-anat-name-help" data-n="2" style="padding-inline-end: 2.25rem">Shown on the deck's card.</p>
+                <p class="field__error" id="field-anat-name-error" data-n="3" style="padding-inline-end: 2.25rem">
+                  <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+                </p>
+                <div class="field__box" data-n="4">
+                  <input
+                    class="field__input"
+                    id="field-anat-name"
+                    type="text"
+                    autocomplete="off"
+                    enterkeyhint="done"
+                    aria-invalid="true"
+                    aria-describedby="field-anat-name-error field-anat-name-help"
+                  />
+                </div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="field-anat-search">Search decks</label>
+                <div class="field__box">
+                  <span class="sg-n sg-anat__frame" aria-hidden="true">5</span>
+                  <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                  <input
+                    class="field__input"
+                    id="field-anat-search"
+                    type="search"
+                    value="sha"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    enterkeyhint="search"
+                  />
+                  <button class="field__clear" type="button" aria-label="Clear search">
+                    <span class="ic ic--close"></span>
+                  </button>
+                  <span
+                    class="sg-n sg-anat__frame"
+                    style="inset-inline: auto -0.75rem"
+                    aria-hidden="true"
+                    >6</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>Label</strong><code>.field__label</code>
+                <p>
+                  A real <code>&lt;label for&gt;</code>, above the input, always visible. 16px,
+                  weight 600, sentence case. Never replaced by the placeholder.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Help</strong><code>.field__help</code>
+                <p>14px, soft ink. Tied to the input with <code>aria-describedby</code>.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Error</strong><code>.field__error</code>
+                <p>
+                  A warning glyph and the fix, in words: 16px, weight 600. Listed first in
+                  <code>aria-describedby</code>; the input gets <code>aria-invalid="true"</code>.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Input</strong><code>.field__input</code>
+                <p>
+                  A 2px square frame, 44px tall, 16px text. Wrapped in <code>.field__box</code>
+                  only when an icon or a clear button sits in it. Invalid doubles the frame.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Leading icon</strong><code>.field__icon</code>
+                <p>Decorative and <code>aria-hidden</code>. Clicks go through it to the input.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">6</span>
+              <div>
+                <strong>Clear button</strong><code>.field__clear</code>
+                <p>
+                  A real <code>&lt;button&gt;</code> with <code>aria-label="Clear search"</code>: a
+                  44px target around a 28px circle. Round, because it acts.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="field-variants" aria-labelledby="field-h-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="field-h-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Four, and they share everything but the input: the same frame, label, help and error.
+            Each one asks the phone for the right keyboard and the right Return key.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="field-text">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Text</h3>
+            <p class="sg-entry__use">One short line: a name, a title.</p>
+            <p class="sg-entry__classes">
+              <code>.field</code> <code>.field__label</code> <code>.field__help</code>
+              <code>.field__input</code>
+            </p>
+            <p class="sg-entry__note">
+              <code>type="text"</code>, <code>autocomplete="off"</code> (a deck name isn't personal
+              data, so no browser suggestions), <code>enterkeyhint="done"</code>, or
+              <code>"next"</code> when another field follows.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div class="field" data-sg-code>
+              <label class="field__label" for="field-text-name">Deck name</label>
+              <p class="field__help" id="field-text-name-help">Shown on the deck's card. You can change it later.</p>
+              <input
+                class="field__input"
+                id="field-text-name"
+                type="text"
+                name="deck-name"
+                autocomplete="off"
+                autocapitalize="sentences"
+                enterkeyhint="done"
+                aria-describedby="field-text-name-help"
+              />
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="field-search">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Search</h3>
+            <p class="sg-entry__use">Narrows a list as you type.</p>
+            <p class="sg-entry__classes">
+              <code>.field__box</code> <code>.field__icon</code> <code>.field__clear</code>
+            </p>
+            <p class="sg-entry__note">
+              <code>type="search"</code> inside <code>&lt;search&gt;</code>,
+              <code>enterkeyhint="search"</code>, <code>autocomplete="off"</code>,
+              <code>autocapitalize="none"</code>. The clear button shows only while there's text:
+              the app toggles <code>hidden</code>, empties the field and puts focus back in it.
+              Escape clears too, natively. The placeholder is an example, not the label.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <search data-sg-code>
+              <div class="field">
+                <label class="field__label" for="field-search-empty">Search decks</label>
+                <div class="field__box">
+                  <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                  <input
+                    class="field__input"
+                    id="field-search-empty"
+                    type="search"
+                    name="q"
+                    placeholder="Shapes, colours, numbers"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    enterkeyhint="search"
+                  />
+                  <button class="field__clear" type="button" aria-label="Clear search" hidden>
+                    <span class="ic ic--close"></span>
+                  </button>
+                </div>
+              </div>
+            </search>
+            <search data-sg-code>
+              <div class="field">
+                <label class="field__label" for="field-search-filled">Search decks</label>
+                <div class="field__box">
+                  <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                  <input
+                    class="field__input"
+                    id="field-search-filled"
+                    type="search"
+                    name="q"
+                    value="sha"
+                    placeholder="Shapes, colours, numbers"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    enterkeyhint="search"
+                  />
+                  <button class="field__clear" type="button" aria-label="Clear search">
+                    <span class="ic ic--close"></span>
+                  </button>
+                </div>
+              </div>
+            </search>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="field-number">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">Number</h3>
+            <p class="sg-entry__use">A count you'd rather type than step to.</p>
+            <p class="sg-entry__classes"><code>.field--number</code></p>
+            <p class="sg-entry__note">
+              <code>type="text"</code> with <code>inputmode="numeric"</code> and
+              <code>pattern="[0-9]*"</code>: the number pad, no spinner arrows, and no scroll wheel
+              changing the value by accident. Its width hints at the answer. The range goes in the
+              help, and the check happens on submit.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div class="field field--number" data-sg-code>
+              <label class="field__label" for="field-number-session">Cards per session</label>
+              <p class="field__help" id="field-number-session-help">From 5 to 50.</p>
+              <input
+                class="field__input"
+                id="field-number-session"
+                type="text"
+                name="per-session"
+                value="12"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                autocomplete="off"
+                enterkeyhint="done"
+                aria-describedby="field-number-session-help"
+              />
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.4 -->
+        <article class="sg-entry" id="field-multiline">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.4</p>
+            <h3 class="sg-entry__name">Multi-line</h3>
+            <p class="sg-entry__use">A few sentences.</p>
+            <p class="sg-entry__classes"><code>textarea.field__input</code></p>
+            <p class="sg-entry__note">
+              A <code>&lt;textarea&gt;</code>, four rows to start. It resizes downwards only and keeps
+              its scroll to itself. <code>enterkeyhint="enter"</code>, because Return makes a new
+              line here.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 17rem">
+            <div class="field" data-sg-code>
+              <label class="field__label" for="field-multi-notes">Notes</label>
+              <p class="field__help" id="field-multi-notes-help">Only you see these.</p>
+              <textarea
+                class="field__input"
+                id="field-multi-notes"
+                name="notes"
+                rows="4"
+                autocomplete="off"
+                autocapitalize="sentences"
+                enterkeyhint="enter"
+                aria-describedby="field-multi-notes-help"
+              >Six sides, six corners. Bees build them.</textarea>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="field-states" aria-labelledby="field-h-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="field-h-states">States</h2>
+          <p class="sg-sec__note">
+            Seven states, all from the input itself. A field isn't pressed, so it never lifts:
+            hover changes its ground, focus rings it. Grey only, so every state has to read without
+            colour.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-s-rest">Deck name</label>
+              <p class="field__help" id="field-s-rest-help">Shown on the deck's card.</p>
+              <input class="field__input" id="field-s-rest" type="text" autocomplete="off" aria-describedby="field-s-rest-help" />
+            </div>
+            <p class="sg-caption"><b>Rest.</b> A 2px frame on paper.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-s-hover">Deck name</label>
+              <p class="field__help" id="field-s-hover-help">Shown on the deck's card.</p>
+              <input class="field__input is-hover" id="field-s-hover" type="text" autocomplete="off" aria-describedby="field-s-hover-help" />
+            </div>
+            <p class="sg-caption"><b>Hover.</b> The ground turns to canvas. Pointers only, and never on a field you can't type in.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-s-focus">Deck name</label>
+              <p class="field__help" id="field-s-focus-help">Shown on the deck's card.</p>
+              <input class="field__input is-focus" id="field-s-focus" type="text" value="Farm an" autocomplete="off" aria-describedby="field-s-focus-help" />
+            </div>
+            <p class="sg-caption"><b>Focus.</b> A 3px ring, 3px out. Mouse or keyboard alike: the caret is there either way.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-s-filled">Deck name</label>
+              <p class="field__help" id="field-s-filled-help">Shown on the deck's card.</p>
+              <input class="field__input" id="field-s-filled" type="text" value="Farm animals" autocomplete="off" aria-describedby="field-s-filled-help" />
+            </div>
+            <p class="sg-caption"><b>Filled.</b> Ink text. Nothing else changes: the label stays where it was.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-s-invalid">Deck name</label>
+              <p class="field__help" id="field-s-invalid-help">Shown on the deck's card.</p>
+              <p class="field__error" id="field-s-invalid-error">
+                <span class="ic ic--warning" aria-hidden="true"></span>Give the deck a name
+              </p>
+              <input
+                class="field__input"
+                id="field-s-invalid"
+                type="text"
+                autocomplete="off"
+                aria-invalid="true"
+                aria-describedby="field-s-invalid-error field-s-invalid-help"
+              />
+            </div>
+            <p class="sg-caption"><b>Invalid.</b> The frame doubles, and a glyph and the fix sit above it. No red: there isn't any.</p>
+          </div>
+          <div>
+            <div class="field field--number">
+              <label class="field__label" for="field-s-disabled">Cards per session</label>
+              <p class="field__help" id="field-s-disabled-help">Turn off Study all to pick a number.</p>
+              <input
+                class="field__input"
+                id="field-s-disabled"
+                type="text"
+                inputmode="numeric"
+                value="12"
+                disabled
+                aria-describedby="field-s-disabled-help"
+              />
+            </div>
+            <p class="sg-caption"><b>Disabled.</b> Dashed and faint, out of the tab order, and the help says why.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-s-readonly">Deck name</label>
+              <p class="field__help" id="field-s-readonly-help">Built-in decks keep their name. Duplicate it to rename it.</p>
+              <input
+                class="field__input"
+                id="field-s-readonly"
+                type="text"
+                value="Shapes"
+                readonly
+                aria-describedby="field-s-readonly-help"
+              />
+            </div>
+            <p class="sg-caption"><b>Read-only.</b> No box: a value on a 1px rule. You can still focus it, select it and copy it.</p>
+          </div>
+        </div>
+
+        <h3 class="t-title" id="field-h-clear" style="margin-block: var(--space-7) var(--space-4)">The clear button</h3>
+        <div class="sg-states">
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-c-rest">Search decks</label>
+              <div class="field__box">
+                <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                <input class="field__input" id="field-c-rest" type="search" value="sha" autocomplete="off" />
+                <button class="field__clear" type="button" aria-label="Clear search"><span class="ic ic--close"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Rest.</b> A 2px circle: round, because it acts.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-c-hover">Search decks</label>
+              <div class="field__box">
+                <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                <input class="field__input" id="field-c-hover" type="search" value="sha" autocomplete="off" />
+                <button class="field__clear is-hover" type="button" aria-label="Clear search"><span class="ic ic--close"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> It fills with ink.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-c-focus">Search decks</label>
+              <div class="field__box">
+                <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                <input class="field__input" id="field-c-focus" type="search" value="sha" autocomplete="off" />
+                <button class="field__clear is-focus" type="button" aria-label="Clear search"><span class="ic ic--close"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Focus.</b> The ring hugs the circle and stays inside the frame.</p>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field__label" for="field-c-active">Search decks</label>
+              <div class="field__box">
+                <span class="ic ic--search field__icon" aria-hidden="true"></span>
+                <input class="field__input" id="field-c-active" type="search" value="sha" autocomplete="off" />
+                <button class="field__clear is-active" type="button" aria-label="Clear search"><span class="ic ic--close"></span></button>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> Filled, as on hover, so a tap answers too.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>aria-invalid</code>,
+          <code>disabled</code> and <code>readonly</code>.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="field-usage" aria-labelledby="field-h-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="field-h-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Name the thing in the label ("Deck name", not "Name"). Put the range or the rule in
+              the help. Write the error as the fix: "Give the deck a name", not "Required".
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't use the placeholder as the label: it vanishes on the first letter. Don't
+              disable a field without saying why next to it; read-only, or leaving it out, is
+              usually kinder.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              16px text or more, or iOS zooms on focus. <code>inputmode</code> and
+              <code>enterkeyhint</code> pick the keyboard and its Return key. Help and error sit
+              above the input, so the keyboard never hides them.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              The toolbar's search is the system's own field (<code>.searchable</code>); ours are
+              for content. In SwiftUI, a <code>TextField</code> with a custom style: a 2pt square
+              stroke, our label above, the system focus ring.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Field</span>
+      <span>Spec: design/elements/field.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/components/field.js"></script>
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

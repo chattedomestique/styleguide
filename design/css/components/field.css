@@ -1,3 +1,289 @@
 /* ==========================================================================
    Field — wave 1. Spec: elements/field.md · page: elements/field.html
+
+   Lets someone type one value. A label above, always visible; then the help
+   and the error, so the on-screen keyboard never covers them; then the input.
+
+     <div class="field">
+       <label class="field__label" for="deck-name">Deck name</label>
+       <p class="field__help" id="deck-name-help">Shown on the deck's card.</p>
+       <input class="field__input" id="deck-name" type="text"
+              aria-describedby="deck-name-help">
+     </div>
+
+   House rules for this file
+   · A field holds text, so it is a square 2px frame. The clear button acts,
+     so it is a circle.
+   · Text is 16px or more, or iOS zooms the page on focus.
+   · The frame is on the input itself, so every state is native: :hover,
+     :focus-visible, [aria-invalid], :disabled, :read-only. .field__box is only
+     a positioning wrapper for the leading icon and the clear button.
+   · Invalid never leans on colour: the frame doubles, and the message says
+     how to fix it, behind a warning glyph.
+   · :hover lives inside @media (hover: hover). States change instantly.
    ========================================================================== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/* --- parts ----------------------------------------------------------------- */
+
+/* sentence case: a label is read, so it isn't the uppercase structure style */
+.field__label {
+  font: var(--type-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.field__help {
+  max-inline-size: var(--measure);
+  font: var(--type-meta);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-inline-size: var(--measure);
+  font: var(--type-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* a 20px glyph centred on the 24px first line */
+.field__error > .ic {
+  margin-block-start: 0.125rem;
+}
+
+/* only there when the input has an icon or a clear button beside it */
+.field__box {
+  position: relative;
+}
+
+.field__input {
+  display: block;
+  inline-size: 100%;
+  min-block-size: var(--hit);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font: var(--type-body);
+  /* the iOS zoom floor (STYLE §4). Restated because the shorthand above resets
+     base.css's rule, and at the smaller Dynamic Type sizes 1rem is under 16px */
+  font-size: max(1rem, 16px);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-ctl);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* placeholders are examples, never the label. Firefox fades them by default */
+.field__input::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+/* search: our own clear button replaces the browser's, which is under 44px */
+.field__input::-webkit-search-decoration,
+.field__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* number: no spinner arrows, whatever the type */
+.field__input::-webkit-inner-spin-button,
+.field__input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.field__input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* the width hints at the answer: a few digits */
+.field--number .field__input {
+  max-inline-size: calc(6ch + var(--space-3) * 2 + var(--bw) * 2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* multi-line: grows downwards only, and keeps its scroll to itself */
+textarea.field__input {
+  min-block-size: calc(var(--hit) * 2);
+  resize: vertical;
+  overscroll-behavior: contain;
+}
+
+/* leading icon: sits in the frame's padding, and clicks go through to the input */
+.field__icon {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--bw) + var(--space-3));
+  margin-block: auto;
+  pointer-events: none;
+}
+
+.field__icon ~ .field__input {
+  padding-inline-start: calc(var(--space-3) + 1.25rem + var(--space-2));
+}
+
+/* room for the clear button while it shows. It only shows once there's text,
+   which starts at the other end, so nothing under the caret moves */
+.field__box:has(.field__clear:not([hidden])) .field__input {
+  padding-inline-end: var(--hit);
+}
+
+/* clear: a 44px target around a 28px circle, over the frame's inline end.
+   Pressable, so it reads --fill: an outline at rest, ink when hovered or
+   pressed. Its ring goes round the circle, inside the field. */
+.field__clear {
+  --fill: 0;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: grid;
+  place-items: center;
+  inline-size: var(--hit);
+  block-size: var(--hit);
+  margin: 0;
+  padding: 0;
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background: none;
+  border: 0;
+}
+
+.field__clear[hidden] {
+  display: none;
+}
+
+.field__clear::before,
+.field__clear > .ic {
+  grid-area: 1 / 1;
+}
+
+.field__clear::before {
+  content: "";
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius-pill);
+}
+
+.field__clear > .ic {
+  --ic-size: 1.25rem;
+}
+
+/* --- states ----------------------------------------------------------------
+   .is-* classes force a state for documentation and tests. They are not an
+   API; real states come from :hover, :focus-visible, :active and aria-*. */
+
+/* hover: a quiet change of ground, on fields you can type in */
+@media (hover: hover) {
+  .field__input:read-write:hover:not(:focus) {
+    background: var(--canvas);
+  }
+
+  .field__clear:hover {
+    --fill: 1;
+  }
+}
+
+.field__input.is-hover {
+  background: var(--canvas);
+}
+
+/* focus: base.css draws the ring on the input; this forces it for the page */
+.field__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* the clear button's ring hugs its circle and stays inside the frame */
+.field__clear:focus-visible {
+  outline: 0;
+}
+
+.field__clear:is(:focus-visible, .is-focus)::before {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset-in);
+}
+
+.field__clear:is(.is-hover, :active, .is-active) {
+  --fill: 1;
+}
+
+/* invalid: the frame doubles, inwards, so nothing shifts and the focus ring
+   keeps its gap. The words and the glyph in .field__error do the rest;
+   aria-describedby ties them to the input */
+.field__input[aria-invalid]:not([aria-invalid="false"]) {
+  box-shadow: inset 0 0 0 var(--bw) var(--line);
+}
+
+/* read-only: not a box any more. A value on a rule, in line with its label,
+   as a Mac shows a field you can't edit. Still focusable and selectable. */
+.field__input:read-only:not(:disabled) {
+  padding-inline: 0;
+  background: transparent;
+  border-width: 0 0 var(--bw-thin);
+}
+
+/* disabled: dashed and faint, and the help text says why. Never opacity. */
+.field__input:disabled {
+  color: var(--ink-faint);
+  -webkit-text-fill-color: currentColor;
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--ink-faint);
+  opacity: 1;
+}
+
+.field:has(.field__input:disabled) :is(.field__label, .field__icon) {
+  color: var(--ink-faint);
+}
+
+.field__input:disabled ~ .field__clear {
+  display: none;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The doubled frame is a shadow and the clear button's fill is a background:
+   both vanish here, so they become lines. */
+
+@media (forced-colors: active) {
+  .field__input[aria-invalid]:not([aria-invalid="false"]) {
+    border-width: var(--bw-heavy);
+  }
+
+  .field__input:disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .field:has(.field__input:disabled) .field__label {
+    color: GrayText;
+  }
+
+  .field:has(.field__input:disabled) .ic {
+    background-color: GrayText;
+  }
+
+  .field__clear:is(.is-hover, :active, .is-active)::before {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .field__clear:hover::before {
+      border-color: Highlight;
+    }
+  }
+}
