@@ -1,6 +1,6 @@
 # Top bar
 
-Element 15 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/topbar.html`
+Element 15 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/topbar.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Top bar's own spec.
@@ -125,6 +125,10 @@ text, where nearly any title would truncate, the bar gives the title its own row
   200% text.
 - The bar is a `<header>`. Inside the frame's `<body>` it's the banner landmark; don't add a
   role.
+
+**Right to left.** Back leads from the right and its chevron mirrors to point right (`.ic--back`);
+the actions trail on the left, and the title stays centred. The bar pads `--safe-left` and
+`--safe-right` physically, as edges of the screen. On the page: 1.4.
 
 ## Platforms
 

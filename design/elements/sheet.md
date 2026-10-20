@@ -1,6 +1,6 @@
 # Sheet
 
-Element 23 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/sheet.html`
+Element 23 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/sheet.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Sheet's own spec.
@@ -200,6 +200,11 @@ sheet doesn't drag; under reduced motion a drop fades out where it is and reopen
   `role="menu"`, for Menu's reasons.
 - Nothing relies on colour or on a gesture: the destructive item is its words, and every way out
   is a button or a key. The drag is a shortcut for Close, never instead of it.
+
+**Right to left.** The side sheet sits on the left edge and slides in from it (`--sheet-end` is
+-100% under `:dir(rtl)`), framed on its right, which faces the page. It pads the left safe area and
+zeroes the right one. The bottom sheet, the action sheet and the drag are vertical, so they don't
+change. On the page: 2.4.
 
 ## Platforms
 

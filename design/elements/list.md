@@ -1,6 +1,6 @@
 # List
 
-Element 18 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/list.html`
+Element 18 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/list.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 List's own spec.
@@ -137,6 +137,10 @@ button's actions, and the button stays.
 - Section heads are real headings, in order, so the screen can be skimmed by heading.
 - Every target is at least 44px: rows, the More button, the switch row (measured at 100% and
   200% text).
+
+**Right to left.** Rows run from the right and the trailing chevron (`.ic--forward`) mirrors to
+point left, the way on. A plain list reaches over the frame's padding with `--frame-pad-start` and
+`--frame-pad-end`, which follow the direction.
 
 ## Platforms
 

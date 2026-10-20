@@ -11,11 +11,14 @@
    the markup panes) use --sg-bar and --sg-on-bar instead of ink and paper:
    ink in light, and in dark the darkest ground, so a dark page doesn't get
    a white slab across its top. The scheme switch in the top bar comes from
-   js/sheet.js (data-scheme on :root, tokens/color.css).
+   js/sheet.js (data-scheme on :root, tokens/color.css), and so does the
+   direction switch beside it (dir on <html>).
    ========================================================================== */
 
 @layer sheet {
   :root {
+    /* code on these pages only: the system has one family (STYLE §2 Type) */
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
     --sg-pad: clamp(1rem, 3vw, 2.5rem);
     --sg-stage-pad: min(var(--space-5), 5vw); /* stays small on a phone at large text */
     --sg-text-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem); /* 24 -> 32 */
@@ -53,6 +56,14 @@
     margin-inline: auto;
   }
 
+  /* code reads left to right whatever the page's direction, as code does in
+     an editor: in right to left, ".ic--back" would lose its dot to the far
+     end and the printed markup would run backwards */
+  :is(code, kbd, pre):dir(rtl) {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
   /* never under 13px, even inside small print */
   code,
   kbd {
@@ -78,7 +89,8 @@
 
   .sg-skip:focus-visible {
     position: fixed;
-    inset: var(--space-2) auto auto var(--space-2);
+    inset-block: var(--space-2) auto;
+    inset-inline: var(--space-2) auto;
     z-index: 30;
     inline-size: auto;
     block-size: auto;
@@ -133,9 +145,11 @@
     min-inline-size: min(100%, 14rem);
   }
 
-  /* --- the scheme switch: Auto, Light, Dark (js/sheet.js puts it here) ----- */
+  /* --- the scheme switch (Auto, Light, Dark) and the direction switch (LTR,
+     RTL): js/sheet.js puts them here ----------------------------------------- */
 
-  .sg-scheme {
+  .sg-scheme,
+  .sg-dir {
     margin-block: var(--space-1);
   }
 
@@ -212,11 +226,13 @@
   }
 
   /* the hero line: a poster size, sheet only (an app screen uses .t-heading).
-     The 19vw cap keeps it on a phone even at 200% text. */
+     Sentence case, as everything you read is (rule 4). The 19vw cap keeps it
+     on a phone even at 200% text. On the tight 0.85 line a descender (the p
+     of Spinner) hangs below the box: the padding keeps it off the lede. */
   .sg-display {
+    padding-block-end: 0.15em;
     font: 900 expanded min(var(--sg-text-display), 19vw) / var(--lh-none) var(--font-sans);
     letter-spacing: -0.035em;
-    text-transform: uppercase;
   }
 
   .sg-hero__row {
@@ -509,7 +525,8 @@
     gap: var(--space-5);
     min-block-size: 7.5rem;
     padding: var(--space-3);
-    margin: calc(var(--bw-thin) * -1) 0 0 calc(var(--bw-thin) * -1);
+    margin-block: calc(var(--bw-thin) * -1) 0;
+    margin-inline: calc(var(--bw-thin) * -1) 0;
     font: var(--type-meta);
     border: var(--bw-thin) solid var(--ink);
   }
@@ -895,7 +912,8 @@
   }
 
   .sg-index :is(th, td) {
-    padding: var(--space-2) var(--space-4) var(--space-2) 0;
+    padding-block: var(--space-2);
+    padding-inline: 0 var(--space-4);
     text-align: start;
     vertical-align: baseline;
     overflow-wrap: anywhere;
@@ -926,11 +944,6 @@
 
   .sg-index td {
     color: var(--ink-soft);
-  }
-
-  .sg-index td:last-child {
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
   }
 
   /* --- screens.html: the switches ----------------------------------------- */

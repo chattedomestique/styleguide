@@ -1,6 +1,6 @@
 # Switch
 
-Element 09 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/switch.html`
+Element 09 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/switch.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Switch's own spec.
@@ -63,7 +63,7 @@ Markup, in order:
       </span>
     </span>
   </label>
-  <p class="switch__help" id="reminder-help">At 6pm, if you haven't studied today.</p>
+  <p class="switch__help" id="reminder-help">At 8pm, if you haven't studied today.</p>
 </div>
 ```
 
@@ -117,6 +117,10 @@ once and the fill fades over `--dur-fade`; the words say it either way.
 - Disabled switches leave the tab order: say why in visible help.
 - The row is at least 44px tall, measured at 100% and 200% text. The track is 52 by 28, above
   the brief's 44 by 24.
+
+**Right to left.** Off is at the start (the right) and on at the end (the left): `translate` is
+physical, so `--switch-dir` is -1 under `:dir(rtl)`. The words lead from the right and the switch
+trails on the left.
 
 ## Platforms
 

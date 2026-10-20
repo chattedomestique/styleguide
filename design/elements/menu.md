@@ -1,6 +1,6 @@
 # Menu
 
-Element 21 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/menu.html`
+Element 21 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/menu.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Menu's own spec.
@@ -160,6 +160,10 @@ until it has faded. Under reduced motion both are `--dur-fade`.
   on colour: the destructive item is its words.
 - Tabbing past the last item leaves the menu open until a click elsewhere or Escape (native
   behaviour); a menu that should close on focus loss would need script, and this one doesn't.
+
+**Right to left.** A menu hangs from its button's end edge and grows towards the start
+(`position-area: span-inline-start`), so in right to left it opens to the right of the button, and
+its words lead from the right. Without anchor positioning it is the same sheet across the bottom.
 
 ## Platforms
 

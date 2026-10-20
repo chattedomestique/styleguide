@@ -1,6 +1,6 @@
 # Segmented control
 
-Element 10 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/segmented.html`
+Element 10 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/segmented.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Segmented control's own spec.
@@ -142,6 +142,10 @@ fades over `--dur-fade`.
 - Chosen never relies on colour: ink fill against paper in either scheme, the system's selection
   colours in forced colours. Focus is a ring outside the pill, never a fill, so it never looks
   like the choice.
+
+**Right to left.** The segments run from the right, so the first is rightmost, and the pill's round
+ends follow it (`border-start-start-radius` and the rest are logical). The chosen segment's fill
+crossfades and never slides, so nothing else changes.
 
 ## Platforms
 

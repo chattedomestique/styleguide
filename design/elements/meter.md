@@ -1,6 +1,6 @@
 # Meter and Spinner
 
-Element 05 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/meter.html`
+Element 05 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/meter.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Meter and Spinner's own spec.
@@ -125,6 +125,10 @@ Gate 4 (`STYLE.md` §2 Motion). Only the spinner moves.
   repeated. When loading ends, replace the line with the result or remove it.
 - Contrast: fills and frames are the text colour, so they inherit its contrast on every
   surface.
+
+**Right to left.** Every bar fills from the start edge, the right: the meter's fill sits at
+`inset-inline-start`, the native progress fills from the right on its own, and segments count from
+the right. The label leads and the value trails. On the page: 1.5.
 
 ## Platforms
 

@@ -1,6 +1,6 @@
 # Dialog
 
-Element 22 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/dialog.html`
+Element 22 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/dialog.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Dialog's own spec.
@@ -12,7 +12,7 @@ Dialog's own spec.
 - **Variants:**
   - *confirm*: a destructive choice ("Delete Shapes? Its 12 cards go too." with Delete deck /
     Keep it). The safe choice is focused first, and the destructive one is never primary.
-  - *acknowledge*: one button ("Can't import that file. It isn't a deck export. OK").
+  - *acknowledge*: one button ("Couldn't import that file. It isn't a deck export. Close").
   - *with a field*: Rename deck, which reuses Form's inline form.
 - **Notes:**
   - Square, a 2px frame on paper, at most about 28rem wide, centred, `--scrim` behind.
@@ -83,7 +83,7 @@ Shown drawn and live, with markup, in `elements/dialog.html` (2.1–2.3).
 | Variant | Recipe | Use | Notes |
 | --- | --- | --- | --- |
 | Confirm | `role="alertdialog"`, title + text, Delete deck (`.btn`) then Keep it (`.btn--primary`, `autofocus`) | A choice that can't be taken back: deleting a deck. | The opener says "Delete deck…": the ellipsis promises the question. Prefer Undo (Toast) when the action can be undone; confirm only what can't. |
-| Acknowledge | `role="alertdialog"`, `ic--warning` in the title, one `.btn--primary` "OK" | Something failed and there's nothing to choose: "Can't import that file". | The title says what happened; the text why and what to do ("It isn't a deck export. Choose a file saved with Export."). Only for a failure that stops the task; news that doesn't is a Toast or a Banner. |
+| Acknowledge | `role="alertdialog"`, `ic--warning` in the title, one `.btn--primary` named for what it does: "Close", or the next step when it takes one ("Choose another file") | Something failed and there's nothing to choose: "Couldn't import that file". | The title says what happened; the text why and what to do ("It isn't a deck export. Choose a file saved with Export."). Only for a failure that stops the task; news that doesn't is a Toast or a Banner. |
 | With a field | `role` left as dialog; a `.form.form--inline` holds the `.field` and the `.dialog__actions` | One value before it goes on: Rename deck. | Form's inline form, with the actions as its last row (they never fit beside the field at 28rem). Focus starts in the field; Return renames. An empty name gets Field's error from `form.js` and the dialog stays open. Cancel is `form="<id>-cancel"`, a submit button of a second, empty `<form method="dialog" hidden>`: Return presses the first submit button of the field's own form, so Cancel can't be first in it, and `type="button"` couldn't close without script. |
 
 ```html
@@ -112,7 +112,7 @@ Shown drawn and live, with markup, in `elements/dialog.html` (2.1–2.3).
 | Closed | no `open` | Nothing but the opener. `dialog.dialog:not([open])` keeps `display: none` against the surface's flex. |
 | Open | `showModal()` | The surface centred over the scrim; the page inert. Focus on the `autofocus` button, else the first control (the field, or the one button). |
 | Buttons | Button's | Hover lifts and fills (pointers only), focus adds the 3px ring, press drops the lift and keeps the fill with the inner ring. A destructive button looks like any secondary one. |
-| Invalid | a submit with an empty required field | Field's error above the input (`aria-invalid`, the message tied by `aria-describedby`), focus back in the field, the dialog stays open. |
+| Invalid | a submit with an empty required field | Field's error above the input (`aria-invalid`, the message tied by `aria-describedby`), focus back in the field (or, with Return pressed in it, the error read as an alert), the dialog stays open. |
 | Taller than the screen | content past `100% - 2 × --dialog-edge` | Scrolls inside; the page never scrolls sideways. |
 | Forced colours | `(forced-colors: active)` | The frame goes to `--bw-heavy` in `CanvasText`. Chromium draws the scrim as a 60% wash of `Canvas`; other engines may drop it, and the 4px frame is enough alone. |
 | Dark | the scheme | The scrim stays near-black, so it darkens a page that is already dark: the words behind drop to grey and the surface keeps its ink frame, which is what parts them. |
@@ -160,6 +160,9 @@ Gate 4. Only `transform` and `opacity` move, and only on a real `<dialog>`: the 
   failure is its words plus `ic--warning`.
 - Don't use `aria-modal` or a focus-trap library: the native modal does both.
 
+**Right to left.** The actions row ends at the end of the line, so on a wide dialog the primary is
+last and leftmost. The dialog fades and settles vertically, so its motion doesn't change.
+
 ## Platforms
 
 - **Installed PWA:** centred on a phone too, 16px clear of the edges. The buttons share a row when
@@ -172,7 +175,7 @@ Gate 4. Only `transform` and `opacity` move, and only on a real `<dialog>`: the 
   menu bar ends in "…" and opens the same dialog.
 - **SwiftUI:** `.alert("Delete Shapes?", isPresented:) { Button("Delete deck", role:
   .destructive) {…}; Button("Keep it", role: .cancel) {} } message: { Text("Its 12 cards go
-  too.") }`. The acknowledge is an `.alert` with one `Button("OK")`; with a field,
+  too.") }`. The acknowledge is an `.alert` with one `Button("Close")`; with a field,
   `.alert(_:isPresented:actions:)` with a `TextField` in its actions (macOS 13, iOS 16). These
   are system chrome, so the system's look, its destructive red and its entrance are the system's,
   not ours.

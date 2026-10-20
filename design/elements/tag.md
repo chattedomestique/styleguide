@@ -1,6 +1,6 @@
 # Tag and Badge
 
-Element 04 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/tag.html`
+Element 04 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/tag.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tag and Badge's own spec.
@@ -79,6 +79,9 @@ Neither has states of its own. What changes:
   in dark, see `STYLE.md`).
 - Dark: the ink tag and the badge are light squares with dark words, the one place a tag is
   brighter than its card; the tones are dark greys, 1 still the quietest.
+
+**Right to left.** A badge pins to its control's end corner (`inset-inline-end`), so it sits top
+left. A tag is words, and follows them.
 
 ## Platforms
 

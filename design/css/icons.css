@@ -19,6 +19,8 @@
      belongs to a letter (the i, the !), 3×3 when it stands alone (more, today).
    · Gaps of at least 2 units, so nothing closes up at 20px (1.67px strokes).
    · Chevrons move around inside the app; ↗ is the only arrow that leaves it.
+   · Right to left: a glyph that points along the line mirrors (below); a
+     glyph that means a thing doesn't. The list, and why: elements/icons.md.
    ========================================================================== */
 
 :root {
@@ -62,7 +64,7 @@
 .ic {
   display: inline-block;
   flex: none;
-  inline-size: var(--ic-size, 1.25rem);
+  inline-size: var(--ic-size, 1.25rem); /* hook: the glyph's size */
   block-size: var(--ic-size, 1.25rem);
   background: currentColor;
   mask: var(--ic) center / contain no-repeat;
@@ -170,6 +172,17 @@
 
 .ic--decks {
   --ic: var(--icon-decks);
+}
+
+/* Right to left: the glyphs that point along the line turn to face the other
+   way. back and forward are the line's own way back and on, ↗ leaves towards
+   the end, undo goes back along it, and the sidebar sits on the start edge.
+   scale is a transform, so a mirrored glyph keeps any rotate an element
+   gives it, and forced colours keep it too. Everything else stays: it means
+   a thing (check, share, today…), or it points up and down, or it turns
+   (refresh, shuffle, flip: see elements/icons.md). */
+:is(.ic--back, .ic--forward, .ic--arrow, .ic--undo, .ic--sidebar):dir(rtl) {
+  scale: -1 1;
 }
 
 /* Forced-colours mode overrides backgrounds, and an icon here IS a background,

@@ -1,6 +1,6 @@
 # Checkbox
 
-Element 07 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/checkbox.html`
+Element 07 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/checkbox.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Checkbox's own spec.

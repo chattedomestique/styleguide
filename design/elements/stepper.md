@@ -1,6 +1,6 @@
 # Stepper
 
-Element 12 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/stepper.html`
+Element 12 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/stepper.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Stepper's own spec.
@@ -82,7 +82,7 @@ fives). A wide range or an exact value is Field's number variant.
 The three sit in a row, about 10em wide: two 2.75em circles, two 0.5em gaps and three digits with
 their padding. Below 10.5em, which is a small phone at large text (at 200% a 320px screen gives
 it about 7em), the stepper reflows: the value takes the first row, the whole width, and the
-buttons go under it, one at each end, so − stays left of +. The value moves visually with
+buttons go under it, one at each end, so − stays at the start and + at the end. The value moves visually with
 `order`; the tab order stays −, value, +.
 
 ## Behaviour (`js/components/stepper.js`)
@@ -134,6 +134,11 @@ for tests. They are not API.
 - Without script, the buttons stay hidden and the value is an ordinary typable field (checked with
   JavaScript off).
 
+**Right to left.** The row runs from the right like any other: − at the start, + at the end (the
+left), so more is towards the end of the line. The glyphs are symmetric and the digits keep their
+order, because numbers don't mirror, so nothing in the stepper changes, and Up and Down still step
+from the value. On the page: 2.2.
+
 ## Platforms
 
 - **Installed PWA:** `inputmode="numeric"` brings up the number pad; `enterkeyhint="done"` labels
@@ -162,8 +167,7 @@ for tests. They are not API.
 
 ## Known limits
 
-- The buttons need script. Without it they stay hidden, so the page's printed markup (read after
-  the script ran) shows them without `hidden`; the source must carry it.
+- The buttons need script. Without it they stay hidden; the source must carry `hidden`.
 - The status line can double up with a screen reader that also reads the value's change when the
   arrow keys step inside it.
 - There is no hold-to-repeat on the buttons; each press is one step.

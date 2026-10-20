@@ -1,6 +1,6 @@
 # Icons
 
-Element 06 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/icons.html`
+Element 06 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/icons.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 glyph set's own spec, with every glyph's path data so native apps can port it.
@@ -49,7 +49,7 @@ How a glyph is drawn, so the next one matches.
 
 **Size:** `--ic-size`, 1.25rem (20px) by default; 1.5rem (24px) for a glyph standing alone in a
 bar. Both are rem, so they follow the reader's text size; on iOS at the default Dynamic Type size
-they are 21 and 25.5px. Smaller only inside a drawn box, as in `.card__ctl` (0.75rem). Inline in
+they are 21 and 25.5px. Never smaller: under 20px the 2px line closes up. Inline in
 a sentence: `--ic-size: 1.25em; vertical-align: -0.25em`.
 
 ```html
@@ -119,6 +119,33 @@ Unchanged: same class names, same data URIs.
 | minus | `.ic--minus` | `M5 12h14` | Collapse a panel. |
 | close | `.ic--close` | `M6 6l12 12M18 6L6 18` | Close; clear a field. |
 | check | `.ic--check` | `M5 12.5l5 5L19 7.5` | Done; mark as known. |
+
+### Right to left
+
+A glyph that points along the line mirrors under `:dir(rtl)`: `scale: -1 1` in `icons.css`, a
+transform, so it keeps any `rotate` an element gives it, and forced colours keep it. A glyph that
+means a thing, or points up or down, stays as drawn. The paths don't change.
+
+| Mirrors | Why |
+| --- | --- |
+| back, forward | The line's own way back and on. |
+| arrow (↗) | Leaves towards the end of the line, so ↖ in right to left. |
+| undo | Goes back along the line. |
+| sidebar | The sidebar sits on the start edge. |
+
+| Stays | Why |
+| --- | --- |
+| check, close, plus, minus, more | Marks and signs, not ways. |
+| search, edit, delete, settings | Pictures of tools; mirrored they'd be held in the other hand, not go the other way. |
+| share, install, down, up | They point up or down, never along the line. |
+| refresh | A turn, clockwise in every script, as the platforms draw theirs. |
+| shuffle | A judgement call. Its arrows run to the end, but it means "out of order", not "on", and playback controls keep their direction in right to left on every platform. |
+| flip | Points both ways at once: mirrored, it's the same picture. |
+| info, warning, offline, today, decks | Things and places. Today's marked day is a day, not the first one. |
+
+Native: SF Symbols' localized names do the same (`chevron.backward`, `arrow.uturn.backward`,
+`sidebar.leading`); a custom `Path` glyph from the five gets
+`.flipsForRightToLeftLayoutDirection(true)`.
 
 ## States
 

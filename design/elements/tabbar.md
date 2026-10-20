@@ -1,6 +1,6 @@
 # Tab bar
 
-Element 16 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/tabbar.html`
+Element 16 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/tabbar.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tab bar's own spec.
@@ -110,6 +110,9 @@ keyboard is instant: the keyboard is already moving.
 - Tab moves through the items in order, after the content (the bar is last in the frame).
 - Each item is at least 44 × 44px; at 100% text on a 390-point phone each is about 123 × 64.
 - Here never relies on colour: a doubled frame, a 4px frame in forced colours.
+
+**Right to left.** The places run from the right in the same order, so the first is rightmost, and
+each badge pins to its pill's end corner. Nothing in the bar moves, so nothing else changes.
 
 ## Platforms
 

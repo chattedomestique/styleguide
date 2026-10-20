@@ -1,6 +1,6 @@
 # Elements
 
-How an element is built, and the brief for every element still to come. The rules every
+How an element is built, and the brief every element and wave was built from. The rules every
 element follows are in `../STYLE.md`; `card.md` and `card.html` are the worked example.
 
 ## The contract
@@ -59,7 +59,7 @@ you made and why; the exact lines anything shared needs; what you couldn't verif
 
 ## Page and spec layout
 
-The page: hero (the kicker reads "Element NN · Motion · Gates 0 to 4 done", the title is
+The page: hero (the kicker reads "Element NN · v1.0 · All six gates", the title is
 the element's name, the lede is its job), then **01 Variants**, **02 States**, **03 Usage**
 (do and don't, platform notes), with **Anatomy** first when the element has more than three
 parts. Each variant is an `.sg-entry` whose specimens carry `data-sg-code`, so the page prints
@@ -72,33 +72,33 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 
 | # | Element | Wave | Status |
 | --- | --- | --- | --- |
-| 01 | Card | | Gates 0–4 |
-| 02 | Button | 1 | Gates 0–4 |
-| 03 | Field | 1 | Gates 0–4 |
-| 04 | Tag and Badge | 1 | Gates 0–4 |
-| 05 | Meter and Spinner | 1 | Gates 0–4 |
-| 06 | Icons | 1 | Gates 0–4 |
-| 07 | Checkbox | 2 | Gates 0–4 |
-| 08 | Radio | 2 | Gates 0–4 |
-| 09 | Switch | 2 | Gates 0–4 |
-| 10 | Segmented control | 2 | Gates 0–4 |
-| 11 | Select | 2 | Gates 0–4 |
-| 12 | Stepper | 2 | Gates 0–4 |
-| 13 | Form | 2 | Gates 0–4 |
-| 14 | Frame | 3 | Gates 0–4 |
-| 15 | Top bar | 3 | Gates 0–4 |
-| 16 | Tab bar | 3 | Gates 0–4 |
-| 17 | Sidebar | 3 | Gates 0–4 |
-| 18 | List | 3 | Gates 0–4 |
-| 19 | Tabs | 3 | Gates 0–4 |
-| 20 | Disclosure | 3 | Gates 0–4 |
-| 21 | Menu | 3 | Gates 0–4 |
-| 22 | Dialog | 4 | Gates 0–4 |
-| 23 | Sheet | 4 | Gates 0–4 |
-| 24 | Toast | 4 | Gates 0–4 |
-| 25 | Banner | 4 | Gates 0–4 |
-| 26 | Empty, loading and error | 4 | Gates 0–4 |
-| 27 | PWA platform | 5 | Gates 0–4 |
+| 01 | Card | | Gates 0–5 |
+| 02 | Button | 1 | Gates 0–5 |
+| 03 | Field | 1 | Gates 0–5 |
+| 04 | Tag and Badge | 1 | Gates 0–5 |
+| 05 | Meter and Spinner | 1 | Gates 0–5 |
+| 06 | Icons | 1 | Gates 0–5 |
+| 07 | Checkbox | 2 | Gates 0–5 |
+| 08 | Radio | 2 | Gates 0–5 |
+| 09 | Switch | 2 | Gates 0–5 |
+| 10 | Segmented control | 2 | Gates 0–5 |
+| 11 | Select | 2 | Gates 0–5 |
+| 12 | Stepper | 2 | Gates 0–5 |
+| 13 | Form | 2 | Gates 0–5 |
+| 14 | Frame | 3 | Gates 0–5 |
+| 15 | Top bar | 3 | Gates 0–5 |
+| 16 | Tab bar | 3 | Gates 0–5 |
+| 17 | Sidebar | 3 | Gates 0–5 |
+| 18 | List | 3 | Gates 0–5 |
+| 19 | Tabs | 3 | Gates 0–5 |
+| 20 | Disclosure | 3 | Gates 0–5 |
+| 21 | Menu | 3 | Gates 0–5 |
+| 22 | Dialog | 4 | Gates 0–5 |
+| 23 | Sheet | 4 | Gates 0–5 |
+| 24 | Toast | 4 | Gates 0–5 |
+| 25 | Banner | 4 | Gates 0–5 |
+| 26 | Empty, loading and error | 4 | Gates 0–5 |
+| 27 | PWA platform | 5 | Gates 0–5 |
 
 Then three passes over everything: colour and dark mode (wave 6, gate 3), motion (wave 7,
 gate 4) and the freeze (wave 8, gate 5).
@@ -106,7 +106,7 @@ gate 4) and the freeze (wave 8, gate 5).
 ## Briefs
 
 Gate 0. Each brief gives the job, the parts, the variants (the cap: no others), the states, the
-copy and anything specific. Waves 1 to 4 are full; wave 5 gets its own when it starts.
+copy and anything specific. Every wave's brief is here, as it was written before it was built.
 
 ### Wave 1: actions and status
 
@@ -131,8 +131,7 @@ copy and anything specific. Waves 1 to 4 are full; wave 5 gets its own when it s
 - **Copy:** Start, Turn over, Got it, Not yet, Add a shape, Delete deck, Shuffle.
 - **Notes:**
   - One size. The target is always 44px; the label is `--text-sm` or larger.
-  - The card's `.card__action` and `.card__ctl` stay the card's for now; the spec says how they
-    line up with Button.
+  - The card's `.card__action` stays the card's; the spec says how it lines up with Button.
   - On the Mac, system chrome keeps system buttons and ours are for content. In SwiftUI, a
     custom `ButtonStyle`.
 
@@ -444,7 +443,7 @@ What the app says back, and what sits on top of a screen. Shared notes:
 - **Variants:**
   - *confirm*: a destructive choice ("Delete Shapes? Its 12 cards go too." with Delete deck /
     Keep it). The safe choice is focused first, and the destructive one is never primary.
-  - *acknowledge*: one button ("Can't import that file. It isn't a deck export. OK").
+  - *acknowledge*: one button ("Couldn't import that file. It isn't a deck export. Close").
   - *with a field*: Rename deck, which reuses Form's inline form.
 - **Notes:**
   - Square, a 2px frame on paper, at most about 28rem wide, centred, `--scrim` behind.
@@ -775,3 +774,65 @@ route, and a swipe needs a device to tune), and anything on load.
 - focus moving correctly through every entrance and exit;
 - the budget holds;
 - every spec's "gate 4" notes rewritten to say what moves now.
+
+### Wave 8: the freeze (gate 5, v1.0)
+
+The last pass. Nothing new is designed here. The system is made right-to-left safe, audited
+once more from three sides, fixed, and frozen: what ships at 1.0 is the contract.
+
+**Right to left:**
+- **The gate:** `check.mjs` gains a check that components use logical properties only. No
+  `left` or `right` in `margin`, `padding`, `border`, `inset` or `text-align`, no `float`, and
+  `translate` and `transform` signs that follow the direction where they move along the inline
+  axis. Physical properties are allowed only where they're physical on purpose, each with a
+  comment the check reads.
+- **Glyphs** that point along the line (`ic--back`, `ic--forward`, `ic--arrow`, `ic--undo` and
+  any other the Icons spec lists as directional) mirror under `:dir(rtl)`. Glyphs that mean a
+  thing (`ic--check`, `ic--share`, `ic--today`) don't.
+- **Moving things follow the line:** the side sheet, the sidebar's edge, the card flip's axis
+  if it turns sideways, swipe and drag directions, the stepper's − and +, and progress filling
+  from the start edge.
+- **The pages:** the sheet gets a Direction switch beside Scheme (LTR, RTL), the same pattern
+  and storage. Every element page, `screens.html` and the starter are checked in RTL at 390 and
+  1440, with Arabic or Hebrew sample copy where a specimen's text direction matters (the
+  font's latin subset means the fallback renders it: note it).
+
+**The audit:** three independent auditors, each with a report, then one round of fixes.
+1. **Accessibility:** a full WCAG 2.2 AA pass on every element and the starter. That covers
+   keyboard, focus order and visibility, names and roles, live regions, target size, reflow at
+   320 and 400%, text spacing, contrast in every scheme and mode, reduced motion, and forced
+   colours. Automated (axe-core from a CDN copy in a scratch page, if the network allows)
+   plus by hand.
+2. **Consistency and taste:**
+   - every element against the seven rules;
+   - line weights, radii, spacing rhythm, type roles and the state model the same everywhere;
+   - copy in the product's voice;
+   - nothing AI-looking;
+   - the screens and the starter read as one product.
+3. **The contract:** an inventory of the public API, generated by a new
+   `tools/api.mjs` into `design/API.md` and kept honest by `check.mjs`:
+   - every class (block, part, variant, state);
+   - every token and role;
+   - every data attribute and `data-pwa` hook;
+   - every JS global and event.
+
+   Docs, specs and code agree; dead classes and tokens go.
+
+**The freeze:**
+- **Semver for the system, written in `STYLE.md`:**
+  - a removed or renamed class, token, hook or global is a major version;
+  - a new one is a minor;
+  - a fix that keeps every name is a patch.
+- **The open decisions** in `STYLE.md` are each closed or explicitly carried. The class prefix
+  and the system's name are the owner's, with a one-command rename path written down; arrow keys
+  in a Mac card grid; the dark-mode weight step.
+- **Version 1.0.0.** The version labels on every page, the changelog, the root README's status,
+  and a short "use it in an app" section that covers linking `dist/`, the starter, the accent,
+  and `@layer app`.
+
+**Verified:**
+- `check.mjs`, including the new checks, and the bundle within budget;
+- every page in LTR and RTL, light and dark, motion and reduced motion, with clean consoles and
+  no sideways scroll;
+- the starter installed, offline, and updated;
+- the three audits' must-fixes closed, with evidence.

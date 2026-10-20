@@ -1,6 +1,6 @@
 # Tabs
 
-Element 19 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/tabs.html`
+Element 19 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/tabs.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tabs' own spec.
@@ -128,6 +128,10 @@ motion the fill fades over `--dur-fade`.
 - The heading stays in each panel with script, out of sight, so headings navigation still works.
 - The count is in the name ("Cards, 7 due"); the badge is `aria-hidden`.
 - Targets are at least 44px tall; measured at 100% and 200% text.
+
+**Right to left.** The tabs run from the right, and Left and Right follow what you see: Right goes
+to the previous tab and Left to the next (`tabs.js` reads the list's computed direction). The
+underline is logical.
 
 ## Platforms
 

@@ -1,22 +1,25 @@
 /* ==========================================================================
    sw.js — the starter's service worker. Rules: elements/pwa.md, STYLE.md §4.
 
-   The app shell (SHELL) is precached under a versioned name. VERSION is a
-   hash of those files, stamped by tools/bundle.mjs, so changing any of them
-   makes a new worker. It installs beside the old one and waits: the page
-   shows the update Banner, and only its Reload button (SKIP_WAITING) lets
-   it take over. Nothing reloads by surprise.
+   The app shell (SHELL) is precached under a versioned name. A new VERSION
+   makes a new worker. In design/, VERSION is a hash of the shell's files,
+   stamped by tools/bundle.mjs, so changing any of them makes one; in a copy
+   (pwa/README.md), change it by hand on every release. The new worker
+   installs beside the old one and waits: the page shows the update Banner,
+   and only its Reload button (SKIP_WAITING) lets it take over. Nothing
+   reloads by surprise.
 
      shell (same origin)        cache first
      the rest of the origin     stale-while-revalidate
      other origins              not touched: no respondWith, network only
      a page with nothing cached offline.html, when the network fails
 
-   Add a file to SHELL when the app can't start without it; run the bundle.
+   Add a file to SHELL when the app can't start without it; then run the
+   bundle (in design/) or change VERSION (in a copy).
    ========================================================================== */
 "use strict";
 
-var VERSION = "22c1c9d761"; // stamped by tools/bundle.mjs: don't edit
+var VERSION = "c13a4eb229"; // in design/, stamped by tools/bundle.mjs; in a copy, by hand
 var SHELL = [
   "./",
   "decks.html",

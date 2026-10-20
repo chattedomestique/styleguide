@@ -1,6 +1,6 @@
 # Radio
 
-Element 08 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/radio.html`
+Element 08 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/radio.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Radio's own spec.

@@ -1,12 +1,13 @@
 # Card
 
-Element 01 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/card.html`
+Element 01 · v1.0 · gates 0–5 done (brief, wireframe, states, colour, motion, freeze) · page: `elements/card.html`
 
 The rules, tokens and platforms that every element follows are in `../STYLE.md`. This file is
 the Card's own spec.
 
 A card holds one idea. It is a frame with slots; what goes in a slot is another element's
-business. The slots `.card__ctl` and `.card__action` are where the Button element will land.
+business: a Button, a Tag, a Meter. The one control the card draws itself is `.card__action`,
+its round slot.
 
 ## House rules
 
@@ -29,22 +30,20 @@ Nine parts, all optional except the frame. A card is whichever of them it needs.
 | # | Part | Class | Spec |
 | --- | --- | --- | --- |
 | 1 | Frame | `.card` | `display: flex; flex-direction: column`; `border: 2px solid var(--card-line)`; `border-radius: var(--card-radius)`; `overflow: clip`; `container: card / inline-size`. |
-| 2 | Bar | `.card__bar` | The frame made thicker. `min-block-size: 44px`; ink fill, paper text; label left, control right. Wraps when the text grows; the control stays at the end. Flips to paper-on-ink for `data-tone="ink"`. |
-| | Label | `.card__label` | `--type-label`, uppercase, 1–4 words. A `<p>` or `<span>`, not a heading, when the card has a title. |
-| | Control | `.card__ctl` | 44×44 hit area around a 20×20 box (`2px currentColor`, `--radius-ctl`); glyph 12px. The box fills while pressed. |
+| 2 | Bar | `.card__bar` | The frame made thicker. `min-block-size: 44px`; ink fill, paper text; a label, padded `var(--card-pad)` at both ends. It holds, so it has no control (rule 3: what you press is round). Flips to paper-on-ink for `data-tone="ink"`. |
+| | Label | `.card__label` | `--type-label`, uppercase, 1–4 words. A `<p>` or `<span>`, not a heading, when the card has a title. Wraps onto a second line when the text grows. |
 | 3 | Media | `.card__media` | `aspect-ratio: var(--ratio, 4 / 3)`; edge to edge; closed by a 2px rule; `img`/`video` are `object-fit: cover`; fill is the element's tone or `--tone-1`. |
 | 4 | Body | `.card__body` | `padding: clamp(1rem, 5cqi, 1.5rem)`; flex column, `gap: 8px`; grows to fill. |
 | | Head | `.card__head` | Same padding as the body. The study card's top strip. |
 | 5 | Eyebrow | `.card__eyebrow` | `--type-meta`, soft ink. What kind of thing this is. |
-| 6 | Title | `.card__title` | `--type-title` at `clamp(1.375rem, 8cqi, 2rem)` (22–32px); 20px (`--text-lg`) in a row or ghost card; balanced; breaks long words. |
+| 6 | Title | `.card__title` | `--type-title` at `clamp(1.375rem, 8cqi, var(--text-xl))` (22–24px), so it never ties with the screen's 32px heading; only a stat's figure and a study card's answer grow past it. 20px (`--text-lg`) in a row or ghost card; balanced; breaks long words. A failure puts `ic--warning` before the words (24px, centred on the first line), as Dialog's title does. |
 | 7 | Text | `.card__text` | `--type-body`, 40ch max, pretty-wrapped. |
 | | Meta | `.card__meta` | `--type-meta`, tabular, soft ink. |
 | | Figure | `.card__figure` | `--type-figure` at `clamp(3rem, 27cqi, 6.5rem)`; tabular. A `<small>` inside is 0.42em, weight 500, soft ink. |
 | 8 | Foot | `.card__foot` | `min-block-size: 44px`; `padding: 8px var(--card-pad)`; 1px rule above; `margin-block-start: auto`, so cards in a row end on one line. Its links and buttons are 44px tall; negative margins keep the foot at 44px. |
 | 9 | Action | `.card__action` | 44px circle, `2px var(--card-ink)`. A `<button>` with an `aria-label`, except in a ghost, where the whole card is the control and the circle is `aria-hidden`. Fills with `--accent` when `--fill` is 1. |
 
-Helpers: `.card__row` (flex, space-between, top-aligned, wraps), `.card__group` (flex column,
-4px gap), `.card__list` (ruled rows, 44px each, 1px rules). In a list the whole row is the
+Helpers: `.card__group` (flex column, 4px gap), `.card__list` (ruled rows, 44px each, 1px rules). In a list the whole row is the
 link, with the padding on the link, not the `li`:
 `<li><a href="…"><span>Shapes</span><span>12</span></a></li>`.
 
@@ -66,7 +65,7 @@ under Variants (2.1–2.8).
 | Variant | Modifier / recipe | Use | Notes |
 | --- | --- | --- | --- |
 | Plain | `.card` + `.card__body` (+ `.card__foot`) | The default. | |
-| Panel | `.card__bar` (+ `.card__list`) | A titled card that folds away: lists, settings. | `data-tone="ink"` flips the bar to paper. |
+| Panel | `.card__bar` (+ `.card__list`) | A titled card: lists, settings, a group with a name. | `data-tone="ink"` flips the bar to paper. |
 | Media | `.card__media` | Picture first. | `--ratio` overrides 4 / 3. |
 | Stat | recipe: eyebrow, `.card__figure`, optional meter, meta; `.card--square` in a grid | One number. | `.card--square` works on any card: `aspect-ratio: 1 / 1`, and the body spaces its first and last children apart. |
 | Row | `.card--row` + `.card__tile`, `.card__main`, `.card__trail` | A thing in a list. | Below 18rem the trail drops under the title (children move between grid cells; the card can't re-template itself). |
@@ -97,19 +96,19 @@ definition, and one `transition` eases both (Motion, below). Lift is drawn by
 | Focus | `.card--link:has(.card__link:focus-visible)`, or `:focus-visible` on a ghost | 1 | 1 | `3px solid var(--focus)`, offset 3px, plus the hover look, so keyboard and pointer match. |
 | Pressed | `:active` | 0 | 1 | A lifted card (link or ghost) goes back onto the surface; the fill stays. |
 | Selected | `aria-selected="true"` on an option card, or `aria-current` on its `.card__link` | | | `--shadow-select: 0 0 0 2px var(--card-line)`: a ring that doubles the frame, so nothing shifts. |
-| Disabled | `.card--disabled` (+ `aria-disabled="true"` on an option card) | | | Dashed frame, `--ink-faint`, hatch (from `wire.css`), `pointer-events: none`. No `href`. Says why in `.card__meta`. |
-| Forced colours | `(forced-colors: active)` | | | Shadows and fills vanish there, so hover and focus get a 4px `Highlight` outline, selected a 4px border, and disabled is drawn in `GrayText`. |
+| Disabled | `.card--disabled` (+ `aria-disabled="true"` on an option card) | | | A dashed `--ink-faint` frame, like every disabled control; its words at `--ink-soft` (a card isn't a disabled control, so its text keeps the 4.5 : 1 floor); `pointer-events: none`. No `href`. Says why in `.card__meta`. |
+| Forced colours | `(forced-colors: active)` | | | Shadows and fills vanish there, so a link card's hover and focus get a 4px `Highlight` outline (a ghost keeps the 3px focus ring), selected a 4px border, and disabled is drawn in `GrayText`. |
 
 - **Hover only where hover exists.** Every `:hover` rule sits inside `@media (hover: hover)`,
   so a tap never leaves a control stuck in its hover look. `.is-hover` and `:focus-visible`
   stay outside it.
-- **Every control has a pressed look.** The action and the ghost fill; the bar control's box
-  fills; list rows and foot links swap ink and paper. That replaces the browser's tap flash,
+- **Every control has a pressed look.** The action and the ghost fill; list rows and foot links
+  swap ink and paper. That replaces the browser's tap flash,
   which is translucent and off-palette, so `base.css` turns it off
   (`-webkit-tap-highlight-color: transparent`).
 - **Selected, in full:** `.card:is([aria-selected="true"], .is-selected), .card:has(.card__link[aria-current]:not([aria-current="false"]))`.
-- **The hand cursor is for links only**, as on the Mac. Buttons, the bar control and the
-  action keep the arrow. No `not-allowed` cursor: a disabled card takes no pointer events.
+- **The hand cursor is for links only**, as on the Mac. Buttons and the action keep the arrow.
+  No `not-allowed` cursor: a disabled card takes no pointer events.
 
 The `.is-hover`, `.is-focus`, `.is-active` and `.is-selected` classes force a state for
 documentation and tests. They are not API.
@@ -120,10 +119,10 @@ Gate 4 (`STYLE.md` §2 Motion). Only the two numbers move, and the study card tu
 
 - **States.** `.card` transitions `--lift` and `--fill` over `--dur-hover` with `--ease-out`;
   pressed (`:active`) lands over `--dur-press`, and letting go settles over `--dur-hover`, so a
-  quick tap is seen. The action circle, the bar control's box, list rows and foot links are
-  `--fill` too and ease the same way: the bar control's box fills, and rows and foot links swap
-  ink and paper, through `color-mix()` by `--fill`. A ghost's dashed-to-solid frame, the title's
-  underline and the focus ring are instant.
+  quick tap is seen. The action circle, list rows and foot links are `--fill` too and ease the
+  same way: the circle fills, and rows and foot links swap ink and paper, through `color-mix()`
+  by `--fill`. A ghost's dashed-to-solid frame, the title's underline and the focus ring are
+  instant.
 - **Reduced motion.** The lift appears without sliding out; the fill fades over `--dur-fade`.
 
 ## The flip
@@ -143,8 +142,8 @@ A study card that holds both faces turns over. One `.card--study`, three new par
 | Part | Class | Spec |
 | --- | --- | --- |
 | Flip button | `.card__flip` | A native checkbox with `appearance: none`, drawn as Button's icon-only circle (`.btn btn--icon`) with `--icon-flip` in its `::before`. It sits on the page under the faces, so it reads the page's roles (ink and paper), not the card's tone, and its ring is `--focus`, 3px out. `aria-label="Show the answer"`: checked means the answer shows. `autocomplete="off"`, so a reload never restores a turned card. |
-| Turn | `.card__turn` | The part that turns: a grid with both faces in one cell, `transform-style: preserve-3d`, `transform: rotateY(180deg)` when the box is checked, `transition: transform var(--dur-move) var(--ease-flip)`. It carries the 5:7 floor (`aspect-ratio: var(--ratio-study)`); large text still makes it taller. |
-| Face | `.card__face` | The card's frame (`2px var(--card-line)`, `--card-bg`, clipped) and its parts, drawn on one side, `backface-visibility: hidden`. The second face is the back, set at `rotateY(180deg)`. |
+| Turn | `.card__turn` | The part that turns: a grid with both faces in one cell, `transform-style: preserve-3d`, `transform: rotateY(var(--card-turn))` when the box is checked (`180deg`, or `-180deg` under `:dir(rtl)`), `transition: transform var(--dur-move) var(--ease-flip)`. It carries the 5:7 floor (`aspect-ratio: var(--ratio-study)`); large text still makes it taller. |
+| Face | `.card__face` | The card's frame (`2px var(--card-line)`, `--card-bg`, clipped) and its parts, drawn on one side, `backface-visibility: hidden`. The second face is the back, set at `rotateY(var(--card-turn))`. |
 
 - **How it's read.** The card answers `:has(> .card__flip:checked)`: no script, so it works with
   JavaScript off, and the checkbox gives Space, a click and the announcement ("Show the answer,
@@ -165,7 +164,15 @@ A study card that holds both faces turns over. One `.card--study`, three new par
 - **Reduced motion.** No turn. The back lies on top of the front and fades in or out over
   `--dur-fade`, so the page never shows through; the face coming in joins the accessibility tree
   at once, and the face going away leaves it when the fade ends.
+- **Right to left.** The turn runs along the line, so it follows it: `--card-turn` is `-180deg`
+  under `:dir(rtl)`, and the start edge, now the right one, comes up first, as the left one does
+  in left to right. Both end face for face; only the swing differs. Everything else in a card
+  follows the line on its own (the bar's label leads, a row's value trails), and the hard shadow
+  still falls down and to the right (STYLE §2).
 - **Copy.** The front keeps its hint ("Turn over"); the button is named for what it shows.
+- **The front's picture is the question,** so it has a name that doesn't give the answer away:
+  `role="img" aria-label="A shape to name"` on the `svg`, never `aria-hidden`, or the front reads
+  as nothing.
 - The static Front and Back pictures on the page are one-face study cards, as before, and
   `screens.html` still uses one face.
 
@@ -199,23 +206,23 @@ A collection is **navigable or selectable, never both.**
 Cards answer to their own width, not the window:
 
 - Padding: `clamp(1rem, 5cqi, 1.5rem)`.
-- Title: `clamp(1.375rem, 8cqi, 2rem)`. Figure: `clamp(3rem, 27cqi, 6.5rem)`. Answer:
+- Title: `clamp(1.375rem, 8cqi, var(--text-xl))`. Figure: `clamp(3rem, 27cqi, 6.5rem)`. Answer:
   `min(17cqi, 3.75rem)`, with no rem floor: it follows the card's width, not the text size, so
   at large text sizes a long word stays whole where it can. Where it can't, `hyphens: auto`
   breaks it at a syllable ("Hexa-gon"), so the page needs its `lang`.
 - Row: `@container card (max-width: 18rem)` moves the trail to row 2, column 2, and below
   `12em` (em, so it grows with the text: a phone at large text sizes) the tile goes on top and the title takes the full width.
-- The bar, `.card__row`, the foot and the ghost wrap (`flex-wrap: wrap`) when text grows.
+- The bar's label, the foot and the ghost wrap when text grows.
 - Holds from 320px up with no horizontal scroll. At 320px with 200% text, no card clips a
   control or a title.
 
 ## Accessibility
 
 - One tab stop per link card. Its accessible name is the title text.
-- Every touch target is at least 44px: the action circle, the bar control, list rows, and the
-  links and buttons in the foot.
-- The focus ring is always visible: outside the frame on the card itself; inset on the bar
-  and on list rows, in the ink of the surface it lands on.
+- Every touch target is at least 44px: the action circle, list rows, and the links and buttons
+  in the foot.
+- The focus ring is always visible: outside the frame on the card itself; inset on list rows
+  and foot links, in the ink of the surface it lands on.
 - Contrast is at least 8.4 : 1 for ink on any tone (7.4 : 1 in dark, where the tones are dark
   greys) and at least 4.5 : 1 for soft ink in both. Under `prefers-contrast: more`, soft ink
   becomes ink.
@@ -253,6 +260,8 @@ Cards answer to their own width, not the window:
   the card clips at its padding box. Safari ignores it, leaving a 2px band at the very edge
   of a link card where a click does nothing.
 - Text inside a link card can't be selected by dragging, because the stretched link sits on top.
+- Tab scrolls a link card's anchor into view, not the card: at 200% text a deck tile taller than
+  half its scroll region can have the top of its ring cut (`screens.html`, What the screens decided).
 - The flip needs `:has()` and 3D transforms. Without `:has()` the back stays turned away, so the
   answer can't be reached; every browser in the baseline has `:has()`, so it's a limit on paper.
 - Chromium was checked; Safari's 3D compositing of a clipped face inside `preserve-3d` wasn't.
