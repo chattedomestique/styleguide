@@ -1,0 +1,185 @@
+/* ==========================================================================
+   Tab bar — wave 3. Spec: elements/tabbar.md · page: elements/tabbar.html
+   --------------------------------------------------------------------------
+   The three to five places at the root of a phone app.
+
+     <nav class="frame__bottom tabbar" aria-label="Places">
+       <ul class="tabbar__list" role="list">
+         <li>
+           <a class="tabbar__link" href="…" aria-current="page">
+             <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+             <span class="tabbar__label">Today</span>
+           </a>
+         </li>
+         …
+       </ul>
+     </nav>
+
+   House rules for this file
+   · Every place is a link with an icon and a label, never an icon alone.
+   · The icon sits in a pill, the indicator: that is what lifts, fills and
+     is marked, because it is the part that acts (rule 3). The target is the
+     whole item.
+   · Here is marked as the card marks selection: the indicator's frame
+     doubles (a 2px frame and a 2px ring). Never a fill alone, so it isn't
+     mistaken for a press, and in forced colours the frame goes to 4px.
+   · Labels are bar labels, so uppercase (rule 4).
+   · At large text it grows taller, never wider: an item that no longer fits
+     beside the others wraps to a second row.
+   · Owns the bottom safe area. Hover only with a pointer that hovers.
+   ========================================================================== */
+
+.tabbar {
+  padding-block: var(--space-1) max(var(--space-2), var(--safe-bottom));
+  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  color: var(--ink);
+  background: var(--paper);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+/* Equal shares while they fit. Each item is at least as wide as its label
+   (fit-content: never wider than the bar), so a long label wraps its item
+   to a new row instead of pushing the bar sideways. */
+.tabbar__list {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+
+.tabbar__list > li {
+  display: grid;
+  flex: 1 1 0;
+  min-inline-size: fit-content;
+}
+
+.tabbar__link {
+  /* interaction, as two numbers (foundation.css); the indicator draws them */
+  --lift: 0;
+  --fill: 0;
+  --tabbar-line: transparent;
+  --shadow-lift: calc(var(--lift) * var(--bw) * 2) calc(var(--lift) * var(--bw) * 2) 0 0 var(--line);
+  --shadow-press: inset 0 0 0 calc((1 - var(--lift)) * var(--fill) * var(--bw)) var(--paper);
+  --shadow-select: 0 0 0 0 transparent;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2); /* room for the indicator's ring and lift above the label */
+  min-block-size: var(--hit);
+  padding: var(--space-1) var(--space-2);
+  color: var(--ink);
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+/* the indicator: a pill round the icon. The badge pins to it. */
+.tabbar__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 3.5rem;
+  block-size: 2rem;
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background-color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
+  border: var(--bw) solid color-mix(in srgb, var(--line) calc(var(--fill) * 100%), var(--tabbar-line));
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-press), var(--shadow-select), var(--shadow-lift);
+}
+
+.tabbar__icon > .ic {
+  --ic-size: 1.5rem;
+}
+
+.tabbar__label {
+  max-inline-size: 100%;
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-align: center;
+  text-transform: uppercase;
+  overflow-wrap: anywhere; /* only if one word is wider than the whole bar */
+}
+
+/* --- states ------------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API. */
+
+/* here: the frame doubles, as on a selected card */
+.tabbar__link[aria-current="page"] {
+  --tabbar-line: var(--line);
+  --shadow-select: 0 0 0 var(--bw) var(--line);
+}
+
+@media (hover: hover) {
+  .tabbar__link:hover {
+    --lift: 1;
+    --fill: 1;
+  }
+}
+
+.tabbar__link:is(.is-hover, .is-focus, :focus-visible) {
+  --lift: 1;
+  --fill: 1;
+}
+
+/* the ring goes round the indicator, the part that acts: round the whole
+   item it would run off the bottom of a bar with no safe area */
+.tabbar__link:focus-visible {
+  outline: 0;
+}
+
+.tabbar__link:is(.is-focus, :focus-visible) .tabbar__icon {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: back down, the fill stays, the inner ring shows. After hover. */
+.tabbar__link:is(:active, .is-active) {
+  --lift: 0;
+  --fill: 1;
+}
+
+/* The on-screen keyboard. On a touch screen, a focused text field means the
+   keyboard is up, and a bar sitting on top of it is in the way. CSS can't
+   see the keyboard itself (wave 5 does that), but it can see the focus. */
+@media (pointer: coarse) {
+  :root:has(:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"]), textarea, [contenteditable="true"]):focus) .tabbar {
+    display: none;
+  }
+}
+
+/* --- forced colours ------------------------------------------------------------
+   Shadows and fills vanish: here becomes a 4px frame (the padding pays for
+   it, so nothing moves), hover and focus a Highlight outline, press a
+   Highlight fill. */
+
+@media (forced-colors: active) {
+  .tabbar {
+    border-block-start-color: CanvasText;
+  }
+
+  .tabbar__link[aria-current="page"] .tabbar__icon {
+    border-width: var(--bw-heavy);
+    border-color: CanvasText;
+  }
+
+  .tabbar__link:is(.is-hover, .is-focus, :focus-visible) .tabbar__icon {
+    outline: var(--bw-heavy) solid Highlight;
+    outline-offset: 0;
+  }
+
+  @media (hover: hover) {
+    .tabbar__link:hover .tabbar__icon {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+
+  .tabbar__link:is(:active, .is-active) .tabbar__icon {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .tabbar__link:is(:active, .is-active) .ic {
+    background-color: HighlightText;
+  }
+}

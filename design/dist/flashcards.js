@@ -145,6 +145,51 @@
 })();
 
 /* ==========================================================================
+   frame.js — publishes --chrome on every .frame. Spec: elements/frame.md
+   --------------------------------------------------------------------------
+   --chrome is the part of the frame's height that isn't room for content:
+   the bars with their safe areas, and the scroll region's own padding. So
+   100svh - var(--chrome) is the room, and the study card fits in it.
+
+   CSS can't put a content-sized bar's height into a property, so this
+   measures it, in px, whenever the frame or anything in it changes size
+   (text size, a bar wrapping, a rotation). Without script --chrome stays
+   unset: the study card falls back to 100svh and the region scrolls a
+   little. Nothing else reads it.
+   ========================================================================== */
+(function () {
+  "use strict";
+  if (!("ResizeObserver" in window)) return;
+
+  function measure(frame) {
+    var scroll = frame.querySelector(":scope > .frame__scroll");
+    if (!scroll) return;
+    var cs = getComputedStyle(scroll);
+    var room = scroll.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    var chrome = frame.getBoundingClientRect().height - room;
+    frame.style.setProperty("--chrome", Math.max(0, Math.round(chrome)) + "px");
+  }
+
+  var ro = new ResizeObserver(function (entries) {
+    var done = [];
+    entries.forEach(function (e) {
+      var frame = e.target.classList.contains("frame") ? e.target : e.target.parentElement;
+      if (frame && done.indexOf(frame) < 0) {
+        done.push(frame);
+        measure(frame);
+      }
+    });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll(".frame"), function (frame) {
+    ro.observe(frame);
+    Array.prototype.forEach.call(frame.children, function (child) {
+      ro.observe(child);
+    });
+  });
+})();
+
+/* ==========================================================================
    Stepper — the − and + buttons. Spec: elements/stepper.md
 
    The buttons ship hidden, so without this the value is a number field you
@@ -215,5 +260,98 @@
     down.hidden = false;
     up.hidden = false;
     sync();
+  });
+})();
+
+/* ==========================================================================
+   Tabs — sections of one screen. Spec: elements/tabs.md
+
+   The markup is links to stacked sections, which is what you get without
+   this. This makes ARIA tabs of it: the list becomes a tablist, each link a
+   tab that controls its section, each section a tabpanel labelled by its
+   tab. One tab stop (a roving tabindex); Left and Right move and select
+   (automatic activation), wrapping at the ends and following the writing
+   direction; Home and End go to the first and last. A click or a tap
+   selects without jumping the page. A #hash naming a panel selects it.
+   A .tabs carrying data-sg-static is left alone: the style sheet uses it to
+   show the form without script.
+   ========================================================================== */
+(function () {
+  "use strict";
+  document.querySelectorAll(".tabs").forEach(function (box) {
+    if (box.hasAttribute("data-sg-static")) return;
+    var list = box.querySelector(".tabs__list");
+    if (!list) return;
+    var tabs = Array.prototype.slice.call(list.querySelectorAll(".tabs__tab"));
+    var panels = tabs.map(function (tab) {
+      var id = (tab.getAttribute("href") || "").replace(/^#/, "");
+      return id ? document.getElementById(id) : null;
+    });
+    if (!tabs.length || panels.indexOf(null) !== -1) return;
+
+    list.setAttribute("role", "tablist");
+    tabs.forEach(function (tab, i) {
+      var panel = panels[i];
+      if (!tab.id) tab.id = panel.id + "-tab";
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-controls", panel.id);
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", tab.id);
+      panel.tabIndex = 0;
+    });
+
+    var current = -1;
+    function select(i, focus) {
+      tabs.forEach(function (tab, n) {
+        var on = n === i;
+        tab.setAttribute("aria-selected", String(on));
+        tab.tabIndex = on ? 0 : -1;
+        panels[n].hidden = !on;
+      });
+      current = i;
+      if (focus) {
+        tabs[i].focus();
+        // the address follows, without a history entry: a reload or a shared
+        // link opens this section, and Back still leaves the screen
+        if (history.replaceState) history.replaceState(null, "", "#" + panels[i].id);
+      }
+    }
+
+    function fromHash() {
+      var id = location.hash.slice(1);
+      for (var n = 0; n < panels.length; n++) if (id && panels[n].id === id) return n;
+      return -1;
+    }
+
+    list.addEventListener("click", function (e) {
+      var tab = e.target.closest(".tabs__tab");
+      if (!tab || tabs.indexOf(tab) === -1) return;
+      e.preventDefault();
+      select(tabs.indexOf(tab), true);
+    });
+
+    list.addEventListener("keydown", function (e) {
+      var i = tabs.indexOf(document.activeElement);
+      if (i === -1 || e.altKey || e.ctrlKey || e.metaKey) return; // Alt+← is the browser's Back
+
+      var rtl = getComputedStyle(list).direction === "rtl";
+      var next = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1 }[e.key];
+      var to = -1;
+      if (next) to = (i + next + tabs.length) % tabs.length;
+      else if (e.key === "Home") to = 0;
+      else if (e.key === "End") to = tabs.length - 1;
+      else if (e.key === " ") to = i; // a link ignores Space; a tab takes it
+      else return;
+      e.preventDefault();
+      select(to, true);
+    });
+
+    window.addEventListener("hashchange", function () {
+      var n = fromHash();
+      if (n !== -1 && n !== current) select(n, false);
+    });
+
+    var start = fromHash();
+    select(start === -1 ? 0 : start, false);
   });
 })();

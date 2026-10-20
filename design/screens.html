@@ -26,28 +26,22 @@
             <li><a href="#found">Found</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.5 · Wireframe</span>
+        <span class="sg-top__status">v0.6 · Wireframe</span>
       </div>
     </div>
 
     <header class="sg-wrap sg-hero">
       <p class="sg-hero__kicker t-label">
-        <span>Test bed</span><span>Wireframe</span><span>1 of 27 elements built</span>
+        <span>Test bed</span><span>Wireframe</span><span>21 of 27 elements built</span>
       </p>
       <h1 class="sg-display sg-display--long">Screens</h1>
       <div class="sg-hero__row">
         <p class="sg-hero__lede">
-          The system in use, on a phone and on a Mac. Black is built. A grey line with a name on it
-          is an element that doesn't exist yet.
+          The system in use, on a phone and on a Mac. Black is built, the shell included: Frame, Top
+          bar and Tab bar draw the phone's bars now. A grey line with a name on it would be an element
+          that doesn't exist yet.
         </p>
         <div class="sg-controls">
-          <fieldset class="sg-ctl">
-            <legend>Missing elements</legend>
-            <div class="sg-seg">
-              <label><input type="radio" name="labels" id="labels-on" checked />Named</label>
-              <label><input type="radio" name="labels" id="labels-off" />Plain</label>
-            </div>
-          </fieldset>
           <fieldset class="sg-ctl">
             <legend>Text size</legend>
             <div class="sg-seg">
@@ -68,7 +62,7 @@
           <h2 class="sg-sec__title" id="h-inventory">What exists</h2>
           <p class="sg-sec__note">
             It's a design system, built one element at a time. The foundations are shared by
-            everything; Card is the first element through the gates. These are the ones these
+            everything; Card was the first element through the gates. These are the ones these
             screens need; all 27 are listed on the hub, in the order they're being built.
           </p>
         </div>
@@ -100,13 +94,22 @@
             <p>Not on these screens yet. On the Mac, search is the system's own field.</p>
           </li>
           <li>
-            <strong>Nav bar: not started</strong>
-            <p>The phone's top bar and tab bar. On the Mac the toolbar and sidebar are system chrome.</p>
+            <strong>Frame: gates 0–2</strong>
+            <p>Every screen here: the rows, the safe areas, the one region that scrolls, and the
+              measured <code>--chrome</code> the study card fits under.</p>
           </li>
           <li>
-            <strong>Frame: not started</strong>
-            <p>Rows, safe areas and scrolling. Today it's the <code>.app</code> block in
-              screens.css, and every screen needs it.</p>
+            <strong>Top bar: gates 0–2</strong>
+            <p>The study screen's way back, title and Undo.</p>
+          </li>
+          <li>
+            <strong>Tab bar: gates 0–2</strong>
+            <p>Today's places, with a badge on Decks.</p>
+          </li>
+          <li>
+            <strong>Sidebar: gates 0–2</strong>
+            <p>Not on these screens: on the Mac the toolbar and sidebar are system chrome. Sidebar is
+              the web shell's, for a tablet or a browser.</p>
           </li>
         </ol>
 
@@ -123,9 +126,10 @@
           <span class="sg-sec__idx">01</span>
           <h2 class="sg-sec__title" id="h-phone">Phone, installed</h2>
           <p class="sg-sec__note">
-            A PWA on the home screen: no browser bars, so the app draws its own. 390 by 844 points,
-            with the safe areas of a phone with a notch. Scroll inside the screen. On a narrow
-            window the frame narrows with it, so it shows a smaller phone than that.
+            A PWA on the home screen: no browser bars, so the app draws its own, with Frame, Top bar
+            and Tab bar. 390 by 844 points, with the safe areas of a phone with a notch. Scroll
+            inside the screen. On a narrow window the frame narrows with it, so it shows a smaller
+            phone than that.
           </p>
         </div>
 
@@ -137,8 +141,8 @@
                 <span>9:41</span><span class="sg-phone__batt"></span>
               </div>
 
-              <div class="app">
-                <div class="app__scroll">
+              <div class="frame">
+                <div class="frame__scroll">
                   <header class="app__head">
                     <p class="t-meta">Sunday 19 October</p>
                     <h3 class="t-heading">Today</h3>
@@ -249,14 +253,36 @@
                   </section>
                 </div>
 
-                <div class="app__bottom app__tabs wf-slot" data-wf="Nav bar">
-                  <span>Today</span><span>Decks</span><span>Settings</span>
-                </div>
+                <nav class="frame__bottom tabbar" aria-label="Places">
+                  <ul class="tabbar__list" role="list">
+                    <li>
+                      <a class="tabbar__link" href="#" aria-current="page">
+                        <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Today</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"
+                          ><span class="ic ic--decks" aria-hidden="true"></span
+                          ><span class="badge" aria-hidden="true">7</span></span
+                        >
+                        <span class="tabbar__label">Decks</span><span class="sr-only">, 7 due</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Settings</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
               </div>
 
               <span class="sg-phone__home" aria-hidden="true"></span>
             </div>
-            <figcaption class="sg-caption"><b>Today.</b> The root screen: no top bar, a tab bar.</figcaption>
+            <figcaption class="sg-caption"><b>Today.</b> The root screen: no top bar, so the frame keeps a band clear of the clock; a tab bar.</figcaption>
           </figure>
 
           <!-- Study ----------------------------------------------------- -->
@@ -266,16 +292,20 @@
                 <span>9:41</span><span class="sg-phone__batt"></span>
               </div>
 
-              <div class="app app--study">
-                <div class="app__top">
-                  <div class="app__bar wf-slot" data-wf="Nav bar">
-                    <span class="ic ic--close" aria-hidden="true"></span>
-                    <h3>Shapes</h3>
-                    <span>Undo</span>
+              <div class="frame frame--task">
+                <header class="frame__top topbar">
+                  <a class="btn btn--quiet topbar__back" href="#">
+                    <span class="ic ic--back" aria-hidden="true"></span>Today
+                  </a>
+                  <h3 class="topbar__title">Shapes</h3>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet" type="button">
+                      <span class="ic ic--undo" aria-hidden="true"></span>Undo
+                    </button>
                   </div>
-                </div>
+                </header>
 
-                <div class="app__scroll">
+                <div class="frame__scroll">
                   <article class="card card--study">
                     <div class="card__head"><span class="card__label">06 / 12</span></div>
                     <div class="card__stage">
@@ -287,15 +317,17 @@
                   </article>
                 </div>
 
-                <div class="app__bottom app__answer">
-                  <button class="btn btn--block" type="button">Not yet</button>
-                  <button class="btn btn--primary btn--block" type="button">Got it</button>
+                <div class="frame__bottom">
+                  <div class="btn-row">
+                    <button class="btn btn--block" type="button">Not yet</button>
+                    <button class="btn btn--primary btn--block" type="button">Got it</button>
+                  </div>
                 </div>
               </div>
 
               <span class="sg-phone__home" aria-hidden="true"></span>
             </div>
-            <figcaption class="sg-caption"><b>Study.</b> One card, turned over. A back control, because standalone has no browser back.</figcaption>
+            <figcaption class="sg-caption"><b>Study.</b> A focused task: one card, turned over, sized to the room the bars leave. A back link, because standalone has no browser back.</figcaption>
           </figure>
         </div>
       </section>
@@ -307,8 +339,9 @@
           <h2 class="sg-sec__title" id="h-mac">Mac window</h2>
           <p class="sg-sec__note">
             The same app on a Mac, in a web shell or SwiftUI. The toolbar, sidebar and search field
-            belong to macOS, in its font and colours. Only the content is ours. Under 700 points
-            wide the sidebar folds away; a narrow browser window shows that, not a real Mac.
+            belong to macOS, in its font and colours. Only the content is ours: a frame with no bars,
+            just the region that scrolls. Under 700 points wide the sidebar folds away; a narrow
+            browser window shows that, not a real Mac.
           </p>
         </div>
 
@@ -329,8 +362,8 @@
                   <p>Settings</p>
                 </div>
 
-                <div class="app app--mac">
-                  <div class="app__scroll">
+                <div class="frame">
+                  <div class="frame__scroll">
                     <header class="app__head">
                       <p class="t-meta">4 decks · 55 cards</p>
                       <h3 class="t-heading">Decks</h3>
@@ -496,46 +529,61 @@
           <span class="sg-sec__idx">03</span>
           <h2 class="sg-sec__title" id="h-found">What the screens found</h2>
           <p class="sg-sec__note">
-            Building real screens is the test the specimen page can't run. Two of these were bugs
-            and are fixed. The rest are gaps that belong in an element's brief.
+            Building real screens is the test the specimen page can't run. Wave 3 rebuilt these on
+            Frame, Top bar and Tab bar: five findings are fixed or decided, and the rebuild found two
+            more. The open ones belong in an element's brief.
           </p>
         </div>
 
         <ol class="sg-rules" role="list">
           <li>
-            <strong>Frame is the biggest gap.</strong>
-            <p>Every screen needed the same rows, safe areas and scroll region (<code>.app</code> in
-              screens.css). A root screen with no top bar must still keep clear of the status bar,
-              or content scrolls under the clock. And Tab scrolls a card's link into view, not the
-              card that wears the focus ring, so a tall tile near the bottom can lose the bottom of
-              its ring. Scroll padding only softens that.</p>
+            <strong>Fixed: Frame was the biggest gap.</strong>
+            <p>Every screen needed the same rows, safe areas and scroll region, and wrote them again
+              (<code>.app</code>). Frame is them now, and screens.css is down to the screens' own
+              groups. A root screen keeps a band the height of the status bar that doesn't scroll, so
+              Today's heading never slides under the clock.</p>
           </li>
           <li>
-            <strong>The study card's <code>--chrome</code> is a guess.</strong>
-            <p>The card needs the bars' height to fit under them, and the app had to estimate it.
-              Frame should publish its bars' real height.</p>
+            <strong>Fixed: the study card's <code>--chrome</code> was a guess.</strong>
+            <p>It was 10rem plus the safe areas. Frame now measures it: 277px on the study screen at
+              100% text (top bar 109, action row 96, the stage's padding 72), 515px at 150%, and the
+              card is the room that's left.</p>
           </li>
           <li>
-            <strong>Phones want two decks across.</strong>
+            <strong>Fixed: <code>--gutter</code> followed the window, not the pane.</strong>
+            <p>It was sized by <code>vw</code>. Frame re-points it to its own width
+              (<code>cqi</code>), so a frame that is one pane of a split, like the Mac's content, gets
+              a pane's gutter.</p>
+          </li>
+          <li>
+            <strong>Decided: the tab bar wraps at 200%.</strong>
+            <p>The labels stay whole and readable, and an item that doesn't fit takes a second row:
+              the bar grows taller, never wider. We don't copy iOS's one-row bar, because its
+              long-press preview is the system's and the web has none.</p>
+          </li>
+          <li>
+            <strong>Decided: on a Mac, the bars aren't ours.</strong>
+            <p>Toolbar, sidebar and search are system chrome, so Top bar and Tab bar are phone and
+              web elements, and Sidebar is the web shell's. Field's first real use is on the phone.</p>
+          </li>
+          <li>
+            <strong>Open: Tab scrolls the link, not the card.</strong>
+            <p>A link card wears its focus ring round the whole card, but Tab scrolls the link in its
+              title into view, and Chrome centres it. At 100% no ring here is cut; at 200% a deck
+              tile is taller than half the room, so its top edge is. Frame's scroll padding can't
+              reach that: the card's link would have to be the box that's scrolled to.</p>
+          </li>
+          <li>
+            <strong>Open: at 200% text the bars take most of a phone.</strong>
+            <p>Both bars grow with the text, as they must to be read: on Study they take 514 of 840px
+              (658 with the scroll region's padding) and the card scrolls. Card now has an 8rem floor,
+              so it stays wide enough for its own answer. Landscape and small phones are wave 5's.</p>
+          </li>
+          <li>
+            <strong>Open: phones want two decks across.</strong>
             <p>The grid's 16rem default gives one column on a phone, and a square card one column
-              wide is a poster. Both phone grids set 8rem. If every app does that, the grid needs a
-              compact size.</p>
-          </li>
-          <li>
-            <strong>The tab bar wraps at 200%.</strong>
-            <p>At 200% text the three labels wrap to two rows, and the Tab bar's brief has to decide
-              what happens. Icons now has glyphs for Today, Decks and Settings.</p>
-          </li>
-          <li>
-            <strong>On a Mac, the bars aren't ours.</strong>
-            <p>Toolbar, sidebar and search are system chrome, so Nav bar is a phone element, and
-              Field's first real use is on the phone.</p>
-          </li>
-          <li>
-            <strong><code>--gutter</code> follows the window, not the pane.</strong>
-            <p>It's sized by <code>vw</code>: right for a phone or a whole window, too wide for one
-              pane of a split view. The frames here re-point it to the screen; Frame should do the
-              same for panes.</p>
+              wide is a poster. Both phone grids set 8rem, and the Mac's 11rem once the frame is wide.
+              If every app does that, the grid needs a compact size.</p>
           </li>
           <li>
             <strong>Fixed: the answer broke mid-word.</strong>
@@ -554,7 +602,7 @@
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards design system · Screens v0.5</span>
+      <span>Flashcards design system · Screens v0.6</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>
@@ -573,5 +621,6 @@
         });
       })();
     </script>
+    <script src="js/components/frame.js"></script>
   </body>
 </html>

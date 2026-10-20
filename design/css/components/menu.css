@@ -1,0 +1,148 @@
+/* ==========================================================================
+   Menu — wave 3. Spec: elements/menu.md · page: elements/menu.html
+   --------------------------------------------------------------------------
+   A short list of actions behind one control. Native popover: the button's
+   popovertarget opens it; Escape, a click outside and a second press close
+   it; focus goes back to the button. No script.
+
+     <button class="btn btn--quiet btn--icon" type="button"
+             popovertarget="deck-menu" aria-label="More for Shapes">
+       <span class="ic ic--more" aria-hidden="true"></span>
+     </button>
+     <div class="menu" id="deck-menu" popover>
+       <button class="btn btn--quiet btn--block menu__item" type="button"
+               popovertarget="deck-menu" popovertargetaction="hide">Rename</button>
+       …
+       <hr class="menu__rule">
+       <button class="btn btn--quiet btn--block menu__item" type="button"
+               popovertarget="deck-menu" popovertargetaction="hide">Delete deck…</button>
+     </div>
+
+   House rules for this file
+   · The surface holds, so it is a container: square, a 2px frame, paper,
+     and no shadow (a shadow means pressable). The items act, so they are
+     Button's quiet pills, full width, words at the start.
+   · Placed by CSS anchor positioning: under the button, its end edge on
+     the button's end edge; over it when there's no room under it.
+     Where anchor positioning isn't supported, it is a sheet across the
+     bottom of the screen.
+   · Reads roles only. No transitions: it appears in place (gate 4).
+   ========================================================================== */
+
+.menu {
+  /* the items read the surface they sit on: this one, not a card's */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  /* as wide as its words, if there's room beside the button; at least
+     12rem, or all that room if that's less; never wider than the screen
+     less 16px a side. Short of room, the words wrap before it overflows. */
+  inline-size: fit-content;
+  min-inline-size: min(12rem, 100%);
+  max-inline-size: calc(100vi - var(--space-4) * 2);
+  max-block-size: calc(100dvb - var(--space-4) * 2);
+  margin: 0;
+  padding: var(--space-2);
+  overflow: auto;
+  overscroll-behavior: contain;
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* author display beats the browser's "closed popovers are hidden" */
+.menu[popover]:not(:popover-open) {
+  display: none;
+}
+
+/* an item: Button's quiet block pill, words at the start like a list */
+.menu__item {
+  justify-content: flex-start;
+  padding-inline: var(--space-4);
+  text-align: start;
+  text-wrap: pretty;
+}
+
+/* the rule before the destructive item: 1px, the menu's whole width */
+.menu__rule {
+  flex: none;
+  margin: var(--space-1) calc(var(--space-2) * -1);
+  border: 0;
+  border-block-start: var(--bw-thin) solid var(--line);
+}
+
+/* the button that opened it stays down while it's open (popovertarget
+   gives no attribute to read, so the menu has to follow the button) */
+.btn:has(+ .menu:popover-open) {
+  --lift: 0;
+  --fill: 1;
+}
+
+/* --- placement ---------------------------------------------------------------
+   The browser places a popover in the middle of the screen. Here: anchored
+   to the button that opened it (its implicit anchor), end edges aligned:
+   under it if it fits, over it if that fits, the other way along if the
+   button is near the start edge. If it fits on neither side (very large
+   text on a phone), it takes the screen's height, centred, over the
+   button, and scrolls inside. */
+
+@position-try --menu-tall {
+  position-area: span-all span-inline-start;
+  align-self: center;
+  max-block-size: calc(100% - var(--space-1) * 2);
+}
+
+@supports (position-area: block-end) {
+  .menu[popover] {
+    inset: auto;
+    margin-block: var(--space-1);
+    position-area: block-end span-inline-start;
+    position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline, --menu-tall, --menu-tall flip-inline;
+  }
+}
+
+/* no anchor positioning: a sheet across the bottom of the screen. It runs
+   edge to edge on a phone and owns the bottom safe area, as a bar does. */
+@supports not (position-area: block-end) {
+  .menu[popover] {
+    inset: auto 0 0;
+    inline-size: auto;
+    max-inline-size: 30rem;
+    margin: 0 auto;
+    padding-block-end: max(var(--space-2), var(--safe-bottom));
+    border-block-end: 0;
+  }
+}
+
+/* --- states -----------------------------------------------------------------
+   The items' states are Button's; the button's own "open" is above. Without
+   the popover attribute a .menu just sits in place, as an open one looks:
+   the page uses that to show one. */
+
+/* --- forced colours ----------------------------------------------------------
+   The frame and the rule are borders, so the system paints them: the menu
+   stays a framed box on any theme. */
+
+@media (forced-colors: active) {
+  .menu {
+    border-color: CanvasText;
+  }
+
+  /* the fill that keeps the button down vanishes: paint it the system's
+     highlight while its menu is open, as Button paints a press */
+  .btn:has(+ .menu:popover-open) {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .btn:has(+ .menu:popover-open) .ic {
+    background-color: HighlightText;
+  }
+}

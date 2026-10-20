@@ -1058,10 +1058,15 @@ label {
 /* --- variant: study --------------------------------------------------------
    The flashcard itself: 5:7, one subject, one hint. The flip is motion, so it
    is designed at gate 4; the faces here are static. It never outgrows a
-   phone: set --chrome to the height of the screen's bars and the whole card
-   fits under them. svh, so it is sized once and doesn't jump as bars hide. */
+   phone: --chrome is the height of the screen's bars (Frame publishes it;
+   outside a Frame, set it) and the whole card fits under them. svh, so it
+   is sized once and doesn't jump as bars hide. */
 
 .card--study {
+  /* a floor: at 200% text the bars can take most of a phone, and a card
+     sized to the room left would be too narrow for its own answer. Below
+     8rem it stops shrinking and the stage scrolls instead. */
+  min-inline-size: min(100%, 8rem);
   aspect-ratio: var(--ratio-study);
   max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7);
 }
@@ -3511,6 +3516,1488 @@ textarea.field__input {
   flex: none;
 }
 }
+@layer components {
+/* ==========================================================================
+   Frame — wave 3. Spec: elements/frame.md · page: elements/frame.html
+   --------------------------------------------------------------------------
+   The app shell: a top bar, the scroll region, a bottom bar, and on a wide
+   screen a sidebar beside them. It is what screens.css's .app learned,
+   made into an element.
+
+     <div class="frame">
+       <header class="frame__top topbar">…</header>
+       <main class="frame__scroll">…</main>
+       <nav class="frame__bottom tabbar" aria-label="Places">…</nav>
+     </div>
+
+   House rules for this file
+   · The slots only place. A bar wears the slot class itself (.frame__top
+     on the top bar, .frame__bottom on the tab bar) and pads its own
+     safe-area inset. The frame pads only the edges no bar covers: the
+     status bar on a root screen, the home indicator with no bottom bar,
+     the sides of the scroll region. Content never reads --safe-*.
+   · One scroller: the scroll region. The page itself never scrolls, so a
+     phone's browser bars stay put and dvh doesn't jump.
+   · The frame is a container (inline size), so --gutter re-pointed here
+     follows the frame's width, not the window's: a frame used as one pane
+     of a split gets a pane's gutter.
+   · --chrome, the part of the frame's height that isn't room for content,
+     is measured by js/components/frame.js (CSS can't read a content-sized
+     bar's height into a property). The study card reads it.
+   · No motion: bars don't hide on scroll and nothing slides (gate 4).
+   ========================================================================== */
+
+.frame {
+  /* the gutter, from the frame's own width (cqi resolves against the frame
+     wherever a child uses it) */
+  --gutter: clamp(1rem, 0.6rem + 1.6cqi, 1.75rem);
+
+  container: frame / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  /* the dynamic viewport, so it tracks the browser's bars (STYLE §4); or,
+     inside a parent with a set height (a device frame, a pane), that
+     parent: there the percentages resolve and pin it to 100% */
+  block-size: 100dvh;
+  min-block-size: 100%;
+  max-block-size: 100%;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/* --- slots ------------------------------------------------------------------ */
+
+.frame__top,
+.frame__bottom {
+  position: relative;
+  z-index: 1; /* rings and badges paint over the scroll region's edge */
+  min-inline-size: 0;
+}
+
+.frame__top {
+  grid-row: 1;
+}
+
+.frame__bottom {
+  grid-row: 3;
+}
+
+/* No top bar (a root screen): the frame still keeps clear of the status
+   bar, with a band that doesn't scroll, or content slides up under the
+   clock. On a desktop the band is 0px tall. */
+.frame:not(:has(> .frame__top))::before {
+  content: "";
+  grid-row: 1;
+  grid-column: -2;
+  block-size: var(--safe-top);
+}
+
+/* --- the scroll region --------------------------------------------------------
+   The screen's content, stacked 32px apart. Pads to the gutter or the safe
+   area, whichever is wider, so content clears a landscape notch. The block
+   padding leaves room for a focus ring at either end. */
+
+.frame__scroll {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--space-6);
+  min-block-size: 0;
+  /* --frame-column caps the content's width and centres it: set it to
+     var(--measure) on a reading screen. The default fills the frame. */
+  padding-block: var(--space-5) var(--space-7);
+  /* published, so an edge-to-edge child (a plain List) can reach over them */
+  --frame-pad-start: max(var(--gutter), var(--safe-left));
+  --frame-pad-end: max(var(--gutter), var(--safe-right));
+  padding-inline: max(var(--frame-pad-start), (100% - var(--frame-column, 100%)) / 2)
+    max(var(--frame-pad-end), (100% - var(--frame-column, 100%)) / 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* when Tab or a field scrolls something into view, it stops short of the
+     bars by enough for its focus ring. The bottom is deeper: a tall card's
+     ring is drawn round the card, but it's the link inside that's scrolled
+     to (elements/frame.md, Known limits). */
+  scroll-padding-block: var(--space-4) var(--space-7);
+}
+
+/* With nothing focusable inside it, a browser makes the region itself a tab
+   stop. The frame clips at its edges, so the ring goes inside. */
+.frame__scroll:focus-visible {
+  outline-offset: calc(var(--ring) * -1);
+}
+
+/* no bottom bar: the last thing can still scroll clear of the home indicator */
+.frame:not(:has(> .frame__bottom)) > .frame__scroll {
+  padding-block-end: calc(var(--space-7) + var(--safe-bottom));
+}
+
+/* --- variant: focused task ---------------------------------------------------
+   Top bar, a centred stage, and an action row in place of the tab bar. The
+   action row is the frame's own bar, so the frame pads it. */
+
+/* safe: when the content is taller than the room, it starts at the top
+   instead of spilling both ways, where its top couldn't be scrolled to */
+.frame--task > .frame__scroll {
+  align-content: safe center;
+}
+
+.frame--task > .frame__bottom {
+  padding-block: var(--space-4) max(var(--space-4), var(--safe-bottom));
+  padding-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
+  background: var(--paper);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+/* --- variant: wide -------------------------------------------------------------
+   A sidebar beside the content column. Below 45rem of frame (rem, so large
+   text folds it sooner) the sidebar folds away and the tab bar in the bottom
+   slot takes over with the same links; from 45rem the tab bar is hidden. */
+
+.frame--wide {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.frame--wide > .frame__side {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  min-block-size: 0;
+}
+
+.frame--wide > :is(.frame__top, .frame__scroll, .frame__bottom) {
+  grid-column: 2;
+}
+
+@container frame (width < 45rem) {
+  .frame--wide > .frame__side {
+    display: none;
+  }
+}
+
+@container frame (width >= 45rem) {
+  .frame--wide > .frame__bottom {
+    display: none;
+  }
+
+  /* the sidebar covers the start edge, and its safe area with it */
+  .frame--wide > :not(.frame__side) {
+    --safe-left: 0px;
+  }
+
+  .frame--wide > .frame__side {
+    --safe-right: 0px;
+  }
+
+  .frame--wide > .frame__scroll {
+    padding-block-end: calc(var(--space-7) + var(--safe-bottom));
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Top bar — wave 3. Spec: elements/topbar.md · page: elements/topbar.html
+   --------------------------------------------------------------------------
+   A screen's title, its way back, and one or two actions.
+
+     <header class="frame__top topbar">
+       <a class="btn btn--quiet topbar__back" href="…">
+         <span class="ic ic--back" aria-hidden="true"></span>Decks
+       </a>
+       <h1 class="topbar__title">Shapes</h1>
+       <div class="topbar__actions">
+         <button class="btn btn--quiet" type="button">Edit</button>
+       </div>
+     </header>
+
+   House rules for this file
+   · Edge to edge, and it owns the top safe area: its padding starts under
+     the status bar, its paper runs up behind it.
+   · The back link and the actions are Buttons (quiet, or icon-only), so
+     their states are Button's. This file places them, and pads a text
+     Button 12px a side instead of 24: a bar is short of room, and a quiet
+     button has no frame at rest to need the air. The target stays 44px.
+   · The title is centred between the two sides and takes the room it
+     needs first. When room runs short a label beside an icon goes, whole:
+     it wraps out of sight and leaves the icon, never "D…". So does an
+     action's label, last. The bar never scrolls sideways.
+   · When the bar is narrower than 16em (a phone at large text) the title
+     drops to its own row and wraps, rather than truncating to nothing.
+     em, so the switch follows the text size, not the device.
+   ========================================================================== */
+
+.topbar {
+  container: topbar / inline-size;
+  display: grid;
+  /* back · title · actions · (actions, narrow). The title's track grows to
+     its full width first; the back and actions tracks then share what's
+     left equally, so the title stays centred until one side needs more.
+     The last track is empty until the bar is narrow (below). */
+  grid-template-columns: minmax(var(--hit), 1fr) minmax(0, max-content) minmax(max-content, 1fr) minmax(0, max-content);
+  align-items: center;
+  row-gap: var(--space-1);
+  padding-block: calc(var(--safe-top) + var(--space-2)) var(--space-2);
+  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  color: var(--ink);
+  background: var(--paper);
+  border-block-end: var(--bw) solid var(--line);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* back: a link, because it goes somewhere. A quiet Button. */
+.topbar__back {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  gap: 0 var(--space-1);
+  padding-inline: var(--space-3) var(--space-2);
+}
+
+/* Whole or not at all: a Button with an icon and a label (the back link,
+   an action like Undo) is one 44px line that wraps, clipped. When the
+   label can't fit beside the icon it moves to the hidden second line and
+   the icon stays, still named by the label. The icon's box is the line's
+   full height (its glyph stays 20px, centred by the mask), so the first
+   line is the same with or without the label. */
+.topbar__back,
+.topbar__actions > .btn:not(.btn--icon):has(> .ic) {
+  flex-wrap: wrap;
+  align-content: flex-start;
+  block-size: var(--hit);
+  padding-block: 0;
+  white-space: nowrap;
+  overflow: clip;
+}
+
+.topbar__back > .ic,
+.topbar__actions > .btn:not(.btn--icon) > .ic {
+  block-size: calc(var(--hit) - var(--bw) * 2);
+}
+
+/* title: one line at --type-title. The h1 always holds the whole title,
+   so the ellipsis is only visual. Padding keeps descenders out of the clip
+   and the sides off it. */
+.topbar__title {
+  grid-column: 2;
+  grid-row: 1;
+  min-inline-size: 0;
+  padding: var(--space-1) var(--space-2);
+  font: var(--type-title);
+  letter-spacing: var(--ls-title);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* actions: at most two Buttons, quiet or icon-only, at the trailing end.
+   If two can't fit side by side, the second goes under the first. */
+.topbar__actions {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: var(--space-2);
+}
+
+.topbar__actions > .btn:not(.btn--icon) {
+  padding-inline: var(--space-3);
+}
+
+/* --- variant: root ------------------------------------------------------------
+   No way back: the title leads, lined up with the content's gutter. */
+
+.topbar--root {
+  grid-template-columns: minmax(0, 1fr) max-content;
+}
+
+.topbar--root .topbar__title {
+  grid-column: 1;
+  padding-inline-start: max(0px, var(--gutter) - var(--space-2));
+  text-align: start;
+}
+
+.topbar--root .topbar__actions {
+  grid-column: 2;
+}
+
+/* --- large text: the title takes its own row ------------------------------- */
+
+@container topbar (width < 16em) {
+  /* the back link takes everything but the actions */
+  .topbar__back {
+    grid-column: 1 / 4;
+  }
+
+  .topbar__actions {
+    grid-column: 4;
+  }
+
+  /* two classes, so it also beats the root variant's placement. Contained,
+     so its own width doesn't push the tracks above it around. */
+  .topbar > .topbar__title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    contain: inline-size;
+    padding-inline: max(0px, var(--gutter) - var(--space-2));
+    text-align: start;
+    text-wrap: balance;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+}
+
+/* Narrower still (under 6em: two 44px targets and a gap no longer fit side
+   by side), the actions take a row of their own under the back link. */
+@container topbar (width < 6em) {
+  .topbar__back {
+    grid-column: 1 / -1;
+  }
+
+  .topbar > .topbar__actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .topbar > .topbar__title {
+    grid-row: 3;
+  }
+}
+
+/* --- forced colours -------------------------------------------------------- */
+
+@media (forced-colors: active) {
+  .topbar {
+    border-block-end-color: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Tab bar — wave 3. Spec: elements/tabbar.md · page: elements/tabbar.html
+   --------------------------------------------------------------------------
+   The three to five places at the root of a phone app.
+
+     <nav class="frame__bottom tabbar" aria-label="Places">
+       <ul class="tabbar__list" role="list">
+         <li>
+           <a class="tabbar__link" href="…" aria-current="page">
+             <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+             <span class="tabbar__label">Today</span>
+           </a>
+         </li>
+         …
+       </ul>
+     </nav>
+
+   House rules for this file
+   · Every place is a link with an icon and a label, never an icon alone.
+   · The icon sits in a pill, the indicator: that is what lifts, fills and
+     is marked, because it is the part that acts (rule 3). The target is the
+     whole item.
+   · Here is marked as the card marks selection: the indicator's frame
+     doubles (a 2px frame and a 2px ring). Never a fill alone, so it isn't
+     mistaken for a press, and in forced colours the frame goes to 4px.
+   · Labels are bar labels, so uppercase (rule 4).
+   · At large text it grows taller, never wider: an item that no longer fits
+     beside the others wraps to a second row.
+   · Owns the bottom safe area. Hover only with a pointer that hovers.
+   ========================================================================== */
+
+.tabbar {
+  padding-block: var(--space-1) max(var(--space-2), var(--safe-bottom));
+  padding-inline: max(var(--space-2), var(--safe-left)) max(var(--space-2), var(--safe-right));
+  color: var(--ink);
+  background: var(--paper);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+/* Equal shares while they fit. Each item is at least as wide as its label
+   (fit-content: never wider than the bar), so a long label wraps its item
+   to a new row instead of pushing the bar sideways. */
+.tabbar__list {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+
+.tabbar__list > li {
+  display: grid;
+  flex: 1 1 0;
+  min-inline-size: fit-content;
+}
+
+.tabbar__link {
+  /* interaction, as two numbers (foundation.css); the indicator draws them */
+  --lift: 0;
+  --fill: 0;
+  --tabbar-line: transparent;
+  --shadow-lift: calc(var(--lift) * var(--bw) * 2) calc(var(--lift) * var(--bw) * 2) 0 0 var(--line);
+  --shadow-press: inset 0 0 0 calc((1 - var(--lift)) * var(--fill) * var(--bw)) var(--paper);
+  --shadow-select: 0 0 0 0 transparent;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2); /* room for the indicator's ring and lift above the label */
+  min-block-size: var(--hit);
+  padding: var(--space-1) var(--space-2);
+  color: var(--ink);
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+/* the indicator: a pill round the icon. The badge pins to it. */
+.tabbar__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 3.5rem;
+  block-size: 2rem;
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background-color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
+  border: var(--bw) solid color-mix(in srgb, var(--line) calc(var(--fill) * 100%), var(--tabbar-line));
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-press), var(--shadow-select), var(--shadow-lift);
+}
+
+.tabbar__icon > .ic {
+  --ic-size: 1.5rem;
+}
+
+.tabbar__label {
+  max-inline-size: 100%;
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-align: center;
+  text-transform: uppercase;
+  overflow-wrap: anywhere; /* only if one word is wider than the whole bar */
+}
+
+/* --- states ------------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API. */
+
+/* here: the frame doubles, as on a selected card */
+.tabbar__link[aria-current="page"] {
+  --tabbar-line: var(--line);
+  --shadow-select: 0 0 0 var(--bw) var(--line);
+}
+
+@media (hover: hover) {
+  .tabbar__link:hover {
+    --lift: 1;
+    --fill: 1;
+  }
+}
+
+.tabbar__link:is(.is-hover, .is-focus, :focus-visible) {
+  --lift: 1;
+  --fill: 1;
+}
+
+/* the ring goes round the indicator, the part that acts: round the whole
+   item it would run off the bottom of a bar with no safe area */
+.tabbar__link:focus-visible {
+  outline: 0;
+}
+
+.tabbar__link:is(.is-focus, :focus-visible) .tabbar__icon {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: back down, the fill stays, the inner ring shows. After hover. */
+.tabbar__link:is(:active, .is-active) {
+  --lift: 0;
+  --fill: 1;
+}
+
+/* The on-screen keyboard. On a touch screen, a focused text field means the
+   keyboard is up, and a bar sitting on top of it is in the way. CSS can't
+   see the keyboard itself (wave 5 does that), but it can see the focus. */
+@media (pointer: coarse) {
+  :root:has(:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"]), textarea, [contenteditable="true"]):focus) .tabbar {
+    display: none;
+  }
+}
+
+/* --- forced colours ------------------------------------------------------------
+   Shadows and fills vanish: here becomes a 4px frame (the padding pays for
+   it, so nothing moves), hover and focus a Highlight outline, press a
+   Highlight fill. */
+
+@media (forced-colors: active) {
+  .tabbar {
+    border-block-start-color: CanvasText;
+  }
+
+  .tabbar__link[aria-current="page"] .tabbar__icon {
+    border-width: var(--bw-heavy);
+    border-color: CanvasText;
+  }
+
+  .tabbar__link:is(.is-hover, .is-focus, :focus-visible) .tabbar__icon {
+    outline: var(--bw-heavy) solid Highlight;
+    outline-offset: 0;
+  }
+
+  @media (hover: hover) {
+    .tabbar__link:hover .tabbar__icon {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+
+  .tabbar__link:is(:active, .is-active) .tabbar__icon {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .tabbar__link:is(:active, .is-active) .ic {
+    background-color: HighlightText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Sidebar — wave 3. Spec: elements/sidebar.md · page: elements/sidebar.html
+   --------------------------------------------------------------------------
+   The places, on a wide screen. Inside Frame's wide variant it is the
+   first column; below 45rem of frame it folds away and the Tab bar takes
+   over with the same links (frame.css does the folding).
+
+     <nav class="frame__side sidebar" aria-label="Places">
+       <div class="sidebar__head">
+         <button class="btn btn--icon btn--quiet sidebar__toggle" type="button"
+           aria-label="Sidebar" aria-expanded="true" aria-controls="…">
+           <span class="ic ic--sidebar" aria-hidden="true"></span>
+         </button>
+       </div>
+       <div class="sidebar__body" id="…">
+         <ul class="sidebar__list" role="list">
+           <li><a class="btn btn--quiet sidebar__link" href="…" aria-current="page">
+             <span class="ic ic--today" aria-hidden="true"></span>Today</a></li>
+         </ul>
+       </div>
+       <div class="sidebar__foot">…</div>
+     </nav>
+
+   House rules for this file
+   · A link is a quiet Button (<a class="btn btn--quiet">), so hover, press,
+     focus and forced colours are Button's. This file lines it up.
+   · Here is marked as the card marks selection: the frame doubles (a 2px
+     frame and a 2px ring), and the label goes bold. Never a fill alone.
+   · Drawn plainly. On a Mac the sidebar is the system's (STYLE §4); this
+     is the web shell's, and it doesn't imitate AppKit.
+   · The toggle's aria-expanded drives the CSS. The app flips it; folded,
+     the sidebar is a rail with only the toggle, so it can come back.
+   · Owns the safe areas it touches: the top, the bottom, the start edge.
+   ========================================================================== */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: 15rem;
+  max-inline-size: 100%;
+  padding-block: calc(var(--safe-top) + var(--space-2)) max(var(--space-3), var(--safe-bottom));
+  padding-inline: max(var(--space-3), var(--safe-left)) max(var(--space-3), var(--safe-right));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--ink);
+  background: var(--paper);
+  border-inline-end: var(--bw) solid var(--line);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* head: lines up with the top bar beside it, so the toggle sits on the same
+   line as the bar's own buttons */
+.sidebar__head {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--hit);
+}
+
+.sidebar__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sidebar__list {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/* a section heading is structure, so a label (rule 4) */
+.sidebar__heading {
+  margin-block-start: var(--space-4);
+  padding: var(--space-2) var(--space-4) 0;
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* a link: a quiet Button, full width, reading from the start */
+.sidebar__link {
+  inline-size: 100%;
+  justify-content: flex-start;
+  gap: var(--space-2);
+  padding-inline: var(--space-4);
+  font-weight: 400;
+  text-align: start;
+}
+
+/* no icon (a deck in a list of decks: the same glyph on every row would be
+   decoration, rule 7): the label still lines up with the ones that have one */
+.sidebar__link:not(:has(> .ic)) {
+  padding-inline-start: calc(var(--space-4) + var(--ic-size, 1.25rem));
+}
+
+/* here: the frame shows and doubles, the label goes bold */
+.sidebar__link[aria-current="page"] {
+  --btn-rest-line: var(--btn-line);
+  --shadow-select: 0 0 0 var(--bw) var(--btn-line);
+  font-weight: 700;
+}
+
+/* foot: one thin rule (it divides), then whatever the app puts there */
+.sidebar__foot {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: auto;
+  padding-block-start: var(--space-3);
+  border-block-start: var(--bw-thin) solid var(--line);
+}
+
+/* --- folded by its toggle: a rail with the toggle alone ------------------------ */
+
+.sidebar:has(.sidebar__toggle[aria-expanded="false"]) {
+  inline-size: fit-content;
+}
+
+.sidebar:has(.sidebar__toggle[aria-expanded="false"]) > :is(.sidebar__body, .sidebar__foot) {
+  display: none;
+}
+
+/* --- forced colours -------------------------------------------------------------
+   The ring is a shadow, so it vanishes: here becomes a 4px frame instead,
+   the padding paying for it so nothing moves. */
+
+@media (forced-colors: active) {
+  .sidebar {
+    border-inline-end-color: CanvasText;
+  }
+
+  .sidebar__link[aria-current="page"] {
+    border-width: var(--bw-heavy);
+    padding-inline: calc(var(--space-4) - var(--bw));
+  }
+
+  .sidebar__link[aria-current="page"]:not(:has(> .ic)) {
+    padding-inline-start: calc(var(--space-4) + var(--ic-size, 1.25rem) - var(--bw));
+  }
+}
+
+/* the toggle needs the app's script to flip aria-expanded: without script
+   there is nothing it could do, so it isn't there */
+@media (scripting: none) {
+  .sidebar__toggle {
+    display: none;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   List — wave 3. Spec: elements/list.md · page: elements/list.html
+   --------------------------------------------------------------------------
+   Rows of things, at the size of a screen. .card__list stays the card's;
+   this is the full-width version, with a lead, a title, meta and a trail.
+
+     <div class="list">
+       <ul class="list__rows" role="list">
+         <li>
+           <a class="list__row" href="…">
+             <span class="list__main">
+               <span class="list__title">Shapes</span>
+               <span class="list__meta">12 cards · 5 known</span>
+             </span>
+             <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+           </a>
+         </li>
+       </ul>
+     </div>
+
+   House rules for this file
+   · .list is the block: plain (ruled, edge to edge) or --inset (framed).
+     A heading inside it (.list__head) names the section; more sections
+     are more .list blocks, stacked.
+   · A row is a rectangle: it holds. What you act on inside it (a More
+     button, a switch) keeps its own round shape (rule 3).
+   · A link row is one target and one tab stop. Hover underlines the
+     title, press fills the row with ink, as the card's list rows do.
+     No lift: a shadow would fall across the next row.
+   · 1px rules divide (--bw-thin); only the inset frame is 2px (--bw).
+   · Reads roles only. :hover only inside @media (hover: hover). States
+     change instantly. Swipe is gate 4: the More button is the action.
+   ========================================================================== */
+
+.list {
+  --list-pad: var(--gutter); /* plain runs edge to edge: its rows keep the screen's gutter */
+  --list-bg: transparent;
+
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  color: var(--ink);
+  background: var(--list-bg);
+  overflow-wrap: break-word;
+}
+
+/* straight in a Frame's scroll region, a plain list really is edge to edge:
+   it reaches over the region's side padding, and its rows take that padding
+   as their own, so their text lines up with the content above */
+.frame__scroll > .list:not(.list--inset) {
+  --list-pad: var(--frame-pad-start);
+  margin-inline: calc(var(--frame-pad-start) * -1) calc(var(--frame-pad-end) * -1);
+}
+
+/* sections stack with room between them */
+.list + .list {
+  margin-block-start: var(--space-5);
+}
+
+/* a section's name: a label above the rule */
+.list__head {
+  padding: 0 var(--list-pad) var(--space-2);
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+}
+
+/* plain: closed top and bottom by a rule, so the edges show without colour */
+.list__rows {
+  border-block: var(--bw-thin) solid var(--line);
+}
+
+/* a row and its actions share a line; when they can't (a phone at large
+   text sizes), the actions drop under the row, at the end */
+.list__rows > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  min-inline-size: 0;
+}
+
+.list__rows > li + li {
+  border-block-start: var(--bw-thin) solid var(--line);
+}
+
+.list__rows > li > :is(.list__row, .switch) {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* beside actions, a row keeps 12em before it gives up the line: the title
+   wraps first, then the actions move */
+.list__rows > li > .list__row:has(+ .list__actions) {
+  flex-basis: 12em;
+}
+
+/* a settings row is Switch's own markup; the list only pads it */
+.list__rows > li > .switch {
+  padding-inline: var(--list-pad);
+}
+
+/* --- variant: inset ---------------------------------------------------------
+   Panel-style: a square 2px frame on paper, inside the screen's gutter. Its
+   heading is the Panel's bar: the frame, thickened, with the label on it. */
+
+.list--inset {
+  --list-pad: var(--space-4);
+  --list-bg: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.list--inset > .list__rows {
+  border-block: 0;
+}
+
+.list--inset > .list__head {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--hit);
+  padding-block: var(--space-2);
+  color: var(--paper);
+  background: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- the row ----------------------------------------------------------------
+   A static <div>, or the <a> when the whole row goes somewhere. Lead, main
+   and trail sit on one line; at large text sizes the trail drops below and
+   keeps to the end. */
+
+.list__row {
+  --fill: 0;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-block-size: var(--hit);
+  padding: var(--space-2) var(--list-pad);
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background-color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
+  text-decoration: none;
+}
+
+/* a row with actions: the buttons after it bring their own room */
+.list__row:has(+ .list__actions) {
+  padding-inline-end: var(--space-2);
+}
+
+.list__main {
+  display: flex;
+  flex: 1 1 7em;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.list__title {
+  font: var(--type-body);
+  font-weight: 500;
+  text-decoration-thickness: var(--bw);
+  text-underline-offset: 0.18em;
+}
+
+.list__meta {
+  font: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+/* the lead: an icon (.ic, 24px) or a tile */
+.list__row > .ic {
+  --ic-size: 1.5rem;
+}
+
+.list__tile {
+  flex: none;
+  inline-size: var(--hit);
+  block-size: var(--hit);
+  background-color: var(--tone-bg, var(--tone-1));
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-tile);
+  overflow: clip;
+}
+
+/* the trail: a value, a tag, a chevron. At the end, even on its own line. */
+.list__trail {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  font: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.list__trail > .ic {
+  color: var(--ink);
+}
+
+/* the actions: a More button (and its menu) after the row, its own target.
+   On a wide gutter the glyph lines up with it; the 44px circle reaches past,
+   but never closer than 8px to the edge, where its pressed fill shows. */
+.list__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline-end: max(var(--space-2), var(--list-pad) - var(--space-3));
+}
+
+/* --- states -----------------------------------------------------------------
+   Only a link row has them. .is-* classes force a state for the page and for
+   tests; they are not API. */
+
+@media (hover: hover) {
+  a.list__row:hover .list__title {
+    text-decoration-line: underline;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, inside the row: rows
+   touch, and a plain list touches the screen's edge */
+a.list__row:is(.is-hover, .is-focus, :focus-visible) .list__title {
+  text-decoration-line: underline;
+}
+
+a.list__row:focus-visible,
+a.list__row.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: calc(var(--ring) * -1);
+}
+
+/* pressed: the row fills with ink, as a card's list row does. Tags and
+   buttons inside read the card's surface roles, so they invert with it. */
+a.list__row:is(:active, .is-active) {
+  --fill: 1;
+  --card-ink: var(--paper);
+  --card-bg: var(--ink);
+}
+
+a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail > .ic) {
+  color: inherit;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The ink fill vanishes here, so a press paints the system's highlight. The
+   ring, the rules and the frame are already system colours. */
+
+@media (forced-colors: active) {
+  a.list__row:is(:active, .is-active) {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+  }
+
+  a.list__row:is(:active, .is-active) .ic {
+    background-color: HighlightText;
+  }
+
+  .list--inset > .list__head {
+    forced-color-adjust: none;
+    color: Canvas;
+    background: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Tabs — wave 3. Spec: elements/tabs.md · page: elements/tabs.html
+   --------------------------------------------------------------------------
+   Sections of one screen. The markup is links to sections, so it works with
+   no script: a row of in-page links over stacked, headed sections.
+   js/components/tabs.js turns it into ARIA tabs (tablist, tab, tabpanel),
+   with arrow keys, Home and End, one tab stop and automatic activation.
+
+     <div class="tabs">
+       <nav class="tabs__list" aria-label="Shapes">
+         <a class="tabs__tab" href="#cards">Cards</a>
+         <a class="tabs__tab" href="#stats">Stats</a>
+       </nav>
+       <section class="tabs__panel" id="cards">
+         <h2 class="tabs__heading">Cards</h2> …
+       </section>
+       <section class="tabs__panel" id="stats">
+         <h2 class="tabs__heading">Stats</h2> …
+       </section>
+     </div>
+
+   House rules for this file
+   · Not the segmented control: that switches how one thing is shown; this
+     switches which section is shown. So it looks different: no joined
+     pills, no fill for the chosen one.
+   · A tab acts, so its target is a pill (rule 3), quiet until hover. Which
+     section is shown is structure, so it's a 2px bar on the list's rule
+     under the tab, never a fill. Focus is a round ring; selection is a flat
+     bar: the two never look alike.
+   · States come from [aria-selected] (set by the script), :hover inside
+     @media (hover: hover), :focus-visible and :active. .is-* force them on
+     the page. States change instantly.
+   ========================================================================== */
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  color: var(--ink);
+}
+
+/* the list: a row of tabs on a 1px rule. It wraps rather than scrolls: a
+   hidden scrollbar hides tabs. The 4px under the pills is where the bar
+   meets the rule; a wrapped row keeps the same room for its bars. */
+.tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space-1) + var(--bw-thin)) var(--space-1);
+  padding-block-end: var(--space-1);
+  border-block-end: var(--bw-thin) solid var(--line);
+}
+
+.tabs__tab {
+  --fill: 0;
+  --tabs-ink: var(--ink-soft);
+  --tabs-bar: transparent;
+
+  position: relative; /* the bar and a badge pin to it */
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: var(--hit);
+  min-inline-size: var(--hit);
+  padding: var(--space-2) var(--space-4);
+  font: var(--type-body);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  text-align: center;
+  text-decoration: none;
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--tabs-ink));
+  background-color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
+  border: var(--bw) solid transparent;
+  border-radius: var(--radius-pill);
+  touch-action: manipulation;
+}
+
+/* the bar: under the pill, on the list's rule, the tab's whole width */
+.tabs__tab::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(var(--space-1) * -1 - var(--bw) - var(--bw-thin));
+  block-size: var(--bw);
+  background: var(--tabs-bar);
+}
+
+/* with the script it's a tab, not a link: the hand is for links only, as
+   on the Mac */
+.tabs__tab[role="tab"] {
+  cursor: default;
+}
+
+/* a count follows the label, as in a text button */
+.tabs__tab > .badge {
+  position: static;
+  outline: 0;
+}
+
+/* full width, for a phone: the tabs share the row. Each keeps at least its
+   own width, so long labels or large text wrap the row instead of
+   squeezing a word. */
+.tabs--full .tabs__tab {
+  flex: 1 1 0%;
+  min-inline-size: max-content;
+}
+
+/* panels: stacked sections without script; one at a time with it */
+.tabs__panel {
+  min-inline-size: 0;
+  padding-block-start: var(--space-4);
+}
+
+.tabs__panel[hidden] {
+  display: none;
+}
+
+.tabs__heading {
+  margin-block-end: var(--space-3);
+  font: var(--type-title);
+  letter-spacing: var(--ls-title);
+}
+
+/* with script the tab names the panel: the heading stays for headings
+   navigation, out of sight */
+[role="tabpanel"] > .tabs__heading {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from [aria-selected], :hover, :focus-visible, :active. */
+
+/* selected: ink words and the bar */
+.tabs__tab:is([aria-selected="true"], .is-selected) {
+  --tabs-ink: var(--ink);
+  --tabs-bar: var(--ink);
+}
+
+/* hover: the pill's frame appears, as a quiet button's does */
+@media (hover: hover) {
+  .tabs__tab:hover {
+    --tabs-ink: var(--ink);
+    border-color: var(--line);
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, round like the pill */
+.tabs__tab:is(.is-hover, .is-focus, :focus-visible) {
+  --tabs-ink: var(--ink);
+  border-color: var(--line);
+}
+
+.tabs__tab.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset-in);
+}
+
+.tabs__tab:focus-visible {
+  outline-offset: var(--ring-offset-in);
+}
+
+/* pressed: the pill fills, as Button's does. A badge reads the card's
+   surface roles, so it inverts with it. */
+.tabs__tab:is(:active, .is-active) {
+  --fill: 1;
+  --card-ink: var(--paper);
+  --card-bg: var(--ink);
+  border-color: var(--line);
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The system would paint the transparent frame, and drop the bar, which is
+   a background. So: a Canvas frame at rest (none to see), the system's
+   highlight on hover and press, and the bar opts out and doubles to 4px of
+   CanvasText; unselected, it stays transparent over the rule. */
+
+@media (forced-colors: active) {
+  .tabs__tab {
+    border-color: Canvas;
+  }
+
+  .tabs__tab:is(.is-hover, .is-focus, :focus-visible) {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .tabs__tab:hover {
+      border-color: Highlight;
+    }
+  }
+
+  .tabs__tab:is(:active, .is-active) {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .tabs__tab::after {
+    forced-color-adjust: none;
+  }
+
+  .tabs__tab:is([aria-selected="true"], .is-selected)::after {
+    block-size: var(--bw-heavy);
+    background: CanvasText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Disclosure — wave 3. Spec: elements/disclosure.md · page: elements/disclosure.html
+   --------------------------------------------------------------------------
+   Show more, in place. Native <details> and <summary>, styled: no script,
+   Enter and Space for free, and the open state is the browser's own.
+
+     <details class="disclosure">
+       <summary class="disclosure__summary">
+         How spaced repetition works
+         <span class="ic ic--down disclosure__icon" aria-hidden="true"></span>
+       </summary>
+       <div class="disclosure__body"><p>…</p></div>
+     </details>
+
+   House rules for this file
+   · A disclosure is a ruled row, like a list row: a rectangle that holds.
+     Stacked, neighbours share one rule, so a group needs no wrapper.
+   · The summary is the target: the whole row, at least 44px.
+   · Open swaps the glyph, down for up. Static glyphs: no rotation until
+     gate 4. In forced colours the glyph still says which way it went.
+   · Hover underlines the words, press fills the row with ink: what a list
+     row does. Rules and fills read the card's surface roles, so a
+     disclosure inside a card (on any tone) takes the card's ink.
+   · :hover only inside @media (hover: hover). States change instantly.
+   ========================================================================== */
+
+.disclosure {
+  --disclosure-ink: var(--card-ink, var(--ink));
+  --disclosure-bg: var(--card-bg, var(--paper));
+
+  /* the rules and the pressed fill reach 8px past the text on each side,
+     so the words stay in line with the paragraphs around them */
+  margin-inline: calc(var(--space-2) * -1);
+  min-inline-size: 0;
+  color: var(--disclosure-ink);
+  border-block: var(--bw-thin) solid var(--disclosure-ink);
+}
+
+/* stacked: the rule between two is one rule */
+.disclosure + .disclosure {
+  margin-block-start: calc(var(--bw-thin) * -1);
+}
+
+/* the summary: the whole row is the target */
+.disclosure__summary {
+  --fill: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: var(--hit);
+  padding: var(--space-2);
+  font: var(--type-body);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  overflow-wrap: break-word;
+  color: color-mix(in srgb, var(--disclosure-bg) calc(var(--fill) * 100%), var(--disclosure-ink));
+  background-color: color-mix(in srgb, var(--disclosure-ink) calc(var(--fill) * 100%), transparent);
+  text-decoration-thickness: var(--bw);
+  text-underline-offset: 0.18em;
+  list-style: none;
+  cursor: default; /* the hand is for links only, as on the Mac */
+  touch-action: manipulation;
+}
+
+.disclosure__summary::-webkit-details-marker {
+  display: none;
+}
+
+/* the glyph: down when closed, up when open */
+.disclosure__icon {
+  flex: none;
+}
+
+.disclosure[open] > .disclosure__summary > .disclosure__icon {
+  --ic: var(--icon-up);
+}
+
+/* the body: what was hidden, under the summary, as wide as a paragraph */
+.disclosure__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-inline-size: calc(var(--measure) + var(--space-4));
+  padding: var(--space-1) var(--space-2) var(--space-4);
+  font: var(--type-body);
+  text-wrap: pretty;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from [open], :hover, :focus-visible and :active. */
+
+@media (hover: hover) {
+  .disclosure__summary:hover {
+    text-decoration-line: underline;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, inside the row: rows
+   touch, and a card clips */
+.disclosure__summary:is(.is-hover, .is-focus, :focus-visible) {
+  text-decoration-line: underline;
+}
+
+.disclosure__summary:focus-visible,
+.disclosure__summary.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: calc(var(--ring) * -1);
+}
+
+/* on an ink card the ring takes the card's ink */
+.disclosure__summary:is(:focus-visible, .is-focus) {
+  outline-color: var(--card-ink, var(--focus));
+}
+
+/* pressed: the row fills with the surface's ink, as a list row does */
+.disclosure__summary:is(:active, .is-active) {
+  --fill: 1;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The fill vanishes, so a press paints the system's highlight. The rules
+   and the ring are system colours already; the glyph is CanvasText
+   (icons.css), so open still reads as up. */
+
+@media (forced-colors: active) {
+  .disclosure {
+    border-color: CanvasText;
+  }
+
+  .disclosure__summary:is(:active, .is-active) {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background-color: Highlight;
+  }
+
+  .disclosure__summary:is(:active, .is-active) .ic {
+    background-color: HighlightText;
+  }
+}
+}
+@layer components {
+/* ==========================================================================
+   Menu — wave 3. Spec: elements/menu.md · page: elements/menu.html
+   --------------------------------------------------------------------------
+   A short list of actions behind one control. Native popover: the button's
+   popovertarget opens it; Escape, a click outside and a second press close
+   it; focus goes back to the button. No script.
+
+     <button class="btn btn--quiet btn--icon" type="button"
+             popovertarget="deck-menu" aria-label="More for Shapes">
+       <span class="ic ic--more" aria-hidden="true"></span>
+     </button>
+     <div class="menu" id="deck-menu" popover>
+       <button class="btn btn--quiet btn--block menu__item" type="button"
+               popovertarget="deck-menu" popovertargetaction="hide">Rename</button>
+       …
+       <hr class="menu__rule">
+       <button class="btn btn--quiet btn--block menu__item" type="button"
+               popovertarget="deck-menu" popovertargetaction="hide">Delete deck…</button>
+     </div>
+
+   House rules for this file
+   · The surface holds, so it is a container: square, a 2px frame, paper,
+     and no shadow (a shadow means pressable). The items act, so they are
+     Button's quiet pills, full width, words at the start.
+   · Placed by CSS anchor positioning: under the button, its end edge on
+     the button's end edge; over it when there's no room under it.
+     Where anchor positioning isn't supported, it is a sheet across the
+     bottom of the screen.
+   · Reads roles only. No transitions: it appears in place (gate 4).
+   ========================================================================== */
+
+.menu {
+  /* the items read the surface they sit on: this one, not a card's */
+  --card-ink: var(--ink);
+  --card-bg: var(--paper);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  /* as wide as its words, if there's room beside the button; at least
+     12rem, or all that room if that's less; never wider than the screen
+     less 16px a side. Short of room, the words wrap before it overflows. */
+  inline-size: fit-content;
+  min-inline-size: min(12rem, 100%);
+  max-inline-size: calc(100vi - var(--space-4) * 2);
+  max-block-size: calc(100dvb - var(--space-4) * 2);
+  margin: 0;
+  padding: var(--space-2);
+  overflow: auto;
+  overscroll-behavior: contain;
+  font: var(--type-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* author display beats the browser's "closed popovers are hidden" */
+.menu[popover]:not(:popover-open) {
+  display: none;
+}
+
+/* an item: Button's quiet block pill, words at the start like a list */
+.menu__item {
+  justify-content: flex-start;
+  padding-inline: var(--space-4);
+  text-align: start;
+  text-wrap: pretty;
+}
+
+/* the rule before the destructive item: 1px, the menu's whole width */
+.menu__rule {
+  flex: none;
+  margin: var(--space-1) calc(var(--space-2) * -1);
+  border: 0;
+  border-block-start: var(--bw-thin) solid var(--line);
+}
+
+/* the button that opened it stays down while it's open (popovertarget
+   gives no attribute to read, so the menu has to follow the button) */
+.btn:has(+ .menu:popover-open) {
+  --lift: 0;
+  --fill: 1;
+}
+
+/* --- placement ---------------------------------------------------------------
+   The browser places a popover in the middle of the screen. Here: anchored
+   to the button that opened it (its implicit anchor), end edges aligned:
+   under it if it fits, over it if that fits, the other way along if the
+   button is near the start edge. If it fits on neither side (very large
+   text on a phone), it takes the screen's height, centred, over the
+   button, and scrolls inside. */
+
+@position-try --menu-tall {
+  position-area: span-all span-inline-start;
+  align-self: center;
+  max-block-size: calc(100% - var(--space-1) * 2);
+}
+
+@supports (position-area: block-end) {
+  .menu[popover] {
+    inset: auto;
+    margin-block: var(--space-1);
+    position-area: block-end span-inline-start;
+    position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline, --menu-tall, --menu-tall flip-inline;
+  }
+}
+
+/* no anchor positioning: a sheet across the bottom of the screen. It runs
+   edge to edge on a phone and owns the bottom safe area, as a bar does. */
+@supports not (position-area: block-end) {
+  .menu[popover] {
+    inset: auto 0 0;
+    inline-size: auto;
+    max-inline-size: 30rem;
+    margin: 0 auto;
+    padding-block-end: max(var(--space-2), var(--safe-bottom));
+    border-block-end: 0;
+  }
+}
+
+/* --- states -----------------------------------------------------------------
+   The items' states are Button's; the button's own "open" is above. Without
+   the popover attribute a .menu just sits in place, as an open one looks:
+   the page uses that to show one. */
+
+/* --- forced colours ----------------------------------------------------------
+   The frame and the rule are borders, so the system paints them: the menu
+   stays a framed box on any theme. */
+
+@media (forced-colors: active) {
+  .menu {
+    border-color: CanvasText;
+  }
+
+  /* the fill that keeps the button down vanishes: paint it the system's
+     highlight while its menu is open, as Button paints a press */
+  .btn:has(+ .menu:popover-open) {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .btn:has(+ .menu:popover-open) .ic {
+    background-color: HighlightText;
+  }
+}
+}
 @layer wire {
 /* ==========================================================================
    Wireframe kit — placeholders for things that don't exist yet.
@@ -3639,86 +5126,14 @@ textarea.field__input {
    nothing a component should own. It sits in @layer app, after components
    and wire, so it never needs specificity to win, and it reads only tokens.
 
-   Two things to notice while reading it:
-   - The .app block is the future Frame element: rows, safe areas, the
-     scroll region. Every app would write it again, which is why Frame is
-     on the roadmap.
-   - If something here starts to look like a component (a frame, a pressed
-     state), an element is missing. Stop and put it through the pipeline.
+   Frame, Top bar and Tab bar now draw the shell (rows, safe areas, the
+   scroll region, --chrome), so what's left is the screens' own groups.
+   If something here starts to look like a component (a frame, a pressed
+   state), an element is missing. Stop and put it through the pipeline.
    ========================================================================== */
 
 @layer app {
-  /* --- frame: top bar, scroll region, bottom bar (the future Frame) ------- */
-
-  .app {
-    --pad-start: max(var(--gutter), var(--safe-left));
-    --pad-end: max(var(--gutter), var(--safe-right));
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    block-size: 100dvh; /* the frame only: it tracks the browser's bars */
-    background: var(--canvas);
-  }
-
-  /* No top bar: the frame still keeps clear of the status bar, or content
-     scrolls up under the clock. */
-  .app:not(:has(> .app__top)) {
-    padding-block-start: var(--safe-top);
-  }
-
-  /* bars run edge to edge and own the safe-area inset */
-  .app__top {
-    grid-row: 1;
-    padding-block-start: var(--safe-top);
-  }
-
-  .app__scroll {
-    grid-row: 2;
-    display: grid;
-    align-content: start;
-    gap: var(--space-6);
-    padding: var(--space-5) var(--pad-end) var(--space-7) var(--pad-start);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    /* room for a focus ring when Tab scrolls something into view. It helps,
-       but Tab scrolls the card's link into view, not the card that wears the
-       ring, so a tall tile can still lose its bottom edge (see findings). */
-    scroll-padding-block: var(--space-4) var(--space-7);
-  }
-
-  /* at large text sizes the region itself becomes a tab stop; the frame
-     clips, so its ring goes inside */
-  .app__scroll:focus-visible {
-    outline-offset: calc(var(--ring) * -1);
-  }
-
-  .app__bottom {
-    grid-row: 3;
-  }
-
-  /* no bottom bar: the last thing can scroll clear of the home indicator */
-  .app:not(:has(> .app__bottom)) > .app__scroll {
-    padding-block-end: calc(var(--space-7) + var(--safe-bottom));
-  }
-
-  .app__bar {
-    justify-content: space-between;
-    padding-inline: var(--pad-start) var(--pad-end);
-    border-inline: 0;
-  }
-
-  .app__bar h3 {
-    font: inherit;
-  }
-
-  .app__tabs {
-    justify-content: space-around;
-    margin-block-start: var(--space-2); /* room for the slot's name; goes when Nav bar ships */
-    padding: var(--space-2) var(--pad-end) max(var(--space-2), var(--safe-bottom)) var(--pad-start);
-    border-inline: 0;
-    border-block-end: 0;
-  }
-
-  /* --- groups inside the scroll region ------------------------------------ */
+  /* --- groups inside a screen ---------------------------------------------- */
 
   .app__head {
     display: grid;
@@ -3745,47 +5160,31 @@ textarea.field__input {
 
   /* Phones want two across, down to a 320-point phone. The grid's default
      (16rem) gives one column, and a square card one column wide is a poster.
-     At 200% text these go to one column again by themselves. */
+     At 200% text these go to one column again by themselves. A wider frame
+     (the Mac window) gives them more room. */
   .app__pair,
   .app__decks {
     --card-min: 8rem;
   }
 
-  /* --- study ---------------------------------------------------------------
-     --chrome is the bars' height, so the card fits under them. Today it's an
-     estimate (top bar + answer row + room); Frame should publish the real one. */
+  @container frame (width >= 40rem) {
+    .app__decks {
+      --card-min: 11rem;
+    }
 
-  .app--study {
-    --chrome: calc(var(--safe-top) + var(--safe-bottom) + 10rem);
+    .app__pair {
+      --card-min: 12rem;
+    }
   }
 
-  /* safe: when the card is taller than the room, it starts at the top
-     instead of overflowing both ways, where its top can't be scrolled to */
-  .app--study .app__scroll {
-    align-content: safe center;
-  }
+  /* --- study ----------------------------------------------------------------
+     The card fits under the bars by itself: Frame publishes --chrome. A card
+     takes its width from its parent (it is an inline-size container, so it
+     can't shrink to fit): give it the column, then centre it. */
 
-  /* a card takes its width from its parent: give it one, then centre it */
-  .app--study .card--study {
+  .frame--task .card--study {
     inline-size: 100%;
     margin-inline: auto;
-  }
-
-  .app__answer {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
-    gap: var(--space-3);
-    padding: var(--space-4) var(--pad-end) max(var(--space-4), var(--safe-bottom)) var(--pad-start);
-  }
-
-  /* --- mac ----------------------------------------------------------------- */
-
-  .app--mac .app__decks {
-    --card-min: 11rem;
-  }
-
-  .app--mac .app__pair {
-    --card-min: 12rem;
   }
 }
 
@@ -4675,10 +6074,6 @@ textarea.field__input {
     font-size: min(var(--sg-text-display), 12vw);
   }
 
-  :root:has(#labels-off:checked) .wf-slot::before {
-    content: none;
-  }
-
   /* text only: the devices keep their size, as a phone does at a large
      Dynamic Type setting */
   :root:has(#text-150:checked) {
@@ -4722,10 +6117,6 @@ textarea.field__input {
     overflow: clip;
     background: var(--canvas);
     border: var(--bw) solid var(--ink);
-  }
-
-  .sg-device .app {
-    block-size: 100%;
   }
 
   .sg-phone {
@@ -4894,28 +6285,22 @@ textarea.field__input {
             <li><a href="#found">Found</a></li>
           </ul>
         </nav>
-        <span class="sg-top__status">v0.5 · Wireframe</span>
+        <span class="sg-top__status">v0.6 · Wireframe</span>
       </div>
     </div>
 
     <header class="sg-wrap sg-hero">
       <p class="sg-hero__kicker t-label">
-        <span>Test bed</span><span>Wireframe</span><span>1 of 27 elements built</span>
+        <span>Test bed</span><span>Wireframe</span><span>21 of 27 elements built</span>
       </p>
       <h1 class="sg-display sg-display--long">Screens</h1>
       <div class="sg-hero__row">
         <p class="sg-hero__lede">
-          The system in use, on a phone and on a Mac. Black is built. A grey line with a name on it
-          is an element that doesn't exist yet.
+          The system in use, on a phone and on a Mac. Black is built, the shell included: Frame, Top
+          bar and Tab bar draw the phone's bars now. A grey line with a name on it would be an element
+          that doesn't exist yet.
         </p>
         <div class="sg-controls">
-          <fieldset class="sg-ctl">
-            <legend>Missing elements</legend>
-            <div class="sg-seg">
-              <label><input type="radio" name="labels" id="labels-on" checked />Named</label>
-              <label><input type="radio" name="labels" id="labels-off" />Plain</label>
-            </div>
-          </fieldset>
           <fieldset class="sg-ctl">
             <legend>Text size</legend>
             <div class="sg-seg">
@@ -4936,7 +6321,7 @@ textarea.field__input {
           <h2 class="sg-sec__title" id="h-inventory">What exists</h2>
           <p class="sg-sec__note">
             It's a design system, built one element at a time. The foundations are shared by
-            everything; Card is the first element through the gates. These are the ones these
+            everything; Card was the first element through the gates. These are the ones these
             screens need; all 27 are listed on the hub, in the order they're being built.
           </p>
         </div>
@@ -4968,13 +6353,22 @@ textarea.field__input {
             <p>Not on these screens yet. On the Mac, search is the system's own field.</p>
           </li>
           <li>
-            <strong>Nav bar: not started</strong>
-            <p>The phone's top bar and tab bar. On the Mac the toolbar and sidebar are system chrome.</p>
+            <strong>Frame: gates 0–2</strong>
+            <p>Every screen here: the rows, the safe areas, the one region that scrolls, and the
+              measured <code>--chrome</code> the study card fits under.</p>
           </li>
           <li>
-            <strong>Frame: not started</strong>
-            <p>Rows, safe areas and scrolling. Today it's the <code>.app</code> block in
-              screens.css, and every screen needs it.</p>
+            <strong>Top bar: gates 0–2</strong>
+            <p>The study screen's way back, title and Undo.</p>
+          </li>
+          <li>
+            <strong>Tab bar: gates 0–2</strong>
+            <p>Today's places, with a badge on Decks.</p>
+          </li>
+          <li>
+            <strong>Sidebar: gates 0–2</strong>
+            <p>Not on these screens: on the Mac the toolbar and sidebar are system chrome. Sidebar is
+              the web shell's, for a tablet or a browser.</p>
           </li>
         </ol>
 
@@ -4991,9 +6385,10 @@ textarea.field__input {
           <span class="sg-sec__idx">01</span>
           <h2 class="sg-sec__title" id="h-phone">Phone, installed</h2>
           <p class="sg-sec__note">
-            A PWA on the home screen: no browser bars, so the app draws its own. 390 by 844 points,
-            with the safe areas of a phone with a notch. Scroll inside the screen. On a narrow
-            window the frame narrows with it, so it shows a smaller phone than that.
+            A PWA on the home screen: no browser bars, so the app draws its own, with Frame, Top bar
+            and Tab bar. 390 by 844 points, with the safe areas of a phone with a notch. Scroll
+            inside the screen. On a narrow window the frame narrows with it, so it shows a smaller
+            phone than that.
           </p>
         </div>
 
@@ -5005,8 +6400,8 @@ textarea.field__input {
                 <span>9:41</span><span class="sg-phone__batt"></span>
               </div>
 
-              <div class="app">
-                <div class="app__scroll">
+              <div class="frame">
+                <div class="frame__scroll">
                   <header class="app__head">
                     <p class="t-meta">Sunday 19 October</p>
                     <h3 class="t-heading">Today</h3>
@@ -5117,14 +6512,36 @@ textarea.field__input {
                   </section>
                 </div>
 
-                <div class="app__bottom app__tabs wf-slot" data-wf="Nav bar">
-                  <span>Today</span><span>Decks</span><span>Settings</span>
-                </div>
+                <nav class="frame__bottom tabbar" aria-label="Places">
+                  <ul class="tabbar__list" role="list">
+                    <li>
+                      <a class="tabbar__link" href="#" aria-current="page">
+                        <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Today</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"
+                          ><span class="ic ic--decks" aria-hidden="true"></span
+                          ><span class="badge" aria-hidden="true">7</span></span
+                        >
+                        <span class="tabbar__label">Decks</span><span class="sr-only">, 7 due</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Settings</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
               </div>
 
               <span class="sg-phone__home" aria-hidden="true"></span>
             </div>
-            <figcaption class="sg-caption"><b>Today.</b> The root screen: no top bar, a tab bar.</figcaption>
+            <figcaption class="sg-caption"><b>Today.</b> The root screen: no top bar, so the frame keeps a band clear of the clock; a tab bar.</figcaption>
           </figure>
 
           <!-- Study ----------------------------------------------------- -->
@@ -5134,16 +6551,20 @@ textarea.field__input {
                 <span>9:41</span><span class="sg-phone__batt"></span>
               </div>
 
-              <div class="app app--study">
-                <div class="app__top">
-                  <div class="app__bar wf-slot" data-wf="Nav bar">
-                    <span class="ic ic--close" aria-hidden="true"></span>
-                    <h3>Shapes</h3>
-                    <span>Undo</span>
+              <div class="frame frame--task">
+                <header class="frame__top topbar">
+                  <a class="btn btn--quiet topbar__back" href="#">
+                    <span class="ic ic--back" aria-hidden="true"></span>Today
+                  </a>
+                  <h3 class="topbar__title">Shapes</h3>
+                  <div class="topbar__actions">
+                    <button class="btn btn--quiet" type="button">
+                      <span class="ic ic--undo" aria-hidden="true"></span>Undo
+                    </button>
                   </div>
-                </div>
+                </header>
 
-                <div class="app__scroll">
+                <div class="frame__scroll">
                   <article class="card card--study">
                     <div class="card__head"><span class="card__label">06 / 12</span></div>
                     <div class="card__stage">
@@ -5155,15 +6576,17 @@ textarea.field__input {
                   </article>
                 </div>
 
-                <div class="app__bottom app__answer">
-                  <button class="btn btn--block" type="button">Not yet</button>
-                  <button class="btn btn--primary btn--block" type="button">Got it</button>
+                <div class="frame__bottom">
+                  <div class="btn-row">
+                    <button class="btn btn--block" type="button">Not yet</button>
+                    <button class="btn btn--primary btn--block" type="button">Got it</button>
+                  </div>
                 </div>
               </div>
 
               <span class="sg-phone__home" aria-hidden="true"></span>
             </div>
-            <figcaption class="sg-caption"><b>Study.</b> One card, turned over. A back control, because standalone has no browser back.</figcaption>
+            <figcaption class="sg-caption"><b>Study.</b> A focused task: one card, turned over, sized to the room the bars leave. A back link, because standalone has no browser back.</figcaption>
           </figure>
         </div>
       </section>
@@ -5175,8 +6598,9 @@ textarea.field__input {
           <h2 class="sg-sec__title" id="h-mac">Mac window</h2>
           <p class="sg-sec__note">
             The same app on a Mac, in a web shell or SwiftUI. The toolbar, sidebar and search field
-            belong to macOS, in its font and colours. Only the content is ours. Under 700 points
-            wide the sidebar folds away; a narrow browser window shows that, not a real Mac.
+            belong to macOS, in its font and colours. Only the content is ours: a frame with no bars,
+            just the region that scrolls. Under 700 points wide the sidebar folds away; a narrow
+            browser window shows that, not a real Mac.
           </p>
         </div>
 
@@ -5197,8 +6621,8 @@ textarea.field__input {
                   <p>Settings</p>
                 </div>
 
-                <div class="app app--mac">
-                  <div class="app__scroll">
+                <div class="frame">
+                  <div class="frame__scroll">
                     <header class="app__head">
                       <p class="t-meta">4 decks · 55 cards</p>
                       <h3 class="t-heading">Decks</h3>
@@ -5364,46 +6788,61 @@ textarea.field__input {
           <span class="sg-sec__idx">03</span>
           <h2 class="sg-sec__title" id="h-found">What the screens found</h2>
           <p class="sg-sec__note">
-            Building real screens is the test the specimen page can't run. Two of these were bugs
-            and are fixed. The rest are gaps that belong in an element's brief.
+            Building real screens is the test the specimen page can't run. Wave 3 rebuilt these on
+            Frame, Top bar and Tab bar: five findings are fixed or decided, and the rebuild found two
+            more. The open ones belong in an element's brief.
           </p>
         </div>
 
         <ol class="sg-rules" role="list">
           <li>
-            <strong>Frame is the biggest gap.</strong>
-            <p>Every screen needed the same rows, safe areas and scroll region (<code>.app</code> in
-              screens.css). A root screen with no top bar must still keep clear of the status bar,
-              or content scrolls under the clock. And Tab scrolls a card's link into view, not the
-              card that wears the focus ring, so a tall tile near the bottom can lose the bottom of
-              its ring. Scroll padding only softens that.</p>
+            <strong>Fixed: Frame was the biggest gap.</strong>
+            <p>Every screen needed the same rows, safe areas and scroll region, and wrote them again
+              (<code>.app</code>). Frame is them now, and screens.css is down to the screens' own
+              groups. A root screen keeps a band the height of the status bar that doesn't scroll, so
+              Today's heading never slides under the clock.</p>
           </li>
           <li>
-            <strong>The study card's <code>--chrome</code> is a guess.</strong>
-            <p>The card needs the bars' height to fit under them, and the app had to estimate it.
-              Frame should publish its bars' real height.</p>
+            <strong>Fixed: the study card's <code>--chrome</code> was a guess.</strong>
+            <p>It was 10rem plus the safe areas. Frame now measures it: 277px on the study screen at
+              100% text (top bar 109, action row 96, the stage's padding 72), 515px at 150%, and the
+              card is the room that's left.</p>
           </li>
           <li>
-            <strong>Phones want two decks across.</strong>
+            <strong>Fixed: <code>--gutter</code> followed the window, not the pane.</strong>
+            <p>It was sized by <code>vw</code>. Frame re-points it to its own width
+              (<code>cqi</code>), so a frame that is one pane of a split, like the Mac's content, gets
+              a pane's gutter.</p>
+          </li>
+          <li>
+            <strong>Decided: the tab bar wraps at 200%.</strong>
+            <p>The labels stay whole and readable, and an item that doesn't fit takes a second row:
+              the bar grows taller, never wider. We don't copy iOS's one-row bar, because its
+              long-press preview is the system's and the web has none.</p>
+          </li>
+          <li>
+            <strong>Decided: on a Mac, the bars aren't ours.</strong>
+            <p>Toolbar, sidebar and search are system chrome, so Top bar and Tab bar are phone and
+              web elements, and Sidebar is the web shell's. Field's first real use is on the phone.</p>
+          </li>
+          <li>
+            <strong>Open: Tab scrolls the link, not the card.</strong>
+            <p>A link card wears its focus ring round the whole card, but Tab scrolls the link in its
+              title into view, and Chrome centres it. At 100% no ring here is cut; at 200% a deck
+              tile is taller than half the room, so its top edge is. Frame's scroll padding can't
+              reach that: the card's link would have to be the box that's scrolled to.</p>
+          </li>
+          <li>
+            <strong>Open: at 200% text the bars take most of a phone.</strong>
+            <p>Both bars grow with the text, as they must to be read: on Study they take 514 of 840px
+              (658 with the scroll region's padding) and the card scrolls. Card now has an 8rem floor,
+              so it stays wide enough for its own answer. Landscape and small phones are wave 5's.</p>
+          </li>
+          <li>
+            <strong>Open: phones want two decks across.</strong>
             <p>The grid's 16rem default gives one column on a phone, and a square card one column
-              wide is a poster. Both phone grids set 8rem. If every app does that, the grid needs a
-              compact size.</p>
-          </li>
-          <li>
-            <strong>The tab bar wraps at 200%.</strong>
-            <p>At 200% text the three labels wrap to two rows, and the Tab bar's brief has to decide
-              what happens. Icons now has glyphs for Today, Decks and Settings.</p>
-          </li>
-          <li>
-            <strong>On a Mac, the bars aren't ours.</strong>
-            <p>Toolbar, sidebar and search are system chrome, so Nav bar is a phone element, and
-              Field's first real use is on the phone.</p>
-          </li>
-          <li>
-            <strong><code>--gutter</code> follows the window, not the pane.</strong>
-            <p>It's sized by <code>vw</code>: right for a phone or a whole window, too wide for one
-              pane of a split view. The frames here re-point it to the screen; Frame should do the
-              same for panes.</p>
+              wide is a poster. Both phone grids set 8rem, and the Mac's 11rem once the frame is wide.
+              If every app does that, the grid needs a compact size.</p>
           </li>
           <li>
             <strong>Fixed: the answer broke mid-word.</strong>
@@ -5422,7 +6861,7 @@ textarea.field__input {
     </main>
 
     <footer class="sg-wrap sg-foot">
-      <span>Flashcards design system · Screens v0.5</span>
+      <span>Flashcards design system · Screens v0.6</span>
       <span>Spec: design/STYLE.md</span>
       <span>Pipeline: design/README.md</span>
       <span>Archivo, SIL Open Font License 1.1</span>
@@ -5441,5 +6880,51 @@ textarea.field__input {
         });
       })();
     </script>
+    <script>
+/* ==========================================================================
+   frame.js — publishes --chrome on every .frame. Spec: elements/frame.md
+   --------------------------------------------------------------------------
+   --chrome is the part of the frame's height that isn't room for content:
+   the bars with their safe areas, and the scroll region's own padding. So
+   100svh - var(--chrome) is the room, and the study card fits in it.
+
+   CSS can't put a content-sized bar's height into a property, so this
+   measures it, in px, whenever the frame or anything in it changes size
+   (text size, a bar wrapping, a rotation). Without script --chrome stays
+   unset: the study card falls back to 100svh and the region scrolls a
+   little. Nothing else reads it.
+   ========================================================================== */
+(function () {
+  "use strict";
+  if (!("ResizeObserver" in window)) return;
+
+  function measure(frame) {
+    var scroll = frame.querySelector(":scope > .frame__scroll");
+    if (!scroll) return;
+    var cs = getComputedStyle(scroll);
+    var room = scroll.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    var chrome = frame.getBoundingClientRect().height - room;
+    frame.style.setProperty("--chrome", Math.max(0, Math.round(chrome)) + "px");
+  }
+
+  var ro = new ResizeObserver(function (entries) {
+    var done = [];
+    entries.forEach(function (e) {
+      var frame = e.target.classList.contains("frame") ? e.target : e.target.parentElement;
+      if (frame && done.indexOf(frame) < 0) {
+        done.push(frame);
+        measure(frame);
+      }
+    });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll(".frame"), function (frame) {
+    ro.observe(frame);
+    Array.prototype.forEach.call(frame.children, function (child) {
+      ro.observe(child);
+    });
+  });
+})();
+</script>
   </body>
 </html>

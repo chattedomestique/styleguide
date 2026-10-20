@@ -1,0 +1,149 @@
+/* ==========================================================================
+   Sidebar — wave 3. Spec: elements/sidebar.md · page: elements/sidebar.html
+   --------------------------------------------------------------------------
+   The places, on a wide screen. Inside Frame's wide variant it is the
+   first column; below 45rem of frame it folds away and the Tab bar takes
+   over with the same links (frame.css does the folding).
+
+     <nav class="frame__side sidebar" aria-label="Places">
+       <div class="sidebar__head">
+         <button class="btn btn--icon btn--quiet sidebar__toggle" type="button"
+           aria-label="Sidebar" aria-expanded="true" aria-controls="…">
+           <span class="ic ic--sidebar" aria-hidden="true"></span>
+         </button>
+       </div>
+       <div class="sidebar__body" id="…">
+         <ul class="sidebar__list" role="list">
+           <li><a class="btn btn--quiet sidebar__link" href="…" aria-current="page">
+             <span class="ic ic--today" aria-hidden="true"></span>Today</a></li>
+         </ul>
+       </div>
+       <div class="sidebar__foot">…</div>
+     </nav>
+
+   House rules for this file
+   · A link is a quiet Button (<a class="btn btn--quiet">), so hover, press,
+     focus and forced colours are Button's. This file lines it up.
+   · Here is marked as the card marks selection: the frame doubles (a 2px
+     frame and a 2px ring), and the label goes bold. Never a fill alone.
+   · Drawn plainly. On a Mac the sidebar is the system's (STYLE §4); this
+     is the web shell's, and it doesn't imitate AppKit.
+   · The toggle's aria-expanded drives the CSS. The app flips it; folded,
+     the sidebar is a rail with only the toggle, so it can come back.
+   · Owns the safe areas it touches: the top, the bottom, the start edge.
+   ========================================================================== */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: 15rem;
+  max-inline-size: 100%;
+  padding-block: calc(var(--safe-top) + var(--space-2)) max(var(--space-3), var(--safe-bottom));
+  padding-inline: max(var(--space-3), var(--safe-left)) max(var(--space-3), var(--safe-right));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--ink);
+  background: var(--paper);
+  border-inline-end: var(--bw) solid var(--line);
+}
+
+/* --- parts ------------------------------------------------------------------ */
+
+/* head: lines up with the top bar beside it, so the toggle sits on the same
+   line as the bar's own buttons */
+.sidebar__head {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--hit);
+}
+
+.sidebar__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sidebar__list {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/* a section heading is structure, so a label (rule 4) */
+.sidebar__heading {
+  margin-block-start: var(--space-4);
+  padding: var(--space-2) var(--space-4) 0;
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* a link: a quiet Button, full width, reading from the start */
+.sidebar__link {
+  inline-size: 100%;
+  justify-content: flex-start;
+  gap: var(--space-2);
+  padding-inline: var(--space-4);
+  font-weight: 400;
+  text-align: start;
+}
+
+/* no icon (a deck in a list of decks: the same glyph on every row would be
+   decoration, rule 7): the label still lines up with the ones that have one */
+.sidebar__link:not(:has(> .ic)) {
+  padding-inline-start: calc(var(--space-4) + var(--ic-size, 1.25rem));
+}
+
+/* here: the frame shows and doubles, the label goes bold */
+.sidebar__link[aria-current="page"] {
+  --btn-rest-line: var(--btn-line);
+  --shadow-select: 0 0 0 var(--bw) var(--btn-line);
+  font-weight: 700;
+}
+
+/* foot: one thin rule (it divides), then whatever the app puts there */
+.sidebar__foot {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: auto;
+  padding-block-start: var(--space-3);
+  border-block-start: var(--bw-thin) solid var(--line);
+}
+
+/* --- folded by its toggle: a rail with the toggle alone ------------------------ */
+
+.sidebar:has(.sidebar__toggle[aria-expanded="false"]) {
+  inline-size: fit-content;
+}
+
+.sidebar:has(.sidebar__toggle[aria-expanded="false"]) > :is(.sidebar__body, .sidebar__foot) {
+  display: none;
+}
+
+/* --- forced colours -------------------------------------------------------------
+   The ring is a shadow, so it vanishes: here becomes a 4px frame instead,
+   the padding paying for it so nothing moves. */
+
+@media (forced-colors: active) {
+  .sidebar {
+    border-inline-end-color: CanvasText;
+  }
+
+  .sidebar__link[aria-current="page"] {
+    border-width: var(--bw-heavy);
+    padding-inline: calc(var(--space-4) - var(--bw));
+  }
+
+  .sidebar__link[aria-current="page"]:not(:has(> .ic)) {
+    padding-inline-start: calc(var(--space-4) + var(--ic-size, 1.25rem) - var(--bw));
+  }
+}
+
+/* the toggle needs the app's script to flip aria-expanded: without script
+   there is nothing it could do, so it isn't there */
+@media (scripting: none) {
+  .sidebar__toggle {
+    display: none;
+  }
+}

@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Top bar · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Top bar element of the Flashcards design system: a screen's title, its way back and one or two actions."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#topbar-variants">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Top bar</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#topbar-variants">Variants</a></li>
+            <li><a href="#topbar-states">States</a></li>
+            <li><a href="#topbar-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Top bar · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-topbar">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 15</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Top bar</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            A screen's title, its way back, and one or two actions. It runs edge to edge across the
+            top of the frame and starts under the status bar.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="topbar-variants" aria-labelledby="h-topbar-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-topbar-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three parts: the back link, the title, up to two actions. The back link and the actions
+            are Buttons, so they press, lift and ring like every other button. Bars here are 390px
+            wide, a phone's width; the titles are <code>h4</code> because this page has its own
+            headings, and an <code>h1</code> in an app.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="topbar-standard">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Standard</h3>
+            <p class="sg-entry__use">Any screen past the root.</p>
+            <p class="sg-entry__classes">
+              <code>.topbar</code> <code>.topbar__back</code> <code>.topbar__title</code>
+              <code>.topbar__actions</code>
+            </p>
+            <p class="sg-entry__note">
+              The back link names the screen it goes to ("Decks"), or says "Back" when there isn't
+              one. The title is centred between the two sides; when room runs short, the back link's
+              label gives way first. Actions are quiet Buttons, text or icon-only, padded 12px a side
+              in a bar.
+            </p>
+          </header>
+          <div class="sg-stage sg-stack">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="--safe-bottom: 0px; block-size: 12.25rem">
+                <div class="sg-phone__status" aria-hidden="true">
+                  <span>9:41</span><span class="sg-phone__batt"></span>
+                </div>
+                <div class="frame">
+                  <header class="frame__top topbar" data-sg-code>
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <h4 class="topbar__title">Shapes</h4>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet" type="button">Edit</button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <p class="t-meta">12 cards · 5 known · 7 due</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="sg-caption"><b>In a frame.</b> Its paper runs up behind the status bar; its padding starts under it.</p>
+            <div style="max-inline-size: 390px">
+              <header class="topbar" data-sg-code>
+                <a class="btn btn--quiet topbar__back" href="#">
+                  <span class="ic ic--back" aria-hidden="true"></span>Decks
+                </a>
+                <h4 class="topbar__title">Shapes</h4>
+                <div class="topbar__actions">
+                  <button class="btn btn--icon btn--quiet" type="button" aria-label="Search cards">
+                    <span class="ic ic--search" aria-hidden="true"></span>
+                  </button>
+                  <button class="btn btn--icon btn--quiet" type="button" aria-label="Add a shape">
+                    <span class="ic ic--plus" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </header>
+            </div>
+            <p class="sg-caption"><b>Two actions,</b> icon-only. Never more than two.</p>
+          </div>
+        </article>
+
+        <!-- 1.2 -->
+        <article class="sg-entry" id="topbar-root">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">Root</h3>
+            <p class="sg-entry__use">A place at the root that still wants a bar for its actions.</p>
+            <p class="sg-entry__classes"><code>.topbar--root</code></p>
+            <p class="sg-entry__note">
+              No way back, so the title leads, lined up with the content's gutter. A root screen with
+              nothing to put in a bar has no bar at all (Frame's root screen).
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div style="max-inline-size: 390px">
+              <header class="topbar topbar--root" data-sg-code>
+                <h4 class="topbar__title">Decks</h4>
+                <div class="topbar__actions">
+                  <button class="btn btn--icon btn--quiet" type="button" aria-label="Make a deck">
+                    <span class="ic ic--plus" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </header>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.3 -->
+        <article class="sg-entry" id="topbar-heading">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">With a large heading</h3>
+            <p class="sg-entry__use">A long title, or a screen that opens with its name in big type.</p>
+            <p class="sg-entry__classes"><code>.topbar</code> without <code>.topbar__title</code>, then <code>.t-heading</code></p>
+            <p class="sg-entry__note">
+              A recipe, not a class. The bar keeps the back link and the actions, and the screen's
+              heading is the first thing in the content, at <code>--type-heading</code>, where it can
+              wrap. It doesn't shrink into the bar as you scroll: that's motion, and gate 4's.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-shot">
+              <div class="sg-device sg-phone" style="--safe-top: 0px; --safe-bottom: 0px; inline-size: min(100%, 390px); block-size: 18.75rem">
+                <div class="frame" data-sg-code>
+                  <header class="frame__top topbar">
+                    <a class="btn btn--quiet topbar__back" href="#">
+                      <span class="ic ic--back" aria-hidden="true"></span>Decks
+                    </a>
+                    <div class="topbar__actions">
+                      <button class="btn btn--quiet" type="button">Edit</button>
+                    </div>
+                  </header>
+                  <div class="frame__scroll">
+                    <header>
+                      <p class="t-meta">20 cards · 11 known</p>
+                      <h4 class="t-heading">Numbers to twenty</h4>
+                    </header>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="topbar-states" aria-labelledby="h-topbar-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-topbar-states">States</h2>
+          <p class="sg-sec__note">
+            The bar itself doesn't press; its Buttons do, through <code>--lift</code> and
+            <code>--fill</code>, shown here on the back link. Then what the bar does when room runs out.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <header class="topbar">
+              <a class="btn btn--quiet topbar__back" href="#">
+                <span class="ic ic--back" aria-hidden="true"></span>Decks
+              </a>
+              <h4 class="topbar__title">Shapes</h4>
+            </header>
+            <p class="sg-caption"><b>Rest.</b> Flat paper, a 2px rule. The back link shows no frame.</p>
+          </div>
+          <div>
+            <header class="topbar">
+              <a class="btn btn--quiet topbar__back is-hover" href="#">
+                <span class="ic ic--back" aria-hidden="true"></span>Decks
+              </a>
+              <h4 class="topbar__title">Shapes</h4>
+            </header>
+            <p class="sg-caption"><b>Hover.</b> The quiet Button fills and lifts. Pointer only.</p>
+          </div>
+          <div>
+            <header class="topbar">
+              <a class="btn btn--quiet topbar__back is-focus" href="#">
+                <span class="ic ic--back" aria-hidden="true"></span>Decks
+              </a>
+              <h4 class="topbar__title">Shapes</h4>
+            </header>
+            <p class="sg-caption"><b>Focus.</b> The hover look and the ring, 3px out. The bar's padding leaves room for it.</p>
+          </div>
+          <div>
+            <header class="topbar">
+              <a class="btn btn--quiet topbar__back is-active" href="#">
+                <span class="ic ic--back" aria-hidden="true"></span>Decks
+              </a>
+              <h4 class="topbar__title">Shapes</h4>
+            </header>
+            <p class="sg-caption"><b>Pressed.</b> Down, filled, the inner ring showing.</p>
+          </div>
+          <div>
+            <div style="max-inline-size: 320px">
+              <header class="topbar">
+                <a class="btn btn--quiet topbar__back" href="#">
+                  <span class="ic ic--back" aria-hidden="true"></span>Decks
+                </a>
+                <h4 class="topbar__title">Numbers to twenty</h4>
+                <div class="topbar__actions">
+                  <button class="btn btn--quiet" type="button">Edit</button>
+                </div>
+              </header>
+            </div>
+            <p class="sg-caption">
+              <b>Long title.</b> At 320px the back label gives way first, then the title truncates. The
+              <code>h1</code> still holds all of it; if a real title truncates, use the large heading
+              (1.3) so it's on screen in full.
+            </p>
+          </div>
+          <div>
+            <div style="max-inline-size: 15em">
+              <header class="topbar">
+                <a class="btn btn--quiet topbar__back" href="#">
+                  <span class="ic ic--back" aria-hidden="true"></span>Back
+                </a>
+                <h4 class="topbar__title">Numbers to twenty</h4>
+                <div class="topbar__actions">
+                  <button class="btn btn--quiet" type="button">Edit</button>
+                </div>
+              </header>
+            </div>
+            <p class="sg-caption">
+              <b>Large text.</b> Under 16em, a phone at about 150% text, the title takes its own row and
+              wraps instead of truncating to nothing. The bar grows down, never sideways. And "Back",
+              for a screen opened from a link, with nowhere named to go back to.
+            </p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not API:
+          real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code> and <code>:active</code>.
+        </p>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="topbar-usage" aria-labelledby="h-topbar-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-topbar-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Name the place the back link goes ("Decks"), and keep titles to what's on the deck's own
+              card. Put the action people come back for in the bar; everything else goes in a menu.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't make the way back a button that calls <code>history.back()</code>: it's a link to a
+              place, so it can be opened, copied and read out. Don't add a third action, a primary
+              button, or a search field to the bar.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Standalone has no browser back, so every screen past the root has this bar with a back
+              link. It owns the status bar's inset (<code>--safe-top</code>), and its paper runs up
+              behind it.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Not on a Mac: there the toolbar is the system's. In SwiftUI it's
+              <code>.navigationTitle(_:)</code> with <code>.navigationBarTitleDisplayMode(.inline)</code>
+              and <code>.toolbar</code> items; the back button is the system's, named after the
+              previous screen.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Top bar</span>
+      <span>Spec: design/elements/topbar.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+    <script src="../js/components/frame.js"></script>
+  </body>
+</html>

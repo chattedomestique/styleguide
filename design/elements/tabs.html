@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabs · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Tabs element of the Flashcards design system: sections of one screen, as ARIA tabs with script and as linked sections without."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#tabs-anatomy">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Tabs</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#tabs-anatomy">Anatomy</a></li>
+            <li><a href="#tabs-variants">Variants</a></li>
+            <li><a href="#tabs-states">States</a></li>
+            <li><a href="#tabs-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Tabs · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-tabs">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 19</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">Tabs</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Sections of one screen, one at a time: a deck's Cards, Stats and Settings. Without
+            script they are links to sections stacked down the page, so nothing is lost.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tabs-anatomy" aria-labelledby="h-tabs-anatomy">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-tabs-anatomy">Anatomy</h2>
+          <p class="sg-sec__note">
+            A row of tabs on a rule, and under it the section they show. Not the segmented
+            control: that switches how one thing is shown; tabs switch which section is shown.
+          </p>
+        </div>
+
+        <div class="sg-anat-wrap">
+          <div class="sg-anat">
+            <div class="sg-anat__card" style="padding-block-start: var(--space-5)">
+              <div class="tabs__list" style="align-items: center">
+                <a class="tabs__tab is-selected" href="#" aria-label="Cards, 7 due">Cards <span class="badge" aria-hidden="true">7</span>
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-end: -2.375rem; inset-inline-start: 0.5rem; z-index: 3">3</span>
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -1.5rem; inset-inline-end: 0.25rem; z-index: 3">4</span>
+                </a>
+                <a class="tabs__tab" href="#">Stats
+                  <span class="sg-n" aria-hidden="true" style="position: absolute; inset-block-start: -1.5rem; inset-inline-start: calc(50% - 0.6875rem); z-index: 3">2</span>
+                </a>
+                <a class="tabs__tab" href="#">Settings</a>
+                <span class="sg-n" aria-hidden="true" style="margin-inline-start: auto">1</span>
+              </div>
+              <div class="tabs__panel" data-n="5" style="padding-block-start: var(--space-7)">
+                <p class="t-body">Twelve cards. Five known, seven due today.</p>
+              </div>
+            </div>
+          </div>
+
+          <ol class="sg-legend" role="list">
+            <li>
+              <span class="sg-n">1</span>
+              <div>
+                <strong>List</strong><code>.tabs__list</code>
+                <p>
+                  A <code>&lt;nav&gt;</code> named for the screen; the script makes it the
+                  <code>tablist</code>. A row on a 1px rule. It wraps rather than scrolls: a hidden
+                  scrollbar hides tabs.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">2</span>
+              <div>
+                <strong>Tab</strong><code>.tabs__tab</code>
+                <p>
+                  A link to its section; the script makes it a <code>tab</code>. A pill target, 44px
+                  tall, 16px a side, body type at 600, soft ink. Quiet until hover, like a quiet
+                  button.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">3</span>
+              <div>
+                <strong>Selected</strong><code>[aria-selected="true"]</code>
+                <p>
+                  Ink words and a 2px bar on the rule under the tab. A flat bar, not a fill: a fill
+                  is a press, and a round ring is focus.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">4</span>
+              <div>
+                <strong>Count</strong><code>.badge</code>
+                <p>
+                  Tag and Badge's badge, after the label. <code>aria-hidden</code>: the count is in
+                  the tab's name ("Cards, 7 due").
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="sg-n">5</span>
+              <div>
+                <strong>Panel</strong><code>.tabs__panel</code> <code>.tabs__heading</code>
+                <p>
+                  A <code>&lt;section&gt;</code> with its own heading; the script makes it a
+                  <code>tabpanel</code> labelled by its tab, one tab stop, and keeps the heading
+                  for headings navigation, out of sight.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tabs-variants" aria-labelledby="h-tabs-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-tabs-variants">Variants</h2>
+          <p class="sg-sec__note">
+            All live: click a tab, or Tab to the row and use the arrows, Home and End. One tab
+            stop for the row, one for the panel.
+          </p>
+        </div>
+
+        <!-- 2.1 -->
+        <article class="sg-entry" id="tabs-count">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.1</p>
+            <h3 class="sg-entry__name">Two to five tabs</h3>
+            <p class="sg-entry__use">A screen with a few sections that are never needed at once: inside a deck.</p>
+            <p class="sg-entry__classes">
+              <code>.tabs</code> <code>.tabs__list</code> <code>.tabs__tab</code>
+              <code>.tabs__panel</code> <code>.tabs__heading</code>
+            </p>
+            <p class="sg-entry__note">
+              The markup is links to sections; <code>js/components/tabs.js</code>, loaded after
+              <code>sheet.js</code>, makes ARIA tabs of it. The first tab is selected, or the one
+              whose section is in the address (<code>#tabs-deck-stats</code>). One tab means no
+              tabs; six means the sections want their own screens.
+            </p>
+          </header>
+          <div class="sg-stage sg-stack" style="gap: var(--space-6)">
+            <div class="tabs" data-sg-code>
+              <nav class="tabs__list" aria-label="Shapes">
+                <a class="tabs__tab" href="#tabs-deck-cards">Cards</a>
+                <a class="tabs__tab" href="#tabs-deck-stats">Stats</a>
+                <a class="tabs__tab" href="#tabs-deck-settings">Settings</a>
+              </nav>
+              <section class="tabs__panel" id="tabs-deck-cards">
+                <h4 class="tabs__heading">Cards</h4>
+                <div class="list">
+                  <ul class="list__rows" role="list">
+                    <li><div class="list__row"><span class="list__main"><span class="list__title">Circle</span></span><span class="list__trail"><span class="tag">Known</span></span></div></li>
+                    <li><div class="list__row"><span class="list__main"><span class="list__title">Square</span></span><span class="list__trail"><span class="tag" data-tone="ink">Due</span></span></div></li>
+                    <li><div class="list__row"><span class="list__main"><span class="list__title">Hexagon</span></span><span class="list__trail"><span class="tag">Not yet</span></span></div></li>
+                  </ul>
+                </div>
+              </section>
+              <section class="tabs__panel" id="tabs-deck-stats">
+                <h4 class="tabs__heading">Stats</h4>
+                <div class="list">
+                  <ul class="list__rows" role="list">
+                    <li><div class="list__row"><span class="list__main"><span class="list__title">Known</span></span><span class="list__trail">5 of 12</span></div></li>
+                    <li><div class="list__row"><span class="list__main"><span class="list__title">Due today</span></span><span class="list__trail">7</span></div></li>
+                    <li><div class="list__row"><span class="list__main"><span class="list__title">Best streak</span></span><span class="list__trail">9 days</span></div></li>
+                  </ul>
+                </div>
+              </section>
+              <section class="tabs__panel" id="tabs-deck-settings">
+                <h4 class="tabs__heading">Settings</h4>
+                <div class="list">
+                  <ul class="list__rows" role="list">
+                    <li>
+                      <div class="switch">
+                        <label class="switch__label">
+                          <span class="switch__text">Shuffle cards</span>
+                          <span class="switch__control">
+                            <input class="switch__input" type="checkbox" role="switch" name="tabs-deck-shuffle" checked />
+                            <span class="switch__state" aria-hidden="true"><span class="switch__on">On</span><span class="switch__off">Off</span></span>
+                          </span>
+                        </label>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </section>
+            </div>
+
+            <div class="tabs">
+              <nav class="tabs__list" aria-label="Colours">
+                <a class="tabs__tab" href="#tabs-two-cards">Cards</a>
+                <a class="tabs__tab" href="#tabs-two-stats">Stats</a>
+              </nav>
+              <section class="tabs__panel" id="tabs-two-cards">
+                <h4 class="tabs__heading">Cards</h4>
+                <p class="t-body">Eight cards, all known.</p>
+              </section>
+              <section class="tabs__panel" id="tabs-two-stats">
+                <h4 class="tabs__heading">Stats</h4>
+                <p class="t-body">Known for 12 days running.</p>
+              </section>
+            </div>
+
+            <div class="tabs">
+              <nav class="tabs__list" aria-label="Numbers to twenty">
+                <a class="tabs__tab" href="#tabs-five-cards">Cards</a>
+                <a class="tabs__tab" href="#tabs-five-stats">Stats</a>
+                <a class="tabs__tab" href="#tabs-five-history">History</a>
+                <a class="tabs__tab" href="#tabs-five-notes">Notes</a>
+                <a class="tabs__tab" href="#tabs-five-settings">Settings</a>
+              </nav>
+              <section class="tabs__panel" id="tabs-five-cards">
+                <h4 class="tabs__heading">Cards</h4>
+                <p class="t-body">Twenty cards. Three known, twelve due today.</p>
+              </section>
+              <section class="tabs__panel" id="tabs-five-stats">
+                <h4 class="tabs__heading">Stats</h4>
+                <p class="t-body">Three of twenty known. Best streak: 4 days.</p>
+              </section>
+              <section class="tabs__panel" id="tabs-five-history">
+                <h4 class="tabs__heading">History</h4>
+                <p class="t-body">Last studied yesterday: 15 cards, 11 right.</p>
+              </section>
+              <section class="tabs__panel" id="tabs-five-notes">
+                <h4 class="tabs__heading">Notes</h4>
+                <p class="t-body">Say each number out loud before you turn the card.</p>
+              </section>
+              <section class="tabs__panel" id="tabs-five-settings">
+                <h4 class="tabs__heading">Settings</h4>
+                <p class="t-body">Cards per session: 20. Card order: in order.</p>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2.2 -->
+        <article class="sg-entry" id="tabs-full">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.2</p>
+            <h3 class="sg-entry__name">Full width</h3>
+            <p class="sg-entry__use">On a phone: the tabs share the whole row.</p>
+            <p class="sg-entry__classes"><code>.tabs--full</code></p>
+            <p class="sg-entry__note">
+              Equal shares while the labels fit; a label never gives up its own width, so long
+              words or large text wrap the row onto a second line instead of squeezing a word.
+              The bar is the whole share's width.
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <div class="tabs tabs--full" data-sg-code>
+                <nav class="tabs__list" aria-label="Farm animals">
+                  <a class="tabs__tab" href="#tabs-full-cards">Cards</a>
+                  <a class="tabs__tab" href="#tabs-full-stats">Stats</a>
+                  <a class="tabs__tab" href="#tabs-full-settings">Settings</a>
+                </nav>
+                <section class="tabs__panel" id="tabs-full-cards">
+                  <h4 class="tabs__heading">Cards</h4>
+                  <p class="t-body">Fifteen cards, all new.</p>
+                </section>
+                <section class="tabs__panel" id="tabs-full-stats">
+                  <h4 class="tabs__heading">Stats</h4>
+                  <p class="t-body">Nothing yet: study a session first.</p>
+                </section>
+                <section class="tabs__panel" id="tabs-full-settings">
+                  <h4 class="tabs__heading">Settings</h4>
+                  <p class="t-body">Cards per session: 15. Card order: shuffled.</p>
+                </section>
+              </div>
+            </figure>
+          </div>
+        </article>
+
+        <!-- 2.3 -->
+        <article class="sg-entry" id="tabs-badge">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">2.3</p>
+            <h3 class="sg-entry__name">With a count</h3>
+            <p class="sg-entry__use">When a section has something waiting: the cards due today.</p>
+            <p class="sg-entry__classes"><code>.badge</code></p>
+            <p class="sg-entry__note">
+              The badge follows the label, as in a text button, and is
+              <code>aria-hidden</code>; the tab's <code>aria-label</code> carries the count
+              ("Cards, 7 due") and starts with the visible label, so voice control still finds
+              it. Capped at "99+".
+            </p>
+          </header>
+          <div class="sg-stage sg-widths">
+            <figure style="--w: 22.375rem">
+              <div class="tabs tabs--full" data-sg-code>
+                <nav class="tabs__list" aria-label="Shapes">
+                  <a class="tabs__tab" href="#tabs-badge-cards" aria-label="Cards, 7 due">Cards <span class="badge" aria-hidden="true">7</span></a>
+                  <a class="tabs__tab" href="#tabs-badge-stats">Stats</a>
+                  <a class="tabs__tab" href="#tabs-badge-settings">Settings</a>
+                </nav>
+                <section class="tabs__panel" id="tabs-badge-cards">
+                  <h4 class="tabs__heading">Cards</h4>
+                  <p class="t-body">Seven of twelve due today.</p>
+                </section>
+                <section class="tabs__panel" id="tabs-badge-stats">
+                  <h4 class="tabs__heading">Stats</h4>
+                  <p class="t-body">Five of twelve known.</p>
+                </section>
+                <section class="tabs__panel" id="tabs-badge-settings">
+                  <h4 class="tabs__heading">Settings</h4>
+                  <p class="t-body">Cards per session: 20.</p>
+                </section>
+              </div>
+            </figure>
+          </div>
+        </article>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tabs-states" aria-labelledby="h-tabs-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-tabs-states">States</h2>
+          <p class="sg-sec__note">
+            A tab's pill answers the hand; the bar says which section is showing. With automatic
+            activation, the focused tab is always the selected one.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="tabs__list">
+              <a class="tabs__tab is-selected" href="#">Cards</a>
+              <a class="tabs__tab" href="#">Stats</a>
+              <a class="tabs__tab" href="#">Settings</a>
+            </div>
+            <p class="sg-caption"><b>Rest and selected.</b> Soft words, no frame; the selected one is ink, with the 2px bar.</p>
+          </div>
+          <div>
+            <div class="tabs__list">
+              <a class="tabs__tab is-selected" href="#">Cards</a>
+              <a class="tabs__tab is-hover" href="#">Stats</a>
+              <a class="tabs__tab" href="#">Settings</a>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> The pill's 2px frame appears and the words go ink, as on a quiet button. No lift: tabs sit in a row.</p>
+          </div>
+          <div>
+            <div class="tabs__list">
+              <a class="tabs__tab is-selected is-focus" href="#">Cards</a>
+              <a class="tabs__tab" href="#">Stats</a>
+              <a class="tabs__tab" href="#">Settings</a>
+            </div>
+            <p class="sg-caption"><b>Focus.</b> The hover look and a round 3px ring. Arrows move it and the selection together.</p>
+          </div>
+          <div>
+            <div class="tabs__list">
+              <a class="tabs__tab is-selected" href="#">Cards</a>
+              <a class="tabs__tab is-active" href="#">Stats</a>
+              <a class="tabs__tab" href="#">Settings</a>
+            </div>
+            <p class="sg-caption"><b>Pressed.</b> The pill fills with ink while it's held; let go and the bar moves.</p>
+          </div>
+          <div>
+            <div class="tabs__list">
+              <a class="tabs__tab is-selected" href="#" aria-label="Cards, 7 due">Cards <span class="badge" aria-hidden="true">7</span></a>
+              <a class="tabs__tab is-active" href="#" aria-label="Stats, 2 new">Stats <span class="badge" aria-hidden="true">2</span></a>
+            </div>
+            <p class="sg-caption"><b>With a count.</b> The badge inverts with a pressed pill, so it never vanishes into it.</p>
+          </div>
+          <div>
+            <div class="tabs" data-sg-static>
+              <nav class="tabs__list" aria-label="Shapes, without script">
+                <a class="tabs__tab" href="#tabs-static-cards">Cards</a>
+                <a class="tabs__tab" href="#tabs-static-stats">Stats</a>
+              </nav>
+              <section class="tabs__panel" id="tabs-static-cards">
+                <h4 class="tabs__heading">Cards</h4>
+                <p class="t-meta">Twelve cards, five known.</p>
+              </section>
+              <section class="tabs__panel" id="tabs-static-stats">
+                <h4 class="tabs__heading">Stats</h4>
+                <p class="t-meta">Best streak: 9 days.</p>
+              </section>
+            </div>
+            <p class="sg-caption"><b>Without script.</b> Links to sections stacked under them, each with its heading. None is selected, so none has a bar.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>aria-selected</code> (set by the script),
+          <code>:hover</code> (only where a pointer hovers), <code>:focus-visible</code> and
+          <code>:active</code>.
+        </p>
+      </section>
+
+      <!-- 04 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tabs-usage" aria-labelledby="h-tabs-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">04</span>
+          <h2 class="sg-sec__title" id="h-tabs-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Use two to five tabs for sections of one screen, one word each. Give every section
+              a heading, so the page still reads without script.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't use tabs to filter or re-show one thing (Grid or List, Front or Back): that's
+              the segmented control. Don't use them to go to another screen: that's the tab bar
+              or a link.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Full width on a phone. The selected tab lives in the address
+              (<code>#tabs-deck-stats</code>), so a deep link, a shared link or a reload opens the
+              right section.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              On the Mac, Tab reaches the row and arrows move along it, as in a native tab view.
+              In SwiftUI, a custom strip of <code>Button</code>s with the selected trait over a
+              switch of views; a system <code>TabView</code> in a window is the system's.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Tabs</span>
+      <span>Spec: design/elements/tabs.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+    <script src="../js/components/tabs.js"></script>
+  </body>
+</html>

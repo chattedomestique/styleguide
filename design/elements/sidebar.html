@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sidebar · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Sidebar element of the Flashcards design system: the places, on a wide screen."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#sidebar-variants">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Sidebar</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#sidebar-variants">Variants</a></li>
+            <li><a href="#sidebar-states">States</a></li>
+            <li><a href="#sidebar-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Sidebar · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-sidebar">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 17</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Sidebar</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            The places, on a wide screen: a column of links beside the content. When the screen
+            narrows it folds away and the tab bar takes over, with the same links.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="sidebar-variants" aria-labelledby="h-sidebar-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-sidebar-variants">Variants</h2>
+          <p class="sg-sec__note">
+            A head with the toggle, a body of links, an optional foot. Each link is a quiet Button
+            that goes somewhere (<code>&lt;a class="btn btn--quiet"&gt;</code>), so it presses, lifts and
+            rings like one. This is the web shell's sidebar; on a Mac the system draws its own.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="sidebar-standard">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Standard</h3>
+            <p class="sg-entry__use">The app's places, and nothing else.</p>
+            <p class="sg-entry__classes">
+              <code>.sidebar</code> <code>.sidebar__head</code> <code>.sidebar__toggle</code>
+              <code>.sidebar__body</code> <code>.sidebar__list</code> <code>.sidebar__link</code>
+            </p>
+            <p class="sg-entry__note">
+              15rem wide, paper, a 2px rule on its inner edge. Here is
+              <code>aria-current="page"</code>: the frame doubles and the label goes bold. The toggle
+              folds it to a rail; press it to try.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <nav class="sidebar" aria-label="Places" data-sg-code>
+              <div class="sidebar__head">
+                <button
+                  class="btn btn--icon btn--quiet sidebar__toggle"
+                  type="button"
+                  aria-label="Sidebar"
+                  aria-expanded="true"
+                  aria-controls="sidebar-standard-body"
+                  data-sg-expand
+                >
+                  <span class="ic ic--sidebar" aria-hidden="true"></span>
+                </button>
+              </div>
+              <div class="sidebar__body" id="sidebar-standard-body">
+                <ul class="sidebar__list" role="list">
+                  <li>
+                    <a class="btn btn--quiet sidebar__link" href="#" aria-current="page"><span class="ic ic--today" aria-hidden="true"></span>Today</a>
+                  </li>
+                  <li>
+                    <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a>
+                  </li>
+                  <li>
+                    <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--settings" aria-hidden="true"></span>Settings</a>
+                  </li>
+                </ul>
+              </div>
+            </nav>
+          </div>
+        </article>
+
+        <!-- 1.2 -->
+        <article class="sg-entry" id="sidebar-sections">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">With sections</h3>
+            <p class="sg-entry__use">Places, then the things in them: the decks.</p>
+            <p class="sg-entry__classes"><code>.sidebar__heading</code> <code>.sidebar__foot</code></p>
+            <p class="sg-entry__note">
+              A section heading is a label, in uppercase, and names its list. Decks have no icon: the
+              same glyph on every row would be decoration, so their labels line up with the others
+              instead. The foot holds what the app puts there, after a 1px rule.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <nav class="sidebar" aria-label="Places" data-sg-code>
+              <div class="sidebar__head">
+                <button
+                  class="btn btn--icon btn--quiet sidebar__toggle"
+                  type="button"
+                  aria-label="Sidebar"
+                  aria-expanded="true"
+                  aria-controls="sidebar-sections-body"
+                  data-sg-expand
+                >
+                  <span class="ic ic--sidebar" aria-hidden="true"></span>
+                </button>
+              </div>
+              <div class="sidebar__body" id="sidebar-sections-body">
+                <ul class="sidebar__list" role="list">
+                  <li>
+                    <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--today" aria-hidden="true"></span>Today</a>
+                  </li>
+                  <li>
+                    <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a>
+                  </li>
+                  <li>
+                    <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--settings" aria-hidden="true"></span>Settings</a>
+                  </li>
+                </ul>
+                <h4 class="sidebar__heading" id="sidebar-h-decks">Your decks</h4>
+                <ul class="sidebar__list" role="list" aria-labelledby="sidebar-h-decks">
+                  <li><a class="btn btn--quiet sidebar__link" href="#" aria-current="page">Shapes</a></li>
+                  <li><a class="btn btn--quiet sidebar__link" href="#">Colours</a></li>
+                  <li><a class="btn btn--quiet sidebar__link" href="#">Numbers to twenty</a></li>
+                  <li><a class="btn btn--quiet sidebar__link" href="#">Farm animals</a></li>
+                </ul>
+              </div>
+              <div class="sidebar__foot">
+                <button class="btn btn--block" type="button">
+                  <span class="ic ic--plus" aria-hidden="true"></span>Make a deck
+                </button>
+                <p class="t-meta">55 cards, saved on this device</p>
+              </div>
+            </nav>
+          </div>
+        </article>
+
+        <!-- 1.3 -->
+        <article class="sg-entry" id="sidebar-split">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">The two-pane split</h3>
+            <p class="sg-entry__use">Sidebar and content, inside Frame's wide variant.</p>
+            <p class="sg-entry__classes"><code>.frame--wide</code> <code>.frame__side</code></p>
+            <p class="sg-entry__note">
+              The sidebar wears <code>.frame__side</code> and owns the top, bottom and start safe
+              areas. The same links sit in a Tab bar in the bottom slot. Under 45rem of frame, the
+              sidebar folds away and the tab bar shows: CSS only, nothing to toggle. Below, the same
+              markup at two widths.
+            </p>
+          </header>
+          <div class="sg-stage sg-stack">
+            <div class="sg-device" style="inline-size: 100%; block-size: 32.5rem">
+              <div class="frame frame--wide" data-sg-code>
+                <nav class="frame__side sidebar" aria-label="Places">
+                  <div class="sidebar__head">
+                    <button
+                      class="btn btn--icon btn--quiet sidebar__toggle"
+                      type="button"
+                      aria-label="Sidebar"
+                      aria-expanded="true"
+                      aria-controls="sidebar-split-body"
+                      data-sg-expand
+                    >
+                      <span class="ic ic--sidebar" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                  <div class="sidebar__body" id="sidebar-split-body">
+                    <ul class="sidebar__list" role="list">
+                      <li>
+                        <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--today" aria-hidden="true"></span>Today</a>
+                      </li>
+                      <li>
+                        <a class="btn btn--quiet sidebar__link" href="#" aria-current="page"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a>
+                      </li>
+                      <li>
+                        <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--settings" aria-hidden="true"></span>Settings</a>
+                      </li>
+                    </ul>
+                  </div>
+                </nav>
+                <header class="frame__top topbar topbar--root">
+                  <h4 class="topbar__title">Decks</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--icon btn--quiet" type="button" aria-label="Make a deck">
+                      <span class="ic ic--plus" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="frame__scroll">
+                  <ul class="card-grid" role="list" style="--card-min: 9rem">
+                    <li>
+                      <article class="card card--link card--square" data-tone="1">
+                        <div class="card__body">
+                          <p class="card__eyebrow">12 cards</p>
+                          <h5 class="card__title"><a class="card__link" href="#">Shapes</a></h5>
+                        </div>
+                      </article>
+                    </li>
+                    <li>
+                      <article class="card card--link card--square" data-tone="3">
+                        <div class="card__body">
+                          <p class="card__eyebrow">8 cards</p>
+                          <h5 class="card__title"><a class="card__link" href="#">Colours</a></h5>
+                        </div>
+                      </article>
+                    </li>
+                    <li>
+                      <article class="card card--link card--square" data-tone="5">
+                        <div class="card__body">
+                          <p class="card__eyebrow">20 cards</p>
+                          <h5 class="card__title"><a class="card__link" href="#">Numbers to twenty</a></h5>
+                        </div>
+                      </article>
+                    </li>
+                  </ul>
+                </div>
+                <nav class="frame__bottom tabbar" aria-label="Places">
+                  <ul class="tabbar__list" role="list">
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Today</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#" aria-current="page">
+                        <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Decks</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Settings</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Wide.</b> The stage's full width: the sidebar shows, the tab bar is hidden.</p>
+            <div class="sg-device" style="inline-size: min(100%, 24rem); block-size: 32.5rem">
+              <div class="frame frame--wide">
+                <nav class="frame__side sidebar" aria-label="Places">
+                  <div class="sidebar__body">
+                    <ul class="sidebar__list" role="list">
+                      <li>
+                        <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--today" aria-hidden="true"></span>Today</a>
+                      </li>
+                      <li>
+                        <a class="btn btn--quiet sidebar__link" href="#" aria-current="page"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a>
+                      </li>
+                      <li>
+                        <a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--settings" aria-hidden="true"></span>Settings</a>
+                      </li>
+                    </ul>
+                  </div>
+                </nav>
+                <header class="frame__top topbar topbar--root">
+                  <h4 class="topbar__title">Decks</h4>
+                  <div class="topbar__actions">
+                    <button class="btn btn--icon btn--quiet" type="button" aria-label="Make a deck">
+                      <span class="ic ic--plus" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </header>
+                <div class="frame__scroll">
+                  <ul class="card-grid" role="list" style="--card-min: 9rem">
+                    <li>
+                      <article class="card card--link card--square" data-tone="1">
+                        <div class="card__body">
+                          <p class="card__eyebrow">12 cards</p>
+                          <h5 class="card__title"><a class="card__link" href="#">Shapes</a></h5>
+                        </div>
+                      </article>
+                    </li>
+                    <li>
+                      <article class="card card--link card--square" data-tone="3">
+                        <div class="card__body">
+                          <p class="card__eyebrow">8 cards</p>
+                          <h5 class="card__title"><a class="card__link" href="#">Colours</a></h5>
+                        </div>
+                      </article>
+                    </li>
+                  </ul>
+                </div>
+                <nav class="frame__bottom tabbar" aria-label="Places">
+                  <ul class="tabbar__list" role="list">
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"><span class="ic ic--today" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Today</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#" aria-current="page">
+                        <span class="tabbar__icon"><span class="ic ic--decks" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Decks</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="tabbar__link" href="#">
+                        <span class="tabbar__icon"><span class="ic ic--settings" aria-hidden="true"></span></span>
+                        <span class="tabbar__label">Settings</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Narrow.</b> 24rem of frame: the sidebar has folded away and the tab bar has the same links.</p>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="sidebar-states" aria-labelledby="h-sidebar-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-sidebar-states">States</h2>
+          <p class="sg-sec__note">
+            A link's states are a quiet Button's, through <code>--lift</code> and <code>--fill</code>.
+            Each list shows the state on Decks; Today is here.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <ul class="sidebar__list" role="list">
+              <li><a class="btn btn--quiet sidebar__link" href="#" aria-current="page"><span class="ic ic--today" aria-hidden="true"></span>Today</a></li>
+              <li><a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a></li>
+            </ul>
+            <p class="sg-caption"><b>Rest and here.</b> Rest has no frame. Here: the frame shows and doubles, and the label is bold.</p>
+          </div>
+          <div>
+            <ul class="sidebar__list" role="list">
+              <li><a class="btn btn--quiet sidebar__link" href="#" aria-current="page"><span class="ic ic--today" aria-hidden="true"></span>Today</a></li>
+              <li><a class="btn btn--quiet sidebar__link is-hover" href="#"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a></li>
+            </ul>
+            <p class="sg-caption"><b>Hover.</b> Filled and lifted. Only where a pointer hovers.</p>
+          </div>
+          <div>
+            <ul class="sidebar__list" role="list">
+              <li><a class="btn btn--quiet sidebar__link" href="#" aria-current="page"><span class="ic ic--today" aria-hidden="true"></span>Today</a></li>
+              <li><a class="btn btn--quiet sidebar__link is-focus" href="#"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a></li>
+            </ul>
+            <p class="sg-caption"><b>Focus.</b> The hover look and the ring, 3px out, with a gap: never mistaken for here.</p>
+          </div>
+          <div>
+            <ul class="sidebar__list" role="list">
+              <li><a class="btn btn--quiet sidebar__link" href="#" aria-current="page"><span class="ic ic--today" aria-hidden="true"></span>Today</a></li>
+              <li><a class="btn btn--quiet sidebar__link is-active" href="#"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a></li>
+            </ul>
+            <p class="sg-caption"><b>Pressed.</b> Down, filled, with the inner ring.</p>
+          </div>
+          <div>
+            <ul class="sidebar__list" role="list">
+              <li><a class="btn btn--quiet sidebar__link is-hover" href="#" aria-current="page"><span class="ic ic--today" aria-hidden="true"></span>Today</a></li>
+              <li><a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a></li>
+            </ul>
+            <p class="sg-caption"><b>Here, hovered.</b> Today, filled and lifted inside its doubled frame.</p>
+          </div>
+          <div>
+            <nav class="sidebar" aria-label="Places, folded">
+              <div class="sidebar__head">
+                <button
+                  class="btn btn--icon btn--quiet sidebar__toggle"
+                  type="button"
+                  aria-label="Sidebar"
+                  aria-expanded="false"
+                  aria-controls="sidebar-folded-body"
+                  data-sg-expand
+                >
+                  <span class="ic ic--sidebar" aria-hidden="true"></span>
+                </button>
+              </div>
+              <div class="sidebar__body" id="sidebar-folded-body">
+                <ul class="sidebar__list" role="list">
+                  <li><a class="btn btn--quiet sidebar__link" href="#" aria-current="page"><span class="ic ic--today" aria-hidden="true"></span>Today</a></li>
+                  <li><a class="btn btn--quiet sidebar__link" href="#"><span class="ic ic--decks" aria-hidden="true"></span>Decks</a></li>
+                </ul>
+              </div>
+            </nav>
+            <p class="sg-caption">
+              <b>Folded.</b> <code>aria-expanded="false"</code> on the toggle: a rail with only the toggle,
+              so the sidebar can come back. Press it to open.
+            </p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not API:
+          real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>aria-current</code> and the toggle's
+          <code>aria-expanded</code>.
+        </p>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="sidebar-usage" aria-labelledby="h-sidebar-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-sidebar-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Give it the same places as the tab bar, in the same order, so folding changes where they
+              are and not what they are. Mark here on the deepest place that matches the screen.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't mark here with a fill alone, which reads as pressed. Don't put actions in the list:
+              the foot can hold one, as a Button. Don't slide it in or out; it appears in place until
+              gate 4.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              On a tablet it owns the safe areas it touches. On a phone it never shows: the frame is
+              under 45rem, so the tab bar has the places. The toggle's state is the app's, kept between
+              visits.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              On a Mac the sidebar is the system's (Screens shows it drawn), with
+              <strong>View › Hide Sidebar</strong> and ⌃⌘S. In SwiftUI it is
+              <code>NavigationSplitView</code> with a <code>List(selection:)</code> of
+              <code>NavigationLink</code>s and <code>Section</code> headers; the system draws it, in its
+              own font and colours.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <script>
+        /* the page's sidebar buttons flip aria-expanded (a real app owns this state).
+           Inside <main>, so the bundled style sheet keeps it. */
+        document.getElementById("el-sidebar").addEventListener("click", function (e) {
+          var b = e.target.closest && e.target.closest("[data-sg-expand]");
+          if (b) b.setAttribute("aria-expanded", String(b.getAttribute("aria-expanded") !== "true"));
+        });
+      </script>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Sidebar</span>
+      <span>Spec: design/elements/sidebar.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+    <script src="../js/components/frame.js"></script>
+  </body>
+</html>

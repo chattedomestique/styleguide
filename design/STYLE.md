@@ -1,6 +1,6 @@
 # Flashcards style sheet
 
-v0.5 · wireframe stage · 13 of 27 elements built · 2026-10-20
+v0.6 · wireframe stage · 21 of 27 elements built · 2026-10-20
 
 The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
 to look at: live specimens, every state, the markup read straight off the page. **This file**
@@ -87,7 +87,8 @@ weights are `px` so a 2px rule stays 2px.
 
 Apps link `dist/flashcards.css`: one flat file built by `node design/tools/bundle.mjs`, with
 no `@import` chain to wait on. `css/flashcards.css` is its source. Elements that need script
-(Field's clear button, Checkbox's "select all", Stepper's − and +, Form's error summary) ship
+(Field's clear button, Checkbox's "select all", Stepper's − and +, Form's error summary,
+Frame's measured `--chrome`, Tabs' arrow keys) ship
 it in `dist/flashcards.js`, built from `js/components/`: vanilla, no dependencies, and
 everything still works without it. The file tree is in
 `README.md`.
@@ -152,11 +153,12 @@ The sheet's pages don't preload: from disk the preload fails CORS and the font l
 ### Space
 
 A 4px grid. `--space-N`: 1 = 4px · 2 = 8 · 3 = 12 · 4 = 16 · 5 = 24 · 6 = 32 · 7 = 48 ·
-8 = 64. `--gutter` `clamp(1rem, 0.6rem + 1.6vw, 1.75rem)` is the gap between cards.
+8 = 64. `--gutter` `clamp(1rem, 0.6rem + 1.6vw, 1.75rem)` is the gap between cards; inside a Frame it
+follows the frame's own width (`cqi`), so a pane gets a pane's gutter.
 `--measure` 62ch is the widest a paragraph gets.
 
 **Safe areas.** `--safe-top`, `--safe-right`, `--safe-bottom` and `--safe-left` are
-`env(safe-area-inset-*, 0px)`. Future bars and the app frame read them, as in
+`env(safe-area-inset-*, 0px)`. The bars and Frame read them, as in
 `max(var(--gutter), var(--safe-left))`. Cards never do.
 
 ### Line
@@ -300,6 +302,14 @@ and the brief for each one, is in `elements/README.md`.
 | Select | `elements/select.md` | Gates 0–2 |
 | Stepper | `elements/stepper.md` | Gates 0–2 |
 | Form | `elements/form.md` | Gates 0–2 |
+| Frame | `elements/frame.md` | Gates 0–2 |
+| Top bar | `elements/topbar.md` | Gates 0–2 |
+| Tab bar | `elements/tabbar.md` | Gates 0–2 |
+| Sidebar | `elements/sidebar.md` | Gates 0–2 |
+| List | `elements/list.md` | Gates 0–2 |
+| Tabs | `elements/tabs.md` | Gates 0–2 |
+| Disclosure | `elements/disclosure.md` | Gates 0–2 |
+| Menu | `elements/menu.md` | Gates 0–2 |
 
 Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
 pass gate 2.
@@ -313,11 +323,12 @@ pass gate 2.
 - **Edge to edge.** The viewport meta adds `viewport-fit=cover`. Bars and the app frame pad
   by the safe-area tokens (§2 Space); cards never read them.
 - **One canvas.** `theme-color` and the manifest's `background_color` are `--canvas`.
-- **Viewport units.** `dvh` for the app frame only, so it tracks the browser bars. Anything
+- **Viewport units.** `dvh` for the app frame only (`.frame`), so it tracks the browser bars. Anything
   sized once uses `svh`, so it doesn't jump when the bars move (the study card).
 - **Inputs are 16px or more,** or iOS zooms on focus: `base.css` sets
   `:is(input, select, textarea) { font-size: max(1rem, 1em) }`.
-- **Scrolling stays put.** Inner scrollers get `overscroll-behavior: contain`. Refresh is a
+- **Scrolling stays put.** One scroller per screen (`.frame__scroll`), with
+  `overscroll-behavior: contain`. Refresh is a
   button, not pull-to-refresh.
 - **No browser chrome.** Standalone has no back or refresh button, so every screen past the
   root shows a back control.
@@ -421,10 +432,17 @@ generate-a-design-system workflow or its scripts.
 | `.spring(…)` for interaction, `Animation.bouncy` for play (swiftui-expert-skill) | `--ease-out` as a timing curve, or a spring with no bounce | Bounce is decoration (rule 7). |
 | Archivo with Space Grotesk (ui-ux-pro-max `typography.csv`; neobrutalist-web-designer pairs Archivo Black with it); pair by contrast (typography) | One family; the width axis supplies the contrast | One 90 KB file, one fallback chain. Space Grotesk is a banned default. |
 | Rule 3: circles and pills for everything you act on (§1) | The checkbox is a 24px square | Platform convention wins: every platform draws a checkbox square, and a round box reads as a radio (usability facts come first, §6). |
+| Menus get arrow keys and a roving focus (interaction-design) | A popover of plain buttons; Tab moves through them | No script needed, and `role="menu"` without its full keyboard model is worse than none. Our menus are four or five items. |
 
 ---
 
 ## 8. Changelog
+
+- **0.6.0** · 2026-10-20 · Wave 3: Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure and
+  Menu pass gates 0–2. Frame is the app shell (bars that own their safe areas, one scroller,
+  a measured `--chrome`, a gutter that follows the pane); `screens.html` now runs on Frame, Top
+  bar and Tab bar instead of its own layout and grey slots. Menus are native popovers;
+  tabs get arrow keys from `tabs.js`. The study card gains an 8rem floor.
 
 - **0.5.0** · 2026-10-20 · Wave 2: Checkbox, Radio, Switch, Segmented control, Select, Stepper
   and Form pass gates 0–2. The New deck form uses all of them, with validation on submit or

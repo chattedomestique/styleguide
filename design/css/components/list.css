@@ -1,0 +1,270 @@
+/* ==========================================================================
+   List — wave 3. Spec: elements/list.md · page: elements/list.html
+   --------------------------------------------------------------------------
+   Rows of things, at the size of a screen. .card__list stays the card's;
+   this is the full-width version, with a lead, a title, meta and a trail.
+
+     <div class="list">
+       <ul class="list__rows" role="list">
+         <li>
+           <a class="list__row" href="…">
+             <span class="list__main">
+               <span class="list__title">Shapes</span>
+               <span class="list__meta">12 cards · 5 known</span>
+             </span>
+             <span class="list__trail">7 due <span class="ic ic--forward" aria-hidden="true"></span></span>
+           </a>
+         </li>
+       </ul>
+     </div>
+
+   House rules for this file
+   · .list is the block: plain (ruled, edge to edge) or --inset (framed).
+     A heading inside it (.list__head) names the section; more sections
+     are more .list blocks, stacked.
+   · A row is a rectangle: it holds. What you act on inside it (a More
+     button, a switch) keeps its own round shape (rule 3).
+   · A link row is one target and one tab stop. Hover underlines the
+     title, press fills the row with ink, as the card's list rows do.
+     No lift: a shadow would fall across the next row.
+   · 1px rules divide (--bw-thin); only the inset frame is 2px (--bw).
+   · Reads roles only. :hover only inside @media (hover: hover). States
+     change instantly. Swipe is gate 4: the More button is the action.
+   ========================================================================== */
+
+.list {
+  --list-pad: var(--gutter); /* plain runs edge to edge: its rows keep the screen's gutter */
+  --list-bg: transparent;
+
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  color: var(--ink);
+  background: var(--list-bg);
+  overflow-wrap: break-word;
+}
+
+/* straight in a Frame's scroll region, a plain list really is edge to edge:
+   it reaches over the region's side padding, and its rows take that padding
+   as their own, so their text lines up with the content above */
+.frame__scroll > .list:not(.list--inset) {
+  --list-pad: var(--frame-pad-start);
+  margin-inline: calc(var(--frame-pad-start) * -1) calc(var(--frame-pad-end) * -1);
+}
+
+/* sections stack with room between them */
+.list + .list {
+  margin-block-start: var(--space-5);
+}
+
+/* a section's name: a label above the rule */
+.list__head {
+  padding: 0 var(--list-pad) var(--space-2);
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+}
+
+/* plain: closed top and bottom by a rule, so the edges show without colour */
+.list__rows {
+  border-block: var(--bw-thin) solid var(--line);
+}
+
+/* a row and its actions share a line; when they can't (a phone at large
+   text sizes), the actions drop under the row, at the end */
+.list__rows > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  min-inline-size: 0;
+}
+
+.list__rows > li + li {
+  border-block-start: var(--bw-thin) solid var(--line);
+}
+
+.list__rows > li > :is(.list__row, .switch) {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* beside actions, a row keeps 12em before it gives up the line: the title
+   wraps first, then the actions move */
+.list__rows > li > .list__row:has(+ .list__actions) {
+  flex-basis: 12em;
+}
+
+/* a settings row is Switch's own markup; the list only pads it */
+.list__rows > li > .switch {
+  padding-inline: var(--list-pad);
+}
+
+/* --- variant: inset ---------------------------------------------------------
+   Panel-style: a square 2px frame on paper, inside the screen's gutter. Its
+   heading is the Panel's bar: the frame, thickened, with the label on it. */
+
+.list--inset {
+  --list-pad: var(--space-4);
+  --list-bg: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.list--inset > .list__rows {
+  border-block: 0;
+}
+
+.list--inset > .list__head {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--hit);
+  padding-block: var(--space-2);
+  color: var(--paper);
+  background: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- the row ----------------------------------------------------------------
+   A static <div>, or the <a> when the whole row goes somewhere. Lead, main
+   and trail sit on one line; at large text sizes the trail drops below and
+   keeps to the end. */
+
+.list__row {
+  --fill: 0;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-block-size: var(--hit);
+  padding: var(--space-2) var(--list-pad);
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background-color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
+  text-decoration: none;
+}
+
+/* a row with actions: the buttons after it bring their own room */
+.list__row:has(+ .list__actions) {
+  padding-inline-end: var(--space-2);
+}
+
+.list__main {
+  display: flex;
+  flex: 1 1 7em;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.list__title {
+  font: var(--type-body);
+  font-weight: 500;
+  text-decoration-thickness: var(--bw);
+  text-underline-offset: 0.18em;
+}
+
+.list__meta {
+  font: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+/* the lead: an icon (.ic, 24px) or a tile */
+.list__row > .ic {
+  --ic-size: 1.5rem;
+}
+
+.list__tile {
+  flex: none;
+  inline-size: var(--hit);
+  block-size: var(--hit);
+  background-color: var(--tone-bg, var(--tone-1));
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-tile);
+  overflow: clip;
+}
+
+/* the trail: a value, a tag, a chevron. At the end, even on its own line. */
+.list__trail {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  font: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.list__trail > .ic {
+  color: var(--ink);
+}
+
+/* the actions: a More button (and its menu) after the row, its own target.
+   On a wide gutter the glyph lines up with it; the 44px circle reaches past,
+   but never closer than 8px to the edge, where its pressed fill shows. */
+.list__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline-end: max(var(--space-2), var(--list-pad) - var(--space-3));
+}
+
+/* --- states -----------------------------------------------------------------
+   Only a link row has them. .is-* classes force a state for the page and for
+   tests; they are not API. */
+
+@media (hover: hover) {
+  a.list__row:hover .list__title {
+    text-decoration-line: underline;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring, inside the row: rows
+   touch, and a plain list touches the screen's edge */
+a.list__row:is(.is-hover, .is-focus, :focus-visible) .list__title {
+  text-decoration-line: underline;
+}
+
+a.list__row:focus-visible,
+a.list__row.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: calc(var(--ring) * -1);
+}
+
+/* pressed: the row fills with ink, as a card's list row does. Tags and
+   buttons inside read the card's surface roles, so they invert with it. */
+a.list__row:is(:active, .is-active) {
+  --fill: 1;
+  --card-ink: var(--paper);
+  --card-bg: var(--ink);
+}
+
+a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail > .ic) {
+  color: inherit;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The ink fill vanishes here, so a press paints the system's highlight. The
+   ring, the rules and the frame are already system colours. */
+
+@media (forced-colors: active) {
+  a.list__row:is(:active, .is-active) {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+  }
+
+  a.list__row:is(:active, .is-active) .ic {
+    background-color: HighlightText;
+  }
+
+  .list--inset > .list__head {
+    forced-color-adjust: none;
+    color: Canvas;
+    background: CanvasText;
+  }
+}

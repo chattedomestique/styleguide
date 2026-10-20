@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Disclosure · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Disclosure element of the Flashcards design system: details and summary, styled, alone, in a group and in an exclusive group."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#disclosure-variants">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Disclosure</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#disclosure-variants">Variants</a></li>
+            <li><a href="#disclosure-states">States</a></li>
+            <li><a href="#disclosure-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Disclosure · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-disclosure">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 20</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Details</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            Show more, in place. The browser's own <code>&lt;details&gt;</code>, styled: the whole
+            row opens it, the glyph points the way it went, and it needs no script.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="disclosure-variants" aria-labelledby="h-disclosure-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-disclosure-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three parts: the summary (the target), the glyph and the body. A disclosure is a
+            ruled row; stacked, neighbours share a rule, so a group needs no wrapper.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="disclosure-single">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Single</h3>
+            <p class="sg-entry__use">One thing most people won't need: a how-it-works, a card's notes.</p>
+            <p class="sg-entry__classes">
+              <code>.disclosure</code> <code>.disclosure__summary</code>
+              <code>.disclosure__icon</code> <code>.disclosure__body</code>
+            </p>
+            <p class="sg-entry__note">
+              The summary is the whole row, at least 44px: words first, the glyph at the end.
+              <code>ic--down</code> swaps to <code>ic--up</code> when it's open, a static glyph,
+              no turn. In a card it takes the card's ink, so it works on every tone.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 18rem">
+            <details class="disclosure" data-sg-code>
+              <summary class="disclosure__summary">How spaced repetition works <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+              <div class="disclosure__body">
+                <p>
+                  Cards you know come back less often: tomorrow, then in three days, then in a
+                  week. Cards you miss come back sooner, so your time goes where it's needed.
+                </p>
+              </div>
+            </details>
+            <article class="card">
+              <div class="card__body">
+                <p class="card__eyebrow">Shapes · card 6 of 12</p>
+                <h4 class="card__title">Hexagon</h4>
+                <details class="disclosure" data-sg-code>
+                  <summary class="disclosure__summary">Show the answer's notes <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                  <div class="disclosure__body">
+                    <p>Six sides and six corners. Bees build their combs from them.</p>
+                  </div>
+                </details>
+              </div>
+            </article>
+          </div>
+        </article>
+
+        <!-- 1.2 -->
+        <article class="sg-entry" id="disclosure-group">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">Group</h3>
+            <p class="sg-entry__use">A list of questions, each answered in place: Help.</p>
+            <p class="sg-entry__classes"><code>.disclosure + .disclosure</code></p>
+            <p class="sg-entry__note">
+              Disclosures one after another, each opening on its own. They share their rules, so
+              the group reads as one ruled list. Put a heading over it; the summaries are not
+              headings.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div style="max-inline-size: 36rem">
+              <details class="disclosure" data-sg-code>
+                <summary class="disclosure__summary">What counts as known? <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                <div class="disclosure__body"><p>A card is known once you get it right three sessions running.</p></div>
+              </details>
+              <details class="disclosure" data-sg-code open>
+                <summary class="disclosure__summary">Can I study offline? <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                <div class="disclosure__body"><p>Yes. Your decks are saved on this device, so a session works anywhere.</p></div>
+              </details>
+              <details class="disclosure" data-sg-code>
+                <summary class="disclosure__summary">Why did a card come back so soon? <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                <div class="disclosure__body"><p>You marked it Not yet, so it comes back later in the same session.</p></div>
+              </details>
+              <details class="disclosure" data-sg-code>
+                <summary class="disclosure__summary">How do I start a deck again? <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                <div class="disclosure__body"><p>Open the deck, then Settings, then Start again. The cards stay; only what you know is cleared.</p></div>
+              </details>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.3 -->
+        <article class="sg-entry" id="disclosure-exclusive">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">Exclusive group</h3>
+            <p class="sg-entry__use">Steps read one at a time, where two open would only be in the way.</p>
+            <p class="sg-entry__classes"><code>details[name]</code></p>
+            <p class="sg-entry__note">
+              The same group with one <code>name</code> on every <code>&lt;details&gt;</code>:
+              opening one closes the others. A progressive extra: where a browser doesn't know
+              <code>name</code>, each opens on its own, which is still fine. Never hide something
+              the reader must compare with another.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div style="max-inline-size: 36rem">
+              <details class="disclosure" data-sg-code name="disclosure-start" open>
+                <summary class="disclosure__summary">Make a deck <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                <div class="disclosure__body"><p>Give it a name, say Shapes, and pick how many cards a session holds.</p></div>
+              </details>
+              <details class="disclosure" data-sg-code name="disclosure-start">
+                <summary class="disclosure__summary">Add your first card <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                <div class="disclosure__body"><p>Write the question on the front and the answer on the back: Hexagon, six sides.</p></div>
+              </details>
+              <details class="disclosure" data-sg-code name="disclosure-start">
+                <summary class="disclosure__summary">Study a session <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                <div class="disclosure__body"><p>Turn each card over, then say Got it or Not yet. Ten minutes a day is plenty.</p></div>
+              </details>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="disclosure-states" aria-labelledby="h-disclosure-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-disclosure-states">States</h2>
+          <p class="sg-sec__note">
+            What a list row does: hover underlines the words, press fills the row. No lift: the
+            rows touch. Open is the glyph pointing up and the body below.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <details class="disclosure">
+              <summary class="disclosure__summary">How spaced repetition works <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+              <div class="disclosure__body"><p>Cards you know come back less often.</p></div>
+            </details>
+            <p class="sg-caption"><b>Closed.</b> Words, the down glyph, a rule above and below.</p>
+          </div>
+          <div>
+            <details class="disclosure">
+              <summary class="disclosure__summary is-hover">How spaced repetition works <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+              <div class="disclosure__body"><p>Cards you know come back less often.</p></div>
+            </details>
+            <p class="sg-caption"><b>Hover.</b> Anywhere on the row: a 2px underline. Pointers only.</p>
+          </div>
+          <div>
+            <details class="disclosure">
+              <summary class="disclosure__summary is-focus">How spaced repetition works <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+              <div class="disclosure__body"><p>Cards you know come back less often.</p></div>
+            </details>
+            <p class="sg-caption"><b>Focus.</b> The underline and the 3px ring inside the row. Enter or Space opens it.</p>
+          </div>
+          <div>
+            <details class="disclosure">
+              <summary class="disclosure__summary is-active">How spaced repetition works <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+              <div class="disclosure__body"><p>Cards you know come back less often.</p></div>
+            </details>
+            <p class="sg-caption"><b>Pressed.</b> The row fills with ink, words and glyph in paper.</p>
+          </div>
+          <div>
+            <details class="disclosure" open>
+              <summary class="disclosure__summary">How spaced repetition works <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+              <div class="disclosure__body"><p>Cards you know come back less often: tomorrow, then in three days, then in a week.</p></div>
+            </details>
+            <p class="sg-caption"><b>Open.</b> The glyph turns to up, and the body sits under the summary, inside the rules.</p>
+          </div>
+          <div>
+            <article class="card" data-tone="ink">
+              <div class="card__body">
+                <h4 class="card__title">Hexagon</h4>
+                <details class="disclosure">
+                  <summary class="disclosure__summary is-focus">Show the answer's notes <span class="ic ic--down disclosure__icon" aria-hidden="true"></span></summary>
+                  <div class="disclosure__body"><p>Six sides and six corners.</p></div>
+                </details>
+              </div>
+            </article>
+            <p class="sg-caption"><b>On an ink card.</b> Rules, ring and press take the card's ink, so nothing vanishes.</p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>open</code>, <code>:hover</code> (only where a pointer
+          hovers), <code>:focus-visible</code> and <code>:active</code>.
+        </p>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="disclosure-usage" aria-labelledby="h-disclosure-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-disclosure-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Write the summary as what you'll see: a question, or "Show the answer's notes".
+              Keep what's inside short; a long read deserves its own screen.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't hide what everyone needs, or an error, or a form's required field. Don't put
+              buttons or links in the summary: the whole row is already one.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              A tap anywhere on the row opens it; the shell's <code>touchstart</code> listener lets iOS
+              show the press. Nothing moves until gate 4.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              Return or Space opens it. In SwiftUI, <code>DisclosureGroup</code> with a custom
+              <code>DisclosureGroupStyle</code> that draws the row and swaps the glyph; inspectors
+              in system chrome keep the system's triangle.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Disclosure</span>
+      <span>Spec: design/elements/disclosure.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>
