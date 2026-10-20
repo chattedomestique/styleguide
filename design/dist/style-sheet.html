@@ -1334,7 +1334,7 @@ label {
 /* a leading icon (or the busy spinner) sits closer to the curve, so the
    label still looks centred */
 .btn:not(.btn--icon) > :is(.ic, .spinner):first-child,
-.btn[aria-pressed="true"]::before {
+.btn[aria-pressed]::before {
   margin-inline-start: calc(var(--space-2) * -1);
 }
 
@@ -1372,18 +1372,22 @@ label {
 }
 
 /* toggle: aria-pressed. On is the card's "selected": a ring that doubles the
-   frame, plus a check, so it never reads as focus or as a primary. */
+   frame, plus a check, so it never reads as focus or as a primary. Off keeps
+   the check's slot, empty, so turning it on moves nothing in the row. */
 .btn[aria-pressed="true"] {
   --shadow-select: 0 0 0 var(--bw) var(--btn-line);
 }
 
-.btn[aria-pressed="true"]::before {
+.btn[aria-pressed]::before {
   content: "";
   flex: none;
   inline-size: var(--ic-size, 1.25rem);
   block-size: var(--ic-size, 1.25rem);
-  background: currentColor;
   mask: var(--icon-check) center / contain no-repeat;
+}
+
+.btn[aria-pressed="true"]::before {
+  background: currentColor;
 }
 
 /* the busy spinner stands in for the leading icon (meter.css draws it) */
@@ -1392,9 +1396,11 @@ label {
 }
 
 /* a badge (tag.css) pins to an icon button's corner; in a text button it
-   follows the label, or it would float off the end of the pill */
+   follows the label, or it would float off the end of the pill. There it
+   overlaps no frame, so it drops the cut that separates it from one. */
 .btn:not(.btn--icon) > .badge {
   position: static;
+  outline: 0;
 }
 
 /* a row of buttons. Gaps of 12px, so two 44px targets never touch. Primary
@@ -1960,7 +1966,6 @@ textarea.field__input {
 .meter__bar {
   --value: 0%;
   position: relative;
-  flex: 1 0 100%;
   block-size: var(--space-4);
   border: var(--bw) solid currentColor;
   border-radius: var(--radius-tile);
@@ -1976,12 +1981,20 @@ textarea.field__input {
   background: currentColor;
 }
 
+/* in the labelled meter the bar takes its own line under the label and value.
+   Only there: on its own (a card's stat) a flex basis would stretch it to
+   fill the card's column. */
+.meter > .meter__bar {
+  flex: 1 0 100%;
+}
+
 /* --- segments: one per card, up to 20. The fill reads aria-valuenow, so
    the number a screen reader hears is the number you see. ------------------ */
 
 /* a grid of equal boxes. Each keeps at least 8px (4px of it inside the
    frame) so on and off stay tellable apart; when 20 won't fit on one line
-   they wrap into even rows instead of thinning out. */
+   they wrap onto a second row instead of thinning out (the rows may be
+   uneven: 18 and 2 at 320px with 200% text). */
 .meter--segments .meter__bar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(calc(var(--bw) * 4), 1fr));
@@ -2963,7 +2976,7 @@ textarea.field__input {
   }
 
   .sg-anat [data-n]::after {
-    content: attr(data-n);
+    content: attr(data-n) / ""; /* a pin, not part of the element's name */
     position: absolute;
     inset-block-start: 50%;
     inset-inline-end: 0.5rem;
@@ -3748,7 +3761,7 @@ textarea.field__input {
                 <header class="card__bar" data-n="2">
                   <p class="card__label">07 — Diamond</p>
                   <button class="card__ctl" type="button" aria-label="Collapse">
-                    <span class="ic ic--minus"></span>
+                    <span class="ic ic--minus" aria-hidden="true"></span>
                   </button>
                 </header>
                 <div
@@ -3771,7 +3784,7 @@ textarea.field__input {
                 <footer class="card__foot" data-n="8">
                   <span>Seen on Tuesday</span>
                   <button type="button" class="card__action" aria-label="Mark as known" data-n="9">
-                    <span class="ic ic--check"></span>
+                    <span class="ic ic--check" aria-hidden="true"></span>
                   </button>
                 </footer>
               </article>
@@ -3940,7 +3953,7 @@ textarea.field__input {
               <header class="card__bar">
                 <h4 class="card__label">01 — Shapes</h4>
                 <button class="card__ctl" type="button" aria-label="Collapse">
-                  <span class="ic ic--minus"></span>
+                  <span class="ic ic--minus" aria-hidden="true"></span>
                 </button>
               </header>
               <div class="card__body">
@@ -3952,7 +3965,7 @@ textarea.field__input {
               <header class="card__bar">
                 <h4 class="card__label">Decks</h4>
                 <button class="card__ctl" type="button" aria-label="Collapse">
-                  <span class="ic ic--minus"></span>
+                  <span class="ic ic--minus" aria-hidden="true"></span>
                 </button>
               </header>
               <ul class="card__list" role="list">
@@ -4167,7 +4180,7 @@ textarea.field__input {
           </header>
           <div class="sg-stage sg-cols" style="--col: 17rem">
             <a class="card card--ghost" href="#" data-sg-code>
-              <span class="card__action" aria-hidden="true"><span class="ic ic--plus"></span></span>
+              <span class="card__action" aria-hidden="true"><span class="ic ic--plus" aria-hidden="true"></span></span>
               <span class="card__title">Add a shape</span>
             </a>
           </div>
@@ -4572,10 +4585,15 @@ textarea.field__input {
             </p>
           </header>
           <div class="sg-stage">
-            <div class="btn-row">
-              <button class="btn btn--primary" type="button" data-sg-code>Start</button>
-              <button class="btn btn--primary" type="button" data-sg-code>Got it</button>
+            <div class="sg-cols" style="--col: 12rem">
+              <div class="btn-row">
+                <button class="btn btn--primary" type="button" data-sg-code>Start</button>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn--primary" type="button" data-sg-code>Got it</button>
+              </div>
             </div>
+            <p class="sg-caption">Two regions, one primary each.</p>
           </div>
         </article>
 
@@ -4623,8 +4641,8 @@ textarea.field__input {
                 <p class="card__eyebrow">Deck · 12 cards</p>
                 <h4 class="card__title">Shapes</h4>
                 <div class="btn-row">
+                  <button class="btn btn--quiet" type="button">Edit deck</button>
                   <button class="btn btn--primary" type="button">Start</button>
-                  <button class="btn btn--quiet" type="button">Shuffle</button>
                 </div>
               </div>
             </article>
@@ -4915,7 +4933,7 @@ textarea.field__input {
                 <h4 class="card__title">Colours</h4>
                 <div class="btn-row">
                   <button class="btn" type="button">Turn over</button>
-                  <button class="btn btn--quiet is-hover" type="button">Shuffle</button>
+                  <button class="btn btn--quiet is-hover" type="button">Edit deck</button>
                 </div>
               </div>
             </article>
@@ -4929,6 +4947,10 @@ textarea.field__input {
                 </div>
               </div>
             </article>
+            <p class="sg-caption" style="grid-column: 1 / -1">
+              On the tone and ink cards the second button is held in its hover look, to show the
+              lift on each surface.
+            </p>
           </div>
         </article>
 
@@ -5044,8 +5066,8 @@ textarea.field__input {
                     spellcheck="false"
                     enterkeyhint="search"
                   />
-                  <button class="field__clear" type="button" aria-label="Clear search">
-                    <span class="ic ic--close"></span>
+                  <button class="field__clear" type="button" aria-label="Clear search" hidden>
+                    <span class="ic ic--close" aria-hidden="true"></span>
                   </button>
                   <span
                     class="sg-n sg-anat__frame"
@@ -5197,7 +5219,7 @@ textarea.field__input {
                     enterkeyhint="search"
                   />
                   <button class="field__clear" type="button" aria-label="Clear search" hidden>
-                    <span class="ic ic--close"></span>
+                    <span class="ic ic--close" aria-hidden="true"></span>
                   </button>
                 </div>
               </div>
@@ -5219,8 +5241,8 @@ textarea.field__input {
                     spellcheck="false"
                     enterkeyhint="search"
                   />
-                  <button class="field__clear" type="button" aria-label="Clear search">
-                    <span class="ic ic--close"></span>
+                  <button class="field__clear" type="button" aria-label="Clear search" hidden>
+                    <span class="ic ic--close" aria-hidden="true"></span>
                   </button>
                 </div>
               </div>
@@ -5398,7 +5420,7 @@ textarea.field__input {
               <div class="field__box">
                 <span class="ic ic--search field__icon" aria-hidden="true"></span>
                 <input class="field__input" id="field-c-rest" type="search" value="sha" autocomplete="off" />
-                <button class="field__clear" type="button" aria-label="Clear search"><span class="ic ic--close"></span></button>
+                <button class="field__clear" type="button" aria-label="Clear search" hidden><span class="ic ic--close" aria-hidden="true"></span></button>
               </div>
             </div>
             <p class="sg-caption"><b>Rest.</b> A 2px circle: round, because it acts.</p>
@@ -5409,7 +5431,7 @@ textarea.field__input {
               <div class="field__box">
                 <span class="ic ic--search field__icon" aria-hidden="true"></span>
                 <input class="field__input" id="field-c-hover" type="search" value="sha" autocomplete="off" />
-                <button class="field__clear is-hover" type="button" aria-label="Clear search"><span class="ic ic--close"></span></button>
+                <button class="field__clear is-hover" type="button" aria-label="Clear search" hidden><span class="ic ic--close" aria-hidden="true"></span></button>
               </div>
             </div>
             <p class="sg-caption"><b>Hover.</b> It fills with ink.</p>
@@ -5420,7 +5442,7 @@ textarea.field__input {
               <div class="field__box">
                 <span class="ic ic--search field__icon" aria-hidden="true"></span>
                 <input class="field__input" id="field-c-focus" type="search" value="sha" autocomplete="off" />
-                <button class="field__clear is-focus" type="button" aria-label="Clear search"><span class="ic ic--close"></span></button>
+                <button class="field__clear is-focus" type="button" aria-label="Clear search" hidden><span class="ic ic--close" aria-hidden="true"></span></button>
               </div>
             </div>
             <p class="sg-caption"><b>Focus.</b> The ring hugs the circle and stays inside the frame.</p>
@@ -5431,7 +5453,7 @@ textarea.field__input {
               <div class="field__box">
                 <span class="ic ic--search field__icon" aria-hidden="true"></span>
                 <input class="field__input" id="field-c-active" type="search" value="sha" autocomplete="off" />
-                <button class="field__clear is-active" type="button" aria-label="Clear search"><span class="ic ic--close"></span></button>
+                <button class="field__clear is-active" type="button" aria-label="Clear search" hidden><span class="ic ic--close" aria-hidden="true"></span></button>
               </div>
             </div>
             <p class="sg-caption"><b>Pressed.</b> Filled, as on hover, so a tap answers too.</p>
@@ -5646,8 +5668,8 @@ textarea.field__input {
           </header>
           <div class="sg-stage">
             <div class="btn-row">
-              <button class="btn btn--icon" type="button" aria-label="Review, 7 due" data-sg-code>
-                <span class="ic ic--check" aria-hidden="true"></span>
+              <button class="btn btn--icon" type="button" aria-label="Decks, 7 due" data-sg-code>
+                <span class="ic ic--decks" aria-hidden="true"></span>
                 <span class="badge" aria-hidden="true">7</span>
               </button>
               <button class="btn btn--quiet" type="button" data-sg-code>
@@ -5659,9 +5681,6 @@ textarea.field__input {
                 <span class="badge" aria-hidden="true">99+</span>
               </button>
             </div>
-            <p class="sg-caption">
-              The icon button uses the check until Icons ships its own glyph for review.
-            </p>
           </div>
         </article>
       </section>
@@ -5710,16 +5729,16 @@ textarea.field__input {
           </div>
           <div>
             <div class="btn-row">
-              <button class="btn btn--icon" type="button" aria-label="Review, 3 due">
-                <span class="ic ic--check" aria-hidden="true"></span>
+              <button class="btn btn--icon" type="button" aria-label="Decks, 3 due">
+                <span class="ic ic--decks" aria-hidden="true"></span>
                 <span class="badge" aria-hidden="true">3</span>
               </button>
-              <button class="btn btn--icon" type="button" aria-label="Review, 42 due">
-                <span class="ic ic--check" aria-hidden="true"></span>
+              <button class="btn btn--icon" type="button" aria-label="Decks, 42 due">
+                <span class="ic ic--decks" aria-hidden="true"></span>
                 <span class="badge" aria-hidden="true">42</span>
               </button>
-              <button class="btn btn--icon" type="button" aria-label="Review, 140 due">
-                <span class="ic ic--check" aria-hidden="true"></span>
+              <button class="btn btn--icon" type="button" aria-label="Decks, 140 due">
+                <span class="ic ic--decks" aria-hidden="true"></span>
                 <span class="badge" aria-hidden="true">99+</span>
               </button>
             </div>
@@ -5727,8 +5746,8 @@ textarea.field__input {
           </div>
           <div>
             <div class="btn-row">
-              <button class="btn btn--icon is-hover" type="button" aria-label="Review, 7 due">
-                <span class="ic ic--check" aria-hidden="true"></span>
+              <button class="btn btn--icon is-hover" type="button" aria-label="Decks, 7 due">
+                <span class="ic ic--decks" aria-hidden="true"></span>
                 <span class="badge" aria-hidden="true">7</span>
               </button>
               <button class="btn btn--quiet is-active" type="button">
@@ -5742,8 +5761,8 @@ textarea.field__input {
           </div>
           <div>
             <div class="btn-row">
-              <button class="btn btn--icon" type="button" aria-label="Review">
-                <span class="ic ic--check" aria-hidden="true"></span>
+              <button class="btn btn--icon" type="button" aria-label="Decks">
+                <span class="ic ic--decks" aria-hidden="true"></span>
               </button>
               <button class="btn btn--quiet" type="button">Decks</button>
             </div>
@@ -6472,17 +6491,28 @@ textarea.field__input {
             <p class="sg-entry__classes"><code>aria-label</code> <code>aria-hidden</code></p>
             <p class="sg-entry__note">
               The control carries the name ("Share Shapes"); the glyph stays
-              <code>aria-hidden</code>. The target is 44px whatever the glyph's size. Shown here in
-              the card's slots, the 20px box of the bar control and the 44px action circle, until
-              Button lands.
+              <code>aria-hidden</code>. The target is 44px whatever the glyph's size. Shown in
+              Button's icon-only control, and in the card's own slots: the 20px box of the bar
+              control and the 44px action circle.
             </p>
           </header>
           <div class="sg-stage sg-cols" style="--col: 15rem">
+            <div class="btn-row" data-sg-code>
+              <button class="btn btn--icon" type="button" aria-label="Share Shapes">
+                <span class="ic ic--share" aria-hidden="true"></span>
+              </button>
+              <button class="btn btn--icon" type="button" aria-label="Search decks">
+                <span class="ic ic--search" aria-hidden="true"></span>
+              </button>
+              <button class="btn" type="button">
+                <span class="ic ic--shuffle" aria-hidden="true"></span>Shuffle
+              </button>
+            </div>
             <article class="card" data-sg-code>
               <header class="card__bar">
                 <p class="card__label">Deck</p>
                 <button class="card__ctl" type="button" aria-label="More for Shapes">
-                  <span class="ic ic--more"></span>
+                  <span class="ic ic--more" aria-hidden="true"></span>
                 </button>
               </header>
               <div class="card__body">
@@ -6492,7 +6522,7 @@ textarea.field__input {
               <footer class="card__foot">
                 <span>5 of 12 known</span>
                 <button type="button" class="card__action" aria-label="Share Shapes">
-                  <span class="ic ic--share"></span>
+                  <span class="ic ic--share" aria-hidden="true"></span>
                 </button>
               </footer>
             </article>
@@ -6503,10 +6533,10 @@ textarea.field__input {
               </div>
               <footer class="card__foot">
                 <button type="button" class="card__action" aria-label="Back to the deck">
-                  <span class="ic ic--back"></span>
+                  <span class="ic ic--back" aria-hidden="true"></span>
                 </button>
                 <button type="button" class="card__action" aria-label="Turn over">
-                  <span class="ic ic--flip"></span>
+                  <span class="ic ic--flip" aria-hidden="true"></span>
                 </button>
               </footer>
             </article>

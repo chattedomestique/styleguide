@@ -80,10 +80,8 @@ lines up with the card's own slots:
   only its placement; until then it stays the card's.
 - **`.card__ctl`** is not a button style. It is the bar's square control, a 20px box in a 44px
   target that belongs to the frame (rule 3's one exception). It stays the card's.
-- **`.card__foot`** today styles every `a` and `button` in it as a bare 44px foot link
-  (negative margins, 8px padding), and that rule outranks `.btn`. A quiet `.btn` there gets
-  squeezed against the foot's rule and the card's clipping edge. Until the card excludes
-  `.btn` from that rule (lines in the wave report), put buttons in the body in a `.btn-row`.
+- **`.card__foot`** styles its bare links and buttons as 44px foot links, and leaves a `.btn`
+  alone, so a button can sit in a foot; the foot grows to fit it.
 
 ## States
 
@@ -161,8 +159,8 @@ not API.
 
 - In the wireframe `--accent` is ink, so on an ink card a primary and a secondary look alike at
   rest. Gate 3 gives the accent its own colour.
-- A toggle widens by its check when it turns on, so neighbours in a row shift by about 28px.
-- `.card__foot` styles every button in it (see In a card), until the card excludes `.btn`.
+- An off toggle keeps an empty slot for its check, so nothing moves when it turns on; its label
+  sits a little past centre while it's off.
 - Button reads the card's roles (`--card-ink`, `--card-bg`) as its surface. A wider set of
   surface roles (top bar, sheet) would replace those hooks.
 - `color-mix()` with `transparent` (quiet) mixes through alpha while gate 4 animates `--fill`:

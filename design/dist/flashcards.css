@@ -1323,7 +1323,7 @@ label {
 /* a leading icon (or the busy spinner) sits closer to the curve, so the
    label still looks centred */
 .btn:not(.btn--icon) > :is(.ic, .spinner):first-child,
-.btn[aria-pressed="true"]::before {
+.btn[aria-pressed]::before {
   margin-inline-start: calc(var(--space-2) * -1);
 }
 
@@ -1361,18 +1361,22 @@ label {
 }
 
 /* toggle: aria-pressed. On is the card's "selected": a ring that doubles the
-   frame, plus a check, so it never reads as focus or as a primary. */
+   frame, plus a check, so it never reads as focus or as a primary. Off keeps
+   the check's slot, empty, so turning it on moves nothing in the row. */
 .btn[aria-pressed="true"] {
   --shadow-select: 0 0 0 var(--bw) var(--btn-line);
 }
 
-.btn[aria-pressed="true"]::before {
+.btn[aria-pressed]::before {
   content: "";
   flex: none;
   inline-size: var(--ic-size, 1.25rem);
   block-size: var(--ic-size, 1.25rem);
-  background: currentColor;
   mask: var(--icon-check) center / contain no-repeat;
+}
+
+.btn[aria-pressed="true"]::before {
+  background: currentColor;
 }
 
 /* the busy spinner stands in for the leading icon (meter.css draws it) */
@@ -1381,9 +1385,11 @@ label {
 }
 
 /* a badge (tag.css) pins to an icon button's corner; in a text button it
-   follows the label, or it would float off the end of the pill */
+   follows the label, or it would float off the end of the pill. There it
+   overlaps no frame, so it drops the cut that separates it from one. */
 .btn:not(.btn--icon) > .badge {
   position: static;
+  outline: 0;
 }
 
 /* a row of buttons. Gaps of 12px, so two 44px targets never touch. Primary
@@ -1949,7 +1955,6 @@ textarea.field__input {
 .meter__bar {
   --value: 0%;
   position: relative;
-  flex: 1 0 100%;
   block-size: var(--space-4);
   border: var(--bw) solid currentColor;
   border-radius: var(--radius-tile);
@@ -1965,12 +1970,20 @@ textarea.field__input {
   background: currentColor;
 }
 
+/* in the labelled meter the bar takes its own line under the label and value.
+   Only there: on its own (a card's stat) a flex basis would stretch it to
+   fill the card's column. */
+.meter > .meter__bar {
+  flex: 1 0 100%;
+}
+
 /* --- segments: one per card, up to 20. The fill reads aria-valuenow, so
    the number a screen reader hears is the number you see. ------------------ */
 
 /* a grid of equal boxes. Each keeps at least 8px (4px of it inside the
    frame) so on and off stay tellable apart; when 20 won't fit on one line
-   they wrap into even rows instead of thinning out. */
+   they wrap onto a second row instead of thinning out (the rows may be
+   uneven: 18 and 2 at 320px with 200% text). */
 .meter--segments .meter__bar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(calc(var(--bw) * 4), 1fr));

@@ -71,7 +71,7 @@
 /* a leading icon (or the busy spinner) sits closer to the curve, so the
    label still looks centred */
 .btn:not(.btn--icon) > :is(.ic, .spinner):first-child,
-.btn[aria-pressed="true"]::before {
+.btn[aria-pressed]::before {
   margin-inline-start: calc(var(--space-2) * -1);
 }
 
@@ -109,18 +109,22 @@
 }
 
 /* toggle: aria-pressed. On is the card's "selected": a ring that doubles the
-   frame, plus a check, so it never reads as focus or as a primary. */
+   frame, plus a check, so it never reads as focus or as a primary. Off keeps
+   the check's slot, empty, so turning it on moves nothing in the row. */
 .btn[aria-pressed="true"] {
   --shadow-select: 0 0 0 var(--bw) var(--btn-line);
 }
 
-.btn[aria-pressed="true"]::before {
+.btn[aria-pressed]::before {
   content: "";
   flex: none;
   inline-size: var(--ic-size, 1.25rem);
   block-size: var(--ic-size, 1.25rem);
-  background: currentColor;
   mask: var(--icon-check) center / contain no-repeat;
+}
+
+.btn[aria-pressed="true"]::before {
+  background: currentColor;
 }
 
 /* the busy spinner stands in for the leading icon (meter.css draws it) */
@@ -129,9 +133,11 @@
 }
 
 /* a badge (tag.css) pins to an icon button's corner; in a text button it
-   follows the label, or it would float off the end of the pill */
+   follows the label, or it would float off the end of the pill. There it
+   overlaps no frame, so it drops the cut that separates it from one. */
 .btn:not(.btn--icon) > .badge {
   position: static;
+  outline: 0;
 }
 
 /* a row of buttons. Gaps of 12px, so two 44px targets never touch. Primary

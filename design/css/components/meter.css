@@ -48,7 +48,6 @@
 .meter__bar {
   --value: 0%;
   position: relative;
-  flex: 1 0 100%;
   block-size: var(--space-4);
   border: var(--bw) solid currentColor;
   border-radius: var(--radius-tile);
@@ -64,12 +63,20 @@
   background: currentColor;
 }
 
+/* in the labelled meter the bar takes its own line under the label and value.
+   Only there: on its own (a card's stat) a flex basis would stretch it to
+   fill the card's column. */
+.meter > .meter__bar {
+  flex: 1 0 100%;
+}
+
 /* --- segments: one per card, up to 20. The fill reads aria-valuenow, so
    the number a screen reader hears is the number you see. ------------------ */
 
 /* a grid of equal boxes. Each keeps at least 8px (4px of it inside the
    frame) so on and off stay tellable apart; when 20 won't fit on one line
-   they wrap into even rows instead of thinning out. */
+   they wrap onto a second row instead of thinning out (the rows may be
+   uneven: 18 and 2 at 320px with 200% text). */
 .meter--segments .meter__bar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(calc(var(--bw) * 4), 1fr));

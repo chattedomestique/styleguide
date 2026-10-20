@@ -194,8 +194,9 @@ for (const box of document.querySelectorAll(".field__box")) {
 
 ## Known limits
 
-- The clear button needs script (toggle `hidden`, clear, refocus). The specimens on the page are
-  static: the button is reachable and ringed but does nothing there.
+- The clear button needs script (`js/components/field.js`: show while there's text, clear,
+  refocus). It ships with `hidden`, so without the script it simply isn't there, and Escape
+  still clears a search field natively.
 - The clear button's reserved padding and the disabled label's colour use `:has()`. Without it
   (pre-2023 browsers) long text can run under the clear button.
 - Hover has no forced-colours equivalent, as on the card.

@@ -48,13 +48,18 @@ Shown live, with markup, in `elements/meter.html` (1.1–1.4).
 | --- | --- | --- | --- |
 | Meter | `.meter` + `.meter__bar` | A level in a range: cards known in a deck. | `role="meter"`, `aria-labelledby` the label, `aria-valuemin`/`max`/`now`, `aria-valuetext` in the product's words. `--value` (a percentage) sets the fill; keep it equal to now / max. |
 | Progress | `.progress` + `.progress__bar` | A task that will finish: an import. | Native `<progress max value>`, labelled by `<label for>`, `aria-valuetext` for the words. Always with a value. A task of unknown length gets the spinner. Done: the label turns past tense ("Imported"). |
-| Segments | `.meter--segments` | A deck of up to 20 cards. | The same `role="meter"` bar holding one `.meter__seg` per card. The fill reads `aria-valuenow` (20 attribute selectors), so what's heard is what's seen and there's no per-segment class. A grid of equal boxes, at least 8px each (4px inside the frame), 4px apart; when 20 won't fit on one line they wrap into even rows instead of thinning out. Past 20, use the meter. |
+| Segments | `.meter--segments` | A deck of up to 20 cards. | The same `role="meter"` bar holding one `.meter__seg` per card. The fill reads `aria-valuenow` (20 attribute selectors), so what's heard is what's seen and there's no per-segment class. A grid of equal boxes, at least 8px each (4px inside the frame), 4px apart; when 20 won't fit on one line they wrap onto a second row instead of thinning out (possibly uneven: see Known limits). Past 20, use the meter. |
 | Spinner | `.spinner` | An unknown wait. | The words go inside: `<p class="spinner" role="status">Loading decks…</p>`, so glyph and words can't come apart. Empty and `aria-hidden`, it is the glyph alone, for a busy button whose label is the words (Button, busy). |
 
 **The still frame.** An open ring reads as "busy" without moving, on every platform, and gate
 4 only has to turn it. It is line work on the icon grid, so it sits next to icons and takes
 the leading-icon slot in a button at the same size. Rejected: spokes in graded lengths (read
 as broken at 20px), uniform spokes (read as brightness), three dots (read as "more").
+
+**Why `role="meter"` and not `<meter>`.** The native element draws itself with
+engine-specific pseudo-elements that can't all be restyled, and colours itself by `low`/`high`
+optimum ranges, which means colour carries meaning. A `div` with the role takes our frame and
+says the same thing to a screen reader.
 
 **In a card's stat.** The eyebrow and the figure already are the label and the value, so the
 bar goes in on its own: `<div class="meter__bar" role="meter" aria-label="Cards known" …>`.

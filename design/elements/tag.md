@@ -69,7 +69,7 @@ Neither has states of its own. What changes:
   Not yet"). Don't make it the only label of anything.
 - A tag is never focusable and never a link or button.
 - The badge is `aria-hidden="true"`. The control's name carries the count: on an icon button,
-  `aria-label="Review, 7 due"`; on a text button, a visually hidden suffix after the label,
+  `aria-label="Decks, 7 due"`; on a text button, a visually hidden suffix after the label,
   `Decks<span class="sr-only">, 7 due</span>`, so the name still starts with the visible
   label (WCAG 2.5.3).
 - Draw at most "99+"; put the real number in the name ("Due, 140 cards").
@@ -99,9 +99,7 @@ Neither has states of its own. What changes:
 
 ## Known limits
 
-- A tag never wraps. In a row card at 320px with 200% text the card's own trail column is
-  narrower than one word, and the card clips the tag (the card's row layout already breaks
-  its title there; reported with the wave).
+- A tag never wraps. In a very narrow row card at large text sizes the card stacks its parts,
+  so the tag gets the full width.
 - Badge placement assumes a 44px control. A larger control (a tab item) pins it the same way
   to its own corner; Tab bar (wave 3) decides where.
-- The icon-button specimen uses the check glyph until Icons ships a glyph for review.
