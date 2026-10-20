@@ -1,6 +1,6 @@
 # Toast
 
-Element 24 · gates 0–3 done (wireframe, states, colour) · page: `elements/toast.html`
+Element 24 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/toast.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Toast's own spec.
@@ -16,7 +16,7 @@ Toast's own spec.
   way to undo or retry (WCAG 2.2.1). A keyboard shortcut reaches its action on the Mac. Needs
   `js/components/toast.js`: queue, timer, pause.
 - **Shared (wave 4):** words before chrome, polite unless a failure blocks you, no motion until
-  gate 4.
+  gate 4 (now: Motion, below).
 
 ## House rules
 
@@ -29,7 +29,9 @@ Toast's own spec.
   region's grid cell, so the bars are out of its reach and nothing is measured.
 - **Time is the user's.** The clock stops while a pointer is on it, focus is in it, or the app
   is in the background, and it is never the only way to do what its action does.
-- **Appears in place.** No motion until gate 4.
+- **It rises in and fades out.** In, it rises 12px as it fades in; closing, it fades where it is
+  before the script takes it out. Focus goes back at once, and the announcement is the insertion,
+  as before (Motion, below).
 
 ## Anatomy
 
@@ -107,12 +109,13 @@ would otherwise beat the attribute.)
 
 | Behaviour | What it does |
 | --- | --- |
-| Queue | One at a time, page-wide. The next shows 0.3 s after one goes, so new words read as a new toast. Each is announced as it goes in. Nothing is merged: two deletions are two toasts, each with its own Undo. |
+| Queue | One at a time, page-wide. The next comes in 0.3 s after one has gone (a hover and a half: `--dur-hover`, read from the token), so new words read as a new toast. Each is announced as it goes in. Nothing is merged: two deletions are two toasts, each with its own Undo. |
 | Clock | 6 s, or 10 s with an action (time to reach it). It stops while a pointer is on the toast (`pointerenter`), while focus is in it (`focusin`) and while the page is hidden (`visibilitychange`), and resumes with whatever was left, but at least 2 s. |
 | Action | Runs `onAction`, then closes the toast. |
 | Dismiss, Escape | Close it. Escape works while focus is in the toast. |
+| Closing | Focus goes back first (below). Then the toast gets `inert` (no more taps, out of the Tab order and the accessibility tree), fades (`toast.css`), and is taken out when its `transitionend` comes, or after its own computed `transition-duration` if none does (no transition, cut short): then the next one's beat starts. |
 | Alt+T (⌥T) | From anywhere on the page, moves focus to the toast's first button, which stops its clock. Matched on the key's position (`KeyT`), so it works whatever ⌥T would type. |
-| Focus back | When a toast that has focus closes, focus goes back to where it was before it went in, unless `onAction` already moved it. |
+| Focus back | When a toast that has focus closes, focus goes back to where it was before it went in, unless `onAction` already moved it. At once, as the fade begins, never after it. |
 | No region | The script makes one on `<body>` (fixed at the foot of the viewport) and waits 150ms before the first toast, so the new region is in the accessibility tree before it speaks. |
 
 ## Variants
@@ -132,14 +135,39 @@ The surface doesn't press, lift or fill; the buttons are Button's.
 | State | Trigger | Look | Also |
 | --- | --- | --- | --- |
 | Waiting | the region, empty | Nothing: the region draws nothing and takes no taps. | It is in the accessibility tree, ready. |
-| Showing | inserted by the script | The toast at the foot of the scroll region. | Announced once, politely. Its clock runs. |
+| Showing | inserted by the script | The toast at the foot of the scroll region; it rises 12px into place as it fades in. | Announced once, politely. Its clock runs. |
 | Held | pointer on it, focus in it, page hidden | No change: a countdown would be motion. | The clock stops; it resumes with at least 2 s. |
 | Action hover, focus, pressed | Button's | Secondary hover lifts and fills; focus adds the ring (it fits inside the region's 12px); press drops the lift, keeps the fill. | Pressed runs the action and closes it. |
-| Next in line | raised while another shows | Not shown yet. | Shows 0.3 s after the current one goes. |
+| Leaving | closed (timer, Dismiss, Escape, its action) | It fades where it is, `inert`. | Focus is already back; taken out when the fade ends. Nothing is announced. |
+| Next in line | raised while another shows | Not shown yet. | Comes in 0.3 s after the current one has gone. |
 | Narrow, large text | the words need the row | The buttons move under the words, at the end; the toast grows taller, never wider. | The glyph never leaves the words. |
 | Forced colours | `(forced-colors: active)` | The frame is `CanvasText` (the page under it is `Canvas` too, so the frame is what parts them); glyphs are icons.css's `CanvasText`; the buttons are Button's. | |
 
 `.is-hover`, `.is-focus` and `.is-active` on the buttons force a state for the page.
+
+## Motion
+
+Gate 4. Only `transform` and `opacity`, and only on a toast inside a live region
+(`.toasts[role="status"] > .toast`), which is only ever one the script put there: the page's
+pictures and anything on load stand still.
+
+| Moment | What moves | Timing | Reduced motion |
+| --- | --- | --- | --- |
+| In | From `opacity: 0` and `translateY(var(--space-3))` to its place, from a first frame in `@starting-style`. | `--dur-hover`, `--ease-out`. | A fade only, `--dur-fade`. |
+| Out | `opacity` to 0 on the `inert` toast; then the script removes it. | `--dur-hover`. | `--dur-fade`. |
+
+- **12px is the region's own padding below the toast,** so a rising toast never reaches past the
+  region: not over the tab bar, and never into a scrollbar on the region (which scrolls at large
+  text).
+- **No literal time in the script.** The wait for the fade is the toast's computed
+  `transition-duration`; the beat is `--dur-hover` read from the root, times one and a half. The
+  reading times (6 s, 10 s, at least 2 s on resume) and the 150ms a new region waits before it
+  speaks are about reading and screen readers, not motion, and stay as they were.
+- **The announcement is unchanged.** One insertion per toast, nothing else changes inside the
+  region while it shows, and going `inert` takes it out of the accessibility tree, which isn't
+  announced (checked in Chromium's tree: the toast's parts become ignored, "inertElement").
+- **Where it isn't supported,** it appears in place (no `@starting-style`), and with no transition
+  at all the script's timer is 0 and it goes at once, as before.
 
 ## Checked
 
@@ -151,6 +179,13 @@ once showed one at a time, 0.30 s apart, in order. Each was one insertion into t
 nothing else changed in it while it showed. Alt+T put focus on Undo; Enter fired `toastaction`
 once, closed it and put focus back on the trigger; Escape did the same without the action. Tab
 from the last trigger went to Undo, then Dismiss, then the tab bar.
+
+Gate 4, in Chromium 141 on the same page, with motion and with `prefers-reduced-motion: reduce`:
+the entrance and the exit sampled at 0, 50 and 100% (Web Animations API, screenshots); ⌥T then
+Escape put focus back on the trigger at once, with the toast `inert` and fading; three raised at
+once showed one at a time, never two in the region, each one insertion (a MutationObserver counted
+three insertions for three toasts, and one `inert` per close), the next going in 0.3 s after the
+last went out; no sideways scroll at 320, 390 or 1440px during or after either.
 
 ## Accessibility
 
@@ -194,7 +229,8 @@ from the last trigger went to Undo, then Dismiss, then the tab bar.
 - **Do** raise it after the work is done and any dialog has closed.
 - **Don't** put a question, a choice or a form in a toast; that's a Dialog.
 - **Don't** use it for a failure that stops you, or make it `role="alert"`.
-- **Don't** give it a shadow, round corners or an entrance. No stacking: one at a time.
+- **Don't** give it a shadow, round corners or an entrance of its own beyond the rise. No
+  stacking: one at a time.
 - **Don't** raise one for something the screen already shows.
 
 ## Known limits

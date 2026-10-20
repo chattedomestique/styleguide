@@ -26,7 +26,8 @@
      the button's end edge; over it when there's no room under it.
      Where anchor positioning isn't supported, it is a sheet across the
      bottom of the screen.
-   · Reads roles only. No transitions: it appears in place (gate 4).
+   · Reads roles only. It fades in where it's anchored and fades out
+     (motion, below); the button goes down at once.
    ========================================================================== */
 
 .menu {
@@ -116,6 +117,52 @@
     margin: 0 auto;
     padding-block-end: max(var(--space-2), var(--safe-bottom));
     border-block-end: 0;
+  }
+}
+
+/* --- motion -------------------------------------------------------------------
+   It fades in at its anchor over --dur-hover and out over --dur-press. Only
+   opacity: the browser picks the placement (under, over, the other way
+   along, or the full height), and CSS can't tell which it picked, so a
+   slide could point away from the button. A fade comes from wherever the
+   menu is. @starting-style is the first frame; on the way out display and
+   overlay change discretely (allow-discrete), at the end, so a closing menu
+   stays in the top layer, in place, until it has faded. Without overlay
+   it would leave the top layer at once, so there it goes in place; without
+   @starting-style it comes in place. Focus and the button's down look
+   don't wait for it. Only a real popover moves: the page's pictures and
+   anything on load don't. */
+
+.menu[popover] {
+  transition-property: opacity;
+  transition-duration: var(--dur-hover);
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+@supports (overlay: auto) {
+  .menu[popover] {
+    transition-property: opacity, display, overlay;
+  }
+}
+
+.menu[popover]:not(:popover-open) {
+  opacity: 0;
+  transition-duration: var(--dur-press);
+}
+
+@starting-style {
+  .menu[popover]:popover-open {
+    opacity: 0;
+  }
+}
+
+/* reduced motion: it is already only a fade; make it the short one, in
+   and out alike */
+@media (prefers-reduced-motion: reduce) {
+  .menu[popover],
+  .menu[popover]:not(:popover-open) {
+    transition-duration: var(--dur-fade);
   }
 }
 

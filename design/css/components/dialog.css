@@ -30,7 +30,8 @@
    · Buttons say the action. The safe one is focused first (autofocus);
      a destructive one is never primary. Primary last on a wide row; on a
      narrow one, full width with the primary on top, as in Form.
-   · Reads roles only. No transitions: it appears in place (gate 4).
+   · Reads roles only. It fades and settles in, fades out, and its scrim
+     fades with it (motion, below). Only a real <dialog> moves.
    ========================================================================== */
 
 .dialog {
@@ -130,6 +131,73 @@ dialog.dialog:not([open]) {
    Open and closed are the browser's. Everything inside keeps its own
    states (Button's, Field's). A .dialog that isn't a <dialog> just sits in
    place, as an open one looks: the page uses that to draw one. */
+
+/* --- motion -------------------------------------------------------------------
+   In, it fades and settles: from transparent and 12px low to its place, over
+   --dur-hover, eased out. Out, it fades, over --dur-press: leaving is
+   quicker than arriving. The scrim fades with it.
+
+   · @starting-style is the first frame of the entrance. On the way out,
+     display and overlay change discretely (allow-discrete), at the end, so
+     the dialog stays drawn, in the top layer, until it has faded.
+   · The way out needs overlay, which holds the top layer. Where it is
+     missing a closing dialog leaves the top layer at once and, still fading,
+     would show in the page's flow; so there it goes in place, as before.
+     Where @starting-style is missing, it also comes in place.
+   · Only transform and opacity move, and only on a real <dialog>: the
+     page's pictures (a .dialog that isn't one) never animate, and nothing
+     does on load, since no dialog is open then.
+   · The motion waits for nothing: showModal() moves focus in at once,
+     Escape works mid-entrance (it turns the entrance round), and close()
+     gives focus back and sets returnValue at once, as the fade begins. */
+
+dialog.dialog,
+dialog.dialog::backdrop {
+  transition-property: opacity, transform;
+  transition-duration: var(--dur-hover);
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+@supports (overlay: auto) {
+  dialog.dialog,
+  dialog.dialog::backdrop {
+    transition-property: opacity, transform, display, overlay;
+  }
+}
+
+dialog.dialog:not([open]),
+dialog.dialog:not([open])::backdrop {
+  opacity: 0;
+  transition-duration: var(--dur-press);
+}
+
+@starting-style {
+  dialog.dialog[open] {
+    opacity: 0;
+    transform: translateY(var(--space-3));
+  }
+
+  dialog.dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* reduced motion: no settle, only the short fade, in and out alike */
+@media (prefers-reduced-motion: reduce) {
+  dialog.dialog,
+  dialog.dialog::backdrop,
+  dialog.dialog:not([open]),
+  dialog.dialog:not([open])::backdrop {
+    transition-duration: var(--dur-fade);
+  }
+
+  @starting-style {
+    dialog.dialog[open] {
+      transform: none;
+    }
+  }
+}
 
 /* --- forced colours ----------------------------------------------------------
    The scrim vanishes, so the page behind shows at full strength: the frame

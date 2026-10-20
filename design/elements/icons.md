@@ -1,6 +1,6 @@
 # Icons
 
-Element 06 · gates 0–3 done (wireframe, states, colour) · page: `elements/icons.html`
+Element 06 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/icons.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 glyph set's own spec, with every glyph's path data so native apps can port it.
@@ -29,6 +29,9 @@ No filled glyphs, no duotone, no glyph that needs colour to read. ↗ still mean
 - The data URIs write black as `%23000` inside `url()`. That is the mask's alpha, not a colour
   anyone sees; `check.mjs` strips `url()` before it looks for colour literals.
 - No glyph repeated on every card in a grid, no glyph in a tinted circle (rule 7).
+- **Glyphs don't move by themselves** (gate 4). `icons.css` has no motion; an element may turn
+  its glyph with a transform, which forced colours keep: Disclosure turns `ic--down` half a turn
+  to point up, instead of swapping it for `ic--up`. The spinner isn't a glyph: Meter turns it.
 
 ## Anatomy
 

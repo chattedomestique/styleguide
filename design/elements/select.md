@@ -1,6 +1,6 @@
 # Select
 
-Element 11 · gates 0–3 done (wireframe, states, colour) · page: `elements/select.html`
+Element 11 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/select.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Select's own spec.
@@ -33,7 +33,8 @@ Select's own spec.
   `appearance: base-select` (Known limits).
 - **Invalid never leans on colour**: the frame doubles inwards and `.field__error` says how to fix
   it. Disabled is dashed and faint, never opacity.
-- States change instantly. `:hover` only inside `@media (hover: hover)`.
+- `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): the ground eases, as a field's does; the picker is the platform's.
 
 ## Anatomy
 
@@ -78,9 +79,9 @@ Each is shown live, with its markup, in `elements/select.html` under Variants (2
 | State | Trigger | `--lift` | `--fill` | Also |
 | --- | --- | --- | --- | --- |
 | Rest | none | – | – | 2px ink frame on paper, the glyph in ink. |
-| Hover | `:hover:not(:disabled)`, only inside `@media (hover: hover)` | – | – | The ground turns to `--canvas`, as a field's does. |
+| Hover | `:hover:not(:disabled)`, only inside `@media (hover: hover)` | – | 1 | The ground turns to `--canvas`, as a field's does (`--fill` mixes paper to canvas). |
 | Focus | `:focus-visible` (base.css) | – | – | `3px solid var(--focus)`, offset 3px. Keyboard only: a click opens the picker instead. |
-| Pressed | `:active:not(:disabled)` | – | – | `--canvas`, as on hover, so a tap answers while the picker opens. (Field's clear button does the same.) |
+| Pressed | `:active:not(:disabled)` | – | 1 | `--canvas`, as on hover, so a tap answers while the picker opens. (Field's clear button does the same.) |
 | Invalid | `[aria-invalid]` but not `"false"` | – | – | `box-shadow: inset 0 0 0 2px var(--line)`: the frame doubles inwards. Plus `.field__error` above. |
 | Disabled | `:disabled` | – | – | Dashed frame and text in `--ink-faint`, transparent ground, `opacity: 1` (Safari fades a disabled select on its own). The glyph and the label go faint; the help, which says why, stays readable. |
 | Forced colours | `(forced-colors: active)` | | | Invalid becomes a 4px (`--bw-heavy`) frame; disabled is `GrayText`, glyph and label included. Hover has no equivalent. |
@@ -89,6 +90,11 @@ Each is shown live, with its markup, in `elements/select.html` under Variants (2
 There is no filled state (a select always shows a value) and no read-only (`<select>` has no
 `readonly`; show the value as text instead). `.is-hover`, `.is-focus` and `.is-active` force a
 state for the page and for tests. They are not API.
+
+**Motion.** The ground is `--fill` (paper at 0, canvas at 1) and eases over `--dur-hover` with
+`--ease-out`; a press lands over `--dur-press`. The picker that opens is the platform's, and moves
+as the platform does; the ring is instant. Under reduced motion the ground fades over
+`--dur-fade`.
 
 ## Accessibility
 

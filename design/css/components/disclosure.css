@@ -16,12 +16,16 @@
    · A disclosure is a ruled row, like a list row: a rectangle that holds.
      Stacked, neighbours share one rule, so a group needs no wrapper.
    · The summary is the target: the whole row, at least 44px.
-   · Open swaps the glyph, down for up. Static glyphs: no rotation until
-     gate 4. In forced colours the glyph still says which way it went.
+   · Open turns the glyph: ic--down rotates half a turn to point up. A
+     transform, so in forced colours it still says which way it went.
    · Hover underlines the words, press fills the row with ink: what a list
      row does. Rules and fills read the card's surface roles, so a
      disclosure inside a card (on any tone) takes the card's ink.
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the glyph turns and the press fill eases. Where the
+     browser can (interpolate-size and ::details-content) the body opens
+     and closes over --dur-move; elsewhere it opens in place. Reduced
+     motion: the glyph and the body change at once; the fill fades.
    ========================================================================== */
 
 .disclosure {
@@ -62,19 +66,21 @@
   list-style: none;
   cursor: default; /* the hand is for links only, as on the Mac */
   touch-action: manipulation;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .disclosure__summary::-webkit-details-marker {
   display: none;
 }
 
-/* the glyph: down when closed, up when open */
+/* the glyph: down when closed; open, it turns half a turn to point up */
 .disclosure__icon {
   flex: none;
+  transition: rotate var(--dur-move) var(--ease-out);
 }
 
 .disclosure[open] > .disclosure__summary > .disclosure__icon {
-  --ic: var(--icon-up);
+  rotate: 0.5turn;
 }
 
 /* the body: what was hidden, under the summary, as wide as a paragraph */
@@ -86,6 +92,29 @@
   padding: var(--space-1) var(--space-2) var(--space-4);
   font: var(--type-body);
   text-wrap: pretty;
+}
+
+/* the body opens: its height eases from nothing to its own (auto), which
+   needs interpolate-size; ::details-content is the box the browser hides.
+   content-visibility is the discrete half that keeps the body drawn while
+   it closes. Both are check 5's named exception, here and only here.
+   Elsewhere the body opens in place. */
+@supports (interpolate-size: allow-keywords) and selector(::details-content) {
+  .disclosure {
+    interpolate-size: allow-keywords;
+  }
+
+  .disclosure::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size var(--dur-move) var(--ease-out),
+      content-visibility var(--dur-move) allow-discrete;
+  }
+
+  .disclosure[open]::details-content {
+    block-size: auto;
+  }
 }
 
 /* --- states -----------------------------------------------------------------
@@ -118,6 +147,27 @@
 /* pressed: the row fills with the surface's ink, as a list row does */
 .disclosure__summary:is(:active, .is-active) {
   --fill: 1;
+  transition-duration: var(--dur-press);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   The glyph turns and the body opens at once (nothing moves); the press
+   fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosure__summary,
+  .disclosure__summary:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+
+  .disclosure__icon {
+    transition: none;
+  }
+
+  /* its own rule: a browser that doesn't know the selector drops the rule */
+  .disclosure::details-content {
+    transition: none;
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------

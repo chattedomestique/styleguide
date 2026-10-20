@@ -23,8 +23,8 @@ adds them.
 
 1. Read `STYLE.md` "Start here", §1, §2 and §4, then `card.md`.
 2. Roles and tokens only: no colour literals, no literal border widths, radii only from the
-   roles, no gradients, blur, glass or translucency, and no `transition` or `animation` until
-   gate 4. `node design/tools/check.mjs` enforces most of this.
+   roles, no gradients, blur, glass or translucency (the `--scrim` aside), and motion only as
+   `STYLE.md` §2 Motion allows (check 5). `node design/tools/check.mjs` enforces most of this.
 3. Class names: `.<name>`, `.<name>__part`, `.<name>--variant`. States come from native
    state and ARIA first (`:checked`, `:disabled`, `[aria-pressed]`, `[aria-invalid]`,
    `[aria-current]`). `.is-*` classes only force a state on the page, as on the card.
@@ -59,7 +59,7 @@ you made and why; the exact lines anything shared needs; what you couldn't verif
 
 ## Page and spec layout
 
-The page: hero (the kicker reads "Element NN · Colour · Gates 0 to 3 done", the title is
+The page: hero (the kicker reads "Element NN · Motion · Gates 0 to 4 done", the title is
 the element's name, the lede is its job), then **01 Variants**, **02 States**, **03 Usage**
 (do and don't, platform notes), with **Anatomy** first when the element has more than three
 parts. Each variant is an `.sg-entry` whose specimens carry `data-sg-code`, so the page prints
@@ -72,33 +72,33 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 
 | # | Element | Wave | Status |
 | --- | --- | --- | --- |
-| 01 | Card | | Gates 0–3 |
-| 02 | Button | 1 | Gates 0–3 |
-| 03 | Field | 1 | Gates 0–3 |
-| 04 | Tag and Badge | 1 | Gates 0–3 |
-| 05 | Meter and Spinner | 1 | Gates 0–3 |
-| 06 | Icons | 1 | Gates 0–3 |
-| 07 | Checkbox | 2 | Gates 0–3 |
-| 08 | Radio | 2 | Gates 0–3 |
-| 09 | Switch | 2 | Gates 0–3 |
-| 10 | Segmented control | 2 | Gates 0–3 |
-| 11 | Select | 2 | Gates 0–3 |
-| 12 | Stepper | 2 | Gates 0–3 |
-| 13 | Form | 2 | Gates 0–3 |
-| 14 | Frame | 3 | Gates 0–3 |
-| 15 | Top bar | 3 | Gates 0–3 |
-| 16 | Tab bar | 3 | Gates 0–3 |
-| 17 | Sidebar | 3 | Gates 0–3 |
-| 18 | List | 3 | Gates 0–3 |
-| 19 | Tabs | 3 | Gates 0–3 |
-| 20 | Disclosure | 3 | Gates 0–3 |
-| 21 | Menu | 3 | Gates 0–3 |
-| 22 | Dialog | 4 | Gates 0–3 |
-| 23 | Sheet | 4 | Gates 0–3 |
-| 24 | Toast | 4 | Gates 0–3 |
-| 25 | Banner | 4 | Gates 0–3 |
-| 26 | Empty, loading and error | 4 | Gates 0–3 |
-| 27 | PWA platform | 5 | Gates 0–3 |
+| 01 | Card | | Gates 0–4 |
+| 02 | Button | 1 | Gates 0–4 |
+| 03 | Field | 1 | Gates 0–4 |
+| 04 | Tag and Badge | 1 | Gates 0–4 |
+| 05 | Meter and Spinner | 1 | Gates 0–4 |
+| 06 | Icons | 1 | Gates 0–4 |
+| 07 | Checkbox | 2 | Gates 0–4 |
+| 08 | Radio | 2 | Gates 0–4 |
+| 09 | Switch | 2 | Gates 0–4 |
+| 10 | Segmented control | 2 | Gates 0–4 |
+| 11 | Select | 2 | Gates 0–4 |
+| 12 | Stepper | 2 | Gates 0–4 |
+| 13 | Form | 2 | Gates 0–4 |
+| 14 | Frame | 3 | Gates 0–4 |
+| 15 | Top bar | 3 | Gates 0–4 |
+| 16 | Tab bar | 3 | Gates 0–4 |
+| 17 | Sidebar | 3 | Gates 0–4 |
+| 18 | List | 3 | Gates 0–4 |
+| 19 | Tabs | 3 | Gates 0–4 |
+| 20 | Disclosure | 3 | Gates 0–4 |
+| 21 | Menu | 3 | Gates 0–4 |
+| 22 | Dialog | 4 | Gates 0–4 |
+| 23 | Sheet | 4 | Gates 0–4 |
+| 24 | Toast | 4 | Gates 0–4 |
+| 25 | Banner | 4 | Gates 0–4 |
+| 26 | Empty, loading and error | 4 | Gates 0–4 |
+| 27 | PWA platform | 5 | Gates 0–4 |
 
 Then three passes over everything: colour and dark mode (wave 6, gate 3), motion (wave 7,
 gate 4) and the freeze (wave 8, gate 5).

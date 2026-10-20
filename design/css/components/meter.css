@@ -14,7 +14,10 @@
    · Ink is currentColor, the track is the surface itself, so a meter reads
      on paper, on any tone and on an ink card with no extra class.
    · Square: a bar holds, it doesn't act (rule 3).
-   · The spinner is a still frame until gate 4. It has to read on its own.
+   · Motion (gate 4): the spinner turns, and only the spinner, only while
+     it's shown, and it shows only after a wait (the loading delay). Its
+     still frame still has to read on its own: reduced motion slows it, and
+     the words always carry the meaning. The bars never animate a value.
    ========================================================================== */
 
 /* --- the labelled bar: label and value on one line, the bar under them ----- */
@@ -121,7 +124,8 @@
 
 /* --- progress: the native element, drawn like the meter --------------------
    Always with a value. A task with no known length gets the spinner, not an
-   indeterminate bar (that one animates, and gate 4 isn't open). */
+   indeterminate bar (that one says nothing, and its motion is the
+   browser's, not ours). */
 
 .progress__bar {
   appearance: none;
@@ -148,11 +152,21 @@
   background: currentColor;
 }
 
-/* --- spinner: a still frame and words --------------------------------------
+/* --- spinner: a still frame, words, and a turn --------------------------------
    An open ring on the icon grid: 2px, square caps, a quarter missing at the
-   top right. Static, it still reads as "busy"; gate 4 turns it. The words sit
+   top right. Still, it reads as "busy"; shown, it turns. The words sit
    inside: <p class="spinner" role="status">Loading decks…</p>. Empty, it is
-   the glyph alone, for a busy button, whose label is the words. */
+   the glyph alone, for a busy button, whose label is the words.
+
+   The loading delay: a spinner waits 300ms (a hover and a half) before it
+   shows, then fades in, so a quick load or a quick action never flashes
+   one. The wait is an animation-delay on its appearance, filled backwards
+   (invisible while it waits, and the animation ends once it's shown); its
+   room is kept, so nothing shifts when it comes. Hidden and shown again
+   (the hidden attribute, display: none), it waits again. The words are in
+   the accessibility tree from the start: a live region speaks when its
+   text arrives, and a script that wants a quick load silent too inserts
+   the words after the same wait. */
 
 /* a grid, not flex: the words' column can shrink below its longest word, so
    they wrap in a narrow card instead of running out of it. Implicit columns,
@@ -163,6 +177,13 @@
   grid-auto-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: var(--space-2);
+  animation: spinner-wait var(--dur-hover) var(--ease-out) calc(var(--dur-hover) * 1.5) backwards;
+}
+
+@keyframes spinner-wait {
+  from {
+    opacity: 0;
+  }
 }
 
 /* centred on the first line of the words, so it stays put when they wrap */
@@ -174,6 +195,30 @@
   background: currentColor;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 3a9 9 0 1 0 9 9'/%3E%3C/svg%3E")
     center / contain no-repeat;
+  /* one turn in two moves (about a second), at a constant rate: a turn
+     that eased would look like it stalls */
+  animation: spinner-turn calc(var(--dur-move) * 2) linear infinite;
+}
+
+@keyframes spinner-turn {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/* Reduced motion: a slow turn, not a pulse. A pulse is the ring going
+   translucent and back for as long as the wait lasts, which rule 2 doesn't
+   allow as a look, and a blink is harder on the eyes than a slow, small
+   turn. A third of the speed still says "still working"; the words say
+   what. The loading delay stays: it's timing, not movement. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: var(--dur-fade);
+  }
+
+  .spinner::before {
+    animation-duration: calc(var(--dur-move) * 6);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------

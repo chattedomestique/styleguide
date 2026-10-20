@@ -1,0 +1,58 @@
+/* ==========================================================================
+   app.css — the starter's own CSS. Rules: elements/pwa.md, STYLE.md §4.
+   --------------------------------------------------------------------------
+   App CSS, in @layer app (STYLE.md §2, Files and layers): what the elements
+   leave to the app. Roles and tokens only, like css/screens.css. Linked by
+   the starter's pages after flashcards.min.css, and precached (sw.js).
+
+   Moving between screens. Today, Decks and Settings are separate pages, so
+   the browser's cross-document view transition joins them:
+
+   · The screen crossfades, old to new, within --dur-hover, eased out.
+   · The bars stay put: the tab bar and the sidebar are named, so each is
+     its own layer, in the same place on both pages, and swaps at once (the
+     current place changes as it does on a tap). Two names, because two
+     elements may not share one; only one of the two is drawn at a time
+     (Frame's wide variant), so only one is ever captured.
+   · Off under reduced motion: the new page simply replaces the old.
+   · Progressive: where cross-document view transitions aren't supported,
+     a link loads the next page as it always did. Both pages must opt in,
+     and every starter page links this file. The style sheet's pages don't,
+     so they never animate between pages.
+   ========================================================================== */
+
+@layer app {
+  @view-transition {
+    navigation: auto;
+  }
+
+  .frame__bottom.tabbar {
+    view-transition-name: tabbar;
+  }
+
+  .frame__side.sidebar {
+    view-transition-name: sidebar;
+  }
+
+  ::view-transition-group(*) {
+    animation-duration: var(--dur-hover);
+    animation-timing-function: var(--ease-out);
+  }
+
+  /* the bars: the new one, at once, over nothing */
+  ::view-transition-old(tabbar),
+  ::view-transition-old(sidebar) {
+    display: none;
+  }
+
+  ::view-transition-new(tabbar),
+  ::view-transition-new(sidebar) {
+    animation: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    @view-transition {
+      navigation: none;
+    }
+  }
+}

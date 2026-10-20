@@ -20,7 +20,10 @@
      a positioning wrapper for the leading icon and the clear button.
    · Invalid never leans on colour: the frame doubles, and the message says
      how to fix it, behind a warning glyph.
-   · :hover lives inside @media (hover: hover). States change instantly.
+   · :hover lives inside @media (hover: hover).
+   · Motion (gate 4): the input's hover ground and the clear button's fill
+     are --fill, and ease (--dur-hover; a press, --dur-press). The ring,
+     the invalid frame and the error are instant: feedback never waits.
    ========================================================================== */
 
 .field {
@@ -73,6 +76,7 @@
 }
 
 .field__input {
+  --fill: 0; /* the hover ground: paper to canvas */
   display: block;
   inline-size: 100%;
   min-block-size: var(--hit);
@@ -83,11 +87,12 @@
      base.css's rule, and at the smaller Dynamic Type sizes 1rem is under 16px */
   font-size: max(1rem, 16px);
   color: var(--ink);
-  background: var(--paper);
+  background: color-mix(in srgb, var(--canvas) calc(var(--fill) * 100%), var(--paper));
   border: var(--bw) solid var(--line);
   border-radius: var(--radius-ctl);
   -webkit-appearance: none;
   appearance: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* placeholders are examples, never the label. Firefox fades them by default */
@@ -165,6 +170,7 @@ textarea.field__input {
   color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
   background: none;
   border: 0;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 .field__clear[hidden] {
@@ -196,7 +202,7 @@ textarea.field__input {
 /* hover: a quiet change of ground, on fields you can type in */
 @media (hover: hover) {
   .field__input:read-write:hover:not(:focus) {
-    background: var(--canvas);
+    --fill: 1;
   }
 
   .field__clear:hover {
@@ -205,7 +211,7 @@ textarea.field__input {
 }
 
 .field__input.is-hover {
-  background: var(--canvas);
+  --fill: 1;
 }
 
 /* focus: base.css draws the ring on the input; this forces it for the page */
@@ -226,6 +232,10 @@ textarea.field__input {
 
 .field__clear:is(.is-hover, :active, .is-active) {
   --fill: 1;
+}
+
+.field__clear:is(:active, .is-active) {
+  transition-duration: var(--dur-press);
 }
 
 /* invalid: the frame doubles, inwards, so nothing shifts and the focus ring
@@ -259,6 +269,17 @@ textarea.field__input {
 
 .field__input:disabled ~ .field__clear {
   display: none;
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the grounds and fills keep a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .field__input,
+  .field__clear,
+  .field__clear:is(:active, .is-active) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------

@@ -84,17 +84,32 @@
   --ratio-media: 4 / 3;
   --ratio-study: 5 / 7; /* the flashcard */
 
-  /* --- motion (gate 4: declared, not yet used — states change instantly) ---- */
+  /* --- motion (gate 4) ------------------------------------------------------
+     The only durations and curves in the system: check 5 refuses a literal
+     ms, s or cubic-bezier() anywhere else. Derive from these with calc()
+     (the spinner turns in two moves, the loading delay is a hover and a
+     half), never a new number.
+       --dur-press  a press lands: :active, within it; an overlay leaves (leaving is
+                    quicker than arriving)
+       --dur-hover  hover, focus and release: the state numbers settle
+       --dur-move   something travels: the flip, the Disclosure body
+       --dur-fade   reduced motion: the crossfade that stands in for a move,
+                    150ms at most (STYLE §2 Motion). One value, so every
+                    reduced counterpart is equally gentle.
+       --ease-out   arrives fast, settles slowly: states, entrances
+       --ease-flip  slow, fast, slow: the card turning over */
   --dur-press: 130ms;
   --dur-hover: 200ms;
   --dur-move: 520ms;
+  --dur-fade: 150ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-flip: cubic-bezier(0.83, 0, 0.17, 1);
 }
 
 /* Interaction, as two numbers that every pressable element reads. --lift is
    the hard shadow (0 flat, 1 raised; never a move, so the hit box stays put);
-   --fill is colour (0 outline, 1 filled). Registered so gate 4 can animate. */
+   --fill is colour (0 outline, 1 filled). Registered as numbers, so a
+   transition can ease them: every state is a transition of these two. */
 @property --lift {
   syntax: "<number>";
   inherits: true;

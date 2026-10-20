@@ -42,10 +42,12 @@ design/
     sheet.css           the pages' own chrome, .sg-*   (not shipped)
   js/
     components/         element script, where HTML can't do it → dist/flashcards.js
+                        (components/sheet.js is Sheet's drag; js/sheet.js is the pages')
     sheet.js            the pages' own script: markup, contrast (not shipped)
     sheet-scheme.js     the stored scheme, set in the head before the CSS (not shipped)
   fonts/                Archivo woff2 + OFL licence
   pwa/                  the starter app; copy it with dist/ and fonts/ (pwa/README.md)
+                        app.css: its own CSS, @layer app (the moves between screens)
   tools/
     check.mjs           the gate
     accent.mjs          an app's accent: checked in both schemes, the CSS to paste
@@ -76,14 +78,14 @@ element together, because colour, motion and the freeze are decisions about the 
 
 | Wave | Elements | 0 | 1 | 2 | 3 | 4 | 5 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| | **Card** | ✓ | ✓ | ✓ | ✓ | | |
-| 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | ✓ | ✓ | ✓ | | |
-| 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | ✓ | ✓ | ✓ | | |
-| 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | ✓ | ✓ | ✓ | | |
-| 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | ✓ | ✓ | ✓ | | |
-| 5 | PWA platform | ✓ | ✓ | ✓ | ✓ | | |
+| | **Card** | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| 1 | Button, Field, Tag and Badge, Meter and Spinner, Icons | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| 2 | Checkbox, Radio, Switch, Segmented control, Select, Stepper, Form | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| 3 | Frame, Top bar, Tab bar, Sidebar, List, Tabs, Disclosure, Menu | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| 4 | Dialog, Sheet, Toast, Banner, Empty, loading and error | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| 5 | PWA platform | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | 6 | Colour and dark mode, for everything | | | | ✓ | | |
-| 7 | Motion, for everything | | | | | | |
+| 7 | Motion, for everything | | | | | ✓ | |
 | 8 | Freeze: v1.0 | | | | | | |
 
 Gate 0 is ticked because every brief is written (`elements/README.md`). Order is deliberate:

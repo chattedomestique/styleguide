@@ -1,6 +1,6 @@
 # Banner
 
-Element 25 · gates 0–3 done (wireframe, states, colour) · page: `elements/banner.html`
+Element 25 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/banner.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Banner's own spec.
@@ -17,7 +17,7 @@ Banner's own spec.
   never colour alone. It pairs with wave 5's service worker, which raises "update ready" and
   "offline" for real.
 - **Shared (wave 4):** words before chrome; status (polite) unless a failure blocks you; no
-  motion until gate 4.
+  motion until gate 4 (and none after it: below).
 
 ## House rules
 
@@ -29,7 +29,11 @@ Banner's own spec.
   glyph says which kind before you read, the words say what's true and what it means.
 - **At most one action, no close.** A banner goes when it stops being true: online again,
   reloaded, loaded.
-- **Appears in place.** No motion until gate 4.
+- **Appears in place, and goes the same way, at gate 4 too.** A band that arrives pushes the
+  content under it down, and that push is layout; motion moves only `transform` and `opacity`. A
+  slide would have to animate the band's height or move everything under it, and a fade would
+  only delay the words after the content had already jumped. So it has no motion and no
+  reduced-motion counterpart to need.
 
 ## Anatomy
 

@@ -28,7 +28,13 @@
    · The tab bar hides while the on-screen keyboard is up, and only then:
      frame.js sees the keyboard as lost viewport height and sets
      data-keyboard. No script, no hiding.
-   · No motion: bars don't hide on scroll and nothing slides (gate 4).
+   · The frame itself never moves: bars don't hide on scroll, nothing
+     slides. Two motions use it. A top bar with a large heading fades its
+     title in as the heading scrolls under it, on a timeline that tracks
+     the scroll region (topbar.css: the region is the heading's scroller,
+     so it needs nothing here). And an app's cross-document view
+     transitions name the tab bar and the sidebar, so they stay put while
+     the screen crossfades (pwa/app.css).
    ========================================================================== */
 
 .frame {

@@ -1,6 +1,6 @@
 # Menu
 
-Element 21 · gates 0–3 done (wireframe, states, colour) · page: `elements/menu.html`
+Element 21 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/menu.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Menu's own spec.
@@ -32,7 +32,8 @@ Menu's own spec.
   Undo before anything goes.
 - **The button stays down while its menu is open** (`--lift: 0; --fill: 1`), so you can see
   which button owns it.
-- **Appears in place.** No transitions until gate 4.
+- **It fades in at its anchor and fades out.** Only opacity; the button goes down, and focus moves,
+  at once (Motion, below).
 
 ## Why not the ARIA menu pattern
 
@@ -123,6 +124,29 @@ Shown live, with markup, in `elements/menu.html` (2.1–2.2).
 Without the `popover` attribute a `.menu` simply sits in place, as an open one looks: the page
 uses that for its anatomy and states.
 
+## Motion
+
+Gate 4. The menu fades: in over `--dur-hover` (`--ease-out`), from a first frame in
+`@starting-style`; out over `--dur-press`, with `display` and `overlay` changing at the end
+(`transition-behavior: allow-discrete`), so a closing menu stays in the top layer, at its anchor,
+until it has faded. Under reduced motion both are `--dur-fade`.
+
+- **Why only a fade, not a slide from the button.** The browser picks the placement (under, over,
+  the other way along, or the full height), and CSS can't tell which it picked, so a move could
+  point away from the button. A fade comes from wherever the menu is: "from its anchor" is where
+  it appears, not a direction.
+- **Nothing waits for it.** The button's down look is instant (it's the open state, not the
+  fade); Escape, a click outside, an item and a second press close it at once and focus goes back
+  to the button as before. Escape works mid-entrance.
+- **Only a real popover moves:** a `.menu` without `popover` (the page's pictures) stands still,
+  and nothing moves on load.
+- **Where it isn't supported, it appears in place.** No `@starting-style`: in place. No
+  `overlay` (Safari and Firefox, for now): a closing menu would leave the top layer at once, so the
+  way out sits inside `@supports (overlay: auto)` and elsewhere it goes in place.
+- **Checked** in Chromium 141: the More menu sampled at 0, 50 and 100% of its entrance and exit,
+  with motion and reduced; its box didn't move during the exit (the anchor holds); keyboard open,
+  Tab in, Escape mid-entrance, focus back on the button; no sideways scroll at 320, 390 or 1440px.
+
 ## Accessibility
 
 - The button's name says what it opens ("More for Shapes", "Sort"); the browser exposes it as
@@ -170,5 +194,7 @@ uses that for its anatomy and states.
 - Chromium supports anchor positioning, so the no-anchor sheet never shows there; it was
   checked by applying its declarations by hand (390 and 1440px): edge to edge on the phone,
   30rem and centred on the wide screen.
-- Checked in Chromium only (keyboard, touch, forced colours, script off), not on an iPhone, in
-  Safari or in Firefox.
+- The fade out needs `overlay`, which only Chromium has; in Safari and Firefox a menu fades in and
+  goes in place (Motion).
+- Checked in Chromium only (keyboard, touch, forced colours, script off, motion frame by frame),
+  not on an iPhone, in Safari or in Firefox.

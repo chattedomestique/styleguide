@@ -1,6 +1,6 @@
 # Field
 
-Element 03 · gates 0–3 done (wireframe, states, colour) · page: `elements/field.html`
+Element 03 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/field.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Field's own spec.
@@ -34,7 +34,9 @@ Field's own spec.
 - **Invalid never leans on colour**: the frame doubles (inwards, so nothing shifts), and the
   message says how to fix it behind a warning glyph. The palette is monochrome, so there is no
   red to lean on anyway.
-- States change instantly. `:hover` only inside `@media (hover: hover)`.
+- `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): the input's hover ground and the clear button's fill ease; the ring, the
+  invalid frame and the error never wait (Motion, below).
 
 ## Anatomy
 
@@ -93,7 +95,7 @@ Two parts have states: the input, which is never pressed, and the clear button, 
 | State | Trigger | `--lift` | `--fill` | Also |
 | --- | --- | --- | --- | --- |
 | Rest | none | – | – | 2px ink frame on paper. |
-| Hover | `:read-write:hover:not(:focus)`, only inside `@media (hover: hover)` | – | – | The ground turns to `--canvas`. Never on a read-only or disabled field. |
+| Hover | `:read-write:hover:not(:focus)`, only inside `@media (hover: hover)` | – | 1 | The ground turns to `--canvas` (`--fill` mixes paper to canvas). Never on a read-only or disabled field. |
 | Focus | `:focus-visible` (base.css) | – | – | `3px solid var(--focus)` ring, offset 3px (2px inside a card). Text fields match `:focus-visible` on a click too, so the caret is always ringed. |
 | Filled | a value | – | – | Ink text. The label doesn't move. |
 | Invalid | `[aria-invalid]` but not `"false"` | – | – | `box-shadow: inset 0 0 0 2px var(--line)`: the frame doubles inwards, so the focus ring keeps its gap. Plus `.field__error` above the input. |
@@ -107,6 +109,12 @@ Two parts have states: the input, which is never pressed, and the clear button, 
 
 `.is-hover`, `.is-focus` (input and clear) and `.is-active` (clear) force a state for the page
 and for tests. They are not API.
+
+**Motion.** The input's ground is `--fill` (paper at 0, canvas at 1), so its hover eases over
+`--dur-hover` with `--ease-out`, as every hover does. The clear button's `--fill` eases the same
+way, and its press lands over `--dur-press`. The focus ring, the invalid frame and the error
+message are instant: feedback about the value never waits for an ease. Under reduced motion both
+fills fade over `--dur-fade`.
 
 ### The clear button's behaviour
 

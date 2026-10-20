@@ -1,6 +1,6 @@
 # NAME
 
-Element NN · gates 0–3 done (wireframe, states, colour) · page: `elements/name.html`
+Element NN · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/name.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 NAME's own spec.

@@ -1,6 +1,6 @@
 # Frame
 
-Element 14 · gates 0–3 done (wireframe, states, colour) · page: `elements/frame.html`
+Element 14 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/frame.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Frame's own spec.
@@ -38,8 +38,12 @@ Frame's own spec.
 - **The keyboard takes the Tab bar's room.** While the on-screen keyboard is up, the Tab bar
   hides so the field has the room; nothing else hides, and without script nothing does
   (Keyboard, below).
-- **No motion.** Bars don't hide on scroll, a large title doesn't collapse, nothing slides
-  (gate 4).
+- **The frame doesn't move.** Bars don't hide on scroll, a large title doesn't collapse, nothing
+  slides. Two motions lean on it (gate 4): a top bar with a large heading fades its title in as the
+  heading scrolls under it, on a view timeline whose scroller is the scroll region (the frame
+  carries its `timeline-scope`, from `topbar.css`); and an app's view transitions name the tab bar
+  and the sidebar, so they stay put while the screen crossfades (the starter's `pwa/app.css`,
+  `elements/pwa.md`). Frame itself adds no motion and needs no reduced-motion rule.
 
 ## Anatomy
 

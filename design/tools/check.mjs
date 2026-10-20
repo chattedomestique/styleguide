@@ -11,7 +11,10 @@
      2  colour literals       hex / rgb() / hsl() / oklch()... outside tokens/color*.css
      3  the AI tells          gradients, blur, blurred shadows, text-shadow, default fonts
      4  the line and shape    literal border widths, radii outside the three roles
-     5  the gate order        transitions and keyframes before gate 4 opens
+     5  motion                what may move (transform, opacity, the state numbers,
+                              discrete display/overlay, and named exceptions), never
+                              `all`; durations and easings from the tokens only; a
+                              prefers-reduced-motion block wherever anything moves
      6  layering              components/ must not reach for .wf-* or --grey-*
      7  doc drift             tokens and classes named in the .md files that don't exist
      8  markup                classes used in the pages that no CSS defines, and ids that
@@ -22,7 +25,7 @@
                               without light-dark()
 
    Checks 2–5 cover sheet.css and screens.css too: the pages that teach the
-   rules keep them.
+   rules keep them. Check 5 also reads the PWA starter's own CSS (pwa/*.css).
    ========================================================================== */
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -33,8 +36,8 @@ import { loadColours, contrast, luminance, toHex } from "./accent.mjs";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CSS = join(ROOT, "css");
 
-/* Flip a gate to true when it opens. Motion opens at gate 4. */
-const GATES = { motion: false };
+/* Flip a gate to true when it opens. Motion opened at gate 4 (wave 7). */
+const GATES = { motion: true };
 
 /* ---- files ----------------------------------------------------------------- */
 
@@ -188,19 +191,163 @@ function splitTop(s, sep) {
   check("line weights and radii come from tokens", problems);
 }
 
-/* ---- 5 the gate order -------------------------------------------------------- */
+/* ---- 5 motion -----------------------------------------------------------------
+   STYLE.md §2 Motion, as far as a machine can read it. In every CSS file:
+   - a transition (the shorthand or transition-property) and a keyframe move
+     only MOTION.may, or a named exception in the file (and selector) it names;
+   - never `all`, and never a transition with no property, which means all;
+   - durations, delays and easings only as var(--dur-*) and var(--ease-*),
+     calc() over them included. No literal ms or s outside foundation.css (a
+     literal zero is fine: no delay is not a duration), no cubic-bezier(),
+     steps() or linear() function, no easing keyword. `linear` is allowed in
+     an animation, where a constant rate is no curve: a continuous turn;
+   - a moving transition names its easing, or CSS's own `ease` slips in;
+   - a file that declares a transition, an animation or @keyframes has a
+     @media (prefers-reduced-motion: reduce) block. */
+const MOTION = {
+  /* the compositor's two (transform with its longhands), the registered
+     numbers every pressable element draws its states from, and the discrete
+     pair an overlay exits with */
+  may: ["transform", "translate", "rotate", "scale", "opacity", "--lift", "--fill", "display", "overlay"],
+  /* switch at a point in time, so an easing means nothing to them */
+  discrete: ["display", "overlay", "visibility", "content-visibility"],
+  /* Named exceptions: each says why, and where. Add one only with a reason. */
+  except: [
+    {
+      props: ["block-size", "height", "content-visibility"],
+      file: /components[\\/]disclosure\.css$/,
+      selector: /::details-content/,
+      why: "Disclosure's body opens with interpolate-size: allow-keywords, a progressive extra; content-visibility is the discrete half that lets it close",
+    },
+    {
+      props: ["visibility"],
+      file: /components[\\/]card\.css$/,
+      why: "the study card's flip: the face turned away leaves the accessibility tree and the Tab order, swapped discretely at the halfway point",
+    },
+  ],
+};
 {
   const problems = [];
-  if (!GATES.motion) {
-    for (const p of cssFiles) {
-      if (!isComponent(p) && !isWire(p) && !isPage(p)) continue;
-      const s = files[p];
-      for (const m of s.matchAll(/(?<![\w-])(transition|animation)(-[a-z-]+)?\s*:|@keyframes/g)) {
-        problems.push(`${rel(p)}:${lineOf(s, m.index)} "${m[0].replace(/\s*:$/, "")}": motion is gate 4, and it isn't open`);
+  const stripStrings = (s) => s.replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g, (m) => m.replace(/[^\n]/g, " "));
+  /* every declaration, with the preludes of the blocks it sits in */
+  function* declarations(s) {
+    const stack = [];
+    let start = 0;
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      if (ch !== "{" && ch !== ";" && ch !== "}") continue;
+      const text = s.slice(start, i);
+      if (ch === "{") stack.push(text.trim().replace(/\s+/g, " "));
+      else {
+        const m = /^\s*(--[\w-]+|-?[a-z][\w-]*)\s*:([\s\S]*)$/i.exec(text);
+        if (m && stack.length) {
+          yield { prop: m[1].toLowerCase(), value: m[2].trim(), index: start + text.search(/\S/), stack: [...stack] };
+        }
+        if (ch === "}") stack.pop();
       }
+      start = i + 1;
     }
   }
-  check("motion waits for gate 4", problems, GATES.motion ? "gate 4 is open" : "");
+  const EASE_WORDS = /^(ease|ease-in|ease-out|ease-in-out|linear|step-start|step-end)$/i;
+  const LIST = MOTION.may.join(", ");
+  const allowed = (prop, p, selector) =>
+    MOTION.may.includes(prop) ||
+    MOTION.except.some((e) => e.props.includes(prop) && e.file.test(p) && (!e.selector || (selector !== null && e.selector.test(selector))));
+
+  /* the starter's own CSS (pwa/app.css) is app CSS that moves too */
+  const starterCss = readdirSync(join(ROOT, "pwa")).filter((n) => n.endsWith(".css")).map((n) => join(ROOT, "pwa", n));
+  for (const p of [...cssFiles, ...starterCss]) {
+    const s = stripStrings(stripUrls(files[p] ?? stripComments(read(p))));
+    const at = (i) => `${rel(p)}:${lineOf(s, i)}`;
+    const isFoundation = /tokens[\\/]foundation\.css$/.test(p);
+
+    /* literals: durations and curves live in foundation.css */
+    if (!isFoundation) {
+      for (const m of s.matchAll(/(?<![\w.#-])(\d*\.?\d+)(ms|s)(?![\w-])/gi)) {
+        if (+m[1] !== 0) problems.push(`${at(m.index)} literal "${m[0]}": durations come from var(--dur-*) in tokens/foundation.css`);
+      }
+      for (const m of s.matchAll(/\b(cubic-bezier|steps|linear)\(/gi)) {
+        problems.push(`${at(m.index)} "${m[0]}": easings come from var(--ease-*) in tokens/foundation.css`);
+      }
+    }
+
+    let moves = null; // the first transition, animation or @keyframes in the file
+    const kf = s.search(/@(?:-webkit-)?keyframes\b/);
+    if (kf >= 0) moves = { index: kf, what: "@keyframes" };
+
+    for (const d of declarations(s)) {
+      const { prop, value, index, stack } = d;
+      const keyframes = stack.find((b) => /^@(-webkit-)?keyframes\b/.test(b));
+      const selector = stack.filter((b) => !b.startsWith("@")).join(" ") || null;
+
+      if (keyframes) {
+        if (/^animation-(timing-function|composition)$/.test(prop)) {
+          /* per-keyframe easing: checked below like any other */
+        } else if (!allowed(prop, p, null)) {
+          problems.push(`${at(index)} ${keyframes} animates "${prop}": only ${LIST} move, or a named exception (check.mjs)`);
+          continue;
+        }
+      }
+      if (!/^(transition|animation)(-|$)/.test(prop)) continue;
+      if (!moves || index < moves.index) moves = { index, what: prop };
+
+      /* tokens only */
+      for (const v of value.matchAll(/var\(\s*(--[\w-]+)/g)) {
+        if (!/^--(dur|ease)-/.test(v[1])) problems.push(`${at(index)} ${prop} reads var(${v[1]}): durations and easings come from --dur-* and --ease-* only`);
+      }
+      const items = splitTop(value, ",");
+      if (/^(transition|animation)(-timing-function)?$/.test(prop)) {
+        for (const item of items) {
+          for (const t of splitTop(item, " ")) {
+            if (EASE_WORDS.test(t) && !(prop.startsWith("animation") && t.toLowerCase() === "linear")) {
+              problems.push(`${at(index)} easing "${t}" in ${prop}: use var(--ease-*)${prop.startsWith("transition") ? "" : " (or linear, for a continuous turn)"}`);
+            }
+          }
+        }
+      }
+
+      /* what moves */
+      if (prop === "transition-property") {
+        for (const name of items) {
+          if (name === "all") problems.push(`${at(index)} transition-property: all: name what moves (${LIST})`);
+          else if (name !== "none" && !allowed(name, p, selector)) {
+            problems.push(`${at(index)} "${name}" can't move: only ${LIST}, or a named exception (check.mjs)`);
+          }
+        }
+      }
+      if (prop === "transition") {
+        for (const item of items) {
+          const parts = splitTop(item, " ");
+          if (parts.length === 1 && parts[0] === "none") continue;
+          const names = parts.filter(
+            (t) =>
+              !/^(var|calc)\(/.test(t) &&
+              !/^-?\d*\.?\d+m?s$/i.test(t) &&
+              !EASE_WORDS.test(t) &&
+              !/^(cubic-bezier|steps|linear)\(/i.test(t) &&
+              !/^(allow-discrete|normal)$/.test(t),
+          );
+          if (!names.length) {
+            problems.push(`${at(index)} "transition: ${item}" names no property, so it moves all: name what moves`);
+            continue;
+          }
+          for (const name of names) {
+            if (name === "all") problems.push(`${at(index)} transition: all: name what moves (${LIST})`);
+            else if (!allowed(name, p, selector)) {
+              problems.push(`${at(index)} "${name}" can't move: only ${LIST}, or a named exception (check.mjs)`);
+            } else if (!MOTION.discrete.includes(name) && !parts.some((t) => /^var\(\s*--ease-/.test(t))) {
+              problems.push(`${at(index)} "${name}" moves with no easing: name a var(--ease-*), or CSS's own ease slips in`);
+            }
+          }
+        }
+      }
+    }
+
+    if (moves && !/@media[^{]*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/.test(s)) {
+      problems.push(`${at(moves.index)} "${moves.what}" moves things, but ${basename(p)} has no @media (prefers-reduced-motion: reduce) block`);
+    }
+  }
+  check("motion follows the rules", [...new Set(problems)], GATES.motion ? "gate 4 is open" : "");
 }
 
 /* ---- 6 layering -------------------------------------------------------------- */

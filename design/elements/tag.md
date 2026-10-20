@@ -1,6 +1,6 @@
 # Tag and Badge
 
-Element 04 · gates 0–3 done (wireframe, states, colour) · page: `elements/tag.html`
+Element 04 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/tag.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Tag and Badge's own spec.
@@ -25,6 +25,8 @@ Tag and Badge's own spec.
   ink card with no class.
 - The badge is decoration of a name, never the name: `aria-hidden`, always.
 - Badge lives in `tag.css` with the tag. Both are static status, and they share the rules.
+- **Nothing moves** (gate 4). Neither acts, so neither has a state to ease; a badge's count
+  changes at once. A badge on a pressed control keeps still while the control's fill eases.
 
 ## Anatomy
 

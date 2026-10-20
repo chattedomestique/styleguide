@@ -28,8 +28,10 @@
      title, press fills the row with ink, as the card's list rows do.
      No lift: a shadow would fall across the next row.
    · 1px rules divide (--bw-thin); only the inset frame is 2px (--bw).
-   · Reads roles only. :hover only inside @media (hover: hover). States
-     change instantly. Swipe is gate 4: the More button is the action.
+   · Reads roles only. :hover only inside @media (hover: hover).
+   · Motion (gate 4): a link row's fill eases in over --dur-press and out
+     over --dur-hover; the underline and the ring are instant. No swipe:
+     the More button is the action (elements/list.md says why).
    ========================================================================== */
 
 .list {
@@ -144,6 +146,7 @@
   color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
   background-color: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
   text-decoration: none;
+  transition: --fill var(--dur-hover) var(--ease-out);
 }
 
 /* a row with actions: the buttons after it bring their own room */
@@ -242,10 +245,20 @@ a.list__row:is(:active, .is-active) {
   --fill: 1;
   --card-ink: var(--paper);
   --card-bg: var(--ink);
+  transition-duration: var(--dur-press);
 }
 
 a.list__row:is(:active, .is-active) :is(.list__meta, .list__trail, .list__trail > .ic) {
   color: inherit;
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   Gentler, not instant: the fill keeps a short fade. */
+
+@media (prefers-reduced-motion: reduce) {
+  .list__row {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------

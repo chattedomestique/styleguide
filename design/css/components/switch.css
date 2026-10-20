@@ -27,7 +27,11 @@
      says on or off, and the name must not change with the state.
    · --fill is the track's ground (ink when on, or while pressed); the knob
      takes the other colour. --lift is a hard shadow: hover and focus.
-   · :hover only inside @media (hover: hover). States change instantly.
+   · :hover only inside @media (hover: hover).
+   · Motion (gate 4): the knob translates along its lane (never its layout
+     position), and the two numbers ease, as Button's do: --dur-hover, and
+     --dur-press as a press lands. The press stretch and the word are
+     instant. Reduced motion: the knob jumps and the fill fades.
    ========================================================================== */
 
 .switch {
@@ -93,12 +97,15 @@
   --lift: 0;
   --fill: 0;
   --shadow-lift: calc(var(--lift) * var(--bw)) calc(var(--lift) * var(--bw)) 0 0 var(--line);
+  --switch-track: 3.25rem;
+  --switch-on: 0; /* where the knob is: 0 at the start, 1 at the end */
+  --switch-dir: 1; /* translate is physical: -1 when the writing runs right to left */
 
   display: inline-grid;
   flex: none;
   align-items: center;
   justify-items: start;
-  inline-size: 3.25rem;
+  inline-size: var(--switch-track);
   block-size: 1.75rem;
   margin: 0;
   padding: var(--bw);
@@ -108,22 +115,34 @@
   box-shadow: var(--shadow-lift);
   -webkit-appearance: none;
   appearance: none;
+  transition:
+    --lift var(--dur-hover) var(--ease-out),
+    --fill var(--dur-hover) var(--ease-out);
 }
 
-/* the knob: a 20px circle in the other colour, at the start when off */
+.switch__input:dir(rtl) {
+  --switch-dir: -1;
+}
+
+/* the knob: a 20px circle in the other colour. It sits at the start of the
+   lane and travels by translate: the lane (the track less its frame and
+   padding) less the knob, so it ends flush whatever its width. */
 .switch__input::before {
+  --switch-knob: 1.25rem;
   content: "";
-  inline-size: 1.25rem;
+  inline-size: var(--switch-knob);
   block-size: 1.25rem;
   background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
   border-radius: var(--radius-pill);
+  translate: calc(var(--switch-dir) * var(--switch-on) * (var(--switch-track) - var(--bw) * 4 - var(--switch-knob))) 0;
+  transition: translate var(--dur-hover) var(--ease-out);
 }
 
 /* on: the track fills and the knob goes to the end (logical, so it follows
    the writing direction) */
 .switch__input:checked {
   --fill: 1;
-  justify-items: end;
+  --switch-on: 1;
 }
 
 /* help under the row, in line with the words */
@@ -157,16 +176,20 @@
 }
 
 /* pressed: down onto the page, the track fills, and the knob stretches
-   towards where it's going, as a thumb squashes it */
+   towards where it's going, as a thumb squashes it. The stretch is a width,
+   so it is instant, and an on knob keeps its end edge where it was (no
+   transition into the press); letting go, it slides. */
 .switch__label:active .switch__input:not(:disabled),
 .switch__input.is-active {
   --lift: 0;
   --fill: 1;
+  transition-duration: var(--dur-press);
 }
 
 .switch__label:active .switch__input:not(:disabled)::before,
 .switch__input.is-active::before {
-  inline-size: 1.625rem;
+  --switch-knob: 1.625rem;
+  transition: none;
 }
 
 /* disabled: dashed and faint, never faded; the help says why. Last. */
@@ -178,13 +201,28 @@
 }
 
 .switch__input:disabled::before {
-  inline-size: 1.25rem;
+  --switch-knob: 1.25rem;
   background: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink-faint));
 }
 
 .switch__label:has(.switch__input:disabled),
 .switch__input:disabled + .switch__state {
   color: var(--ink-faint);
+}
+
+/* --- reduced motion -----------------------------------------------------------
+   The knob doesn't travel: it is at the other end at once. The lift appears
+   without sliding out; the fill keeps a short fade. On and Off say it too. */
+
+@media (prefers-reduced-motion: reduce) {
+  .switch__input,
+  .switch__label:active .switch__input:not(:disabled) {
+    transition: --fill var(--dur-fade) var(--ease-out);
+  }
+
+  .switch__input::before {
+    transition: none;
+  }
 }
 
 /* --- forced colours ----------------------------------------------------------

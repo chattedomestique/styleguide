@@ -1,6 +1,6 @@
 # Flashcards style sheet
 
-v0.9 · colour stage · 27 of 27 elements through gate 3 · 2026-10-20
+v0.10 · motion stage · 27 of 27 elements through gate 4 · 2026-10-20
 
 The same system, two ways. **`index.html`** and the element pages in `elements/` are the ones
 to look at: live specimens, every state, the markup read straight off the page. **This file**
@@ -93,7 +93,7 @@ no `@import` chain to wait on. `css/flashcards.css` is its source. A served app 
 whitespace out, inside the budget in `elements/pwa.md`. Elements that need script
 (Field's clear button, Checkbox's "select all", Stepper's − and +, Form's error summary,
 Frame's measured `--chrome` and keyboard, Tabs' arrow keys, Dialog's opener and focus return,
-Toast's queue and timer, and the PWA platform's worker, bands, install, share and storage in
+Sheet's drag to dismiss, Toast's queue and timer, and the PWA platform's worker, bands, install, share and storage in
 `pwa.js`) ship
 it in `dist/flashcards.js`, built from `js/components/`: vanilla, no dependencies, and
 everything still works without it. The file tree is in
@@ -311,25 +311,76 @@ So `color.css` declares the light values plainly and the pairs inside
 `color-scheme: light` so native controls match, and check 9 makes sure the two agree. The block
 `accent.mjs` prints follows the same pattern.
 
-### Motion (gate 4: guidance, not shipped)
+### Motion
 
-Declared, not used. Every state changes instantly until gate 4, which is also the honest
-brutalist default. The tokens are there so gate 4 doesn't have to invent them:
-`--dur-press` 130ms · `--dur-hover` 200ms · `--dur-move` 520ms ·
-`--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)` · `--ease-flip` `cubic-bezier(0.83, 0, 0.17, 1)`.
+Gate 4. Motion explains a change; it never decorates and never delays one. `tokens/foundation.css`
+holds every duration and curve, and check 5 refuses a literal `ms`, `s` or `cubic-bezier()`
+anywhere else:
 
-- **Only `transform` and `opacity` move things.** Card states don't move: `--lift` draws a
-  shadow and `--fill` a colour, both registered numbers, so one `transition` covers hover,
-  focus and press.
-- **The flip:** `perspective` on the flip's direct parent, both faces hidden from behind
-  (`backface-visibility: hidden`), eased with `--ease-flip`.
-- **Reduced motion is gentler, not instant.** The flip becomes a crossfade of 150ms or less.
-  The lift keeps its shadow. Focus rings are always instant. No global kill switch: it would
-  delete the crossfade too.
-- **SwiftUI:** scoped `.animation(_:value:)` with
-  `.timingCurve(0.22, 1, 0.36, 1, duration: 0.2)` (our `--ease-out`), or
-  `.spring(duration: 0.2, bounce: 0)`. Transforms and opacity only. Never `Animation.bouncy`.
-  Reduce Motion turns the flip into a crossfade.
+| Token | Value | For |
+| --- | --- | --- |
+| `--dur-press` | 130ms | a press landing (`:active`) |
+| `--dur-hover` | 200ms | hover, focus and release: the state numbers settling; the Switch knob |
+| `--dur-move` | 520ms | something travelling: the flip, the Disclosure body and glyph |
+| `--dur-fade` | 150ms | reduced motion: the crossfade that stands in for a move |
+| `--ease-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | arrives fast, settles slowly: states, entrances |
+| `--ease-flip` | `cubic-bezier(0.83, 0, 0.17, 1)` | slow, fast, slow: the card turning over |
+
+Anything else is derived with `calc()`: the spinner turns once in two moves, at a constant
+`linear` rate (a turn that eased would look like it stalls); the loading delay is a hover and
+a half, 300ms.
+
+- **Only `transform` and `opacity` move things** (`translate`, `rotate` and `scale` are
+  transforms). States animate the two registered numbers, `--lift` (the hard shadow) and
+  `--fill` (the colour), so the hit box never moves. Overlays add `display` and `overlay` as
+  discrete properties for their exits. Never `all`, never layout, with two named exceptions:
+  Disclosure's body height through `interpolate-size` on `::details-content` (progressive), and
+  the study card's `visibility`, swapped halfway through the flip.
+- **States.** Every pressable element transitions `--lift` and `--fill`: in and out over
+  `--dur-hover`, and a press lands over `--dur-press` (the `:active` rule sets that duration, so
+  only the press is quicker). Letting go settles over `--dur-hover`, so even a quick tap is seen.
+  A colour change that isn't `--fill` (a hover frame, a doubled "here" frame) is instant.
+- **Focus rings are always instant.** A ring is an outline and nothing eases it.
+- **The flip.** A study card with both faces turns over on a native checkbox drawn as Button's
+  icon-only circle ("Show the answer"), so it needs no script and is announced: `perspective`
+  on the card, both faces `backface-visibility: hidden`, `--ease-flip` over `--dur-move`. The
+  face turned away is `visibility: hidden`, out of the accessibility tree and the Tab order,
+  swapped at the halfway point when both faces are edge-on (`elements/card.md`).
+- **What else moves:** the Switch knob translates; the Disclosure glyph turns half a turn and its
+  body opens where the browser can; the spinner turns while it's shown, after the loading
+  delay. Overlays (Dialog, Sheet, Menu, Toast) enter with `@starting-style` and leave with
+  `transition-behavior: allow-discrete`; each element's spec says how. A top bar with a large
+  heading fades its title in as the heading scrolls under it, and the starter crossfades
+  between screens.
+- **Not moving, decided:** the Sidebar folding (layout), the Segmented control's chosen segment
+  (a fill that crossfades, never a sliding thumb), the Tabs bar (it changes with the panel), List
+  swipe (the More button is the route), a Banner (a band pushing content down is layout), and
+  anything on load.
+- **Nothing moves on load, and nothing loops** except a spinner while it's shown. States are
+  transitions, which never run for the first style; a state set in markup (`.is-*`, `checked`,
+  `open`) is simply there. The Flip button has `autocomplete="off"`, so a reload never restores
+  a turned card.
+- **Reduced motion is gentler, not instant.** Under `prefers-reduced-motion: reduce` movement
+  becomes a crossfade of `--dur-fade` or nothing, and every file that moves anything has that
+  block (check 5). No global kill switch: it would delete the crossfades too.
+
+| Under reduced motion | What happens |
+| --- | --- |
+| States | The lift appears without sliding out; the fill fades over `--dur-fade`. |
+| The flip | No turn: the back fades in over the front, or out, over `--dur-fade`. |
+| Switch | The knob is at the other end at once; the track's fill fades. |
+| Disclosure | The glyph and the body change at once. |
+| Spinner | A slow turn, a third of the speed, not a pulse: a pulse is the ring going translucent for as long as the wait lasts (rule 2), and a blink is harder on the eyes than a small, slow turn. The words carry the meaning. The loading delay stays: it's timing, not movement. |
+| Overlays | A fade, no travel (each overlay's spec). |
+
+**SwiftUI.** Scoped `.animation(_:value:)`, never a global one. States:
+`.timingCurve(0.22, 1, 0.36, 1, duration: 0.2)` (our `--ease-out`), and `duration: 0.13` for
+`configuration.isPressed`, or `.spring(duration: 0.2, bounce: 0)`. The flip:
+`.rotation3DEffect(.degrees(flipped ? 180 : 0), axis: (x: 0, y: 1, z: 0), perspective: 0.4)` with
+`.timingCurve(0.83, 0, 0.17, 1, duration: 0.52)`, each face's opacity switched at 90° and
+`.accessibilityHidden(_:)` on the face turned away. `@Environment(\.accessibilityReduceMotion)` turns
+the flip into `.easeOut(duration: 0.15)` on opacity. Busy is the system's `ProgressView()`.
+Transforms and opacity only. Never `Animation.bouncy`.
 
 ### Icons
 
@@ -360,33 +411,33 @@ and the brief for each one, is in `elements/README.md`.
 
 | Element | Spec | Status |
 | --- | --- | --- |
-| Card | `elements/card.md` | Gates 0–3 |
-| Button | `elements/button.md` | Gates 0–3 |
-| Field | `elements/field.md` | Gates 0–3 |
-| Tag and Badge | `elements/tag.md` | Gates 0–3 |
-| Meter and Spinner | `elements/meter.md` | Gates 0–3 |
-| Icons | `elements/icons.md` | Gates 0–3 |
-| Checkbox | `elements/checkbox.md` | Gates 0–3 |
-| Radio | `elements/radio.md` | Gates 0–3 |
-| Switch | `elements/switch.md` | Gates 0–3 |
-| Segmented control | `elements/segmented.md` | Gates 0–3 |
-| Select | `elements/select.md` | Gates 0–3 |
-| Stepper | `elements/stepper.md` | Gates 0–3 |
-| Form | `elements/form.md` | Gates 0–3 |
-| Frame | `elements/frame.md` | Gates 0–3 |
-| Top bar | `elements/topbar.md` | Gates 0–3 |
-| Tab bar | `elements/tabbar.md` | Gates 0–3 |
-| Sidebar | `elements/sidebar.md` | Gates 0–3 |
-| List | `elements/list.md` | Gates 0–3 |
-| Tabs | `elements/tabs.md` | Gates 0–3 |
-| Disclosure | `elements/disclosure.md` | Gates 0–3 |
-| Menu | `elements/menu.md` | Gates 0–3 |
-| Dialog | `elements/dialog.md` | Gates 0–3 |
-| Sheet | `elements/sheet.md` | Gates 0–3 |
-| Toast | `elements/toast.md` | Gates 0–3 |
-| Banner | `elements/banner.md` | Gates 0–3 |
-| Empty, loading and error | `elements/states.md` | Gates 0–3 |
-| PWA platform | `elements/pwa.md` | Gates 0–3 |
+| Card | `elements/card.md` | Gates 0–4 |
+| Button | `elements/button.md` | Gates 0–4 |
+| Field | `elements/field.md` | Gates 0–4 |
+| Tag and Badge | `elements/tag.md` | Gates 0–4 |
+| Meter and Spinner | `elements/meter.md` | Gates 0–4 |
+| Icons | `elements/icons.md` | Gates 0–4 |
+| Checkbox | `elements/checkbox.md` | Gates 0–4 |
+| Radio | `elements/radio.md` | Gates 0–4 |
+| Switch | `elements/switch.md` | Gates 0–4 |
+| Segmented control | `elements/segmented.md` | Gates 0–4 |
+| Select | `elements/select.md` | Gates 0–4 |
+| Stepper | `elements/stepper.md` | Gates 0–4 |
+| Form | `elements/form.md` | Gates 0–4 |
+| Frame | `elements/frame.md` | Gates 0–4 |
+| Top bar | `elements/topbar.md` | Gates 0–4 |
+| Tab bar | `elements/tabbar.md` | Gates 0–4 |
+| Sidebar | `elements/sidebar.md` | Gates 0–4 |
+| List | `elements/list.md` | Gates 0–4 |
+| Tabs | `elements/tabs.md` | Gates 0–4 |
+| Disclosure | `elements/disclosure.md` | Gates 0–4 |
+| Menu | `elements/menu.md` | Gates 0–4 |
+| Dialog | `elements/dialog.md` | Gates 0–4 |
+| Sheet | `elements/sheet.md` | Gates 0–4 |
+| Toast | `elements/toast.md` | Gates 0–4 |
+| Banner | `elements/banner.md` | Gates 0–4 |
+| Empty, loading and error | `elements/states.md` | Gates 0–4 |
+| PWA platform | `elements/pwa.md` | Gates 0–4 |
 
 Every other element is listed, with its wave, in `elements/README.md`. This table grows as they
 pass gate 2.
@@ -445,7 +496,14 @@ starter app that installs and works offline (serve it with `node design/tools/se
 - **Overlays are native.** Dialogs and sheets are `<dialog>` with `showModal()`, opened by
   `commandfor` and `command="show-modal"`; `dialog.js` covers browsers without them and gives
   focus back where a click doesn't focus. A bottom sheet owns the bottom safe area, as a bar
-  does. Drag to dismiss waits for gate 4, so a sheet always shows Close.
+  does. They move in and out (Dialog fades and settles, a sheet comes from its own edge, the
+  scrim fades; under reduced motion, a fade), and nothing waits for the motion: focus, Escape
+  and `returnValue` are at once. A bottom sheet also drags down by its top bar to close
+  (`sheet.js`), but Close always stays.
+- **Moving between screens.** A multi-page app opts into cross-document view transitions in its
+  own CSS (the starter's `pwa/app.css`, `@layer app`): the screen crossfades within
+  `--dur-hover`, the Tab bar and the Sidebar are named (`tabbar`, `sidebar`) so they stay put,
+  and under reduced motion it's off. The style sheet's pages don't.
 - **Never blank.** Empty is a ghost card that offers the first step. Offline or error is a plain
   card that says what happened, with "Try again" in its foot.
 - **Text size follows the reader:** Dynamic Type is on (§2 Type). Test at the largest size.
@@ -454,7 +512,7 @@ starter app that installs and works offline (serve it with `node design/tools/se
   Not yet checked on a device.
 - **A budget, enforced.** `tools/bundle.mjs` writes `dist/flashcards.min.css` and
   `dist/flashcards.min.js`, which a served app links, prints gzipped sizes and fails over budget:
-  CSS at most 30 KB (about 13 now), JS at most 10 KB (about 6), the font at most 90 KB (88),
+  CSS at most 30 KB (about 15 now), JS at most 10 KB (about 7), the font at most 90 KB (88),
   preloaded with `crossorigin`. First load on a mid-range phone under 2.5 s to the largest paint,
   measured on a device; the worker makes later loads instant.
 
@@ -528,7 +586,7 @@ generate-a-design-system workflow or its scripts.
 
 | Skill | Load it | Take | Ignore |
 | --- | --- | --- | --- |
-| ui-ux-pro-max | For a final checklist pass on a finished screen, or to see if a choice is a named template in its `styles.csv`. | Touch targets, hover vs tap, viewport meta, readable sizes, no sideways scroll at 375 and 1440, stable hover, safe areas, `dvh`, overscroll, 8px between targets. | Its styles, palettes and pairings; floating navbars; glass; Tailwind-only rules; its icon-set picks; 150–300ms transitions before gate 4. |
+| ui-ux-pro-max | For a final checklist pass on a finished screen, or to see if a choice is a named template in its `styles.csv`. | Touch targets, hover vs tap, viewport meta, readable sizes, no sideways scroll at 375 and 1440, stable hover, safe areas, `dvh`, overscroll, 8px between targets. | Its styles, palettes and pairings; floating navbars; glass; Tailwind-only rules; its icon-set picks; durations outside the tokens. |
 | neobrutalist-web-designer | When a state must stay hard-edged (hover, pressed, selected), or to check nothing has gone soft or glassy. | Zero-blur shadows, opaque flat fills, a physical pressed state, focus visible in every state, its negatives (no blur, gradients or transparency). | 3–4px borders, shadows at rest, borders that grow with the breakpoint, the primary palette, its fonts, uppercase headings, `transition: all`. |
 | retro-css-architecture | Rarely: only when reorganising the entry stylesheet or the file layout. | One entry stylesheet every surface imports, semantic roles with a dark variant each, fixed px for line work. | Everything 8-bit (pixel fonts, pixelated images, pixel borders), Tailwind-first, `@import` of Google Fonts. |
 | typography | When changing type tokens, font files or loading, measure, or dark-mode type. | Size floors, line-height bands (body 1.5, headings 1.1–1.3, labels 1.2), caps tracking, 45–75ch, preload with `crossorigin`, smoothing on dark only, the dark weight drop. | Its font picks, serif + sans pairing, `vw`-fluid app sizes, the Tailwind sections. |
@@ -557,6 +615,17 @@ generate-a-design-system workflow or its scripts.
 
 ## 8. Changelog
 
+- **0.10.0** · 2026-10-20 · Wave 7, gate 4: motion for every element. Check 5 now enforces the
+  rules: only `transform`, `opacity`, `--lift`, `--fill`, `display` and `overlay` move (with two
+  named exceptions), token durations and easings only, and a reduced-motion block wherever
+  something animates. New token `--dur-fade` (150ms), the reduced-motion crossfade. States ease
+  their numbers; the study card flips on a native "Show the answer" checkbox, with the turned-away
+  face out of reach; the Disclosure glyph turns and its body opens where supported; the spinner
+  turns after the loading delay. Dialogs, sheets, menus and toasts enter with `@starting-style`
+  and leave with `allow-discrete`; a bottom sheet drags down to close (`sheet.js`); the toast
+  fades before it's removed; a top bar with a large heading fades its title in on scroll
+  (`.topbar--large`); the starter crossfades between screens (`pwa/app.css`). Under reduced
+  motion everything is a short fade or nothing.
 - **0.9.0** · 2026-10-20 · Wave 6, gate 3: colour and dark mode for every element.
   `tokens/color.css` replaces `color.wire.css`: a neutral grey ramp, black to white, and every
   role as a `light-dark()` pair (light values declared plainly first for older engines), with

@@ -1,6 +1,6 @@
 # Sidebar
 
-Element 17 · gates 0–3 done (wireframe, states, colour) · page: `elements/sidebar.html`
+Element 17 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/sidebar.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Sidebar's own spec.
@@ -77,6 +77,13 @@ A link's states are a quiet Button's (`button.md`).
 `.is-hover`, `.is-focus` and `.is-active` force a state for the page and for tests. They are not
 API.
 
+**Motion.** A link is a Button, so its lift and fill ease as Button's do (`--dur-hover`, a press
+`--dur-press`; under reduced motion the lift is instant and the fill fades). **Folding doesn't
+move, decided:** the sidebar's width is layout, and sliding it would push the content beside it
+sideways for the whole of the move, the one thing check 5 never allows. A slide made with a
+transform instead would cover the content, which this sidebar never does. So it folds and
+unfolds at once, and the toggle's glyph doesn't turn. Here, the doubled frame, is instant.
+
 ## Accessibility
 
 - A `<nav aria-label="Places">`. When the wide frame also holds a Tab bar with the same label,
@@ -108,7 +115,7 @@ API.
 - **Do** mark here on the deepest link that matches the screen: Shapes, not Decks, on a deck.
 - **Don't** mark here with a fill alone, a colour, or bold alone.
 - **Don't** put actions in the list; one Button can go in the foot.
-- **Don't** slide it in or out, or overlay it on the content: it appears in place until gate 4.
+- **Don't** slide it in or out, or overlay it on the content: it folds in place (Motion).
 
 ## Known limits
 

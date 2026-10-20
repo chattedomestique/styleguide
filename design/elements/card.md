@@ -1,6 +1,6 @@
 # Card
 
-Element 01 · gates 0–3 done (wireframe, states, colour) · page: `elements/card.html`
+Element 01 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/card.html`
 
 The rules, tokens and platforms that every element follows are in `../STYLE.md`. This file is
 the Card's own spec.
@@ -19,7 +19,8 @@ business. The slots `.card__ctl` and `.card__action` are where the Button elemen
 - **A card needs a width from its parent** (a grid cell, a block). `container-type:
   inline-size` means it has no intrinsic width, so it will collapse inside a shrink-wrapping
   flex row.
-- States change instantly (gate 4 owns transitions).
+- Motion (gate 4): the state numbers ease, the study card turns over, and nothing else moves.
+  Focus rings are instant. Each has its reduced-motion form (Motion, below).
 
 ## Anatomy
 
@@ -71,7 +72,7 @@ under Variants (2.1–2.8).
 | Row | `.card--row` + `.card__tile`, `.card__main`, `.card__trail` | A thing in a list. | Below 18rem the trail drops under the title (children move between grid cells; the card can't re-template itself). |
 | Link | `.card--link` + `.card__link` in the title | The whole card goes somewhere. | Eyebrow at the top, title group at the bottom. See below. |
 | Ghost | `.card--ghost` (the card is the `<a>` or `<button>`) | An empty slot that asks to be filled. | Dashed; firms up on hover and focus; its circle fills on press. |
-| Study | `.card--study` + `.card__head`, `.card__stage`, `.card__answer` | The flashcard. 5 / 7. | Static faces; the flip is gate 4. Fits a phone: `max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7)`, where Frame publishes `--chrome` (outside a Frame, set it). An 8rem floor (`min-inline-size: min(100%, 8rem)`) keeps it wide enough for its answer; below that the stage scrolls. |
+| Study | `.card--study` + `.card__head`, `.card__stage`, `.card__answer`; to turn over, `.card__flip`, `.card__turn`, `.card__face` | The flashcard. 5 / 7. | One face, or both and the Flip button (The flip, below). Fits a phone: `max-inline-size: min(22rem, (100svh - var(--chrome, 0px)) * 5 / 7)`, where Frame publishes `--chrome` (outside a Frame, set it). An 8rem floor (`min-inline-size: min(100%, 8rem)`) keeps it wide enough for its answer; below that the stage scrolls. |
 
 **Link card.** One anchor, inside the title; its `::after` is stretched over the whole card
 (`inset: -2px`, so it covers the border too), so there is exactly one tab stop, one
@@ -85,7 +86,7 @@ ring, not the anchor (`:has(.card__link:focus-visible)`; the anchor keeps its ow
 
 Two registered numbers drive the interaction: `--lift` (0 flat, 1 raised) and `--fill`
 (0 outline, 1 filled). Every state just sets them, so hover, focus and pressed share one
-definition, and gate 4 can animate both with a single `transition`. Lift is drawn by
+definition, and one `transition` eases both (Motion, below). Lift is drawn by
 `--shadow-lift`, a hard shadow of `calc(var(--lift) * var(--bw) * 2)` (4px) down and right in
 `--card-line`, behind `--shadow-select`.
 
@@ -112,6 +113,61 @@ definition, and gate 4 can animate both with a single `transition`. Lift is draw
 
 The `.is-hover`, `.is-focus`, `.is-active` and `.is-selected` classes force a state for
 documentation and tests. They are not API.
+
+## Motion
+
+Gate 4 (`STYLE.md` §2 Motion). Only the two numbers move, and the study card turns over.
+
+- **States.** `.card` transitions `--lift` and `--fill` over `--dur-hover` with `--ease-out`;
+  pressed (`:active`) lands over `--dur-press`, and letting go settles over `--dur-hover`, so a
+  quick tap is seen. The action circle, the bar control's box, list rows and foot links are
+  `--fill` too and ease the same way: the bar control's box fills, and rows and foot links swap
+  ink and paper, through `color-mix()` by `--fill`. A ghost's dashed-to-solid frame, the title's
+  underline and the focus ring are instant.
+- **Reduced motion.** The lift appears without sliding out; the fill fades over `--dur-fade`.
+
+## The flip
+
+A study card that holds both faces turns over. One `.card--study`, three new parts:
+
+```html
+<article class="card card--study">
+  <input class="btn btn--icon card__flip" type="checkbox" aria-label="Show the answer" autocomplete="off">
+  <div class="card__turn">
+    <div class="card__face">…head, stage, foot: the front…</div>
+    <div class="card__face">…head, stage, foot: the back…</div>
+  </div>
+</article>
+```
+
+| Part | Class | Spec |
+| --- | --- | --- |
+| Flip button | `.card__flip` | A native checkbox with `appearance: none`, drawn as Button's icon-only circle (`.btn btn--icon`) with `--icon-flip` in its `::before`. It sits on the page under the faces, so it reads the page's roles (ink and paper), not the card's tone, and its ring is `--focus`, 3px out. `aria-label="Show the answer"`: checked means the answer shows. `autocomplete="off"`, so a reload never restores a turned card. |
+| Turn | `.card__turn` | The part that turns: a grid with both faces in one cell, `transform-style: preserve-3d`, `transform: rotateY(180deg)` when the box is checked, `transition: transform var(--dur-move) var(--ease-flip)`. It carries the 5:7 floor (`aspect-ratio: var(--ratio-study)`); large text still makes it taller. |
+| Face | `.card__face` | The card's frame (`2px var(--card-line)`, `--card-bg`, clipped) and its parts, drawn on one side, `backface-visibility: hidden`. The second face is the back, set at `rotateY(180deg)`. |
+
+- **How it's read.** The card answers `:has(> .card__flip:checked)`: no script, so it works with
+  JavaScript off, and the checkbox gives Space, a click and the announcement ("Show the answer,
+  checkbox, checked") for free.
+- **The card holds the size.** It keeps `.card--study`'s floor and its fit to the screen, less
+  the room for the button: `max-inline-size: min(22rem, (100svh - var(--chrome, 0px) - var(--card-flip-room)) * 5 / 7)`,
+  where `--card-flip-room` is the button and its gap (`--hit` plus 12px). It lends the
+  `perspective` (60rem: a gentle one) and draws no frame of its own: the faces do, so the frame
+  turns with the card. It doesn't clip, so the near edge isn't cut as it swings out.
+- **The Flip button never turns and never hides,** so focus stays on it through the turn and
+  after. It is first in the source, so a screen reader meets it and then the face that shows;
+  after a turn the answer follows it. It is drawn under the faces, centred, on the axis they turn
+  about, so the card never turns away from under it.
+- **The face turned away is out of reach.** It is `visibility: hidden`: out of the accessibility
+  tree, out of the Tab order and not clickable. The swap is a transition with a delay of half
+  `--dur-move` (`transition: visibility 0s calc(var(--dur-move) / 2)`), so it happens when both
+  faces are edge-on and neither can be seen. `inert` would do the same, but only from script.
+- **Reduced motion.** No turn. The back lies on top of the front and fades in or out over
+  `--dur-fade`, so the page never shows through; the face coming in joins the accessibility tree
+  at once, and the face going away leaves it when the fade ends.
+- **Copy.** The front keeps its hint ("Turn over"); the button is named for what it shows.
+- The static Front and Back pictures on the page are one-face study cards, as before, and
+  `screens.html` still uses one face.
 
 ## Collections
 
@@ -176,6 +232,8 @@ Cards answer to their own width, not the window:
   Colours".
 - Every gesture (swipe, long-press) also has a visible button. Hints name the action, not the
   input: "Turn over", not "Tap to flip".
+- The flip: the Flip button is a real checkbox with a name, focus never leaves it, and the face
+  turned away is hidden from assistive tech and from Tab (The flip).
 - Forced-colours mode is handled (see States).
 
 ## Do and don't
@@ -195,7 +253,11 @@ Cards answer to their own width, not the window:
   the card clips at its padding box. Safari ignores it, leaving a 2px band at the very edge
   of a link card where a click does nothing.
 - Text inside a link card can't be selected by dragging, because the stretched link sits on top.
-- The study card has static faces only. The flip is gate 4.
+- The flip needs `:has()` and 3D transforms. Without `:has()` the two faces stack, front then
+  back, and the answer shows; the button does nothing.
+- Chromium was checked; Safari's 3D compositing of a clipped face inside `preserve-3d` wasn't.
+- A screen reader is told the box is checked; it isn't told the answer arrived. The answer is
+  next in reading order, after the button.
 - Needs a 2024-era browser: container queries, `:has()`, `@property`, `color-mix()`, cascade
   layers. Chrome/Edge 114+, Safari 16.4+, Firefox 128+. `text-wrap: balance | pretty` and
   `overflow-clip-margin` degrade gracefully.

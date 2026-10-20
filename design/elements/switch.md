@@ -1,6 +1,6 @@
 # Switch
 
-Element 09 · gates 0–3 done (wireframe, states, colour) · page: `elements/switch.html`
+Element 09 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/switch.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Switch's own spec.
@@ -33,7 +33,8 @@ Switch's own spec.
   name ("Daily reminder") must not change with the state.
 - `--fill` is the track's ground (ink when on, or while pressed); the knob takes the other
   colour. `--lift` is a 2px hard shadow: hover and focus.
-- Reads roles only. States change instantly. `:hover` only inside `@media (hover: hover)`.
+- Reads roles only. `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): the knob translates, and the two numbers ease (Motion, below).
 
 ## Anatomy
 
@@ -83,13 +84,26 @@ Two, both the settings row. Shown live, with markup, in `elements/switch.html` (
 | Hover | `.switch__label:hover` on an enabled control, only inside `@media (hover: hover)` | 1 | – | Anywhere on the row: a 2px hard shadow under the track. |
 | Focus | `:focus-visible` | 1 | – | The hover look plus base.css's ring, which follows the pill. |
 | On | `:checked` | – | 1 | Ink track, paper knob at the end, "On". |
-| Pressed | `.switch__label:active` on an enabled control | 0 | 1 | Down, inked, and the knob stretches to 26px towards where it's going, as a thumb squashes it. |
+| Pressed | `.switch__label:active` on an enabled control | 0 | 1 | Down, inked, and the knob stretches to 26px towards where it's going, as a thumb squashes it. An on knob keeps its end edge where it was. |
 | Disabled | `:disabled` | 0 | – | Dashed `--ink-faint` frame; the knob goes faint (off) or the track does (on); the words and the state go faint; the help says why. |
 | Invalid | – | | | None. A switch has no wrong answer; anything that can be wrong belongs in a form, with a checkbox. |
 | Forced colours | `(forced-colors: active)` | | | The track opts out and paints system colours: off is a `CanvasText` frame and knob on `Canvas`; on is a `Highlight` track with a `HighlightText` knob at the end; hover and press on an off switch turn the frame `Highlight`; the ring is `CanvasText`; disabled is `GrayText` with the knob still at its end. |
 
 `.is-hover`, `.is-focus` and `.is-active` on the input force a state for the page and for
 tests. They are not API.
+
+**Motion.** The knob translates; it is never re-laid out. It sits at the start of its lane and
+moves by `translate: calc(var(--switch-dir) * var(--switch-on) * (var(--switch-track) - 4 * var(--bw) - var(--switch-knob))) 0`:
+the lane (the 52px track less its 2px frame and 2px padding each side) less the knob, so it ends
+flush whatever its width. `--switch-on` is 0 or 1 (`:checked`); `--switch-dir` is −1 under
+`:dir(rtl)`, because `translate` is physical. It slides over `--dur-hover` with `--ease-out`.
+The press stretch is a width, so it's instant, and it has no transition into it, so an on knob
+re-anchors its end edge at once instead of overshooting; letting go, it slides. The track's
+`--lift` and `--fill` ease as Button's do (a press over `--dur-press`). On and Off change at
+once: they say the state, and words never fade between meanings.
+
+Under reduced motion the knob doesn't travel: it is at the other end at once. The lift appears at
+once and the fill fades over `--dur-fade`; the words say it either way.
 
 ## Accessibility
 
@@ -131,9 +145,8 @@ tests. They are not API.
 
 ## Known limits
 
-- The knob is placed with `justify-items`, not a transform, so it follows the writing direction
-  for free. Gate 4, which can only move things with `transform`, will need a `translate` and an
-  RTL rule instead.
+- The knob travels with `translate`, which is physical, so right-to-left needs `:dir(rtl)`
+  (Chrome 120, Safari 16.4, Firefox). Without it an RTL knob would slide the wrong way.
 - The disabled row's faint words use `:has()`. Without it the words stay ink; the dashed track
   and the help still show it.
 - Checked in Chromium only (with touch and forced-colours emulation), not on an iPhone, in

@@ -34,7 +34,8 @@ works offline, and the console shows one error per page: a browser won't preload
    bundle, change `VERSION` by hand on every release.
 5. Every new page gets the head these pages have: the viewport meta, the `color-scheme` meta
    (`light dark`), the two `theme-color` metas
-   (light, then dark, each with its `media`; the bundle rewrites both), the `flashcards-sw` meta, the manifest, the icons, the font preload and the `touchstart` line.
+   (light, then dark, each with its `media`; the bundle rewrites both), the `flashcards-sw` meta, the manifest, the icons, the font preload, `app.css` and the
+   `touchstart` line.
 
 | File | What it is |
 | --- | --- |
@@ -43,6 +44,7 @@ works offline, and the console shows one error per page: a browser won't preload
 | `app.js` | The starter's own code, to replace. |
 | `sw.js` | The worker: shell cache first, the rest stale-while-revalidate, other origins untouched. |
 | `manifest.webmanifest` | Name, scope, colours, icons, shortcuts, screenshots. |
+| `app.css` | The starter's own CSS (`@layer app`): view transitions between the screens. |
 | `icons/` | `icon.svg` (master), `icon-maskable.svg`, and the PNGs rendered from them. |
 
 Reminders: the Settings card asks for notification permission and handles "no", but the

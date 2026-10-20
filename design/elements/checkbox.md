@@ -1,6 +1,6 @@
 # Checkbox
 
-Element 07 · gates 0–3 done (wireframe, states, colour) · page: `elements/checkbox.html`
+Element 07 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/checkbox.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Checkbox's own spec.
@@ -34,7 +34,8 @@ Checkbox's own spec.
 - **The box sits in the label's padding,** absolutely placed on the first line. The words are
   plain inline text, so they wrap under themselves and a count or a `<b>` inside them needs no
   wrapper.
-- Reads roles only. States change instantly. `:hover` only inside `@media (hover: hover)`.
+- Reads roles only. `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): the two numbers ease; the glyph and the ring are instant (Motion, below).
 
 ## Anatomy
 
@@ -109,6 +110,12 @@ share of its size as a 44px button's 4px. Box-shadow order: `--shadow-press`,
 
 `.is-hover`, `.is-focus` and `.is-active` on the input force a state for the page and for
 tests. They are not API.
+
+**Motion.** The box transitions `--lift` and `--fill` over `--dur-hover` with `--ease-out`, and
+a press lands over `--dur-press`, as Button's does: hover lifts the box, a press inks it,
+letting go settles. The check and the minus appear the moment the state is true, and the ring
+is instant: the answer to "is it on?" never waits for an ease. Under reduced motion the lift is
+instant and the fill fades over `--dur-fade`.
 
 ## Accessibility
 

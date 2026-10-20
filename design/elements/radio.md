@@ -1,6 +1,6 @@
 # Radio
 
-Element 08 · gates 0–3 done (wireframe, states, colour) · page: `elements/radio.html`
+Element 08 · gates 0–4 done (wireframe, states, colour, motion) · page: `elements/radio.html`
 
 The rules, tokens and platforms every element follows are in `../STYLE.md`. This file is the
 Radio's own spec.
@@ -28,7 +28,8 @@ Radio's own spec.
   `--fill` inks the circle only while it's pressed. Chosen is the dot: a shape, not a colour.
 - **Same geometry as the checkbox** (`elements/checkbox.md`): the circle sits in the label's
   padding on the first line of the words, so a form's boxes and circles line up.
-- Reads roles only. States change instantly. `:hover` only inside `@media (hover: hover)`.
+- Reads roles only. `:hover` only inside `@media (hover: hover)`.
+- Motion (gate 4): the two numbers ease; the dot and the ring are instant (Motion, below).
 
 ## Anatomy
 
@@ -89,6 +90,12 @@ Two, both groups. Shown live, with markup, in `elements/radio.html` (2.1–2.2).
 
 `.is-hover`, `.is-focus` and `.is-active` on the input force a state for the page and for
 tests. They are not API.
+
+**Motion.** The circle transitions `--lift` and `--fill` over `--dur-hover` with `--ease-out`,
+and a press lands over `--dur-press`, as Button's does: the press inks the circle, letting go
+settles it. The dot appears the moment the choice is made and doesn't grow or travel between
+options; the ring is instant. Under reduced motion the lift is instant and the fill fades over
+`--dur-fade`.
 
 ## Accessibility
 
