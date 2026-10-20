@@ -35,8 +35,9 @@ adds them.
    `popover` and `<details>` before script. ARIA only where HTML has no element. Where an
    element really needs script, it goes in `js/components/<name>.js`: vanilla, no
    dependencies, progressive enhancement, under about 100 lines.
-6. Every id on the page starts with the element's name (`button-variants`), because the bundle
-   joins every page into one, and the page's `<main>` is `<main id="el-<name>">`.
+6. Every id on the page carries the element's name (`button-variants`, `h-button-variants`),
+   because the bundle joins every page into one, and the page's `<main>` is
+   `<main id="el-<name>">`.
 7. Only the variants in the brief. Anything you think is missing goes in your report, not into
    the code.
 8. Real copy from the product (decks, shapes, cards known, streaks). No lorem ipsum.
@@ -71,11 +72,11 @@ Platforms (PWA, Mac, SwiftUI), Do and don't, Known limits.
 | # | Element | Wave | Status |
 | --- | --- | --- | --- |
 | 01 | Card | | Gates 0–2 |
-| 02 | Button | 1 | Brief |
-| 03 | Field | 1 | Brief |
-| 04 | Tag and Badge | 1 | Brief |
-| 05 | Meter and Spinner | 1 | Brief |
-| 06 | Icons | 1 | Brief |
+| 02 | Button | 1 | Gates 0–2 |
+| 03 | Field | 1 | Gates 0–2 |
+| 04 | Tag and Badge | 1 | Gates 0–2 |
+| 05 | Meter and Spinner | 1 | Gates 0–2 |
+| 06 | Icons | 1 | Gates 0–2 |
 | 07 | Checkbox | 2 | Brief |
 | 08 | Radio | 2 | Brief |
 | 09 | Switch | 2 | Brief |
@@ -160,7 +161,7 @@ starts.
   - It doesn't act, so rule 3 makes it square, not a pill. Label type, one to two words.
   - Variants: default, ink (emphasis), tone 1–6.
   - Copy: Known, New, Due, Not yet.
-  - It replaces the kit's `.wf-pill`.
+  - It replaces the kit's pill stand-in.
 - **Badge:** a count pinned to a control, such as a tab or an icon button.
   - At least 20px, ink fill, tabular figures, capped at "99+".
   - The count lives in the control's accessible name ("Decks, 7 due"); the badge itself is
@@ -179,7 +180,7 @@ long.*
   - Each has a visible label and value text; the bar never stands alone.
   - The spinner is static until gate 4 gives it motion, so design the still frame to read on
     its own.
-  - Meter replaces the kit's `.wf-meter`.
+  - Meter replaces the kit's meter stand-in.
 
 **06 Icons** (`icons`). *The glyph set.*
 
@@ -277,8 +278,9 @@ long.*
 
 **22 Dialog:**
 - Native `<dialog>` with `showModal()`: stop and decide.
-- The backdrop needs a decision first: rule 2 bans translucency, and a dimmed scrim is
-  translucent. The owner chooses before this wave starts.
+- Backdrop, decided by the owner: a flat ink layer at a fixed 60% opacity, through a new
+  `--scrim` role. It is the one translucency the system allows, and rule 2 gains that
+  exception in this wave. The page reads as "still there, but not now".
 
 **23 Sheet:**
 - A task on top of a screen: from the bottom on a phone, from the side on wide screens.

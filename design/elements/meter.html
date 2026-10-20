@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meter and Spinner · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Meter and Spinner element of the Flashcards design system: how far along, and working on it."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#meter-variants">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Meter and Spinner</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#meter-variants">Variants</a></li>
+            <li><a href="#meter-states">States</a></li>
+            <li><a href="#meter-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Meter and Spinner · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-meter">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 05</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Meters</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            How far along, and “working on it” when nobody knows how long. A bar never stands
+            alone: it always comes with a name and the amount in words.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="meter-variants" aria-labelledby="h-meter-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-meter-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Three bars, one look: a square 2px frame filled from the start edge, the name on the
+            left, the amount on the right. Which one is a question of meaning, not looks.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="meter-meter">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Meter</h3>
+            <p class="sg-entry__use">A value in a range: how much of a deck you know.</p>
+            <p class="sg-entry__classes">
+              <code>.meter</code> <code>.meter__bar</code> <code>role="meter"</code>
+            </p>
+            <p class="sg-entry__note">
+              The bar is labelled by the name and speaks its <code>aria-valuetext</code>, the same
+              words you see. So the visible amount is <code>aria-hidden</code> and is heard once.
+              <code>--value</code> sets the fill. It replaced the wireframe kit's stand-in.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem">
+            <div class="meter" data-sg-code>
+              <span class="meter__label" id="meter-shapes">Shapes</span>
+              <span class="meter__value" aria-hidden="true">5 of 12 known</span>
+              <div
+                class="meter__bar"
+                role="meter"
+                aria-labelledby="meter-shapes"
+                aria-valuemin="0"
+                aria-valuemax="12"
+                aria-valuenow="5"
+                aria-valuetext="5 of 12 known"
+                style="--value: 41.67%"
+              ></div>
+            </div>
+            <article class="card" data-tone="1">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 55 cards</p>
+                <h4 class="card__title">All decks</h4>
+                <div class="meter">
+                  <span class="meter__label" id="meter-all">Known</span>
+                  <span class="meter__value" aria-hidden="true">31 of 55</span>
+                  <div
+                    class="meter__bar"
+                    role="meter"
+                    aria-labelledby="meter-all"
+                    aria-valuemin="0"
+                    aria-valuemax="55"
+                    aria-valuenow="31"
+                    aria-valuetext="31 of 55 known"
+                    style="--value: 56.36%"
+                  ></div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </article>
+
+        <!-- 1.2 -->
+        <article class="sg-entry" id="meter-progress">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">Progress</h3>
+            <p class="sg-entry__use">A task that will finish: an import, a download.</p>
+            <p class="sg-entry__classes">
+              <code>.progress</code> <code>.progress__bar</code> <code>&lt;progress&gt;</code>
+            </p>
+            <p class="sg-entry__note">
+              The native element, labelled with a real <code>&lt;label&gt;</code>, drawn like the
+              meter. Always with a value: a task with no known length gets the spinner, never an
+              empty bar.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem">
+            <div class="progress" data-sg-code>
+              <label class="progress__label" for="meter-import">Importing</label>
+              <span class="progress__value" aria-hidden="true">40 of 120 cards</span>
+              <progress
+                class="progress__bar"
+                id="meter-import"
+                max="120"
+                value="40"
+                aria-valuetext="40 of 120 cards"
+              >40 of 120 cards</progress>
+            </div>
+            <article class="card" data-tone="ink">
+              <div class="card__body">
+                <p class="card__eyebrow">From a file</p>
+                <h4 class="card__title">Farm animals</h4>
+                <div class="progress">
+                  <label class="progress__label" for="meter-import-farm">Importing</label>
+                  <span class="progress__value" aria-hidden="true">90 of 120 cards</span>
+                  <progress
+                    class="progress__bar"
+                    id="meter-import-farm"
+                    max="120"
+                    value="90"
+                    aria-valuetext="90 of 120 cards"
+                  >90 of 120 cards</progress>
+                </div>
+              </div>
+            </article>
+          </div>
+        </article>
+
+        <!-- 1.3 -->
+        <article class="sg-entry" id="meter-segments">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">Segments</h3>
+            <p class="sg-entry__use">A short deck, one box per card.</p>
+            <p class="sg-entry__classes">
+              <code>.meter--segments</code> <code>.meter__seg</code>
+            </p>
+            <p class="sg-entry__note">
+              Up to 20 cards; past that, use the meter. The boxes fill from
+              <code>aria-valuenow</code>, so the number a screen reader hears is the number you
+              see. One empty <code>.meter__seg</code> per card.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem">
+            <div class="meter meter--segments" data-sg-code>
+              <span class="meter__label" id="meter-colours">Colours</span>
+              <span class="meter__value" aria-hidden="true">3 of 8 known</span>
+              <div
+                class="meter__bar"
+                role="meter"
+                aria-labelledby="meter-colours"
+                aria-valuemin="0"
+                aria-valuemax="8"
+                aria-valuenow="3"
+                aria-valuetext="3 of 8 known"
+              >
+                <i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i>
+              </div>
+            </div>
+            <div class="meter meter--segments">
+              <span class="meter__label" id="meter-numbers">Numbers to twenty</span>
+              <span class="meter__value" aria-hidden="true">11 of 20 known</span>
+              <div
+                class="meter__bar"
+                role="meter"
+                aria-labelledby="meter-numbers"
+                aria-valuemin="0"
+                aria-valuemax="20"
+                aria-valuenow="11"
+                aria-valuetext="11 of 20 known"
+              >
+                <i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.4 -->
+        <article class="sg-entry" id="meter-spinner">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.4</p>
+            <h3 class="sg-entry__name">Spinner</h3>
+            <p class="sg-entry__use">Working on it, for a wait nobody can measure.</p>
+            <p class="sg-entry__classes"><code>.spinner</code> <code>role="status"</code></p>
+            <p class="sg-entry__note">
+              A still frame until gate 4: an open ring on the icon grid, a quarter missing. The
+              words go inside it, so the two can't come apart. Empty, it is the glyph alone, for a
+              busy button whose label is the words.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 14rem">
+            <div>
+              <p class="spinner" role="status" data-sg-code>Loading decks…</p>
+            </div>
+            <article class="card" data-tone="ink">
+              <div class="card__body">
+                <p class="spinner" role="status">Checking for a new version…</p>
+              </div>
+            </article>
+            <div>
+              <button class="btn btn--primary" type="button" aria-busy="true" data-sg-code>
+                <span class="spinner" aria-hidden="true"></span>Add a shape
+              </button>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="meter-states" aria-labelledby="h-meter-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-meter-states">States</h2>
+          <p class="sg-sec__note">
+            Nothing here acts, so there is no hover, focus or press. What changes is the amount:
+            empty, part of the way, and done, each said in words. Progress has the same three; the
+            spinner has one.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="meter">
+              <span class="meter__label" id="meter-st-0">Shapes</span>
+              <span class="meter__value" aria-hidden="true">None known yet</span>
+              <div class="meter__bar" role="meter" aria-labelledby="meter-st-0" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0" aria-valuetext="None of 12 known yet" style="--value: 0%"></div>
+            </div>
+            <p class="sg-caption"><b>Empty.</b> The frame alone, and words that say so.</p>
+          </div>
+          <div>
+            <div class="meter">
+              <span class="meter__label" id="meter-st-5">Shapes</span>
+              <span class="meter__value" aria-hidden="true">5 of 12 known</span>
+              <div class="meter__bar" role="meter" aria-labelledby="meter-st-5" aria-valuemin="0" aria-valuemax="12" aria-valuenow="5" aria-valuetext="5 of 12 known" style="--value: 41.67%"></div>
+            </div>
+            <p class="sg-caption"><b>Part of the way.</b> Filled from the start edge.</p>
+          </div>
+          <div>
+            <div class="meter">
+              <span class="meter__label" id="meter-st-12">Shapes</span>
+              <span class="meter__value" aria-hidden="true">All 12 known</span>
+              <div class="meter__bar" role="meter" aria-labelledby="meter-st-12" aria-valuemin="0" aria-valuemax="12" aria-valuenow="12" aria-valuetext="All 12 known" style="--value: 100%"></div>
+            </div>
+            <p class="sg-caption"><b>Done.</b> Solid, and the words change too.</p>
+          </div>
+          <div>
+            <div class="meter meter--segments">
+              <span class="meter__label" id="meter-sg-0">Colours</span>
+              <span class="meter__value" aria-hidden="true">None known yet</span>
+              <div class="meter__bar" role="meter" aria-labelledby="meter-sg-0" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0" aria-valuetext="None of 8 known yet">
+                <i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i><i class="meter__seg"></i>
+              </div>
+            </div>
+            <p class="sg-caption"><b>Segments, empty.</b></p>
+          </div>
+          <div>
+            <div class="progress">
+              <label class="progress__label" for="meter-st-import">Imported</label>
+              <span class="progress__value" aria-hidden="true">120 of 120 cards</span>
+              <progress class="progress__bar" id="meter-st-import" max="120" value="120" aria-valuetext="120 of 120 cards">120 of 120 cards</progress>
+            </div>
+            <p class="sg-caption"><b>Progress, done.</b> The label turns past tense.</p>
+          </div>
+          <div>
+            <p class="spinner" role="status">Loading decks…</p>
+            <p class="sg-caption"><b>Spinner.</b> One state, until gate 4 turns it.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="meter-usage" aria-labelledby="h-meter-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-meter-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Name what's measured and say the amount the way a person would: "5 of 12 known", not
+              "42%". If you can count it, show progress, not a spinner.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't show a bar without its words, a spinner without its words, or a meter where a
+              number alone would do. Don't use segments past 20 cards.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Offline, nothing loads from the network: say what's on the device instead of spinning.
+              A long import keeps its progress on screen, so a person can leave and come back.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              <code>ProgressView(value:total:)</code> with a custom style for progress,
+              <code>Gauge</code> for a meter. In system chrome the system spinner stays; in content,
+              this ring, always with a <code>Text</code>.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Meter and Spinner</span>
+      <span>Spec: design/elements/meter.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

@@ -230,7 +230,7 @@
 /* a foot link is the card's main action: a full 44px target. The negative
    margins spend the foot's own padding (and its rule) so the foot stays 44px,
    and keep its text in line with the rest when it wraps. */
-.card__foot :is(a, button):not(.card__action) {
+.card__foot :is(a, button):not(.card__action, .btn) {
   display: inline-flex;
   align-items: center;
   min-block-size: var(--hit);
@@ -240,7 +240,7 @@
 }
 
 /* its bottom edge is the card's clip edge, so the ring goes inside */
-.card__foot :is(a, button):not(.card__action):focus-visible {
+.card__foot :is(a, button):not(.card__action, .btn):focus-visible {
   outline-offset: calc(var(--ring) * -1);
 }
 
@@ -362,6 +362,16 @@
 
   .card--row .card__tile {
     grid-row: span 2;
+  }
+}
+
+/* narrower still, which at large text sizes is a phone: the tile goes on top
+   and every part spans the full row, so the title gets the whole width
+   instead of one letter per line. em, so the threshold grows with the text. */
+@container card (max-width: 12em) {
+  .card--row :is(.card__tile, .card__main, .card__trail) {
+    grid-column: 1 / -1;
+    grid-row: auto;
   }
 }
 
@@ -525,7 +535,7 @@
 }
 
 .card__list a:active,
-.card__foot :is(a, button):not(.card__action):active {
+.card__foot :is(a, button):not(.card__action, .btn):active {
   color: var(--card-bg);
   background: var(--card-ink);
 }

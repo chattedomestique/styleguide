@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tag and Badge · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Tag and Badge element of the Flashcards design system: a status word on a thing, a count on a control."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#tag-variants">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Tag and Badge</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#tag-variants">Variants</a></li>
+            <li><a href="#tag-states">States</a></li>
+            <li><a href="#tag-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Tag and Badge · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-tag">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 04</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display">Tags</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            A tag is a status word on a thing. A badge is a count on a control. Neither can be
+            pressed, so neither is round.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tag-variants" aria-labelledby="h-tag-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-tag-variants">Variants</h2>
+          <p class="sg-sec__note">
+            Tags take the system's tones: none, <code>ink</code>, or <code>1</code> to
+            <code>6</code>. The badge has one look: an ink square with a number in it.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="tag-default">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Tag</h3>
+            <p class="sg-entry__use">Where a card stands: known, new, due, not yet.</p>
+            <p class="sg-entry__classes"><code>.tag</code></p>
+            <p class="sg-entry__note">
+              A square 2px frame around one or two words in label type. The markup stays sentence
+              case ("Not yet"); the capitals are CSS, so a screen reader says the words, not the
+              letters. It replaced the wireframe kit's stand-in.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <p style="display: flex; flex-wrap: wrap; gap: var(--space-2)">
+              <span class="tag" data-sg-code>Known</span>
+              <span class="tag" data-sg-code>New</span>
+              <span class="tag" data-sg-code>Due</span>
+              <span class="tag" data-sg-code>Not yet</span>
+            </p>
+          </div>
+        </article>
+
+        <!-- 1.2 -->
+        <article class="sg-entry" id="tag-ink">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">Ink</h3>
+            <p class="sg-entry__use">The one status on the screen that has to be seen first.</p>
+            <p class="sg-entry__classes"><code>data-tone="ink"</code></p>
+            <p class="sg-entry__note">
+              The surface's ink and fill swap, so on an ink card it turns paper instead of
+              vanishing. Use it sparingly: if every tag is ink, none is.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <p style="display: flex; flex-wrap: wrap; gap: var(--space-2)">
+              <span class="tag" data-tone="ink" data-sg-code>Due</span>
+              <span class="tag">Known</span>
+              <span class="tag">Known</span>
+            </p>
+          </div>
+        </article>
+
+        <!-- 1.3 -->
+        <article class="sg-entry" id="tag-tones">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">Tones</h3>
+            <p class="sg-entry__use">Six fill slots, waiting for the palette.</p>
+            <p class="sg-entry__classes"><code>data-tone="1"</code> … <code>"6"</code></p>
+            <p class="sg-entry__note">
+              Rhythm, not meaning. The word says "Due"; a tone never says it alone. Text and frame
+              take the slot's own ink, <code>--on-tone-N</code>.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <p style="display: flex; flex-wrap: wrap; gap: var(--space-2)">
+              <span class="tag" data-tone="1" data-sg-code>New</span>
+              <span class="tag" data-tone="2">New</span>
+              <span class="tag" data-tone="3">Due</span>
+              <span class="tag" data-tone="4">Due</span>
+              <span class="tag" data-tone="5">Known</span>
+              <span class="tag" data-tone="6" data-sg-code>Not yet</span>
+            </p>
+          </div>
+        </article>
+
+        <!-- 1.4 -->
+        <article class="sg-entry" id="tag-in-a-row">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.4</p>
+            <h3 class="sg-entry__name">On a row card</h3>
+            <p class="sg-entry__use">Where tags live most: the end of a row.</p>
+            <p class="sg-entry__classes"><code>.tag</code> <code>.card__trail</code></p>
+            <p class="sg-entry__note">
+              The recent-cards list from the Mac screen, with real tags where the kit had its
+              placeholder pill.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-stack">
+              <article class="card card--row" data-sg-code>
+                <span class="card__tile wf-media" data-tone="1" aria-hidden="true"></span>
+                <div class="card__main">
+                  <h4 class="card__title">Hexagon</h4>
+                  <p class="card__meta">Shapes · card 6</p>
+                </div>
+                <div class="card__trail">
+                  <span class="tag">Not yet</span>
+                  <p class="card__meta">2 min ago</p>
+                </div>
+              </article>
+              <article class="card card--row">
+                <span class="card__tile wf-media" data-tone="1" aria-hidden="true"></span>
+                <div class="card__main">
+                  <h4 class="card__title">Pentagon</h4>
+                  <p class="card__meta">Shapes · card 5</p>
+                </div>
+                <div class="card__trail">
+                  <span class="tag">Known</span>
+                  <p class="card__meta">4 min ago</p>
+                </div>
+              </article>
+              <article class="card card--row">
+                <span class="card__tile wf-media" data-tone="2" aria-hidden="true"></span>
+                <div class="card__main">
+                  <h4 class="card__title">Cow</h4>
+                  <p class="card__meta">Farm animals · card 2</p>
+                </div>
+                <div class="card__trail">
+                  <span class="tag" data-tone="ink">Due</span>
+                  <p class="card__meta">Today</p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.5 -->
+        <article class="sg-entry" id="tag-badge">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.5</p>
+            <h3 class="sg-entry__name">Badge</h3>
+            <p class="sg-entry__use">How many are waiting behind a control.</p>
+            <p class="sg-entry__classes"><code>.badge</code> <code>aria-hidden</code></p>
+            <p class="sg-entry__note">
+              At least 20px, ink, tabular figures, and "99+" past 99. Pinned to the corner of an
+              icon button; after the label in a text button. The badge is
+              <code>aria-hidden</code>: the count is in the control's name, so it is heard as
+              "Decks, 7 due".
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="btn-row">
+              <button class="btn btn--icon" type="button" aria-label="Decks, 7 due" data-sg-code>
+                <span class="ic ic--decks" aria-hidden="true"></span>
+                <span class="badge" aria-hidden="true">7</span>
+              </button>
+              <button class="btn btn--quiet" type="button" data-sg-code>
+                Decks<span class="sr-only">, 7 due</span>
+                <span class="badge" aria-hidden="true">7</span>
+              </button>
+              <button class="btn" type="button" data-sg-code>
+                Due<span class="sr-only">, 140 cards</span>
+                <span class="badge" aria-hidden="true">99+</span>
+              </button>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tag-states" aria-labelledby="h-tag-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-tag-states">States</h2>
+          <p class="sg-sec__note">
+            None of their own: no hover, focus or press, because neither acts. A tag changes with
+            the surface under it; a badge changes with its count, and follows its control's state.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <article class="card">
+              <div class="card__body">
+                <p style="display: flex; flex-wrap: wrap; gap: var(--space-2)">
+                  <span class="tag">Known</span><span class="tag" data-tone="ink">Due</span><span class="tag" data-tone="3">New</span>
+                </p>
+              </div>
+            </article>
+            <p class="sg-caption"><b>On paper.</b> The frame and words are ink.</p>
+          </div>
+          <div>
+            <article class="card" data-tone="4">
+              <div class="card__body">
+                <p style="display: flex; flex-wrap: wrap; gap: var(--space-2)">
+                  <span class="tag">Known</span><span class="tag" data-tone="ink">Due</span><span class="tag" data-tone="3">New</span>
+                </p>
+              </div>
+            </article>
+            <p class="sg-caption"><b>On a tone.</b> No fill of its own: the tone shows through.</p>
+          </div>
+          <div>
+            <article class="card" data-tone="ink">
+              <div class="card__body">
+                <p style="display: flex; flex-wrap: wrap; gap: var(--space-2)">
+                  <span class="tag">Known</span><span class="tag" data-tone="ink">Due</span><span class="tag" data-tone="3">New</span>
+                </p>
+              </div>
+            </article>
+            <p class="sg-caption"><b>On ink.</b> Frame and words turn paper; the ink tag turns paper.</p>
+          </div>
+          <div>
+            <div class="btn-row">
+              <button class="btn btn--icon" type="button" aria-label="Decks, 3 due">
+                <span class="ic ic--decks" aria-hidden="true"></span>
+                <span class="badge" aria-hidden="true">3</span>
+              </button>
+              <button class="btn btn--icon" type="button" aria-label="Decks, 42 due">
+                <span class="ic ic--decks" aria-hidden="true"></span>
+                <span class="badge" aria-hidden="true">42</span>
+              </button>
+              <button class="btn btn--icon" type="button" aria-label="Decks, 140 due">
+                <span class="ic ic--decks" aria-hidden="true"></span>
+                <span class="badge" aria-hidden="true">99+</span>
+              </button>
+            </div>
+            <p class="sg-caption"><b>One, two and three figures.</b> It widens; past 99 it stops.</p>
+          </div>
+          <div>
+            <div class="btn-row">
+              <button class="btn btn--icon is-hover" type="button" aria-label="Decks, 7 due">
+                <span class="ic ic--decks" aria-hidden="true"></span>
+                <span class="badge" aria-hidden="true">7</span>
+              </button>
+              <button class="btn btn--quiet is-active" type="button">
+                Decks<span class="sr-only">, 7 due</span>
+                <span class="badge" aria-hidden="true">7</span>
+              </button>
+            </div>
+            <p class="sg-caption">
+              <b>On a hovered or pressed control.</b> The 2px cut keeps it apart from the fill.
+            </p>
+          </div>
+          <div>
+            <div class="btn-row">
+              <button class="btn btn--icon" type="button" aria-label="Decks">
+                <span class="ic ic--decks" aria-hidden="true"></span>
+              </button>
+              <button class="btn btn--quiet" type="button">Decks</button>
+            </div>
+            <p class="sg-caption"><b>Zero.</b> No badge at all, and no count in the name.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="tag-usage" aria-labelledby="h-tag-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-tag-usage">Usage</h2>
+        </div>
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Use the product's own status words, one or two: Known, New, Due, Not yet. Put the
+              true count in the control's name and cap only what's drawn.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't make a tag pressable. A filter is a toggle button or a segmented control. Don't
+              let a tone carry a status on its own, and don't badge something that has no count.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              The home-screen badge is the system's, set through the Badging API (wave 5). It and
+              the in-app badge show the same number.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              A tag is <code>Text</code> in the label style with a square
+              <code>strokeBorder</code>. A system tab or sidebar row takes the system
+              <code>.badge(_:)</code>; our own controls draw this one, with the count in
+              <code>.accessibilityLabel</code>.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Tag and Badge</span>
+      <span>Spec: design/elements/tag.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

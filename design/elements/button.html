@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Button · Flashcards design system</title>
+    <meta
+      name="description"
+      content="The Button element of the Flashcards design system: variants, states and usage."
+    />
+    <link rel="stylesheet" href="../css/flashcards.css" />
+    <link rel="stylesheet" href="../css/sheet.css" />
+  </head>
+  <body>
+    <a class="sr-only sg-skip" href="#button-variants">Skip to content</a>
+    <div class="sg-top">
+      <div class="sg-wrap sg-top__in">
+        <span class="sg-top__brand">Flashcards / Button</span>
+        <nav aria-label="Contents">
+          <ul role="list">
+            <li><a href="../index.html">System</a></li>
+            <li><a href="#button-variants">Variants</a></li>
+            <li><a href="#button-states">States</a></li>
+            <li><a href="#button-usage">Usage</a></li>
+            <li><a href="../screens.html">Screens</a></li>
+          </ul>
+        </nav>
+        <span class="sg-top__status">Button · gates 0–2</span>
+      </div>
+    </div>
+
+    <main id="el-button">
+      <header class="sg-wrap sg-hero">
+        <p class="sg-hero__kicker t-label">
+          <span>Element 02</span><span>Wireframe</span><span>Gates 0 to 2 done</span>
+        </p>
+        <h1 class="sg-display sg-display--long">Buttons</h1>
+        <div class="sg-hero__row">
+          <p class="sg-hero__lede">
+            A button starts an action. It is a pill because it acts, it is always 44px tall, and
+            its words say what will happen.
+          </p>
+        </div>
+      </header>
+
+      <!-- 01 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="button-variants" aria-labelledby="h-button-variants">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">01</span>
+          <h2 class="sg-sec__title" id="h-button-variants">Variants</h2>
+          <p class="sg-sec__note">
+            One size, one shape, three levels of emphasis. Every variant is a real
+            <code>&lt;button&gt;</code> with <code>.btn</code>; the modifiers only change what it
+            looks like at rest.
+          </p>
+        </div>
+
+        <!-- 1.1 -->
+        <article class="sg-entry" id="button-primary">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.1</p>
+            <h3 class="sg-entry__name">Primary</h3>
+            <p class="sg-entry__use">The one thing to press in this part of the screen.</p>
+            <p class="sg-entry__classes"><code>.btn</code> <code>.btn--primary</code></p>
+            <p class="sg-entry__note">
+              Filled with <code>--accent</code> and <code>--on-accent</code> (ink and paper until
+              gate 3). At most one per region: if two things both want to be primary, one of them
+              isn't.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-cols" style="--col: 12rem">
+              <div class="btn-row">
+                <button class="btn btn--primary" type="button" data-sg-code>Start</button>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn--primary" type="button" data-sg-code>Got it</button>
+              </div>
+            </div>
+            <p class="sg-caption">Two regions, one primary each.</p>
+          </div>
+        </article>
+
+        <!-- 1.2 -->
+        <article class="sg-entry" id="button-secondary">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.2</p>
+            <h3 class="sg-entry__name">Secondary</h3>
+            <p class="sg-entry__use">Everything else that deserves a frame.</p>
+            <p class="sg-entry__classes"><code>.btn</code></p>
+            <p class="sg-entry__note">
+              The default: <code>.btn</code> with no modifier is a 2px ink frame on paper. A leading
+              icon is optional and comes before the label.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="btn-row">
+              <button class="btn" type="button" data-sg-code>Not yet</button>
+              <button class="btn" type="button" data-sg-code>
+                <span class="ic ic--plus" aria-hidden="true"></span>Add a shape
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.3 -->
+        <article class="sg-entry" id="button-quiet">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.3</p>
+            <h3 class="sg-entry__name">Quiet</h3>
+            <p class="sg-entry__use">For bars and card feet, where a frame would be noise.</p>
+            <p class="sg-entry__classes"><code>.btn</code> <code>.btn--quiet</code></p>
+            <p class="sg-entry__note">
+              No frame until hover or focus, but the full 44px target and the same padding, so the
+              label sits where a framed one would. Next to a primary it is the way out.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem">
+            <div class="btn-row">
+              <button class="btn btn--quiet" type="button" data-sg-code>Turn over</button>
+              <button class="btn btn--primary" type="button">Got it</button>
+            </div>
+            <article class="card">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 12 cards</p>
+                <h4 class="card__title">Shapes</h4>
+                <div class="btn-row">
+                  <button class="btn btn--quiet" type="button">Edit deck</button>
+                  <button class="btn btn--primary" type="button">Start</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </article>
+
+        <!-- 1.4 -->
+        <article class="sg-entry" id="button-destructive">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.4</p>
+            <h3 class="sg-entry__name">Destructive</h3>
+            <p class="sg-entry__use">Something that can't be taken back.</p>
+            <p class="sg-entry__classes"><code>.btn</code> <code>.btn--quiet</code></p>
+            <p class="sg-entry__note">
+              A recipe, not a class. The words carry it: a verb and the thing it destroys. Never
+              primary, never red (the palette is monochrome, for good). It always asks first, as
+              here, or offers Undo afterwards.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 15rem">
+            <div>
+              <button class="btn" type="button" data-sg-code>Delete deck</button>
+              <p class="sg-caption"><b>First press.</b> Opens the question.</p>
+            </div>
+            <div>
+              <article class="card" data-sg-code>
+                <div class="card__body">
+                  <h4 class="card__title">Delete Shapes?</h4>
+                  <p class="card__text">Its 12 cards and what you've learned go with it.</p>
+                  <div class="btn-row">
+                    <button class="btn btn--quiet" type="button">Keep deck</button>
+                    <button class="btn" type="button">Delete deck</button>
+                  </div>
+                </div>
+              </article>
+              <p class="sg-caption"><b>The question.</b> The way out is quiet, the loss is named.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.5 -->
+        <article class="sg-entry" id="button-icon">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.5</p>
+            <h3 class="sg-entry__name">Icon-only</h3>
+            <p class="sg-entry__use">When the glyph says it all, and space is short.</p>
+            <p class="sg-entry__classes"><code>.btn--icon</code> <code>aria-label</code></p>
+            <p class="sg-entry__note">
+              A 44px circle. The button carries the <code>aria-label</code>; the icon is
+              <code>aria-hidden</code>. Works with any emphasis: framed by default, quiet in a bar.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="btn-row">
+              <button class="btn btn--icon" type="button" aria-label="Add a shape" data-sg-code>
+                <span class="ic ic--plus" aria-hidden="true"></span>
+              </button>
+              <button class="btn btn--icon" type="button" aria-label="Mark as known" data-sg-code>
+                <span class="ic ic--check" aria-hidden="true"></span>
+              </button>
+              <button class="btn btn--icon btn--quiet" type="button" aria-label="Close" data-sg-code>
+                <span class="ic ic--close" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.6 -->
+        <article class="sg-entry" id="button-toggle">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.6</p>
+            <h3 class="sg-entry__name">Toggle</h3>
+            <p class="sg-entry__use">An action that stays on until you turn it off.</p>
+            <p class="sg-entry__classes"><code>aria-pressed</code></p>
+            <p class="sg-entry__note">
+              The label never changes; <code>aria-pressed</code> says on or off. On doubles the
+              frame, as a selected card does, and shows a check, so it can't be mistaken for focus
+              or for a primary. Press one to try it.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="btn-row">
+              <button class="btn" type="button" aria-pressed="false" data-sg-code data-sg-toggle>Shuffle</button>
+              <button class="btn" type="button" aria-pressed="true" data-sg-code data-sg-toggle>Shuffle</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.7 -->
+        <article class="sg-entry" id="button-block">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.7</p>
+            <h3 class="sg-entry__name">Block</h3>
+            <p class="sg-entry__use">The full width of a phone form.</p>
+            <p class="sg-entry__classes"><code>.btn--block</code></p>
+            <p class="sg-entry__note">
+              Takes the width of its column, nothing more. On a wide screen the column is narrow,
+              so the button is too.
+            </p>
+          </header>
+          <div class="sg-stage">
+            <div class="sg-stack" style="max-inline-size: 22rem">
+              <button class="btn btn--primary btn--block" type="button" data-sg-code>Add a shape</button>
+              <button class="btn btn--block" type="button" data-sg-code>Not yet</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.8 -->
+        <article class="sg-entry" id="button-busy">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.8</p>
+            <h3 class="sg-entry__name">Busy</h3>
+            <p class="sg-entry__use">The press was heard, and the work takes a moment.</p>
+            <p class="sg-entry__classes"><code>aria-busy</code> <code>.spinner</code></p>
+            <p class="sg-entry__note">
+              The label stays; there is no "Loading…" text. A spinner (from Meter) takes the
+              leading icon's place, it stops lifting, and the app ignores another press until the
+              work is done.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 12rem">
+            <div>
+              <button class="btn btn--primary" type="button" data-sg-code>
+                <span class="ic ic--plus" aria-hidden="true"></span>Add a shape
+              </button>
+              <p class="sg-caption"><b>Before.</b></p>
+            </div>
+            <div>
+              <button class="btn btn--primary" type="button" aria-busy="true" data-sg-code>
+                <span class="spinner" aria-hidden="true"></span>Add a shape
+              </button>
+              <p class="sg-caption"><b>Busy.</b> Same label, same width.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- 1.9 -->
+        <article class="sg-entry" id="button-row">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">1.9</p>
+            <h3 class="sg-entry__name">A row of buttons</h3>
+            <p class="sg-entry__use">Two or three choices side by side.</p>
+            <p class="sg-entry__classes"><code>.btn-row</code></p>
+            <p class="sg-entry__note">
+              12px apart, so targets never touch. The primary goes last, at the trailing end, as on
+              the Mac and iOS. Block buttons in a row share it equally and stack when each would be
+              under three targets wide.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 16rem">
+            <div>
+              <div class="btn-row" data-sg-code>
+                <button class="btn btn--block" type="button">Not yet</button>
+                <button class="btn btn--primary btn--block" type="button">Got it</button>
+              </div>
+              <p class="sg-caption"><b>The study screen.</b> Shared, equal widths.</p>
+            </div>
+            <div>
+              <div class="btn-row" data-sg-code>
+                <button class="btn" type="button" aria-pressed="false" data-sg-toggle>Shuffle</button>
+                <button class="btn btn--primary" type="button">Start</button>
+              </div>
+              <p class="sg-caption"><b>A deck.</b> Each as wide as its words.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 02 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="button-states" aria-labelledby="h-button-states">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">02</span>
+          <h2 class="sg-sec__title" id="h-button-states">States</h2>
+          <p class="sg-sec__note">
+            The card's two numbers: <code>--lift</code> draws the hard shadow, <code>--fill</code>
+            swaps ink and paper. Rest is flat, hover lifts, press goes back down and keeps the fill.
+            Secondary, primary and quiet in each.
+          </p>
+        </div>
+
+        <div class="sg-states">
+          <div>
+            <div class="btn-row">
+              <button class="btn" type="button">Not yet</button>
+              <button class="btn btn--primary" type="button">Got it</button>
+              <button class="btn btn--quiet" type="button">Turn over</button>
+            </div>
+            <p class="sg-caption"><b>Rest.</b> Flat. The pill already says it can be pressed.</p>
+          </div>
+          <div>
+            <div class="btn-row">
+              <button class="btn is-hover" type="button">Not yet</button>
+              <button class="btn btn--primary is-hover" type="button">Got it</button>
+              <button class="btn btn--quiet is-hover" type="button">Turn over</button>
+            </div>
+            <p class="sg-caption"><b>Hover.</b> Filled, with a 4px hard shadow. Nothing moves.</p>
+          </div>
+          <div>
+            <div class="btn-row">
+              <button class="btn is-focus" type="button">Not yet</button>
+              <button class="btn btn--primary is-focus" type="button">Got it</button>
+              <button class="btn btn--quiet is-focus" type="button">Turn over</button>
+            </div>
+            <p class="sg-caption"><b>Focus.</b> The hover look, plus a 3px ring 3px out.</p>
+          </div>
+          <div>
+            <div class="btn-row">
+              <button class="btn is-active" type="button">Not yet</button>
+              <button class="btn btn--primary is-active" type="button">Got it</button>
+              <button class="btn btn--quiet is-active" type="button">Turn over</button>
+            </div>
+            <p class="sg-caption">
+              <b>Pressed.</b> Back down: the shadow goes, the fill stays, and a 2px ring shows
+              inside the frame, so even a primary answers a tap.
+            </p>
+          </div>
+          <div>
+            <div class="btn-row">
+              <button class="btn" type="button" aria-pressed="true">Shuffle</button>
+              <button class="btn is-hover" type="button" aria-pressed="true">Shuffle</button>
+            </div>
+            <p class="sg-caption">
+              <b>Selected.</b> A toggle that's on: the frame doubles and a check shows. Here at rest
+              and hovered.
+            </p>
+          </div>
+          <div>
+            <div class="btn-row">
+              <button class="btn btn--primary" type="button" aria-disabled="true" aria-describedby="button-why">
+                Start
+              </button>
+            </div>
+            <p class="t-meta" id="button-why" style="margin-block-start: var(--space-2)">
+              Add a card to this deck first.
+            </p>
+            <p class="sg-caption">
+              <b>Disabled.</b> Dashed and faint, still focusable, and it says why. Prefer not
+              disabling at all.
+            </p>
+          </div>
+        </div>
+        <p class="sg-caption" style="max-inline-size: 70ch">
+          The <code>.is-*</code> classes force a state for this page and for tests. They are not
+          API: real states come from <code>:hover</code> (only where a pointer hovers),
+          <code>:focus-visible</code>, <code>:active</code>, <code>aria-pressed</code>,
+          <code>aria-busy</code> and <code>aria-disabled</code>.
+        </p>
+      </section>
+
+      <!-- 03 ------------------------------------------------------------- -->
+      <section class="sg-wrap sg-sec" id="button-usage" aria-labelledby="h-button-usage">
+        <div class="sg-sec__head">
+          <span class="sg-sec__idx">03</span>
+          <h2 class="sg-sec__title" id="h-button-usage">Usage</h2>
+          <p class="sg-sec__note">
+            A button reads the surface it sits on. In a card it takes the card's ink and fill, so
+            the same markup works on paper, on a tone and on the inverted tone.
+          </p>
+        </div>
+
+        <article class="sg-entry" id="button-on-cards">
+          <header class="sg-entry__meta">
+            <p class="sg-entry__idx">3.1</p>
+            <h3 class="sg-entry__name">On a card</h3>
+            <p class="sg-entry__use">The same buttons on paper, a tone and ink.</p>
+            <p class="sg-entry__classes"><code>--card-ink</code> <code>--card-bg</code></p>
+            <p class="sg-entry__note">
+              On the ink card the frame, the label and the shadow all turn paper. The card's own
+              round action and square bar control stay the card's for now: the spec says how they
+              line up.
+            </p>
+          </header>
+          <div class="sg-stage sg-cols" style="--col: 14rem">
+            <article class="card">
+              <div class="card__body">
+                <p class="card__eyebrow">Card 03 / 12</p>
+                <h4 class="card__title">Triangle</h4>
+                <div class="btn-row">
+                  <button class="btn" type="button">Not yet</button>
+                  <button class="btn btn--primary" type="button">Got it</button>
+                </div>
+              </div>
+            </article>
+            <article class="card" data-tone="3">
+              <div class="card__body">
+                <p class="card__eyebrow">Deck · 8 cards</p>
+                <h4 class="card__title">Colours</h4>
+                <div class="btn-row">
+                  <button class="btn" type="button">Turn over</button>
+                  <button class="btn btn--quiet is-hover" type="button">Edit deck</button>
+                </div>
+              </div>
+            </article>
+            <article class="card" data-tone="ink">
+              <div class="card__body">
+                <p class="card__eyebrow">Carry on</p>
+                <h4 class="card__title">Shapes</h4>
+                <div class="btn-row">
+                  <button class="btn" type="button">Turn over</button>
+                  <button class="btn is-hover" type="button">Not yet</button>
+                </div>
+              </div>
+            </article>
+            <p class="sg-caption" style="grid-column: 1 / -1">
+              On the tone and ink cards the second button is held in its hover look, to show the
+              lift on each surface.
+            </p>
+          </div>
+        </article>
+
+        <ol class="sg-rules" role="list">
+          <li>
+            <strong>Do</strong>
+            <p>
+              Start the label with a verb and name the thing: "Add a shape", "Delete deck". Keep it
+              to two or three words. One primary per region, last in the row.
+            </p>
+          </li>
+          <li>
+            <strong>Don't</strong>
+            <p>
+              Don't disable a button to say "not yet": leave it on and explain when it's pressed.
+              Don't make a link look like a button unless it goes somewhere you'd start from. Don't
+              put a shadow on it at rest.
+            </p>
+          </li>
+          <li>
+            <strong>Destructive</strong>
+            <p>
+              The words carry it, never a colour. Ask first, or do it and offer Undo. A destructive
+              button is never the primary.
+            </p>
+          </li>
+          <li>
+            <strong>Installed PWA</strong>
+            <p>
+              Touch has no hover, so the pressed look (fill and inner ring) is the feedback; the
+              shell's <code>touchstart</code> listener turns on <code>:active</code> in iOS Safari.
+              <code>touch-action: manipulation</code> removes the double-tap wait.
+            </p>
+          </li>
+          <li>
+            <strong>Mac and SwiftUI</strong>
+            <p>
+              System chrome (toolbar, alerts, sheets) keeps system buttons; ours are for content.
+              In SwiftUI, one custom <code>ButtonStyle</code> reads
+              <code>configuration.isPressed</code>, hover and focus, and draws the same capsule.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <script>
+        /* the page's toggles flip aria-pressed (a real app owns this state). Inside
+           <main>, so the bundled style sheet keeps it. */
+        document.addEventListener("click", function (e) {
+          var b = e.target.closest && e.target.closest("[data-sg-toggle]");
+          if (b) b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true"));
+        });
+      </script>
+    </main>
+
+    <footer class="sg-wrap sg-foot">
+      <span>Flashcards design system · Button</span>
+      <span>Spec: design/elements/button.md</span>
+      <span>Pipeline: design/README.md</span>
+    </footer>
+
+    <script src="../js/sheet.js"></script>
+  </body>
+</html>

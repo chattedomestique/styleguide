@@ -423,24 +423,64 @@ label {
 }
 @layer base {
 /* ==========================================================================
-   Icons, v0 — five glyphs, enough for cards.
+   Icons — 26 glyphs. Spec: elements/icons.md · page: elements/icons.html
 
-   Drawn on a 24 grid with a 2px square-cap stroke: the same weight as the
-   frame, so an icon reads as part of the line work and not as a sticker.
-   They are masks, so they take currentColor and never need an <img>.
+   Drawn on a 24 grid with a 2px square-cap stroke and mitred corners: the same
+   weight as the frame, so an icon reads as part of the line work and not as a
+   sticker. They are masks, so they take currentColor and never need an <img>.
 
-     <span class="ic ic--arrow" aria-hidden="true"></span>
+     <span class="ic ic--search" aria-hidden="true"></span>
 
    Decorative by default. If an icon is the only content of a control, the
-   control gets the aria-label, not the icon.
+   control gets the aria-label, not the icon. ↗ (arrow) means "leaves the app".
+
+   How they're drawn, so the next glyph matches:
+   · Live area 4–20: straight strokes stop at 5 and 19, and the square caps
+     carry them to the edge. Circles reach 3–21 and the warning triangle a
+     little further, because round and pointed shapes look smaller than square
+     ones at the same width.
+   · Outlines only: no fills, no duotone. A dot is a stroke too: 2×2 when it
+     belongs to a letter (the i, the !), 3×3 when it stands alone (more, today).
+   · Gaps of at least 2 units, so nothing closes up at 20px (1.67px strokes).
+   · Chevrons move around inside the app; ↗ is the only arrow that leaves it.
    ========================================================================== */
 
 :root {
+  /* kept from v0 */
   --icon-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M7 17L17 7M8 7h9v9'/%3E%3C/svg%3E");
   --icon-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
   --icon-minus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
   --icon-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
   --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 12.5l5 5L19 7.5'/%3E%3C/svg%3E");
+
+  /* navigation */
+  --icon-back: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M15 6l-6 6 6 6'/%3E%3C/svg%3E");
+  --icon-forward: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
+  --icon-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  --icon-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+
+  /* actions */
+  --icon-more: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5.5 11.5h1v1h-1zM11.5 11.5h1v1h-1zM17.5 11.5h1v1h-1z'/%3E%3C/svg%3E");
+  --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M16.5 10.5a6 6 0 1 1-12 0 6 6 0 0 1 12 0zM15 15l4 4'/%3E%3C/svg%3E");
+  --icon-edit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 19v-4L15 5l4 4L9 19zM12 8l4 4'/%3E%3C/svg%3E");
+  --icon-delete: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 7h14M10 4h4M7 7l1 12h8l1-12M10 11v4M14 11v4'/%3E%3C/svg%3E");
+  --icon-share: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 5v10M8.5 7.5 12 4l3.5 3.5M8 11H6v8h12v-8h-2'/%3E%3C/svg%3E");
+  --icon-undo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M9 5 5 9l4 4M6 9h8a5 5 0 0 1 0 10h-3'/%3E%3C/svg%3E");
+  --icon-refresh: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M18 13a6 6 0 1 1-6-6h1M11 4l3 3-3 3'/%3E%3C/svg%3E");
+  --icon-shuffle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 7h2l10 10h1M5 17h2l10-10h1M16.5 4.5 19 7l-2.5 2.5M16.5 14.5 19 17l-2.5 2.5'/%3E%3C/svg%3E");
+  --icon-flip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 8h11M14 5l3 3-3 3M19 16H8M10 13l-3 3 3 3'/%3E%3C/svg%3E");
+  --icon-install: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 5v9M8 11l4 4 4-4M5 15v4h14v-4'/%3E%3C/svg%3E");
+  --icon-sidebar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 6h14v12H5zM10 6v12'/%3E%3C/svg%3E");
+
+  /* status */
+  --icon-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0zM12 12v4M12 8h.01'/%3E%3C/svg%3E");
+  --icon-warning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 4l8.5 16h-17zM12 10v4M12 17h.01'/%3E%3C/svg%3E");
+  --icon-offline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M7 18A4 4 0 0 1 6.53 10.03A6 6 0 0 1 17.83 11.1A3.5 3.5 0 0 1 17 18zM4 4l16 16'/%3E%3C/svg%3E");
+
+  /* places */
+  --icon-settings: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 8h6M17 8h2M5 16h2M13 16h6M13 6h4v4h-4zM7 14h4v4H7z'/%3E%3C/svg%3E");
+  --icon-today: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 7h14v12H5zM5 11h14M9 5v3M15 5v3M8.5 14.5h1v1h-1z'/%3E%3C/svg%3E");
+  --icon-decks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M5 11h14v8H5zM7 8h10M9 5h6'/%3E%3C/svg%3E");
 }
 
 .ic {
@@ -470,6 +510,90 @@ label {
 
 .ic--check {
   --ic: var(--icon-check);
+}
+
+.ic--back {
+  --ic: var(--icon-back);
+}
+
+.ic--forward {
+  --ic: var(--icon-forward);
+}
+
+.ic--down {
+  --ic: var(--icon-down);
+}
+
+.ic--up {
+  --ic: var(--icon-up);
+}
+
+.ic--more {
+  --ic: var(--icon-more);
+}
+
+.ic--search {
+  --ic: var(--icon-search);
+}
+
+.ic--edit {
+  --ic: var(--icon-edit);
+}
+
+.ic--delete {
+  --ic: var(--icon-delete);
+}
+
+.ic--share {
+  --ic: var(--icon-share);
+}
+
+.ic--undo {
+  --ic: var(--icon-undo);
+}
+
+.ic--refresh {
+  --ic: var(--icon-refresh);
+}
+
+.ic--shuffle {
+  --ic: var(--icon-shuffle);
+}
+
+.ic--flip {
+  --ic: var(--icon-flip);
+}
+
+.ic--install {
+  --ic: var(--icon-install);
+}
+
+.ic--sidebar {
+  --ic: var(--icon-sidebar);
+}
+
+.ic--info {
+  --ic: var(--icon-info);
+}
+
+.ic--warning {
+  --ic: var(--icon-warning);
+}
+
+.ic--offline {
+  --ic: var(--icon-offline);
+}
+
+.ic--settings {
+  --ic: var(--icon-settings);
+}
+
+.ic--today {
+  --ic: var(--icon-today);
+}
+
+.ic--decks {
+  --ic: var(--icon-decks);
 }
 
 /* Forced-colours mode overrides backgrounds, and an icon here IS a background,
@@ -717,7 +841,7 @@ label {
 /* a foot link is the card's main action: a full 44px target. The negative
    margins spend the foot's own padding (and its rule) so the foot stays 44px,
    and keep its text in line with the rest when it wraps. */
-.card__foot :is(a, button):not(.card__action) {
+.card__foot :is(a, button):not(.card__action, .btn) {
   display: inline-flex;
   align-items: center;
   min-block-size: var(--hit);
@@ -727,7 +851,7 @@ label {
 }
 
 /* its bottom edge is the card's clip edge, so the ring goes inside */
-.card__foot :is(a, button):not(.card__action):focus-visible {
+.card__foot :is(a, button):not(.card__action, .btn):focus-visible {
   outline-offset: calc(var(--ring) * -1);
 }
 
@@ -849,6 +973,16 @@ label {
 
   .card--row .card__tile {
     grid-row: span 2;
+  }
+}
+
+/* narrower still, which at large text sizes is a phone: the tile goes on top
+   and every part spans the full row, so the title gets the whole width
+   instead of one letter per line. em, so the threshold grows with the text. */
+@container card (max-width: 12em) {
+  .card--row :is(.card__tile, .card__main, .card__trail) {
+    grid-column: 1 / -1;
+    grid-row: auto;
   }
 }
 
@@ -1012,7 +1146,7 @@ label {
 }
 
 .card__list a:active,
-.card__foot :is(a, button):not(.card__action):active {
+.card__foot :is(a, button):not(.card__action, .btn):active {
   color: var(--card-bg);
   background: var(--card-ink);
 }
@@ -1118,22 +1252,855 @@ label {
 @layer components {
 /* ==========================================================================
    Button — wave 1. Spec: elements/button.md · page: elements/button.html
+   --------------------------------------------------------------------------
+   Starts an action. A pill, because it acts (rule 3). One size: the target
+   is always 44px, whatever the label.
+
+     <button class="btn" type="button">Not yet</button>
+     <button class="btn btn--primary" type="button">Got it</button>
+
+   The class is .btn, not .button: it sits on every action in the markup,
+   so it stays short.
+
+   House rules for this file
+   · Reads roles only. Inside a card it takes the card's ink and fill
+     (--card-ink, --card-bg), so it inverts on an ink card by itself.
+   · Two numbers draw every state, as on the card. --lift is the hard
+     shadow. --fill swaps ink and paper. Filled and not lifted is "down":
+     a 2px ring inside the frame, so a button that is already filled
+     (primary) still shows a press on a touch screen, where nothing hovers.
+   · Rest is flat: the pill already says "press me". Hover lifts. Press
+     drops the lift and keeps the fill. Nothing moves the hit box.
+   · :hover only inside @media (hover: hover). No transitions (gate 4).
    ========================================================================== */
+
+.btn {
+  /* the surface the button sits on: a card's, or paper */
+  --btn-ink: var(--card-ink, var(--ink));
+  --btn-bg: var(--card-bg, var(--paper));
+  --btn-line: var(--btn-ink);
+
+  /* what a variant sets: the look at rest, and the look when filled */
+  --btn-rest-ink: var(--btn-ink);
+  --btn-rest-bg: var(--btn-bg);
+  --btn-rest-line: var(--btn-line);
+  --btn-fill-ink: var(--btn-bg);
+  --btn-fill-bg: var(--btn-ink);
+
+  /* interaction, as two numbers (foundation.css). Every state sets them. */
+  --lift: 0;
+  --fill: 0;
+  --shadow-lift: calc(var(--lift) * var(--bw) * 2) calc(var(--lift) * var(--bw) * 2) 0 0 var(--btn-line);
+  --shadow-press: inset 0 0 0 calc((1 - var(--lift)) * var(--fill) * var(--bw)) var(--btn-fill-ink);
+  --shadow-select: 0 0 0 0 transparent;
+
+  position: relative; /* a badge pins to it */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: var(--hit);
+  min-inline-size: var(--hit);
+  max-inline-size: 100%;
+  margin: 0;
+  /* 24px a side; on a phone at very large text the cap keeps the label room */
+  padding: var(--space-2) min(var(--space-5), 8vw);
+  font: var(--type-body);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  text-align: center;
+  text-decoration: none;
+  text-wrap: balance;
+  overflow-wrap: break-word; /* wraps between words; breaks one only if it can't fit at all */
+  color: color-mix(in srgb, var(--btn-fill-ink) calc(var(--fill) * 100%), var(--btn-rest-ink));
+  background-color: color-mix(in srgb, var(--btn-fill-bg) calc(var(--fill) * 100%), var(--btn-rest-bg));
+  border: var(--bw) solid color-mix(in srgb, var(--btn-line) calc(var(--fill) * 100%), var(--btn-rest-line));
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-press), var(--shadow-select), var(--shadow-lift);
+  touch-action: manipulation;
+}
+
+/* a leading icon (or the busy spinner) sits closer to the curve, so the
+   label still looks centred */
+.btn:not(.btn--icon) > :is(.ic, .spinner):first-child,
+.btn[aria-pressed]::before {
+  margin-inline-start: calc(var(--space-2) * -1);
+}
+
+/* --- variants --------------------------------------------------------------- */
+
+/* primary: the one "press this" in a region. Filled with the accent at rest,
+   so --fill changes nothing and the press shows as the inner ring alone. */
+.btn--primary {
+  --btn-rest-ink: var(--on-accent);
+  --btn-rest-bg: var(--accent);
+  --btn-fill-ink: var(--on-accent);
+  --btn-fill-bg: var(--accent);
+}
+
+/* secondary is .btn with no modifier: a 2px frame on the surface. */
+
+/* quiet: no frame until hover or focus. For bars and card feet. */
+.btn--quiet {
+  --btn-rest-bg: transparent;
+  --btn-rest-line: transparent;
+}
+
+/* icon-only: a 44px circle. The button carries the aria-label. */
+.btn--icon {
+  flex: none;
+  inline-size: var(--hit);
+  block-size: var(--hit);
+  padding: 0;
+}
+
+/* block: the whole width, for phone forms */
+.btn--block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* toggle: aria-pressed. On is the card's "selected": a ring that doubles the
+   frame, plus a check, so it never reads as focus or as a primary. Off keeps
+   the check's slot, empty, so turning it on moves nothing in the row. */
+.btn[aria-pressed="true"] {
+  --shadow-select: 0 0 0 var(--bw) var(--btn-line);
+}
+
+.btn[aria-pressed]::before {
+  content: "";
+  flex: none;
+  inline-size: var(--ic-size, 1.25rem);
+  block-size: var(--ic-size, 1.25rem);
+  mask: var(--icon-check) center / contain no-repeat;
+}
+
+.btn[aria-pressed="true"]::before {
+  background: currentColor;
+}
+
+/* the busy spinner stands in for the leading icon (meter.css draws it) */
+.btn > .spinner {
+  flex: none;
+}
+
+/* a badge (tag.css) pins to an icon button's corner; in a text button it
+   follows the label, or it would float off the end of the pill. There it
+   overlaps no frame, so it drops the cut that separates it from one. */
+.btn:not(.btn--icon) > .badge {
+  position: static;
+  outline: 0;
+}
+
+/* a row of buttons. Gaps of 12px, so two 44px targets never touch. Primary
+   goes last, at the trailing end, as on the Mac and iOS. Block buttons in a
+   row share it, and stack once each would be under three targets wide. */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.btn-row > .btn--block {
+  flex: 1 1 calc(var(--hit) * 3);
+  inline-size: auto;
+}
+
+/* --- states -----------------------------------------------------------------
+   .is-* classes force a state for the page and for tests. They are not API;
+   real states come from :hover, :focus-visible, :active and aria-*. */
+
+@media (hover: hover) {
+  .btn:hover {
+    --lift: 1;
+    --fill: 1;
+  }
+}
+
+/* keyboard gets what the pointer gets, plus the ring (base.css draws it on
+   :focus-visible: 3px of --focus, 3px out) */
+.btn:is(.is-hover, .is-focus, :focus-visible) {
+  --lift: 1;
+  --fill: 1;
+}
+
+.btn.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* pressed: back onto the surface, the fill stays, and with no lift the inner
+   ring shows. After hover, so it wins. */
+.btn:is(:active, .is-active) {
+  --lift: 0;
+  --fill: 1;
+}
+
+/* busy: the label stays, a spinner leads, and a second press does nothing,
+   so nothing promises one. aria-busy="true". */
+.btn[aria-busy="true"] {
+  --lift: 0;
+  --fill: 0;
+  cursor: progress;
+}
+
+/* disabled: prefer not. When you must, aria-disabled="true" (it stays
+   focusable, so the reason next to it can be found) and say why nearby.
+   Dashed and faint, as the card's disabled; never opacity. The app ignores
+   its clicks: CSS can't stop Enter. Last, so it beats every state above. */
+.btn:is([aria-disabled="true"], :disabled) {
+  --lift: 0;
+  --fill: 0;
+  --btn-rest-ink: var(--ink-faint);
+  --btn-rest-bg: transparent;
+  --btn-rest-line: var(--ink-faint);
+  border-style: dashed;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   Shadows and fills vanish here, so the states that lean on them get a line
+   or a system colour instead. */
+
+@media (forced-colors: active) {
+  .btn {
+    border-color: ButtonText;
+  }
+
+  .btn:is(.is-hover, .is-focus, :focus-visible) {
+    outline: var(--bw-heavy) solid Highlight;
+    outline-offset: 0;
+  }
+
+  @media (hover: hover) {
+    .btn:hover {
+      outline: var(--bw-heavy) solid Highlight;
+      outline-offset: 0;
+    }
+  }
+
+  .btn:is(:active, .is-active) {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+
+  .btn:is(:active, .is-active) .ic {
+    background-color: HighlightText;
+  }
+
+  /* on: a 4px frame, with the padding paying for it so nothing shifts */
+  .btn[aria-pressed="true"] {
+    border-width: var(--bw-heavy);
+    padding: calc(var(--space-2) - var(--bw)) calc(min(var(--space-5), 8vw) - var(--bw));
+  }
+
+  .btn[aria-pressed="true"]::before {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+
+  .btn[aria-pressed="true"]:is(:active, .is-active)::before {
+    background-color: HighlightText;
+  }
+
+  .btn:is([aria-disabled="true"], :disabled) {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .btn:is([aria-disabled="true"], :disabled) .ic {
+    background-color: GrayText;
+  }
+}
 }
 @layer components {
 /* ==========================================================================
    Field — wave 1. Spec: elements/field.md · page: elements/field.html
+
+   Lets someone type one value. A label above, always visible; then the help
+   and the error, so the on-screen keyboard never covers them; then the input.
+
+     <div class="field">
+       <label class="field__label" for="deck-name">Deck name</label>
+       <p class="field__help" id="deck-name-help">Shown on the deck's card.</p>
+       <input class="field__input" id="deck-name" type="text"
+              aria-describedby="deck-name-help">
+     </div>
+
+   House rules for this file
+   · A field holds text, so it is a square 2px frame. The clear button acts,
+     so it is a circle.
+   · Text is 16px or more, or iOS zooms the page on focus.
+   · The frame is on the input itself, so every state is native: :hover,
+     :focus-visible, [aria-invalid], :disabled, :read-only. .field__box is only
+     a positioning wrapper for the leading icon and the clear button.
+   · Invalid never leans on colour: the frame doubles, and the message says
+     how to fix it, behind a warning glyph.
+   · :hover lives inside @media (hover: hover). States change instantly.
    ========================================================================== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/* --- parts ----------------------------------------------------------------- */
+
+/* sentence case: a label is read, so it isn't the uppercase structure style */
+.field__label {
+  font: var(--type-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.field__help {
+  max-inline-size: var(--measure);
+  font: var(--type-meta);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-inline-size: var(--measure);
+  font: var(--type-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* a 20px glyph centred on the 24px first line */
+.field__error > .ic {
+  margin-block-start: 0.125rem;
+}
+
+/* only there when the input has an icon or a clear button beside it */
+.field__box {
+  position: relative;
+}
+
+.field__input {
+  display: block;
+  inline-size: 100%;
+  min-block-size: var(--hit);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font: var(--type-body);
+  /* the iOS zoom floor (STYLE §4). Restated because the shorthand above resets
+     base.css's rule, and at the smaller Dynamic Type sizes 1rem is under 16px */
+  font-size: max(1rem, 16px);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--radius-ctl);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* placeholders are examples, never the label. Firefox fades them by default */
+.field__input::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+/* search: our own clear button replaces the browser's, which is under 44px */
+.field__input::-webkit-search-decoration,
+.field__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* number: no spinner arrows, whatever the type */
+.field__input::-webkit-inner-spin-button,
+.field__input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.field__input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* the width hints at the answer: a few digits */
+.field--number .field__input {
+  max-inline-size: calc(6ch + var(--space-3) * 2 + var(--bw) * 2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* multi-line: grows downwards only, and keeps its scroll to itself */
+textarea.field__input {
+  min-block-size: calc(var(--hit) * 2);
+  resize: vertical;
+  overscroll-behavior: contain;
+}
+
+/* leading icon: sits in the frame's padding, and clicks go through to the input */
+.field__icon {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--bw) + var(--space-3));
+  margin-block: auto;
+  pointer-events: none;
+}
+
+.field__icon ~ .field__input {
+  padding-inline-start: calc(var(--space-3) + 1.25rem + var(--space-2));
+}
+
+/* room for the clear button while it shows. It only shows once there's text,
+   which starts at the other end, so nothing under the caret moves */
+.field__box:has(.field__clear:not([hidden])) .field__input {
+  padding-inline-end: var(--hit);
+}
+
+/* clear: a 44px target around a 28px circle, over the frame's inline end.
+   Pressable, so it reads --fill: an outline at rest, ink when hovered or
+   pressed. Its ring goes round the circle, inside the field. */
+.field__clear {
+  --fill: 0;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: grid;
+  place-items: center;
+  inline-size: var(--hit);
+  block-size: var(--hit);
+  margin: 0;
+  padding: 0;
+  color: color-mix(in srgb, var(--paper) calc(var(--fill) * 100%), var(--ink));
+  background: none;
+  border: 0;
+}
+
+.field__clear[hidden] {
+  display: none;
+}
+
+.field__clear::before,
+.field__clear > .ic {
+  grid-area: 1 / 1;
+}
+
+.field__clear::before {
+  content: "";
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  background: color-mix(in srgb, var(--ink) calc(var(--fill) * 100%), transparent);
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius-pill);
+}
+
+.field__clear > .ic {
+  --ic-size: 1.25rem;
+}
+
+/* --- states ----------------------------------------------------------------
+   .is-* classes force a state for documentation and tests. They are not an
+   API; real states come from :hover, :focus-visible, :active and aria-*. */
+
+/* hover: a quiet change of ground, on fields you can type in */
+@media (hover: hover) {
+  .field__input:read-write:hover:not(:focus) {
+    background: var(--canvas);
+  }
+
+  .field__clear:hover {
+    --fill: 1;
+  }
+}
+
+.field__input.is-hover {
+  background: var(--canvas);
+}
+
+/* focus: base.css draws the ring on the input; this forces it for the page */
+.field__input.is-focus {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset);
+}
+
+/* the clear button's ring hugs its circle and stays inside the frame */
+.field__clear:focus-visible {
+  outline: 0;
+}
+
+.field__clear:is(:focus-visible, .is-focus)::before {
+  outline: var(--ring) solid var(--focus);
+  outline-offset: var(--ring-offset-in);
+}
+
+.field__clear:is(.is-hover, :active, .is-active) {
+  --fill: 1;
+}
+
+/* invalid: the frame doubles, inwards, so nothing shifts and the focus ring
+   keeps its gap. The words and the glyph in .field__error do the rest;
+   aria-describedby ties them to the input */
+.field__input[aria-invalid]:not([aria-invalid="false"]) {
+  box-shadow: inset 0 0 0 var(--bw) var(--line);
+}
+
+/* read-only: not a box any more. A value on a rule, in line with its label,
+   as a Mac shows a field you can't edit. Still focusable and selectable. */
+.field__input:read-only:not(:disabled) {
+  padding-inline: 0;
+  background: transparent;
+  border-width: 0 0 var(--bw-thin);
+}
+
+/* disabled: dashed and faint, and the help text says why. Never opacity. */
+.field__input:disabled {
+  color: var(--ink-faint);
+  -webkit-text-fill-color: currentColor;
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--ink-faint);
+  opacity: 1;
+}
+
+.field:has(.field__input:disabled) :is(.field__label, .field__icon) {
+  color: var(--ink-faint);
+}
+
+.field__input:disabled ~ .field__clear {
+  display: none;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   The doubled frame is a shadow and the clear button's fill is a background:
+   both vanish here, so they become lines. */
+
+@media (forced-colors: active) {
+  .field__input[aria-invalid]:not([aria-invalid="false"]) {
+    border-width: var(--bw-heavy);
+  }
+
+  .field__input:disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .field:has(.field__input:disabled) .field__label {
+    color: GrayText;
+  }
+
+  .field:has(.field__input:disabled) .ic {
+    background-color: GrayText;
+  }
+
+  .field__clear:is(.is-hover, :active, .is-active)::before {
+    border-color: Highlight;
+  }
+
+  @media (hover: hover) {
+    .field__clear:hover::before {
+      border-color: Highlight;
+    }
+  }
+}
 }
 @layer components {
 /* ==========================================================================
-   Tag — wave 1. Spec: elements/tag.md · page: elements/tag.html
+   Tag and Badge — wave 1. Spec: elements/tag.md · page: elements/tag.html
+   --------------------------------------------------------------------------
+   A status word on a thing; a count on a control.
+
+     <span class="tag">Known</span>
+     <span class="tag" data-tone="ink">Due</span>
+     <span class="badge" aria-hidden="true">7</span>
+
+   House rules for this file
+   · Neither one acts, so neither is round (rule 3), neither lifts, and
+     neither has a hover, focus or pressed look.
+   · Reads roles only. Inside a card both take the card's ink and fill, so
+     they invert on an ink card with no extra class.
    ========================================================================== */
+
+/* --- tag: a word in a square frame. Label type, one or two words. ---------- */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-block-size: var(--space-5);
+  padding-inline: var(--space-2);
+  font: var(--type-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--tone-ink, var(--card-ink, var(--ink)));
+  background-color: var(--tone-bg, transparent);
+  border: var(--bw) solid currentColor;
+  border-radius: var(--radius-tile);
+}
+
+/* ink, for emphasis: the surface's ink and fill swap, so on an ink card the
+   tag turns paper instead of vanishing */
+.tag[data-tone="ink"] {
+  color: var(--card-bg, var(--paper));
+  background-color: var(--card-ink, var(--ink));
+  border-color: var(--card-ink, var(--ink));
+}
+
+/* --- badge: a count pinned to the top end of a control ---------------------
+   The control is position: relative (.btn is); in a text button the badge
+   follows the label instead (button.css). The badge is aria-hidden: the
+   count lives in the control's name ("Decks, 7 due"). At least 20px, tabular
+   figures, "99+" past 99. A 2px cut in the surface colour keeps it off the
+   control's frame. */
+
+.badge {
+  position: absolute;
+  inset-block-start: calc(var(--space-1) * -1);
+  inset-inline-end: calc(var(--space-1) * -1);
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.25rem;
+  block-size: 1.25rem;
+  padding-inline: var(--space-1);
+  font: var(--type-label);
+  font-stretch: normal; /* condensed figures are too thin at 13px */
+  line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--card-bg, var(--paper));
+  background-color: var(--card-ink, var(--ink));
+  outline: var(--bw) solid var(--card-bg, var(--paper));
+  border-radius: var(--radius-tile);
+  pointer-events: none;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   A tone fill is a background, and forced colours drop it: the frame keeps a
+   tag readable (a tone is rhythm, not meaning). The ink tag and the badge
+   are their fill, so they opt out. */
+
+@media (forced-colors: active) {
+  .tag {
+    border-color: CanvasText;
+  }
+
+  /* emphasis is information: keep the ink tag inverted, in system colours */
+  .tag[data-tone="ink"] {
+    forced-color-adjust: none;
+    color: Canvas;
+    background-color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .badge {
+    forced-color-adjust: none;
+    color: Canvas;
+    background-color: CanvasText;
+    outline-color: Canvas;
+  }
+}
 }
 @layer components {
 /* ==========================================================================
    Meter — wave 1. Spec: elements/meter.md · page: elements/meter.html
+   --------------------------------------------------------------------------
+   How far along, and "working on it" when nobody knows how long. Four
+   variants, three blocks:
+
+     .meter            a value in a range: role="meter" ("5 of 12 known")
+     .meter--segments  the same, one segment per card, up to 20
+     .progress         a task: native <progress> ("Importing 40 of 120 cards")
+     .spinner          an unknown wait, always with words ("Loading decks…")
+
+   House rules for this file
+   · The bar never stands alone: every bar has a visible label and value.
+   · Ink is currentColor, the track is the surface itself, so a meter reads
+     on paper, on any tone and on an ink card with no extra class.
+   · Square: a bar holds, it doesn't act (rule 3).
+   · The spinner is a still frame until gate 4. It has to read on its own.
    ========================================================================== */
+
+/* --- the labelled bar: label and value on one line, the bar under them ----- */
+
+.meter,
+.progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  min-inline-size: 0;
+}
+
+.meter__label,
+.progress__label {
+  font: var(--type-meta);
+}
+
+/* the value in words. The bar's aria-valuetext says the same, so this copy
+   is aria-hidden and a screen reader hears it once. */
+.meter__value,
+.progress__value {
+  font: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--card-ink-soft, var(--ink-soft));
+}
+
+/* --- meter: a 2px frame, filled from the start edge by --value ------------ */
+
+.meter__bar {
+  --value: 0%;
+  position: relative;
+  block-size: var(--space-4);
+  border: var(--bw) solid currentColor;
+  border-radius: var(--radius-tile);
+  overflow: clip;
+}
+
+.meter__bar::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--value);
+  background: currentColor;
+}
+
+/* in the labelled meter the bar takes its own line under the label and value.
+   Only there: on its own (a card's stat) a flex basis would stretch it to
+   fill the card's column. */
+.meter > .meter__bar {
+  flex: 1 0 100%;
+}
+
+/* --- segments: one per card, up to 20. The fill reads aria-valuenow, so
+   the number a screen reader hears is the number you see. ------------------ */
+
+/* a grid of equal boxes. Each keeps at least 8px (4px of it inside the
+   frame) so on and off stay tellable apart; when 20 won't fit on one line
+   they wrap onto a second row instead of thinning out (the rows may be
+   uneven: 18 and 2 at 320px with 200% text). */
+.meter--segments .meter__bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--bw) * 4), 1fr));
+  grid-auto-rows: var(--space-4);
+  gap: calc(var(--bw) * 2);
+  block-size: auto;
+  border: 0;
+  overflow: visible;
+}
+
+.meter--segments .meter__bar::before {
+  content: none;
+}
+
+.meter__seg {
+  border: var(--bw) solid currentColor;
+  border-radius: var(--radius-tile);
+}
+
+.meter__bar[aria-valuenow="1"] > .meter__seg:nth-child(-n + 1),
+.meter__bar[aria-valuenow="2"] > .meter__seg:nth-child(-n + 2),
+.meter__bar[aria-valuenow="3"] > .meter__seg:nth-child(-n + 3),
+.meter__bar[aria-valuenow="4"] > .meter__seg:nth-child(-n + 4),
+.meter__bar[aria-valuenow="5"] > .meter__seg:nth-child(-n + 5),
+.meter__bar[aria-valuenow="6"] > .meter__seg:nth-child(-n + 6),
+.meter__bar[aria-valuenow="7"] > .meter__seg:nth-child(-n + 7),
+.meter__bar[aria-valuenow="8"] > .meter__seg:nth-child(-n + 8),
+.meter__bar[aria-valuenow="9"] > .meter__seg:nth-child(-n + 9),
+.meter__bar[aria-valuenow="10"] > .meter__seg:nth-child(-n + 10),
+.meter__bar[aria-valuenow="11"] > .meter__seg:nth-child(-n + 11),
+.meter__bar[aria-valuenow="12"] > .meter__seg:nth-child(-n + 12),
+.meter__bar[aria-valuenow="13"] > .meter__seg:nth-child(-n + 13),
+.meter__bar[aria-valuenow="14"] > .meter__seg:nth-child(-n + 14),
+.meter__bar[aria-valuenow="15"] > .meter__seg:nth-child(-n + 15),
+.meter__bar[aria-valuenow="16"] > .meter__seg:nth-child(-n + 16),
+.meter__bar[aria-valuenow="17"] > .meter__seg:nth-child(-n + 17),
+.meter__bar[aria-valuenow="18"] > .meter__seg:nth-child(-n + 18),
+.meter__bar[aria-valuenow="19"] > .meter__seg:nth-child(-n + 19),
+.meter__bar[aria-valuenow="20"] > .meter__seg:nth-child(-n + 20) {
+  background: currentColor;
+}
+
+/* --- progress: the native element, drawn like the meter --------------------
+   Always with a value. A task with no known length gets the spinner, not an
+   indeterminate bar (that one animates, and gate 4 isn't open). */
+
+.progress__bar {
+  appearance: none;
+  flex: 1 0 100%;
+  inline-size: 100%;
+  block-size: var(--space-4);
+  margin: 0;
+  color: inherit;
+  background: none;
+  border: var(--bw) solid currentColor;
+  border-radius: var(--radius-tile);
+  overflow: clip;
+}
+
+.progress__bar::-webkit-progress-bar {
+  background: none;
+}
+
+.progress__bar::-webkit-progress-value {
+  background: currentColor;
+}
+
+.progress__bar::-moz-progress-bar {
+  background: currentColor;
+}
+
+/* --- spinner: a still frame and words --------------------------------------
+   An open ring on the icon grid: 2px, square caps, a quarter missing at the
+   top right. Static, it still reads as "busy"; gate 4 turns it. The words sit
+   inside: <p class="spinner" role="status">Loading decks…</p>. Empty, it is
+   the glyph alone, for a busy button, whose label is the words. */
+
+/* a grid, not flex: the words' column can shrink below its longest word, so
+   they wrap in a narrow card instead of running out of it. Implicit columns,
+   so an empty spinner has no trailing gap. */
+.spinner {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--space-2);
+}
+
+/* centred on the first line of the words, so it stays put when they wrap */
+.spinner::before {
+  content: "";
+  margin-block-start: calc((1lh - var(--ic-size, 1.25rem)) / 2);
+  inline-size: var(--ic-size, 1.25rem);
+  block-size: var(--ic-size, 1.25rem);
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M12 3a9 9 0 1 0 9 9'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/* --- forced colours ----------------------------------------------------------
+   Fills are backgrounds, and forced colours drop backgrounds: paint the bars
+   and the glyph in system colours instead. */
+
+@media (forced-colors: active) {
+  /* opted out, so name the colour: every frame and fill inside reads
+     currentColor, segments included */
+  .meter__bar,
+  .progress__bar {
+    forced-color-adjust: none;
+    color: CanvasText;
+  }
+
+  .spinner::before {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+}
 }
 @layer wire {
 /* ==========================================================================
@@ -1193,49 +2160,6 @@ label {
   stroke: var(--card-ink, var(--ink));
   stroke-width: 3.5;
   stroke-linejoin: round;
-}
-
-/* progress / meter */
-.wf-meter {
-  --value: 50%;
-  position: relative;
-  block-size: 0.875rem;
-  overflow: clip;
-  background: var(--card-bg, var(--paper));
-  border: var(--bw) solid var(--card-ink, var(--ink));
-  border-radius: var(--radius-pill);
-}
-
-.wf-meter::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  inline-size: var(--value);
-  background: var(--card-ink, var(--ink));
-}
-
-/* forced colours drop backgrounds, and the meter's fill is one */
-@media (forced-colors: active) {
-  .wf-meter {
-    forced-color-adjust: none;
-    background: Canvas;
-    border-color: CanvasText;
-  }
-
-  .wf-meter::before {
-    background: CanvasText;
-  }
-}
-
-/* status tag */
-.wf-pill {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 1.75rem;
-  padding-inline: var(--space-3);
-  font: var(--type-meta);
-  border: var(--bw-thin) solid currentColor;
-  border-radius: var(--radius-pill);
 }
 
 /* An element that isn't built yet. data-wf names it, and the name sits on
